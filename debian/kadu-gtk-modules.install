@@ -1,0 +1,5 @@
+debian/tmp/usr/lib/kadu/modules/bin/xosd_notify
+debian/tmp/usr/lib/kadu/modules/xosd_notify.so
+debian/tmp/usr/share/kadu/modules/configuration/xosd_notify.ui
+debian/tmp/usr/share/kadu/modules/xosd_notify.desc
+debian/tmp/usr/share/kadu/modules/translations/xosd_notify*

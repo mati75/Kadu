@@ -1,0 +1,142 @@
+kadu (0.6.0.1-1) unstable; urgency=low
+
+  * New upstream release
+  * Corrected names of the modules in REAME.Debian
+  * Added kadu-gtk-modules package. It holds modules (currently only one:
+    xosd_notify) dependent on libgtk
+  * Added kadu-common package for holding /usr/share data in architecture all
+    package
+
+ -- Patryk Cisek <patryk@prezu.one.pl>  Tue, 06 May 2008 08:55:10 +0000
+
+kadu (0.6.0-1) unstable; urgency=low
+
+  * New upstream release
+  * New external modules: anonymous_check, antistring, audacious_mediaplayer,
+    auto_hide, cenzor, osdhints_notify, panelkadu, parser_extender,
+    powerkadu, split_messages, word_fix
+  * Added debian/patches/05-audacious_mediaplayer-spec.patch to fix
+    compilation error in Debian
+
+ -- Patryk Cisek <patryk@prezu.one.pl>  Sat, 08 Mar 2008 18:59:58 +0100
+
+kadu (0.6.0~rc3.1-1) unstable; urgency=low
+
+  * Updated Glass and Tango icon themes. This is a fake upstream version
+    because these themes are in external/themes directory, so .orig.tar.gz
+    had to be changed. (Closes: #465869)
+  * Added copyright notices about newly added modules in debian/copyright
+  * Changed Architecture from any to all for kadu-dev
+  * Moved pcspeaker.ui from kadu.install to kadu-external-modules.install
+    and xosd_notify.desc from kadu-external-modules.install to kadu.install
+  * Removed libgadu-dev from Build-Depends
+  * Added debian/patches/04-icedove_email_client.patch to add a support for
+    IceDove mail client. (Closes: #465920)
+
+ -- Patryk Cisek <patryk@prezu.one.pl>  Sun, 17 Feb 2008 13:52:27 +0000
+
+kadu (0.6.0~rc3-1) unstable; urgency=medium
+
+  * New upstream release (Closes: #461677)
+  * Updated following external modules: mime_tex
+  * debian/control:
+    - moved Homepage: from long description to a header
+    - Modified Build-Depends
+    - Removed kadu-xmms module due to xmms removal (Closes: #461741)
+    - kadu conflicts with kadu-external-modules (<< 0.6.0~) (new internal
+      modules, see below)
+    - Bumped Standards-Version to 3.7.3
+  * debian/extract.sh:
+    - Modified due to fit new external modules and themes lists
+  * debian/kadu-external-modules.install:
+    Added following modules:
+    - mime_tex
+    - agent
+    - Mediaplayer
+    - falf_mediaplayer
+    - mx610_notify
+    - water_notify.so
+    removed followinf modules:
+    - advanced_userlist (moved to kadu.install, since it's now an internal
+      module)
+    - ext_info
+    - iwait4u
+    - osdhints_notify (probably only temporally, should be back in 0.6.0)
+    - powerkadu
+    - xmms
+    - xosd_notify (moved to kadu.install, since it's now an internal module)
+  * debian/patches:
+    - Removed 01-libgadu_Makefile.patch - not needed any more
+    - 02-.config.patch updated to fit new .config file and it's list of
+      modules and themes.
+    - 03-about-dialog.patch modified to fit 0.6.0 version of Kadu.
+    - 04-configure_nostrip.patch modified to fit 0.6.0 version of Kadu. Also
+      patch file's name changed to 01-configure-nostrip.patch
+  * debian/rules:
+    - Linking statically against libgadu from Kadu sources -- version of
+      libgadu currently in Debian is too old -- doesn't support dcc7 needed
+      for dcc module.
+    - Removing .o files after unpacking (see mediaplayer tarball).
+  * external:
+    - updated modules and themes to their newest versions.
+
+ -- Patryk Cisek <patryk@prezu.one.pl>  Thu, 14 Feb 2008 08:08:00 +0000
+
+kadu (0.5.0-4) unstable; urgency=low
+
+  * debian/control
+    - Fixed packages dependencies to make kadu be binNMU-safe
+  * debian/patches/04-configure_nostrip.patch
+    - Added this patch to prevent from stripping binaries during linkage
+      time (Closes: #437250)
+  * debian/kadu.menu
+    - Section changed to Applications/Network/Communication
+
+ -- Patryk Cisek <patryk@prezu.one.pl>  Sun, 12 Aug 2007 19:18:48 +0200
+
+kadu (0.5.0-3) unstable; urgency=low
+
+  * kadu-dcopexport and kadu-amarok modules moved to a separate package
+    kadu-kde-modules due to their dependency on kdelibs.
+  * In copyright notices changed: "Vogel" to "Rafał 'Vogel' Malinowski" (on
+    Rafał's request)
+
+ -- Patryk Cisek <patryk@prezu.one.pl>  Thu, 07 Jun 2007 10:09:18 +0200
+
+kadu (0.5.0-2) unstable; urgency=low
+
+  * Just a rebuild against libcurl4-gnutls
+
+ -- Patryk Cisek <patryk@prezu.one.pl>  Mon, 14 May 2007 20:50:16 +0200
+
+kadu (0.5.0-1) unstable; urgency=low
+
+  * Initial release
+  * debian/patches:
+    - 01-libgadu_Makefile.patch - make distclean breaks the libgadu sources.
+      This patch avoids deleting libgadu/config.h.in, libgadu/configure and
+      libgadu/aclocal.m4
+    - 02-.config.patch - This patch selects all modules and all additional
+      icons and emoticons themes (exceptions are encryption and mail modules,
+      which are not selected due to OpenSSL's license vs. GPL incompatibility)
+    - 03-about-dialog.patch - Originally "About..." dialog reads contents of
+      AUTHORS, THANKS, LICENSE and ChangeLog files from the /usr/share/kadu/
+      directory. These files are moved to /usr/share/doc/kadu/ and this patch
+      makes "About..." dialog read from proper directory. Also ChangeLog is
+      installed as about-changes-tab.txt.
+  * debian/extract.sh:
+    Kadu has a mechanism called "autodownload". It's purpose is to fetch
+    external modules and themes (selected in .config file) by a configure
+    script. This is unacceptable for Debian source package, because such data
+    wouldn't be verifiable. external directory holds all these modules and
+    themes and debian/extract.sh unpacks the tarballs, overriding autodownload
+    mechanism.
+  * Voice module has to be linked against patched version of libgsm to work
+    properly, that's why libgsm is shipped with the module and linked
+    statically.
+  * Contents of all tabs in an "About..." dialog are read directly from
+    AUTHORS, THANKS, LICENSE and (after applying 03-about-dialog.patch)
+    about-changes-tab.txt. That's why these files cannot be gzipped.
+
+ -- Patryk Cisek <patryk@prezu.one.pl>  Thu, 03 May 2007 15:18:04 +0200
+

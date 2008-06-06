@@ -1,0 +1,309 @@
+diff --git a/.config b/.config
+index 2e48756..9d45a11 100644
+--- a/.config
++++ b/.config
+@@ -43,13 +43,13 @@ module_x11_docking=m
+ # PL: Modu³ obs³ugi dokowania w WindowMakerze
+ # Needs: libX11
+ # Depends: docking
+-module_wmaker_docking=n
++module_wmaker_docking=m
+ 
+ # Description: Always on top window docking module
+ # PL: Modu³ s³u¿±cy symulacji dokowania przy pomocy ma³ego okna
+ # PL: (bez ramek i z ustawion± flag± "Zawsze na wierzchu")
+ # Depends: docking
+-module_desktop_docking=n
++module_desktop_docking=m
+ 
+ # Description: MacOS X docking module
+ # PL: Modu³ s³u¿±cy symulacji dokowania na MacOS X
+@@ -82,12 +82,12 @@ module_exec_notify=m
+ # PL: Powiadamianie w stylu OSD za pomoc± biblioteki libxosd
+ # Needs: libxosd, libgtk
+ # Depends: notify
+-module_xosd_notify=n
++module_xosd_notify=m
+ 
+ # Description: Speech synthesis support ("powiedz")
+ # PL: Powiadamianie mow± za pomoc± programu "powiedz"
+ # Depends: notify
+-module_speech=n
++module_speech=m
+ 
+ ##################### sound ##########################################
+ # PL: ############### d¼wiêk #########################################
+@@ -113,19 +113,19 @@ module_dsp_sound=m
+ # PL: Obs³uga d¼wiêku przez serwer aRts
+ # Needs: libartsc
+ # Depends: sound
+-module_arts_sound=n
++module_arts_sound=m
+ 
+ # Description: ESD sound server support
+ # PL: Obs³uga d¼wiêku przez serwer ESD
+ # Needs: libesd
+ # Depends: sound
+-module_esd_sound=n
++module_esd_sound=m
+ 
+ # Description: Network Audio System support
+ # PL: Obs³uga d¼wiêku przez Network Audio System
+ # Needs: libaudio
+ # Depends: sound
+-module_nas_sound=n
++module_nas_sound=m
+ 
+ # Description: External application sound support
+ # PL: Obs³uga d¼wiêku poprzez zewnêtrzn± aplikacjê
+@@ -173,7 +173,7 @@ module_history=m
+ # Description: OpenSSL encrypted chat support
+ # PL: Obs³uga szyfrowania wiadomo¶ci przy pomocy OpenSSLa
+ # Needs: libcrypto, libssl
+-module_encryption=m
++module_encryption=n
+ 
+ # Description: Auto away module
+ # PL: Obs³uga automatycznej zmiany statusu po okre¶lonym czasie bezczynno¶ci
+@@ -210,15 +210,15 @@ module_echo=n
+ 
+ # Description: Puts your current song in description
+ # PL: Wstawia tytu³ aktualnie s³uchanej piosenki do opisu
+-module_mediaplayer=n
++module_mediaplayer=m
+ 
+ # Description: Audacious support for mediaplayer
+ # PL: Wsparcie dla Audacious w mediaplayer
+-module_audacious_mediaplayer=n
++module_audacious_mediaplayer=m
+ 
+ # Description: Amarok support for mediaplayer
+ # PL: Wsparcie dla Amarok w mediaplayer
+-module_amarok_mediaplayer=n
++module_amarok_mediaplayer=m
+ 
+ # Description: XMMS support for mediaplayer
+ # PL: Wsparcie dla XMMS w mediaplayer
+@@ -226,24 +226,24 @@ module_xmms_mediaplayer=n
+ 
+ # Description: FALF support for mediaplayer
+ # PL: Wsparcie dla FALF w mediaplayer
+-module_falf_mediaplayer=n
++module_falf_mediaplayer=m
+ 
+ # Description: Description from file module
+ # PL: Obs³uga statusów pobieranych z pliku
+-module_filedesc=n
++module_filedesc=m
+ 
+ # Description: User list filtering
+ # PL: Filtrowanie listy kontaktów
+-module_filtering=n
++module_filtering=m
+ 
+ # Description:
+ # PL: Dodaje mo¿liwo¶æ zaznaczenia fragmentu ekranu i wys³ania obrazka z jego zawarto¶ci±
+-module_screenshot=n
++module_screenshot=m
+ 
+ # Description: Spellchecking in chat window
+ # PL: Sprawdzanie b³êdów pisowni w oknie rozmowy
+ # Needs: libaspell
+-module_spellchecker=n
++module_spellchecker=m
+ 
+ ############################################# EXTERNAL ###########################################################################
+ # PL: ####################################### ZEWNÊTRZNE #########################################################################
+@@ -269,129 +269,129 @@ module_spellchecker=n
+ # PL: Powiadamianie przy pomocy PC-Speakera
+ # Needs: libX11
+ # Depends: notify
+-module_pcspeaker=n
++module_pcspeaker=m
+ 
+ # Description: List of people, that you don't have on list, but they have you   
+ # PL: List osób, jakich nie masz na li¶cie, ale które maj± Ciebie   
+-module_agent=n
++module_agent=m
+ 
+ # Description: ao library sound module (ALSA, OSS, ESD, AIX, IRIX, NAS, Sun, NenBSD, OpenBSD)
+ # PL: Obs³uga d¼wiêku przy pomocy biblioteki libao (która obs³uguje:
+ # PL:                                    ALSA, OSS, ESD, AIX, IRIX, NAS, Sun, NenBSD, OpenBSD)
+ # Needs: libao
+ # Depends: sound
+-module_ao_sound=n
++module_ao_sound=m
+ 
+ # Description: Exports some functions via DCOP
+ # PL: Eksportuje czê¶æ funkcji Kadu poprzez DCOP (umo¿liwa m.in. obs³ugê linków gg://xxx)
+ # Needs: libkdecore
+ # Depends: notify, dcc, sms
+-module_dcopexport=n
++module_dcopexport=m
+ 
+ # Description: Miasto Plusa SMS Gateway support
+ # PL: Obs³uga bramki SMSowej "Miasto Plusa"
+ # Needs: libcurl, libssl
+ # Depends: sms
+-module_miastoplusa_sms=n
++module_miastoplusa_sms=m
+ 
+ # Description: Tabbed chat dialog module
+ # PL: Modu³ okna rozmowy z zak³adkami
+-module_tabs=n
++module_tabs=m
+ 
+ # Description: Notifications by Scroll Lock LED
+ # PL: Powiadomiania diod± Scroll Lock
+ # Needs: libX11
+ # Depends: notify
+-module_led_notify=n
++module_led_notify=m
+ 
+ # Description: Notifications by LED on Logitech mx610 mouse
+ # PL: Powiadomienia diodami na myszy mx610
+ # Depends: notify
+-module_mx610_notify=n
++module_mx610_notify=m
+ 
+ # Description: Notifications by Water Compiz plugin
+ # PL: Powiadomienia kroplami wody w Compiz
+ # Depends: notify
+-module_water_notify=n
++module_water_notify=m
+ 
+ # Description: Profiles support
+ # PL: Klikalna obs³uga profili
+-module_profiles=n
++module_profiles=m
+ 
+ # Description: Mail checking module
+ # PL: Modu³ do sprawdzana poczty
+ # Depends: notify
+-module_mail=n
++module_mail=m
+ 
+ # Description: TeX formula support
+ # PL: Wsparcie dla formu³ TeX-owych
+-module_mime_tex=n
++module_mime_tex=m
+ 
+ # Desctiption: Weather checking
+ # PL: Sprawdzanie pogody
+ # Depends: notify
+-module_weather=n
++module_weather=m
+ 
+ # Description: Protection against unwanted chats
+ # PL: Ochrona przed "klikaczami"
+ # Depends: notify
+-module_firewall=n
++module_firewall=m
+ 
+ # Description: Makes a panel from Kadu main window
+ # PL: Zamienia Kadu w panel na skraju ekranu
+-module_panelkadu=n
++module_panelkadu=m
+ 
+ # Description: Notification by OSD-like hints
+ # PL: Powiadamianie o zdarzeniach przy pomocy dymków typu OSD
+ # Depends: notify
+-module_osdhints_notify=n
++module_osdhints_notify=m
+ 
+ # Description: Automatic lookup of an interlocutor in public directory
+ # PL: Automatyczne wyszukiwanie nieznajomych rozmówców w publicznym katalogu
+-module_anonymous_check=n
++module_anonymous_check=m
+ 
+ # Description: Antistring
+ # PL: Ochrona przed lancuszkami
+ # Depends: notify
+-module_antistring=n
++module_antistring=m
+ 
+ # Description: Auto hide Kadu window
+ # PL: Automatyczne ukrywanie okna Kadu
+-module_auto_hide=n
++module_auto_hide=m
+ 
+ # Description: Cenzor
+ # PL: Cenzor
+ # Depends: notify
+-module_cenzor=n
++module_cenzor=m
+ 
+ # Description: Extends Kadu Parser
+ # PL: Rozszerza mozliwosci Parsera Kadu
+-module_parser_extender=n
++module_parser_extender=m
+ 
+ # Description: Automaticaly split too long messages
+ # PL: Automatyczne dzielenie zbyt dlugich wiadomosci
+-module_split_messages=n
++module_split_messages=m
+ 
+ # Description: Automatic word replacement
+ # PL: Automatyczna zamiana slow
+-module_word_fix=n
++module_word_fix=m
+ 
+ # Description: Last status infos
+ # PL: Informacje o ostatnich statusach kontaktów
+-module_last_seen=n
++module_last_seen=m
+ 
+ # Description: Autostatus
+ # PL: Automatyczne zmiany statusu
+-module_autostatus=n
++module_autostatus=m
+ 
+ # Description: PowerKadu
+ # PL: PowerKadu
+ # Depends: anonymous_check antistring auto_hide autostatus cenzor parser_extender split_messages word_fix
+-module_powerkadu=n
++module_powerkadu=m
+ 
+ # Description: Adds global hotkeys support to Kadu
+ # PL: Dodaje do Kadu obs³ugê skrótów globalnych
+-module_globalhotkeys=n
++module_globalhotkeys=m
+ 
+ ############################################# ICONS ###########################################################################
+ # PL: ####################################### IKONY ###########################################################################
+@@ -416,19 +416,19 @@ module_globalhotkeys=n
+ icons_default=y
+ 
+ # Description: Default theme from kadu 0.5.x
+-icons_kadu05=n
++icons_kadu05=y
+ 
+ # Description: Glass 16x16 icons made by Mariusz Waluga
+-icons_glass16=n
++icons_glass16=y
+ 
+ # Description: Glass 22x22 icons made by Mariusz Waluga
+-icons_glass22=n
++icons_glass22=y
+ 
+ # Desctiption: Tango 16x16 icons made by BlotoPosniegowe
+-icons_tango16=n
++icons_tango16=y
+ 
+ # Description: Oxygen 16x16 icons maintained by Piotr Pelzowski
+-icons_oxygen16=n
++icons_oxygen16=y
+ 
+ ########################################### EMOTICONS #########################################################################
+ # PL: ##################################### EMOTIKONY #########################################################################
+@@ -448,8 +448,8 @@ emoticons_penguins=y
+ 
+ # Description: Old Gadu-Gadu 6.x emoticons
+ # PL: Kompatybilne ze star± wersj± Gadu-Gadu 6.x
+-emoticons_gg6_compatible=n
++emoticons_gg6_compatible=y
+ 
+ # Description: Tango emoticons, some copied from penguins theme
+ # PL: Emotki Tango, czê¶æ wziêta z penguins
+-emoticons_tango=n
++emoticons_tango=y

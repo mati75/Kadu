@@ -1,0 +1,23 @@
+--- kadu-core/about.cpp	2008-02-11 16:45:20.000000000 +0000
++++ kadu-core/about.cpp	2008-02-13 14:38:44.000000000 +0000
+@@ -105,7 +105,7 @@
+ 	tb_changelog->setFrameStyle(QFrame::NoFrame);
+ 	tb_changelog->setTextFormat(Qt::PlainText);
+ 	tb_changelog->setWordWrap(QTextEdit::NoWrap);
+-	tb_changelog->setText(loadFile("ChangeLog"));
++	tb_changelog->setText(loadFile("about-changes-tab.txt"));
+ 
+ 	// add tabs
+ 	tw_about->addTab(tb_authors, tr("A&uthors"));
+@@ -148,7 +148,10 @@
+ {
+ 	kdebugf();
+ 
+-	QFile file(dataPath("kadu/" + name));
++	QString fullName = ("COPYING" == name ?
++			"/usr/share/common-licenses/GPL-2" :
++			"/usr/share/doc/kadu/" + name);
++	QFile file(fullName);
+ 	if (!file.open(IO_ReadOnly))
+ 	{
+ 		kdebugm(KDEBUG_ERROR, "About::loadFile(%s) cannot open file\n", name.local8Bit().data());
