@@ -1,7 +1,0 @@
-debian/tmp/usr/lib/kadu/modules/amarok_mediaplayer.so
-debian/tmp/usr/lib/kadu/modules/bin/dcopexport
-debian/tmp/usr/lib/kadu/modules/dcopexport.so
-debian/tmp/usr/share/kadu/modules/amarok_mediaplayer.desc
-debian/tmp/usr/share/kadu/modules/data/dcopexport
-debian/tmp/usr/share/kadu/modules/dcopexport.desc
-debian/tmp/usr/share/kadu/modules/translations/dcopexport*
