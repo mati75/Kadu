@@ -1,0 +1,22 @@
+0.6.0-2 => 0.6.5-2
+
+* Port dla Kadu 0.6.5
+
+
+0.6.5-2 => 0.6.5-3
+
+* Dodanie opcji ustawienia marginesu ukrywania.
+* Opcja nieukrywania okna Kadu kiedy jest ono aktywne ("Nie ukrywaj panelu gdy aktywny") nie
+  jest już oznaczona jako zalecana i domyślnie jest wyłączona.
+
+
+0.6.5-3 => 0.6.5-4
+
+* CMakeLists.txt: zastąpienie "lib/kadu/modules" przez "${MODULEDIR}".
+
+
+0.6.5-4 => 0.6.5-5
+
+* PanelKadu::PanelKadu(): typ okna Kadu zmienia się teraz na_NET_WM_WINDOW_TYPE_DOCK.
+* XGrabButton zastąpiony przez Event Filter, dzięki czemu aktywacja okna działa także z Compizem.
+* Usunięta zależność od rozszerzenia XTest (-lXtst).

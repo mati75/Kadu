@@ -1,0 +1,64 @@
+0.6.0-7 => 0.6.5-7
+
+* Port dla Kadu 0.6.5
+
+
+0.6.5-7 => 0.6.5-8
+
+* Dodanie możliwości przypisania skrótów dla rozmowy z wybranymi kontaktami.
+* GlobalHotkeys::showAndActivateToplevel(): Poprawiona metoda aktywacji okien.
+
+
+0.6.5-8 => 0.6.5-9
+
+* Zamiana menu ostatnich rozmów na wiele konfigurowalnych menu kontaktów.
+* wideiconsmenu.h: Dodanie ikon statusu kontaktu do menu kontaktów.
+* GlobalHotkeys::checkPendingHotkeys(): sortowanie listy kontaktów przy skrócie do rozmowy z wybranymi
+  kontaktami (konieczne przy porównywaniu dwóch list UserListElements).
+* Wydzielenie klas Hotkey i HotkeyEdit do osobnych plików.
+* Inne drobne poprawki.
+
+
+0.6.5-9 => 0.6.5-10
+
+* Menu kontaktów: dodana opcja dla wyświetlania kontaktów z nieodebranymi wiadomościami.
+* Menu kontaktów: dodana ikona nieodebranych wiadomości.
+* Menu kontaktów: dodana opcja pomijania wybranych kontaktów w menu.
+* GlobalHotkeys::configurationUpdated(): przeniesienie z GlobalHotkeys::GlobalHotkeys() wywołania
+  funkcji createContactsMenuIcons() tworzącej ikony dla menu kontaktów, dzięki czemu ikony są
+  odtwarzane przy zmianie zestawu ikon.
+* GlobalHotkeys::mainConfigurationWindowCreated(): poprawiony warunek pustego skrótu powodujący
+  błędne zachowanie widgetów w oknie konfiguracji.
+* GlobalHotkeys::checkPendingHotkeys(): zastąpienie przestarzałego QMenu::insertItem() nową
+  metodą QMenu::addAction()
+
+
+0.6.5-10 => 0.6.5-11
+
+* Dodany skrót do okna zmiany opisu z zachowaniem aktualnego statusu.
+* Rozwiązany problem z pozostawianiem spacji przy nazwach kontaktów w listach.
+
+
+0.6.5-11 => 0.6.5-12
+
+* Zastąpienie pętli wyszukującej okno toplevel za pomocą QWidget::parent() przez QWidget::window() z Qt4.
+* CMakeLists.txt: zastąpienie "lib/kadu/modules" przez "${MODULEDIR}".
+
+
+0.6.5-12 => 0.6.5-13
+
+* Dodane skróty do przełączania trybu cichego (brak powiadomień) w Kadu.
+* Poprawione wyświetlanie ikon oczekujących wiadomości w menu kontaktów.
+
+
+0.6.5-13 => 0.6.5-14
+
+* Dodany skrót wyświetlenia menu zmiany statusu.
+
+
+0.6.5-14 => 0.6.5-15
+
+* GlobalHotkeys::checkPendingHotkeys(): uaktualniony kod dla TurnSilentModeOn, TurnSilentModeOff i
+  ToggleSilentModew związku ze zmianą w API Kadu 0.6.5.4 (Dorregaray).
+* Poprawka centrowania menu/okien na wielu ekranach.
+

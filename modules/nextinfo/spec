@@ -1,0 +1,2 @@
+MODULE_SOURCES="nextinfo.cpp extendedinformationwindow.cpp"
+MODULE_MOC_HEADERS="nextinfo.h extendedinformationwindow.h"

@@ -1,0 +1,17 @@
+<configuration-ui>
+
+	<section name="Notifications">
+
+		<tab name="Water Notify">
+
+			<group-box name="Raindrop configuration">
+				<spin-box caption="Raindrop delay (sec)" config-section="Water Notify" config-item="RaindropDelay" min-value="1" max-value="10" step="1" />
+				<spin-box caption="Raindrop amplitude" config-section="Water Notify" config-item="RaindropAmplitude" min-value="1" max-value="100" step="1" />
+				<action-button caption="Raindrop test" id="WaterNotify/TestWaterDrop" />
+			</group-box>
+			
+		</tab>
+		
+	</section>
+
+</configuration-ui>

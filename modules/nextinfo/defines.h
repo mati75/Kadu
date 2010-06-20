@@ -1,0 +1,13 @@
+#define  NEXTINFO_DEFAULTNOTIFICATIONADVANCE                                              1  /* days */
+#define  NEXTINFO_DEFAULTDELAYBETWEENNOTIFICATIONS                                    10*60  /* seconds */
+#define  NEXTINFO_LABELINFOMINIMUMWIDTH                                                 400  /* px */
+#define  NEXTINFO_FIELDINTERESTSHEIGHT                                                   60  /* px */
+#define  NEXTINFO_FIELDSEPARATORSHEIGHT                                                  10  /* px */
+#define  NEXTINFO_REGEXPBIRTHDAY                     "^[0-9]{1,2}\\.[0-9]{1,2}\\.[0-9]{4}$"  /* DD.MM.YYYY */
+#define  NEXTINFO_REGEXPNAMEDAY                                 "^[0-9]{1,2}\\.[0-9]{1,2}$"  /* DD.MM */
+#define  NEXTINFO_DEFAULTPHOTOSIZE1WIDTH                                                 60  /* px */
+#define  NEXTINFO_DEFAULTPHOTOSIZE1HEIGHT                                                60  /* px */
+#define  NEXTINFO_DEFAULTPHOTOSIZE2WIDTH                                                120  /* px */
+#define  NEXTINFO_DEFAULTPHOTOSIZE2HEIGHT                                               120  /* px */
+#define  NEXTINFO_DEFAULTPHOTOSIZE3WIDTH                                                240  /* px */
+#define  NEXTINFO_DEFAULTPHOTOSIZE3HEIGHT                                               240  /* px */

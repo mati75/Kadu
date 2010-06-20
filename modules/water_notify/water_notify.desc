@@ -1,0 +1,7 @@
+[Module]
+Description=Notification by Water Plugin in Compiz.
+Description[pl]=Modu³ powiadamiania pluginem Water w Compiz.
+Author=Korneliusz Jarzêbski, Dorregaray
+Dependencies=notify
+Provides=notify_method
+Version=0.2.1

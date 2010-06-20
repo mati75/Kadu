@@ -1,0 +1,7 @@
+[Module]
+Description=Adds history of sent messages to chat windows
+Description[pl]=Dodaje historiê wys³anych wiadomo¶ci do okien rozmowy
+Author=ultr
+LoadByDefault=false
+Version=0.6.5-5
+Base=false

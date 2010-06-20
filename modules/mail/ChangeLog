@@ -1,0 +1,75 @@
+????-??-??
+- Zapis certyfikatów
+- Okno dialogowe z informacj¹ o certyfikacie
+- Poprawki w oknie edycji konta
+- Dodajemy certyfikat odrazy do bacy certyfikatów
+- Callback dla dymku
+
+2008-08-30 - 0.3.5
+- Port na Qt4
+- Obs³uga SSL/TLS
+- U¿ywaj notyfikacji do powiadomienia o b³êdach po³¹czenie
+- Zapis konfiguracji jako XML
+- Przystosowanie do obs³ugi CMake
+
+2008-02-17 - 0.3.3
+- BUGFIX: Poprawka kompilacji z --enable-debug
+2008-01-28 - 0.3.2
+- BUGFIX: Poprawka wspó³pracy z poczta.o2.pl (z niewiadomego powodu poczta zwraca³a pust± pierwsz± odpowied¼)
+- BUGFIX: Po dodaniu konta przy pierwszym sprawdzaniu prawid³owo jest odczytywana liczba nowych wiadomo¶ci
+- OTHER: Ró¿ne poprawki w kodzie
+
+2008-01-13 - 0.3.1
+- BUGFIX: Ikonka wyboru pliku w konfiguracji jest poprawnie wyszarzana
+- OTHER: Usuniêcie mo¿liwo¶ci wyboru szyfrowanego po³±czenia
+- OTHER: Poprawki w t³umaczeniach
+
+2007-12-23 - 0.3.0 
+- BUGFIX: przystosowanie do zmian api w kadu 0.6.0
+- NEW: modu³ korzysta z zdefiniowanego w konfiguracju kadu klienta poczty
+- NEW: powiadamianie o nowym mailu za pomoc± mechanizmu powiadomieñ kadu
+- OTHER: usuniêcie zale¿no¶ci od biblioteki openssl (jego obs³uga nie jest jeszcze zaimplementowana)
+- OTHER: usuniêcie katalogu doc z modu³u
+- OTHER: porz±dki w changelog'u 
+
+0.2.5 
+- poprawka g³upiego segfaula po wy³adowaniu modu³u
+- lista jest od¶wierzana przy dodawaniu nowego konta
+- t³umaczenie poprawione przez Rona_K
+- konfiguracja ma byæ w ~/.kadu nie ~/.gg :S
+- poprawki dla nowego svn-a kadu
+
+0.2.0 
+- dostosowanie do najnowszego cvs-a kadu    
+- dostosowanie do dziwnych zmian w kadu :|
+- wydzieli³em protokó³ pop3 do oddzielnej klasy, narazie zrobienie na
+- szybko i mo¿e nie dzia³aæ ;)
+- obs³uga wielu kont (narazie brak konfiguracji)
+- dodane ikonki tam gdzie powinny byæ
+- modu³ teraz szyfruje has³a dok³adnie t± sam± metod± co has³o na serwer gg
+
+0.1.7 
+- zapisywanie konfiguracji do pliku mail.conf
+- drobne poprawki
+- dostosowanie do kadu w wersji 0.3.8
+- poprawka tlumaczen
+
+0.1.6 
+- instalacja przez autoconfa
+
+0.1.5 
+- usuwanie kontrolek w konfigu
+
+0.1.2 
+- uporzadkowana konfiguracja
+- obsluga maildir
+- po sprawdzenu poczty rozlacza sie od servera
+- drobne poprawki w configu
+
+0.1.1 
+- mozliwosc budowy modulu poza zrodlami kadu (tylko kadu 0.3.8-CVS)
+- dostosowanie do najnowszego CVS-a kadu
+- zlikwidowanie segfaula po przeladowaniu modulu
+      
+0.1.0 
+- pierwsza wersja oficjalna

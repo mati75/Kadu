@@ -1,0 +1,3 @@
+excluded_files_from_package
+.svn
+tabs.doxyfile

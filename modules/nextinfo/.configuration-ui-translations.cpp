@@ -1,0 +1,18 @@
+QT_TRANSLATE_NOOP( "@default", "Contacts"                              );
+QT_TRANSLATE_NOOP( "@default", "Extended information"                  );
+QT_TRANSLATE_NOOP( "@default", "Notifications"                         );
+QT_TRANSLATE_NOOP( "@default", "Enable notifications"                  );
+QT_TRANSLATE_NOOP( "@default", "Notify about birthdays"                );
+QT_TRANSLATE_NOOP( "@default", "Notify about name-days"                );
+QT_TRANSLATE_NOOP( "@default", "Notification advance (days)"           );
+QT_TRANSLATE_NOOP( "@default", "Delay between notifications (minutes)" );
+QT_TRANSLATE_NOOP( "@default", "Maximum photo sizes"                   );
+QT_TRANSLATE_NOOP( "@default", "Size 1:"                               );
+QT_TRANSLATE_NOOP( "@default", "Size 2:"                               );
+QT_TRANSLATE_NOOP( "@default", "Size 3:"                               );
+QT_TRANSLATE_NOOP( "@default", "Width"                                 );
+QT_TRANSLATE_NOOP( "@default", "Height"                                );
+QT_TRANSLATE_NOOP( "@default", "Help"                                  );
+QT_TRANSLATE_NOOP( "@default", "Show help"                             );
+QT_TRANSLATE_NOOP( "@default", "Data"                                  );
+QT_TRANSLATE_NOOP( "@default", "Import data from ext_info module"      );

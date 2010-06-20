@@ -1,0 +1,21 @@
+<configuration-ui>
+
+	<section name="Notifications">
+
+		<tab name="MX610 Notify">
+
+			<group-box name="Device configuration">
+				<line-edit caption="Mouse HID device" config-section="MX610 Notify" config-item="MouseDevice" id="NX610/MouseDevice" />
+				<action-button caption="Test mouse LEDs" id="MX610/TestLED" />
+			</group-box>
+
+			<group-box name="Battery safe">
+				<check-box caption="Enable battery safe mode" config-section="MX610 Notify" config-item="BatterySafe" id="MX610/BatterySafe" />
+				<spin-box caption="Blinking time (sec)" config-section="MX610 Notify" config-item="BatteryTime" min-value="15" max-value="3600" step="15" />
+			</group-box>
+
+		</tab>
+		
+	</section>
+
+</configuration-ui>

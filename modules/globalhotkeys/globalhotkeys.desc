@@ -1,0 +1,7 @@
+[Module]
+Description=Adds global hotkeys support to Kadu.
+Description[pl]=Dodaje do Kadu obs³ugê skrótów globalnych.
+Author=ultr
+LoadByDefault=false
+Version=0.6.5-15
+Base=false

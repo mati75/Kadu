@@ -1,0 +1,19 @@
+<configuration-ui>
+	<section name="Mail" icon="MailTab">
+		<tab name="General">
+			<group-box name="Checking options">
+				<spin-box caption="Interval in seconds" config-section="Mail" config-item="Interval" min-value="30" max-value="15000" step="1" suffix=" s" />
+				<line-edit caption="Message format" config-section="Mail" config-item="Format" tool-tip="\%n new messages\n\%t total on server\n\%s total size\n\%a account" />
+				<check-box caption="Run mail client" config-section="Mail" config-item="RunClient" />
+			</group-box>
+
+			<group-box name="Accounts">
+			</group-box>
+
+			<group-box name="Maildir">
+				<check-box caption="Check mail in local Maildir" config-section="Mail" config-item="LocalMaildir" id="mail/local_maildir" />
+				<select-file caption="Maildir path" config-section="Mail" config-item="MaildirPath" type="image" tool-tip="Set path to yours Maildir" id="mail/maildir_path" />
+			</group-box>
+		</tab>
+	</section>
+</configuration-ui>

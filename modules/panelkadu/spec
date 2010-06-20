@@ -1,0 +1,3 @@
+MODULE_SOURCES=panelkadu.cpp
+MODULE_MOC_HEADERS=panelkadu.h
+MODULE_LDFLAGS="-L/usr/X11R6/lib -lX11"
