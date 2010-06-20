@@ -1,0 +1,3 @@
+version=3
+opts="dversionmangle=s/\.ds\.\d+$//,uversionmangle=s/-(alpha|beta|rc)/~$1/" \
+http://www.kadu.net/download/stable/kadu-(.*)\.tar\.bz2

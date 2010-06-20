@@ -1,0 +1,26 @@
+diff --git a/kadu-core/protocol.h b/kadu-core/protocol.h
+index be76079..32acfa8 100644
+--- a/kadu-core/protocol.h
++++ b/kadu-core/protocol.h
+@@ -1,6 +1,8 @@
+ #ifndef KADU_PROTOCOL_H
+ #define KADU_PROTOCOL_H
+ 
++#include <stdint.h>
++
+ #include <QtCore/QDateTime>
+ #include <QtCore/QObject>
+ 
+diff --git a/modules/encryption/pkcs1_certificate.h b/modules/encryption/pkcs1_certificate.h
+index 6ee32eb..f0ba723 100644
+--- a/modules/encryption/pkcs1_certificate.h
++++ b/modules/encryption/pkcs1_certificate.h
+@@ -25,6 +25,8 @@
+ #ifndef PKCS1_CERTIFICATE_H
+ #define PKCS1_CERTIFICATE_H
+ 
++#include <stdint.h>
++
+ #include <QtCrypto>
+ 
+ /**

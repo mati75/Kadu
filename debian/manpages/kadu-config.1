@@ -1,0 +1,74 @@
+.TH KADU 1 
+.SH NAME
+kadu-config \- script to get information about the installed version of kadu
+.SH SYNOPSIS
+.B kadu\-config
+[\-\-prefix\fI[=DIR]\fP] [\-\-exec\-prefix\fI[=DIR]\fP] [\-\-version]
+[\-\-libs] [\-\-cflags] [\-\-data\-dir] [\-\-modules\-dir] [\-\-qt\-moc\-dir]
+.br
+.SH DESCRIPTION
+\fIkadu\-config\fP is a tool for retrieving the library/include paths
+\fIkadu\fP was compiled with. Useful for folks compiling their own Kadu
+modules outside the main source tree.
+.PP
+\fIkadu-config\fP is based on \fIxmms\-config\fP from the \fIXMMS\fP package.
+
+.SH OPTIONS
+\fIkadu-config\fP accepts the following options:
+
+.TP
+.B \-\-prefix\fI[=DIR]\fP
+If specified, use \fIDIR\fP instead of the installation prefix that
+\fIkadu\fP was built with when computing the output for the \-\-cflags and
+\-\-libs options. This option is also used for the exec prefix
+if \-\-exec\-prefix was not specified. This option must be specified
+before any \-\-libs or \-\-cflags options.
+
+.TP
+.B \-\-exec\-prefix\fI[=DIR]\fP
+If specified, use \fIDIR\fP instead of the installation exec prefix that
+\fIkadu\fP was built with when computing the output for the \-\-cflags
+and \-\-libs options.  This option must be specified before any
+\-\-libs or \-\-cflags options.
+
+.TP
+.B \-\-version
+Print the currently installed version of \fIkadu\fP on the standard output.
+
+.TP
+.B \-\-libs
+Print the linker flags that are necessary to link \fIkadu\fP to a program.
+
+.TP
+.B \-\-cflags
+Print the compiler flags that are necessary to compile a program that uses
+\fIkadu\fP.
+
+.TP
+.B \-\-data\-dir
+Print the directory that the \fIkadu\fP\'s icons, emoticons and sounds themes
+are installed in.
+
+.TP
+.B \-\-modules\-dir
+Print the directory that the \fIkadu\fP\'s modules keep their description and
+data files.
+
+.TP
+.B \-\-qt\-moc\-dir 
+Print the directory that the \fIQt\fP\'s moc compiler is installed in.
+.SH AUTHOR
+\fIkadu\fP was written by Kadu Team (see /usr/share/kadu/doc/AUTHORS file for
+details).
+.PP
+Copyright (C) 2007, 2008 Patryk Cisek <patryk@debian.org>
+.PP
+This manual page was written by Patryk Cisek <patryk@debian.org>
+for the Debian project, based heavily on the \fIxmms-config\fP manual by
+Christopher Martin <chrsmrtn\@debian.org> and may be used by others.
+This manual may be distributed under the terms of GPL license version 2, or
+(at your opinion) any later version.
+On Debian GNU/Linux system, the complete text of the GNU General
+Public License can be found in `/usr/share/common-licenses/GPL'. If you're
+not using Debian, you may also find full text of the license  at
+http://www.gnu.org/licenses/.

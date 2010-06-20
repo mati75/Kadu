@@ -1,0 +1,35 @@
+.TH KADU 1
+.SH NAME
+kadu\ \- instant messenger for Gadu\-Gadu protocol
+.SH SYNOPSIS
+.B kadu
+.SH DESCRIPTION
+Gadu\-Gadu is very popular instant messenger for MS Windows in Poland.
+\fIkadu\fP is Gadu\-Gadu's client for Unix-like systems. The most complete
+documentations of \fBkadu\fP and related modules is at the project's home
+page at:
+.br
+\fIhttp://www.kadu.net\fP
+
+.SH ENVIRONMENT
+On startup \fIkadu\fP chacks if \fB$CONFIG_DIR\fP variable is set. If not,
+\fIkadu\fP will use default directory (which is \fI$HOME/.kadu\fP) to store
+it's configuration files. However, one may wish to run another instance of
+\fIkadu\fP, for different Gadu-Gadu account, on the same system account. In
+such case, one needs to set \fB$CONFIG_DIR\fP so it points to the directory
+that is supposed to hold configuration files for the other account.
+
+.SH AUTHOR
+kadu was written by Kadu Team (see /usr/share/kadu/doc/AUTHORS file for
+details).
+.PP
+Copyright (C) 2007, 2008 Patryk Cisek <patryk@debian.org>
+.PP
+This manual page was written by Patryk Cisek <patryk@debian.org>,
+for the Debian project (but may be used by others). It may be distributed
+under the terms of GPL license version 2, or (at your opinion) any later
+version.
+On Debian GNU/Linux system, the complete text of the GNU General
+Public License can be found in `/usr/share/common-licenses/GPL'. If you're
+not using Debian, you may also find full text of the license  at
+http://www.gnu.org/licenses/.
