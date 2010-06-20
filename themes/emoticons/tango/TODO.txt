@@ -1,0 +1,40 @@
+Emoticons listed here are taken from Kadu-penguins theme set. They are not part of Tango set and they should be replaced by Tango style emots. If you can draw missing emoticons please send them to maintainer ( pelzowski at gmail dot com )
+
+This emoticons are needed:
+
+	learning.gif
+	magician.gif
+	bathtub.gif
+	hold_out.gif   - to continue to resist
+	daydreamer.gif
+	read_this.gif
+	annoy.gif      - annoying someone
+	dresiarz.gif   - aggressive young male
+	ass.gif
+	bloomer.gif
+	ganja.gif
+	idiot.gif
+	hello.gif
+	apple.gif
+	twisted.gif
+	calmly.gif     - "everything will be OK"
+	learning.gif
+	okok.gif
+	strongman.gif
+	admonish.gif
+	slap.gif
+	help.gif
+	shower.gif
+	prompt.gif
+	puke.gif
+	wall.gif       - banging head against wall
+	sex.gif
+	wine.gif
+	tuptup.gif
+	mouths.gif
+	exclamation_mark.gif
+	shopping.gif
+	newspaper.gif
+
+
+- When all emoticons will be in tango style, then we will try to make animated version of this set.

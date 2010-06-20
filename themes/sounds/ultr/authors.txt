@@ -1,0 +1,38 @@
+﻿collecting:
+  Piotr "ultr" Dąbrowski
+
+
+
+error.wav
+  http://www.freesound.org/samplesViewSingle.php?id=27422
+  by hello_flowers
+
+
+
+filefinished.wav
+  http://www.freesound.org/samplesViewSingle.php?id=56229
+  by pera
+
+
+
+fileincoming.wav
+  http://www.freesound.org/samplesViewSingle.php?id=32951
+  by HardPCM
+
+
+
+newchat.wav
+  http://www.freesound.org/samplesViewSingle.php?id=26777
+  by junggle
+
+
+
+newmessage.wav
+  http://www.pdsounds.org/sounds/blip
+  by Natalie
+
+
+
+status.wav
+  http://www.pdsounds.org/sounds/clickick_switch
+  by Stephan
