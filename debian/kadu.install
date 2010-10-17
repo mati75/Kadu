@@ -43,3 +43,4 @@ debian/tmp/usr/lib/kadu/modules/libsound.so
 debian/tmp/usr/lib/kadu/modules/libvoice.so
 debian/tmp/usr/lib/kadu/modules/libwindow_notify.so
 debian/tmp/usr/lib/kadu/modules/libword_fix.so
+debian/tmp/usr/lib/kadu/modules/libalsa_sound.so

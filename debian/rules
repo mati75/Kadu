@@ -13,10 +13,13 @@ configure-stamp: debian/alsa-stamp
 	find . -name '*.o' -delete
 	rm -f debian/kadu.install
 	cp debian/kadu.install.noalsa debian/kadu.install
+	pwd
+	bash debian/handle_external.sh copy
+	cp -r externalmodules/* modules
 ifeq ($(DEB_BUILD_ARCH_OS),linux)
 	cat debian/kadu.install.alsa >> debian/kadu.install
 endif
-	cd $(BUILD_DIR) && cmake -DLIB_SUFFIX_64=0 -DCMAKE_INSTALL_PREFIX=/usr $(PKG_DIR)
+	cd $(BUILD_DIR) && cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr $(PKG_DIR)
 	touch configure-stamp
 
 #Architecture
@@ -36,6 +39,7 @@ clean:
 	dh_testroot
 	rm -f build-arch-stamp build-indep-stamp configure-stamp
 	rm -rf $(BUILD_DIR)
+	bash debian/handle_external.sh remove
 	cp -f debian/kadu.install.noalsa debian/kadu.install
 	dh_clean 
 

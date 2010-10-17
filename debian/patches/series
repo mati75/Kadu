@@ -1,0 +1,7 @@
+01-no_autodownload.patch
+02-.config.patch
+03-about-dialog.patch
+04-gcc4.4-build-fix.patch
+05-mpris_mediaplayer_0.6.6_fix.patch
+06-word_fix_0.6.6_fix.patch
+debian-changes-0.6.6-beta8-1
