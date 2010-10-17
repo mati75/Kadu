@@ -1,8 +1,0 @@
-[Module]
-Description=Tabbed chat dialog module
-Description[pl]=Modu� okna rozmowy z kartami
-Author=Micha� Podsiadlik
-Provides=tabs
-Conflicts=tabs
-LoadByDefault=true
-Version=1.2.7

@@ -1,31 +1,51 @@
-/***************************************************************************
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 3 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- ***************************************************************************/
+/****************************************************************************
+*                                                                           *
+*   SentHistory module for Kadu                                             *
+*   Copyright (C) 2008-2010  Piotr Dąbrowski ultr@ultr.pl                   *
+*                                                                           *
+*   This program is free software: you can redistribute it and/or modify    *
+*   it under the terms of the GNU General Public License as published by    *
+*   the Free Software Foundation, either version 3 of the License, or       *
+*   (at your option) any later version.                                     *
+*                                                                           *
+*   This program is distributed in the hope that it will be useful,         *
+*   but WITHOUT ANY WARRANTY; without even the implied warranty of          *
+*   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           *
+*   GNU General Public License for more details.                            *
+*                                                                           *
+*   You should have received a copy of the GNU General Public License       *
+*   along with this program.  If not, see <http://www.gnu.org/licenses/>.   *
+*                                                                           *
+****************************************************************************/
 
 
-#include "chat_manager.h"
-#include "config_file.h"
+
+
+#include "chat/chat.h"
+#include "chat/chat-manager.h"
+#include "configuration/configuration-file.h"
+#include "gui/widgets/chat-edit-box.h"
+#include "gui/widgets/chat-widget-manager.h"
+#include "gui/windows/kadu-window.h"
+#include "gui/hot-key.h"
+#include "misc/misc.h"
 #include "debug.h"
-#include "hot_key.h"
-#include "kadu.h"
-#include "misc.h"
 
 #include "senthistory.h"
 
 
+
+
 SentHistory *senthistory;
+
+
 
 
 extern "C" int senthistory_init()
 {
 	kdebugf();
 	senthistory = new SentHistory();
-	MainConfigurationWindow::registerUiFile( dataPath("kadu/modules/configuration/senthistory.ui"), senthistory );
+	MainConfigurationWindow::registerUiFile( dataPath("kadu/modules/configuration/senthistory.ui") );
 	kdebugf2();
 	return 0;
 }
@@ -34,17 +54,17 @@ extern "C" int senthistory_init()
 extern "C" void senthistory_close()
 {
 	kdebugf();
-	MainConfigurationWindow::unregisterUiFile( dataPath("kadu/modules/configuration/senthistory.ui"), senthistory );
+	MainConfigurationWindow::unregisterUiFile( dataPath("kadu/modules/configuration/senthistory.ui") );
 	delete senthistory;
 	senthistory = NULL;
 	kdebugf2();
 }
 
 
-QList< QPair<UserListElements,QString> > SentHistory::sentmessages;
+QList< QPair<Chat,QString> > SentHistory::sentmessages;
 
 
-SentHistory::SentHistory() : QObject( NULL, "senthistory" )
+SentHistory::SentHistory() : QObject()
 {
 	// configuration handling
 	createDefaultConfiguration();
@@ -55,11 +75,11 @@ SentHistory::SentHistory() : QObject( NULL, "senthistory" )
 	message_n = 0;
 	thischatonly = true;
 	// connect chat widgets events and handle opened ones
-	connect( chat_manager, SIGNAL(chatWidgetCreated(ChatWidget*)), this, SLOT(chatCreated(ChatWidget*)));
-	connect( chat_manager, SIGNAL(chatWidgetDestroying(ChatWidget*)), this, SLOT(chatDestroying(ChatWidget*)));
-	foreach( ChatWidget *it, chat_manager->chats() )
+	connect( ChatWidgetManager::instance(), SIGNAL(chatWidgetCreated(ChatWidget*))   , this, SLOT(chatCreated(ChatWidget*))    );
+	connect( ChatWidgetManager::instance(), SIGNAL(chatWidgetDestroying(ChatWidget*)), this, SLOT(chatDestroying(ChatWidget*)) );
+	foreach( ChatWidget *chatwidget, ChatWidgetManager::instance()->chats() )
 	{
-		chatCreated( it );
+		chatCreated( chatwidget );
 	}
 }
 
@@ -67,13 +87,14 @@ SentHistory::SentHistory() : QObject( NULL, "senthistory" )
 SentHistory::~SentHistory()
 {
 	// disconnect chat widgets events
-	disconnect( chat_manager, SIGNAL(chatWidgetCreated(ChatWidget*)), this, SLOT(chatCreated(ChatWidget*)));
-	disconnect( chat_manager, SIGNAL(chatWidgetDestroying(ChatWidget*)), this, SLOT(chatDestroying(ChatWidget*)));
+	disconnect( ChatWidgetManager::instance(), SIGNAL(chatWidgetCreated(ChatWidget*))   , this, SLOT(chatCreated(ChatWidget*))    );
+	disconnect( ChatWidgetManager::instance(), SIGNAL(chatWidgetDestroying(ChatWidget*)), this, SLOT(chatDestroying(ChatWidget*)) );
 }
 
 
 void SentHistory::mainConfigurationWindowCreated( MainConfigurationWindow *mainConfigurationWindow )
 {
+	Q_UNUSED( mainConfigurationWindow );
 }
 
 
@@ -94,52 +115,56 @@ void SentHistory::configurationUpdated()
 void SentHistory::chatCreated( ChatWidget *chatwidget )
 {
 	// connect new chat's events
-	connect( chatwidget, SIGNAL( messageSendRequested( ChatWidget* ) ), this, SLOT( messageSendRequested( ChatWidget* ) ) );
-	connect( chatwidget, SIGNAL( keyPressed( QKeyEvent*, ChatWidget*, bool& ) ), this, SLOT( editKeyPressed( QKeyEvent*, ChatWidget*, bool& )) );
+	connect( chatwidget                  , SIGNAL( messageSendRequested( ChatWidget* ) )          , this, SLOT( messageSendRequested( ChatWidget* ) )               );
+	connect( chatwidget->getChatEditBox(), SIGNAL( keyPressed( QKeyEvent*, CustomInput*, bool& ) ), this, SLOT( editKeyPressed( QKeyEvent*, CustomInput*, bool& ) ) );
 }
-
 
 void SentHistory::chatDestroying( ChatWidget *chatwidget )
 {
 	// disconnect chat's events
-	disconnect( chatwidget, SIGNAL( messageSendRequested( ChatWidget* ) ), this, SLOT( messageSendRequested( ChatWidget* ) ) );
-	disconnect( chatwidget, SIGNAL( keyPressed( QKeyEvent*, ChatWidget*, bool& ) ), this, SLOT( editKeyPressed( QKeyEvent*, ChatWidget*, bool& )) );
+	disconnect( chatwidget                  , SIGNAL( messageSendRequested( ChatWidget* ) )          , this, SLOT( messageSendRequested( ChatWidget* ) )               );
+	disconnect( chatwidget->getChatEditBox(), SIGNAL( keyPressed( QKeyEvent*, CustomInput*, bool& ) ), this, SLOT( editKeyPressed( QKeyEvent*, CustomInput*, bool& ) ) );
 }
 
 
-void SentHistory::messageSendRequested( ChatWidget *chat )
+void SentHistory::messageSendRequested( ChatWidget *chatwidget )
 {
-	// read users and message
-	UserListElements users = chat->users()->toUserListElements();
-	QString sentmessage = chat->edit()->text();
+	// read contacts and message
+	Chat chat = chatwidget->chat();
+	QString sentmessage = chatwidget->edit()->toHtml();
 	// reset message number
 	message_n = 0;
 	// find last message in this chat
-	QListIterator< QPair<UserListElements,QString> > it( sentmessages );
+	QListIterator< QPair<Chat,QString> > it( sentmessages );
 	while( it.hasNext() )
 	{
-		if( it.peekNext().first.equals( users ) )
+		if( it.peekNext().first == chat )
 		{
 			if( it.peekNext().second != sentmessage )  // the previous message in this chat is not equal to current one
 			{
 				// insert current message
-				sentmessages.push_front( QPair<UserListElements,QString>( users, sentmessage ) );
+				sentmessages.push_front( QPair<Chat,QString>( chat, sentmessage ) );
 			}
 			return;
 		}
 		it.next();
 	}
 	// this user's sent history is empty - insert current message
-	sentmessages.push_front( QPair<UserListElements,QString>( users, sentmessage ) );
+	sentmessages.push_front( QPair<Chat,QString>( chat, sentmessage ) );
 }
 
 
-void SentHistory::editKeyPressed( QKeyEvent* e, ChatWidget* sender, bool &handled )
+void SentHistory::editKeyPressed( QKeyEvent* e, CustomInput* custominput, bool &handled )
 {
-	// check sender
-	if( sender != lastChatWidget )
+	Q_UNUSED( custominput );
+	ChatEditBox *chateditbox = dynamic_cast<ChatEditBox*>( sender() );
+	if( chateditbox == NULL )
+		return;
+	ChatWidget *chatwidget = chateditbox->chatWidget();
+	// check chatwidget
+	if( chatwidget != lastChatWidget )
 	{
-		lastChatWidget = sender;
+		lastChatWidget = chatwidget;
 		message_n = 0;
 	}
 	// local sent messages' history
@@ -148,7 +173,7 @@ void SentHistory::editKeyPressed( QKeyEvent* e, ChatWidget* sender, bool &handle
 		if( thischatonly == false ) message_n = 0;  // start from the begining
 		thischatonly = true;
 		message_n++;  // next message ( "1" is first )
-		inputMessage( sender );
+		inputMessage( chatwidget );
 		handled = true;
 		return;
 	}
@@ -157,7 +182,7 @@ void SentHistory::editKeyPressed( QKeyEvent* e, ChatWidget* sender, bool &handle
 		if( thischatonly == false ) message_n = 0;  // start from the begining
 		thischatonly = true;
 		message_n--;  // previous message
-		inputMessage( sender );
+		inputMessage( chatwidget );
 		handled = true;
 		return;
 	}
@@ -167,7 +192,7 @@ void SentHistory::editKeyPressed( QKeyEvent* e, ChatWidget* sender, bool &handle
 		if( thischatonly == true ) message_n = 0;  // start from the begining
 		thischatonly = false;
 		message_n++;  // next message ( "1" is first )
-		inputMessage( sender );
+		inputMessage( chatwidget );
 		handled = true;
 		return;
 	}
@@ -176,7 +201,7 @@ void SentHistory::editKeyPressed( QKeyEvent* e, ChatWidget* sender, bool &handle
 		if( thischatonly == true ) message_n = 0;  // start from the begining
 		thischatonly = false;
 		message_n--;  // previous message
-		inputMessage( sender );
+		inputMessage( chatwidget );
 		handled = true;
 		return;
 	}
@@ -191,11 +216,11 @@ void SentHistory::editKeyPressed( QKeyEvent* e, ChatWidget* sender, bool &handle
 
 void SentHistory::inputMessage( ChatWidget* chatwidget )
 {
-	UserListElements thischatusers = chatwidget->users()->toUserListElements();
+	Chat thischat = chatwidget->chat();
 	if( message_n <= 0 )  // message out of range
 	{
 		// last, empty message
-		chatwidget->edit()->setText( "" );
+		chatwidget->edit()->setHtml( "" );
 		message_n = 0;
 		return;
 	}
@@ -209,16 +234,16 @@ void SentHistory::inputMessage( ChatWidget* chatwidget )
 	{
 		// find requested message in chat's sentmessages
 		int foundmessage = 0;
-		QListIterator< QPair<UserListElements,QString> > it( sentmessages );
+		QListIterator< QPair<Chat,QString> > it( sentmessages );
 		while( it.hasNext() )
 		{
-			if( it.peekNext().first.equals( thischatusers ) )
+			if( it.peekNext().first == thischat )
 			{
 				foundmessage++;
 				if( foundmessage == message_n )
 				{
-					chatwidget->edit()->setText( it.peekNext().second );
-					chatwidget->edit()->moveCursor( QTextEdit::MoveEnd, false );
+					chatwidget->edit()->setHtml( it.peekNext().second );
+					chatwidget->edit()->moveCursor( QTextCursor::End );
 					break;
 				}
 			}
@@ -233,7 +258,7 @@ void SentHistory::inputMessage( ChatWidget* chatwidget )
 	else  // input all sent messages
 	{
 		// message_n-1 is in range, checked alraedy
-		chatwidget->edit()->setText( sentmessages[ message_n - 1 ].second );  // message_n==1 is the first message
-		chatwidget->edit()->moveCursor( QTextEdit::MoveEnd, false );
+		chatwidget->edit()->setHtml( sentmessages[ message_n - 1 ].second );  // message_n==1 is the first message
+		chatwidget->edit()->moveCursor( QTextCursor::End );
 	}
 }

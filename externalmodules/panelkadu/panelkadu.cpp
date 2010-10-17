@@ -1,34 +1,43 @@
-/***************************************************************************
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 3 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- ***************************************************************************/
+/****************************************************************************
+*                                                                           *
+*   PanelKadu module for Kadu                                               *
+*   Copyright (C) 2008-2010  Piotr Dąbrowski ultr@ultr.pl                   *
+*                                                                           *
+*   This program is free software: you can redistribute it and/or modify    *
+*   it under the terms of the GNU General Public License as published by    *
+*   the Free Software Foundation, either version 3 of the License, or       *
+*   (at your option) any later version.                                     *
+*                                                                           *
+*   This program is distributed in the hope that it will be useful,         *
+*   but WITHOUT ANY WARRANTY; without even the implied warranty of          *
+*   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           *
+*   GNU General Public License for more details.                            *
+*                                                                           *
+*   You should have received a copy of the GNU General Public License       *
+*   along with this program.  If not, see <http://www.gnu.org/licenses/>.   *
+*                                                                           *
+****************************************************************************/
 
 
-///#define QT_CLEAN_NAMESPACE
-// Avoid compilation error: http://www.kadu.net/forum/viewtopic.php?p=84272#84272
-// >   In file included from /usr/include/X11/extensions/XI.h:55,
-// >                    from /usr/include/X11/extensions/XInput.h:56,
-// >                    from /usr/include/X11/extensions/XTest.h:50,
-// >                    from panelkadu/panelkadu.cpp:23:
-// >   /usr/include/X11/Xmd.h: At global scope:
-// >   /usr/include/X11/Xmd.h:137: error: conflicting declaration 'typedef long int INT32'
-// >   /opt/qt/include/qglobal.h:706: error: 'INT32' has a previous declaration as 'typedef int INT32'
 
 
 #include <QApplication>
 #include <QCursor>
 #include <QDesktopWidget>
 #include <QLineEdit>
+#include <QMouseEvent>
 #include <QSpinBox>
+#include <QVarLengthArray>
 #include <QX11Info>
 
-#include "config_file.h"
+#include "configuration/configuration-file.h"
+#include "core/core.h"
+#include "gui/widgets/configuration/configuration-widget.h"
+#include "gui/windows/kadu-window.h"
+#include "misc/path-conversion.h"
+#include "activate.h"
 #include "debug.h"
-#include "kadu.h"
+#include "x11tools.h"
 
 #include "panelkadu.h"
 
@@ -36,14 +45,18 @@
 #include <X11/Xatom.h>
 
 
-PanelKadu *panelKadu;
+
+
+PanelKadu *panelkadu;
+
+
 
 
 extern "C" int panelkadu_init()
 {
 	kdebugf();
-	panelKadu = new PanelKadu();
-	MainConfigurationWindow::registerUiFile( dataPath("kadu/modules/configuration/panelkadu.ui"), panelKadu );
+	panelkadu = new PanelKadu();
+	MainConfigurationWindow::registerUiFile( dataPath("kadu/modules/configuration/panelkadu.ui") );
 	kdebugf2();
 	return 0;
 }
@@ -52,41 +65,57 @@ extern "C" int panelkadu_init()
 extern "C" void panelkadu_close()
 {
 	kdebugf();
-	MainConfigurationWindow::unregisterUiFile( dataPath("kadu/modules/configuration/panelkadu.ui"), panelKadu );
-	delete panelKadu;
-	panelKadu = NULL;
+	MainConfigurationWindow::unregisterUiFile( dataPath("kadu/modules/configuration/panelkadu.ui") );
+	delete panelkadu;
+	panelkadu = NULL;
 	kdebugf2();
 }
 
 
-PanelKadu::PanelKadu() : QObject( NULL, "panelkadu" )
+PanelKadu::PanelKadu() : QObject()
 {
 	// configuration handling
 	createDefaultConfiguration();
 	// save window geometry
-	oldGeometry = kadu->geometry();
+	oldGeometry = Core::instance()->kaduWindow()->geometry();
 	// hide Kadu
-	kadu->hide();
+	Core::instance()->kaduWindow()->hide();
 	// change window type to dock
 	Atom atomproperty = XInternAtom( QX11Info::display(), "_NET_WM_WINDOW_TYPE", False );
 	Atom atomvalue    = XInternAtom( QX11Info::display(), "_NET_WM_WINDOW_TYPE_DOCK", False );
-	XChangeProperty( QX11Info::display(), kadu->winId(), atomproperty, XA_ATOM, 32, PropModeReplace, (unsigned char *)&atomvalue, 1 );
+	XChangeProperty( QX11Info::display(), Core::instance()->kaduWindow()->winId(), atomproperty, XA_ATOM, 32, PropModeReplace, (unsigned char *)&atomvalue, 1 );
+	// remove window's decoration, set always-on-top and force taskbar and pager skipping
+	Core::instance()->kaduWindow()->setWindowFlags( Core::instance()->kaduWindow()->windowFlags() |  Qt::X11BypassWindowManagerHint | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint );
+	Atom win_state = XInternAtom( QX11Info::display(), "_NET_WM_STATE", False );
+	Atom win_state_setting[] =
+	{
+		XInternAtom( QX11Info::display(), "_NET_WM_STATE_ABOVE"       , False ),
+		XInternAtom( QX11Info::display(), "_NET_WM_STATE_SKIP_TASKBAR", False ),
+		XInternAtom( QX11Info::display(), "_NET_WM_STATE_SKIP_PAGER"  , False )
+	};
+	XChangeProperty( QX11Info::display(), Core::instance()->kaduWindow()->winId(), win_state, XA_ATOM, 32, PropModeReplace, (unsigned char*)&win_state_setting, 3 );
+	// set on all desktops
+	unsigned int desktop = X11_ALLDESKTOPS;
+	Atom win_desktop = XInternAtom( QX11Info::display(), "_NET_WM_DESKTOP", False );
+	XChangeProperty( QX11Info::display(), Core::instance()->kaduWindow()->winId(), win_desktop, XA_CARDINAL, 32, PropModeReplace, (unsigned char*)&desktop, 1 );
 	// create the event filter
 	eventfilter = new EventFilter();
 	// read the configuration and force its usage
 	configurationUpdated();
 	// create activation timer
 	activationTimer = new QTimer( this );
+	activationTimer->setSingleShot( true );
 	connect( activationTimer, SIGNAL(timeout()), this, SLOT(showKadu()) );
 	// create hiding timer
 	hidingTimer = new QTimer( this );
+	hidingTimer->setSingleShot( true );
 	connect( hidingTimer, SIGNAL(timeout()), this, SLOT(hideKadu()) );
 	// start the mouse timer
 	mouseTimer = new QTimer( this );
 	connect( mouseTimer, SIGNAL(timeout()), this, SLOT(checkMouse()) );
-	mouseTimer->start( PANELKADU_MOUSEITMERINTERVAL, FALSE );
+	mouseTimer->start( PANELKADU_MOUSEITMERINTERVAL );
 	// hide panel at module startup
-	QTimer::singleShot( 1, this, SLOT(hideKadu()) );
+	QTimer::singleShot( 0, this, SLOT(hideKadu()) );
 }
 
 
@@ -104,49 +133,53 @@ PanelKadu::~PanelKadu()
 	hidingTimer->stop();
 	delete hidingTimer;
 	// hide Kadu (and remove StaysOnTop flag)
-	kadu->hide();
-	// set window type to ordinary TopLevel
-	kadu->reparent( 0, Qt::WType_TopLevel, kadu->pos(), false );
+	Core::instance()->kaduWindow()->hide();
+	// set on the current desktop only
+	unsigned int desktop = X11_getCurrentDesktop( QX11Info::display() );
+	Atom win_desktop = XInternAtom( QX11Info::display(), "_NET_WM_DESKTOP", False );
+	XChangeProperty( QX11Info::display(), Core::instance()->kaduWindow()->winId(), win_desktop, XA_CARDINAL, 32, PropModeReplace, (unsigned char*)&desktop, 1 );
+	// restore window's decoration, revoke always-on-top and remove taskbar and pager skipping
+	Core::instance()->kaduWindow()->setWindowFlags( Core::instance()->kaduWindow()->windowFlags() & ~Qt::X11BypassWindowManagerHint & ~Qt::FramelessWindowHint & ~Qt::WindowStaysOnTopHint );
+	Atom win_state = XInternAtom( QX11Info::display(), "_NET_WM_STATE", False );
+	XChangeProperty( QX11Info::display(), Core::instance()->kaduWindow()->winId(), win_state, XA_ATOM, 32, PropModeReplace, NULL, 0 );
+	// change window type back to normal
+	Atom atomproperty = XInternAtom( QX11Info::display(), "_NET_WM_WINDOW_TYPE", False );
+	Atom atomvalue    = XInternAtom( QX11Info::display(), "_NET_WM_WINDOW_TYPE_NORMAL", False );
+	XChangeProperty( QX11Info::display(), Core::instance()->kaduWindow()->winId(), atomproperty, XA_ATOM, 32, PropModeReplace, (unsigned char *)&atomvalue, 1 );
 	// disable window's size limits
-	kadu->setMinimumSize( 0, 0 );
-	kadu->setMaximumSize( 32767, 32767 );
+	Core::instance()->kaduWindow()->setMinimumSize( 0, 0 );
+	Core::instance()->kaduWindow()->setMaximumSize( QWIDGETSIZE_MAX, QWIDGETSIZE_MAX );
 	// restore old window's geometry
-	kadu->setGeometry( oldGeometry );
-	if( ! kadu->closing() )  // if the module is being unloaded
+	Core::instance()->kaduWindow()->setGeometry( oldGeometry );
+	if( ! Core::instance()->isClosing() )  // if the module is being unloaded
 	{
 		// show Kadu normally
-		kadu->show();
+		Core::instance()->kaduWindow()->show();
 	}
 }
 
 
 void PanelKadu::mainConfigurationWindowCreated( MainConfigurationWindow *mainConfigurationWindow )
 {
-	QLineEdit *activationRanges;
-	activationRanges = dynamic_cast<QLineEdit *>(mainConfigurationWindow->widgetById("panelkadu/activationRanges"));
-	connect( mainConfigurationWindow->widgetById("panelkadu/useActivationRanges"), SIGNAL(toggled(bool)), activationRanges, SLOT(setEnabled(bool)) );
-	QSpinBox *panelPosition;
-	panelPosition = dynamic_cast<QSpinBox *>(mainConfigurationWindow->widgetById("panelkadu/panelPosition"));
-	connect( mainConfigurationWindow->widgetById("panelkadu/userDefinedPanelLength"), SIGNAL(toggled(bool)), panelPosition, SLOT(setEnabled(bool)) );
-	QSpinBox *panelLength;
-	panelLength = dynamic_cast<QSpinBox *>(mainConfigurationWindow->widgetById("panelkadu/panelLength"));
-	connect( mainConfigurationWindow->widgetById("panelkadu/userDefinedPanelLength"), SIGNAL(toggled(bool)), panelLength, SLOT(setEnabled(bool)) );
+	connect( mainConfigurationWindow->widget()->widgetById("panelkadu/useActivationRanges")   , SIGNAL(toggled(bool)), mainConfigurationWindow->widget()->widgetById("panelkadu/activationRanges"), SLOT(setEnabled(bool)) );
+	connect( mainConfigurationWindow->widget()->widgetById("panelkadu/userDefinedPanelLength"), SIGNAL(toggled(bool)), mainConfigurationWindow->widget()->widgetById("panelkadu/panelPosition")   , SLOT(setEnabled(bool)) );
+	connect( mainConfigurationWindow->widget()->widgetById("panelkadu/userDefinedPanelLength"), SIGNAL(toggled(bool)), mainConfigurationWindow->widget()->widgetById("panelkadu/panelLength")     , SLOT(setEnabled(bool)) );
 }
 
 
 void PanelKadu::createDefaultConfiguration()
 {
-	config_file.addVariable( "PanelKadu", "Side"                   , PANELKADU_SIDE_RIGHT            );
-	config_file.addVariable( "PanelKadu", "Size"                   , kadu->width()                   );
-	config_file.addVariable( "PanelKadu", "UserDefinedPanelLength" , false                           );
-	config_file.addVariable( "PanelKadu", "PanelPosition"          , "0"                             );
-	config_file.addVariable( "PanelKadu", "PanelLength"            , PANELKADU_DEFAULTLENGTH         );
-	config_file.addVariable( "PanelKadu", "ActivationTime"         , PANELKADU_DEFAULTACTIVATIONTIME );
-	config_file.addVariable( "PanelKadu", "HideTime"               , PANELKADU_DEFAULTHIDETIME       );
-	config_file.addVariable( "PanelKadu", "HidingMargin"           , 0                               );
-	config_file.addVariable( "PanelKadu", "UseActivationRanges"    , false                           );
-	config_file.addVariable( "PanelKadu", "ActivationRanges"       , ""                              );
-	config_file.addVariable( "PanelKadu", "DontHidePanelWhenActive", false                           );
+	config_file.addVariable( "PanelKadu", "Side"                   , PANELKADU_SIDE_RIGHT                    );
+	config_file.addVariable( "PanelKadu", "Size"                   , Core::instance()->kaduWindow()->width() );
+	config_file.addVariable( "PanelKadu", "UserDefinedPanelLength" , false                                   );
+	config_file.addVariable( "PanelKadu", "PanelPosition"          , 0                                       );
+	config_file.addVariable( "PanelKadu", "PanelLength"            , PANELKADU_DEFAULTLENGTH                 );
+	config_file.addVariable( "PanelKadu", "ActivationTime"         , PANELKADU_DEFAULTACTIVATIONTIME         );
+	config_file.addVariable( "PanelKadu", "HideTime"               , PANELKADU_DEFAULTHIDETIME               );
+	config_file.addVariable( "PanelKadu", "HidingMargin"           , 0                                       );
+	config_file.addVariable( "PanelKadu", "UseActivationRanges"    , false                                   );
+	config_file.addVariable( "PanelKadu", "ActivationRanges"       , ""                                      );
+	config_file.addVariable( "PanelKadu", "DontHidePanelWhenActive", false                                   );
 }
 
 
@@ -168,7 +201,7 @@ void PanelKadu::configurationUpdated()
 	int dW = QApplication::desktop()->width();
 	int dH = QApplication::desktop()->height();
 	// hide Kadu
-	kadu->hide();
+	Core::instance()->kaduWindow()->hide();
 	// minimum kadu dimensions
 	if( ( side == PANELKADU_SIDE_RIGHT ) || ( side == PANELKADU_SIDE_LEFT ) )
 	{
@@ -210,27 +243,27 @@ void PanelKadu::configurationUpdated()
 	// move Kadu to selected side and resize it
 	if( ( side == PANELKADU_SIDE_RIGHT ) || ( side == PANELKADU_SIDE_LEFT ) )
 	{
-		kadu->setMinimumSize( size, length );
-		kadu->setMaximumSize( size, length );
+		Core::instance()->kaduWindow()->setMinimumSize( size, length );
+		Core::instance()->kaduWindow()->setMaximumSize( size, length );
 	}
 	else
 	{
-		kadu->setMinimumSize( length, size );
-		kadu->setMaximumSize( length, size );
+		Core::instance()->kaduWindow()->setMinimumSize( length, size );
+		Core::instance()->kaduWindow()->setMaximumSize( length, size );
 	}
 	switch( side )
 	{
 		case PANELKADU_SIDE_RIGHT:
-			kadu->setGeometry( dW-size, position, size, length );
+			Core::instance()->kaduWindow()->setGeometry( dW-size, position, size, length );
 			break;
 		case PANELKADU_SIDE_BOTTOM:
-			kadu->setGeometry( position, dH-size, length, size );
+			Core::instance()->kaduWindow()->setGeometry( position, dH-size, length, size );
 			break;
 		case PANELKADU_SIDE_LEFT:
-			kadu->setGeometry( 0, position, size, length );
+			Core::instance()->kaduWindow()->setGeometry( 0, position, size, length );
 			break;
 		case PANELKADU_SIDE_TOP:
-			kadu->setGeometry( position, 0, length, size );
+			Core::instance()->kaduWindow()->setGeometry( position, 0, length, size );
 			break;
 	}
 }
@@ -239,16 +272,16 @@ void PanelKadu::configurationUpdated()
 bool PanelKadu::isInActivationRanges( int number )
 {
 	// this functions returns true on any activationRanges syntax error!
-	if( activationRanges.stripWhiteSpace() == "" )
+	if( activationRanges.trimmed().isEmpty() )
 		return true;
 	QStringList rangeslist;
-	rangeslist = QStringList::split( QString(" "), activationRanges.stripWhiteSpace(), true );
+	rangeslist = activationRanges.trimmed().split( QString(" "), QString::SkipEmptyParts );
 	QStringList range;
 	int a = 0, b = 0;
 	bool ok = false;
 	for( QStringList::Iterator it = rangeslist.begin(); it != rangeslist.end(); ++it )
 	{
-		range = QStringList::split( "-", *it, true );
+		range = (*it).split( "-", QString::SkipEmptyParts );
 		if( range.count() != 2 )
 			return true;
 		a = range.at(0).toInt( &ok, 10 );
@@ -304,23 +337,23 @@ void PanelKadu::checkMouse()
 	// Kadu window size
 	int windowsize = 0;
 	if( ( side == PANELKADU_SIDE_RIGHT ) || ( side == PANELKADU_SIDE_LEFT ) )
-		windowsize = kadu->width();
+		windowsize = Core::instance()->kaduWindow()->width();
 	else
-		windowsize = kadu->height();
+		windowsize = Core::instance()->kaduWindow()->height();
 	// Kadu window position
 	int position = 0;
 	if( ( side == PANELKADU_SIDE_RIGHT ) || ( side == PANELKADU_SIDE_LEFT ) )
-		position = kadu->y();
+		position = Core::instance()->kaduWindow()->y();
 	else
-		position = kadu->x();
+		position = Core::instance()->kaduWindow()->x();
 	// Kadu window length
 	int length = 0;
 	if( ( side == PANELKADU_SIDE_RIGHT ) || ( side == PANELKADU_SIDE_LEFT ) )
-		length = kadu->height();
+		length = Core::instance()->kaduWindow()->height();
 	else
-		length = kadu->width();
+		length = Core::instance()->kaduWindow()->width();
 	// show/hide Kadu
-	if( ! kadu->isVisible() )  // panel is hidden
+	if( ! Core::instance()->kaduWindow()->isVisible() )  // panel is hidden
 	{
 		hidingTimer->stop();
 		if( sidecursordist == 0 )  // is the cursor touching the edge?
@@ -330,7 +363,7 @@ void PanelKadu::checkMouse()
 				if( ( ( sidecursorpos >= position ) && ( sidecursorpos <= position+length ) ) )  // cursor is inside the space occupied by the (shown) panel
 				{
 					if( ! activationTimer->isActive() )
-						activationTimer->start( activationTime, true );
+						activationTimer->start( activationTime );
 				}
 				else
 				{
@@ -342,7 +375,7 @@ void PanelKadu::checkMouse()
 				if( isInActivationRanges( sidecursorpos ) )  // is the cursor position in the defined activation range?
 				{
 					if( ! activationTimer->isActive() )
-						activationTimer->start( activationTime, true );
+						activationTimer->start( activationTime );
 				}
 				else
 				{
@@ -355,39 +388,56 @@ void PanelKadu::checkMouse()
 			activationTimer->stop();
 		}
 	}
-	else if( kadu->isVisible() && ( ( ! dontHidePanelWhenActive ) || ( ! kadu->isActiveWindow() ) ) )  // panel is show and can be hidden
+	else if( Core::instance()->kaduWindow()->isVisible() )  // panel is shown
 	{
-		activationTimer->stop();
-		if( sidecursordist >= windowsize+hidingMargin )  // cursor distance from the edge is greater than the panel size
+		bool canhide = true;
+		if( dontHidePanelWhenActive )
 		{
-			if( ! hidingTimer->isActive() )
-				hidingTimer->start( hideTime, true );
+			// don't hide when active
+			if( _isActiveWindow( Core::instance()->kaduWindow() ) )
+				canhide = false;
 		}
-		else if( ( ( sidecursorpos < position-hidingMargin ) || ( sidecursorpos > position+length+hidingMargin ) ) )  // cursor is outside the panel
+		else
 		{
-			if( sidecursordist > 0 )  // cursor is not touching the edge
+			// don't hide when a menu is open
+			if( X11_getActiveWindow( QX11Info::display() ) == Core::instance()->kaduWindow()->winId() )
+				if( ! Core::instance()->kaduWindow()->isActiveWindow() )
+					canhide = false;
+		}
+		if( canhide )  // panel can be hidden
+		{
+			activationTimer->stop();
+			if( sidecursordist >= windowsize+hidingMargin )  // cursor distance from the edge is greater than the panel size
 			{
 				if( ! hidingTimer->isActive() )
-					hidingTimer->start( hideTime, true );
+					hidingTimer->start( hideTime );
 			}
-			else if( ! useActivationRanges )  // the cursor is outside the panel
+			else if( ( ( sidecursorpos < position-hidingMargin ) || ( sidecursorpos > position+length+hidingMargin ) ) )  // cursor is outside the panel
 			{
-				if( ! hidingTimer->isActive() )
-					hidingTimer->start( hideTime, true );
+				if( sidecursordist > 0 )  // cursor is not touching the edge
+				{
+					if( ! hidingTimer->isActive() )
+						hidingTimer->start( hideTime );
+				}
+				else if( ! useActivationRanges )  // the cursor is outside the panel
+				{
+					if( ! hidingTimer->isActive() )
+						hidingTimer->start( hideTime );
+				}
+				else if( useActivationRanges && ( ! isInActivationRanges( sidecursorpos ) ) )  // the activation ranges are being used and cursor is outside them
+				{
+					if( ! hidingTimer->isActive() )
+						hidingTimer->start( hideTime );
+				}
+				else
+				{
+					hidingTimer->stop();
+				}
 			}
-			else if( useActivationRanges && ( ! isInActivationRanges( sidecursorpos ) ) )  // the activation ranges are being used and cursor is outside them
-			{
-				if( ! hidingTimer->isActive() )
-					hidingTimer->start( hideTime, true );
-			}
-			else
+			else  // the cursor is inside the Kadu window
 			{
 				hidingTimer->stop();
 			}
-		}
-		else  // the cursor is inside the Kadu window
-		{
-			hidingTimer->stop();
 		}
 	}
 }
@@ -395,8 +445,14 @@ void PanelKadu::checkMouse()
 
 void PanelKadu::showKadu()
 {
-	// show panel
-	kadu->show();
+	// set on all desktops
+	unsigned int desktop = X11_ALLDESKTOPS;
+	Atom win_desktop = XInternAtom( QX11Info::display(), "_NET_WM_DESKTOP", False );
+	XChangeProperty( QX11Info::display(), Core::instance()->kaduWindow()->winId(), win_desktop, XA_CARDINAL, 32, PropModeReplace, (unsigned char*)&desktop, 1 );
+	// show panel and raise it
+	animate();
+	Core::instance()->kaduWindow()->show();
+	Core::instance()->kaduWindow()->raise();
 	// install the event filter
 	qApp->installEventFilter( eventfilter );
 }
@@ -407,33 +463,66 @@ void PanelKadu::hideKadu()
 	// remove the event filter
 	qApp->removeEventFilter( eventfilter );
 	// hide panel
-	kadu->hide();
+	animate();
+	Core::instance()->kaduWindow()->hide();
+}
+
+
+void PanelKadu::animate()
+{
+	#ifdef Q_WS_X11
+		Atom kdeslide = XInternAtom( QX11Info::display(), "_KDE_SLIDE", False );
+		QVarLengthArray<long, 1024> data(2);
+		switch( side )
+		{
+			case PANELKADU_SIDE_LEFT:
+					data[0] = Core::instance()->kaduWindow()->geometry().left();
+					data[1] = 0;
+					break;
+			case PANELKADU_SIDE_TOP:
+					data[0] = Core::instance()->kaduWindow()->geometry().top();
+					data[1] = 1;
+					break;
+			case PANELKADU_SIDE_RIGHT:
+					data[0] = Core::instance()->kaduWindow()->geometry().right();
+					data[1] = 2;
+					break;
+			case PANELKADU_SIDE_BOTTOM:
+					data[0] = Core::instance()->kaduWindow()->geometry().bottom();
+					data[1] = 3;
+			default:
+					break;
+		}
+		if( isCompositingManagerRunning() )
+			XChangeProperty( QX11Info::display(), Core::instance()->kaduWindow()->effectiveWinId(), kdeslide, kdeslide, 32, PropModeReplace, reinterpret_cast<unsigned char *>(data.data()), data.size() );
+		else
+			XDeleteProperty( QX11Info::display(), Core::instance()->kaduWindow()->effectiveWinId(), kdeslide);
+	#endif
+}
+
+
+bool PanelKadu::isCompositingManagerRunning()
+{
+	#ifdef Q_WS_X11
+		Atom netwmcms0 = XInternAtom( QX11Info::display(), "_NET_WM_CM_S0", False );
+		return XGetSelectionOwner( QX11Info::display(), netwmcms0 );
+	#endif
+	return false;
 }
 
 
 bool EventFilter::eventFilter( QObject *o, QEvent *e )
 {
+	Q_UNUSED( o );
 	if( ( e->type() == QEvent::MouseButtonPress ) )
 	{
 		QMouseEvent *me = (QMouseEvent*)e;
-		if( kadu->geometry().contains( me->globalPos() ) )
+		if( Core::instance()->kaduWindow()->geometry().contains( me->globalPos() ) )
 		{
-			// activate Kadu's window
-			Atom netactivewindow = XInternAtom( QX11Info::display(), "_NET_ACTIVE_WINDOW", False );
-			XEvent e;
-			e.xclient.type = ClientMessage;
-			e.xclient.message_type = netactivewindow;
-			e.xclient.display =  QX11Info::display();
-			e.xclient.window = kadu->winId();
-			e.xclient.format = 32;
-			e.xclient.data.l[0] = 2; // from tool
-			e.xclient.data.l[1] = CurrentTime;
-			e.xclient.data.l[2] = 0;
-			e.xclient.data.l[3] = 0l;
-			e.xclient.data.l[4] = 0l;
-			XSendEvent( QX11Info::display(), DefaultRootWindow( QX11Info::display() ), False, SubstructureRedirectMask | SubstructureNotifyMask, &e );
 			// remove the event filter
-			qApp->removeEventFilter( panelKadu->eventfilter );
+			qApp->removeEventFilter( panelkadu->eventfilter );
+			// activate Kadu's window
+			_activateWindow( Core::instance()->kaduWindow() );
 		}
 	}
 	// forward the event

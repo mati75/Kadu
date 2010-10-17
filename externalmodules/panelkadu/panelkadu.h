@@ -1,3 +1,24 @@
+/****************************************************************************
+*                                                                           *
+*   PanelKadu module for Kadu                                               *
+*   Copyright (C) 2008-2010  Piotr Dąbrowski ultr@ultr.pl                   *
+*                                                                           *
+*   This program is free software: you can redistribute it and/or modify    *
+*   it under the terms of the GNU General Public License as published by    *
+*   the Free Software Foundation, either version 3 of the License, or       *
+*   (at your option) any later version.                                     *
+*                                                                           *
+*   This program is distributed in the hope that it will be useful,         *
+*   but WITHOUT ANY WARRANTY; without even the implied warranty of          *
+*   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           *
+*   GNU General Public License for more details.                            *
+*                                                                           *
+*   You should have received a copy of the GNU General Public License       *
+*   along with this program.  If not, see <http://www.gnu.org/licenses/>.   *
+*                                                                           *
+****************************************************************************/
+
+
 #ifndef PANELKADU_H
 	#define PANELKADU_H
 
@@ -5,23 +26,23 @@
 #include <QObject>
 #include <QTimer>
 
-#include "configuration_aware_object.h"
-#include "main_configuration_window.h"
+#include "configuration/configuration-aware-object.h"
+#include "gui/windows/main-configuration-window.h"
 
 #include "panelkadu.h"
 
 
-#define  PANELKADU_MOUSEITMERINTERVAL          50  /* ms */
-#define  PANELKADU_SIDE_RIGHT                   0
-#define  PANELKADU_SIDE_BOTTOM                  1
-#define  PANELKADU_SIDE_LEFT                    2
-#define  PANELKADU_SIDE_TOP                     3
-#define  PANELKADU_DEFAULTSIZE                200  /* px */
-#define  PANELKADU_DEFAULTLENGTH              500  /* px */
-#define  PANELKADU_DEFAULTACTIVATIONTIME        0  /* ms */
-#define  PANELKADU_DEFAULTHIDETIME            200  /* ms */
-#define  PANELKADU_KADUMINIMUMWIDTH           100  /* px */
-#define  PANELKADU_KADUMINIMUMHEIGHT          180  /* px */
+#define  PANELKADU_MOUSEITMERINTERVAL      50  /* ms */
+#define  PANELKADU_SIDE_RIGHT               0
+#define  PANELKADU_SIDE_BOTTOM              1
+#define  PANELKADU_SIDE_LEFT                2
+#define  PANELKADU_SIDE_TOP                 3
+#define  PANELKADU_DEFAULTSIZE            200  /* px */
+#define  PANELKADU_DEFAULTLENGTH          500  /* px */
+#define  PANELKADU_DEFAULTACTIVATIONTIME    0  /* ms */
+#define  PANELKADU_DEFAULTHIDETIME        200  /* ms */
+#define  PANELKADU_KADUMINIMUMWIDTH       100  /* px */
+#define  PANELKADU_KADUMINIMUMHEIGHT      180  /* px */
 
 
 class EventFilter : public QObject
@@ -46,6 +67,8 @@ class PanelKadu : public ConfigurationUiHandler, ConfigurationAwareObject
 	private:
 		void createDefaultConfiguration();
 		bool isInActivationRanges( int number );
+		void animate();
+		bool isCompositingManagerRunning();
 		QTimer *mouseTimer;
 		QTimer *activationTimer;
 		QTimer *hidingTimer;
@@ -67,7 +90,7 @@ class PanelKadu : public ConfigurationUiHandler, ConfigurationAwareObject
 		void hideKadu();
 };
 
-extern PanelKadu *panelKadu;
+extern PanelKadu *panelkadu;
 
 
 #endif

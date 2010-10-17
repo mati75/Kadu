@@ -1,7 +1,0 @@
-[Module]
-Description=SMS Gateway on Plus.pl module
-Description[pl]=Modu³ obs³ugi bramki sms w Plus.pl
-Author=Patryk Cisek
-Dependencies=sms
-LoadByDefault=true
-Version=0.6.5.1

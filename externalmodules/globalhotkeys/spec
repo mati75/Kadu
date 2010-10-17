@@ -1,3 +1,0 @@
-MODULE_SOURCES="globalhotkeys.cpp hotkey.cpp hotkeyedit.cpp wideiconsmenu.cpp proxystyle.cpp"
-MODULE_MOC_HEADERS="globalhotkeys.h"
-MODULE_LDFLAGS="-L/usr/X11R6/lib -lX11"

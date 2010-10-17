@@ -1,7 +1,0 @@
-[Module]
-Description=Notification by KNotify
-Description[pl]=Modu³ powiadamiania u¿ytkownika o zdarzeniach za pomoc± KNotify
-Author=Jacek Jab³oñski
-Dependencies=notify
-Provides=notify_method
-Version=0.3.4

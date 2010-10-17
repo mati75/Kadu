@@ -1,7 +1,0 @@
-[Module]
-Description=Notification by IM-LED in Logitech MX610 mouse.
-Description[pl]=Modu³ powiadamiania diod± IM w myszcze Logitech MX610.
-Author=Korneliusz Jarzêbski, Dorregaray
-Dependencies=notify
-Provides=notify_method
-Version=0.4.1

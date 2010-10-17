@@ -1,0 +1,8 @@
+[Module]
+Description=Notification module using Scroll Lock LED
+Description[pl]=Modu³ powiadamiania diod± Scroll Lock
+Author=Micha³ Ma³ek, Piotr "ultr" D±browski
+Provides=notify_method
+Base=false
+LoadByDefault=false
+Version=0.6.6-25

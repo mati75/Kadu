@@ -1,8 +1,0 @@
-[Module]
-Description=Pajacyk module
-Description[pl]=Modu³ Pajacyk
-Author=Dorregaray
-Dependencies=
-Provides=
-Conflicts=
-Version=0.2.1

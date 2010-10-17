@@ -1,7 +1,0 @@
-[Module]
-Description=Mail checker module
-Description[pl]=Modu³ do sprawdzania poczty 
-Author=Micha³ Podsiadlik
-Dependencies=notify
-LoadByDefault=false
-Version=0.3.6

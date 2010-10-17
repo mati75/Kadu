@@ -1,6 +1,6 @@
 <configuration-ui>
 	<section name="Shortcuts">
-		<tab name="Chat">
+		<tab name="Chat Window">
 			<group-box name="Sent messages' history">
 				<hot-key-edit caption="Previous message"                config-section="SentHistory" config-item="PreviousMessage"             id="senthistory/previousMessage"             />
 				<hot-key-edit caption="Next message"                    config-section="SentHistory" config-item="NextMessage"                 id="senthistory/nextMessage"                 />
