@@ -1,85 +1,17 @@
 diff --git a/.config b/.config
-index 3cf1fe9..2ab8095 100644
+index 76f7486..8f6dc45 100644
 --- a/.config
 +++ b/.config
-@@ -38,14 +38,14 @@ module_docking=y
- # PL: (działa m.in. w KDE, GNOME, Xfce, ...)
- # Platform: Linux, Mac OS X, Windows
- # Depends: docking
--module_qt4_docking=y
-+module_qt4_docking=m
- 
- # Description: Always on top window docking module
- # PL: Moduł służący symulacji dokowania przy pomocy małego okna
- # PL: (bez ramek i z ustawioną flagą "Zawsze na wierzchu")
- # Platform: Linux, Mac OS X, Windows
- # Depends: docking
--module_desktop_docking=n
-+module_desktop_docking=m
- 
- # Description: MacOS X docking module
- # PL: Moduł służący symulacji dokowania na MacOS X
-@@ -78,14 +78,14 @@ module_hints=m
- # PL: Moduł powiadamiania o zdarzeniach za pomocą zewnętrznych poleceń
- # Platform: Linux, Mac OS X, Windows
- # Depends: notify
--module_exec_notify=n
-+module_exec_notify=m
- 
- # Description: PC-Speaker support
+@@ -90,7 +90,7 @@ module_growl_notify=n
  # PL: Powiadamianie przy pomocy PC-Speakera
- # Platform: Linux, Mac OS X, Windows
- # Needs: libX11 (on Linux)
- # Depends: notify
+ # Platform: Linux
+ # Needs: libX11
 -module_pcspeaker=n
 +module_pcspeaker=m
  
- # Description: MacOS X Growl Notification
- # PL: Powiadamianie przy pomocy Growla na MacOS X
-@@ -97,36 +97,36 @@ module_growl_notify=n
- # PL: Powiadamianie za pomocą powiadomień KDE4
- # Platform: Linux
- # Depends: notify
--module_kde_notify=n
-+module_kde_notify=m
- 
- # Description: Notification by Amarok-like hints module
- # PL: Moduł powiadamiania o zdarzeniach przy pomocy dymków a'la OSD z Amaroka
- # Platform: Linux, Mac OS X, Windows
- # Depends: notify
--module_osd_hints=n
-+module_osd_hints=m
- 
- # Description: Notification by qt4 docking module
- # PL: Powiadamianie za pomocą modulu qt4_docking
- # Platform: Linux, Mac OS X, Windows
- # Depends: notify qt4_docking
--module_qt4_docking_notify=n
-+module_qt4_docking_notify=m
- 
- # Description: Notification by Water Plugin in Compiz
- # PL: Moduł powiadamiania pluginem Water w Compiz
- # Platform: Linux
- # Depends: notify
--module_water_notify=n
-+module_water_notify=m
- 
- # Description: Notifications by LED on Logitech mx610 mouse
- # PL: Powiadomienia diodami na myszy mx610
- # Platform: Linux
- # Depends: notify
--module_mx610_notify=n
-+module_mx610_notify=m
- 
- # Description: Speech synthesis support ("powiedz")
- # PL: Powiadamianie mową za pomocą programu "powiedz"
- # Depends: notify
--module_speech=n
-+module_speech=m
- 
- ##################### sound ##########################################
- # PL: ############### dźwięk #########################################
-@@ -150,14 +150,14 @@ module_alsa_sound=m
+ # Description: KDE4 notification support
+ # PL: Powiadamianie przy pomocy notyfikacji KDE
+@@ -123,7 +123,7 @@ module_alsa_sound=m
  # Platform: Linux (requires NAS), Mac OS X, Windows
  # Needs: QtSound
  # Depends: sound
@@ -88,15 +20,7 @@ index 3cf1fe9..2ab8095 100644
  
  # Description: Phonon sound support
  # PL: Obsługa dźwięku przez Phonon
- # Platform: Linux, Mac OS X, Windows
- # Needs: (GStreamer on Linux, QuickTime on Mac OS X and DirectShow on Windows)
- # Depends: sound
--module_phonon_sound=n
-+module_phonon_sound=m
- 
- # Description: ao library sound module (ALSA, OSS, ESD, AIX, IRIX, NAS, Sun, NenBSD, OpenBSD)
- # PL: Obsługa dźwięku przy pomocy biblioteki libao (która obsługuje:
-@@ -165,7 +165,7 @@ module_phonon_sound=n
+@@ -138,7 +138,7 @@ module_phonon_sound=m
  # Platform: Linux
  # Needs: libao
  # Depends: sound
@@ -105,120 +29,67 @@ index 3cf1fe9..2ab8095 100644
  
  # Description: Direct /dev/dsp sound support (Open Sound System)
  # PL: Obsługa dźwięku przez bezpośredni dostęp do urządzenia /dev/dsp (Open Sound System)
-@@ -177,7 +177,7 @@ module_dsp_sound=m
- # PL: Obsługa dźwięku poprzez zewnętrzną aplikację
+@@ -171,7 +171,7 @@ module_win32_sound=n
+ # PL: Obsługa rozmów głosowych
  # Platform: Linux, Mac OS X, Windows
- # Depends: sound
--module_ext_sound=n
-+module_ext_sound=m
+ # Depends: dcc, sound
+-module_voice=n
++module_voice=m
  
- # Description: Direct Show sound module (Windows only)
- # PL: Obsługa dzwięku poprzez Direct Show (tylko dla Windows)
-@@ -273,51 +273,51 @@ module_autoresponder=m
- # Description: Profiles support
- # PL: Klikalna obsługa profili
+ ###################### sms ###########################################
+ 
+@@ -187,7 +187,7 @@ module_sms=m
+ # Description: Register / unregister account, remind / change password support
+ # PL: Obsługa rejestracji / wyrejestrowywania konta, przypominania / zmiany hasła
  # Platform: Linux, Mac OS X, Windows
--module_profiles=n
-+module_profiles=m
+-module_account_management=n
++module_account_management=m
  
- # Description: Protection against unwanted chats
- # PL: Ochrona przed "klikaczami"
- # Platform: Linux, Mac OS X, Windows
- # Depends: notify
--module_firewall=n
-+module_firewall=m
- 
- # Description: Antistring
- # PL: Ochrona przed łańcuszkami
- # Platform: Linux, Mac OS X, Windows
- # Depends: notify
--module_antistring=n
-+module_antistring=m
- 
- # Description: Auto hide Kadu window
- # PL: Automatyczne ukrywanie okna Kadu
- # Platform: Linux, Mac OS X, Windows
- # Depends: docking
--module_auto_hide=n
-+module_auto_hide=m
- 
- # Description: Cenzor
- # PL: Cenzor
- # Platform: Linux, Mac OS X, Windows
- # Depends: notify
--module_cenzor=n
-+module_cenzor=m
- 
- # Description: Display Gadu Avatars in Kadu
- # PL: Umożliwia wyświetlanie awatarow GG w Kadu
- # Platform: Linux, Mac OS X, Windows
--module_gg_avatars=n
-+module_gg_avatars=m
- 
- # Description: Extends Kadu Parser
- # PL: Rozszerza możliwości Parsera Kadu
- # Platform: Linux, Mac OS X, Windows
--module_parser_extender=n
-+module_parser_extender=m
- 
- # Description: Automaticaly split too long messages
- # PL: Automatyczne dzielenie zbyt długich wiadomości
- # Platform: Linux, Mac OS X, Windows
--module_split_messages=n
-+module_split_messages=m
- 
- # Description: Automatic word replacement
- # PL: Automatyczna zamiana słów
- # Platform: Linux, Mac OS X, Windows
--module_word_fix=n
-+module_word_fix=m
- 
- # Description: Autostatus
- # PL: Automatyczne zmiany statusu
-@@ -327,28 +327,28 @@ module_autostatus=m
- # Description: Last status infos
- # PL: Informacje o ostatnich statusach kontaktów
- # Platform: Linux, Mac OS X, Windows
--module_last_seen=n
-+module_last_seen=m
- 
- # Description:
- # PL: Dodaje możliwość zaznaczenia fragmentu ekranu i wysłania obrazka z jego zawartością
- # Platform: Linux, Mac OS X, Windows
--module_screenshot=n
-+module_screenshot=m
- 
- # Description: Description from file module
- # PL: Obsługa statusów pobieranych z pliku
- # Platform: Linux, Mac OS X, Windows
--module_filedesc=n
-+module_filedesc=m
- 
- # Description: User list filtering
- # PL: Filtrowanie listy kontaktów
- # Platform: Linux, Mac OS X, Windows
--module_filtering=n
-+module_filtering=m
- 
- # Description: Spellchecking in chat window
- # PL: Sprawdzanie błędów pisowni w oknie rozmowy
- # Platform: Linux, Mac OS X, Windows
- # Needs: libaspell
--module_spellchecker=n
-+module_spellchecker=m
- 
- # Description: DBus module
- # PL: Moduł dbus
-@@ -394,7 +394,7 @@ module_amarok1_mediaplayer=m
- # Description: Amarok 2 support for mediaplayer
- # PL: Wsparcie dla Amarok 2 w mediaplayer
+ # Description: User list: support for priorities (VIP/NIP) and changing order of sorting functions
+ # PL: Obsługa priorytetów (VIP/NIP) oraz zmiany kryteriów sortowania listy kontaktów
+@@ -344,7 +344,7 @@ module_plus_pl_sms=n
+ # PL: Powiadomiania diodą Scroll Lock
  # Platform: Linux
--module_amarok2_mediaplayer=n
-+module_amarok2_mediaplayer=m
+ # Needs: libX11
+-module_lednotify=n
++module_lednotify=m
  
+ # Description: Mail checking module
+ # PL: Moduł do sprawdzana poczty
+@@ -359,7 +359,7 @@ module_mime_tex=n
+ # Description: Makes a panel from Kadu main window
+ # PL: Zamienia Kadu w panel na skraju ekranu
+ # Platform: Linux
+-module_panelkadu=n
++module_panelkadu=m
+ 
+ # Description: Automatic lookup of an interlocutor in public directory
+ # PL: Automatyczne wyszukiwanie nieznajomych rozmówców w publicznym katalogu
+@@ -379,7 +379,7 @@ module_globalhotkeys=n
+ 
+ # Description: Adds history of sent messages to chat windows
+ # PL: Dodaje historię wysłanych wiadomości do okien rozmowy
+-module_senthistory=n
++module_senthistory=m
+ # Platform: Linux, Mac OS X, Windows
+ 
+ # Desctiption: Weather checking
+@@ -390,7 +390,7 @@ module_weather=n
+ 
+ # Description: Adds DBus interface
+ # PL: Dodaje interfejs DBus
+-module_dbus=n
++module_dbus=m
+ # Platform: Linux, Mac OS X, Windows
+ 
+ ######################## MEDIAPLAYER ########################
+@@ -413,22 +413,22 @@ module_amarok2_mediaplayer=m
  # Description: Audacious support for mediaplayer
  # PL: Wsparcie dla Audacious w mediaplayer
-@@ -404,17 +404,17 @@ module_audacious_mediaplayer=m
+ # Platform: Linux
+-module_audacious_mediaplayer=n
++module_audacious_mediaplayer=m
+ 
  # Description: BMPx support for mediaplayer
  # PL: Wsparcie dla BMPx w mediaplayer
  # Platform: Linux
@@ -239,13 +110,16 @@ index 3cf1fe9..2ab8095 100644
  
  # Description: iTunes support for mediaplayer
  # PL: Wsparcie dla iTunes w mediaplayer
-@@ -424,12 +424,12 @@ module_itunes_mediaplayer=n
+@@ -439,7 +439,7 @@ module_itunes_mediaplayer=n
+ # PL: Wsparcie dla  MPD w mediaplayer
+ # Needs: libmpdclient
+ # Platform: Linux
+-module_mpd_mediaplayer=n
++module_mpd_mediaplayer=m
+ 
  # Description: Media player support for mediaplayer using MPRIS interface
  # PL: Wsparcie w mediaplayer dla odtwarzaczy z interfejsem MPRIS
- # Platform: Linux
--module_mpris_mediaplayer=n
-+module_mpris_mediaplayer=m
- 
+@@ -449,7 +449,7 @@ module_mpris_mediaplayer=n
  # Description: VLC support for mediaplayer
  # PL: Wsparcie dla VLC w mediaplayer
  # Platform: Linux
@@ -254,32 +128,14 @@ index 3cf1fe9..2ab8095 100644
  
  # Description: Winamp support for mediaplayer
  # PL: Wsparcie dla Winamp'a w mediaplayer
-@@ -444,88 +444,88 @@ module_xmms_mediaplayer=n
+@@ -464,14 +464,14 @@ module_xmms_mediaplayer=n
  # Description: XMMS2 support for mediaplayer
  # PL: Wsparcie dla XMMS2 w mediaplayer
  # Platform: Linux
 -module_xmms2_mediaplayer=n
 +module_xmms2_mediaplayer=m
  
- # Description: List of people, that you don't have on list, but they have you
- # PL: List osób, jakich nie masz na liście, ale które mają Ciebie
- # Platform: Linux, Mac OS X, Windows
--module_agent=n
-+module_agent=m
- 
- # Description: Plus.pl SMS Gateway support
- # PL: Obsługa bramki SMSowej Plus.pl
- # Platform: Linux
- # Needs: libcurl, libssl
- # Depends: sms
--module_plus_pl_sms=n
-+module_plus_pl_sms=m
- 
- # Description: Tabbed chat dialog module
- # PL: Moduł okna rozmowy z zakładkami
- # Platform: Linux, Mac OS X, Windows
--module_tabs=n
-+module_tabs=m
+ module_server_monitor=m
  
  # Description: Single Window Mode
  # PL: Tryb pojedynczego okna
@@ -287,79 +143,9 @@ index 3cf1fe9..2ab8095 100644
 -module_single_window=n
 +module_single_window=m
  
- # Description: Notifications by Scroll Lock LED
- # PL: Powiadomiania diodą Scroll Lock
- # Platform: Linux
- # Needs: libX11
- # Depends: notify
--module_led_notify=n
-+module_led_notify=m
- 
- # Description: Mail checking module
- # PL: Moduł do sprawdzana poczty
- # Platform: Linux
- # Depends: notify
--module_mail=n
-+module_mail=m
- 
- # Description: TeX formula support
- # PL: Wsparcie dla formuł TeX-owych
- # Platform: Linux
--module_mime_tex=n
-+module_mime_tex=m
- 
- # Description: Makes a panel from Kadu main window
- # PL: Zamienia Kadu w panel na skraju ekranu
- # Platform: Linux
--module_panelkadu=n
-+module_panelkadu=m
- 
- # Description: Automatic lookup of an interlocutor in public directory
- # PL: Automatyczne wyszukiwanie nieznajomych rozmówców w publicznym katalogu
- # Platform: Linux, Mac OS X, Windows
--module_anonymous_check=n
-+module_anonymous_check=m
- 
- # Description: PowerKadu
- # PL: PowerKadu
- # Depends: anonymous_check antistring auto_hide autostatus cenzor gg_avatars parser_extender split_messages word_fix
- # Platform: Linux, Mac OS X, Windows
--module_powerkadu=n
-+module_powerkadu=m
- 
- # Description: Adds global hotkeys support to Kadu
- # PL: Dodaje do Kadu obsługę skrótów globalnych
- # Platform: Linux
--module_globalhotkeys=n
-+module_globalhotkeys=m
- 
- # Description: Adds history of sent messages to chat windows
- # PL: Dodaje historię wysłanych wiadomości do okien rozmowy
- # Platform: Linux, Mac OS X, Windows
--module_senthistory=n
-+module_senthistory=m
- 
- # Desctiption: Weather checking
- # PL: Sprawdzanie pogody
- # Platform: Linux, Mac OS X, Windows
- # Depends: notify
--module_weather=n
-+module_weather=m
- 
- # Description: New ext_info module providing extended contact information support
- # PL: Nowy moduł ext_info wprowadzający obsługę dodatkowych informacji o kontaktach
--module_nextinfo=n
-+module_nextinfo=m
- 
- # Desctiption: Pajacyk module
- # PL: Modul klikajacy Pajacyka
- # Platform: Linux, Mac OS X, Windows
--module_pajacyk=n
-+module_pajacyk=m
- 
  ############################################# ICONS ###########################################################################
  # PL: ####################################### IKONY ###########################################################################
-@@ -550,19 +550,19 @@ module_pajacyk=n
+@@ -496,7 +496,7 @@ module_single_window=n
  icons_default=y
  
  # Description: Default theme from kadu 0.5.x
@@ -367,14 +153,8 @@ index 3cf1fe9..2ab8095 100644
 +icons_kadu05=y
  
  # Description: Glass 16x16 icons made by Mariusz Waluga
--icons_glass16=y
-+icons_glass16=n
- 
- # Description: Glass 22x22 icons made by Mariusz Waluga
--icons_glass22=y
-+icons_glass22=n
- 
- # Desctiption: Tango 16x16 icons made by BlotoPosniegowe
+ icons_glass16=n
+@@ -508,7 +508,7 @@ icons_glass22=n
  icons_tango16=n
  
  # Description: Oxygen 16x16 icons maintained by Piotr Pelzowski
@@ -383,7 +163,7 @@ index 3cf1fe9..2ab8095 100644
  
  ########################################### EMOTICONS #########################################################################
  # PL: ##################################### EMOTIKONY #########################################################################
-@@ -582,11 +582,11 @@ emoticons_penguins=y
+@@ -528,11 +528,11 @@ emoticons_penguins=y
  
  # Description: Old Gadu-Gadu 6.x emoticons
  # PL: Kompatybilne ze starą wersją Gadu-Gadu 6.x
@@ -397,7 +177,7 @@ index 3cf1fe9..2ab8095 100644
  
  ########################################### SOUNDS ############################################################################
  # PL: ##################################### DŹWIĘKI ###########################################################################
-@@ -604,14 +604,14 @@ emoticons_tango=n
+@@ -550,14 +550,14 @@ emoticons_tango=n
  # PL: Standardowy zestaw dźwięków dostępny razem ze źródłami Kadu
  sound_default=y
  
