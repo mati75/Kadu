@@ -11,3 +11,29 @@ index 542fbcc..74e16df 100644
  option (SIG_HANDLING_ENABLED "Define if you want system signals handling" ON)
  option (USE_X11_XFIXES "Use X11 Xfixes extension (Desktop Linux)" ON)
  
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 542fbcc..74e16df 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -7,7 +7,7 @@ set (CMAKE_MIN_VERSION "2.6.0")
+ 
+ # configuration
+ 
+-option (ENABLE_AUTODOWNLOAD "Use automatic download of modules/icons/emoticons" ON)
++option (ENABLE_AUTODOWNLOAD "Use automatic download of modules/icons/emoticons" OFF)
+ option (SIG_HANDLING_ENABLED "Define if you want system signals handling" ON)
+ option (USE_X11_XFIXES "Use X11 Xfixes extension (Desktop Linux)" ON)
+ 
+diff --git a/varia/themes/emoticons/CMakeLists.txt b/varia/themes/emoticons/CMakeLists.txt
+index e45b2cb..d81b9c9 100644
+--- a/varia/themes/emoticons/CMakeLists.txt
++++ b/varia/themes/emoticons/CMakeLists.txt
+@@ -8,7 +8,7 @@ exec_program (${CMAKE_CURRENT_SOURCE_DIR}/get-list.bat ${CMAKE_CURRENT_SOURCE_DI
+ 	OUTPUT_VARIABLE INSTALL_EMOTICON_THEMES)
+ else (WIN32)
+ exec_program (${CMAKE_CURRENT_SOURCE_DIR}/get-all.sh ${CMAKE_CURRENT_SOURCE_DIR}
+-	ARGS ${ENABLE_AUTODOWNLOAD}
++    ARGS ON
+ 	OUTPUT_VARIABLE EMOTICON_THEMES)
+ 
+ exec_program (${CMAKE_CURRENT_SOURCE_DIR}/get-list.sh ${CMAKE_CURRENT_SOURCE_DIR}
