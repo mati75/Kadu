@@ -1,0 +1,43 @@
+Kadu, klient Gadu-Gadu dla Qt
+
++++ WYMAGANIA
+ * Qt >= 4.4.0
+ * szczegó³y w pomocy online http://www.kadu.net/
+
++++ FICZERSY
+ * status: offline, online, away, invisible
+ * wysy³anie/odbieranie wiadomo¶ci
+ * czat z formatowaniem tekstu
+ * szukanie/dodawanie/usuwanie/edycja u¿ytkownika
+ * import/eksport listy kontaktów
+ * historia wiadomo¶ci
+ * dokowanie
+ * graficzna reprezentacja statusu
+ * obs³uga wiadomo¶ci od anonimów
+ * odgrywanie d¼wiêków przy pomocy popularnych serwerów d¼wiêku
+ * wysy³anie SMSów
+ * DCC: wysy³anie, odbieranie
+ * rozmowy konferencyjne
+ * szyfrowanie ssl
+ * rozmowy g³osowe
+ * animowane emotikony
+ * formatowany htmlem panel informacyjny
+ * przesy³anie obrazków
+ * opisy na li¶cie kontaktów
+ * powiadomienia dymkami
+ * obs³uga syntezatora mowy
+ * mo¿liwo¶æ wybrania zestawu grafik
+ * zaawansowana konfiguracja
+ * wiele innych...
+
++++ LICENCJA
+GPL v2 lub nowsza
+
++++ AUTORZY
+"Kadu Team" szczegó³y w pliku AUTHORS
+Wielkie dziêki dla Wojtka Kaniewskiego oraz
+¿yczliwych ludzi z pl.comp.os.linux.programming
+i innych.
+
++++ KONTAKT
+http://www.kadu.net/
