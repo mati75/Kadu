@@ -1,5 +1,5 @@
 diff --git a/.config b/.config
-index 76f7486..8f6dc45 100644
+index 76f7486..bdc3325 100644
 --- a/.config
 +++ b/.config
 @@ -90,7 +90,7 @@ module_growl_notify=n
@@ -47,6 +47,15 @@ index 76f7486..8f6dc45 100644
  
  # Description: User list: support for priorities (VIP/NIP) and changing order of sorting functions
  # PL: Obsługa priorytetów (VIP/NIP) oraz zmiany kryteriów sortowania listy kontaktów
+@@ -268,7 +268,7 @@ module_split_messages=n
+ # Description: Automatic word replacement
+ # PL: Automatyczna zamiana slow
+ # Platform: Linux, Mac OS X, Windows
+-module_word_fix=n
++module_word_fix=m
+ 
+ # Description: Autostatus
+ # PL: Automatyczne zmiany statusu
 @@ -344,7 +344,7 @@ module_plus_pl_sms=n
  # PL: Powiadomiania diodą Scroll Lock
  # Platform: Linux
@@ -110,7 +119,7 @@ index 76f7486..8f6dc45 100644
  
  # Description: iTunes support for mediaplayer
  # PL: Wsparcie dla iTunes w mediaplayer
-@@ -439,7 +439,7 @@ module_itunes_mediaplayer=n
+@@ -439,17 +439,17 @@ module_itunes_mediaplayer=n
  # PL: Wsparcie dla  MPD w mediaplayer
  # Needs: libmpdclient
  # Platform: Linux
@@ -119,7 +128,10 @@ index 76f7486..8f6dc45 100644
  
  # Description: Media player support for mediaplayer using MPRIS interface
  # PL: Wsparcie w mediaplayer dla odtwarzaczy z interfejsem MPRIS
-@@ -449,7 +449,7 @@ module_mpris_mediaplayer=n
+ # Platform: Linux
+-module_mpris_mediaplayer=n
++module_mpris_mediaplayer=m
+ 
  # Description: VLC support for mediaplayer
  # PL: Wsparcie dla VLC w mediaplayer
  # Platform: Linux

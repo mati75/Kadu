@@ -1,13 +1,13 @@
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index a1eca0e..6265e39 100644
+index 542fbcc..74e16df 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
-@@ -2,7 +2,7 @@ project (kadu)
+@@ -7,7 +7,7 @@ set (CMAKE_MIN_VERSION "2.6.0")
  
  # configuration
  
 -option (ENABLE_AUTODOWNLOAD "Use automatic download of modules/icons/emoticons" ON)
 +option (ENABLE_AUTODOWNLOAD "Use automatic download of modules/icons/emoticons" OFF)
  option (SIG_HANDLING_ENABLED "Define if you want system signals handling" ON)
- option (LIB_SUFFIX_64 "Use suffix 64 in name of library directory" OFF)
+ option (USE_X11_XFIXES "Use X11 Xfixes extension (Desktop Linux)" ON)
  
