@@ -53,6 +53,7 @@ install-indep:
 	rm -f $(INSTALL_DIR)/usr/share/kadu/themes/sounds/ultr/license.txt
 	rm -f $(INSTALL_DIR)/usr/share/kadu/themes/sounds/bns/sound.conf~
 	rm -f $(INSTALL_DIR)/usr/share/kadu/themes/emoticons/tango/license.txt
+	rm -f $(INSTALL_DIR)/usr/share/kadu/themes/icons/default/protocols/gadu-gadu/22x22/Thumbs.db
 	dh_install -i
 
 install-arch:
