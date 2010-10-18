@@ -7,7 +7,6 @@ debian/tmp/usr/lib/kadu/modules/libauto_hide.so
 debian/tmp/usr/lib/kadu/modules/libautoaway.so
 debian/tmp/usr/lib/kadu/modules/libautoresponder.so
 debian/tmp/usr/lib/kadu/modules/libautostatus.so
-debian/tmp/usr/lib/kadu/modules/libcenzor.so
 debian/tmp/usr/lib/kadu/modules/libconfig_wizard.so
 debian/tmp/usr/lib/kadu/modules/libdbus.so
 debian/tmp/usr/lib/kadu/modules/libdcc.so
