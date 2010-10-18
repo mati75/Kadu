@@ -38,6 +38,7 @@ clean:
 	dh_testdir
 	dh_testroot
 	rm -f build-arch-stamp build-indep-stamp configure-stamp
+	test -d $(BUILD_DIR) && cd $(BUILD_DIR) && $(MAKE) clean
 	rm -rf $(BUILD_DIR)
 	bash debian/handle_external.sh remove
 	cp -f debian/kadu.install.noalsa debian/kadu.install
