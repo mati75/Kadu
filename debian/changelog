@@ -1,8 +1,9 @@
 kadu (0.6.6-beta8-1) experimental; urgency=low
 
   * New upstream release
+  * Bumped Standards-Version
 
- -- Patryk Cisek <patryk@debian.org>  Sun, 17 Oct 2010 13:56:54 +0000
+ -- Patryk Cisek <patryk@debian.org>  Sun, 24 Oct 2010 11:25:06 +0000
 
 kadu (0.6.5.4.ds1-1) unstable; urgency=low
 
