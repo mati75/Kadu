@@ -1,5 +1,5 @@
 diff --git a/.config b/.config
-index 76f7486..bdc3325 100644
+index 76f7486..e53cda7 100644
 --- a/.config
 +++ b/.config
 @@ -90,7 +90,7 @@ module_growl_notify=n
@@ -83,15 +83,6 @@ index 76f7486..bdc3325 100644
  # Platform: Linux, Mac OS X, Windows
  
  # Desctiption: Weather checking
-@@ -390,7 +390,7 @@ module_weather=n
- 
- # Description: Adds DBus interface
- # PL: Dodaje interfejs DBus
--module_dbus=n
-+module_dbus=m
- # Platform: Linux, Mac OS X, Windows
- 
- ######################## MEDIAPLAYER ########################
 @@ -413,22 +413,22 @@ module_amarok2_mediaplayer=m
  # Description: Audacious support for mediaplayer
  # PL: Wsparcie dla Audacious w mediaplayer
