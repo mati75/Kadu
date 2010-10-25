@@ -8,7 +8,7 @@ Homepage: http://kadu.net
 
 Package: kadu
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, kadu-common (= ${source:Version}), libqca2-plugin-ossl
+Depends: ${shlibs:Depends}, ${misc:Depends}, kadu-common (= ${source:Version}), libqca2-plugin-ossl, libqt-sql-sqlite
 Recommends: kadu-external-modules (>= 0.6.5-1)
 Conflicts: kadu-external-modules (<< 0.6.5-1), kadu-kde-modules, kadu-gtk-modules
 Replaces: kadu-kde-modules, kadu-gtk-modules
