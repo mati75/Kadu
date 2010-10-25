@@ -38,7 +38,6 @@ debian/tmp/usr/share/kadu/modules/autoaway.desc
 debian/tmp/usr/share/kadu/modules/autoresponder.desc
 debian/tmp/usr/share/kadu/modules/autostatus.desc
 debian/tmp/usr/share/kadu/modules/config_wizard.desc
-debian/tmp/usr/share/kadu/modules/dbus.desc
 debian/tmp/usr/share/kadu/modules/kde_notify.desc
 debian/tmp/usr/share/kadu/modules/data/antistring
 debian/tmp/usr/share/kadu/modules/data/jabber_protocol

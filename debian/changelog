@@ -2,8 +2,10 @@ kadu (0.6.6-beta8-2) experimental; urgency=low
 
   * Added dependency on libmpdclient-dev for kadu package to make history
     module work properly
+  * Removed dbus module for now. It's broken on 0.6.6.
+  * Updated Kadu Team members list in debian/copyright
 
- -- Patryk Cisek <patryk@debian.org>  Mon, 25 Oct 2010 20:56:58 +0000
+ -- Patryk Cisek <patryk@debian.org>  Mon, 25 Oct 2010 21:42:28 +0000
 
 kadu (0.6.6-beta8-1) experimental; urgency=low
 
