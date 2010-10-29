@@ -85,7 +85,7 @@ PanelKadu::PanelKadu() : QObject()
 	Atom atomvalue    = XInternAtom( QX11Info::display(), "_NET_WM_WINDOW_TYPE_DOCK", False );
 	XChangeProperty( QX11Info::display(), Core::instance()->kaduWindow()->winId(), atomproperty, XA_ATOM, 32, PropModeReplace, (unsigned char *)&atomvalue, 1 );
 	// remove window's decoration, set always-on-top and force taskbar and pager skipping
-	Core::instance()->kaduWindow()->setWindowFlags( Core::instance()->kaduWindow()->windowFlags() |  Qt::X11BypassWindowManagerHint | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint );
+	Core::instance()->kaduWindow()->setWindowFlags( Core::instance()->kaduWindow()->windowFlags() | Qt::X11BypassWindowManagerHint | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint );
 	Atom win_state = XInternAtom( QX11Info::display(), "_NET_WM_STATE", False );
 	Atom win_state_setting[] =
 	{
