@@ -5,8 +5,8 @@ kadu (0.6.6-beta9-1) experimental; urgency=low
     module work properly
   * Removed dbus module for now. It's broken on 0.6.6.
   * Updated Kadu Team members list in debian/copyright
-  * Added mime_tex, cenzor and firewall module, since they've been ported
-    to new 0.6.6 API
+  * Added mime_tex and cenzor modules, since they've been ported to new
+    0.6.6 API
   * Removed 05-mpris_mediaplayer_0.6.6_fix.patch and
     06-word_fix_0.6.6_fix.patch from debian/patches. These fixes have been
     applied upstream.
@@ -14,7 +14,7 @@ kadu (0.6.6-beta9-1) experimental; urgency=low
     fix from recent git's master branch. Allowes mime_tex module to
     properly display it's icon in chat window.
 
- -- Patryk Cisek <patryk@debian.org>  Fri, 29 Oct 2010 17:34:08 +0000
+ -- Patryk Cisek <patryk@debian.org>  Fri, 29 Oct 2010 17:39:45 +0000
 
 kadu (0.6.6-beta8-1) experimental; urgency=low
 
