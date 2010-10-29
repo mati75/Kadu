@@ -1,3 +1,4 @@
+debian/tmp/usr/lib/kadu/modules/bin/mime_tex
 debian/tmp/usr/lib/kadu/modules/libamarok2_mediaplayer.so
 debian/tmp/usr/lib/kadu/modules/libaudacious_mediaplayer.so
 debian/tmp/usr/lib/kadu/modules/libcenzor.so
@@ -15,7 +16,6 @@ debian/tmp/usr/lib/kadu/modules/libsingle_window.so
 debian/tmp/usr/lib/kadu/modules/libvlc_mediaplayer.so
 debian/tmp/usr/lib/kadu/modules/libtabs.so
 debian/tmp/usr/lib/kadu/modules/libxmms2_mediaplayer.so
-debian/tmp/usr/share/kadu/modules/bin/mime_tex
 debian/tmp/usr/share/kadu/modules/configuration/cenzor.ui
 debian/tmp/usr/share/kadu/modules/configuration/lednotify.ui
 debian/tmp/usr/share/kadu/modules/configuration/mediaplayer.ui
