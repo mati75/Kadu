@@ -318,7 +318,7 @@ int main(int argc, char *argv[])
 
 		delete xml_config_file;
 		delete config_file_ptr;
-		//delete qApp;
+		delete qApp;
 
 		return 10;
 	}
@@ -344,7 +344,7 @@ int main(int argc, char *argv[])
 
 		delete config_file_ptr;
 		delete xml_config_file;
-		//delete qApp;
+		delete qApp;
 
 		return 1;
 	}
@@ -355,7 +355,7 @@ int main(int argc, char *argv[])
 
 	QString path_ = profilePath();
 #ifndef Q_WS_WIN
-	if (path_.endsWith("/kadu/") || path_.endsWith("/Kadu/")) // for profiles directory
+	if (path_.endsWith(QLatin1String("/kadu/")) || path_.endsWith(QLatin1String("/Kadu/"))) // for profiles directory
 		mkdir(qPrintable(path_.left(path_.length() - 6)), 0700);
 	mkdir(qPrintable(path_), 0700);
 #else
@@ -368,8 +368,8 @@ int main(int argc, char *argv[])
 	// if someone is running Kadu from root account, let's remind him
 	// that it's a "bad thing"(tm) ;) (usually for win32 users)
 	if (geteuid() == 0)
-		MessageDialog::msg(qApp->translate("@default", "Please do not run Kadu as a root!\n"
-				"It's a high security risk!"), false, "dialog-warning");
+		MessageDialog::show("dialog-warning", qApp->translate("@default", "Kadu"), qApp->translate("@default", "Please do not run Kadu as a root!\n"
+				"It's a high security risk!"));
 #endif
 
 	if (ids.count() >= 0)
@@ -400,9 +400,7 @@ int main(int argc, char *argv[])
 	WSACleanup();
 #endif
 
-	// TODO 0.6.6: causes segfault with jabber_protocol module
-	// deleteLater() won't give any effect, because we're outside the event loop
-	//delete qApp;
+	delete qApp;
 
 	if (measureTime)
 	{

@@ -21,6 +21,9 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <QtCore/QCoreApplication>
+#include <QtCrypto>
+
 #include "buddies/buddy-manager.h"
 #include "buddies/group-manager.h"
 #include "contacts/contact-manager.h"
@@ -37,7 +40,9 @@
 #include "resource/jabber-resource-pool.h"
 #include "utils/pep-manager.h"
 #include "utils/server-info-manager.h"
+#include "utils/vcard-factory.h"
 #include "iris/filetransfer.h"
+#include "iris/irisnetglobal.h"
 #include "services/jabber-roster-service.h"
 #include "services/jabber-subscription-service.h"
 #include "iris-status-adapter.h"
@@ -81,13 +86,24 @@ void JabberProtocol::closeModule()
 	ProtocolsManager::instance()->unregisterProtocolFactory(JabberProtocolFactory::instance());
 	ProtocolsManager::instance()->unregisterProtocolFactory(GTalkProtocolFactory::instance());
 	ProtocolsManager::instance()->unregisterProtocolFactory(FacebookProtocolFactory::instance());
+
+	XMPP::irisNetCleanup();
+
+	qRemovePostRoutine(QCA::deinit);
+
 	kdebugf2();
 }
 
 JabberProtocol::JabberProtocol(Account account, ProtocolFactory *factory) :
-		Protocol(account, factory), JabberClient(0), ResourcePool(0), serverInfoManager(0), PepManager(0)
+		Protocol(account, factory), JabberClient(0), ResourcePool(0), serverInfoManager(0), PepManager(0),
+		ContactsListReadOnly(false)
 {
 	kdebugf();
+
+	VCardFactory::createInstance(this);
+
+	if (account.id().endsWith(QLatin1String("@chat.facebook.com")))
+		setContactsListReadOnly(true);
 
 	initializeJabberClient();
 
@@ -143,6 +159,16 @@ void JabberProtocol::disconnectContactManagerSignals()
 			this, SLOT(buddyUpdated(Buddy &)));
 }
 
+void JabberProtocol::setContactsListReadOnly(bool contactsListReadOnly)
+{
+	ContactsListReadOnly = contactsListReadOnly;
+}
+
+bool JabberProtocol::contactsListReadOnly()
+{
+	return ContactsListReadOnly;
+}
+
 void JabberProtocol::initializeJabberClient()
 {
 	JabberClient = new XMPP::JabberClient(this, this);
@@ -187,7 +213,7 @@ void JabberProtocol::connectToServer()
 
 	if (account().id().isEmpty())
 	{
-		MessageDialog::msg(tr("XMPP username is not set!"), false, "dialog-warning");
+		MessageDialog::show("dialog-warning", tr("Kadu"), tr("XMPP username is not set!"));
 		setStatus(Status());
 		kdebugmf(KDEBUG_FUNCTION_END, "end: XMPP username is not set\n");
 		return;

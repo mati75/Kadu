@@ -115,12 +115,12 @@ private:
 	void socketConnFailed(GaduError error);
 	void socketConnSuccess();
 	void socketDisconnected();
+	void changeStatus(bool force);
 
 private slots:
 	void login(const QString &password, bool permanent);
 	void login();
 
-	void fetchAvatars(Account account);
 	void connectionTimeoutTimerSlot();
 	void everyMinuteActions();
 
@@ -131,7 +131,6 @@ private slots:
 
 protected:
 	virtual void changeStatus();
-	virtual void changePrivateMode();
 
 public:
 	static GADUAPI QString statusTypeFromGaduStatus(unsigned int index);
@@ -152,6 +151,10 @@ public:
 	virtual SearchService * searchService() { return CurrentSearchService; }
 
 	virtual bool validateUserID(const QString &uid);
+	virtual bool contactsListReadOnly() { return false; }
+	virtual bool supportsPrivateStatus() { return true; }
+
+	virtual void changePrivateMode();
 
 	virtual QString statusPixmapPath();
 

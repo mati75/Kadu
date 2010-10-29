@@ -57,6 +57,10 @@
 #include "securestream.h"
 #include "protocol.h"
 
+#ifndef NO_IRISNET
+#include "irisnetglobal_p.h"
+#endif
+
 #ifdef XMPP_TEST
 #include "td.h"
 #endif
@@ -115,8 +119,19 @@ Stanza Stream::createStanza(const QDomElement &e)
 QString Stream::xmlToString(const QDomElement &e, bool clip)
 {
 	if(!foo)
+	{
 		foo = new CoreProtocol;
+#ifndef NO_IRISNET
+		irisNetAddPostRoutine(cleanup);
+#endif
+	}
 	return foo->elementToString(e, clip);
+}
+
+void Stream::cleanup()
+{
+	delete foo;
+	foo = 0;
 }
 
 //----------------------------------------------------------------------------
@@ -220,6 +235,8 @@ public:
 
 	QTimer noopTimer;
 	int noop_time;
+
+	QTimer readyReadTimer;
 };
 
 ClientStream::ClientStream(Connector *conn, TLSHandler *tlsHandler, QObject *parent)
@@ -235,6 +252,9 @@ ClientStream::ClientStream(Connector *conn, TLSHandler *tlsHandler, QObject *par
 	connect(&d->noopTimer, SIGNAL(timeout()), SLOT(doNoop()));
 
 	d->tlsHandler = tlsHandler;
+
+	d->readyReadTimer.setSingleShot(true);
+	connect(&d->readyReadTimer, SIGNAL(timeout()), this, SLOT(doReadyRead()));
 }
 
 ClientStream::ClientStream(const QString &host, const QString &defRealm, ByteStream *bs, QCA::TLS *tls, QObject *parent)
@@ -266,18 +286,23 @@ ClientStream::ClientStream(const QString &host, const QString &defRealm, ByteStr
 	//d->state = Connecting;
 	//d->jid = Jid();
 	//d->server = QString();
+
+	d->readyReadTimer.setSingleShot(true);
+	connect(&d->readyReadTimer, SIGNAL(timeout()), this, SLOT(doReadyRead()));
 }
 
 ClientStream::~ClientStream()
 {
 	reset();
 	delete d;
+	d = 0;
 }
 
 void ClientStream::reset(bool all)
 {
 	d->reset();
 	d->noopTimer.stop();
+	d->readyReadTimer.stop();
 
 	// delete securestream
 	delete d->ss;
@@ -937,7 +962,7 @@ void ClientStream::processNext()
 			//if(!d->in_rrsig && !d->in.isEmpty()) {
 			if(!d->in.isEmpty()) {
 				//d->in_rrsig = true;
-				QTimer::singleShot(0, this, SLOT(doReadyRead()));
+				d->readyReadTimer.start(0);
 			}
 
 			if(cont)

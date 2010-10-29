@@ -43,7 +43,6 @@ class GaduEditAccountWidget : public AccountEditWidget
 
 	GaduAccountDetails *Details;
 
-	QCheckBox *ConnectAtStart;
 	QLineEdit *AccountId;
 	QLineEdit *AccountPassword;
 	QCheckBox *RememberPassword;
@@ -51,6 +50,7 @@ class GaduEditAccountWidget : public AccountEditWidget
 	QSpinBox *MaximumImageSize;
 	QCheckBox *ReceiveImagesDuringInvisibility;
 	QSpinBox *MaximumImageRequests;
+	QCheckBox *PrivateStatus;
 
 	IdentitiesComboBox *Identities;
 

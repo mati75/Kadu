@@ -115,23 +115,19 @@ void GaduEditAccountWidget::createGeneralTab(QTabWidget *tabWidget)
 
 	QFormLayout *formLayout = new QFormLayout(form);
 
-	ConnectAtStart = new QCheckBox(tr("Connect at start"), this);
-	connect(ConnectAtStart, SIGNAL(stateChanged(int)), this, SLOT(dataChanged()));
-	formLayout->addRow(0, ConnectAtStart);
-
 	AccountId = new QLineEdit(this);
 	AccountId->setValidator(new LongValidator(1, 3999999999U, this));
-	connect(AccountId, SIGNAL(textChanged(QString)), this, SLOT(dataChanged()));
-	formLayout->addRow(tr("Gadu-Gadu number") + ":", AccountId);
+	connect(AccountId, SIGNAL(textEdited(QString)), this, SLOT(dataChanged()));
+	formLayout->addRow(tr("Gadu-Gadu number") + ':', AccountId);
 
 	AccountPassword = new QLineEdit(this);
 	AccountPassword->setEchoMode(QLineEdit::Password);
-	connect(AccountPassword, SIGNAL(textChanged(QString)), this, SLOT(dataChanged()));
-	formLayout->addRow(tr("Password") + ":", AccountPassword);
+	connect(AccountPassword, SIGNAL(textEdited(QString)), this, SLOT(dataChanged()));
+	formLayout->addRow(tr("Password") + ':', AccountPassword);
 
 	RememberPassword = new QCheckBox(tr("Remember password"), this);
 	RememberPassword->setChecked(true);
-	connect(RememberPassword, SIGNAL(stateChanged(int)), this, SLOT(dataChanged()));
+	connect(RememberPassword, SIGNAL(clicked()), this, SLOT(dataChanged()));
 	formLayout->addRow(0, RememberPassword);
 
 	QLabel *remindPasswordLabel = new QLabel(QString("<a href='remind'>%1</a>").arg(tr("Forgot Your Password?")));
@@ -146,7 +142,7 @@ void GaduEditAccountWidget::createGeneralTab(QTabWidget *tabWidget)
 
 	Identities = new IdentitiesComboBox(this);
 	connect(Identities, SIGNAL(identityChanged(Identity)), this, SLOT(dataChanged()));
-	formLayout->addRow(tr("Account Identity") + ":", Identities);
+	formLayout->addRow(tr("Account Identity") + ':', Identities);
 
 	QLabel *infoLabel = new QLabel(tr("<font size='-1'><i>Select or enter the identity that will be associated with this account.</i></font>"), this);
 	infoLabel->setWordWrap(true);
@@ -215,11 +211,11 @@ void GaduEditAccountWidget::createOptionsTab(QTabWidget *tabWidget)
 	MaximumImageSize->setToolTip(tr("Maximum image size that we want to receive"));
 	connect(MaximumImageSize, SIGNAL(valueChanged(int)), this, SLOT(dataChanged()));
 
-	imagesLayout->addRow(tr("Maximum image size for chat") + ":", MaximumImageSize);
+	imagesLayout->addRow(tr("Maximum image size for chat") + ':', MaximumImageSize);
 
 	ReceiveImagesDuringInvisibility = new QCheckBox(tr("Receive images during invisibility"), optionsTab);
 	ReceiveImagesDuringInvisibility->setToolTip(tr("Receiving images during invisibility is allowed"));
-	connect(ReceiveImagesDuringInvisibility, SIGNAL(stateChanged(int)), this, SLOT(dataChanged()));
+	connect(ReceiveImagesDuringInvisibility, SIGNAL(clicked()), this, SLOT(dataChanged()));
 
 	imagesLayout->addRow(ReceiveImagesDuringInvisibility);
 
@@ -230,10 +226,21 @@ void GaduEditAccountWidget::createOptionsTab(QTabWidget *tabWidget)
 	MaximumImageRequests->setToolTip(tr("Define limit of images received per minute"));
 	connect(MaximumImageRequests, SIGNAL(valueChanged(int)), this, SLOT(dataChanged()));
 
-	imagesLayout->addRow(tr("Limit numbers of image recevied per minute") + ":", MaximumImageRequests);
+	imagesLayout->addRow(tr("Limit numbers of image received per minute") + ':', MaximumImageRequests);
 
 	layout->addWidget(images);
 
+	QGroupBox *status = new QGroupBox(tr("Status"), this);
+	QFormLayout *statusLayout = new QFormLayout(status);
+
+	PrivateStatus = new QCheckBox(tr("Show my status to everyone"), optionsTab);
+	PrivateStatus->setToolTip(tr("When disabled, you're visible only to buddies on your list"));
+	connect(PrivateStatus, SIGNAL(clicked()), this, SLOT(dataChanged()));
+
+	statusLayout->addRow(PrivateStatus);
+
+	layout->addWidget(status);
+	layout->addStretch(100);
 }
 
 void GaduEditAccountWidget::createGeneralGroupBox(QVBoxLayout *layout)
@@ -258,17 +265,17 @@ void GaduEditAccountWidget::createGeneralGroupBox(QVBoxLayout *layout)
 	connect(useDefaultServers, SIGNAL(toggled(bool)), ipAddresses, SLOT(setDisabled(bool)));
 
 	connect(useDefaultServers, SIGNAL(toggled(bool)), this, SLOT(dataChanged()));
-	connect(ipAddresses, SIGNAL(textChanged(QString)), this, SLOT(dataChanged()));
+	connect(ipAddresses, SIGNAL(textEdited(QString)), this, SLOT(dataChanged()));
 }
 
 void GaduEditAccountWidget::apply()
 {
 	account().setAccountIdentity(Identities->currentIdentity());
-	account().setConnectAtStart(ConnectAtStart->isChecked());
 	account().setId(AccountId->text());
 	account().setRememberPassword(RememberPassword->isChecked());
 	account().setPassword(AccountPassword->text());
 	account().setHasPassword(!AccountPassword->text().isEmpty());
+	account().setPrivateStatus(!PrivateStatus->isChecked());
 
 	if (Details)
 	{
@@ -300,10 +307,10 @@ void GaduEditAccountWidget::dataChanged()
 {
 
 	if (account().accountIdentity() == Identities->currentIdentity()
-		&& account().connectAtStart() == ConnectAtStart->isChecked()
 		&& account().id() == AccountId->text()
 		&& account().rememberPassword() == RememberPassword->isChecked()
 		&& account().password() == AccountPassword->text()
+		&& account().privateStatus() != PrivateStatus->isChecked()
 		&& Details->maximumImageSize() == MaximumImageSize->value()
 		&& Details->receiveImagesDuringInvisibility() == ReceiveImagesDuringInvisibility->isChecked()
 		&& Details->maximumImageRequests() == MaximumImageRequests->value()
@@ -338,10 +345,10 @@ void GaduEditAccountWidget::dataChanged()
 void GaduEditAccountWidget::loadAccountData()
 {
 	Identities->setCurrentIdentity(account().accountIdentity());
-	ConnectAtStart->setChecked(account().connectAtStart());
 	AccountId->setText(account().id());
 	RememberPassword->setChecked(account().rememberPassword());
 	AccountPassword->setText(account().password());
+	PrivateStatus->setChecked(!account().privateStatus());
 
 	GaduAccountDetails *details = dynamic_cast<GaduAccountDetails *>(account().details());
 	if (details)
@@ -371,7 +378,7 @@ void GaduEditAccountWidget::removeAccount()
 	QPushButton *removeButton = messageBox->addButton(tr("Remove account"), QMessageBox::AcceptRole);
 	QPushButton *removeAndUnregisterButton = messageBox->addButton(tr("Remove account and unregister from server"), QMessageBox::DestructiveRole);
 	messageBox->addButton(QMessageBox::Cancel);
-
+	messageBox->setDefaultButton(QMessageBox::Cancel);
 	messageBox->exec();
 
 	if (messageBox->clickedButton() == removeButton)

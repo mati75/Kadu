@@ -76,7 +76,7 @@ void JabberCreateAccountWidget::createGui()
 	jidLayout->setColumnStretch(2, 2);
 
 	Username = new QLineEdit(this);
-	connect(Username, SIGNAL(textChanged(QString)), this, SLOT(dataChanged()));
+	connect(Username, SIGNAL(textEdited(QString)), this, SLOT(dataChanged()));
 	jidLayout->addWidget(Username);
 
 	QLabel *atLabel = new QLabel("@", this);
@@ -86,17 +86,17 @@ void JabberCreateAccountWidget::createGui()
 	Domain->setEditable(true);
 	jidLayout->addWidget(Domain, 0, 2);
 
-	layout->addRow(tr("Username") + ":", jidWidget);
+	layout->addRow(tr("Username") + ':', jidWidget);
 
 	NewPassword = new QLineEdit(this);
-	connect(NewPassword, SIGNAL(textChanged(const QString &)), this, SLOT(dataChanged()));
+	connect(NewPassword, SIGNAL(textEdited(const QString &)), this, SLOT(dataChanged()));
 	NewPassword->setEchoMode(QLineEdit::Password);
-	layout->addRow(tr("Password") + ":", NewPassword);
+	layout->addRow(tr("Password") + ':', NewPassword);
 
 	ReNewPassword = new QLineEdit(this);
-	connect(ReNewPassword, SIGNAL(textChanged(const QString &)), this, SLOT(dataChanged()));
+	connect(ReNewPassword, SIGNAL(textEdited(const QString &)), this, SLOT(dataChanged()));
 	ReNewPassword->setEchoMode(QLineEdit::Password);
-	layout->addRow(tr("Retype Password") + ":", ReNewPassword);
+	layout->addRow(tr("Retype Password") + ':', ReNewPassword);
 
 	RememberPassword = new QCheckBox(tr("Remember password"), this);
 	RememberPassword->setChecked(true);
@@ -104,7 +104,7 @@ void JabberCreateAccountWidget::createGui()
 
 	IdentityCombo = new IdentitiesComboBox(this);
 	connect(IdentityCombo, SIGNAL(identityChanged(Identity)), this, SLOT(dataChanged()));
-	layout->addRow(tr("Account Identity") + ":", IdentityCombo);
+	layout->addRow(tr("Account Identity") + ':', IdentityCombo);
 
 	QLabel *infoLabel = new QLabel(tr("<font size='-1'><i>Select or enter the identity that will be associated with this account.</i></font>"), this);
 	infoLabel->setWordWrap(true);
@@ -139,7 +139,7 @@ void JabberCreateAccountWidget::createGui()
         vboxLayout2->setMargin(9);
 
         CustomHostPort = new QCheckBox(ConnectionOptions);
-        CustomHostPort->setText(tr("Manually Specify Server Host/Port")+":");
+        CustomHostPort->setText(tr("Manually Specify Server Host/Port") + ':');
         vboxLayout2->addWidget(CustomHostPort);
 
         HostPortLayout = new QHBoxLayout();
@@ -147,14 +147,14 @@ void JabberCreateAccountWidget::createGui()
         HostPortLayout->setMargin(0);
 
         CustomHostLabel = new QLabel(ConnectionOptions);
-        CustomHostLabel->setText(tr("Host")+":");
+        CustomHostLabel->setText(tr("Host") + ':');
         HostPortLayout->addWidget(CustomHostLabel);
 
         CustomHost = new QLineEdit(ConnectionOptions);
         HostPortLayout->addWidget(CustomHost);
 
         CustomPortLabel = new QLabel(ConnectionOptions);
-        CustomPortLabel->setText(tr("Port")+":");
+        CustomPortLabel->setText(tr("Port") + ':');
         HostPortLayout->addWidget(CustomPortLabel);
 
         CustomPort = new QLineEdit(ConnectionOptions);
@@ -176,7 +176,7 @@ void JabberCreateAccountWidget::createGui()
         EncryptionLayout->setSpacing(6);
         EncryptionLayout->setMargin(0);
         EncryptionModeLabel = new QLabel(ConnectionOptions);
-        EncryptionModeLabel->setText(tr("Encrypt connection")+":");
+        EncryptionModeLabel->setText(tr("Encrypt connection") + ':');
         EncryptionLayout->addWidget(EncryptionModeLabel);
 
         EncryptionMode = new QComboBox(ConnectionOptions);
@@ -219,7 +219,7 @@ bool JabberCreateAccountWidget::checkSSL()
 {
 	if (!QCA::isSupported("tls"))
 	{
-		MessageDialog::msg(tr("Cannot enable secure connection. SSL/TLS plugin not found."));
+		MessageDialog::show("dialog-warning", tr("Kadu"), tr("Cannot enable secure connection. SSL/TLS plugin not found."), QMessageBox::Ok, this);
 		return false;
 	}
 	return true;
@@ -241,7 +241,7 @@ void JabberCreateAccountWidget::sslActivated(int i)
 		EncryptionMode->setCurrentIndex(EncryptionMode->findData(1));
 	else if (EncryptionMode->itemData(i) == 2 && !CustomHostPort->isChecked())
 	{
-		MessageDialog::msg(tr("Legacy secure connection (SSL) is only available in combination with manual host/port."));
+		MessageDialog::show("dialog-warning", tr("Kadu"), tr("Legacy secure connection (SSL) is only available in combination with manual host/port."), QMessageBox::Ok, this);
 		EncryptionMode->setCurrentIndex(EncryptionMode->findData(1));
 	}
 }
@@ -268,9 +268,9 @@ void JabberCreateAccountWidget::apply()
 {
     	if (NewPassword->text() != ReNewPassword->text())
 	{
-		MessageDialog::msg(tr("Invalid data entered in required fields.\n\n"
+		MessageDialog::show("dialog-warning", tr("Kadu"), tr("Invalid data entered in required fields.\n\n"
 			"Password entered in both fields (\"New password\" and \"Retype password\") "
-			"should be the same!"));
+			"should be the same!"), QMessageBox::Ok, this);
 		return;
 	}
 
@@ -307,7 +307,9 @@ void JabberCreateAccountWidget::registerNewAccountFinished(JabberServerRegisterA
 {
 	if (jsra->result())
 	{
-		MessageDialog::msg(tr("Registration was successful. Your new XMPP username is %1.\nStore it in a safe place along with the password.\nNow please add your friends to the buddy list.").arg(jsra->jid()), false, "dialog-information", this);
+		MessageDialog::show("dialog-information", tr("Kadu"),
+				tr("Registration was successful. Your new XMPP username is %1.\nStore it in a safe place along with the password.\n"
+				   "Now please add your friends to the buddy list.").arg(jsra->jid()), QMessageBox::Ok, this);
 
 		Account jabberAccount = Account::create();
 		jabberAccount.setProtocolName("jabber");
@@ -328,7 +330,7 @@ void JabberCreateAccountWidget::registerNewAccountFinished(JabberServerRegisterA
 		emit accountCreated(jabberAccount);
 	}
 	else
-		MessageDialog::msg(tr("An error has occured during registration. Please try again later."), false, "dialog-warning", this);
+		MessageDialog::show("dialog-warning", tr("Kadu"), tr("An error has occurred during registration. Please try again later."), QMessageBox::Ok, this);
 
 	delete jsra;
 }

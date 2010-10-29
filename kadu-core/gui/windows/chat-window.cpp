@@ -160,7 +160,7 @@ void ChatWindow::kaduRestoreGeometry()
 	else
 	{
 		QRect geom = cgd->windowGeometry();
-		
+
 		setGeometry(geom);
 		currentChatWidget->setGeometry(geom);
 
@@ -194,7 +194,7 @@ void ChatWindow::closeEvent(QCloseEvent *e)
 
 		if (QDateTime::currentDateTime() < currentChatWidget->lastMessageTime().addSecs(period))
 		{
-			if (!MessageDialog::ask(tr("New message received, close window anyway?")))
+			if (!MessageDialog::ask("", tr("Kadu"), tr("New message received, close window anyway?")))
 			{
 				e->ignore();
 				return;
@@ -239,7 +239,7 @@ void ChatWindow::blinkTitle()
 void ChatWindow::showNewMessagesNumInTitle()
 {
 	if (!_isActiveWindow(this))
-		setWindowTitle("[" + QString().setNum(currentChatWidget->newMessagesCount()) + "] " + currentChatWidget->chat().title());
+		setWindowTitle('[' + QString::number(currentChatWidget->newMessagesCount()) + "] " + currentChatWidget->chat().title());
 }
 
 void ChatWindow::windowActivationChange(bool b)

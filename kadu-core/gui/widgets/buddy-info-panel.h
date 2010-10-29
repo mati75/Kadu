@@ -22,7 +22,8 @@
 #define BUDDY_INFO_PANEL_H
 
 #include "configuration/configuration-aware-object.h"
-#include "buddies/buddy.h"
+#include "contacts/contact.h"
+#include "gui/widgets/buddies-list-view-selection-item.h"
 
 #include "kadu-web-view.h"
 
@@ -30,9 +31,18 @@ class BuddyInfoPanel : public KaduWebView, private ConfigurationAwareObject
 {
 	Q_OBJECT
 
-	Buddy MyBuddy;
+	BuddiesListViewSelectionItem SelectionItem;
+	Contact MyContact;
 	QString Template;
 	QString Syntax;
+
+	void connectContact();
+	void disconnectContact();
+
+	void displayContact(Contact contact);
+
+private slots:
+	void buddyUpdated(Buddy &buddy);
 
 protected:
 	virtual void configurationUpdated();
@@ -41,8 +51,10 @@ public:
 	explicit BuddyInfoPanel(QWidget *parent = 0);
 	virtual ~BuddyInfoPanel();
 
+	virtual void setVisible(bool visible);
+
 public slots:
-	void displayBuddy(Buddy buddy);
+	void displaySelectionItem(BuddiesListViewSelectionItem selectionItem);
 	void update();
 	void styleFixup(QString &syntax);
 

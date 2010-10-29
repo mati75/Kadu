@@ -28,6 +28,7 @@
 #include "buddies/buddy-kadu-data.h"
 #include "buddies/buddy-list-mime-data-helper.h"
 #include "buddies/buddy-manager.h"
+#include "buddies/buddy-preferred-manager.h"
 #include "buddies/model/buddy-data-extractor.h"
 #include "contacts/contact.h"
 #include "contacts/model/contact-data-extractor.h"
@@ -71,7 +72,7 @@ void BuddiesModelBase::buddyStatusChanged(Contact contact, Status oldStatus)
 
 QModelIndex BuddiesModelBase::index(int row, int column, const QModelIndex &parent) const
 {
-	return createIndex(row, column, parent.isValid() ? parent.row() : -1);
+	return hasIndex(row, column, parent) ? createIndex(row, column, parent.isValid() ? parent.row() : -1) : QModelIndex();
 }
 
 int BuddiesModelBase::columnCount(const QModelIndex &parent) const
@@ -123,7 +124,7 @@ Contact BuddiesModelBase::buddyDefaultContact(const QModelIndex &index) const
 	if (buddy.isNull())
 		return Contact::null;
 
-	return buddy.preferredContact();
+	return BuddyPreferredManager::instance()->preferredContact(buddy);
 }
 
 Contact BuddiesModelBase::buddyContact(const QModelIndex &index, int accountIndex) const
@@ -147,6 +148,9 @@ QVariant BuddiesModelBase::data(const QModelIndex &index, int role) const
 	QModelIndex parentIndex = parent(index);
 	if (!parentIndex.isValid())
 	{
+		if (ItemTypeRole == role)
+			return BuddyRole;
+
 		Contact contact = buddyDefaultContact(index);
 		return !contact.isNull()
 				? ContactDataExtractor::data(contact, role, true)

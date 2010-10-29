@@ -166,6 +166,10 @@ static const char *_qtype2str(int qtype)
 
 static int _cmp_rdata(const jdns_rr_t *a, const jdns_rr_t *b)
 {
+	if(a == b)
+		return 1;
+	if(!a || !b)
+		return 0;
 	if(a->rdlength != b->rdlength)
 		return 0;
 	if(memcmp(a->rdata, b->rdata, a->rdlength) != 0)
@@ -175,6 +179,10 @@ static int _cmp_rdata(const jdns_rr_t *a, const jdns_rr_t *b)
 
 static int _cmp_rr(const jdns_rr_t *a, const jdns_rr_t *b)
 {
+	if(a == b)
+		return 1;
+	if(!a || !b)
+		return 0;
 	if(a->type != b->type)
 		return 0;
 	if(!jdns_domain_cmp(a->owner, b->owner))

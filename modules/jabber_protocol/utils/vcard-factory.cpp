@@ -25,7 +25,6 @@
  */
 
 #include <QObject>
-#include <QApplication>
 #include <QMap>
 #include <QDomDocument>
 #include <QFile>
@@ -38,11 +37,13 @@
 #include "jid-util.h"
 #include "vcard-factory.h"
 
+using namespace XMPP;
+
 /**
  * \brief Factory for retrieving and changing VCards.
  */
-VCardFactory::VCardFactory()
-	: QObject(qApp), dictSize_(5)
+VCardFactory::VCardFactory(QObject *parent)
+	: QObject(parent), dictSize_(5)
 {
 }
 
@@ -52,6 +53,13 @@ VCardFactory::VCardFactory()
 VCardFactory::~VCardFactory()
 {
 	qDeleteAll(vcardDict_);
+	instance_ = 0;
+}
+
+void VCardFactory::createInstance(QObject *parent)
+{
+	if (!instance_)
+		instance_ = new VCardFactory(parent);
 }
 
 /**
@@ -59,9 +67,6 @@ VCardFactory::~VCardFactory()
  */
 VCardFactory* VCardFactory::instance()
 {
-	if (!instance_) {
-		instance_ = new VCardFactory();
-	}
 	return instance_;
 }
 

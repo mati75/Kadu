@@ -60,11 +60,11 @@ private:
 	bool HasPassword;
 	QString Password;
 
-	bool ConnectAtStart;
-
 	AccountProxySettings ProxySettings;
 
 	short int MaximumImageSize;
+
+	bool PrivateStatus;
 
 	void useProtocolFactory(ProtocolFactory *factory);
 
@@ -107,8 +107,8 @@ public: //TODO 0.6.6: it is needed in Buddy::dummy()
 	KaduShared_Property(bool, rememberPassword, RememberPassword)
 	KaduShared_Property(bool, hasPassword, HasPassword)
 	KaduShared_Property(QString, password, Password)
-	KaduShared_Property(bool, connectAtStart, ConnectAtStart)
 	KaduShared_Property(AccountProxySettings, proxySettings, ProxySettings)
+	KaduShared_PropertyRead(bool, privateStatus, PrivateStatus)
 
 	// StatusContainer implementation
 
@@ -119,7 +119,7 @@ public: //TODO 0.6.6: it is needed in Buddy::dummy()
 
 	virtual QString statusName();
 	virtual QIcon statusIcon();
-    virtual QString statusIconPath(const QString &statusType);
+	virtual QString statusIconPath(const QString &statusType);
 	virtual QIcon statusIcon(const QString &statusType);
 
 	virtual QList<StatusType *> supportedStatusTypes();

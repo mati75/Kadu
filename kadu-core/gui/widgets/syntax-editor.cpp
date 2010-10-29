@@ -97,7 +97,7 @@ void SyntaxEditor::deleteClicked()
 	if (syntaxList->deleteSyntax(currentSyntax()))
 		setCurrentSyntax(*(syntaxList->keys().begin()));
 	else
-		MessageDialog::msg(tr("Unable to remove syntax: %1").arg(currentSyntax()), true, "dialog-warning");
+		MessageDialog::show("dialog-warning", tr("Kadu"), tr("Unable to remove syntax: %1").arg(currentSyntax()));
 }
 
 void SyntaxEditor::syntaxChangedSlot(const QString &newSyntax)
@@ -114,9 +114,9 @@ void SyntaxEditor::syntaxChangedSlot(const QString &newSyntax)
 
 	SyntaxInfo info = (*syntaxList)[newSyntax];
 	if (info.global)
-		fileName = dataPath("kadu") + "/syntax/" + category.toLower() + "/" + newSyntax + ".syntax";
+		fileName = dataPath("kadu") + "/syntax/" + category.toLower() + '/' + newSyntax + ".syntax";
 	else
-		fileName = profilePath() + "/syntax/" + category.toLower() + "/" + newSyntax + ".syntax";
+		fileName = profilePath() + "/syntax/" + category.toLower() + '/' + newSyntax + ".syntax";
 
 	file.setFileName(fileName);
 	if (!file.open(QIODevice::ReadOnly))

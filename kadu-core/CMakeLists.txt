@@ -7,6 +7,7 @@ set (kadu_SRCS
 	accounts/accounts-aware-object.cpp
 
 	accounts/filter/id-regular-expression-filter.cpp
+	accounts/filter/writeable-contacts-list-filter.cpp
 
 	accounts/model/accounts-model.cpp
 	accounts/model/accounts-proxy-model.cpp
@@ -23,6 +24,7 @@ set (kadu_SRCS
 	buddies/buddy-list-configuration-helper.cpp
 	buddies/buddy-list-mime-data-helper.cpp
 	buddies/buddy-manager.cpp
+	buddies/buddy-preferred-manager.cpp
 	buddies/buddy-remove-predicate-object.cpp
 	buddies/buddy-search-criteria.cpp
 	buddies/buddy-set.cpp
@@ -135,6 +137,7 @@ set (kadu_SRCS
 	gui/widgets/buddies-list-view-item-painter.cpp
 	gui/widgets/buddies-list-view-menu-item.cpp
 	gui/widgets/buddies-list-view-menu-manager.cpp
+	gui/widgets/buddies-list-view-selection-item.cpp
 	gui/widgets/buddies-list-widget.cpp
 	gui/widgets/buddy-avatar-widget.cpp
 	gui/widgets/buddy-contacts-table-delegate.cpp
@@ -235,6 +238,7 @@ set (kadu_SRCS
 	gui/windows/search-window.cpp
 	gui/windows/subscription-window.cpp
 	gui/windows/syntax-editor-window.cpp
+	gui/windows/updates-dialog.cpp
 	gui/windows/window-notifier-window.cpp
 	gui/windows/your-accounts.cpp
 
@@ -352,6 +356,7 @@ set (kadu_MOC_SRCS
 
 	accounts/filter/abstract-account-filter.h
 	accounts/filter/id-regular-expression-filter.h
+	accounts/filter/writeable-contacts-list-filter.h
 
 	accounts/model/accounts-model.h
 	accounts/model/accounts-proxy-model.h
@@ -362,6 +367,7 @@ set (kadu_MOC_SRCS
 	buddies/buddy-shared.h
 	buddies/buddy-manager.h
 	buddies/group-manager.h
+	buddies/buddy-preferred-manager.h
 	buddies/group-shared.h
 
 	buddies/filter/abstract-buddy-filter.h
@@ -541,13 +547,13 @@ set (kadu_MOC_SRCS
 	gui/windows/main-configuration-window.h
 	gui/windows/main-window.h
 	gui/windows/merge-buddies-window.h
-	gui/windows/message-dialog.h
 	gui/windows/modules-window.h
 	gui/windows/password-window.h
 	gui/windows/progress-window.h
 	gui/windows/search-window.h
 	gui/windows/subscription-window.h
 	gui/windows/syntax-editor-window.h
+	gui/windows/updates-dialog.h
 	gui/windows/window-notifier-window.h
 	gui/windows/your-accounts.h
 

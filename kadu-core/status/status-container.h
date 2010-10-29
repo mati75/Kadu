@@ -44,6 +44,8 @@ public:
 	virtual void setStatus(Status newStatus) = 0;
 	virtual Status status() = 0;
 
+	virtual void setDescription(const QString &description) = 0;
+
 	virtual QString statusName() = 0;
 	virtual QIcon statusIcon() = 0;
 	virtual QIcon statusIcon(Status status) = 0;
@@ -60,8 +62,6 @@ public:
 				      const QString &startupDescription, bool StartupLastDescription) = 0;
 	virtual void storeStatus(Status status) = 0;
 	virtual void disconnectStatus(bool disconnectWithCurrentDescription, const QString &disconnectDescription) = 0;
-
-	virtual void setPrivateStatus(bool isPrivate) = 0;
 
 signals:
 	void statusChanged();

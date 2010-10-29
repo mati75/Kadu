@@ -50,8 +50,12 @@ Buddy ContactListService::mergeBuddy(Buddy oneBuddy)
 			{
 				// move contact to buddy
 				ContactManager::instance()->addItem(contact);
+				buddy = BuddyManager::instance()->byDisplay(oneBuddy.display(), ActionCreate);
+
+				contact.setOwnerBuddy(buddy);
+
 				kdebugmf(KDEBUG_FUNCTION_START, "\nuuid add: '%s' %s\n",
-					 qPrintable(contactOnList.uuid().toString()), qPrintable(buddy.display()));
+					 qPrintable(contact.uuid().toString()), qPrintable(buddy.display()));
 			}
 			else // already on list
 			{
@@ -89,6 +93,10 @@ Buddy ContactListService::mergeBuddy(Buddy oneBuddy)
 	buddy.setEmail(oneBuddy.email());
 	buddy.setDisplay(oneBuddy.display());
 	buddy.setHomePhone(oneBuddy.homePhone());
+	buddy.setOfflineTo(oneBuddy.isOfflineTo());
+	buddy.setCity(oneBuddy.city());
+	buddy.setWebsite(oneBuddy.website());
+	buddy.setGender(oneBuddy.gender());
 	buddy.setAnonymous(false);
 
 	BuddyManager::instance()->addItem(buddy);
@@ -96,7 +104,7 @@ Buddy ContactListService::mergeBuddy(Buddy oneBuddy)
 	return buddy;
 }
 
-void ContactListService::setBuddiesList(BuddyList buddies)
+void ContactListService::setBuddiesList(BuddyList buddies, bool removeOld)
 {
 	QList<Contact> unImportedContacts = ContactManager::instance()->contacts(CurrentProtocol->account());
 
@@ -110,7 +118,7 @@ void ContactListService::setBuddiesList(BuddyList buddies)
 			unImportedContacts.removeAll(contact);
 	}
 
-	if (!unImportedContacts.isEmpty())
+	if (removeOld && !unImportedContacts.isEmpty())
 	{
 		// create names list
 		QStringList contactsList;
@@ -121,7 +129,7 @@ void ContactListService::setBuddiesList(BuddyList buddies)
 				contactsList.append(display);
 		}
 
-		if (MessageDialog::ask(tr("Following contacts from your list were not found on server: <b>%0</b>.\nDo you want to remove them from contacts list?").arg(contactsList.join("</b>, <b>"))))
+		if (MessageDialog::ask("", tr("Kadu"), tr("Following contacts from your list were not found on server: <b>%0</b>.\nDo you want to remove them from contacts list?").arg(contactsList.join("</b>, <b>"))))
 		{
 			foreach (const Contact &c, unImportedContacts)
 				ContactManager::instance()->removeItem(c);

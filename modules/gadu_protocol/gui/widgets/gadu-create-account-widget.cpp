@@ -70,26 +70,26 @@ void GaduCreateAccountWidget::createGui()
 	QFormLayout *layout = new QFormLayout(formWidget);
 
 	NewPassword = new QLineEdit(this);
-	connect(NewPassword, SIGNAL(textChanged(const QString &)), this, SLOT(dataChanged()));
+	connect(NewPassword, SIGNAL(textEdited(const QString &)), this, SLOT(dataChanged()));
 	NewPassword->setEchoMode(QLineEdit::Password);
-	layout->addRow(tr("Password") + ":", NewPassword);
+	layout->addRow(tr("Password") + ':', NewPassword);
 
 	ReNewPassword = new QLineEdit(this);
-	connect(ReNewPassword, SIGNAL(textChanged(const QString &)), this, SLOT(dataChanged()));
+	connect(ReNewPassword, SIGNAL(textEdited(const QString &)), this, SLOT(dataChanged()));
 	ReNewPassword->setEchoMode(QLineEdit::Password);
-	layout->addRow(tr("Retype Password") + ":", ReNewPassword);
+	layout->addRow(tr("Retype Password") + ':', ReNewPassword);
 
 	RememberPassword = new QCheckBox(tr("Remember password"), this);
 	RememberPassword->setChecked(true);
 	layout->addWidget(RememberPassword);
 
 	EMail = new QLineEdit(this);
-	connect(EMail, SIGNAL(textChanged(const QString &)), this, SLOT(dataChanged()));
-	layout->addRow(tr("E-Mail Address") + ":", EMail);
+	connect(EMail, SIGNAL(textEdited(const QString &)), this, SLOT(dataChanged()));
+	layout->addRow(tr("E-Mail Address") + ':', EMail);
 
 	IdentityCombo = new IdentitiesComboBox(this);
 	connect(IdentityCombo, SIGNAL(identityChanged(Identity)), this, SLOT(dataChanged()));
-	layout->addRow(tr("Account Identity") + ":", IdentityCombo);
+	layout->addRow(tr("Account Identity") + ':', IdentityCombo);
 
 	QLabel *infoLabel = new QLabel(tr("<font size='-1'><i>Select or enter the identity that will be associated with this account.</i></font>"), this);
 	infoLabel->setWordWrap(true);
@@ -99,7 +99,7 @@ void GaduCreateAccountWidget::createGui()
 
 	MyTokenWidget = new TokenWidget(this);
 	connect(MyTokenWidget, SIGNAL(modified()), this, SLOT(dataChanged()));
-	layout->addRow(tr("Characters") + ":", MyTokenWidget);
+	layout->addRow(tr("Characters") + ':', MyTokenWidget);
 
 	infoLabel = new QLabel(tr("<font size='-1'><i>For verification purposes, please type the characters above.</i></font>"), this);
 	infoLabel->setWordWrap(true);
@@ -160,7 +160,7 @@ void GaduCreateAccountWidget::apply()
 {
 	if (NewPassword->text() != ReNewPassword->text())
 	{
-		MessageDialog::msg(tr("Error data typed in required fields.\n\n"
+		MessageDialog::show("dialog-error", tr("Kadu"), tr("Error data typed in required fields.\n\n"
 			"Passwords typed in both fields (\"Password\" and \"Retype Password\") "
 			"should be the same!"));
 		return;

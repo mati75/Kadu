@@ -72,7 +72,7 @@ void GaduChangePasswordWindow::createGui()
 
 	EMail = new QLineEdit(this);
 	connect(EMail, SIGNAL(textChanged(const QString &)), this, SLOT(dataChanged()));
-	layout->addRow(tr("E-Mail Address") + ":", EMail);
+	layout->addRow(tr("E-Mail Address") + ':', EMail);
 
 	infoLabel = new QLabel(tr("<font size='-1'><i>Type E-Mail Address used during registration.</i></font>"), this);
 	infoLabel->setWordWrap(true);
@@ -83,7 +83,7 @@ void GaduChangePasswordWindow::createGui()
 	OldPassword = new QLineEdit(this);
 	OldPassword->setEchoMode(QLineEdit::Password);
 	connect(OldPassword, SIGNAL(textChanged(QString)), this, SLOT(dataChanged()));
-	layout->addRow(tr("Old Password") + ":", OldPassword);
+	layout->addRow(tr("Old Password") + ':', OldPassword);
 
 	infoLabel = new QLabel(tr("<font size='-1'><i>Enter current password for your Gadu-Gadu account.</i></font>"), this);
 	infoLabel->setWordWrap(true);
@@ -94,7 +94,7 @@ void GaduChangePasswordWindow::createGui()
 	NewPassword = new QLineEdit(this);
 	NewPassword->setEchoMode(QLineEdit::Password);
 	connect(NewPassword, SIGNAL(textChanged(const QString &)), this, SLOT(dataChanged()));
-	layout->addRow(tr("New Password") + ":", NewPassword);
+	layout->addRow(tr("New Password") + ':', NewPassword);
 
 	infoLabel = new QLabel(tr("<font size='-1'><i>Enter new password for your Gadu-Gadu account.</i></font>"), this);
 	infoLabel->setWordWrap(true);
@@ -105,11 +105,11 @@ void GaduChangePasswordWindow::createGui()
 	ReNewPassword = new QLineEdit(this);
 	ReNewPassword->setEchoMode(QLineEdit::Password);
 	connect(ReNewPassword, SIGNAL(textChanged(const QString &)), this, SLOT(dataChanged()));
-	layout->addRow(tr("Retype New Password") + ":", ReNewPassword);
+	layout->addRow(tr("Retype New Password") + ':', ReNewPassword);
 
 	MyTokenWidget = new TokenWidget(this);
 	connect(MyTokenWidget, SIGNAL(modified()), this, SLOT(dataChanged()));
-	layout->addRow(tr("Characters") + ":", MyTokenWidget);
+	layout->addRow(tr("Characters") + ':', MyTokenWidget);
 
 	infoLabel = new QLabel(tr("<font size='-1'><i>For verification purposes, please type the characters above.</i></font>"), this);
 	infoLabel->setWordWrap(true);
@@ -143,14 +143,13 @@ void GaduChangePasswordWindow::dataChanged()
 	ChangePasswordButton->setEnabled(!disable);
 }
 
-
 void GaduChangePasswordWindow::changePassword()
 {
 	if (NewPassword->text() != ReNewPassword->text())
 	{
-		MessageDialog::msg(tr("Error data typed in required fields.\n\n"
+		MessageDialog::show("dialog-error", tr("Kadu"), tr("Error data typed in required fields.\n\n"
 			"Passwords typed in both fields (\"Password\" and \"Retype Password\") "
-			"should be the same!"));
+			"should be the same!"), QMessageBox::Ok, parentWidget());
 		return;
 	}
 
@@ -161,7 +160,6 @@ void GaduChangePasswordWindow::changePassword()
 
 	gscp->performAction();
 }
-
 
 void GaduChangePasswordWindow::changingFinished(GaduServerChangePassword *gscp)
 {
@@ -174,7 +172,7 @@ void GaduChangePasswordWindow::changingFinished(GaduServerChangePassword *gscp)
 
 	if (result)
 	{
-		MessageDialog::msg(tr("Changing password was successful."), false, "Information", parentWidget());
+		MessageDialog::show("dialog-information", tr("Kadu"), tr("Changing password was successful."), QMessageBox::Ok, parentWidget());
 
 		MyAccount.setPassword(NewPassword->text());
 		emit passwordChanged(NewPassword->text());
@@ -182,7 +180,7 @@ void GaduChangePasswordWindow::changingFinished(GaduServerChangePassword *gscp)
 		close();
 	}
 	else
-		MessageDialog::msg(tr("An error has occured. Please try again later."), false, "Critical", parentWidget());
+		MessageDialog::show("dialog-error", tr("Kadu"), tr("An error has occurred. Please try again later."), QMessageBox::Ok, parentWidget());
 }
 
 void GaduChangePasswordWindow::keyPressEvent(QKeyEvent *e)

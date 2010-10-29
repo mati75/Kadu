@@ -41,4 +41,4 @@ public:
 
 };
 
-#endif //  SCREENSHOT_NOTIFICATION_H
+#endif // SCREENSHOT_NOTIFICATION_H

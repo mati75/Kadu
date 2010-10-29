@@ -916,7 +916,7 @@ E un rischio per la sicurezza!</translation>
         <translation>Nuovo messaggio apre la finestra del chat</translation>
     </message>
     <message>
-        <source>Open chat window when comes new message</source>
+        <source>Open chat window when a new message arrives</source>
         <translation>Apre la finestra del chat quando nuovo messaggio arriva</translation>
     </message>
     <message>
@@ -976,7 +976,7 @@ E un rischio per la sicurezza!</translation>
         <translation>Blocca chiusura finestra con nuovo messaggio</translation>
     </message>
     <message>
-        <source>Block chat window when comes new message</source>
+        <source>Block chat window when a new message arrives</source>
         <translation>Blocca chiusura finestra chat quando nuovo messaggio arriva</translation>
     </message>
     <message>
@@ -1054,24 +1054,26 @@ E un rischio per la sicurezza!</translation>
     <message>
         <source>Syntax: %s - status, %d - description, %i - ip, %n - nick, %a - altnick, %f - first name
 %r - surname, %m - mobile, %u - uin, %g - group, %o - return _space_ if user doesn&apos;t have us in userlist
-%h - gg version, %v - revDNS, %p - port, %e - email, %x - max image size
+%h - gg version, %v - revDNS, %p - port, %e - email, %x - max image size, %z - gender (0/1/2)
 </source>
-        <translation>Sintasso: %s - status, %d - descrizione, %i - indirizzo ip, %n - nick, %a - altnick, %f - nome
+        <translation type="unfinished">Sintasso: %s - status, %d - descrizione, %i - indirizzo ip, %n - nick, %a - altnick, %f - nome
 %r - cognome, %m - cellulare, %u - uin, %g - gruppo, %o - rende_space_quando_il_contatto_no_ha_tuo_nel_lista_contatti
-%h - gg versione, %v - revDNS, %p - porta, %e - email, %x - max imaggini size</translation>
+%h - gg versione, %v - revDNS, %p - porta, %e - email, %x - max imaggini size, %z - gender (0/1/2)
+</translation>
     </message>
     <message>
         <source>Syntax: %s - status, %d - description, %i - ip, %n - nick, %a - altnick, %f - first name
 %r - surname, %m - mobile, %u - uin, %g - group, %o - return _space_ if user doesn&apos;t have us in userlist
-%h - gg version, %v - revDNS, %p - port, %e - email, %x - max image size,
+%h - gg version, %v - revDNS, %p - port, %e - email, %x - max image size, %z - gender (0/1/2),
 #{protocol} - protocol that triggered event,
 #{event} - name of event,
 </source>
-        <translation>Sintasso: %s - status, %d - descrizione, %i - indirizzo ip, %n - nick, %a - altnick, %f - nome
+        <translation type="unfinished">Sintasso: %s - status, %d - descrizione, %i - indirizzo ip, %n - nick, %a - altnick, %f - nome
 %r - cognome, %m - cellulare, %u - uin, %g - gruppo, %o - rende_space_quando_il_contatto_no_ha_tuo_nel_lista_contatti
-%h - gg versione, %v - revDNS, %p - porta, %e - email, %x - max imaggini size
+%h - gg versione, %v - revDNS, %p - porta, %e - email, %x - max imaggini size, %z - gender (0/1/2),
 #{protocol} - protocole che ha chiama event,
-#{event} - nome del event,</translation>
+#{event} - nome del event,
+</translation>
     </message>
     <message>
         <source>Properties</source>
@@ -1088,7 +1090,7 @@ E un rischio per la sicurezza!</translation>
     <message>
         <source>Syntax: %s - status, %d - description, %i - ip, %n - nick, %a - altnick, %f - first name
 %r - surname, %m - mobile, %u - uin, %g - group, %o - return _space_ if user doesn&apos;t have us in userlist
-%h - gg version, %v - revDNS, %p - port, %e - email, %x - max image size,
+%h - gg version, %v - revDNS, %p - port, %e - email, %x - max image size, %z - gender (0/1/2),
 #{message} - message content,
 #{backgroundColor} - background color of message,
 #{fontColor} - font color of message,
@@ -1113,7 +1115,7 @@ E un rischio per la sicurezza!</translation>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Displays messages from anonymous users without formatting (colors, images, font weight...) Text is plain black.</source>
+        <source>Displays messages from anonymous users without formatting (colors, images, font weight...).</source>
         <translation type="unfinished"></translation>
     </message>
     <message>

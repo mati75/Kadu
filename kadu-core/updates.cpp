@@ -33,7 +33,7 @@
 #include "configuration/configuration-file.h"
 #include "core/core.h"
 #include "gui/windows/kadu-window.h"
-#include "gui/windows/message-dialog.h"
+#include "gui/windows/updates-dialog.h"
 #include "debug.h"
 #include "kadu-config.h"
 
@@ -200,7 +200,7 @@ QString Updates::stripVersion(const QString stripversion)
 	else
 		version.append("05");
 
-	return (version.remove("."));
+	return (version.remove('.'));
 }
 
 void Updates::gotUpdatesInfo(const QHttpResponseHeader &responseHeader)
@@ -223,7 +223,10 @@ void Updates::gotUpdatesInfo(const QHttpResponseHeader &responseHeader)
 
 		QString newestVersion(data);
 		if (isNewerVersion(newestVersion))
-			MessageDialog::msg(tr("The newest Kadu version is %1").arg(newestVersion), false, "dialog-information", Core::instance()->kaduWindow());
+		{
+			UpdatesDialog *dialog = new UpdatesDialog(newestVersion, Core::instance()->kaduWindow());
+			dialog->show();
+		}
 	}
 
 	config_file.writeEntry("General", "LastUpdateCheck", QDateTime(QDate(1970, 1, 1)).secsTo(QDateTime::currentDateTime()));

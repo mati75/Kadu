@@ -33,6 +33,7 @@
 #include "buddies/buddy-list.h"
 #include "buddies/buddy-list-mime-data-helper.h"
 #include "buddies/buddy-manager.h"
+#include "buddies/buddy-preferred-manager.h"
 #include "buddies/buddy-set.h"
 #include "buddies/model/buddies-model-proxy.h"
 #include "chat/chat-manager.h"
@@ -42,6 +43,7 @@
 #include "contacts/filter/contact-no-unloaded-account-filter.h"
 #include "gui/actions/action.h"
 #include "gui/actions/action-description.h"
+#include "gui/widgets/chat-widget-manager.h"
 #include "gui/windows/kadu-window-actions.h"
 #include "gui/windows/main-window.h"
 #include "gui/hot-key.h"
@@ -88,12 +90,14 @@ BuddiesListView::BuddiesListView(MainWindow *mainWindow, QWidget *parent) :
 	Delegate->setModel(ProxyModel);
 	QTreeView::setModel(ProxyModel);
 
+	ToolTipTimeoutTimer.setSingleShot(true);
+
 	connect(MainConfiguration::instance(), SIGNAL(simpleModeChanged()), this, SLOT(simpleModeChanged()));
 	connect(&ToolTipTimeoutTimer, SIGNAL(timeout()), this, SLOT(toolTipTimeout()));
 	connect(this, SIGNAL(doubleClicked(const QModelIndex &)), this, SLOT(doubleClickedSlot(const QModelIndex &)));
 	connect(PendingMessagesManager::instance(), SIGNAL(messageAdded(Message)), this, SLOT(update()));
 	connect(PendingMessagesManager::instance(), SIGNAL(messageRemoved(Message)), this, SLOT(update()));
-
+	
 	simpleModeChanged();
 }
 
@@ -237,7 +241,7 @@ Chat BuddiesListView::currentChat() const
 
 				foreach (const Buddy &buddy, buddies)
 				{
-					contact = buddy.preferredContact(account);
+					contact = BuddyPreferredManager::instance()->preferredContact(buddy, account);
 					if (!contact)
 						return Chat::null;
 
@@ -249,7 +253,7 @@ Chat BuddiesListView::currentChat() const
 		{
 			if (!selection.parent().isValid())
 		    {
-				contact = buddyAt(selection).preferredContact(account);
+				contact = BuddyPreferredManager::instance()->preferredContact(buddyAt(selection), account);
 				if (!contact)
 					return Chat::null;
 
@@ -332,7 +336,7 @@ void BuddiesListView::wheelEvent(QWheelEvent *event)
 
 	// if event source (e->globalPos()) is inside this widget (QRect(...))
 	if (QRect(QPoint(0, 0), size()).contains(event->pos()))
-		toolTipRestart();
+		toolTipRestart(event->pos());
 	else
 		toolTipHide(false);
 }
@@ -359,13 +363,13 @@ void BuddiesListView::mouseReleaseEvent(QMouseEvent *event)
 {
 	QTreeView::mouseReleaseEvent(event);
 	update();
-	toolTipRestart();
+	toolTipRestart(event->pos());
 }
 
 void BuddiesListView::mouseMoveEvent(QMouseEvent *event)
 {
 	QTreeView::mouseMoveEvent(event);
-	toolTipRestart();
+	toolTipRestart(event->pos());
 }
 
 void BuddiesListView::resizeEvent(QResizeEvent *event)
@@ -376,15 +380,40 @@ void BuddiesListView::resizeEvent(QResizeEvent *event)
 		updateBackground();
 }
 
-void BuddiesListView::currentChanged(const QModelIndex& current, const QModelIndex& previous)
+void BuddiesListView::currentChanged(const QModelIndex &current, const QModelIndex &previous)
 {
 	QTreeView::currentChanged(current, previous);
 
 	if (!current.isValid())
+	{
+		emit currentBuddyChanged(Buddy::null);
+		emit currentContactChanged(Contact::null);
+		emit currentChanged(BuddiesListViewSelectionItem(BuddiesListViewSelectionItem::SelectedItemNone, Buddy::null, Contact::null));
 		return;
-	Buddy con = buddyAt(current);
-	if (!con.isNull())
-		emit currentBuddyChanged(con);
+	}
+
+	Contact contact = contactAt(current);
+	Buddy buddy = contact.ownerBuddy();
+
+	if (contact)
+	{
+		if (buddy)
+			emit currentBuddyChanged(buddy);
+		emit currentContactChanged(contact);
+	}
+
+	BuddiesListViewSelectionItem::SelectedItemType itemType = BuddiesListViewSelectionItem::SelectedItemNone;
+	switch (current.data(ItemTypeRole).toInt())
+	{
+		case BuddyRole:
+			itemType = BuddiesListViewSelectionItem::SelectedItemBuddy;
+			break;
+		case ContactRole:
+			itemType = BuddiesListViewSelectionItem::SelectedItemContact;
+			break;
+	}
+
+	emit currentChanged(BuddiesListViewSelectionItem(itemType, buddy, contact));
 }
 
 void BuddiesListView::selectionChanged(const QItemSelection &selected, const QItemSelection &deselected)
@@ -508,9 +537,9 @@ void BuddiesListView::toolTipTimeout()
 
 #define TOOL_TIP_TIMEOUT 1000
 
-void BuddiesListView::toolTipRestart()
+void BuddiesListView::toolTipRestart(QPoint pos)
 {
-	Contact con = contactAt(indexAt(mapFromGlobal(QCursor::pos())));
+	Contact con = contactAt(indexAt(pos));
 
 	if (!con.isNull())
 	{

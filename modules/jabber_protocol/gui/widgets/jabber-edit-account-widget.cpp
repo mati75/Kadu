@@ -105,22 +105,18 @@ void JabberEditAccountWidget::createGeneralTab(QTabWidget *tabWidget)
 
 	QFormLayout *formLayout = new QFormLayout(form);
 
-	ConnectAtStart = new QCheckBox(tr("Connect on startup"), this);
-	connect(ConnectAtStart, SIGNAL(stateChanged(int)), this, SLOT(dataChanged()));
-	formLayout->addRow(0, ConnectAtStart);
-
 	AccountId = new QLineEdit(this);
-	connect(AccountId, SIGNAL(textChanged(QString)), this, SLOT(dataChanged()));
-	formLayout->addRow(tr("Username") + ":", AccountId);
+	connect(AccountId, SIGNAL(textEdited(QString)), this, SLOT(dataChanged()));
+	formLayout->addRow(tr("Username") + ':', AccountId);
 
 	AccountPassword = new QLineEdit(this);
 	AccountPassword->setEchoMode(QLineEdit::Password);
-	connect(AccountPassword, SIGNAL(textChanged(QString)), this, SLOT(dataChanged()));
-	formLayout->addRow(tr("Password") + ":", AccountPassword);
+	connect(AccountPassword, SIGNAL(textEdited(QString)), this, SLOT(dataChanged()));
+	formLayout->addRow(tr("Password") + ':', AccountPassword);
 
 	RememberPassword = new QCheckBox(tr("Remember password"), this);
 	RememberPassword->setChecked(true);
-	connect(RememberPassword, SIGNAL(stateChanged(int)), this, SLOT(dataChanged()));
+	connect(RememberPassword, SIGNAL(clicked()), this, SLOT(dataChanged()));
 	formLayout->addRow(0, RememberPassword);
 
 	QLabel *changePasswordLabel = new QLabel(QString("<a href='change'>%1</a>").arg(tr("Change your password")));
@@ -130,7 +126,7 @@ void JabberEditAccountWidget::createGeneralTab(QTabWidget *tabWidget)
 
 	Identities = new IdentitiesComboBox(this);
 	connect(Identities, SIGNAL(identityChanged(Identity)), this, SLOT(dataChanged()));
-	formLayout->addRow(tr("Account Identity") + ":", Identities);
+	formLayout->addRow(tr("Account Identity") + ':', Identities);
 
 	QLabel *infoLabel = new QLabel(tr("<font size='-1'><i>Select or enter the identity that will be associated with this account.</i></font>"), this);
 	infoLabel->setWordWrap(true);
@@ -173,7 +169,7 @@ void JabberEditAccountWidget::createGeneralGroupBox(QVBoxLayout *layout)
 	vboxLayout2->setMargin(9);
 
 	CustomHostPort = new QCheckBox(general);
-	CustomHostPort->setText(tr("Manually specify server host/port")+":");
+	CustomHostPort->setText(tr("Manually specify server host/port") + ':');
 	vboxLayout2->addWidget(CustomHostPort);
 
 	HostPortLayout = new QHBoxLayout();
@@ -181,22 +177,22 @@ void JabberEditAccountWidget::createGeneralGroupBox(QVBoxLayout *layout)
 	HostPortLayout->setMargin(0);
 
 	CustomHostLabel = new QLabel(general);
-	CustomHostLabel->setText(tr("Host")+":");
+	CustomHostLabel->setText(tr("Host") + ':');
 	HostPortLayout->addWidget(CustomHostLabel);
 
 	CustomHost = new QLineEdit(general);
-	connect(CustomHost, SIGNAL(textChanged(QString)), this, SLOT(dataChanged()));
+	connect(CustomHost, SIGNAL(textEdited(QString)), this, SLOT(dataChanged()));
 	HostPortLayout->addWidget(CustomHost);
 
 	CustomPortLabel = new QLabel(general);
-	CustomPortLabel->setText(tr("Port")+":");
+	CustomPortLabel->setText(tr("Port") + ':');
 	HostPortLayout->addWidget(CustomPortLabel);
 
 	CustomPort = new QLineEdit(general);
 	CustomPort->setMinimumSize(QSize(56, 0));
 	CustomPort->setMaximumSize(QSize(56, 32767));
 	CustomPort->setValidator(new QIntValidator(0, 9999999, CustomPort));
-	connect(CustomPort, SIGNAL(textChanged(QString)), this, SLOT(dataChanged()));
+	connect(CustomPort, SIGNAL(textEdited(QString)), this, SLOT(dataChanged()));
 	HostPortLayout->addWidget(CustomPort);
 
 	// Manual Host/Port
@@ -205,7 +201,7 @@ void JabberEditAccountWidget::createGeneralGroupBox(QVBoxLayout *layout)
 	CustomPort->setEnabled(false);
 	CustomPortLabel->setEnabled(false);
 	connect(CustomHostPort, SIGNAL(toggled(bool)), SLOT(hostToggled(bool)));
-	connect(CustomHostPort, SIGNAL(stateChanged(int)), this, SLOT(dataChanged()));
+	connect(CustomHostPort, SIGNAL(clicked()), this, SLOT(dataChanged()));
 
 	vboxLayout2->addLayout(HostPortLayout);
 
@@ -213,7 +209,7 @@ void JabberEditAccountWidget::createGeneralGroupBox(QVBoxLayout *layout)
 	EncryptionLayout->setSpacing(6);
 	EncryptionLayout->setMargin(0);
 	EncryptionModeLabel = new QLabel(general);
-	EncryptionModeLabel->setText(tr("Encrypt connection")+":");
+	EncryptionModeLabel->setText(tr("Encrypt connection") + ':');
 	EncryptionLayout->addWidget(EncryptionModeLabel);
 
 	EncryptionMode = new QComboBox(general);
@@ -231,14 +227,14 @@ void JabberEditAccountWidget::createGeneralGroupBox(QVBoxLayout *layout)
 
 	LegacySSLProbe = new QCheckBox(general);
 	LegacySSLProbe->setText(tr("Probe legacy SSL port"));
-	connect(LegacySSLProbe, SIGNAL(stateChanged(int)), this, SLOT(dataChanged()));
+	connect(LegacySSLProbe, SIGNAL(clicked()), this, SLOT(dataChanged()));
 	vboxLayout2->addWidget(LegacySSLProbe);
 
 	QHBoxLayout *plainAuthLayout = new QHBoxLayout();
 	plainAuthLayout->setSpacing(6);
 	plainAuthLayout->setMargin(0);
 	QLabel *plainAuthLabel = new QLabel(general);
-	plainAuthLabel->setText(tr("Allow plaintext authentication")+":");
+	plainAuthLabel->setText(tr("Allow plaintext authentication") + ':');
 	plainAuthLayout->addWidget(plainAuthLabel);
 
 	PlainTextAuth = new QComboBox(general);
@@ -262,7 +258,7 @@ void JabberEditAccountWidget::createOptionsTab(QTabWidget *tabWidget)
 
 	AutoResource = new QCheckBox;
 	AutoResource->setText(tr("Use hostname as a resource"));
-	connect(AutoResource, SIGNAL(stateChanged(int)), this, SLOT(dataChanged()));
+	connect(AutoResource, SIGNAL(clicked()), this, SLOT(dataChanged()));
 	connect(AutoResource, SIGNAL(toggled(bool)), SLOT(autoResourceToggled(bool)));
 	layout->addWidget(AutoResource);
 
@@ -271,19 +267,19 @@ void JabberEditAccountWidget::createOptionsTab(QTabWidget *tabWidget)
 	ResourceLayout->setMargin(0);
 
 	ResourceLabel = new QLabel;
-	ResourceLabel->setText(tr("Resource")+":");
+	ResourceLabel->setText(tr("Resource") + ':');
 	ResourceLayout->addWidget(ResourceLabel);
 
 	ResourceName = new QLineEdit;
-	connect(ResourceName, SIGNAL(textChanged(QString)), this, SLOT(dataChanged()));
+	connect(ResourceName, SIGNAL(textEdited(QString)), this, SLOT(dataChanged()));
 	ResourceLayout->addWidget(ResourceName);
 
 	PriorityLabel = new QLabel;
-	PriorityLabel->setText(tr("Priority")+":");
+	PriorityLabel->setText(tr("Priority") + ':');
 	ResourceLayout->addWidget(PriorityLabel);
 
 	Priority = new QLineEdit;
-	connect(Priority, SIGNAL(textChanged(QString)), this, SLOT(dataChanged()));
+	connect(Priority, SIGNAL(textEdited(QString)), this, SLOT(dataChanged()));
 //	 Priority->setMinimumSize(QSize(56, 0));
 //	 Priority->setMaximumSize(QSize(56, 32767));
 	Priority->setValidator(new QIntValidator(Priority));
@@ -301,7 +297,7 @@ void JabberEditAccountWidget::createOptionsTab(QTabWidget *tabWidget)
 	DataTransferProxyLayout->setMargin(0);
 
 	DataTransferProxyLabel = new QLabel;
-	DataTransferProxyLabel->setText(tr("Data transfer proxy")+":");
+	DataTransferProxyLabel->setText(tr("Data transfer proxy") + ':');
 	DataTransferProxyLayout->addWidget(DataTransferProxyLabel);
 
 	DataTransferProxy = new QLineEdit;
@@ -338,7 +334,7 @@ bool JabberEditAccountWidget::checkSSL()
 {
 	if (!QCA::isSupported("tls"))
 	{
-		MessageDialog::msg(tr("Cannot enable secure connection. SSL/TLS plugin not found."));
+		MessageDialog::show("dialog-warning", tr("Kadu"), tr("Cannot enable secure connection. SSL/TLS plugin not found."));
 		return false;
 	}
 	return true;
@@ -350,7 +346,7 @@ void JabberEditAccountWidget::sslActivated(int i)
 		EncryptionMode->setCurrentIndex(EncryptionMode->findData(1));
 	else if (EncryptionMode->itemData(i) == 2 && !CustomHostPort->isChecked())
 	{
-		MessageDialog::msg(tr("Legacy SSL is only available in combination with manual host/port."));
+		MessageDialog::show("dialog-warning", tr("Kadu"), tr("Legacy SSL is only available in combination with manual host/port."));
 		EncryptionMode->setCurrentIndex(EncryptionMode->findData(1));
 	}
 }
@@ -362,7 +358,6 @@ void JabberEditAccountWidget::dataChanged()
 		return;
 
 	if (account().accountIdentity() == Identities->currentIdentity()
-		&& account().connectAtStart() == ConnectAtStart->isChecked()
 		&& account().id() == AccountId->text()
 		&& account().rememberPassword() == RememberPassword->isChecked()
 		&& account().password() == AccountPassword->text()
@@ -406,7 +401,6 @@ void JabberEditAccountWidget::dataChanged()
 void JabberEditAccountWidget::loadAccountData()
 {
 	Identities->setCurrentIdentity(account().accountIdentity());
-	ConnectAtStart->setChecked(account().connectAtStart());
 	AccountId->setText(account().id());
 	RememberPassword->setChecked(account().rememberPassword());
 	AccountPassword->setText(account().password());
@@ -420,7 +414,7 @@ void JabberEditAccountWidget::loadConnectionData()
 
 	CustomHostPort->setChecked(AccountDetails->useCustomHostPort());
 	CustomHost->setText(AccountDetails->customHost());
-	CustomPort->setText(AccountDetails->customPort() ? QString::number(AccountDetails->customPort()) : QString::number(5222));
+	CustomPort->setText(QString::number(AccountDetails->customPort()));
 	EncryptionMode->setCurrentIndex(EncryptionMode->findData(AccountDetails->encryptionMode()));
 	PlainTextAuth->setCurrentIndex(PlainTextAuth->findData(AccountDetails->plainAuthMode()));
 	LegacySSLProbe->setChecked(AccountDetails->legacySSLProbe());
@@ -438,7 +432,6 @@ void JabberEditAccountWidget::apply()
 		return;
 
 	account().setAccountIdentity(Identities->currentIdentity());
-	account().setConnectAtStart(ConnectAtStart->isChecked());
 	account().setId(AccountId->text());
 	account().setRememberPassword(RememberPassword->isChecked());
 	account().setPassword(AccountPassword->text());
@@ -479,7 +472,7 @@ void JabberEditAccountWidget::removeAccount()
 	QPushButton *removeButton = messageBox->addButton(tr("Remove account"), QMessageBox::AcceptRole);
 	QPushButton *removeAndUnregisterButton = messageBox->addButton(tr("Remove account and unregister on server"), QMessageBox::DestructiveRole);
 	messageBox->addButton(QMessageBox::Cancel);
-
+	messageBox->setDefaultButton(QMessageBox::Cancel);
 	messageBox->exec();
 
 	if (messageBox->clickedButton() == removeButton)

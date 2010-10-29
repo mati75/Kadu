@@ -23,7 +23,11 @@
 #include <QtWebKit/QWebFrame>
 
 #include "accounts/account.h"
+#include "buddies/buddy.h"
+#include "buddies/buddy-shared.h"
+#include "buddies/buddy-preferred-manager.h"
 #include "configuration/configuration-file.h"
+#include "contacts/contact-manager.h"
 #include "misc/syntax-list.h"
 #include "parser/parser.h"
 #include "url-handlers/url-handler-manager.h"
@@ -34,18 +38,27 @@
 
 #include "buddy-info-panel.h"
 
-BuddyInfoPanel::BuddyInfoPanel(QWidget *parent) : KaduWebView(parent), MyBuddy(Buddy::null)
+BuddyInfoPanel::BuddyInfoPanel(QWidget *parent) : KaduWebView(parent)
 {
 	configurationUpdated();
+
+	connect(BuddyPreferredManager::instance(), SIGNAL(buddyUpdated(Buddy&)), this, SLOT(buddyUpdated(Buddy&)));
 }
 
 BuddyInfoPanel::~BuddyInfoPanel()
 {
+	disconnect(BuddyPreferredManager::instance(), SIGNAL(buddyUpdated(Buddy&)), this, SLOT(buddyUpdated(Buddy&)));
 }
 
 void BuddyInfoPanel::configurationUpdated()
 {
 	update();
+}
+
+void BuddyInfoPanel::buddyUpdated(Buddy &buddy)
+{
+	if (buddy == SelectionItem.selectedBuddy())
+		update();
 }
 
 void BuddyInfoPanel::update()
@@ -68,22 +81,27 @@ void BuddyInfoPanel::update()
 		"<html>"
 		"	<head>"
 		"		<style type='text/css'>"
-		"html {"
-		"	color: %1;"
-		"	font: %2 %3 %4 %5;"
-		"	text-decoration: %6;"
-		"	margin: 0;"
-		"	padding: 0;"
-		"	background-color: %7;"
-		"}"
-		"div {"
-		"	color: %1;"
-		"	font: %2 %3 %4 %5;"
-		"	text-decoration: %6;"
-		"	margin: 0;"
-		"	padding: 0;"
-		"	background-color: %7;"
-		"}"
+		"		html {"
+		"			color: %1;"
+		"			font: %2 %3 %4 %5;"
+		"			text-decoration: %6;"
+		"			margin: 0;"
+		"			padding: 0;"
+		"			background-color: %7;"
+		"		}"
+		"		div {"
+		"			color: %1;"
+		"			font: %2 %3 %4 %5;"
+		"			text-decoration: %6;"
+		"			margin: 0;"
+		"			padding: 0;"
+		"			background-color: %7;"
+		"		}"
+		"		table {"
+		"			color: %1;"
+		"			font: %2 %3 %4 %5;"
+		"			text-decoration: %6;"
+		"		}"
 		"		</style>"
 		"	</head>"
 		"	<body>"
@@ -96,7 +114,7 @@ void BuddyInfoPanel::update()
 		"<table><tr><td><img width=\"32\" height=\"32\" align=\"left\" valign=\"top\" src=\"file:///@{ManageUsersWindowIcon}\"></td><td> "
 		"<div align=\"left\"> [<b>%a</b>][ (%u)] [<br>tel.: %m][<br>IP: %i]</div></td></tr></table> <hr> <b>%s</b> [<br>%d]");
 	setHtml(QString("<body bgcolor=\"") + config_file.readEntry("Look", "InfoPanelBgColor") + "\"></body>");
-	displayBuddy(MyBuddy);
+	displaySelectionItem(SelectionItem);
 
 	if (config_file.readBoolEntry("Look", "PanelVerticalScrollbar"))
 		page()->mainFrame()->setScrollBarPolicy(Qt::Vertical, Qt::ScrollBarAsNeeded);
@@ -104,15 +122,49 @@ void BuddyInfoPanel::update()
 		page()->mainFrame()->setScrollBarPolicy(Qt::Vertical, Qt::ScrollBarAlwaysOff);
 }
 
-void BuddyInfoPanel::displayBuddy(Buddy buddy)
+void BuddyInfoPanel::connectContact()
 {
-	MyBuddy = buddy;
+	Contact MyContact = SelectionItem.selectedContact();
+	if (!MyContact)
+		return;
 
-	if (Buddy::null == MyBuddy || !isVisible())
+	connect(MyContact, SIGNAL(updated()), this, SLOT(update()));
+	if (MyContact.ownerBuddy())
+		connect(MyContact.ownerBuddy(), SIGNAL(updated()), this, SLOT(update()));
+	if (MyContact.contactAvatar())
+		connect(MyContact.contactAvatar(), SIGNAL(updated()), this, SLOT(update()));
+}
+
+void BuddyInfoPanel::disconnectContact()
+{
+	Contact MyContact = SelectionItem.selectedContact();
+	if (!MyContact)
+		return;
+
+	disconnect(MyContact, SIGNAL(updated()), this, SLOT(update()));
+	if (MyContact.ownerBuddy())
+		disconnect(MyContact.ownerBuddy(), SIGNAL(updated()), this, SLOT(update()));
+	if (MyContact.contactAvatar())
+		disconnect(MyContact.contactAvatar(), SIGNAL(updated()), this, SLOT(update()));
+}
+
+void BuddyInfoPanel::displayContact(Contact contact)
+{
+	disconnectContact();
+	MyContact = contact;
+	connectContact();
+
+	if (!SelectionItem.selectedContact())
+	{
+		setHtml(Template.arg(""));
+		return;
+	}
+
+	if (!isVisible())
 		return;
 
 	HtmlDocument doc;
-	doc.parseHtml(Parser::parse(Syntax, MyBuddy.preferredContact()));
+	doc.parseHtml(Parser::parse(Syntax, MyContact));
 	UrlHandlerManager::instance()->convertAllUrls(doc);
 
 	if (EmoticonsStyleNone != (EmoticonsStyle)config_file.readNumEntry("Chat", "EmoticonsStyle") &&
@@ -121,8 +173,24 @@ void BuddyInfoPanel::displayBuddy(Buddy buddy)
 				(EmoticonsStyle)config_file.readNumEntry("Chat", "EmoticonsStyle"));
 
 	setHtml(Template.arg(doc.generateHtml()));
+}
 
-	kdebugf2();
+void BuddyInfoPanel::displaySelectionItem(BuddiesListViewSelectionItem selectionItem)
+{
+	SelectionItem = selectionItem;
+
+	if (selectionItem.selectedItem() == BuddiesListViewSelectionItem::SelectedItemBuddy)
+		displayContact(BuddyPreferredManager::instance()->preferredContact(selectionItem.selectedBuddy()));
+	else
+		displayContact(selectionItem.selectedContact());
+}
+
+void BuddyInfoPanel::setVisible(bool visible)
+{
+	QWidget::setVisible(visible);
+
+	if (visible)
+		displaySelectionItem(SelectionItem);
 }
 
 void BuddyInfoPanel::styleFixup(QString &syntax)

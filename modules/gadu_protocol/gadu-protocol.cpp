@@ -22,7 +22,9 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <QtCore/QCoreApplication>
 #include <QtCore/QTimer>
+#include <QtCrypto>
 
 #ifdef Q_OS_WIN
 #include <winsock2.h>
@@ -105,6 +107,8 @@ extern "C" KADU_EXPORT void gadu_protocol_close()
 {
 	UrlHandlerManager::instance()->unregisterUrlHandler("Gadu");
 	ProtocolsManager::instance()->unregisterProtocolFactory(GaduProtocolFactory::instance());
+
+	qRemovePostRoutine(QCA::deinit);
 }
 
 #define GG_STATUS_INVISIBLE2 0x0009
@@ -208,8 +212,6 @@ GaduProtocol::GaduProtocol(Account account, ProtocolFactory *factory) :
 	SocketNotifiers = new GaduProtocolSocketNotifiers(account, this);
 
 	CurrentAvatarService = new GaduAvatarService(account, this);
-	connect(this, SIGNAL(connected(Account)),
-			this, SLOT(fetchAvatars(Account)));
 	CurrentChatImageService = new GaduChatImageService(this);
 	CurrentChatService = new GaduChatService(this);
 	CurrentContactListService = new GaduContactListService(this);
@@ -254,12 +256,6 @@ GaduProtocol::~GaduProtocol()
 	kdebugf2();
 }
 
-void GaduProtocol::fetchAvatars(Account account)
-{
-	foreach (const Contact &contact, ContactManager::instance()->contacts(account))
-		CurrentAvatarService->fetchAvatar(contact);
-}
-
 bool GaduProtocol::validateUserID(const QString &uid)
 {
 	LongValidator v(1, 3999999999U, this);
@@ -279,9 +275,14 @@ int GaduProtocol::maxDescriptionLength()
 
 void GaduProtocol::changeStatus()
 {
+	changeStatus(false);
+}
+
+void GaduProtocol::changeStatus(bool force)
+{
 	Status newStatus = nextStatus();
-	if (newStatus == status())
-		return; // dont reset password
+	if (newStatus == status() && !force)
+		return; // don't reset password
 
 	if (newStatus.isDisconnected() && status().isDisconnected())
 	{
@@ -303,8 +304,8 @@ void GaduProtocol::changeStatus()
 	if (newStatus.type() == "NotAvailable" && status().type() == "Away")
 		return;
 
-// TODO: 0.6.6
-	int friends = 0;// GG_STATUS_FRIENDS_MASK; // (!newStatus.isDisconnected() && privateMode() ? GG_STATUS_FRIENDS_MASK : 0);
+	int friends = (!newStatus.isDisconnected() && account().privateStatus() ? GG_STATUS_FRIENDS_MASK : 0);
+
 	int type = gaduStatusFromStatus(newStatus);
 	bool hasDescription = !newStatus.description().isEmpty();
 
@@ -321,7 +322,7 @@ void GaduProtocol::changeStatus()
 
 void GaduProtocol::changePrivateMode()
 {
-	changeStatus();
+	changeStatus(true);
 }
 
 void GaduProtocol::connectionTimeoutTimerSlot()
@@ -365,7 +366,7 @@ void GaduProtocol::login()
 
 	if (0 == gaduAccountDetails->uin())
 	{
-		MessageDialog::msg(tr("UIN not set!"), false, "dialog-warning");
+		MessageDialog::show("dialog-warning", tr("Kadu"), tr("UIN not set!"));
 		setStatus(Status());
 		kdebugmf(KDEBUG_FUNCTION_END, "end: gadu UIN not set\n");
 		return;
@@ -472,7 +473,8 @@ void GaduProtocol::setupLoginParams()
 	GaduLoginParams.password = strdup(account().password().toAscii().data());
 
 	GaduLoginParams.async = 1;
-	GaduLoginParams.status = gaduStatusFromStatus(nextStatus()) | GG_STATUS_FRIENDS_MASK; // TODO: 0.6.6 support is friend only
+
+	GaduLoginParams.status = (gaduStatusFromStatus(nextStatus()) | (account().privateStatus() ? GG_STATUS_FRIENDS_MASK : 0));
 	if (!nextStatus().description().isEmpty())
 		GaduLoginParams.status_descr = strdup(nextStatus().description().toUtf8());
 
@@ -592,7 +594,7 @@ void GaduProtocol::socketContactStatusChanged(unsigned int uin, unsigned int sta
 void GaduProtocol::socketConnFailed(GaduError error)
 {
 	kdebugf();
-	QString msg = QString::null;
+	QString msg;
 
 	bool tryAgain = true;
 	switch (error)
@@ -609,7 +611,7 @@ void GaduProtocol::socketConnFailed(GaduError error)
 			msg = tr("Please change your email in \"Change password / email\" window. "
 				"Leave new password field blank.");
 			tryAgain = false;
-			MessageDialog::msg(msg, false, "dialog-warning");
+			MessageDialog::show("dialog-warning", tr("Kadu"), msg);
 			break;
 
 		case ConnectionInvalidData:
@@ -627,7 +629,7 @@ void GaduProtocol::socketConnFailed(GaduError error)
 		case ConnectionIncorrectPassword:
 			msg = tr("Unable to connect, incorrect password");
 			tryAgain = false;
-			MessageDialog::msg(tr("Connection will be stopped\nYour password is incorrect!"), false, "dialog-error");
+			MessageDialog::show("dialog-error", tr("Kadu"), tr("Connection will be stopped\nYour password is incorrect!"));
 			break;
 
 		case ConnectionTlsError:
@@ -637,7 +639,7 @@ void GaduProtocol::socketConnFailed(GaduError error)
 		case ConnectionIntruderError:
 			msg = tr("Too many connection attempts with bad password!");
 			tryAgain = false;
-			MessageDialog::msg(tr("Connection will be stopped\nToo many attempts with bad password"), false, "dialog-error");
+			MessageDialog::show("dialog-error", tr("Kadu"), tr("Connection will be stopped\nToo many attempts with bad password"));
 			break;
 
 		case ConnectionUnavailableError:
@@ -654,7 +656,7 @@ void GaduProtocol::socketConnFailed(GaduError error)
 			break;
 
 		case Disconnected:
-			msg = tr("Disconnection has occured");
+			msg = tr("Disconnection has occurred");
 			break;
 
 		default:

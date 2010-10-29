@@ -57,6 +57,13 @@ public:
 
 	void importProxySettings();
 
+	/**
+	 * Returns appropriate StatusContainer for this Account, i.e. its Identity's
+	 * StatusContainer in Simple Mode and this Account's otherwise. If you want to get
+	 * status information that is specific for this Account, e.g., non-generic status
+	 * icon, you probably want to call something like account.data()->statusIcon()
+	 * rather than using this method.
+	 */
 	StatusContainer * statusContainer();
 
 	KaduSharedBase_Property(Identity, accountIdentity, AccountIdentity)
@@ -69,8 +76,8 @@ public:
 	KaduSharedBase_Property(bool, rememberPassword, RememberPassword)
 	KaduSharedBase_Property(bool, hasPassword, HasPassword)
 	KaduSharedBase_Property(QString, password, Password)
-	KaduSharedBase_Property(bool, connectAtStart, ConnectAtStart)
 	KaduSharedBase_Property(AccountProxySettings, proxySettings, ProxySettings)
+	KaduSharedBase_Property(bool, privateStatus, PrivateStatus)
 
 };
 

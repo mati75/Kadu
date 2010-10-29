@@ -149,11 +149,10 @@ void KaduWindow::createGui()
 	hboxLayout->setAlignment(GroupBar, Qt::AlignTop);
 
 	InfoPanel = new BuddyInfoPanel(Split);
-	connect(ContactManager::instance(), SIGNAL(contactUpdated(Contact &)), InfoPanel, SLOT(update()));
-	connect(ContactsWidget->view(), SIGNAL(currentBuddyChanged(Buddy)), InfoPanel, SLOT(displayBuddy(Buddy)));
+	connect(ContactsWidget->view(), SIGNAL(currentChanged(BuddiesListViewSelectionItem)), InfoPanel, SLOT(displaySelectionItem(BuddiesListViewSelectionItem)));
 
 	if (!config_file.readBoolEntry("Look", "ShowInfoPanel"))
-		InfoPanel->QWidget::hide();
+		InfoPanel->setVisible(false);;
 
 	ChangeStatusButtons = new StatusButtons(this);
 	MainLayout->addWidget(ChangeStatusButtons);
@@ -367,11 +366,6 @@ void KaduWindow::storeConfiguration()
 //	config_file.writeEntry("General", "DefaultDescription", defaultdescriptions.join("<-->"));
 }
 
-void KaduWindow::updateInformationPanel()
-{
-	InfoPanel->displayBuddy(ContactsWidget->view()->currentBuddy());
-}
-
 void KaduWindow::closeEvent(QCloseEvent *e)
 {
 	e->ignore();
@@ -460,6 +454,9 @@ void KaduWindow::configurationUpdated()
 
 		color = QColor(alternateBgColor);
 		alternateBgColor = QString("rgba(%1,%2,%3,%4)").arg(color.red()).arg(color.green()).arg(color.blue()).arg(alpha);
+		
+		if (!bgColor.compare(alternateBgColor))
+			alternateBgColor = QString("transparent");
 	}
 
 	if (config_file.readBoolEntry("Look", "UseUserboxBackground", true))

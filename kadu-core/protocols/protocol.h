@@ -73,11 +73,6 @@ public:
 	};
 
 private:
-	enum PrivateModeInternal {
-		PrivateModeUnset,
-		PrivateModeOn,
-		PrivateModeOff
-	};
 
 	ProtocolFactory *Factory;
 
@@ -85,7 +80,6 @@ private:
 
 	NetworkState State;
 	Status CurrentStatus;
-	PrivateModeInternal PrivateMode;
 
 private slots:
 	void statusChanged(StatusContainer *container, Status status);
@@ -95,8 +89,6 @@ protected:
 
 	virtual void changeStatus() = 0;
 	void statusChanged(Status newStatus);
-
-	virtual void changePrivateMode() = 0;
 
 	void networkStateChanged(NetworkState state);
 
@@ -117,6 +109,8 @@ public:
 	virtual SearchService * searchService() { return 0; }
 
 	virtual bool validateUserID(const QString &uid) = 0;
+	virtual bool contactsListReadOnly() = 0;
+	virtual bool supportsPrivateStatus() { return false; }
 
 	NetworkState state() { return State; }
 	bool isConnected() { return (State == NetworkConnected); }
@@ -127,8 +121,7 @@ public:
 	Status nextStatus() const;
 	virtual int maxDescriptionLength() { return -1; }
 
-	void setPrivateMode(bool privateMode);
-	bool privateMode() { return PrivateMode; }
+	virtual void changePrivateMode() = 0;
 
 	virtual QString statusPixmapPath() = 0;
 

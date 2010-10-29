@@ -43,8 +43,8 @@ void JabberAvatarService::fetchAvatar(Contact contact)
 		return;
 
 	JabberAvatarFetcher *avatarFetcher = new JabberAvatarFetcher(contact, this);
-	connect(avatarFetcher, SIGNAL(avatarFetched(Contact, const QByteArray &)),
-			this, SIGNAL(avatarFetched(Contact, const QByteArray &)));
+	connect(avatarFetcher, SIGNAL(avatarFetched(Contact, bool, const QByteArray &)),
+			this, SIGNAL(avatarFetched(Contact, bool, const QByteArray &)));
 	avatarFetcher->fetchAvatar();
 }
 
@@ -118,7 +118,7 @@ void JabberAvatarService::fetchingVCardFinished()
 	buffer.close();
 
 	XMPP::VCard vcard;
-	JT_VCard *task = (JT_VCard *)sender();
+	XMPP::JT_VCard *task = (XMPP::JT_VCard *)sender();
 
 	if (task && task->success())
 	{
@@ -132,7 +132,7 @@ void JabberAvatarService::fetchingVCardFinished()
 
 void JabberAvatarService::uploadingVCardFinished()
 {
-	VCardHandler = static_cast<JT_VCard*> (sender());
+	VCardHandler = static_cast<XMPP::JT_VCard *>(sender());
 	if (VCardHandler->success())
 	{
 		emit avatarUploaded(true, AccountAvatar);
@@ -176,7 +176,7 @@ void JabberAvatarService::itemPublished(const XMPP::Jid& jid, const QString& n, 
 	{
 		if (item.payload().tagName() == "data")
 		{
-			emit avatarFetched(MyContact, item.payload().text().toLatin1());
+			emit avatarFetched(MyContact, true, item.payload().text().toLatin1());
 		}
 		else
 		{

@@ -49,8 +49,7 @@ AccountShared * AccountShared::loadFromStorage(const QSharedPointer<StoragePoint
 
 AccountShared::AccountShared(QUuid uuid) :
 		BaseStatusContainer(this), Shared(uuid),
-		ProtocolHandler(0), RememberPassword(false), HasPassword(false),
-		ConnectAtStart(true)
+		ProtocolHandler(0), RememberPassword(false), HasPassword(false)
 {
 }
 
@@ -82,7 +81,6 @@ void AccountShared::load()
 
 	Shared::load();
 
-	ConnectAtStart = loadValue<bool>("ConnectAtStart", true);
 	Identity identity = IdentityManager::instance()->byUuid(loadValue<QString>("Identity"));
 	if (identity.isNull() && !IdentityManager::instance()->items().isEmpty())
 		identity = IdentityManager::instance()->items()[0];
@@ -104,6 +102,8 @@ void AccountShared::load()
 	ProxySettings.setUser(loadValue<QString>("ProxyUser"));
 	ProxySettings.setPassword(loadValue<QString>("ProxyPassword"));
 
+	PrivateStatus = loadValue<bool>("PrivateStatus", true);
+
 	triggerAllProtocolsRegistered();
 }
 
@@ -114,7 +114,6 @@ void AccountShared::store()
 
 	Shared::store();
 
-	storeValue("ConnectAtStart", ConnectAtStart);
 	storeValue("Identity", AccountIdentity.uuid().toString());
 
 	storeValue("Protocol", ProtocolName);
@@ -132,6 +131,8 @@ void AccountShared::store()
 	storeValue("ProxyRequiresAuthentication", ProxySettings.requiresAuthentication());
 	storeValue("ProxyUser", ProxySettings.user());
 	storeValue("ProxyPassword", ProxySettings.password());
+
+	storeValue("PrivateStatus", PrivateStatus);
 }
 
 bool AccountShared::shouldStore()
@@ -342,8 +343,13 @@ QIcon AccountShared::statusIcon(Status status)
 
 void AccountShared::setPrivateStatus(bool isPrivate)
 {
+	if (PrivateStatus == isPrivate)
+		return;
+
+	PrivateStatus = isPrivate;
+
 	if (ProtocolHandler)
-		ProtocolHandler->setPrivateMode(isPrivate);
+		ProtocolHandler->changePrivateMode();
 }
 
 QList<StatusType *> AccountShared::supportedStatusTypes()

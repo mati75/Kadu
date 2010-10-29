@@ -50,9 +50,7 @@ IdentityModel::~IdentityModel()
 
 int IdentityModel::rowCount(const QModelIndex &parent) const
 {
-	Q_UNUSED(parent)
-
-	return IdentityManager::instance()->count();
+	return parent.isValid() ? 0 : IdentityManager::instance()->count();
 }
 
 QVariant IdentityModel::data(const QModelIndex &index, int role) const
@@ -67,6 +65,8 @@ QVariant IdentityModel::data(const QModelIndex &index, int role) const
 			return ident.name();
 		case IdentityRole:
 			return QVariant::fromValue(ident);
+		case ItemTypeRole:
+			return IdentityRole;
 		default:
 			return QVariant();
 	}

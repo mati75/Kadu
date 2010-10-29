@@ -919,7 +919,7 @@ Es ist ein Sicherheitsrisiko!</translation>
         <translation>Öffne das Chat-Fenster bei neuen Nachrichten</translation>
     </message>
     <message>
-        <source>Open chat window when comes new message</source>
+        <source>Open chat window when a new message arrives</source>
         <translation>Öffne das Chat-Fenster, wenn eine neue Nachricht eingetroffen ist</translation>
     </message>
     <message>
@@ -979,7 +979,7 @@ Es ist ein Sicherheitsrisiko!</translation>
         <translation>Verhindere das Schliessen eines Chat-Fensters, wenn eine Neue Nachricht eintrifft</translation>
     </message>
     <message>
-        <source>Block chat window when comes new message</source>
+        <source>Block chat window when a new message arrives</source>
         <translation>Verhindere das Schliessen eines Chat-Fensters, beim Eintreffen einer neuen Nachricht</translation>
     </message>
     <message>
@@ -1057,25 +1057,26 @@ Es ist ein Sicherheitsrisiko!</translation>
     <message>
         <source>Syntax: %s - status, %d - description, %i - ip, %n - nick, %a - altnick, %f - first name
 %r - surname, %m - mobile, %u - uin, %g - group, %o - return _space_ if user doesn&apos;t have us in userlist
-%h - gg version, %v - revDNS, %p - port, %e - email, %x - max image size
+%h - gg version, %v - revDNS, %p - port, %e - email, %x - max image size, %z - gender (0/1/2)
 </source>
         <translation>Syntax: %s - Zustand, %d - Beschreibung, %i - IP, %n - Nick-Name, %a - Alternativer-Nick, %f - Vorname
 %r - Nachname, %m - Handy, %u - Nr. GG, %g - Gruppe, %o  - leer, wenn Sie nicht in der Kontaktliste desjenigen sind
-%h - Version GG, %v - rev. DNS, %p - Port, %e - Email, %x - maximale Bildgröße
+%h - Version GG, %v - rev. DNS, %p - Port, %e - Email, %x - maximale Bildgröße, %z - gender (0/1/2)
 </translation>
     </message>
     <message>
         <source>Syntax: %s - status, %d - description, %i - ip, %n - nick, %a - altnick, %f - first name
 %r - surname, %m - mobile, %u - uin, %g - group, %o - return _space_ if user doesn&apos;t have us in userlist
-%h - gg version, %v - revDNS, %p - port, %e - email, %x - max image size,
+%h - gg version, %v - revDNS, %p - port, %e - email, %x - max image size, %z - gender (0/1/2),
 #{protocol} - protocol that triggered event,
 #{event} - name of event,
 </source>
         <translation>Syntax: %s - Zustand, %d - Beschreibung, %i - IP, %n - Nick-Name, %a - Alternativer-Nick, %f - Vorname
 %r - Nachname, %m - Handy, %u - Nr. GG, %g - Gruppe, %o  - leer, wenn Sie nicht in der Kontaktliste desjenigen sind
-%h - Version GG, %v - rev. DNS, %p - Port, %e - Email, %x - maximale Bildgröße
+%h - Version GG, %v - rev. DNS, %p - Port, %e - Email, %x - maximale Bildgröße, %z - gender (0/1/2),
 #{protocol} - Protokoll, welches dieses Ereignis ausgelöst hat,
-#{event} - Ereignisname,</translation>
+#{event} - Ereignisname,
+</translation>
     </message>
     <message>
         <source>Properties</source>
@@ -1092,7 +1093,7 @@ Es ist ein Sicherheitsrisiko!</translation>
     <message>
         <source>Syntax: %s - status, %d - description, %i - ip, %n - nick, %a - altnick, %f - first name
 %r - surname, %m - mobile, %u - uin, %g - group, %o - return _space_ if user doesn&apos;t have us in userlist
-%h - gg version, %v - revDNS, %p - port, %e - email, %x - max image size,
+%h - gg version, %v - revDNS, %p - port, %e - email, %x - max image size, %z - gender (0/1/2),
 #{message} - message content,
 #{backgroundColor} - background color of message,
 #{fontColor} - font color of message,
@@ -1104,7 +1105,7 @@ Es ist ein Sicherheitsrisiko!</translation>
 </source>
         <translation>Syntax: %s - Zustand, %d - Beschreibung, %i - IP, %n - Nick-Name, %a - Alternativer-Nick, %f - Vorname,
 %r - Nachname, %m - Handy, %u - Nr. GG, %g - Gruppe, %o - leer, wenn Sie nicht in der Kontaktliste desjenigen sind,
-%h - Version GG, %v - rev. DNS,  %p - Port, %e - Email, %x - maximale Bildgröße,
+%h - Version GG, %v - rev. DNS,  %p - Port, %e - Email, %x - maximale Bildgröße, %z - gender (0/1/2),
 #{message} - Nachricht,
 #{backgroundColor} - Farbe für Nachrichtenhintergrund,
 #{fontColor} - Farbe der Nachrichtenschrift,
@@ -1112,7 +1113,8 @@ Es ist ein Sicherheitsrisiko!</translation>
 #{sentDate} - Zeitstempel des Absendens,
 #{receivedDate} - Zeitstempel des Empfangs,
 #{separator} - Trenner zwischen Nachrichten,
-&lt;kadu:header&gt;Text&lt;/kadu:header&gt; - Dieser Text wird nicht angezeigt, wenn &apos;Entfernen der sich wiederholenden Kopfzeilen&apos; eingeschaltet ist</translation>
+&lt;kadu:header&gt;Text&lt;/kadu:header&gt; - Dieser Text wird nicht angezeigt, wenn &apos;Entfernen der sich wiederholenden Kopfzeilen&apos; eingeschaltet ist
+</translation>
     </message>
     <message>
         <source>Startup</source>
@@ -1127,8 +1129,8 @@ Es ist ein Sicherheitsrisiko!</translation>
         <translation>Automatisch starten beim Systemstart</translation>
     </message>
     <message>
-        <source>Displays messages from anonymous users without formatting (colors, images, font weight...) Text is plain black.</source>
-        <translation>Zeige Nachrichten von Unbekannten unformatiert (keine Farben, Fettschrift, Bilder...) Text ist unformatiert und schwarz.</translation>
+        <source>Displays messages from anonymous users without formatting (colors, images, font weight...).</source>
+        <translation>Zeige Nachrichten von Unbekannten unformatiert (keine Farben, Fettschrift, Bilder...).</translation>
     </message>
     <message>
         <source>Display dates is nice format, like Today, Yesterday or Friday</source>

@@ -70,7 +70,7 @@ void JabberChangePasswordWindow::createGui()
 	OldPassword = new QLineEdit(this);
 	OldPassword->setEchoMode(QLineEdit::Password);
 	connect(OldPassword, SIGNAL(textChanged(QString)), this, SLOT(dataChanged()));
-	layout->addRow(tr("Old Password") + ":", OldPassword);
+	layout->addRow(tr("Old Password") + ':', OldPassword);
 
 	infoLabel = new QLabel(tr("<font size='-1'><i>Enter current password for your XMPP/Jabber account.</i></font>"), this);
 	infoLabel->setWordWrap(true);
@@ -81,7 +81,7 @@ void JabberChangePasswordWindow::createGui()
 	NewPassword = new QLineEdit(this);
 	NewPassword->setEchoMode(QLineEdit::Password);
 	connect(NewPassword, SIGNAL(textChanged(const QString &)), this, SLOT(dataChanged()));
-	layout->addRow(tr("New password") + ":", NewPassword);
+	layout->addRow(tr("New password") + ':', NewPassword);
 
 	infoLabel = new QLabel(tr("<font size='-1'><i>Enter new password for your XMPP/Jabber account.</i></font>"), this);
 	infoLabel->setWordWrap(true);
@@ -92,7 +92,7 @@ void JabberChangePasswordWindow::createGui()
 	ReNewPassword = new QLineEdit(this);
 	ReNewPassword->setEchoMode(QLineEdit::Password);
 	connect(ReNewPassword, SIGNAL(textChanged(const QString &)), this, SLOT(dataChanged()));
-	layout->addRow(tr("Retype new password") + ":", ReNewPassword);
+	layout->addRow(tr("Retype new password") + ':', ReNewPassword);
 
 	mainLayout->addStretch(100);
 
@@ -123,9 +123,9 @@ void JabberChangePasswordWindow::changePassword()
 {
 	if (NewPassword->text() != ReNewPassword->text())
 	{
-		MessageDialog::msg(tr("Invalid data entered in required fields.\n\n"
+		MessageDialog::show("dialog-warning", tr("Kadu"), tr("Invalid data entered in required fields.\n\n"
 			"Password entered in both fields (\"Password\" and \"Retype password\") "
-			"should be the same!"));
+			"should be the same!"), QMessageBox::Ok, this);
 		return;
 	}
 
@@ -148,7 +148,7 @@ void JabberChangePasswordWindow::changingFinished(JabberServerChangePassword *gs
 
 	if (result)
 	{
-		MessageDialog::msg(tr("Changing password was successful."), false, "Information", parentWidget());
+		MessageDialog::show("dialog-information", tr("Kadu"),tr("Changing password was successful."), QMessageBox::Ok, this);
 
 		MyAccount.setPassword(NewPassword->text());
 		emit passwordChanged(NewPassword->text());
@@ -156,7 +156,7 @@ void JabberChangePasswordWindow::changingFinished(JabberServerChangePassword *gs
 		close();
 	}
 	else
-		MessageDialog::msg(tr("An error has occured. Please try again later."), false, "Critical", parentWidget());
+		MessageDialog::show("dialog-error", tr("Kadu"), tr("An error has occurred. Please try again later."), QMessageBox::Ok, this);
 }
 
 void JabberChangePasswordWindow::keyPressEvent(QKeyEvent *e)

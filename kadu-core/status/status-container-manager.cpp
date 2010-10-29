@@ -122,8 +122,6 @@ void StatusContainerManager::configurationUpdated()
 	else if (StartupStatus == "Busy")
 		StartupStatus =  "Away";
 
-	PrivateStatus = config_file.readBoolEntry("General", "PrivateStatus");
-
 	DisconnectWithCurrentDescription = config_file.readBoolEntry("General", "DisconnectWithCurrentDescription");
 	DisconnectDescription = config_file.readEntry("General", "DisconnectDescription");
 }
@@ -246,6 +244,12 @@ void StatusContainerManager::setStatus(Status newStatus)
 		container->setStatus(newStatus);
 }
 
+void StatusContainerManager::setDescription(const QString &description)
+{
+	foreach (StatusContainer *container, StatusContainers)
+		container->setDescription(description);
+}
+
 Status StatusContainerManager::status()
 {
 	return DefaultStatusContainer && this != DefaultStatusContainer
@@ -304,7 +308,7 @@ int StatusContainerManager::maxDescriptionLength()
 
 QString StatusContainerManager::statusNamePrefix()
 {
-	return QString(tr("All")) + " ";
+	return tr("All") + ' ';
 }
 
 void StatusContainerManager::storeStatus(Status status)
@@ -321,10 +325,4 @@ void StatusContainerManager::disconnectStatus(bool disconnectWithCurrentDescript
 
 	foreach (StatusContainer *statusContainer, StatusContainers)
 		statusContainer->disconnectStatus(DisconnectWithCurrentDescription, DisconnectDescription);
-}
-
-void StatusContainerManager::setPrivateStatus(bool isPrivate)
-{
-	foreach (StatusContainer *container, StatusContainers)
-		container->setPrivateStatus(isPrivate);
 }

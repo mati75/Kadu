@@ -34,7 +34,10 @@ class JabberAvatarFetcher : public QObject
 	Q_OBJECT
 
 	Contact MyContact;
-	
+
+	void done(const QByteArray &avatar);
+	void failed();
+
 private slots:
 	void receivedVCard();
 
@@ -43,7 +46,7 @@ public:
 	void fetchAvatar();
 
 signals:
-	void avatarFetched(Contact contact, const QByteArray &avatar);
+	void avatarFetched(Contact contact, bool ok, const QByteArray &avatar);
 
 };
 

@@ -30,6 +30,7 @@
 #include <QtGui/QPushButton>
 
 #include "accounts/account-manager.h"
+#include "buddies/buddy-preferred-manager.h"
 #include "chat/chat-details-simple.h"
 #include "chat/html-messages-renderer.h"
 #include "chat/style-engines/chat-engine-adium/chat-engine-adium.h"
@@ -272,7 +273,8 @@ void ChatStylesManager::loadStyles()
 		{
 			foreach (ChatStyleEngine *engine, RegisteredEngines.values())
 			{
-				if ((StyleName = engine->isStyleValid(path + file)) != QString::null)
+				StyleName = engine->isStyleValid(path + file);
+				if (!StyleName.isNull())
 				{
 					AvailableStyles[StyleName].engine = engine;
 					AvailableStyles[StyleName].global = false;
@@ -294,7 +296,8 @@ void ChatStylesManager::loadStyles()
 		{
 			foreach (ChatStyleEngine *engine, RegisteredEngines.values())
 			{
-				if ((StyleName = engine->isStyleValid(path + file)) != QString::null)
+				StyleName = engine->isStyleValid(path + file);
+				if (!StyleName.isNull())
 				{
 					AvailableStyles[StyleName].engine = engine;
 					AvailableStyles[StyleName].global = true;
@@ -314,7 +317,7 @@ void ChatStylesManager::mainConfigurationWindowCreated(MainConfigurationWindow *
 
 	ConfigGroupBox *groupBox = window->widget()->configGroupBox("Look", "Chat Window", "Style");
 //editor
-	QLabel *editorLabel = new QLabel(qApp->translate("@default", "Style") + ":");
+	QLabel *editorLabel = new QLabel(qApp->translate("@default", "Style") + ':');
 	editorLabel->setToolTip(qApp->translate("@default", "Choose style of chat window"));
 
 	QWidget  *editor = new QWidget(groupBox->widget());
@@ -356,8 +359,8 @@ void ChatStylesManager::mainConfigurationWindowCreated(MainConfigurationWindow *
 	CurrentEngine->prepareStylePreview(EnginePreview, CurrentEngine->currentStyleName(), CurrentEngine->currentStyleVariant());
 //
 	groupBox->addWidgets(editorLabel, editor);
-	groupBox->addWidgets(new QLabel(qApp->translate("@default", "Style variant") + ":"), VariantListCombo);
-	groupBox->addWidgets(new QLabel(qApp->translate("@default", "Preview") + ":"), EnginePreview);
+	groupBox->addWidgets(new QLabel(qApp->translate("@default", "Style variant") + ':'), VariantListCombo);
+	groupBox->addWidgets(new QLabel(qApp->translate("@default", "Preview") + ':'), EnginePreview);
 
 	TurnOnTransparency = dynamic_cast<QCheckBox *>(window->widget()->widgetById("useTransparency"));
 	TurnOnTransparency->setEnabled(CompositingEnabled);
@@ -376,10 +379,10 @@ void ChatStylesManager::preparePreview(Preview *preview)
 		return;
 
 	Chat chat = Chat::create();
-	chat.setChatAccount(example.preferredAccount());
+	chat.setChatAccount(BuddyPreferredManager::instance()->preferredAccount(example));
 	ChatDetailsSimple *details = new ChatDetailsSimple(chat);
 	details->setState(StorableObject::StateNew);
-	details->setContact(example.preferredContact());
+	details->setContact(BuddyPreferredManager::instance()->preferredContact(example));
 	chat.setDetails(details);
 
 	connect(preview, SIGNAL(destroyed(QObject *)), chat, SLOT(deleteLater()));
@@ -394,19 +397,19 @@ void ChatStylesManager::preparePreview(Preview *preview)
 
 	MessageRenderInfo *messageRenderInfo = new MessageRenderInfo(messageSent);
 	messageRenderInfo->setSeparatorSize(CfgHeaderSeparatorHeight);
-	preview->addObjectToParse(Core::instance()->myself().preferredContact(), messageRenderInfo);
+	preview->addObjectToParse(BuddyPreferredManager::instance()->preferredContact(Core::instance()->myself()), messageRenderInfo);
 
 	Message messageReceived = Message::create();
 	messageReceived.setMessageChat(chat);
 	messageReceived.setType(Message::TypeReceived);
-	messageReceived.setMessageSender(example.preferredContact());
+	messageReceived.setMessageSender(BuddyPreferredManager::instance()->preferredContact(example));
 	messageReceived.setContent(tr("Message from Your friend"));
 	messageReceived.setReceiveDate(QDateTime::currentDateTime());
 	messageReceived.setSendDate(QDateTime::currentDateTime());
 
 	messageRenderInfo = new MessageRenderInfo(messageReceived);
 	messageRenderInfo->setSeparatorSize(CfgHeaderSeparatorHeight);
-	preview->addObjectToParse(example.preferredContact(), messageRenderInfo);
+	preview->addObjectToParse(BuddyPreferredManager::instance()->preferredContact(example), messageRenderInfo);
 }
 
 void ChatStylesManager::styleChangedSlot(const QString &styleName)
@@ -448,7 +451,7 @@ void ChatStylesManager::deleteStyleClicked()
 		styleChangedSlot(*(AvailableStyles.keys().begin()));
 	}
 	else
-		MessageDialog::msg(tr("Unable to remove style: %1").arg(styleName), true, "dialog-warning");
+		MessageDialog::show("dialog-error", tr("Kadu"), tr("Unable to remove style: %1").arg(styleName));
 }
 
 void ChatStylesManager::syntaxUpdated(const QString &syntaxName)

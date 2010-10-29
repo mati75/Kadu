@@ -146,7 +146,11 @@ void Core::createDefaultConfiguration()
 	config_file.addVariable("Chat", "EmoticonsPaths", "");
 	config_file.addVariable("Chat", "EmoticonsStyle", EmoticonsStyleAnimated);
 	config_file.addVariable("Chat", "EmoticonsScaling", EmoticonsScalingStatic);
+#ifdef Q_WS_X11
 	config_file.addVariable("Chat", "EmoticonsTheme", "penguins");
+#else
+	config_file.addVariable("Chat", "EmoticonsTheme", "tango");
+#endif
 	config_file.addVariable("Chat", "FoldLink", true);
 	config_file.addVariable("Chat", "LinkFoldTreshold", 50);
 	config_file.addVariable("Chat", "IgnoreAnonymousRichtext", true);
@@ -171,11 +175,10 @@ void Core::createDefaultConfiguration()
 	config_file.addVariable("General", "DescriptionHeight", 60);
 	config_file.addVariable("General", "DisconnectWithCurrentDescription", true);
 	config_file.addVariable("General", "HideBaseModules", true);
-	config_file.addVariable("General", "Language",  QString(qApp->keyboardInputLocale().name()).mid(0,2));
+	config_file.addVariable("General", "Language",  QLocale::system().name());
 	config_file.addVariable("General", "Nick", tr("Me"));
 	config_file.addVariable("General", "NumberOfDescriptions", 20);
 	config_file.addVariable("General", "ParseStatus", false);
-	config_file.addVariable("General", "PrivateStatus", false);
 	config_file.addVariable("General", "SaveStdErr", false);
 	config_file.addVariable("General", "ShowBlocked", true);
 	config_file.addVariable("General", "ShowBlocking", true);
@@ -299,7 +302,7 @@ void Core::createDefaultConfiguration()
 
 void Core::createAllDefaultToolbars()
 {
-	// dont use getToolbarsConfigElement here, we have to be sure that this element don'e exists
+	// don't use getToolbarsConfigElement here, we have to be sure that this element don'e exists
 	QDomElement toolbarsConfig = xml_config_file->findElement(xml_config_file->rootElement(), "Toolbars");
 
 	if (!toolbarsConfig.isNull())
@@ -370,7 +373,7 @@ void Core::deleteOldConfigurationFiles()
 	QDir oldDebugs(tmp, mask, QDir::Name, QDir::Files);
 	if (oldDebugs.count() > 5)
 		for (unsigned int i = 0, max = oldDebugs.count() - 5; i < max; ++i)
-			QFile::remove(tmp + "/" + oldDebugs[i]);
+			QFile::remove(tmp + '/' + oldDebugs[i]);
 
 	kdebugf2();
 }

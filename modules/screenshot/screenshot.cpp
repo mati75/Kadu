@@ -105,7 +105,7 @@ void ScreenShot::screenshotReady(QPixmap p)
 		if (checkImageSize(saver->size()))
 			pasteImageClause(screenShotPath);
 		else
-			MessageDialog::msg(tr("Image size is bigger than maximal image size for this chat."), true);
+			MessageDialog::show("dialog-warning", tr("Kadu"), tr("Image size is bigger than maximal image size for this chat."));
 	}
 
 	deleteLater();
@@ -113,7 +113,7 @@ void ScreenShot::screenshotReady(QPixmap p)
 
 void ScreenShot::pasteImageClause(const QString &path)
 {
-	MyChatWidget->edit()->insertPlainText(QString("[IMAGE ") + path + "]");
+	MyChatWidget->edit()->insertPlainText(QString("[IMAGE ") + path + ']');
 }
 
 bool ScreenShot::checkImageSize(long int size)
@@ -141,7 +141,7 @@ void ScreenShot::checkShotsSize()
 
 	QString prefix = ScreenShotConfiguration::instance()->fileNamePrefix();
 	QStringList filters;
-	filters << prefix + "*";
+	filters << prefix + '*';
 	QFileInfoList list = dir.entryInfoList(filters, QDir::Files);
 
 	foreach (const QFileInfo &f, list)

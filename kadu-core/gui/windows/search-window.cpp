@@ -35,6 +35,7 @@
 #include <QtGui/QTreeWidgetItem>
 
 #include "accounts/account-manager.h"
+#include "buddies/buddy-preferred-manager.h"
 #include "chat/chat-manager.h"
 #include "configuration/configuration-file.h"
 #include "contacts/contact.h"
@@ -221,7 +222,7 @@ SearchWindow::SearchWindow(QWidget *parent, Buddy buddy) :
 
 	if (buddy)
 	{
-		CurrentAccount = buddy.preferredAccount();
+		CurrentAccount = BuddyPreferredManager::instance()->preferredAccount(buddy);
 	}
 	else
 	{
@@ -431,14 +432,14 @@ void SearchWindow::firstSearch()
 
 	if (!CurrentSearchService)
 	{
-		MessageDialog::msg(tr("For this network we dont offer contacts search feature yet"), false, "dialog-error", this);
+		MessageDialog::show("dialog-error", tr("Kadu"), tr("We don't offer contacts search feature yet for this network"), QMessageBox::Ok, this);
 		kdebugf2();
 		return;
 	}
 
 	if (!CurrentAccount.protocolHandler()->isConnected())
 	{
-		MessageDialog::msg(tr("Cannot search contacts in offline mode"), false, "dialog-error", this);
+		MessageDialog::show("dialog-error", tr("Kadu"), tr("Cannot search contacts in offline mode"), QMessageBox::Ok, this);
 		kdebugf2();
 		return;
 	}
@@ -529,7 +530,7 @@ void SearchWindow::newSearchResults(BuddyList buddies)
 		QList <QTreeWidgetItem *> items = results->findItems(contact.id(), Qt::MatchExactly, 1);
 		if (items.count())
 			qlv = items[0];
-		pix = contact.contactAccount().statusContainer()->statusIcon(contact.currentStatus()).pixmap(16, 16);
+		pix = contact.contactAccount().data()->statusIcon(contact.currentStatus()).pixmap(16, 16);
 
 		if (qlv)
 		{
@@ -558,7 +559,7 @@ void SearchWindow::newSearchResults(BuddyList buddies)
 	if (buddies.isEmpty())
 	{
 		kdebugmf(KDEBUG_INFO, "No results. Exit.\n");
-		MessageDialog::msg(tr("There were no results of your search"), false, "dialog-information", this);
+		MessageDialog::show("dialog-information", tr("Kadu"), tr("There were no results of your search"), QMessageBox::Ok, this);
 	}
 	else
 	{

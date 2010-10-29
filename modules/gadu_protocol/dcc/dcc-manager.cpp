@@ -216,7 +216,7 @@ void DccManager::connectSocketNotifiers(DccSocketNotifiers *notifiers)
 {
 	connect(notifiers, SIGNAL(destroyed(QObject *)),
 			this, SLOT(socketNotifiersDestroyed(QObject *)));
-// 	TODO: 0.6.6 signal never emited
+// 	TODO: 0.6.6 signal never emitted
 // 	connect(notifiers, SIGNAL(incomingConnection(struct gg_dcc *)),
 // 			this, SLOT(dccIncomingConnection(struct gg_dcc *)));
 }
@@ -287,7 +287,7 @@ bool DccManager::acceptConnection(unsigned int uin, unsigned int peerUin, unsign
 
 	kdebugm(KDEBUG_WARNING, "possible spoofing attempt from %s (uin:%d)\n", qPrintable(remoteAddress.toString()), peerUin);
 
-	return MessageDialog::ask(narg(
+	return MessageDialog::ask("", tr("Kadu"), narg(
 			tr("%1 is asking for direct connection but his/her\n"
 				"IP address (%2) differs from what GG server returned\n"
 				"as his/her IP address (%3). It may be spoofing\n"
