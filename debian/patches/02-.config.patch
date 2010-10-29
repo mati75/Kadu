@@ -1,5 +1,5 @@
 diff --git a/.config b/.config
-index f7086e7..5763002 100644
+index f7086e7..c240515 100644
 --- a/.config
 +++ b/.config
 @@ -90,7 +90,7 @@ module_growl_notify=n
@@ -56,7 +56,13 @@ index f7086e7..5763002 100644
  
  # Description: Mail checking module
  # PL: Moduł do sprawdzana poczty
-@@ -354,7 +354,7 @@ module_mime_tex=n
+@@ -349,12 +349,12 @@ module_mail=n
+ # Description: TeX formula support
+ # PL: Wsparcie dla formuł TeX-owych
+ # Platform: Linux
+-module_mime_tex=n
++module_mime_tex=m
+ 
  # Description: Makes a panel from Kadu main window
  # PL: Zamienia Kadu w panel na skraju ekranu
  # Platform: Linux
