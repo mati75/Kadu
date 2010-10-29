@@ -1,6 +1,7 @@
-kadu (0.6.6-beta8-2) experimental; urgency=low
+kadu (0.6.6-beta9-1) experimental; urgency=low
 
-  * Added dependency on libmpdclient-dev for kadu package to make history
+  * New upstream release
+  * Added dependency on libqt4-sql-sqlite for kadu package to make history
     module work properly
   * Removed dbus module for now. It's broken on 0.6.6.
   * Updated Kadu Team members list in debian/copyright
