@@ -1,5 +1,5 @@
 diff --git a/.config b/.config
-index f7086e7..5cb6468 100644
+index f7086e7..c240515 100644
 --- a/.config
 +++ b/.config
 @@ -90,7 +90,7 @@ module_growl_notify=n
@@ -38,15 +38,6 @@ index f7086e7..5cb6468 100644
  
  ###################### sms ###########################################
  
-@@ -232,7 +232,7 @@ module_profiles=n
- # Description: Protection against unwanted chats
- # PL: Ochrona przed "klikaczami"
- # Platform: Linux, Mac OS X, Windows
--module_firewall=n
-+module_firewall=m
- 
- # Description: Antistring
- # PL: Ochrona przed lancuszkami
 @@ -263,7 +263,7 @@ module_split_messages=n
  # Description: Automatic word replacement
  # PL: Automatyczna zamiana slow
