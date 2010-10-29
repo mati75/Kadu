@@ -1,5 +1,5 @@
 diff --git a/.config b/.config
-index 76f7486..e53cda7 100644
+index f7086e7..5763002 100644
 --- a/.config
 +++ b/.config
 @@ -90,7 +90,7 @@ module_growl_notify=n
@@ -38,16 +38,7 @@ index 76f7486..e53cda7 100644
  
  ###################### sms ###########################################
  
-@@ -187,7 +187,7 @@ module_sms=m
- # Description: Register / unregister account, remind / change password support
- # PL: Obsługa rejestracji / wyrejestrowywania konta, przypominania / zmiany hasła
- # Platform: Linux, Mac OS X, Windows
--module_account_management=n
-+module_account_management=m
- 
- # Description: User list: support for priorities (VIP/NIP) and changing order of sorting functions
- # PL: Obsługa priorytetów (VIP/NIP) oraz zmiany kryteriów sortowania listy kontaktów
-@@ -268,7 +268,7 @@ module_split_messages=n
+@@ -263,7 +263,7 @@ module_split_messages=n
  # Description: Automatic word replacement
  # PL: Automatyczna zamiana slow
  # Platform: Linux, Mac OS X, Windows
@@ -56,7 +47,7 @@ index 76f7486..e53cda7 100644
  
  # Description: Autostatus
  # PL: Automatyczne zmiany statusu
-@@ -344,7 +344,7 @@ module_plus_pl_sms=n
+@@ -339,7 +339,7 @@ module_plus_pl_sms=n
  # PL: Powiadomiania diodą Scroll Lock
  # Platform: Linux
  # Needs: libX11
@@ -65,7 +56,7 @@ index 76f7486..e53cda7 100644
  
  # Description: Mail checking module
  # PL: Moduł do sprawdzana poczty
-@@ -359,7 +359,7 @@ module_mime_tex=n
+@@ -354,7 +354,7 @@ module_mime_tex=n
  # Description: Makes a panel from Kadu main window
  # PL: Zamienia Kadu w panel na skraju ekranu
  # Platform: Linux
@@ -74,7 +65,7 @@ index 76f7486..e53cda7 100644
  
  # Description: Automatic lookup of an interlocutor in public directory
  # PL: Automatyczne wyszukiwanie nieznajomych rozmówców w publicznym katalogu
-@@ -379,7 +379,7 @@ module_globalhotkeys=n
+@@ -374,7 +374,7 @@ module_globalhotkeys=n
  
  # Description: Adds history of sent messages to chat windows
  # PL: Dodaje historię wysłanych wiadomości do okien rozmowy
@@ -83,7 +74,7 @@ index 76f7486..e53cda7 100644
  # Platform: Linux, Mac OS X, Windows
  
  # Desctiption: Weather checking
-@@ -413,22 +413,22 @@ module_amarok2_mediaplayer=m
+@@ -409,22 +409,22 @@ module_amarok2_mediaplayer=m
  # Description: Audacious support for mediaplayer
  # PL: Wsparcie dla Audacious w mediaplayer
  # Platform: Linux
@@ -110,7 +101,7 @@ index 76f7486..e53cda7 100644
  
  # Description: iTunes support for mediaplayer
  # PL: Wsparcie dla iTunes w mediaplayer
-@@ -439,17 +439,17 @@ module_itunes_mediaplayer=n
+@@ -435,17 +435,17 @@ module_itunes_mediaplayer=n
  # PL: Wsparcie dla  MPD w mediaplayer
  # Needs: libmpdclient
  # Platform: Linux
@@ -131,7 +122,7 @@ index 76f7486..e53cda7 100644
  
  # Description: Winamp support for mediaplayer
  # PL: Wsparcie dla Winamp'a w mediaplayer
-@@ -464,14 +464,14 @@ module_xmms_mediaplayer=n
+@@ -460,14 +460,14 @@ module_xmms_mediaplayer=n
  # Description: XMMS2 support for mediaplayer
  # PL: Wsparcie dla XMMS2 w mediaplayer
  # Platform: Linux
@@ -148,7 +139,7 @@ index 76f7486..e53cda7 100644
  
  ############################################# ICONS ###########################################################################
  # PL: ####################################### IKONY ###########################################################################
-@@ -496,7 +496,7 @@ module_single_window=n
+@@ -492,7 +492,7 @@ module_single_window=n
  icons_default=y
  
  # Description: Default theme from kadu 0.5.x
@@ -157,7 +148,7 @@ index 76f7486..e53cda7 100644
  
  # Description: Glass 16x16 icons made by Mariusz Waluga
  icons_glass16=n
-@@ -508,7 +508,7 @@ icons_glass22=n
+@@ -504,7 +504,7 @@ icons_glass22=n
  icons_tango16=n
  
  # Description: Oxygen 16x16 icons maintained by Piotr Pelzowski
@@ -166,21 +157,16 @@ index 76f7486..e53cda7 100644
  
  ########################################### EMOTICONS #########################################################################
  # PL: ##################################### EMOTIKONY #########################################################################
-@@ -528,11 +528,11 @@ emoticons_penguins=y
+@@ -528,7 +528,7 @@ emoticons_tango=y
  
  # Description: Old Gadu-Gadu 6.x emoticons
  # PL: Kompatybilne ze starą wersją Gadu-Gadu 6.x
 -emoticons_gg6_compatible=n
 +emoticons_gg6_compatible=y
  
- # Description: Tango emoticons, some copied from penguins theme
- # PL: Emotki Tango, część wzięta z penguins
--emoticons_tango=n
-+emoticons_tango=y
- 
  ########################################### SOUNDS ############################################################################
  # PL: ##################################### DŹWIĘKI ###########################################################################
-@@ -550,14 +550,14 @@ emoticons_tango=n
+@@ -546,14 +546,14 @@ emoticons_gg6_compatible=n
  # PL: Standardowy zestaw dźwięków dostępny razem ze źródłami Kadu
  sound_default=y
  
