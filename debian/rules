@@ -37,7 +37,7 @@ build-indep-stamp: configure-stamp
 clean: 
 	dh_testdir
 	dh_testroot
-	rm -f build-arch-stamp build-indep-stamp configure-stamp
+	rm -f build-arch-stamp build-indep-stamp configure-stamp debian/alsa-stamp
 	test -d $(BUILD_DIR) && cd $(BUILD_DIR) && $(MAKE) clean || true
 	rm -rf $(BUILD_DIR)
 	bash debian/handle_external.sh remove
