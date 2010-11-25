@@ -222,8 +222,8 @@ GaduProtocol::GaduProtocol(Account account, ProtocolFactory *factory) :
 
 	ContactListHandler = 0;
 
-	connect(BuddyManager::instance(), SIGNAL(buddyUpdated(Buddy &)),
-			this, SLOT(buddyUpdated(Buddy &)));
+	connect(BuddyManager::instance(), SIGNAL(buddySubscriptionChanged(Buddy &)),
+			this, SLOT(buddySubscriptionChanged(Buddy &)));
 	connect(ContactManager::instance(), SIGNAL(contactAttached(Contact)),
 			this, SLOT(contactAttached(Contact)));
 	connect(ContactManager::instance(), SIGNAL(contactReattached(Contact)),
@@ -240,8 +240,8 @@ GaduProtocol::~GaduProtocol()
 {
 	kdebugf();
 
-	disconnect(BuddyManager::instance(), SIGNAL(buddyUpdated(Buddy &)),
-			this, SLOT(buddyUpdated(Buddy &)));
+	disconnect(BuddyManager::instance(), SIGNAL(buddySubscriptionChanged(Buddy &)),
+			this, SLOT(buddySubscriptionChanged(Buddy &)));
 	disconnect(ContactManager::instance(), SIGNAL(contactAttached(Contact)),
 			this, SLOT(contactAttached(Contact)));
 	disconnect(ContactManager::instance(), SIGNAL(contactReattached(Contact)),
@@ -286,6 +286,9 @@ void GaduProtocol::changeStatus(bool force)
 
 	if (newStatus.isDisconnected() && status().isDisconnected())
 	{
+		if (newStatus.description() != status().description())
+			statusChanged(newStatus);
+
 		if (NetworkConnecting == state())
 			networkDisconnected(false);
 		return;
@@ -669,10 +672,10 @@ void GaduProtocol::socketConnFailed(GaduError error)
 	{
 		QHostAddress server = ActiveServer.first;
 		QString host;
-		if (!server.isNull())
-			host = QString("%1:%2").arg(server.toString()).arg(ActiveServer.second);
-		else
+		if (server.isNull() || server.toIPv4Address() == (quint32)0)
 			host = "HUB";
+		else
+			host = QString("%1:%2").arg(server.toString()).arg(ActiveServer.second);
 		kdebugm(KDEBUG_INFO, "%s %s\n", qPrintable(host), qPrintable(msg));
 		emit connectionError(account(), host, msg);
 	}
@@ -745,7 +748,7 @@ QString GaduProtocol::statusPixmapPath()
 	return QLatin1String("gadu-gadu");
 }
 
-void GaduProtocol::buddyUpdated(Buddy &buddy)
+void GaduProtocol::buddySubscriptionChanged(Buddy &buddy)
 {
 	// update offline to and other data
 	if (ContactListHandler)

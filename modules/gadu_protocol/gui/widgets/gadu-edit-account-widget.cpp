@@ -34,6 +34,7 @@
 #include <QtGui/QPushButton>
 #include <QtGui/QSpinBox>
 #include <QtGui/QTabWidget>
+#include <QtGui/QVBoxLayout>
 
 #include "accounts/account.h"
 #include "accounts/account-manager.h"
@@ -42,6 +43,7 @@
 #include "gui/widgets/account-buddy-list-widget.h"
 #include "gui/widgets/identities-combo-box.h"
 #include "gui/widgets/proxy-group-box.h"
+#include "identities/identity-manager.h"
 #include "protocols/services/avatar-service.h"
 #include "protocols/services/contact-list-service.h"
 #include "protocols/protocol.h"
@@ -140,7 +142,7 @@ void GaduEditAccountWidget::createGeneralTab(QTabWidget *tabWidget)
 	formLayout->addRow(0, changePasswordLabel);
 	connect(changePasswordLabel, SIGNAL(linkActivated(QString)), this, SLOT(changePasssword()));
 
-	Identities = new IdentitiesComboBox(this);
+	Identities = new IdentitiesComboBox(false, this);
 	connect(Identities, SIGNAL(identityChanged(Identity)), this, SLOT(dataChanged()));
 	formLayout->addRow(tr("Account Identity") + ':', Identities);
 
@@ -170,10 +172,6 @@ void GaduEditAccountWidget::createBuddiesTab(QTabWidget *tabWidget)
 
 	AccountBuddyListWidget *buddiesWidget = new AccountBuddyListWidget(account(), widget);
 	layout->addWidget(buddiesWidget);
-
-	QPushButton *getListAsFile = new QPushButton("Import contacts list as file", widget);
-	connect(getListAsFile, SIGNAL(clicked(bool)), this, SLOT(importListAsFile()));
-	layout->addWidget(getListAsFile);
 
 	tabWidget->addTab(widget, tr("Buddies"));
 }
@@ -256,8 +254,11 @@ void GaduEditAccountWidget::createGeneralGroupBox(QVBoxLayout *layout)
 
 	QLabel *ipAddressesLabel = new QLabel(tr("IP addresses"), this);
 	ipAddresses = new QLineEdit(this);
-	ipAddresses->setToolTip("You can specify which GG servers and ports to use. Separate every server using semicolon\n"
-							"(for example: 91.197.13.26:8074;91.197.13.24;91.197.13.29;91.197.13.6)");
+	ipAddresses->setToolTip("You can specify which servers and ports to use.\n"
+							"Separate every server using semicolon.\n"
+							"The last IPv4 octet may be specified as a range of addresses.\n"
+							"For example:\n"
+							"91.214.237.1 ; 91.214.237.3 ; 91.214.237.10:8074 ; 91.214.237.11-20 ; 91.214.237.21-30:8074");
 	generalLayout->addWidget(ipAddressesLabel, 1, 1);
 	generalLayout->addWidget(ipAddresses, 1, 2);
 
@@ -291,16 +292,27 @@ void GaduEditAccountWidget::apply()
 	GaduServersManager::instance()->buildServerList();
 
 	if (gpiw->isModified())
-		gpiw->applyData();
+		gpiw->apply();
 
 	ConfigurationManager::instance()->flush();
 
+	IdentityManager::instance()->removeUnused();
 	setState(StateNotChanged);
+	ApplyButton->setEnabled(false);
+	CancelButton->setEnabled(false);
 }
 
 void GaduEditAccountWidget::cancel()
 {
+	loadAccountData();
+	loadConnectionData();
+	Proxy->cancel();
+	gpiw->cancel();
 
+	IdentityManager::instance()->removeUnused();
+	setState(StateNotChanged);
+	ApplyButton->setEnabled(false);
+	CancelButton->setEnabled(false);
 }
 
 void GaduEditAccountWidget::dataChanged()
@@ -383,43 +395,13 @@ void GaduEditAccountWidget::removeAccount()
 
 	if (messageBox->clickedButton() == removeButton)
 	{
-		AccountManager::instance()->removeItem(account());
+		AccountManager::instance()->removeAccountAndBuddies(account());
 		deleteLater();
 	}
 	else if (messageBox->clickedButton() == removeAndUnregisterButton)
 		(new GaduUnregisterAccountWindow(account()))->show();
 
 	delete messageBox;
-}
-
-void GaduEditAccountWidget::importListAsFile()
-{
-	Protocol *protocol = account().protocolHandler();
-	if (!protocol)
-		return;
-
-	ContactListService *service = protocol->contactListService();
-	if (!service)
-		return;
-
-	GaduContactListService *gaduService = dynamic_cast<GaduContactListService *>(service);
-	if (!gaduService)
-		return;
-
-	connect(gaduService, SIGNAL(contactListDownloaded(QString)), this, SLOT(contactListDownloaded(QString)));
-	gaduService->importContactListAsFile();
-}
-
-void GaduEditAccountWidget::contactListDownloaded(QString content)
-{
-	QString fileName = QFileDialog::getSaveFileName();
-	if (fileName.isEmpty())
-		return;
-
-	QFile file(fileName);
-	file.open(QIODevice::WriteOnly);
-	file.write(content.toLocal8Bit());
-	file.close();
 }
 
 void GaduEditAccountWidget::remindPasssword()

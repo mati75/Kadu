@@ -21,7 +21,6 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <QtGui/QMessageBox>
 #include <QTimer>
 #include <QRegExp>
 #include <QtCrypto>
@@ -30,7 +29,6 @@
 #include <xmpp_tasks.h>
 
 #include "accounts/account.h"
-#include "gui/windows/message-dialog.h"
 #include "debug.h"
 
 #include "certificates/certificate-helpers.h"
@@ -262,9 +260,7 @@ void JabberClient::connect(const XMPP::Jid &jid, const QString &password, bool a
 	{
 		qDebug("no TLS");
 		// no SSL support, at the connecting stage this means the problem is client-side
-		QMessageBox *m = new QMessageBox(QMessageBox::Critical, tr("Jabber SSL Error"), tr("SSL support could not be initialized for account %1. This is most likely because the QCA TLS plugin is not installed on your system.").arg(jid.bare()), QMessageBox::Ok, 0, Qt::Popup);
-		m->setModal(true);
-		m->show();
+		emit connectionError(tr("SSL support could not be initialized for account %1. This is most likely because the QCA TLS plugin is not installed on your system."));
 		return;
 	}
 
@@ -282,6 +278,18 @@ void JabberClient::connect(const XMPP::Jid &jid, const QString &password, bool a
 
 	if (useXMPP09())
 		JabberClientConnector->setOptProbe(probeSSL());
+
+	AccountProxySettings proxy = Protocol->account().proxySettings();
+	if (proxy.enabled())
+	{
+		XMPP::AdvancedConnector::Proxy proxySettings;
+
+		proxySettings.setHttpConnect(proxy.address(), proxy.port());
+		if (proxy.requiresAuthentication())
+			proxySettings.setUserPass(proxy.user(), proxy.password());
+
+		JabberClientConnector->setProxy(proxySettings);
+	}
 
 	/*
 	 * Setup authentication layer
@@ -647,9 +655,7 @@ void JabberClient::slotCSWarning(int warning)
 
 	if (showNoTlsWarning)
 	{
-		QMessageBox *m = new QMessageBox(QMessageBox::Critical, /*(psi->contactList()->enabledAccounts().count() > 1 ? QString("%1: ").arg(name()) : "") + */tr("Server Error"), tr("The server does not support TLS encryption."), QMessageBox::Ok, 0, Qt::Popup);
-		m->setModal(true);
-		m->show();
+		emit connectionError(tr("The server does not support TLS encryption."));
 	}
 	else if (!doCleanupStream)
 	{
@@ -669,6 +675,7 @@ void JabberClient::slotCSError(int error)
 	{
 		kdebug("Incorrect password, retrying.\n");
 		Protocol->logout(/*Kopete::Account::BadPassword*/);
+		emit connectionError(tr("Incorrect password"));
 	}
 	else
 	{
@@ -682,9 +689,8 @@ void JabberClient::slotCSError(int error)
 			getErrorInfo(error, JabberClientConnector, JabberClientStream, JabberTLSHandler, &errorText, &reconn);
 			if (reconn)
 				Protocol->connectToServer();
-			else
-				MessageDialog::show("dialog-warning", tr("Kadu"),
-						Protocol->account().accountIdentity().name() + ": " +  tr("There was an error communicating with the server.\nDetails: %1").arg(errorText));
+
+			emit connectionError(tr("There was an error communicating with the server.\nDetails: %1").arg(errorText));
 		}
 		if (Protocol->isConnected() || Protocol->isConnecting())
 			Protocol->logout(/* errorClass */);

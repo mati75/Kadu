@@ -28,6 +28,7 @@ class ThemeManager : public QObject
 {
 	Q_OBJECT
 
+	bool IncludeNone;
 	QList<Theme> Themes;
 	int CurrentThemeIndex;
 
@@ -36,12 +37,12 @@ class ThemeManager : public QObject
 protected:
 	QStringList getSubDirs(const QString &dirPath);
 
-	virtual QStringList defaultThemePathes() = 0;
+	virtual QStringList defaultThemePaths() = 0;
 	virtual bool isValidThemePath(const QString &themePath) = 0;
-	virtual QString getThemeName(const QString &themePath) = 0;
+	virtual QString getThemeName(const QString &themePath);
 
 public:
-	explicit ThemeManager(QObject *parent = 0);
+	explicit ThemeManager(bool includeNone, QObject *parent = 0);
 	virtual ~ThemeManager();
 
 	void loadThemes(QStringList pathList);

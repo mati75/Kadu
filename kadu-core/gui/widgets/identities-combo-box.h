@@ -28,7 +28,10 @@ class KADUAPI IdentitiesComboBox : public KaduComboBox<Identity>
 {
 	Q_OBJECT
 
+	bool IncludeSelectIdentity;
+
 	QAction *CreateNewIdentityAction;
+	QAction *LastAction;
 
 private slots:
 	void currentIndexChangedSlot(int index);
@@ -40,7 +43,7 @@ protected:
 	virtual QString selectString() const;
 
 public:
-	explicit IdentitiesComboBox(QWidget *parent = 0);
+	explicit IdentitiesComboBox(bool includeSelectIdentity, QWidget *parent = 0);
 	virtual ~IdentitiesComboBox();
 
 	void setCurrentIdentity(Identity identity);

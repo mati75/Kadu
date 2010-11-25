@@ -28,10 +28,12 @@
 #include <QtGui/QLineEdit>
 #include <QtGui/QPushButton>
 #include <QtGui/QRadioButton>
+#include <QtGui/QVBoxLayout>
 
 #include "accounts/account-manager.h"
 #include "gui/widgets/identities-combo-box.h"
 #include "gui/windows/message-dialog.h"
+#include "identities/identity-manager.h"
 #include "protocols/protocols-manager.h"
 #include "qt/long-validator.h"
 #include "html_document.h"
@@ -88,12 +90,12 @@ void GaduAddAccountWidget::createGui()
 	RememberPassword->setChecked(true);
 	layout->addRow(0, RememberPassword);
 
-	RemindPassword = new QLabel(QString("<a href='remind'>%1</a>").arg(tr("Forgot Your Password?")));
+	RemindPassword = new QLabel();
 	RemindPassword->setTextInteractionFlags(Qt::LinksAccessibleByKeyboard | Qt::LinksAccessibleByMouse);
 	layout->addRow(0, RemindPassword);
 	connect(RemindPassword, SIGNAL(linkActivated(QString)), this, SLOT(remindPasssword()));
 
-	Identity = new IdentitiesComboBox(this);
+	Identity = new IdentitiesComboBox(true, this);
 	connect(Identity, SIGNAL(identityChanged(Identity)), this, SLOT(dataChanged()));
 	layout->addRow(tr("Account Identity") + ':', Identity);
 
@@ -126,6 +128,8 @@ void GaduAddAccountWidget::resetGui()
 	AccountPassword->setText("");
 	RememberPassword->setChecked(true);
 	Identity->setCurrentIdentity(Identity::null);
+
+	IdentityManager::instance()->removeUnused();
 }
 
 void GaduAddAccountWidget::addAccountButtonClicked()
@@ -159,7 +163,16 @@ void GaduAddAccountWidget::cancelButtonClicked()
 
 void GaduAddAccountWidget::dataChanged()
 {
-	RemindPassword->setEnabled(!AccountId->text().isEmpty());
+	if (AccountId->text().isEmpty())
+	{
+		RemindPassword->setText(tr("Forgot Your Password?"));
+		RemindPassword->setEnabled(false);
+	}
+	else
+	{
+		RemindPassword->setText(QString("<a href='remind'>%1</a>").arg(tr("Forgot Your Password?")));
+		RemindPassword->setEnabled(true);
+	}
 
 	AddAccountButton->setEnabled(
 		!AccountId->text().isEmpty() &&

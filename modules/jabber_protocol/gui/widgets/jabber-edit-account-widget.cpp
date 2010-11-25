@@ -35,13 +35,16 @@
 #include <QtGui/QLineEdit>
 #include <QtGui/QMessageBox>
 #include <QtGui/QTabWidget>
+#include <QtGui/QVBoxLayout>
 
 #include "accounts/account.h"
 #include "accounts/account-manager.h"
 #include "configuration/configuration-file.h"
 #include "gui/widgets/account-avatar-widget.h"
 #include "gui/widgets/account-buddy-list-widget.h"
+#include "gui/widgets/proxy-group-box.h"
 #include "gui/windows/message-dialog.h"
+#include "identities/identity-manager.h"
 #include "protocols/services/avatar-service.h"
 #include "icons-manager.h"
 
@@ -124,7 +127,7 @@ void JabberEditAccountWidget::createGeneralTab(QTabWidget *tabWidget)
 	formLayout->addRow(0, changePasswordLabel);
 	connect(changePasswordLabel, SIGNAL(linkActivated(QString)), this, SLOT(changePasssword()));
 
-	Identities = new IdentitiesComboBox(this);
+	Identities = new IdentitiesComboBox(false, this);
 	connect(Identities, SIGNAL(identityChanged(Identity)), this, SLOT(dataChanged()));
 	formLayout->addRow(tr("Account Identity") + ':', Identities);
 
@@ -142,9 +145,9 @@ void JabberEditAccountWidget::createGeneralTab(QTabWidget *tabWidget)
 
 void JabberEditAccountWidget::createPersonalDataTab(QTabWidget *tabWidget)
 {
-	gpiw = new JabberPersonalInfoWidget(account(), tabWidget);
-	connect(gpiw, SIGNAL(dataChanged()), this, SLOT(dataChanged()));
-	tabWidget->addTab(gpiw, tr("Personal Information"));
+	PersonalInfoWidget = new JabberPersonalInfoWidget(account(), tabWidget);
+	connect(PersonalInfoWidget, SIGNAL(dataChanged()), this, SLOT(dataChanged()));
+	tabWidget->addTab(PersonalInfoWidget, tr("Personal Information"));
 }
 
 void JabberEditAccountWidget::createConnectionTab(QTabWidget *tabWidget)
@@ -154,6 +157,10 @@ void JabberEditAccountWidget::createConnectionTab(QTabWidget *tabWidget)
 
 	QVBoxLayout *layout = new QVBoxLayout(conenctionTab);
 	createGeneralGroupBox(layout);
+
+	Proxy = new ProxyGroupBox(account(), tr("Proxy"), this);
+	connect(Proxy, SIGNAL(stateChanged(ModalConfigurationWidgetState)), this, SLOT(dataChanged()));
+	layout->addWidget(Proxy);
 
 	layout->addStretch(100);
 }
@@ -370,7 +377,8 @@ void JabberEditAccountWidget::dataChanged()
 		&& AccountDetails->autoResource() == AutoResource->isChecked()
 		&& AccountDetails->resource() == ResourceName->text()
 		&& AccountDetails->priority() == Priority->text().toInt()
-		&& !gpiw->isModified())
+		&& StateNotChanged == Proxy->state()
+		&& !PersonalInfoWidget->isModified())
 	{
 		setState(StateNotChanged);
 		ApplyButton->setEnabled(false);
@@ -423,6 +431,8 @@ void JabberEditAccountWidget::loadConnectionData()
 	ResourceName->setText(AccountDetails->resource());
 	Priority->setText(QString::number(AccountDetails->priority()));
 	DataTransferProxy->setText(AccountDetails->dataTransferProxy());
+
+	Proxy->loadProxyData();
 }
 
 void JabberEditAccountWidget::apply()
@@ -446,19 +456,30 @@ void JabberEditAccountWidget::apply()
 	AccountDetails->setResource(ResourceName->text());
 	AccountDetails->setPriority(Priority->text().toInt());
 	AccountDetails->setDataTransferProxy(DataTransferProxy->text());
+	Proxy->apply();
 
-	if (gpiw->isModified())
-		gpiw->applyData();
-
-	setState(StateNotChanged);
+	if (PersonalInfoWidget->isModified())
+		PersonalInfoWidget->apply();
 
 	ConfigurationManager::instance()->flush();
 
-	dataChanged();
+	IdentityManager::instance()->removeUnused();
+	setState(StateNotChanged);
+	ApplyButton->setEnabled(false);
+	CancelButton->setEnabled(false);
 }
 
 void JabberEditAccountWidget::cancel()
 {
+	loadAccountData();
+	loadConnectionData();
+	Proxy->cancel();
+	PersonalInfoWidget->cancel();
+
+	IdentityManager::instance()->removeUnused();
+	setState(StateNotChanged);
+	ApplyButton->setEnabled(false);
+	CancelButton->setEnabled(false);
 }
 
 void JabberEditAccountWidget::removeAccount()
@@ -470,19 +491,13 @@ void JabberEditAccountWidget::removeAccount()
 			.arg(account().id()));
 
 	QPushButton *removeButton = messageBox->addButton(tr("Remove account"), QMessageBox::AcceptRole);
-	QPushButton *removeAndUnregisterButton = messageBox->addButton(tr("Remove account and unregister on server"), QMessageBox::DestructiveRole);
 	messageBox->addButton(QMessageBox::Cancel);
 	messageBox->setDefaultButton(QMessageBox::Cancel);
 	messageBox->exec();
 
 	if (messageBox->clickedButton() == removeButton)
 	{
-		AccountManager::instance()->removeItem(account());
-		deleteLater();
-	}
-	else if (messageBox->clickedButton() == removeAndUnregisterButton)
-	{
-		AccountManager::instance()->removeItem(account());
+		AccountManager::instance()->removeAccountAndBuddies(account());
 		deleteLater();
 	}
 

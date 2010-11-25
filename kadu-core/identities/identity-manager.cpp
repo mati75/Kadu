@@ -77,6 +77,17 @@ Identity IdentityManager::identityForAcccount(Account account)
 	return Identity::null;
 }
 
+void IdentityManager::removeUnused()
+{
+	QList<Identity> unused;
+
+	foreach (Identity identity, items())
+		if (identity.isEmpty() && !identity.isPermanent())
+			unused.append(identity);
+
+	foreach (Identity identity, unused)
+		removeItem(identity);
+}
 
 void IdentityManager::itemAboutToBeAdded(Identity item)
 {
@@ -104,16 +115,19 @@ void IdentityManager::addDefaultIdentities()
 
 	Identity friendsIdentity = Identity::create();
 	friendsIdentity.data()->setState(StateNew);
+	friendsIdentity.setPermanent(true);
 	friendsIdentity.setName(tr("Friends"));
 	addItem(friendsIdentity);
 	
 	Identity workIdentity = Identity::create();
 	workIdentity.data()->setState(StateNew);
+	workIdentity.setPermanent(true);
 	workIdentity.setName(tr("Work"));
 	addItem(workIdentity);
 	
 	Identity schoolIdentity = Identity::create();
 	schoolIdentity.data()->setState(StateNew);
+	schoolIdentity.setPermanent(true);
 	schoolIdentity.setName(tr("School"));
 	addItem(schoolIdentity);
 }

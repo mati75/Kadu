@@ -73,20 +73,6 @@
 
 #include "kadu-window-actions.h"
 
-void disableNonIdUles(Action *action)
-{
-	kdebugf();
-	foreach (const Contact &contact, action->contacts())
-		if (contact.isNull())
-		{
-			action->setEnabled(false);
-			return;
-		}
-
-	action->setEnabled(true);
-	kdebugf2();
-}
-
 void disableContainsSelfUles(Action *action)
 {
 	if (action->buddies().contains(Core::instance()->myself()))
@@ -113,7 +99,6 @@ void checkBuddyProperties(Action *action)
 		action->setIcon(IconsManager::instance()->iconByPath("x-office-address-book"));
 	}
 
-	action->setEnabled(!action->contact().isNull());
 	kdebugf2();
 }
 
@@ -140,85 +125,19 @@ void checkHideDescription(Action *action)
 	action->setChecked(on);
 }
 
-void disableNotOneUles(Action *action)
+void disableNoContact(Action *action)
 {
-	kdebugf();
-
-	if (action->contact().isNull())
-	{
-		action->setEnabled(false);
-		return;
-	}
-
-	action->setEnabled(true);
-	kdebugf2();
+	action->setEnabled(action->contact());
 }
 
-void disableNoGaduUle(Action *action)
+void disableNoDescription(Action *action)
 {
-	kdebugf();
-
-	Contact contact = action->contact();
-
-	if (contact.isNull())
-	{
-		action->setEnabled(false);
-		return;
-	}
-
-	action->setEnabled(true);
-	kdebugf2();
+	action->setEnabled(!action->contact().currentStatus().description().isEmpty());
 }
 
-void disableNoGaduDescription(Action *action)
+void disableNoDescriptionUrl(Action *action)
 {
-	kdebugf();
-
-	Contact contact = action->contact();
-
-	if (contact.isNull())
-	{
-		action->setEnabled(false);
-		return;
-	}
-
-	if (contact.currentStatus().description().isEmpty())
-	{
-		action->setEnabled(false);
-		return;
-	}
-
-	action->setEnabled(true);
-	kdebugf2();
-}
-
-void disableNoGaduDescriptionUrl(Action *action)
-{
-	kdebugf();
-
-	Contact contact = action->contact();
-
-	if (contact.isNull())
-	{
-		action->setEnabled(false);
-		return;
-	}
-
-	Status status = contact.currentStatus();
-	if (status.description().isEmpty())
-	{
-		action->setEnabled(false);
-		return;
-	}
-
-	if (status.description().indexOf(UrlHandlerManager::instance()->urlRegExp()) < 0)
-	{
-		action->setEnabled(false);
-		return;
-	}
-
-	action->setEnabled(true);
-	kdebugf2();
+	action->setEnabled(action->contact().currentStatus().description().indexOf(UrlHandlerManager::instance()->urlRegExp()) >= 0);
 }
 
 void disableNoEMail(Action *action)
@@ -346,7 +265,7 @@ KaduWindowActions::KaduWindowActions(QObject *parent) : QObject(parent)
 		ActionDescription::TypeUser, "copyDescriptionAction",
 		this, SLOT(copyDescriptionActionActivated(QAction *, bool)),
 		"edit-copy", "edit-copy", tr("Copy Description"), false, "",
-		disableNoGaduDescription
+		disableNoDescription
 	);
 	BuddiesListViewMenuManager::instance()->addListActionDescription(CopyDescription, BuddiesListViewMenuItem::MenuCategoryActions, 10);
 
@@ -361,7 +280,7 @@ KaduWindowActions::KaduWindowActions(QObject *parent) : QObject(parent)
 		ActionDescription::TypeUser, "openDescriptionLinkAction",
 		this, SLOT(openDescriptionLinkActionActivated(QAction *, bool)),
 		"go-jump", "go-jump", tr("Open Description Link in Browser..."), false, "",
-		disableNoGaduDescriptionUrl
+		disableNoDescriptionUrl
 	);
 	BuddiesListViewMenuManager::instance()->addListActionDescription(OpenDescriptionLink, BuddiesListViewMenuItem::MenuCategoryActions, 30);
 
@@ -377,7 +296,7 @@ KaduWindowActions::KaduWindowActions(QObject *parent) : QObject(parent)
 		ActionDescription::TypeUser, "lookupUserInfoAction",
 		this, SLOT(lookupInDirectoryActionActivated(QAction *, bool)),
 		"edit-find", "edit-find", tr("Search in Directory"), false, "",
-		disableNoGaduUle
+		disableNoContact
 	);
 
 	HideDescription = new ActionDescription(this,
@@ -390,8 +309,8 @@ KaduWindowActions::KaduWindowActions(QObject *parent) : QObject(parent)
 	InactiveUsers = new ActionDescription(this,
 		ActionDescription::TypeUserList, "inactiveUsersAction",
 		this, SLOT(inactiveUsersActionActivated(QAction *, bool)),
-		"protocols/gadu-gadu/offline", "protocols/gadu-gadu/offline", tr("Show Offline Users"),
-		true//, tr("Show offline users")
+		"protocols/gadu-gadu/offline", "protocols/gadu-gadu/offline", tr("Show Offline Buddies"),
+		true
 	);
 	connect(InactiveUsers, SIGNAL(actionCreated(Action *)), this, SLOT(inactiveUsersActionCreated(Action *)));
 	InactiveUsers->setShortcut("kadu_showoffline");
@@ -484,7 +403,7 @@ void KaduWindowActions::inactiveUsersActionCreated(Action *action)
 	MainWindow *window = qobject_cast<MainWindow *>(action->parent());
 	if (!window)
 		return;
-	if (!window->contactsListView())
+	if (!window->buddiesListView())
 		return;
 
 	bool enabled = config_file.readBoolEntry("General", "ShowOffline");
@@ -494,7 +413,7 @@ void KaduWindowActions::inactiveUsersActionCreated(Action *action)
 	action->setData(QVariant::fromValue(ofcf));
 	action->setChecked(enabled);
 
-	window->contactsListView()->addFilter(ofcf);
+	window->buddiesListView()->addFilter(ofcf);
 }
 
 void KaduWindowActions::descriptionUsersActionCreated(Action *action)
@@ -502,7 +421,7 @@ void KaduWindowActions::descriptionUsersActionCreated(Action *action)
 	MainWindow *window = qobject_cast<MainWindow *>(action->parent());
 	if (!window)
 		return;
-	if (!window->contactsListView())
+	if (!window->buddiesListView())
 		return;
 
 	bool enabled = !config_file.readBoolEntry("General", "ShowWithoutDescription");
@@ -512,7 +431,7 @@ void KaduWindowActions::descriptionUsersActionCreated(Action *action)
 	action->setData(QVariant::fromValue(hdcf));
 	action->setChecked(enabled);
 
-	window->contactsListView()->addFilter(hdcf);
+	window->buddiesListView()->addFilter(hdcf);
 }
 
 void KaduWindowActions::showDescriptionsActionCreated(Action *action)
@@ -526,7 +445,7 @@ void KaduWindowActions::onlineAndDescUsersActionCreated(Action *action)
 	MainWindow *window = qobject_cast<MainWindow *>(action->parent());
 	if (!window)
 		return;
-	if (!window->contactsListView())
+	if (!window->buddiesListView())
 		return;
 
 	bool enabled = config_file.readBoolEntry("General", "ShowOnlineAndDescription");
@@ -536,17 +455,11 @@ void KaduWindowActions::onlineAndDescUsersActionCreated(Action *action)
 	action->setData(QVariant::fromValue(oadcf));
 	action->setChecked(enabled);
 
-	window->contactsListView()->addFilter(oadcf);
+	window->buddiesListView()->addFilter(oadcf);
 }
 
 void KaduWindowActions::editUserActionCreated(Action *action)
 {
-	if (!action->contact())
-	{
-		action->setEnabled(false);
-		return;
-	}
-
 	Buddy buddy = action->buddy();
 	if (buddy.isAnonymous())
 	{
@@ -578,7 +491,7 @@ void KaduWindowActions::showBlockedActionCreated(Action *action)
 	MainWindow *window = qobject_cast<MainWindow *>(action->parent());
 	if (!window)
 		return;
-	if (!window->contactsListView())
+	if (!window->buddiesListView())
 		return;
 
 	bool enabled = config_file.readBoolEntry("General", "ShowBlocked");
@@ -588,7 +501,7 @@ void KaduWindowActions::showBlockedActionCreated(Action *action)
 	action->setData(QVariant::fromValue(ibf));
 	action->setChecked(enabled);
 
-	window->contactsListView()->addFilter(ibf);
+	window->buddiesListView()->addFilter(ibf);
 }
 
 void KaduWindowActions::configurationActionActivated(QAction *sender, bool toggled)
@@ -659,7 +572,7 @@ void KaduWindowActions::mergeContactActionActivated(QAction *sender, bool toggle
 	Buddy buddy = action->buddy();
 	if (buddy)
 	{
-		MergeBuddiesWindow *mergeBuddiesWindow = new MergeBuddiesWindow(buddy, sender->parentWidget());
+		MergeBuddiesWindow *mergeBuddiesWindow = new MergeBuddiesWindow(buddy);
 		mergeBuddiesWindow->show();
 	}
 
@@ -979,10 +892,10 @@ void KaduWindowActions::showDescriptionsActionActivated(QAction *sender, bool to
 	MainWindow *window = qobject_cast<MainWindow *>(action->parent());
 	if (!window)
 		return;
-	if (!window->contactsListView())
+	if (!window->buddiesListView())
 		return;
 
-	window->contactsListView()->delegateConfiguration().configurationUpdated();
+	window->buddiesListView()->delegateConfiguration().configurationUpdated();
 }
 
 void KaduWindowActions::onlineAndDescUsersActionActivated(QAction *sender, bool toggled)

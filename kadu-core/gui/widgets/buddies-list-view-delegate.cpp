@@ -33,7 +33,7 @@
 #include "buddies-list-view-delegate.h"
 
 BuddiesListViewDelegate::BuddiesListViewDelegate(QObject *parent) :
-		QItemDelegate(parent), Model(0), Configuration(parent)
+		QItemDelegate(parent), Model(0), Configuration(parent), UseConfigurationColors(false)
 {
 	connect(AvatarManager::instance(), SIGNAL(avatarUpdated(Avatar)), this, SLOT(avatarUpdated(Avatar)));
 	connect(ContactManager::instance(), SIGNAL(contactUpdated(Contact&)), this, SLOT(contactUpdated(Contact&)));
@@ -102,7 +102,7 @@ QSize BuddiesListViewDelegate::sizeHint(const QStyleOptionViewItem &option, cons
 {
 	QSize baseSizeHint = QItemDelegate::sizeHint(option, index);
 
-	BuddiesListViewItemPainter buddyPainter(Configuration, getOptions(index, option), index);
+	BuddiesListViewItemPainter buddyPainter(Configuration, getOptions(index, option), index, UseConfigurationColors);
 	return QSize(0, buddyPainter.height());
 }
 
@@ -117,24 +117,6 @@ void BuddiesListViewDelegate::paint(QPainter *painter, const QStyleOptionViewIte
 	QStyle *style = widget->style();
 	style->drawControl(QStyle::CE_ItemViewItem, &options, painter, widget);
 
-	BuddiesListViewItemPainter buddyPainter(Configuration, options, index);
+	BuddiesListViewItemPainter buddyPainter(Configuration, options, index, UseConfigurationColors);
 	buddyPainter.paint(painter);
-
-/*
-		// TODO: 0.6.6
-/ *
-		if (User.protocolData("Gadu", "Blocking").toBool())
-			painter->setPen(QColor(255, 0, 0));
-		else if (IgnoredManager::isIgnored(UserListElements(users)))
-			painter->setPen(QColor(192, 192, 0));
-		else if (config_file.readBoolEntry("General", "PrivateStatus") && User.protocolData("Gadu", "OfflineTo").toBool())
-			painter->setPen(QColor(128, 128, 128));
-* /
-//		if (User.data("HideDescription").toString() != "true")
-
-
-		}
-	}
-
-*/
 }

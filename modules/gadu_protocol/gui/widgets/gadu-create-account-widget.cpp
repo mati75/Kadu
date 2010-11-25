@@ -31,10 +31,12 @@
 #include <QtGui/QLineEdit>
 #include <QtGui/QPushButton>
 #include <QtGui/QRadioButton>
+#include <QtGui/QVBoxLayout>
 
 #include "accounts/account-manager.h"
 #include "gui/widgets/identities-combo-box.h"
 #include "gui/windows/message-dialog.h"
+#include "identities/identity-manager.h"
 #include "protocols/protocols-manager.h"
 #include "url-handlers/url-handler-manager.h"
 #include "icons-manager.h"
@@ -87,7 +89,7 @@ void GaduCreateAccountWidget::createGui()
 	connect(EMail, SIGNAL(textEdited(const QString &)), this, SLOT(dataChanged()));
 	layout->addRow(tr("E-Mail Address") + ':', EMail);
 
-	IdentityCombo = new IdentitiesComboBox(this);
+	IdentityCombo = new IdentitiesComboBox(true, this);
 	connect(IdentityCombo, SIGNAL(identityChanged(Identity)), this, SLOT(dataChanged()));
 	layout->addRow(tr("Account Identity") + ':', IdentityCombo);
 
@@ -132,6 +134,8 @@ void GaduCreateAccountWidget::resetGui()
 	EMail->setText("");
 	IdentityCombo->setCurrentIdentity(Identity::null);
 	MyTokenWidget->setTokenValue("");
+
+	IdentityManager::instance()->removeUnused();
 }
 
 void GaduCreateAccountWidget::dataChanged()

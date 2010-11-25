@@ -169,12 +169,12 @@ QString dataPath(const QString &p, const char *argv0)
 		data_path.resize(data_path.lastIndexOf('\\') + 1);
 		lib_path = data_path;
 #else
-		QString datadir(DATADIR);
-		QString bindir(BINDIR);
-		QString libdir(LIBDIR);
+		QString datadir(KADU_DATADIR);
+		QString bindir(KADU_BINDIR);
+		QString libdir(KADU_LIBDIR);
 
 		//je�eli �cie�ki nie ko�cz� si� na /share i /bin oraz gdy bez tych ko�c�wek
-		//�cie�ki si� nie pokrywaj�, to znaczy �e kto� ustawi� r�cznie DATADIR lub BINDIR
+		//�cie�ki si� nie pokrywaj�, to znaczy �e kto� ustawi� r�cznie KADU_DATADIR lub KADU_BINDIR
 		if (!datadir.endsWith(QLatin1String("/share")) || !bindir.endsWith(QLatin1String("/bin")) || !libdir.endsWith(QLatin1String("/lib")) ||
 			datadir.left(datadir.length() - 6) != bindir.left(bindir.length() - 4) ||
 			bindir.left(bindir.length() - 4) != libdir.left(libdir.length() - 4))
@@ -225,6 +225,14 @@ QString dataPath(const QString &p, const char *argv0)
 
 QString webKitPath(const QString &path)
 {
+#ifdef Q_OS_WIN
+	QString winPath = path;
+	if (winPath.startsWith(QLatin1String("file:///")))
+		return winPath.remove(0, 8);
+	if (winPath.startsWith(QLatin1String("file://")))
+		return winPath.remove(0, 7);
+	return winPath;
+#else
 	if (path.isEmpty())
 		return path;
 	if (path.startsWith(QLatin1String("file:///")))
@@ -232,4 +240,5 @@ QString webKitPath(const QString &path)
 	if (path.startsWith('/'))
 		return "file://" + path;
 	return "file:///" + path;
+#endif
 }

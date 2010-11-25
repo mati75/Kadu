@@ -71,9 +71,9 @@ void StatusContainerManager::updateIdentities()
 		return;
 
 	foreach (Identity identity, IdentityManager::instance()->items())
-		if (StatusContainers.contains(identity) && !identity.hasAnyAccount())
+		if (StatusContainers.contains(identity) && identity.isEmpty())
 			unregisterStatusContainer(identity);
-		else if (!StatusContainers.contains(identity) && identity.hasAnyAccount())
+		else if (!StatusContainers.contains(identity) && !identity.isEmpty())
 			registerStatusContainer(identity);
 
 	removeSelfFromList();
@@ -100,7 +100,7 @@ void StatusContainerManager::accountUnregistered(Account account)
 
 void StatusContainerManager::identityAdded(Identity identity)
 {
-	if (MainConfiguration::instance()->simpleMode() && !StatusContainers.contains(identity) && identity.hasAnyAccount())
+	if (MainConfiguration::instance()->simpleMode() && !StatusContainers.contains(identity) && !identity.isEmpty())
 		registerStatusContainer(identity);
 }
 
@@ -240,12 +240,18 @@ QString StatusContainerManager::statusContainerName()
 
 void StatusContainerManager::setStatus(Status newStatus)
 {
+	if (SelfInList)
+		return;
+
 	foreach (StatusContainer *container, StatusContainers)
 		container->setStatus(newStatus);
 }
 
 void StatusContainerManager::setDescription(const QString &description)
 {
+	if (SelfInList)
+		return;
+
 	foreach (StatusContainer *container, StatusContainers)
 		container->setDescription(description);
 }
@@ -313,6 +319,9 @@ QString StatusContainerManager::statusNamePrefix()
 
 void StatusContainerManager::storeStatus(Status status)
 {
+	if (SelfInList)
+		return;
+
 	foreach (StatusContainer *statusContainer, StatusContainers)
 		statusContainer->storeStatus(status);
 }
@@ -322,6 +331,9 @@ void StatusContainerManager::disconnectStatus(bool disconnectWithCurrentDescript
 	// TODO: 0.6.6
 	Q_UNUSED(disconnectWithCurrentDescription)
 	Q_UNUSED(disconnectDescription)
+
+	if (SelfInList)
+		return;
 
 	foreach (StatusContainer *statusContainer, StatusContainers)
 		statusContainer->disconnectStatus(DisconnectWithCurrentDescription, DisconnectDescription);

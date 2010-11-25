@@ -23,9 +23,11 @@
 #include "accounts/account.h"
 #include "accounts/account-shared.h"
 #include "accounts/accounts-aware-object.h"
+#include "buddies/buddy-manager.h"
 #include "configuration/configuration-file.h"
 #include "configuration/configuration-manager.h"
 #include "configuration/xml-configuration-file.h"
+#include "contacts/contact-manager.h"
 #include "core/core.h"
 #include "notify/notification-manager.h"
 #include "protocols/connection-error-notification.h"
@@ -208,7 +210,6 @@ void AccountManager::connectionError(Account account, const QString &server, con
 {
 	QMutexLocker(&mutex());
 
-
 	if (!ConnectionErrorNotification::activeError(account, message))
 	{
 		ConnectionErrorNotification *connectionErrorNotification = new ConnectionErrorNotification(account,
@@ -216,4 +217,13 @@ void AccountManager::connectionError(Account account, const QString &server, con
 		NotificationManager::instance()->notify(connectionErrorNotification);
 	}
 
+}
+
+void AccountManager::removeAccountAndBuddies(Account account)
+{
+	QList<Contact> contacts = ContactManager::instance()->contacts(account);
+	foreach (const Contact &contact, contacts)
+		BuddyManager::instance()->clearOwnerAndRemoveEmptyBuddy(contact);
+
+	removeItem(account);
 }

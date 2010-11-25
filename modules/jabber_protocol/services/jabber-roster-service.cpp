@@ -43,6 +43,40 @@ JabberRosterService::~JabberRosterService()
 {
 }
 
+const QString & JabberRosterService::itemDisplay(const XMPP::RosterItem &item)
+{
+	if (!item.name().isNull())
+		return item.name();
+	else
+		return item.jid().bare();
+}
+
+Buddy JabberRosterService::itemBuddy(const XMPP::RosterItem &item, const Contact &contact)
+{
+	QString display = itemDisplay(item);
+	Buddy buddy = contact.ownerBuddy();
+	if (buddy.isAnonymous()) // contact has anonymous buddy, we should search for other
+	{
+		Buddy byDispalyBuddy = BuddyManager::instance()->byDisplay(display, ActionReturnNull);
+		if (byDispalyBuddy) // move to buddy by display, why not?
+		{
+			buddy = byDispalyBuddy;
+			contact.setOwnerBuddy(byDispalyBuddy);
+		}
+		else
+			contact.ownerBuddy().setDisplay(display);
+	}
+	else // check if we can change name
+	{
+		if (!Protocol->contactsListReadOnly())
+			contact.ownerBuddy().setDisplay(display);
+	}
+
+	buddy.setAnonymous(false);
+
+	return buddy;
+}
+
 void JabberRosterService::contactUpdated(const XMPP::RosterItem &item)
 {
 	kdebugf();
@@ -68,27 +102,21 @@ void JabberRosterService::contactUpdated(const XMPP::RosterItem &item)
 
 	Contact contact = ContactManager::instance()->byId(Protocol->account(), item.jid().bare(), ActionCreateAndAdd);
 	ContactsForDelete.removeAll(contact);
-	
+
+	if (contact == Protocol->account().accountContact())
+		return;
+
 	int subType = item.subscription().type();
 
 	// http://xmpp.org/extensions/xep-0162.html#contacts
-	if (!(subType == XMPP::Subscription::Both || subType == XMPP::Subscription::To 
+	if (!(subType == XMPP::Subscription::Both || subType == XMPP::Subscription::To
 	    || ((subType == XMPP::Subscription::None || subType == XMPP::Subscription::From) && item.ask() == "subscribe")
 	    || ((subType == XMPP::Subscription::None || subType == XMPP::Subscription::From) && (!item.name().isEmpty() || !item.groups().isEmpty()))
 	   ))
 		return;
 
-	Buddy buddy = BuddyManager::instance()->byContact(contact, ActionCreateAndAdd);
-	buddy.setAnonymous(false);
-
-	if (buddy.display().isEmpty() || !Protocol->contactsListReadOnly()) // for facebook like XMPP servers that force us to use their names for contacts
-	{
-		// if contact has name set it to display
-		if (!item.name().isNull())
-			buddy.setDisplay(item.name());
-		else
-			buddy.setDisplay(item.jid().bare());
-	}
+	Buddy buddy = itemBuddy(item, contact);
+	BuddyManager::instance()->addItem(buddy);
 
 	GroupManager *gm = GroupManager::instance();
 	// add this contact to all groups the contact is a member of
@@ -105,31 +133,18 @@ void JabberRosterService::contactDeleted(const XMPP::RosterItem &item)
 	kdebug("Deleting contact %s", qPrintable(item.jid().bare()));
 
 	Contact contact = ContactManager::instance()->byId(Protocol->account(), item.jid().bare(), ActionReturnNull);
-	if (!contact)
-		return;
-
-  	Buddy owner = contact.ownerBuddy();
-	contact.setOwnerBuddy(Buddy::null);
-	if (owner.contacts().size() == 0)
-		BuddyManager::instance()->removeItem(owner);
+	BuddyManager::instance()->clearOwnerAndRemoveEmptyBuddy(contact);
 }
 
 void JabberRosterService::rosterRequestFinished(bool success)
 {
 	kdebugf();
-	if (success)
-	{
-		// the roster was imported successfully, clear
-		// all "dirty" items from the contact list
-		foreach (Contact contact, ContactsForDelete)
-		{
-			Buddy owner = contact.ownerBuddy();
-			contact.setOwnerBuddy(Buddy::null);
-			if (owner.contacts().size() == 0)
-				BuddyManager::instance()->removeItem(owner);
-		}
 
-	}
+	// the roster was imported successfully, clear
+	// all "dirty" items from the contact list
+	if (success)
+		foreach (Contact contact, ContactsForDelete)
+			BuddyManager::instance()->clearOwnerAndRemoveEmptyBuddy(contact);
 
 	InRequest = false;
 	emit rosterDownloaded(success);

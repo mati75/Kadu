@@ -21,14 +21,15 @@
 #include <QtGui/QInputDialog>
 #include <QtGui/QLineEdit>
 
+#include "gui/windows/message-dialog.h"
 #include "identities/identity-manager.h"
 #include "identities/model/identity-model.h"
 #include "model/roles.h"
 
 #include "identities-combo-box.h"
 
-IdentitiesComboBox::IdentitiesComboBox(QWidget *parent) :
-		KaduComboBox<Identity>(parent)
+IdentitiesComboBox::IdentitiesComboBox(bool includeSelectIdentity, QWidget *parent) :
+		KaduComboBox<Identity>(parent), IncludeSelectIdentity(includeSelectIdentity), LastAction(0)
 {
 	setUpModel(new IdentityModel(this));
 
@@ -48,12 +49,12 @@ IdentitiesComboBox::IdentitiesComboBox(QWidget *parent) :
 
 IdentitiesComboBox::~IdentitiesComboBox()
 {
+	IdentityManager::instance()->removeUnused();
 }
 
 void IdentitiesComboBox::setCurrentIdentity(Identity identity)
 {
-	if (setCurrentValue(identity))
-		emit identityChanged(CurrentValue);
+	setCurrentValue(identity);
 }
 
 Identity IdentitiesComboBox::currentIdentity()
@@ -65,6 +66,11 @@ void IdentitiesComboBox::currentIndexChangedSlot(int index)
 {
 	QModelIndex modelIndex = this->model()->index(index, modelColumn(), rootModelIndex());
 	QAction *action = modelIndex.data(ActionRole).value<QAction *>();
+
+	if (action && action == LastAction)
+		return;
+
+	LastAction = action;
 
 	if (action != CreateNewIdentityAction)
 	{
@@ -79,13 +85,21 @@ void IdentitiesComboBox::currentIndexChangedSlot(int index)
 			tr("Please enter the name for the new identity:"), QLineEdit::Normal,
 			QString::null, &ok);
 
-	if (!ok || identityName.isEmpty() || IdentityManager::instance()->byName(identityName, false))
+	Identity typedIdentity;
+	if (!ok || identityName.isEmpty() || (typedIdentity = IdentityManager::instance()->byName(identityName, false)))
 	{
-		setCurrentIndex(0);
+		if (typedIdentity)
+		{
+			MessageDialog::show("dialog-warning", tr("Kadu"), tr("Identity of that name already exists!"));
+			setCurrentIdentity(typedIdentity);
+		}
+		else
+			setCurrentIndex(0);
+
 		return;
 	}
 
-	setCurrentIdentity(IdentityManager::instance()->byName(identityName, true));
+	setCurrentIdentity(IdentityManager::instance()->byName(identityName));
 }
 
 void IdentitiesComboBox::updateValueBeforeChange()
@@ -105,5 +119,5 @@ int IdentitiesComboBox::preferredDataRole() const
 
 QString IdentitiesComboBox::selectString() const
 {
-	return tr(" - Select identity - ");
+	return IncludeSelectIdentity ? tr(" - Select identity - ") : QString();
 }

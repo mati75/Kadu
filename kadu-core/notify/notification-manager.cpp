@@ -51,7 +51,7 @@
 #include "gui/windows/main-configuration-window.h"
 #include "gui/windows/main-window.h"
 #include "gui/windows/message-dialog.h"
-#include "notify/contact-notify-data.h"
+#include "notify/buddy-notify-data.h"
 #include "notify/notifier.h"
 #include "notify/notify-configuration-ui-handler.h"
 #include "notify/window-notifier.h"
@@ -183,11 +183,11 @@ void NotificationManager::notifyAboutUserActionActivated(QAction *sender, bool t
 	bool on = true;
 	foreach (const Buddy buddy, buddies)
 	{
-		ContactNotifyData *cnd = 0;
+		BuddyNotifyData *bnd = 0;
 		if (buddy.data())
-			cnd = buddy.data()->moduleStorableData<ContactNotifyData>("notify");
+			bnd = buddy.data()->moduleStorableData<BuddyNotifyData>("notify");
 
-		if (!cnd || !cnd->notify())
+		if (!bnd || !bnd->notify())
 		{
 			on = false;
 			break;
@@ -205,16 +205,16 @@ void NotificationManager::notifyAboutUserActionActivated(QAction *sender, bool t
 		if (buddy.isNull() || buddy.isAnonymous())
 			continue;
 
-		ContactNotifyData *cnd = 0;
+		BuddyNotifyData *bnd = 0;
 		if (buddy.data())
-			cnd = buddy.data()->moduleStorableData<ContactNotifyData>("notify", true);
-		if (!cnd)
+			bnd = buddy.data()->moduleStorableData<BuddyNotifyData>("notify", true);
+		if (!bnd)
 			continue;
 
-		if (cnd->notify() == on)
+		if (bnd->notify() == on)
 		{
-			cnd->setNotify(!on);
-			cnd->store();
+			bnd->setNotify(!on);
+			bnd->store();
 		}
 	}
 
@@ -264,9 +264,7 @@ void NotificationManager::accountRegistered(Account account)
 	Protocol *protocol = account.protocolHandler();
 	if (!protocol)
 		return;
-// 	TODO: 0.6.6
-// 	connect(protocol, SIGNAL(connectionError(Account, const QString &, const QString &)),
-// 			this, SLOT(connectionError(Account, const QString &, const QString &)));
+
 	connect(account, SIGNAL(buddyStatusChanged(Contact, Status)),
 			this, SLOT(contactStatusChanged(Contact, Status)));
 	connect(account, SIGNAL(connected()), this, SLOT(accountConnected()));
@@ -286,8 +284,6 @@ void NotificationManager::accountUnregistered(Account account)
 	if (!protocol)
 		return;
 
-// 	disconnect(protocol, SIGNAL(connectionError(Account, const QString &, const QString &)),
-// 			this, SLOT(connectionError(Account, const QString &, const QString &))); // TODO: 0.6.6 fix
 	disconnect(account, SIGNAL(buddyStatusChanged(Contact, Status)),
 			this, SLOT(contactStatusChanged(Contact, Status)));
 	disconnect(account, SIGNAL(connected()), this, SLOT(accountConnected()));
@@ -332,10 +328,10 @@ void NotificationManager::contactStatusChanged(Contact contact, Status oldStatus
 	}
 
 	bool notify_contact = true;
-	ContactNotifyData *cnd = 0;
-	cnd = contact.ownerBuddy().data()->moduleStorableData<ContactNotifyData>("notify");
+	BuddyNotifyData *bnd = 0;
+	bnd = contact.ownerBuddy().data()->moduleStorableData<BuddyNotifyData>("notify");
 
-	if (!cnd || !cnd->notify())
+	if (!bnd || !bnd->notify())
 		notify_contact = false;
 
 	if (!notify_contact && !NotifyAboutAll)
@@ -351,8 +347,8 @@ void NotificationManager::contactStatusChanged(Contact contact, Status oldStatus
 		return;
 
 	Status status = contact.currentStatus();
-	if (oldStatus == status)
-		return;
+//	if (oldStatus == status)
+//		return;
 
 	if (config_file.readBoolEntry("Notify", "IgnoreOnlineToOnline") &&
 			!status.isDisconnected() &&
@@ -534,14 +530,14 @@ void NotificationManager::groupUpdated()
 		if (buddy.isNull() || buddy.isAnonymous() || buddy.groups().contains(group))
 			continue;
 
-		ContactNotifyData *cnd = 0;
+		BuddyNotifyData *bnd = 0;
 		if (buddy.data())
-			buddy.data()->moduleStorableData<ContactNotifyData>("notify", true);
-		if (!cnd)
+			buddy.data()->moduleStorableData<BuddyNotifyData>("notify", true);
+		if (!bnd)
 			continue;
 
-		cnd->setNotify(notify);
-		cnd->store();
+		bnd->setNotify(notify);
+		bnd->store();
 	}
 }
 
@@ -611,11 +607,11 @@ void checkNotify(Action *action)
 	bool on = true;
 	foreach (const Buddy buddy, action->contacts().toBuddySet())
 	{
-		ContactNotifyData *cnd = 0;
+		BuddyNotifyData *bnd = 0;
 		if (buddy.data())
-			cnd = buddy.data()->moduleStorableData<ContactNotifyData>("notify");
+			bnd = buddy.data()->moduleStorableData<BuddyNotifyData>("notify");
 
-		if (!cnd || !cnd->notify())
+		if (!bnd || !bnd->notify())
 		{
 			on = false;
 			break;

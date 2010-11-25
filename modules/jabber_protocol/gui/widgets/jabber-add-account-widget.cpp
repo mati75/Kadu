@@ -30,19 +30,22 @@
 #include <QtGui/QLineEdit>
 #include <QtGui/QPushButton>
 #include <QtGui/QRadioButton>
+#include <QtGui/QVBoxLayout>
 
 #include "gui/widgets/choose-identity-widget.h"
 #include "gui/windows/message-dialog.h"
-#include "icons-manager.h"
+#include "identities/identity-manager.h"
 #include "protocols/protocols-manager.h"
 #include "server/jabber-server-register-account.h"
+#include "icons-manager.h"
+
 #include "jabber-account-details.h"
 #include "jabber-protocol-factory.h"
 
 #include "jabber-add-account-widget.h"
 
-JabberAddAccountWidget::JabberAddAccountWidget(QWidget *parent) :
-		AccountAddWidget(parent)
+JabberAddAccountWidget::JabberAddAccountWidget(JabberProtocolFactory *factory, QWidget *parent) :
+		AccountAddWidget(parent), Factory(factory)
 {
 	setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 
@@ -78,6 +81,12 @@ void JabberAddAccountWidget::createGui()
 
 	Domain = new QComboBox();
 	Domain->setEditable(true);
+	Domain->setEditText(Factory->defaultServer());
+	if (!Factory->allowChangeServer())
+	{
+		Domain->setVisible(false);
+		AtLabel->setVisible(false);
+	}
 	jidLayout->addWidget(Domain, 0, 2);
 
 	layout->addRow(tr("Username") + ':', jidWidget);
@@ -91,11 +100,7 @@ void JabberAddAccountWidget::createGui()
 	RememberPassword->setChecked(true);
 	layout->addRow(0, RememberPassword);
 
-	RemindPassword = new QLabel(QString("<a href='remind'>%1</a>").arg(tr("Remind password")));
-	RemindPassword->setTextInteractionFlags(Qt::TextBrowserInteraction);
-	layout->addRow(tr("Forgot Your Password?"), RemindPassword);
-
-	Identity = new IdentitiesComboBox(this);
+	Identity = new IdentitiesComboBox(true, this);
 	connect(Identity, SIGNAL(identityChanged(Identity)), this, SLOT(dataChanged()));
 	layout->addRow(tr("Account Identity") + ':', Identity);
 
@@ -124,7 +129,6 @@ void JabberAddAccountWidget::createGui()
 
 void JabberAddAccountWidget::dataChanged()
 {
-	RemindPassword->setEnabled(!Username->text().isEmpty());
 	AddAccountButton->setEnabled(!Username->text().isEmpty()
 				     && !AccountPassword->text().isEmpty()
 				     && (!Domain->isVisible() || !Domain->currentText().isEmpty())
@@ -139,14 +143,7 @@ void JabberAddAccountWidget::apply()
 	jabberAccount.setAccountIdentity(Identity->currentIdentity());
 	jabberAccount.setProtocolName("jabber");
 
-	/*
-	 * Because now there is one AddAccountWidget for XMPP, GTalk and FB, and only in FB the Domain field is hidden,
-	 * so it’s not pretty but fast way to see if we’re adding FB account, which requires special connection settings.
-	 */
-	if (Domain->isVisible())
-		jabberAccount.setId(Username->text() + '@' + Domain->currentText());
-	else // facebook
-		jabberAccount.setId(Username->text() + "@chat.facebook.com");
+	jabberAccount.setId(Username->text() + '@' + Domain->currentText());
 	jabberAccount.setPassword(AccountPassword->text());
 	jabberAccount.setHasPassword(!AccountPassword->text().isEmpty());
 	jabberAccount.setRememberPassword(RememberPassword->isChecked());
@@ -181,10 +178,6 @@ void JabberAddAccountWidget::resetGui()
 	Domain->setCurrentIndex(-1);
 	RememberPassword->setChecked(true);
 	Identity->setCurrentIdentity(Identity::null);
-}
 
-void JabberAddAccountWidget::setDomainSectionVisible(bool visible)
-{
-	Domain->setVisible(visible);
-	AtLabel->setVisible(visible);
+	IdentityManager::instance()->removeUnused();
 }

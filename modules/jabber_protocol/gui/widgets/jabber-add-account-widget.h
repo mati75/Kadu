@@ -37,16 +37,17 @@ class QLineEdit;
 class QPushButton;
 
 class ChooseIdentityWidget;
+class JabberProtocolFactory;
 
 class JabberAddAccountWidget : public AccountAddWidget
 {
 	Q_OBJECT
 
+	JabberProtocolFactory *Factory;
 	QLineEdit *Username;
 	QComboBox *Domain;
 	QLineEdit *AccountPassword;
 	QCheckBox *RememberPassword;
-	QLabel *RemindPassword;
 	QLabel *AtLabel;
 	IdentitiesComboBox *Identity;
 	QPushButton *AddAccountButton;
@@ -58,14 +59,13 @@ private slots:
 	void dataChanged();
 
 public:
-	explicit JabberAddAccountWidget(QWidget *parent = 0);
+	explicit JabberAddAccountWidget(JabberProtocolFactory *factory, QWidget *parent = 0);
 	virtual ~JabberAddAccountWidget();
 
 public slots:
 	virtual void apply();
 	virtual void cancel();
-	
-	void setDomainSectionVisible(bool visible);
+
 };
 
 #endif // JABBER_ADD_ACCOUNT_WIDGET_H

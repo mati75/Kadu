@@ -29,10 +29,16 @@
 NetworkAccessManagerWrapper::NetworkAccessManagerWrapper(QScriptEngine *engine, QObject *parent) :
 	QNetworkAccessManager(parent), Engine(engine)
 {
+	Unicode = false;
 }
 
 NetworkAccessManagerWrapper::~NetworkAccessManagerWrapper()
 {
+}
+
+void NetworkAccessManagerWrapper::setUnicode(bool unicode)
+{
+	Unicode = unicode;
 }
 
 QScriptValue NetworkAccessManagerWrapper::get(const QString &url)
@@ -42,5 +48,18 @@ QScriptValue NetworkAccessManagerWrapper::get(const QString &url)
 
 QScriptValue NetworkAccessManagerWrapper::post(const QString &url, const QString &data)
 {
-	return Engine->newQObject(new NetworkReplyWrapper(QNetworkAccessManager::post(QNetworkRequest(url), data.toUtf8())));
+	QByteArray requestData;
+	QNetworkRequest request;
+	request.setUrl(url);
+
+	if (Unicode)
+	{
+		request.setRawHeader("Content-Type", "text/plain; charset=utf-8");
+		request.setRawHeader("Accept-Encoding", "gzip, deflate");
+		requestData = data.toAscii();
+	}
+	else
+		requestData = data.toUtf8();
+
+	return Engine->newQObject(new NetworkReplyWrapper(QNetworkAccessManager::post(request, requestData)));
 }

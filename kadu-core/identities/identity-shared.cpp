@@ -27,6 +27,9 @@
 #include "protocols/protocol.h"
 
 #include "identity-shared.h"
+#include <status/status-type-manager.h>
+#include <status/status-type.h>
+#include <status/status-group.h>
 
 IdentityShared * IdentityShared::loadStubFromStorage(const QSharedPointer<StoragePoint> &storagePoint)
 {
@@ -45,7 +48,7 @@ IdentityShared * IdentityShared::loadFromStorage(const QSharedPointer<StoragePoi
 }
 
 IdentityShared::IdentityShared(const QUuid &uuid) :
-		BaseStatusContainer(this), Shared(uuid)
+		BaseStatusContainer(this), Shared(uuid), Permanent(false)
 {
 	setState(StateNotLoaded);
 }
@@ -71,6 +74,7 @@ void IdentityShared::load()
 
 	Shared::load();
 
+	Permanent = loadValue<bool>("Permanent");
 	Name = loadValue<QString>("Name");
 }
 
@@ -81,6 +85,7 @@ void IdentityShared::store()
 
 	Shared::store();
 
+	storeValue("Permanent", Permanent);
 	storeValue("Name", Name);
 }
 
@@ -110,9 +115,9 @@ bool IdentityShared::hasAccount(Account account)
 	return Accounts.contains(account);
 }
 
-bool IdentityShared::hasAnyAccount()
+bool IdentityShared::isEmpty()
 {
-	return !Accounts.isEmpty();
+	return Accounts.isEmpty();
 }
 
 void IdentityShared::doSetStatus(Status status)
@@ -122,12 +127,30 @@ void IdentityShared::doSetStatus(Status status)
 			account.data()->setStatus(status);
 }
 
+Account IdentityShared::bestAccount()
+{
+	Account result = Account::null;
+	if (Accounts.isEmpty())
+		return result;
+
+	Status resultStatus = Status::null;
+	foreach (Account account, Accounts)
+		if (account.data())
+		{
+			if (resultStatus == Status::null || account.data()->status() < resultStatus)
+			{
+				result = account;
+				resultStatus = account.data()->status();
+			}
+		}
+
+	return result;
+}
+
 Status IdentityShared::status()
 {
-	foreach (Account account, Accounts)
-		if (account)
-			return account.data()->status();
-	return Status::null;
+	Account account = bestAccount();
+	return account ? account.data()->status() : Status::null;
 }
 
 QString IdentityShared::statusName()
@@ -147,32 +170,24 @@ QIcon IdentityShared::statusIcon(Status status)
 
 QString IdentityShared::statusIconPath(const QString &statusType)
 {
-	foreach (Account account, Accounts)
-		if (account)
-			return account.data()->statusIconPath(statusType);
-	return QString();
+	Account account = bestAccount();
+	return account ? account.data()->statusIconPath(statusType) : QString();
 }
 
 QIcon IdentityShared::statusIcon(const QString &statusType)
 {
-	foreach (Account account, Accounts)
-		if (account)
-			return account.data()->statusIcon(statusType);
-	return QIcon();
+	Account account = bestAccount();
+	return account ? account.data()->statusIcon(statusType) : QIcon();
 }
 
 QList<StatusType *> IdentityShared::supportedStatusTypes()
 {
-	foreach (Account account, Accounts)
-		if (account)
-			return account.data()->supportedStatusTypes();
-	return QList<StatusType *>();
+	Account account = bestAccount();
+	return account ? account.data()->supportedStatusTypes() : QList<StatusType *>();
 }
 
 int IdentityShared::maxDescriptionLength()
 {
-	foreach (Account account, Accounts)
-		if (account)
-			return account.data()->maxDescriptionLength();
-	return -1;
+	Account account = bestAccount();
+	return account ? account.data()->maxDescriptionLength() : -1;
 }

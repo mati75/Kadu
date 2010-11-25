@@ -25,8 +25,9 @@
 
 #include <QtCore/QDir>
 #include <QtCore/QLocale>
-#include <QtGui/QApplication>
 #include <QtCore/QSettings>
+#include <QtCore/QTimer>
+#include <QtGui/QApplication>
 
 #include "accounts/account-manager.h"
 #include "buddies/avatar-manager.h"
@@ -37,6 +38,7 @@
 #include "configuration/configuration-manager.h"
 #include "configuration/main-configuration.h"
 #include "contacts/contact-manager.h"
+#include "emoticons/emoticons.h"
 #include "file-transfer/file-transfer-manager.h"
 #include "gui/widgets/chat-edit-box.h"
 #include "gui/widgets/chat-widget-manager.h"
@@ -55,7 +57,6 @@
 
 #include "activate.h"
 #include "debug.h"
-#include "emoticons.h"
 #include "icons-manager.h"
 #include "modules.h"
 #include "updates.h"
@@ -238,7 +239,7 @@ void Core::createDefaultConfiguration()
 	config_file.addVariable("Look", "ShowInfoPanel", false);
 	config_file.addVariable("Look", "ShowMultilineDesc", true);
 	config_file.addVariable("Look", "ShowStatusButton", true);
-	config_file.addVariable("Look", "Style", "kadu");
+	config_file.addVariable("Look", "Style", "Satin");
 	config_file.addVariable("Look", "UserboxBackgroundDisplayStyle", "Stretched");
 	config_file.addVariable("Look", "UserboxTransparency", false);
 	config_file.addVariable("Look", "UserboxAlpha", 0);
@@ -460,6 +461,17 @@ void Core::createGui()
 	// initialize file transfers
 	FileTransferManager::instance();
 
+	/* That method is meant to be called before the event loop starts
+	 * (QCoreApplication::exec()), so this shot should assure that
+	 * showMainWindow() is called immediately after qApp->exec()
+	 * to let docking module call setShowMainWindowOnStart() before
+	 * ShowMainWindowOnStart is used.
+	 */
+	QTimer::singleShot(0, this, SLOT(showMainWindow()));
+}
+
+void Core::showMainWindow()
+{
 	if (ShowMainWindowOnStart)
 		Window->show();
 }

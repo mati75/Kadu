@@ -56,6 +56,7 @@ class KADUAPI BuddyManager : public QObject, public SimpleManager<Buddy>
 
 private slots:
 	void buddyDataUpdated();
+	void buddySubscriptionChanged();
 	void groupRemoved(Group group);
 
 protected:
@@ -80,6 +81,8 @@ public:
 	Buddy byContact(Contact contact, NotFoundAction action);
 	Buddy byUuid(const QUuid &uuid);
 
+	void clearOwnerAndRemoveEmptyBuddy(Contact contact);
+
 signals:
 	void buddyAboutToBeAdded(Buddy &buddy);
 	void buddyAdded(Buddy &buddy);
@@ -87,7 +90,7 @@ signals:
 	void buddyRemoved(Buddy &buddy);
 
 	void buddyUpdated(Buddy &buddy);
-
+	void buddySubscriptionChanged(Buddy &buddy);
 };
 
 // for MOC

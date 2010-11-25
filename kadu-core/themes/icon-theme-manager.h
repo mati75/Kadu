@@ -27,9 +27,8 @@ class IconThemeManager : public ThemeManager
 	Q_OBJECT
 
 protected:
-	virtual QStringList defaultThemePathes();
+	virtual QStringList defaultThemePaths();
 	virtual bool isValidThemePath(const QString &themePath);
-	virtual QString getThemeName(const QString &themePath);
 
 public:
 	explicit IconThemeManager(QObject *parent = 0);

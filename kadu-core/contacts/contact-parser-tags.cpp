@@ -17,6 +17,7 @@
 
 #include "accounts/account.h"
 #include "buddies/avatar.h"
+#include "buddies/buddy-preferred-manager.h"
 #include "misc/path-conversion.h"
 #include "parser/parser.h"
 #include "icons-manager.h"
@@ -30,7 +31,14 @@ static QString getAvatarPath(Contact contact)
 	if (!contact)
 		return "";
 
-	return webKitPath(contact.contactAvatar().filePath());
+	// WORKAROUND http://kadu.net/mantis/view.php?id=1606
+	// fix by rewriting parser
+	Buddy buddy = contact.ownerBuddy();
+	Contact preffered = BuddyPreferredManager::instance()->preferredContact(buddy);
+	if (preffered == contact && !buddy.buddyAvatar().isEmpty())
+		return webKitPath(buddy.buddyAvatar().filePath());
+	else
+		return webKitPath(contact.contactAvatar().filePath());
 }
 
 static QString getStatusIconPath(Contact contact)

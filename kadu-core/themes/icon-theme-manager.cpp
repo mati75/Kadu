@@ -25,7 +25,7 @@
 #include "icon-theme-manager.h"
 
 IconThemeManager::IconThemeManager(QObject *parent) :
-		ThemeManager(parent)
+		ThemeManager(false, parent)
 {
 }
 
@@ -33,7 +33,7 @@ IconThemeManager::~IconThemeManager()
 {
 }
 
-QStringList IconThemeManager::defaultThemePathes()
+QStringList IconThemeManager::defaultThemePaths()
 {
 	QStringList result = getSubDirs(dataPath("kadu/themes/icons"));
 	result += getSubDirs(profilePath("icons"));
@@ -47,12 +47,4 @@ bool IconThemeManager::isValidThemePath(const QString &themePath)
 	QFileInfo kaduIconFile(kaduIconFileName);
 
 	return kaduIconFile.exists();
-}
-
-QString IconThemeManager::getThemeName(const QString &themePath)
-{
-	int lastSlash = themePath.lastIndexOf('/');
-	if (-1 == lastSlash)
-		return "";
-	return themePath.mid(lastSlash + 1);
 }

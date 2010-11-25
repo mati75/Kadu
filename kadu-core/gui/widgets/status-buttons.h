@@ -26,21 +26,29 @@
 #include "status/status-container-aware-object.h"
 
 class QHBoxLayout;
+class QSpacerItem;
 
 class StatusButton;
 class StatusContainer;
 
-class StatusButtons : public QWidget, private StatusContainerAwareObject
+class KADUAPI StatusButtons : public QWidget, private StatusContainerAwareObject
 {
 	Q_OBJECT
 
 	QHBoxLayout *Layout;
+	QSpacerItem *Spacer;
+	bool SimpleMode;
 
 	QMap<StatusContainer *, StatusButton *> Buttons;
 
 	void createGui();
+	void enableStatusName();
+	void disableStatusName();
+	void addButton(StatusButton *button);
+	void updateLayout(bool addStretch);
 
 private slots:
+    void simpleModeChanged();
 	void rebuildGui();
 
 protected:

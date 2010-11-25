@@ -22,8 +22,8 @@
 
 #include "theme-manager.h"
 
-ThemeManager::ThemeManager(QObject *parent) :
-		QObject(parent), CurrentThemeIndex(-1)
+ThemeManager::ThemeManager(bool includeNone, QObject *parent) :
+		QObject(parent), IncludeNone(includeNone), CurrentThemeIndex(-1)
 {
 }
 
@@ -53,14 +53,37 @@ QStringList ThemeManager::getSubDirs(const QString &dirPath)
 	return result;
 }
 
+QString ThemeManager::getThemeName(const QString &themePath)
+{
+	QString path(themePath);
+	// remove trailing slashes
+#ifdef Q_WS_WIN
+	path.remove(QRegExp("[/\\\\]*$"));
+#else
+	path.remove(QRegExp("/*$"));
+#endif
+
+	int lastSlash = path.lastIndexOf('/');
+	if (-1 == lastSlash)
+#ifdef Q_WS_WIN
+		if (-1 == (lastSlash = path.lastIndexOf('\\')))
+#endif
+			return "";
+
+	return path.mid(lastSlash + 1);
+}
+
 void ThemeManager::loadThemes(QStringList pathList)
 {
-	pathList = pathList + defaultThemePathes();
+	pathList = pathList + defaultThemePaths();
 
 	QString currentThemeName = currentTheme().name();
 	CurrentThemeIndex = -1;
 
 	Themes.clear();
+
+	if (IncludeNone)
+		Themes.append(Theme("", tr("None")));
 
 	foreach (const QString &path, pathList)
 	{

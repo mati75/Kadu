@@ -15,9 +15,17 @@ set (SYNTAX_FILES
 
 set (ADIUM_STYLES
 	Default
+	Gaia
+	Modern\ Bubbling\ \(Compact\)
+	Pushpin
+	renkooNaked
+	Satin
+	SimpleStuff
+	Stockholm
 )
 
 install (FILES ${SYNTAX_FILES}
-	DESTINATION ${KADU_DATA_DIR}/syntax/chat)
+	DESTINATION ${KADU_DATA_DIR}/syntax/chat
+)
 
 install (DIRECTORY ${ADIUM_STYLES} DESTINATION ${KADU_DATA_DIR}/syntax/chat)

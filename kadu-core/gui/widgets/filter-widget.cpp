@@ -121,15 +121,28 @@ void FilterWidget::filterTextChanged(const QString &s)
 #ifdef Q_OS_MAC
 	Q_UNUSED(s);
 #else
+	emit textChanged(s);
+
 	if (NameFilterEdit->text().isEmpty())
 	{
-		hide();
+		QModelIndexList selection = View->selectionModel()->selectedIndexes();
+		if (!selection.isEmpty())
+		{
+			qSort(selection);
+			View->scrollTo(selection.first());
+		}
 		View->setFocus(Qt::OtherFocusReason);
+		hide();
 	}
 	else
+	{
+		if (!isVisible() || View->selectionModel()->selectedIndexes().count() == 0)
+		{
+			View->setCurrentIndex(View->model()->index(0, 0));
+			View->selectionModel()->select(View->model()->index(0, 0), QItemSelectionModel::SelectCurrent);
+		}
 		show();
-
-	emit textChanged(s);
+	}
 #endif
 }
 
@@ -224,13 +237,9 @@ void FilterWidget::keyPressEvent(QKeyEvent *event)
 	}
 
 	if (View && sendKeyEventToView(event))
-	{
-		event->accept();
 		return;
-	}
 
 	QWidget::keyPressEvent(event);
-	event->accept();
 }
 
 #endif

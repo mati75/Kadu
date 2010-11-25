@@ -48,7 +48,7 @@ IconsManager::IconsManager()
 {
 	kdebugf();
 
-	QStringList iconPaths = config_file.readEntry("Look", "IconsPaths").split(QRegExp("(;|:)"), QString::SkipEmptyParts);
+	QStringList iconPaths = config_file.readEntry("Look", "IconsPaths").split(QRegExp("[;:&]"), QString::SkipEmptyParts);
 
 	ThemeManager = new IconThemeManager(this);
 	ThemeManager->loadThemes(iconPaths);
@@ -161,9 +161,17 @@ const QIcon & IconsManager::iconByPath(const QString &path)
 {
 	if (!IconCache.contains(path))
 	{
-		QIcon icon = buildSvgIcon(path);
-		if (icon.isNull())
-			icon = buildPngIcon(path);
+		QIcon icon;
+
+		QFileInfo fileInfo(path);
+		if (fileInfo.isAbsolute() && fileInfo.isReadable())
+			icon.addFile(path);
+		else
+		{
+			icon = buildSvgIcon(path);
+			if (icon.isNull())
+				icon = buildPngIcon(path);
+		}
 
 		IconCache.insert(path, icon);
 	}
@@ -178,8 +186,6 @@ void IconsManager::clearCache()
 
 void IconsManager::configurationUpdated()
 {
-	kdebugf();
-
 	bool themeWasChanged = config_file.readEntry("Look", "IconTheme") != ThemeManager->currentTheme().path();
 	if (themeWasChanged)
 	{
@@ -189,8 +195,6 @@ void IconsManager::configurationUpdated()
 
 		emit themeChanged();
 	}
-
-	kdebugf2();
 }
 
 QSize IconsManager::getIconsSize()

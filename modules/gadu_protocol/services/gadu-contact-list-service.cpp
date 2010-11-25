@@ -63,10 +63,7 @@ void GaduContactListService::handleEventUserlistGetReply(struct gg_event *e)
 
 	kdebugmf(KDEBUG_NETWORK|KDEBUG_INFO, "\n%s\n", ImportReply.data());
 
-	if (AsFile)
-		emit contactListDownloaded(ImportReply);
-	else
-		emit contactListImported(true, GaduListHelper::byteArrayToBuddyList(Protocol->account(), ImportReply));
+	emit contactListImported(true, GaduListHelper::byteArrayToBuddyList(Protocol->account(), ImportReply));
 }
 
 void GaduContactListService::handleEventUserlistPutReply(struct gg_event *e)
@@ -93,19 +90,10 @@ void GaduContactListService::handleEventUserlist(struct gg_event *e)
 
 void GaduContactListService::importContactList()
 {
-	AsFile = false;
-	ImportReply.truncate(0);
+	ImportReply.clear();
 
 	if (-1 == gg_userlist_request(Protocol->gaduSession(), GG_USERLIST_GET, 0))
 		emit contactListImported(false, BuddyList());
-}
-
-void GaduContactListService::importContactListAsFile()
-{
-	ImportReply.truncate(0);
-	AsFile = true;
-
-	gg_userlist_request(Protocol->gaduSession(), GG_USERLIST_GET, 0);
 }
 
 void GaduContactListService::exportContactList()
@@ -126,4 +114,9 @@ void GaduContactListService::exportContactList(BuddyList buddies)
 QList<Buddy> GaduContactListService::loadBuddyList(QTextStream &dataStream)
 {
 	return GaduListHelper::streamToBuddyList(Protocol->account(), dataStream);
+}
+
+QByteArray GaduContactListService::storeBuddyList(BuddyList buddies)
+{
+	return GaduListHelper::buddyListToByteArray(Protocol->account(), buddies);
 }

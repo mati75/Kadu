@@ -38,6 +38,7 @@
 #include "contacts/contact.h"
 #include "contacts/contact-set.h"
 #include "core/core.h"
+#include "emoticons/emoticons-manager.h"
 #include "gui/actions/action.h"
 #include "gui/actions/actions.h"
 #include "gui/widgets/chat-edit-box.h"
@@ -80,7 +81,6 @@ ChatWidgetManager::ChatWidgetManager()
 	kdebugf();
 
 	MessageRenderInfo::registerParserTags();
-	EmoticonsManager::instance()->setEmoticonsTheme(config_file.readEntry("Chat", "EmoticonsTheme"));
 
 	connect(Core::instance(), SIGNAL(messageReceived(const Message &)),
 			this, SLOT(messageReceived(const Message &)));

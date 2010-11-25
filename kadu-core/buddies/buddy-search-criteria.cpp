@@ -38,7 +38,7 @@ void BuddySearchCriteria::reqUin(Account account, const QString &uin)
 	// TODO ???
 	QList<Contact> contactslist = SearchBuddy.contacts(account);
 	Contact contact = contactslist.isEmpty() ? Contact::null : contactslist[0];
-	if (contact.isNull())
+	if (!contact)
 	{
 		contact = Contact::create();
 		contact.setContactAccount(account);
@@ -86,8 +86,8 @@ void BuddySearchCriteria::reqActive()
 void BuddySearchCriteria::clearData()
 {
 	SearchBuddy = Buddy::create();
-	BirthYearFrom.truncate(0);
-	BirthYearTo.truncate(0);
+	BirthYearFrom.clear();
+	BirthYearTo.clear();
 	Active = false;
 	IgnoreResults = false;
 }
