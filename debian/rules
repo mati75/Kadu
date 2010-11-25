@@ -13,9 +13,7 @@ configure-stamp: debian/alsa-stamp
 	find . -name '*.o' -delete
 	rm -f debian/kadu.install
 	cp debian/kadu.install.noalsa debian/kadu.install
-	pwd
 	bash debian/handle_external.sh copy
-	cp -r externalmodules/* modules
 ifeq ($(DEB_BUILD_ARCH_OS),linux)
 	cat debian/kadu.install.alsa >> debian/kadu.install
 endif
