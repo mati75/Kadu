@@ -21,7 +21,7 @@ Description: Gadu-Gadu client for X11
 
 Package: kadu-common
 Architecture: all
-Depends: ${shlibs:Depends}, ${misc:Depends}
+Depends: libjs-mootools, ${shlibs:Depends}, ${misc:Depends}
 Recommends: kadu-external-modules (>= 0.6.5-1)
 Conflicts: kadu (<< 0.6.5-1)
 Suggests: kadu-themes

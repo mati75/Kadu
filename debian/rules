@@ -49,10 +49,14 @@ install-indep:
 	dh_prep -i 
 	dh_installdirs -i
 	cd $(BUILD_DIR) && $(MAKE) DESTDIR=$(INSTALL_DIR) install
-	rm -f $(INSTALL_DIR)/usr/share/kadu/themes/sounds/ultr/license.txt
+	# Remove all license files
+	find $(INSTALL_DIR) -name '[lL][iI][cC][eE][nN][sS][eE].txt' -delete
+	# Remove all thumbnails files
+	find $(INSTALL_DIR) -name Thumbs.db -delete
+	# Remove embedded JavaScript. Use the one that is in libjs-mootools
+	rm -f $(INSTALL_DIR)/usr/share/kadu/syntax/chat/Gaia/Contents/Resources/Javascript/mootools.js
+	ln -s /usr/share/javascript/mootools/mootools.js $(INSTALL_DIR)/usr/share/kadu/syntax/chat/Gaia/Contents/Resources/Javascript/mootools.js
 	rm -f $(INSTALL_DIR)/usr/share/kadu/themes/sounds/bns/sound.conf~
-	rm -f $(INSTALL_DIR)/usr/share/kadu/themes/emoticons/tango/license.txt
-	rm -f $(INSTALL_DIR)/usr/share/kadu/themes/icons/default/protocols/gadu-gadu/22x22/Thumbs.db
 	dh_install -i
 
 install-arch:
