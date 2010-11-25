@@ -3,7 +3,8 @@ kadu (0.6.6-beta11-1) experimental; urgency=low
   * New upstream release
   * Removed oxygen16 in favor of oxygen icon theme
   * Moved usr/share/kadu/syntax from kadu-external-modules to kadu-common
-  * Updated debian/patches/01-no_autodownload.patch to make it fit
+  * Updated debian/patches/01-no_autodownload.patch and
+    debian/patches/03-about-dialog.patch to make them fit
     0.6.6-beta11
 
  -- Patryk Cisek <patryk@debian.org>  Thu, 25 Nov 2010 08:19:07 +0100
