@@ -15,8 +15,10 @@ debian/tmp/usr/share/kadu/modules/configuration/desktop_docking.ui
 debian/tmp/usr/share/kadu/modules/configuration/docking.ui
 debian/tmp/usr/share/kadu/modules/configuration/ext_sound.ui
 debian/tmp/usr/share/kadu/modules/configuration/filedesc.ui
+debian/tmp/usr/share/kadu/modules/configuration/firewall.ui
 debian/tmp/usr/share/kadu/modules/configuration/hint-over-user.ui
 debian/tmp/usr/share/kadu/modules/configuration/hints.ui
+debian/tmp/usr/share/kadu/modules/configuration/hints-advanced.ui
 debian/tmp/usr/share/kadu/modules/configuration/hints-notifier.ui
 debian/tmp/usr/share/kadu/modules/configuration/history.ui
 debian/tmp/usr/share/kadu/modules/configuration/history-migration.ui
@@ -39,10 +41,6 @@ debian/tmp/usr/share/kadu/modules/autoresponder.desc
 debian/tmp/usr/share/kadu/modules/autostatus.desc
 debian/tmp/usr/share/kadu/modules/config_wizard.desc
 debian/tmp/usr/share/kadu/modules/kde_notify.desc
-debian/tmp/usr/share/kadu/modules/data/antistring
-debian/tmp/usr/share/kadu/modules/data/jabber_protocol
-debian/tmp/usr/share/kadu/modules/data/scripts
-debian/tmp/usr/share/kadu/modules/data/word_fix
 debian/tmp/usr/share/kadu/modules/antistring.desc
 debian/tmp/usr/share/kadu/modules/ao_sound.desc
 debian/tmp/usr/share/kadu/modules/auto_hide.desc
@@ -51,6 +49,7 @@ debian/tmp/usr/share/kadu/modules/docking.desc
 debian/tmp/usr/share/kadu/modules/exec_notify.desc
 debian/tmp/usr/share/kadu/modules/ext_sound.desc
 debian/tmp/usr/share/kadu/modules/filedesc.desc
+debian/tmp/usr/share/kadu/modules/firewall.desc
 debian/tmp/usr/share/kadu/modules/gadu_protocol.desc
 debian/tmp/usr/share/kadu/modules/hints.desc
 debian/tmp/usr/share/kadu/modules/history.desc
@@ -72,6 +71,11 @@ debian/tmp/usr/share/kadu/modules/speech.desc
 debian/tmp/usr/share/kadu/modules/spellchecker.desc
 debian/tmp/usr/share/kadu/modules/sql_history.desc
 debian/tmp/usr/share/kadu/modules/word_fix.desc
+debian/tmp/usr/share/kadu/modules/data/antistring
+debian/tmp/usr/share/kadu/modules/data/gadu_protocol
+debian/tmp/usr/share/kadu/modules/data/jabber_protocol
+debian/tmp/usr/share/kadu/modules/data/sms
+debian/tmp/usr/share/kadu/modules/data/word_fix
 debian/tmp/usr/share/kadu/modules/translations/alsa_sound*
 debian/tmp/usr/share/kadu/modules/translations/antistring*
 debian/tmp/usr/share/kadu/modules/translations/autoaway*
@@ -84,6 +88,7 @@ debian/tmp/usr/share/kadu/modules/translations/docking*
 debian/tmp/usr/share/kadu/modules/translations/exec_notify*
 debian/tmp/usr/share/kadu/modules/translations/ext_sound*
 debian/tmp/usr/share/kadu/modules/translations/filedesc*
+debian/tmp/usr/share/kadu/modules/translations/firewall*
 debian/tmp/usr/share/kadu/modules/translations/gadu_protocol*
 debian/tmp/usr/share/kadu/modules/translations/hints*
 debian/tmp/usr/share/kadu/modules/translations/history*

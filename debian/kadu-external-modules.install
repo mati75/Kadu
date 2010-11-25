@@ -4,6 +4,7 @@ debian/tmp/usr/lib/kadu/modules/libaudacious_mediaplayer.so
 debian/tmp/usr/lib/kadu/modules/libcenzor.so
 debian/tmp/usr/lib/kadu/modules/libdragon_mediaplayer.so
 debian/tmp/usr/lib/kadu/modules/libfalf_mediaplayer.so
+debian/tmp/usr/lib/kadu/modules/libglobalhotkeys.so
 debian/tmp/usr/lib/kadu/modules/liblednotify.so
 debian/tmp/usr/lib/kadu/modules/libmediaplayer.so
 debian/tmp/usr/lib/kadu/modules/libmime_tex.so
@@ -17,6 +18,7 @@ debian/tmp/usr/lib/kadu/modules/libvlc_mediaplayer.so
 debian/tmp/usr/lib/kadu/modules/libtabs.so
 debian/tmp/usr/lib/kadu/modules/libxmms2_mediaplayer.so
 debian/tmp/usr/share/kadu/modules/configuration/cenzor.ui
+debian/tmp/usr/share/kadu/modules/configuration/globalhotkeys.ui
 debian/tmp/usr/share/kadu/modules/configuration/lednotify.ui
 debian/tmp/usr/share/kadu/modules/configuration/mediaplayer.ui
 debian/tmp/usr/share/kadu/modules/configuration/mime_tex.ui
@@ -34,6 +36,7 @@ debian/tmp/usr/share/kadu/modules/bmpx_mediaplayer.desc
 debian/tmp/usr/share/kadu/modules/cenzor.desc
 debian/tmp/usr/share/kadu/modules/dragon_mediaplayer.desc
 debian/tmp/usr/share/kadu/modules/falf_mediaplayer.desc
+debian/tmp/usr/share/kadu/modules/globalhotkeys.desc
 debian/tmp/usr/share/kadu/modules/idle.desc
 debian/tmp/usr/share/kadu/modules/lednotify.desc
 debian/tmp/usr/share/kadu/modules/mediaplayer.desc
@@ -48,6 +51,7 @@ debian/tmp/usr/share/kadu/modules/tabs.desc
 debian/tmp/usr/share/kadu/modules/xmms2_mediaplayer.desc
 debian/tmp/usr/share/kadu/modules/translations/auto_hide*
 debian/tmp/usr/share/kadu/modules/translations/cenzor*
+debian/tmp/usr/share/kadu/modules/translations/globalhotkeys*
 debian/tmp/usr/share/kadu/modules/translations/lednotify*
 debian/tmp/usr/share/kadu/modules/translations/mediaplayer*
 debian/tmp/usr/share/kadu/modules/translations/mime_tex*
