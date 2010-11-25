@@ -445,9 +445,9 @@ void HintManager::setLayoutDirection()
 	kdebugf2();
 }
 
-void HintManager::prepareOverUserHint(QFrame *tipFrame, QLabel *tipLabel, Contact contact)
+void HintManager::prepareOverUserHint(QFrame *tipFrame, QLabel *tipLabel, BuddyOrContact buddyOrContact)
 {
-	QString text = Parser::parse(config_file.readEntry("Hints", "MouseOverUserSyntax"), contact);
+	QString text = Parser::parse(config_file.readEntry("Hints", "MouseOverUserSyntax"), buddyOrContact);
 
 	/* Dorr: the file:// in img tag doesn't generate the image on hint.
 	 * for compatibility with other syntaxes we're allowing to put the file://
@@ -476,18 +476,18 @@ void HintManager::prepareOverUserHint(QFrame *tipFrame, QLabel *tipLabel, Contac
 	tipFrame->setFixedSize(tipLabel->sizeHint() + QSize(2 * FRAME_WIDTH, 2 * FRAME_WIDTH));
 }
 
-void HintManager::showToolTip(const QPoint &point, Contact contact)
+void HintManager::showToolTip(const QPoint &point, BuddyOrContact buddyOrContact)
 {
 	kdebugf();
 
 	if (tipFrame)
 		delete tipFrame;
 
-    #ifdef Q_OS_MAC
+#ifdef Q_OS_MAC
 	tipFrame = new QFrame(0, Qt::FramelessWindowHint | Qt::SplashScreen | Qt::X11BypassWindowManagerHint | Qt::WindowStaysOnTopHint |Qt::MSWindowsOwnDC);
-    #else
+#else
 	tipFrame = new QFrame(0, Qt::FramelessWindowHint | Qt::Tool | Qt::X11BypassWindowManagerHint | Qt::WindowStaysOnTopHint |Qt::MSWindowsOwnDC);
-    #endif
+#endif
 
 	QHBoxLayout *lay = new QHBoxLayout(tipFrame);
 	lay->setMargin(10);
@@ -500,7 +500,7 @@ void HintManager::showToolTip(const QPoint &point, Contact contact)
 
 	lay->addWidget(tipLabel);
 
-	prepareOverUserHint(tipFrame, tipLabel, contact);
+	prepareOverUserHint(tipFrame, tipLabel, buddyOrContact);
 
 	double opacity = config_file.readNumEntry("Hints", "HintOverUser_transparency", 0);
 	opacity = 1 - opacity/100;
@@ -667,7 +667,7 @@ void HintManager::createDefaultConfiguration()
 	events << "ConnectionError" << "NewChat" << "NewMessage" << "StatusChanged"
 		<<"StatusChanged/ToFreeForChat" << "StatusChanged/ToOnline"  << "StatusChanged/ToAway"
 		<< "StatusChanged/ToNotAvailable"<< "StatusChanged/ToDoNotDisturb" << "StatusChanged/ToOffline"
-		<< "FileTransfer" << "FileTransfer/IncomingFile" << "FileTransfer/Finished";
+		<< "FileTransfer" << "FileTransfer/IncomingFile" << "FileTransfer/Finished" << "InvalidPassword";
 	foreach (const QString &event, events)
 	{
 		config_file.addVariable("Hints", "Event_" + event + "_bgcolor", qApp->palette().window().color());

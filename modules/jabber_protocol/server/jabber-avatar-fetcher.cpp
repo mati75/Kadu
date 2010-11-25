@@ -26,8 +26,8 @@
 #include <QtXml/QDomDocument>
 
 #include "accounts/account.h"
-#include "buddies/avatar.h"
-#include "buddies/avatar-manager.h"
+#include "avatars/avatar.h"
+#include "avatars/avatar-manager.h"
 #include "misc/path-conversion.h"
 
 #include "client/jabber-client.h"
@@ -41,14 +41,14 @@ JabberAvatarFetcher::JabberAvatarFetcher(Contact contact, QObject *parent) :
 {
 }
 
-void JabberAvatarFetcher::done(const QByteArray &avatar)
+void JabberAvatarFetcher::done()
 {
-	emit avatarFetched(MyContact, true, avatar);
+	emit avatarFetched(MyContact, true);
 }
 
 void JabberAvatarFetcher::failed()
 {
-	emit avatarFetched(MyContact, false, QByteArray());
+	emit avatarFetched(MyContact, false);
 }
 
 void JabberAvatarFetcher::fetchAvatar()
@@ -69,11 +69,15 @@ void JabberAvatarFetcher::receivedVCard()
 
 	if (vcard && !vcard->photo().isEmpty())
 	{
-		if (MyContact.contactAvatar().isNull())
-			MyContact.setContactAvatar(Avatar::create());
+		Avatar contactAvatar = AvatarManager::instance()->byContact(MyContact, ActionCreateAndAdd);
+		contactAvatar.setLastUpdated(QDateTime::currentDateTime());
+		contactAvatar.setNextUpdate(QDateTime::fromTime_t(QDateTime::currentDateTime().toTime_t() + 7200));
 
-		MyContact.contactAvatar().setNextUpdate(QDateTime::fromTime_t(QDateTime::currentDateTime().toTime_t() + 7200));
-		done(vcard->photo());
+		QPixmap pixmap;
+		pixmap.loadFromData(vcard->photo());
+
+		contactAvatar.setPixmap(pixmap);
+		done();
 	}
 	else
 		failed();

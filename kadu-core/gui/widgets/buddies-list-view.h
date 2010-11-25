@@ -27,10 +27,10 @@
 #include <QtCore/QTimer>
 
 #include "buddies/buddy.h"
+#include "buddies/buddy-or-contact.h"
 #include "chat/chat.h"
 #include "contacts/contact.h"
 #include "gui/actions/action-data-source.h"
-#include "gui/widgets/buddies-list-view-selection-item.h"
 
 class QContextMenuEvent;
 class QModelIndex;
@@ -69,6 +69,7 @@ private:
 
 	ContactNoUnloadedAccountFilter *HideUnloadedFilter;
 
+	BuddyOrContact buddyOrContactAt(const QModelIndex &index) const;
 	Buddy buddyAt(const QModelIndex &index) const;
 	Contact contactAt(const QModelIndex &index) const;
 	void triggerActivate(const QModelIndex &index);
@@ -76,7 +77,7 @@ private:
 	Chat chatForIndex(const QModelIndex &index) const;
 
 	// Tool tips
-	Contact ToolTipContact;
+	BuddyOrContact ToolTipItem;
 	QTimer ToolTipTimeoutTimer;
 
 	QString BackgroundColor;
@@ -144,15 +145,14 @@ public:
 	virtual BuddySet buddies();
 	virtual ContactSet contacts();
 	virtual Chat chat();
+	virtual bool hasContactSelected();
 
 signals:
 	void chatActivated(Chat chat);
 	void buddyActivated(Buddy buddy);
 
 	void buddySelectionChanged();
-	void currentBuddyChanged(Buddy buddy);
-	void currentContactChanged(Contact contact);
-	void currentChanged(BuddiesListViewSelectionItem selectionItem);
+	void currentChanged(BuddyOrContact buddyOrContact);
 
 };
 

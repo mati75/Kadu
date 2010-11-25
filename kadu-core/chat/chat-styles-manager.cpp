@@ -38,6 +38,7 @@
 #include "chat/message/message-render-info.h"
 #include "configuration/configuration-file.h"
 #include "core/core.h"
+#include "emoticons/emoticons-manager.h"
 #include "gui/widgets/chat-messages-view.h"
 #include "gui/widgets/preview.h"
 #include "gui/widgets/configuration/configuration-widget.h"
@@ -119,6 +120,7 @@ void ChatStylesManager::chatViewDestroyed(ChatMessagesView *view)
 
 void ChatStylesManager::configurationUpdated()
 {
+	EmoticonsManager::instance()->configurationUpdated();
 	if (config_file.readBoolEntry("Chat", "ChatPrune"))
 		Prune = config_file.readUnsignedNumEntry("Chat", "ChatPruneLen");
 	else
@@ -188,16 +190,40 @@ void ChatStylesManager::configurationUpdated()
 	// if Style was changed, load new Style
 	if (!CurrentEngine || CurrentEngine->currentStyleName() != newStyleName || CurrentEngine->currentStyleVariant() != newVariantName)
 	{
-		if (!AvailableStyles.contains(newStyleName))// if Style not exists load kadu Style
-			newStyleName = "kadu";
-		if (AvailableStyles[newStyleName].engine != CurrentEngine)
-			CurrentEngine = AvailableStyles[newStyleName].engine;
+		newStyleName = fixedStyleName(newStyleName);
+		CurrentEngine = AvailableStyles[newStyleName].engine;
+		newVariantName = fixedVariantName(newStyleName, newVariantName);
+
 		CurrentEngine->loadStyle(newStyleName, newVariantName);
 	}
-	else if (CurrentEngine)
+	else
 		CurrentEngine->configurationUpdated();
 
 	triggerCompositingStateChanged();
+}
+
+QString ChatStylesManager::fixedStyleName(QString styleName)
+{
+	if (!AvailableStyles.contains(styleName))
+	{
+		styleName = "Satin";
+		if (!AvailableStyles.contains(styleName))
+		{
+			styleName = "kadu";
+			if (!AvailableStyles.contains(styleName))
+				styleName = *AvailableStyles.keys().constBegin();
+		}
+	}
+
+	return styleName;
+}
+
+QString ChatStylesManager::fixedVariantName(const QString &styleName, QString variantName)
+{
+	if (!CurrentEngine->styleVariants(styleName).contains(variantName))
+		return CurrentEngine->defaultVariant(styleName);
+
+	return variantName;
 }
 
 void ChatStylesManager::compositingEnabled()
@@ -341,6 +367,10 @@ void ChatStylesManager::mainConfigurationWindowCreated(MainConfigurationWindow *
 	editorLayout->addWidget(SyntaxListCombo, 100);
 	editorLayout->addWidget(EditButton);
 	editorLayout->addWidget(DeleteButton);
+//preview
+	EnginePreview = new Preview();
+
+	preparePreview(EnginePreview);
 //variants
 	VariantListCombo = new QComboBox();
 	VariantListCombo->addItems(CurrentEngine->styleVariants(CurrentEngine->currentStyleName()));
@@ -348,15 +378,13 @@ void ChatStylesManager::mainConfigurationWindowCreated(MainConfigurationWindow *
 	if (!defaultVariant.isEmpty() && VariantListCombo->findText(defaultVariant) == -1)
 		VariantListCombo->insertItem(0, defaultVariant);
 
-	VariantListCombo->setCurrentIndex(VariantListCombo->findText(CurrentEngine->currentStyleVariant().isNull() ? defaultVariant : CurrentEngine->currentStyleVariant()));
+	QString newVariant = CurrentEngine->currentStyleVariant().isNull()
+			? defaultVariant
+			: CurrentEngine->currentStyleVariant();
+	variantChangedSlot(newVariant);
+	VariantListCombo->setCurrentIndex(VariantListCombo->findText(newVariant));
 	VariantListCombo->setEnabled(CurrentEngine->supportVariants());
 	connect(VariantListCombo, SIGNAL(activated(const QString &)), this, SLOT(variantChangedSlot(const QString &)));
-//preview
-	EnginePreview = new Preview();
-
-	preparePreview(EnginePreview);
-
-	CurrentEngine->prepareStylePreview(EnginePreview, CurrentEngine->currentStyleName(), CurrentEngine->currentStyleVariant());
 //
 	groupBox->addWidgets(editorLabel, editor);
 	groupBox->addWidgets(new QLabel(qApp->translate("@default", "Style variant") + ':'), VariantListCombo);
@@ -420,11 +448,11 @@ void ChatStylesManager::styleChangedSlot(const QString &styleName)
 	VariantListCombo->clear();
 	VariantListCombo->addItems(engine->styleVariants(styleName));
 
-	QString currentVariant = CurrentEngine->defaultVariant(styleName);
+	QString currentVariant = AvailableStyles[SyntaxListCombo->currentText()].engine->defaultVariant(styleName);
 	if (!currentVariant.isEmpty() && VariantListCombo->findText(currentVariant) == -1)
 		VariantListCombo->insertItem(0, currentVariant);
 
-	VariantListCombo->setCurrentIndex(VariantListCombo->findText(currentVariant.isNull() ? "Default.css" : currentVariant));
+	VariantListCombo->setCurrentIndex(VariantListCombo->findText(currentVariant));
 
 	VariantListCombo->setEnabled(engine->supportVariants());
 	engine->prepareStylePreview(EnginePreview, styleName, VariantListCombo->currentText());
@@ -448,7 +476,7 @@ void ChatStylesManager::deleteStyleClicked()
 	{
 		AvailableStyles.remove(styleName);
 		SyntaxListCombo->removeItem(SyntaxListCombo->currentIndex());
-		styleChangedSlot(*(AvailableStyles.keys().begin()));
+		styleChangedSlot(*AvailableStyles.keys().constBegin());
 	}
 	else
 		MessageDialog::show("dialog-error", tr("Kadu"), tr("Unable to remove style: %1").arg(styleName));

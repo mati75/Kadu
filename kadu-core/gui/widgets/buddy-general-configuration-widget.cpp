@@ -33,8 +33,8 @@
 
 #include "accounts/account.h"
 #include "accounts/account-manager.h"
-#include "buddies/avatar.h"
-#include "buddies/avatar-manager.h"
+#include "avatars/avatar.h"
+#include "avatars/avatar-manager.h"
 #include "buddies/buddy-manager.h"
 #include "buddies/buddy-shared.h"
 #include "contacts/contact.h"
@@ -137,21 +137,27 @@ void BuddyGeneralConfigurationWidget::save()
 	MyBuddy.setWebsite(WebsiteEdit->text());
 
 	QPixmap avatar = AvatarWidget->avatarPixmap();
-	if (avatar.isNull())
-		MyBuddy.setBuddyAvatar(Avatar::null);
+	if (!AvatarWidget->buddyAvatar() || avatar.isNull())
+		removeBuddyAvatar();
 	else
-	{
-		Avatar buddyAvatar = MyBuddy.buddyAvatar();
-		if (!buddyAvatar)
-		{
-			buddyAvatar = Avatar::create();
-			AvatarManager::instance()->addItem(buddyAvatar);
-			MyBuddy.setBuddyAvatar(buddyAvatar);
-		}
-
-		buddyAvatar.setPixmap(avatar);
-		MyBuddy.setBuddyAvatar(buddyAvatar);
-	}
+		setBuddyAvatar(avatar);
 
 	ContactsTable->save();
+}
+
+void BuddyGeneralConfigurationWidget::removeBuddyAvatar()
+{
+	Avatar buddyAvatar = MyBuddy.buddyAvatar();
+	if (buddyAvatar.isNull())
+		return;
+
+	buddyAvatar.setPixmap(QPixmap());
+	AvatarManager::instance()->removeItem(buddyAvatar);
+	MyBuddy.setBuddyAvatar(Avatar::null);
+}
+
+void BuddyGeneralConfigurationWidget::setBuddyAvatar(const QPixmap& avatar)
+{
+	Avatar buddyAvatar = AvatarManager::instance()->byBuddy(MyBuddy, ActionCreateAndAdd);
+	buddyAvatar.setPixmap(avatar);
 }

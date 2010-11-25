@@ -41,6 +41,7 @@
 #include "accounts/account-manager.h"
 #include "accounts/model/accounts-model.h"
 #include "gui/widgets/account-add-widget.h"
+#include "gui/widgets/account-create-widget.h"
 #include "gui/widgets/account-edit-widget.h"
 #include "gui/widgets/modal-configuration-widget.h"
 #include "gui/widgets/protocols-combo-box.h"
@@ -61,7 +62,7 @@
 YourAccounts *YourAccounts::Instance = 0;
 
 YourAccounts::YourAccounts(QWidget *parent) :
-		QWidget(parent), CurrentWidget(0), IsCurrentWidgetEditAccount(false), CanRegisterFilter(new CanRegisterProtocolFilter())
+		QWidget(parent), CurrentWidget(0), IsCurrentWidgetEditAccount(false), ForceWidgetChange(false), CanRegisterFilter(new CanRegisterProtocolFilter())
 {
 	setWindowRole("kadu-your-accounts");
 
@@ -226,9 +227,9 @@ void YourAccounts::createEditAccountWidget()
 	MainStack->addWidget(EditStack);
 }
 
-QWidget * YourAccounts::getAccountCreateWidget(ProtocolFactory *protocol)
+AccountCreateWidget * YourAccounts::getAccountCreateWidget(ProtocolFactory *protocol)
 {
-	QWidget *widget = 0;
+	AccountCreateWidget *widget = 0;
 
 	if (!CreateWidgets.contains(protocol))
 	{
@@ -296,14 +297,16 @@ void YourAccounts::protocolChanged(ProtocolFactory *protocolFactory, ProtocolFac
 		return;
 	}
 
-	Protocols->blockSignals(true);
+	ForceWidgetChange = true;
 	Protocols->setCurrentProtocol(lastProtocolFactory);
-	Protocols->blockSignals(false);
+	ForceWidgetChange = false;
 }
 
 void YourAccounts::resetProtocol()
 {
+	ForceWidgetChange = true;
 	Protocols->setCurrentProtocol(0);
+	ForceWidgetChange = false;
 }
 
 void YourAccounts::updateCurrentWidget()
@@ -352,6 +355,9 @@ void YourAccounts::updateCurrentWidget()
 
 bool YourAccounts::canChangeWidget()
 {
+	if (ForceWidgetChange)
+		return true;
+
 	if (!CurrentWidget)
 		return true;
 
@@ -448,10 +454,9 @@ void YourAccounts::accountSelectionChanged(const QItemSelection &selected, const
 		return;
 	}
 
-	// fix infinite reccursion
-	AccountsView->selectionModel()->blockSignals(true);
+	ForceWidgetChange = true;
 	AccountsView->selectionModel()->select(deselected, QItemSelectionModel::ClearAndSelect);
-	AccountsView->selectionModel()->blockSignals(false);
+	ForceWidgetChange = false;
 }
 
 void YourAccounts::accountUnregistered(Account account)

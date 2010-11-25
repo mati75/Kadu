@@ -44,10 +44,10 @@
 #include "parser.h"
 
 QMap<QString, QString> Parser::globalVariables;
-QMap<QString, QString (*)(Contact)> Parser::registeredTags;
-QMap<QString, QString (*)(const QObject * const)> Parser::registeredObjectTags;
+QMap<QString, Parser::BuddyOrContactTagCallback> Parser::registeredTags;
+QMap<QString, Parser::ObjectTagCallback> Parser::registeredObjectTags;
 
-bool Parser::registerTag(const QString &name, QString (*func)(Contact contact))
+bool Parser::registerTag(const QString &name, BuddyOrContactTagCallback func)
 {
 	kdebugf();
 	if (registeredTags.contains(name))
@@ -63,8 +63,10 @@ bool Parser::registerTag(const QString &name, QString (*func)(Contact contact))
 	}
 }
 
-bool Parser::unregisterTag(const QString &name, QString (* /*func*/)(Contact contact))
+bool Parser::unregisterTag(const QString &name, BuddyOrContactTagCallback func)
 {
+	Q_UNUSED(func)
+
 	kdebugf();
 	if (!registeredTags.contains(name))
 	{
@@ -95,8 +97,10 @@ bool Parser::registerObjectTag(const QString &name, ObjectTagCallback func)
 	}
 }
 
-bool Parser::unregisterObjectTag(const QString &name, ObjectTagCallback)
+bool Parser::unregisterObjectTag(const QString &name, ObjectTagCallback func)
 {
+	Q_UNUSED(func)
+
 	kdebugf();
 	if (!registeredObjectTags.contains(name))
 	{
@@ -129,16 +133,19 @@ QString Parser::executeCmd(const QString &cmd)
 
 QString Parser::parse(const QString &s, const QObject * const object, bool escape)
 {
-	return parse(s, Contact::null, object, escape);
+	return parse(s, BuddyOrContact(), object, escape);
 }
 
-QString Parser::parse(const QString &s, Contact contact, bool escape)
+QString Parser::parse(const QString &s, BuddyOrContact buddyOrContact, bool escape)
 {
-	return parse(s, contact, 0, escape);
+	return parse(s, buddyOrContact, 0, escape);
 }
 
-QString Parser::parse(const QString &s, Contact contact, const QObject * const object, bool escape)
+QString Parser::parse(const QString &s, BuddyOrContact buddyOrContact, const QObject * const object, bool escape)
 {
+	Buddy buddy = buddyOrContact.buddy();
+	Contact contact = buddyOrContact.contact();
+
 	kdebugmf(KDEBUG_DUMP, "%s escape=%i\n", qPrintable(s), escape);
 	int index = 0, i, len = s.length();
 	QList<ParserToken> parseStack;
@@ -244,6 +251,8 @@ QString Parser::parse(const QString &s, Contact contact, const QObject * const o
 					++i;
 					if (contact)
 						pe.content = contact.id();
+					else if (buddy)
+						pe.content = buddy.mobile().isEmpty() ? buddy.email() : buddy.mobile();
 					break;
 				case 'h':
 					++i;
@@ -252,44 +261,44 @@ QString Parser::parse(const QString &s, Contact contact, const QObject * const o
 					break;
 				case 'n':
 					++i;
-					pe.content = contact.ownerBuddy().nickName();
+					pe.content = buddy.nickName();
 					if (escape)
 						HtmlDocument::escapeText(pe.content);
 					break;
 				case 'a':
 					++i;
-					pe.content = contact.ownerBuddy().display();
+					pe.content = buddy.display();
 					if (escape)
 						HtmlDocument::escapeText(pe.content);
 					break;
 				case 'f':
 					++i;
-					pe.content = contact.ownerBuddy().firstName();
+					pe.content = buddy.firstName();
 					if (escape)
 						HtmlDocument::escapeText(pe.content);
 					break;
 				case 'r':
 					++i;
-					pe.content = contact.ownerBuddy().lastName();
+					pe.content = buddy.lastName();
 					if (escape)
 						HtmlDocument::escapeText(pe.content);
 					break;
 				case 'm':
 					++i;
-					pe.content = contact.ownerBuddy().mobile();
+					pe.content = buddy.mobile();
 					break;
 				case 'g':
 					{
 						++i;
 						QStringList groups;
-						foreach (Group group, contact.ownerBuddy().groups())
+						foreach (Group group, buddy.groups())
 							groups << group.name();
 						pe.content = groups.join(",");
 						break;
 					}
 				case 'e':
 					++i;
-					pe.content = contact.ownerBuddy().email();
+					pe.content = buddy.email();
 					break;
 				case 'x':
 					++i;
@@ -298,8 +307,8 @@ QString Parser::parse(const QString &s, Contact contact, const QObject * const o
 					break;
 				case 'z':
 					++i;
-					if (contact)
-						pe.content = QString::number(contact.ownerBuddy().gender());
+					if (buddy)
+						pe.content = QString::number(buddy.gender());
 					break;
 				case '%':
 					++i;
@@ -493,7 +502,7 @@ QString Parser::parse(const QString &s, Contact contact, const QObject * const o
 						parseStack.pop_back();
 						pe.type = ParserToken::PT_STRING;
 						if (registeredTags.contains(pe.content))
-							pe.content = registeredTags[pe.content](contact);
+							pe.content = registeredTags[pe.content](buddyOrContact);
 						else if (object && registeredObjectTags.contains(pe.content))
 							pe.content = registeredObjectTags[pe.content](object);
 						else

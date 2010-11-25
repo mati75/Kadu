@@ -20,6 +20,9 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <stdarg.h>
+#include <stdio.h>
+
 #include "debug.h"
 #include "misc/misc.h"
 
@@ -27,10 +30,8 @@ int debug_mask;
 
 #ifdef DEBUG_ENABLED
 
+#include <QtCore/QDebug>
 #include <QtCore/QMutex>
-
-#include <stdarg.h>
-#include <stdio.h>
 
 #ifdef Q_OS_WIN
 #define WIN32_LEAN_AND_MEAN
@@ -114,3 +115,23 @@ void _kdebug_with_mask(int mask, const char* file, const int line, const char* f
 }
 
 #endif
+
+
+namespace Debug
+{
+
+void ktDebugStart(const QString &message, QTime &time)
+{
+	time = QTime::currentTime();
+
+	printf("%s", qPrintable(QString("[timer start] %1\n").arg(message)));
+}
+
+void ktDebugCheckPoint(const QString& message, QTime& time)
+{
+	time = QTime::currentTime();
+
+	printf("%s", qPrintable(QString("[timer checkpoint: %1] %2\n").arg(QTime::currentTime().msecsTo(time)).arg(message)));
+}
+
+}; // namespace Debug

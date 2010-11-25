@@ -58,9 +58,8 @@ JabberEditAccountWidget::JabberEditAccountWidget(Account account, QWidget *paren
 {
 	createGui();
 	loadAccountData();
-	loadConnectionData();
-
-	dataChanged();
+	loadAccountDetailsData();
+	resetState();
 }
 
 JabberEditAccountWidget::~JabberEditAccountWidget()
@@ -263,60 +262,78 @@ void JabberEditAccountWidget::createOptionsTab(QTabWidget *tabWidget)
 	layout->setSpacing(6);
 	layout->setMargin(9);
 
-	AutoResource = new QCheckBox;
-	AutoResource->setText(tr("Use hostname as a resource"));
+	QGroupBox *resource = new QGroupBox(tr("Resource"), this);
+	QVBoxLayout *resourceLayout = new QVBoxLayout(resource);
+
+	QHBoxLayout *resourceDetailsLayout = new QHBoxLayout();
+	resourceDetailsLayout->setSpacing(6);
+	resourceDetailsLayout->setMargin(0);
+
+	AutoResource = new QCheckBox(tr("Use hostname as a resource"));
 	connect(AutoResource, SIGNAL(clicked()), this, SLOT(dataChanged()));
 	connect(AutoResource, SIGNAL(toggled(bool)), SLOT(autoResourceToggled(bool)));
-	layout->addWidget(AutoResource);
-
-	ResourceLayout = new QHBoxLayout();
-	ResourceLayout->setSpacing(6);
-	ResourceLayout->setMargin(0);
+	resourceLayout->addWidget(AutoResource);
 
 	ResourceLabel = new QLabel;
 	ResourceLabel->setText(tr("Resource") + ':');
-	ResourceLayout->addWidget(ResourceLabel);
+	resourceDetailsLayout->addWidget(ResourceLabel);
 
 	ResourceName = new QLineEdit;
 	connect(ResourceName, SIGNAL(textEdited(QString)), this, SLOT(dataChanged()));
-	ResourceLayout->addWidget(ResourceName);
+	resourceDetailsLayout->addWidget(ResourceName);
 
 	PriorityLabel = new QLabel;
 	PriorityLabel->setText(tr("Priority") + ':');
-	ResourceLayout->addWidget(PriorityLabel);
+	resourceDetailsLayout->addWidget(PriorityLabel);
 
 	Priority = new QLineEdit;
 	connect(Priority, SIGNAL(textEdited(QString)), this, SLOT(dataChanged()));
-//	 Priority->setMinimumSize(QSize(56, 0));
-//	 Priority->setMaximumSize(QSize(56, 32767));
 	Priority->setValidator(new QIntValidator(Priority));
-	ResourceLayout->addWidget(Priority);
+	resourceDetailsLayout->addWidget(Priority);
 
-/*	ResourceName->setEnabled(false);
-	ResourceLabel->setEnabled(false);
-	Priority->setEnabled(false);
-	PriorityLabel->setEnabled(false);
-*/
-	layout->addLayout(ResourceLayout);
+	resourceLayout->addLayout(resourceDetailsLayout);
+	layout->addWidget(resource);
 
-	DataTransferProxyLayout = new QHBoxLayout();
-	DataTransferProxyLayout->setSpacing(6);
-	DataTransferProxyLayout->setMargin(0);
+	QGroupBox *dataTransferProxy = new QGroupBox(tr("Data transfer proxy"), this);
+
+	QHBoxLayout *dataTransferProxyLayout = new QHBoxLayout(dataTransferProxy);
+	dataTransferProxyLayout->setSpacing(6);
+	dataTransferProxyLayout->setMargin(0);
 
 	DataTransferProxyLabel = new QLabel;
 	DataTransferProxyLabel->setText(tr("Data transfer proxy") + ':');
-	DataTransferProxyLayout->addWidget(DataTransferProxyLabel);
+	dataTransferProxyLayout->addWidget(DataTransferProxyLabel);
 
 	DataTransferProxy = new QLineEdit;
-	DataTransferProxyLayout->addWidget(DataTransferProxy);
+	dataTransferProxyLayout->addWidget(DataTransferProxy);
 
-	layout->addLayout(DataTransferProxyLayout);
+	layout->addWidget(dataTransferProxy);
+
+	QGroupBox *notifications = new QGroupBox(tr("Notifications"), this);
+
+	QVBoxLayout *notificationsLayout = new QVBoxLayout(notifications);
+	SendTypingNotification = new QCheckBox(tr("Send typing notifications"));
+	connect(SendTypingNotification, SIGNAL(clicked()), this, SLOT(dataChanged()));
+	notificationsLayout->addWidget(SendTypingNotification);
+
+	SendGoneNotification = new QCheckBox(tr("Send gone notifications (closing the window)"));
+	connect(SendGoneNotification, SIGNAL(clicked()), this, SLOT(dataChanged()));
+	notificationsLayout->addWidget(SendGoneNotification);
+
+	layout->addWidget(notifications);
 
 #ifdef DEBUG_ENABLED
-	QPushButton *consoleButton = new QPushButton(tr("Show XML console for this account"), this);
+	QGroupBox *debug = new QGroupBox(tr("Debug"), this);
+
+	QVBoxLayout *debugLayout = new QVBoxLayout(debug);
+
+	QPushButton *consoleButton = new QPushButton(tr("Show XML console for this account"), debug);
 	connect(consoleButton, SIGNAL(clicked()), this, SLOT(showXmlConsole()));
-	layout->addWidget(consoleButton);
+
+	debugLayout->addWidget(consoleButton);
+	layout->addWidget(debug);
 #endif
+
 	layout->addStretch(100);
 }
 
@@ -358,6 +375,13 @@ void JabberEditAccountWidget::sslActivated(int i)
 	}
 }
 
+void JabberEditAccountWidget::resetState()
+{
+	setState(StateNotChanged);
+	ApplyButton->setEnabled(false);
+	CancelButton->setEnabled(false);
+}
+
 void JabberEditAccountWidget::dataChanged()
 {
   	AccountDetails = dynamic_cast<JabberAccountDetails *>(account().details());
@@ -377,12 +401,12 @@ void JabberEditAccountWidget::dataChanged()
 		&& AccountDetails->autoResource() == AutoResource->isChecked()
 		&& AccountDetails->resource() == ResourceName->text()
 		&& AccountDetails->priority() == Priority->text().toInt()
+		&& AccountDetails->sendGoneNotification() == SendGoneNotification->isChecked()
+		&& AccountDetails->sendTypingNotification() == SendTypingNotification->isChecked()
 		&& StateNotChanged == Proxy->state()
 		&& !PersonalInfoWidget->isModified())
 	{
-		setState(StateNotChanged);
-		ApplyButton->setEnabled(false);
-		CancelButton->setEnabled(false);
+		resetState();
 		return;
 	}
 
@@ -414,7 +438,7 @@ void JabberEditAccountWidget::loadAccountData()
 	AccountPassword->setText(account().password());
 }
 
-void JabberEditAccountWidget::loadConnectionData()
+void JabberEditAccountWidget::loadAccountDetailsData()
 {
 	AccountDetails = dynamic_cast<JabberAccountDetails *>(account().details());
 	if (!AccountDetails)
@@ -431,6 +455,9 @@ void JabberEditAccountWidget::loadConnectionData()
 	ResourceName->setText(AccountDetails->resource());
 	Priority->setText(QString::number(AccountDetails->priority()));
 	DataTransferProxy->setText(AccountDetails->dataTransferProxy());
+
+	SendGoneNotification->setChecked(AccountDetails->sendGoneNotification());
+	SendTypingNotification->setChecked(AccountDetails->sendTypingNotification());
 
 	Proxy->loadProxyData();
 }
@@ -456,30 +483,29 @@ void JabberEditAccountWidget::apply()
 	AccountDetails->setResource(ResourceName->text());
 	AccountDetails->setPriority(Priority->text().toInt());
 	AccountDetails->setDataTransferProxy(DataTransferProxy->text());
+	AccountDetails->setSendGoneNotification(SendGoneNotification->isChecked());
+	AccountDetails->setSendTypingNotification(SendTypingNotification->isChecked());
 	Proxy->apply();
 
 	if (PersonalInfoWidget->isModified())
 		PersonalInfoWidget->apply();
 
+	IdentityManager::instance()->removeUnused();
 	ConfigurationManager::instance()->flush();
 
-	IdentityManager::instance()->removeUnused();
-	setState(StateNotChanged);
-	ApplyButton->setEnabled(false);
-	CancelButton->setEnabled(false);
+	resetState();
 }
 
 void JabberEditAccountWidget::cancel()
 {
 	loadAccountData();
-	loadConnectionData();
+	loadAccountDetailsData();
 	Proxy->cancel();
 	PersonalInfoWidget->cancel();
 
 	IdentityManager::instance()->removeUnused();
-	setState(StateNotChanged);
-	ApplyButton->setEnabled(false);
-	CancelButton->setEnabled(false);
+
+	resetState();
 }
 
 void JabberEditAccountWidget::removeAccount()

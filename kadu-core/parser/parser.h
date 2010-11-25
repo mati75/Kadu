@@ -26,15 +26,16 @@
 
 #include <QtCore/QMap>
 
-#include "contacts/contact.h"
+#include "buddies/buddy-or-contact.h"
 
 #include "exports.h"
 
 class KADUAPI Parser
 {
 	typedef QString (*ObjectTagCallback)(const QObject * const);
+	typedef QString (*BuddyOrContactTagCallback)(BuddyOrContact);
 
-	static QMap<QString, QString (*)(Contact)> registeredTags;
+	static QMap<QString, BuddyOrContactTagCallback> registeredTags;
 	static QMap<QString, ObjectTagCallback> registeredObjectTags;
 
 	static QString executeCmd(const QString &cmd);
@@ -42,10 +43,10 @@ class KADUAPI Parser
 public:
 	static QMap<QString, QString> globalVariables;
 	static QString parse(const QString &s, const QObject * const object, bool escape = true);
-	static QString parse(const QString &s, Contact contact, bool escape = true);
-	static QString parse(const QString &s, Contact contact, const QObject * const object, bool escape = true);
-	static bool registerTag(const QString &name, QString (*func)(Contact contact));
-	static bool unregisterTag(const QString &name, QString (*func)(Contact contact));
+	static QString parse(const QString &s, BuddyOrContact buddyOrContact, bool escape = true);
+	static QString parse(const QString &s, BuddyOrContact buddyOrContact, const QObject * const object, bool escape = true);
+	static bool registerTag(const QString &name, BuddyOrContactTagCallback);
+	static bool unregisterTag(const QString &name, BuddyOrContactTagCallback);
 
 	static bool registerObjectTag(const QString &name, ObjectTagCallback);
 	static bool unregisterObjectTag(const QString &name, ObjectTagCallback);

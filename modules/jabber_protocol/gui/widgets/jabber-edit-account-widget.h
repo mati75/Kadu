@@ -68,7 +68,6 @@ class JabberEditAccountWidget : public AccountEditWidget
 	ProxyGroupBox *Proxy;
 
 	QCheckBox *AutoResource;
-	QHBoxLayout *ResourceLayout;
 	QLabel *ResourceLabel;
 	QLineEdit *ResourceName;
 	QLabel *PriorityLabel;
@@ -76,7 +75,9 @@ class JabberEditAccountWidget : public AccountEditWidget
 
 	QLabel *DataTransferProxyLabel;
 	QLineEdit *DataTransferProxy;
-	QHBoxLayout *DataTransferProxyLayout;
+
+	QCheckBox *SendTypingNotification;
+	QCheckBox *SendGoneNotification;
 
 	QPushButton *ApplyButton;
 	QPushButton *CancelButton;
@@ -89,8 +90,10 @@ class JabberEditAccountWidget : public AccountEditWidget
 	void createGeneralGroupBox(QVBoxLayout *layout);
 
 	void loadAccountData();
-	void loadConnectionData();
+	void loadAccountDetailsData();
 	bool checkSSL();
+
+	void resetState();
 
 private slots:
 	void removeAccount();

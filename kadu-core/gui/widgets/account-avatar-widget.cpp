@@ -23,7 +23,8 @@
 #include <QtGui/QPushButton>
 #include <QtGui/QVBoxLayout>
 
-#include "buddies/avatar.h"
+#include "avatars/avatar.h"
+#include "avatars/avatar-manager.h"
 #include "protocols/services/avatar-service.h"
 #include "protocols/protocol.h"
 #include "icons-manager.h"
@@ -106,6 +107,7 @@ void AccountAvatarWidget::avatarUpdated()
 	WaitMovie->stop();
 	AvatarLabel->setMovie(0);
 	QPixmap avatar = MyAccount.accountContact().contactAvatar().pixmap();
+
 	if (avatar.width() > 128 || avatar.height() > 128)
 		avatar = avatar.scaled(QSize(128, 128), Qt::KeepAspectRatio, Qt::SmoothTransformation);
 	AvatarLabel->setPixmap(avatar);
@@ -132,7 +134,7 @@ void AccountAvatarWidget::changeAvatar()
 void AccountAvatarWidget::avatarUploaded(bool ok, QImage image)
 {
 	if (ok)
-		MyAccount.accountContact().contactAvatar().setPixmap(QPixmap::fromImage(image));
+		AvatarManager::instance()->byContact(MyAccount.accountContact(), ActionCreateAndAdd).setPixmap(QPixmap::fromImage(image));
 
 	avatarUpdated();
 	ChangeAvatarButton->setEnabled(true);

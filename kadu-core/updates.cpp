@@ -35,7 +35,6 @@
 #include "gui/windows/kadu-window.h"
 #include "gui/windows/updates-dialog.h"
 #include "debug.h"
-#include "kadu-config.h"
 
 #include "updates.h"
 
@@ -43,9 +42,8 @@ Updates::Updates(QObject *parent) :
 		QObject(parent), UpdateChecked(false), HttpClient(0)
 {
 	kdebugf();
-
 	buildQuery();
-	triggerAllAccountsAdded();
+	triggerAllAccountsRegistered();
 }
 
 Updates::~Updates()
@@ -64,7 +62,7 @@ void Updates::accountUnregistered(Account account)
 
 void Updates::buildQuery()
 {
-	Query = QString("/update-new.php?uuid=%1&version=%2").arg(ConfigurationManager::instance()->uuid()).arg(QString(VERSION));
+	Query = QString("/update-new.php?uuid=%1&version=%2").arg(ConfigurationManager::instance()->uuid()).arg(Core::version());
 
 	if (config_file.readBoolEntry("General", "SendSysInfo"), true)
 	{
@@ -171,7 +169,7 @@ void Updates::run()
 
 bool Updates::isNewerVersion(const QString &newestversion)
 {
-	QString actual = stripVersion(VERSION);
+	QString actual = stripVersion(Core::version());
 	QString newest = stripVersion(newestversion);
 
 	if (newest.length() > actual.length())

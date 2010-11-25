@@ -83,6 +83,9 @@ void checkBlocking(Action *action)
 		return;
 	}
 
+	if (action && action->dataSource())
+		action->setEnabled(!action->dataSource()->hasContactSelected());
+
 	bool on = false;
 	foreach (const Buddy &buddy, buddies)
 		if (buddy.isBlocked())
@@ -193,6 +196,7 @@ ChatWidgetActions::~ChatWidgetActions()
 void ChatWidgetActions::configurationUpdated()
 {
 	autoSendActionCheck();
+	insertEmoticonsActionCheck();
 }
 
 void ChatWidgetActions::autoSendActionCreated(Action *action)
@@ -224,11 +228,27 @@ void ChatWidgetActions::sendActionCreated(Action *action)
 
 void ChatWidgetActions::insertEmoticonActionCreated(Action *action)
 {
-	if ((EmoticonsStyle)config_file.readNumEntry("Chat","EmoticonsStyle") == EmoticonsStyleNone)
+	if (config_file.readEntry("Chat","EmoticonsTheme").isEmpty())
 	{
 		action->setToolTip(tr("Insert emoticon - enable in configuration"));
 		action->setEnabled(false);
 	}
+}
+
+void ChatWidgetActions::insertEmoticonsActionCheck()
+{
+	if (config_file.readEntry("Chat","EmoticonsTheme").isEmpty())
+		foreach (Action *action, InsertEmoticon->actions())
+		{
+			action->setToolTip(tr("Insert emoticon - enable in configuration"));
+			action->setEnabled(false);
+		}
+	else
+		foreach (Action *action, InsertEmoticon->actions())
+		{
+			action->setToolTip(tr("Insert Emoticon"));
+			action->setEnabled(true);
+		}
 }
 
 void ChatWidgetActions::autoSendActionCheck()

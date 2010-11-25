@@ -12,9 +12,12 @@ set (kadu_SRCS
 	accounts/model/accounts-model.cpp
 	accounts/model/accounts-proxy-model.cpp
 
-	buddies/avatar.cpp
-	buddies/avatar-manager.cpp
-	buddies/avatar-shared.cpp
+	avatars/avatar.cpp
+	avatars/avatar-job-manager.cpp
+	avatars/avatar-job-runner.cpp
+	avatars/avatar-manager.cpp
+	avatars/avatar-shared.cpp
+
 	buddies/buddies-aware-object.cpp
 	buddies/buddy.cpp
 	buddies/buddy-additional-data-delete-handler.cpp
@@ -24,6 +27,7 @@ set (kadu_SRCS
 	buddies/buddy-list-configuration-helper.cpp
 	buddies/buddy-list-mime-data-helper.cpp
 	buddies/buddy-manager.cpp
+	buddies/buddy-or-contact.cpp
 	buddies/buddy-preferred-manager.cpp
 	buddies/buddy-remove-predicate-object.cpp
 	buddies/buddy-search-criteria.cpp
@@ -55,7 +59,7 @@ set (kadu_SRCS
 	buddies/model/buddies-model-proxy.cpp
 	buddies/model/groups-model.cpp
 
-	chat/aggregate-chat-builder.cpp
+	chat/aggregate-chat-manager.cpp
 	chat/chat.cpp
 	chat/chat-details-aggregate.cpp
 	chat/chat-details-conference.cpp
@@ -143,7 +147,6 @@ set (kadu_SRCS
 	gui/widgets/buddies-list-view-item-painter.cpp
 	gui/widgets/buddies-list-view-menu-item.cpp
 	gui/widgets/buddies-list-view-menu-manager.cpp
-	gui/widgets/buddies-list-view-selection-item.cpp
 	gui/widgets/buddies-list-widget.cpp
 	gui/widgets/buddy-avatar-widget.cpp
 	gui/widgets/buddy-contacts-table-delegate.cpp
@@ -158,6 +161,7 @@ set (kadu_SRCS
 	gui/widgets/buddy-info-panel.cpp
 	gui/widgets/chat-edit-box.cpp
 	gui/widgets/chat-messages-view.cpp
+	gui/widgets/chat-view-network-access-manager.cpp
 	gui/widgets/chat-widget.cpp
 	gui/widgets/chat-widget-actions.cpp
 	gui/widgets/chat-widget-manager.cpp
@@ -285,6 +289,7 @@ set (kadu_SRCS
 	parser/parser.cpp
 
 	protocols/connection-error-notification.cpp
+	protocols/invalid-password-notification.cpp
 	protocols/protocol.cpp
 	protocols/protocol-menu-manager.cpp
 	protocols/protocols-aware-object.cpp
@@ -293,6 +298,7 @@ set (kadu_SRCS
 	protocols/model/protocols-model.cpp
 	protocols/model/protocols-model-proxy.cpp
 	protocols/services/chat-service.cpp
+	protocols/services/chat-image-service.cpp
 	protocols/services/contact-list-service.cpp
 
 	qt/long-validator.cpp
@@ -366,8 +372,11 @@ set (kadu_MOC_SRCS
 	accounts/model/accounts-model.h
 	accounts/model/accounts-proxy-model.h
 
-	buddies/avatar-manager.h
-	buddies/avatar-shared.h
+	avatars/avatar-job-manager.h
+	avatars/avatar-job-runner.h
+	avatars/avatar-manager.h
+	avatars/avatar-shared.h
+
 	buddies/buddy-additional-data-delete-handler-manager.h
 	buddies/buddy-shared.h
 	buddies/buddy-manager.h
@@ -401,6 +410,7 @@ set (kadu_MOC_SRCS
 	chat/chat-details-conference.h
 	chat/chat-details-simple.h
 
+	chat/aggregate-chat-manager.h
 	chat/chat-manager.h
 	chat/chat-shared.h
 	chat/chat-styles-manager.h
@@ -459,6 +469,7 @@ set (kadu_MOC_SRCS
 	gui/widgets/account-add-widget.h
 	gui/widgets/account-avatar-widget.h
 	gui/widgets/account-buddy-list-widget.h
+	gui/widgets/account-create-widget.h
 	gui/widgets/account-edit-widget.h
 	gui/widgets/accounts-combo-box.h
 	gui/widgets/buddies-list-view.h
@@ -478,6 +489,7 @@ set (kadu_MOC_SRCS
 	gui/widgets/buddy-info-panel.h
 	gui/widgets/chat-edit-box.h
 	gui/widgets/chat-messages-view.h
+	gui/widgets/chat-view-network-access-manager.h
 	gui/widgets/chat-widget.h
 	gui/widgets/chat-widget-actions.h
 	gui/widgets/chat-widget-manager.h
@@ -590,6 +602,7 @@ set (kadu_MOC_SRCS
 	os/qtsingleapplication/qtlocalpeer.h
 
 	protocols/connection-error-notification.h
+	protocols/invalid-password-notification.h
 	protocols/protocol.h
 	protocols/protocol-factory.h
 	protocols/protocols-manager.h

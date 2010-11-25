@@ -17,39 +17,45 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef BUDDIES_LIST_VIEW_SELECTION_ITEM_H
-#define BUDDIES_LIST_VIEW_SELECTION_ITEM_H
+#ifndef BUDDY_OR_CONTACT_H
+#define BUDDY_OR_CONTACT_H
 
 #include "buddies/buddy.h"
 #include "contacts/contact.h"
+#include "exports.h"
 
-class BuddiesListViewSelectionItem
+class KADUAPI BuddyOrContact
 {
 public:
-	enum SelectedItemType
+	enum ItemType
 	{
-		SelectedItemNone,
-		SelectedItemBuddy,
-		SelectedItemContact
+		ItemNone,
+		ItemBuddy,
+		ItemContact
 	};
 
 private:
-	SelectedItemType SelectedItem;
-	Buddy SelectedBuddy;
-	Contact SelectedContact;
+	ItemType Type;
+	Buddy MyBuddy;
+	Contact MyContact;
 
 public:
-	BuddiesListViewSelectionItem();
-	BuddiesListViewSelectionItem(SelectedItemType selectedItem, Buddy selectedBuddy, Contact selectedContact);
-	BuddiesListViewSelectionItem(const BuddiesListViewSelectionItem& copyMe);
+	BuddyOrContact();
+	BuddyOrContact(Buddy buddy);
+	BuddyOrContact(Contact contact);
+	BuddyOrContact(const BuddyOrContact& copyMe);
 
-	BuddiesListViewSelectionItem & operator = (const BuddiesListViewSelectionItem &copyMe);
+	BuddyOrContact & operator = (Buddy buddy);
+	BuddyOrContact & operator = (Contact contact);
+	BuddyOrContact & operator = (const BuddyOrContact &copyMe);
 
-	SelectedItemType selectedItem() { return SelectedItem; }
-	Buddy selectedBuddy() { return SelectedBuddy; }
-	Contact selectedContact() { return SelectedContact; }
+	bool operator == (const BuddyOrContact &compareTo) const;
+	bool operator != (const BuddyOrContact &compareTo) const;
+
+	ItemType type() { return Type; }
+	Buddy buddy() { return MyBuddy; }
+	Contact contact() { return MyContact; }
 
 };
 
-#endif // BUDDIES_LIST_VIEW_SELECTION_ITEM_H
-
+#endif // BUDDY_OR_CONTACT_H

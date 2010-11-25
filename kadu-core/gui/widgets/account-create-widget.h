@@ -1,8 +1,6 @@
 /*
  * %kadu copyright begin%
- * Copyright 2009, 2009 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2009, 2010 Piotr Galiszewski (piotrgaliszewski@gmail.com)
+ * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -19,37 +17,26 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef AGGREGATE_CHAT_BUILDER_H
-#define AGGREGATE_CHAT_BUILDER_H
+#ifndef ACCOUNT_CREATE_WIDGET_H
+#define ACCOUNT_CREATE_WIDGET_H
 
-#include <QtCore/QObject>
+#include "accounts/account.h"
+#include "gui/widgets/modal-configuration-widget.h"
 
 #include "exports.h"
 
-class BuddySet;
-class Chat;
-
-/**
- * @addtogroup Chat
- * @{
- */
-
-/**
- * @class AggregateChatBuilder
- * @short Makes chat object that aggregates all chats for given buddy set.
- *
- * Class contains one static method that makes chat object that
- * aggregates all chats for given buddy set.
- */
-class KADUAPI AggregateChatBuilder
+class KADUAPI AccountCreateWidget : public ModalConfigurationWidget
 {
+	Q_OBJECT
+
 public:
-	static Chat buildAggregateChat(BuddySet buddies);
+	explicit AccountCreateWidget(QWidget *parent = 0) : ModalConfigurationWidget(parent) {}
+	virtual ~AccountCreateWidget() {}
+
+signals:
+	void accountCreated(Account account);
+	void cancelled();
 
 };
 
-/**
- * @}
- */
-
-#endif // AGGREGATE_CHAT_BUILDER_H
+#endif // ACCOUNT_CREATE_WIDGET_H

@@ -88,13 +88,17 @@ void checkBuddyProperties(Action *action)
 {
 	kdebugf();
 
-	if (!action->contact().isNull() && action->contact().ownerBuddy().isAnonymous())
+	if (action->contact() && action->contact().ownerBuddy().isAnonymous())
 	{
+		action->setEnabled(true);
+
 		action->setIcon(IconsManager::instance()->iconByPath("contact-new"));
 		action->setText(qApp->translate("KaduWindowActions", "Add Buddy"));
 	}
 	else
 	{
+		action->setEnabled(action->contact());
+
 		action->setText(qApp->translate("KaduWindowActions", "View Buddy Properties"));
 		action->setIcon(IconsManager::instance()->iconByPath("x-office-address-book"));
 	}
@@ -160,6 +164,12 @@ void disableNoEMail(Action *action)
 
 	action->setEnabled(true);
 	kdebugf2();
+}
+
+void disableIfContactSelected(Action *action)
+{
+	if (action && action->dataSource())
+		action->setEnabled(!action->dataSource()->hasContactSelected());
 }
 
 KaduWindowActions::KaduWindowActions(QObject *parent) : QObject(parent)
@@ -352,7 +362,8 @@ KaduWindowActions::KaduWindowActions(QObject *parent) : QObject(parent)
 	MergeContact = new ActionDescription(this,
 		ActionDescription::TypeUser, "mergeContactAction",
 		this, SLOT(mergeContactActionActivated(QAction *, bool)),
-		"", "", tr("Merge Buddies...")
+		"", "", tr("Merge Buddies..."), false, QString::null,
+		disableIfContactSelected
 	);
 	BuddiesListViewMenuManager::instance()->addActionDescription(MergeContact, BuddiesListViewMenuItem::MenuCategoryManagement, 100);
 
@@ -361,7 +372,8 @@ KaduWindowActions::KaduWindowActions(QObject *parent) : QObject(parent)
 	DeleteUsers = new ActionDescription(this,
 		ActionDescription::TypeUser, "deleteUsersAction",
 		this, SLOT(deleteUsersActionActivated(QAction *, bool)),
-		"edit-delete", "edit-delete", tr("Delete Buddy...")
+		"edit-delete", "edit-delete", tr("Delete Buddy..."), false, QString::null,
+		disableIfContactSelected
 	);
 	DeleteUsers->setShortcut("kadu_deleteuser");
 	BuddiesListViewMenuManager::instance()->addActionDescription(DeleteUsers, BuddiesListViewMenuItem::MenuCategoryManagement, 1000);
@@ -461,11 +473,12 @@ void KaduWindowActions::onlineAndDescUsersActionCreated(Action *action)
 void KaduWindowActions::editUserActionCreated(Action *action)
 {
 	Buddy buddy = action->buddy();
-	if (buddy.isAnonymous())
+	if (buddy && buddy.isAnonymous())
 	{
 		action->setIcon(IconsManager::instance()->iconByPath("contact-new"));
 		action->setText(tr("Add Buddy"));
 	}
+	action->setEnabled(action->contact());
 }
 
 void KaduWindowActions::showStatusActionCreated(Action *action)
@@ -767,7 +780,7 @@ void KaduWindowActions::copyPersonalInfoActionActivated(QAction *sender, bool to
 	QStringList infoList;
 	QString copyPersonalDataSyntax = config_file.readEntry("General", "CopyPersonalDataSyntax", tr("Contact: %a[ (%u)]\n[First name: %f\n][Last name: %r\n][Mobile: %m\n]"));
 	foreach (Contact contact, contacts)
-		infoList.append(Parser::parse(copyPersonalDataSyntax, contact, false));
+		infoList.append(Parser::parse(copyPersonalDataSyntax, BuddyOrContact(contact), false));
 
 	QString info = infoList.join("\n");
 	if (info.isEmpty())

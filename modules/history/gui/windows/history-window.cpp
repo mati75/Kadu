@@ -40,11 +40,12 @@
 #include "chat/message/message.h"
 #include "chat/type/chat-type.h"
 #include "chat/type/chat-type-manager.h"
-#include "chat/aggregate-chat-builder.h"
+#include "chat/aggregate-chat-manager.h"
 #include "gui/actions/actions.h"
 #include "gui/widgets/buddies-list-view-menu-manager.h"
 #include "gui/widgets/chat-widget-manager.h"
 #include "gui/widgets/delayed-line-edit.h"
+#include "gui/widgets/filter-widget.h"
 #include "gui/windows/message-dialog.h"
 #include "misc/misc.h"
 #include "model/roles.h"
@@ -148,9 +149,9 @@ void HistoryWindow::createChatTree(QWidget *parent)
 	chatsWidget->setMinimumWidth(150);
 	QVBoxLayout *layout = new QVBoxLayout(chatsWidget);
 
-	QLineEdit *filterLineEdit = new QLineEdit(chatsWidget);
-	connect(filterLineEdit, SIGNAL(textChanged(const QString &)), this, SLOT(filterLineChanged(const QString &)));
-	layout->addWidget(filterLineEdit);
+	FilterWidget *filterWidget = new FilterWidget(chatsWidget);
+	connect(filterWidget, SIGNAL(textChanged(const QString &)), this, SLOT(filterLineChanged(const QString &)));
+	layout->addWidget(filterWidget);
 
 	ChatsTree = new QTreeView(parent);
 	ChatsTree->header()->hide();
@@ -176,7 +177,7 @@ void HistoryWindow::createFilterBar(QWidget *parent)
 	layout->setSpacing(0);
 	layout->setMargin(0);
 
-	QLabel *filterLabel = new QLabel(tr("Filter") + ": ", parent);
+	QLabel *filterLabel = new QLabel(tr("Search") + ": ", parent);
 	layout->addWidget(filterLabel, 0, 0, 1, 1);
 
 	DelayedLineEdit *searchLineEdit = new DelayedLineEdit(parent);
@@ -238,7 +239,7 @@ void HistoryWindow::updateData()
 	QModelIndex index = ChatsTree->selectionModel()->currentIndex();
 	HistoryTreeItem treeItem = index.data(HistoryItemRole).value<HistoryTreeItem>();
 
-	QList<Chat> usedChats;
+	QSet<Chat> usedChats;
 	QList<Chat> chatsList = History::instance()->chatsList(Search);
 	QList<Chat> result;
 
@@ -246,21 +247,21 @@ void HistoryWindow::updateData()
 	{
 		if (usedChats.contains(chat))
 			continue;
-		Chat aggregate = AggregateChatBuilder::buildAggregateChat(chat.contacts().toBuddySet());
+		Chat aggregate = AggregateChatManager::instance()->aggregateChat(chat);
 		if (aggregate)
 		{
 			ChatDetailsAggregate *details = dynamic_cast<ChatDetailsAggregate *>(aggregate.details());
 
 			if (details)
 				foreach (Chat usedChat, details->chats())
-					usedChats.append(usedChat);
+					usedChats.insert(usedChat);
 
 			result.append(aggregate);
 		}
 		else
 		{
 			result.append(chat);
-			usedChats.append(chat);
+			usedChats.insert(chat);
 		}
 	}
 
@@ -656,7 +657,7 @@ void HistoryWindow::show(Chat chat)
 		return;
 	}
 
-	Chat aggregate = AggregateChatBuilder::buildAggregateChat(chat.contacts().toBuddySet());
+	Chat aggregate = AggregateChatManager::instance()->aggregateChat(chat);
 	if (aggregate)
 		chat = aggregate;
 

@@ -36,7 +36,6 @@
 #include "status/status-type-manager.h"
 #include "url-handlers/url-handler-manager.h"
 
-#include "gui/windows/subscription-window.h"
 #include "resource/jabber-resource-pool.h"
 #include "utils/pep-manager.h"
 #include "utils/server-info-manager.h"
@@ -182,6 +181,7 @@ void JabberProtocol::initializeJabberClient()
 		   this, SLOT(clientResourceReceived(const XMPP::Jid &, const XMPP::Resource &)));
 
 	connect(JabberClient, SIGNAL(connectionError(QString)), this, SLOT(connectionErrorSlot(QString)));
+	connect(JabberClient, SIGNAL(invalidPassword()), this, SLOT(invalidPasswordSlot()));
 
 		/*//TODO: implement in the future
 		connect( JabberClient, SIGNAL ( groupChatJoined ( const XMPP::Jid & ) ),
@@ -210,6 +210,11 @@ void JabberProtocol::connectionErrorSlot(const QString& message)
 {
 	if (JabberClient && JabberClient->clientConnector())
 		emit connectionError(account(), JabberClient->clientConnector()->host(), message);
+}
+
+void JabberProtocol::invalidPasswordSlot()
+{
+	emit invalidPassword(account());
 }
 
 void JabberProtocol::connectToServer()
@@ -477,6 +482,9 @@ void JabberProtocol::addContactToRoster(Contact contact, bool requestAuth)
 
 	//TODO last parameter: automagic authorization request - make it configurable
 	JabberClient->addContact(contact.id(), buddy.display(), groupsList, requestAuth);
+
+	if (!contact.ownerBuddy().isOfflineTo())
+		CurrentSubscriptionService->authorizeContact(contact, true);
 }
 
 void JabberProtocol::contactAttached(Contact contact)

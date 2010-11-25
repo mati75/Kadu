@@ -46,8 +46,6 @@ Preview::~Preview()
 
 void Preview::syntaxChanged(const QString &content)
 {
-// 	viewport()->setUpdatesEnabled(false);
-
 	QString syntax = content;
 	emit needSyntaxFixup(syntax);
 
@@ -57,15 +55,15 @@ void Preview::syntaxChanged(const QString &content)
 	int count = objectsToParse.count();
 
 	if (count)
+	{
+		Contact contact = *contacts.constBegin();
 		for (int i = 0; i < count; i++)
-			text += Parser::parse(syntax, contacts.toContactList()[i], objectsToParse.at(i));
+			text += Parser::parse(syntax, BuddyOrContact(contact), objectsToParse.at(i));
+	}
 	else
-		text = Parser::parse(syntax, contact);
+		text = Parser::parse(syntax, BuddyOrContact(Buddy::dummy()));
 
 	emit needFixup(text);
 
 	setHtml(text);
-
-// 	viewport()->setUpdatesEnabled(true);
-// 	viewport()->repaint();
 }

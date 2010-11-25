@@ -235,8 +235,6 @@ public:
 
 	QTimer noopTimer;
 	int noop_time;
-
-	QTimer readyReadTimer;
 };
 
 ClientStream::ClientStream(Connector *conn, TLSHandler *tlsHandler, QObject *parent)
@@ -252,9 +250,6 @@ ClientStream::ClientStream(Connector *conn, TLSHandler *tlsHandler, QObject *par
 	connect(&d->noopTimer, SIGNAL(timeout()), SLOT(doNoop()));
 
 	d->tlsHandler = tlsHandler;
-
-	d->readyReadTimer.setSingleShot(true);
-	connect(&d->readyReadTimer, SIGNAL(timeout()), this, SLOT(doReadyRead()));
 }
 
 ClientStream::ClientStream(const QString &host, const QString &defRealm, ByteStream *bs, QCA::TLS *tls, QObject *parent)
@@ -286,23 +281,18 @@ ClientStream::ClientStream(const QString &host, const QString &defRealm, ByteStr
 	//d->state = Connecting;
 	//d->jid = Jid();
 	//d->server = QString();
-
-	d->readyReadTimer.setSingleShot(true);
-	connect(&d->readyReadTimer, SIGNAL(timeout()), this, SLOT(doReadyRead()));
 }
 
 ClientStream::~ClientStream()
 {
 	reset();
 	delete d;
-	d = 0;
 }
 
 void ClientStream::reset(bool all)
 {
 	d->reset();
 	d->noopTimer.stop();
-	d->readyReadTimer.stop();
 
 	// delete securestream
 	delete d->ss;
@@ -962,7 +952,7 @@ void ClientStream::processNext()
 			//if(!d->in_rrsig && !d->in.isEmpty()) {
 			if(!d->in.isEmpty()) {
 				//d->in_rrsig = true;
-				d->readyReadTimer.start(0);
+				QTimer::singleShot(0, this, SLOT(doReadyRead()));
 			}
 
 			if(cont)

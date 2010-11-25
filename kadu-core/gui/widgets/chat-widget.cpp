@@ -35,6 +35,8 @@
 #include "accounts/account.h"
 #include "accounts/account-manager.h"
 #include "buddies/model/buddy-list-model.h"
+#include "buddies/buddy.h"
+#include "buddies/buddy-shared.h"
 #include "buddies/buddy-set.h"
 #include "chat/chat-geometry-data.h"
 #include "chat/chat-manager.h"
@@ -69,7 +71,7 @@
 ChatWidget::ChatWidget(Chat chat, QWidget *parent) :
 		QWidget(parent), CurrentChat(chat),
 		BuddiesWidget(0), InputBox(0), horizSplit(0),
-		NewMessagesCount(0), SelectionFromMessagesView(true)
+		NewMessagesCount(0)
 {
 	kdebugf();
 
@@ -78,6 +80,13 @@ ChatWidget::ChatWidget(Chat chat, QWidget *parent) :
 
 	createGui();
 	configurationUpdated();
+
+	connect(CurrentChat.chatAccount(), SIGNAL(buddyStatusChanged(Contact, Status)),
+			this, SLOT(refreshTitle()));
+
+	foreach (Contact contact, chat.contacts())
+		connect(contact.ownerBuddy(), SIGNAL(updated()), this, SLOT(refreshTitle()));
+
 
 	kdebugf2();
 }
@@ -112,7 +121,6 @@ void ChatWidget::createGui()
 	horizSplit->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
 
 	MessagesView = new ChatMessagesView(CurrentChat);
-	connect(MessagesView, SIGNAL(selectionChanged()), this, SLOT(messagesViewSelectionChanged()));
 
 	QShortcut *shortcut = new QShortcut(QKeySequence(Qt::Key_Return + Qt::CTRL), this);
 	connect(shortcut, SIGNAL(activated()), this, SLOT(sendMessage()));
@@ -126,6 +134,7 @@ void ChatWidget::createGui()
 
 	// shit, createContactsList needs that
 	InputBox = new ChatEditBox(CurrentChat, this);
+	InputBox->setSizePolicy(QSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored));
 
 	if (CurrentChat.contacts().count() > 1)
 		createContactsList();
@@ -181,19 +190,16 @@ void ChatWidget::configurationUpdated()
 
 	InputBox->inputBox()->setFont(config_file.readFontEntry("Look","ChatFont"));
  	InputBox->inputBox()->setStyleSheet(QString("QTextEdit {background-color: %1}").arg(config_file.readColorEntry("Look", "ChatTextBgColor").name()));
+
+	refreshTitle();
 }
 
 bool ChatWidget::keyPressEventHandled(QKeyEvent *e)
 {
-	if (e->modifiers() == Qt::ControlModifier && (e->key() == 'c' || e->key() == 'C'))
+	if (e->modifiers() & Qt::ControlModifier && e->key() == Qt::Key_C)
 	{
-		if (SelectionFromMessagesView)
-		{
-			MessagesView->page()->action(QWebPage::Copy)->trigger();
-			return true;
-		}
-		else
-			return false;
+		MessagesView->page()->action(QWebPage::Copy)->trigger();
+		return true;
 	}
 
 	if (HotKey::shortCut(e,"ShortCuts", "chat_clear"))
@@ -223,11 +229,6 @@ bool ChatWidget::keyPressEventHandled(QKeyEvent *e)
 	return false;
 }
 
-QIcon ChatWidget::icon()
-{
-	return chat().icon();
-}
-
 void ChatWidget::keyPressEvent(QKeyEvent *e)
 {
 	kdebugf();
@@ -238,9 +239,56 @@ void ChatWidget::keyPressEvent(QKeyEvent *e)
 	kdebugf2();
 }
 
-QDateTime ChatWidget::lastMessageTime()
+void ChatWidget::refreshTitle()
 {
-	return LastMessageTime;
+	kdebugf();
+	QString title;
+
+	int contactsCount = chat().contacts().count();
+	kdebugmf(KDEBUG_FUNCTION_START, "chat().contacts().size() = %d\n", contactsCount);
+	if (contactsCount > 1)
+	{
+		title = config_file.readEntry("Look", "ConferencePrefix");
+		if (title.isEmpty())
+			title = tr("Conference with ");
+
+		QString conferenceContents = config_file.readEntry("Look", "ConferenceContents");
+		QStringList contactslist;
+		foreach (Contact contact, chat().contacts())
+			contactslist.append(Parser::parse(conferenceContents.isEmpty() ? "%a" : conferenceContents, BuddyOrContact(contact), false));
+
+		title.append(contactslist.join(", "));
+	}
+	else if (contactsCount == 1)
+	{
+		Contact contact = chat().contacts().toContact();
+
+		if (config_file.readEntry("Look", "ChatContents").isEmpty())
+		{
+			if (contact.ownerBuddy().isAnonymous())
+				title = Parser::parse(tr("Chat with ") + "%a", BuddyOrContact(contact), false);
+			else
+				title = Parser::parse(tr("Chat with ") + "%a (%s[: %d])", BuddyOrContact(contact), false);
+		}
+		else
+			title = Parser::parse(config_file.readEntry("Look", "ChatContents"), BuddyOrContact(contact), false);
+	}
+
+	title.replace("<br/>", " ");
+	title.replace("&nbsp;", " ");
+
+	setTitle(title);
+
+	kdebugf2();
+}
+
+void ChatWidget::setTitle(const QString &title)
+{
+	if (title != Title)
+	{
+		Title = title;
+		emit titleChanged(this, title);
+	}
 }
 
 void ChatWidget::appendMessages(const QList<MessageRenderInfo *> &messages, bool pending)
@@ -418,7 +466,7 @@ void ChatWidget::colorSelectorAboutToClose()
 	kdebugf2();
 }
 
-CustomInput * ChatWidget::edit()
+CustomInput * ChatWidget::edit() const
 {
 	return InputBox->inputBox();
 }
@@ -478,7 +526,7 @@ void ChatWidget::dropEvent(QDropEvent *e)
 	}
 }
 
-Protocol *ChatWidget::currentProtocol()
+Protocol *ChatWidget::currentProtocol() const
 {
 	return CurrentChat.chatAccount().protocolHandler();
 }
@@ -494,11 +542,6 @@ void ChatWidget::makeActive()
 void ChatWidget::markAllMessagesRead()
 {
 	NewMessagesCount = 0;
-}
-
-unsigned int ChatWidget::newMessagesCount() const
-{
-	return NewMessagesCount;
 }
 
 void ChatWidget::kaduRestoreGeometry()
@@ -532,10 +575,10 @@ void ChatWidget::kaduStoreGeometry()
 		return;
 
 	cgd->setWidgetVerticalSizes(vertSplit->sizes());
-	
+
 	if (horizSplit)
 		cgd->setWidgetHorizontalSizes(horizSplit->sizes());
-	
+
 	cgd->store();
 }
 
@@ -548,14 +591,4 @@ void ChatWidget::leaveConference()
 		CurrentChat.setIgnoreAllMessages(true);
 
 	emit closed();
-}
-
-void ChatWidget::messagesViewSelectionChanged()
-{
-	SelectionFromMessagesView = true;
-}
-
-void ChatWidget::editBoxSelectionChanged()
-{
-	SelectionFromMessagesView = false;
 }

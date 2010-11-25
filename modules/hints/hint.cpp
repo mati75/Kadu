@@ -163,7 +163,10 @@ void Hint::updateText()
 		kdebug("syntax is: %s, text is: %s\n", syntax.toAscii().data(), notification->text().toAscii().data());
 
 		if (CurrentChat)
-			text = Parser::parse(syntax, (*CurrentChat.contacts().begin()), notification);
+		{
+			Contact contact = *CurrentChat.contacts().begin();
+			text = Parser::parse(syntax, BuddyOrContact(contact), notification);
+		}
 		else
 			text = Parser::parse(syntax, notification);
 

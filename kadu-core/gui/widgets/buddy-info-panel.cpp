@@ -40,6 +40,9 @@
 
 BuddyInfoPanel::BuddyInfoPanel(QWidget *parent) : KaduWebView(parent)
 {
+	QWebSettings::setMaximumPagesInCache(0);
+	QWebSettings::setObjectCacheCapacities(0, 0, 0);
+
 	configurationUpdated();
 
 	connect(BuddyPreferredManager::instance(), SIGNAL(buddyUpdated(Buddy&)), this, SLOT(buddyUpdated(Buddy&)));
@@ -52,12 +55,14 @@ BuddyInfoPanel::~BuddyInfoPanel()
 
 void BuddyInfoPanel::configurationUpdated()
 {
+	EmoticonsManager::instance()->configurationUpdated();
+
 	update();
 }
 
 void BuddyInfoPanel::buddyUpdated(Buddy &buddy)
 {
-	if (buddy == SelectionItem.selectedBuddy())
+	if (buddy == Item.buddy())
 		update();
 }
 
@@ -114,7 +119,7 @@ void BuddyInfoPanel::update()
 		"<table><tr><td><img width=\"32\" height=\"32\" align=\"left\" valign=\"top\" src=\"file:///@{ManageUsersWindowIcon}\"></td><td> "
 		"<div align=\"left\"> [<b>%a</b>][ (%u)] [<br>tel.: %m][<br>IP: %i]</div></td></tr></table> <hr> <b>%s</b> [<br>%d]");
 	setHtml(QString("<body bgcolor=\"") + config_file.readEntry("Look", "InfoPanelBgColor") + "\"></body>");
-	displaySelectionItem(SelectionItem);
+	displayItem(Item);
 
 	if (config_file.readBoolEntry("Look", "PanelVerticalScrollbar"))
 		page()->mainFrame()->setScrollBarPolicy(Qt::Vertical, Qt::ScrollBarAsNeeded);
@@ -122,49 +127,55 @@ void BuddyInfoPanel::update()
 		page()->mainFrame()->setScrollBarPolicy(Qt::Vertical, Qt::ScrollBarAlwaysOff);
 }
 
-void BuddyInfoPanel::connectContact()
+void BuddyInfoPanel::connectItem()
 {
-	Contact MyContact = SelectionItem.selectedContact();
-	if (!MyContact)
-		return;
-
-	connect(MyContact, SIGNAL(updated()), this, SLOT(update()));
-	if (MyContact.ownerBuddy())
-		connect(MyContact.ownerBuddy(), SIGNAL(updated()), this, SLOT(update()));
-	if (MyContact.contactAvatar())
-		connect(MyContact.contactAvatar(), SIGNAL(updated()), this, SLOT(update()));
-}
-
-void BuddyInfoPanel::disconnectContact()
-{
-	Contact MyContact = SelectionItem.selectedContact();
-	if (!MyContact)
-		return;
-
-	disconnect(MyContact, SIGNAL(updated()), this, SLOT(update()));
-	if (MyContact.ownerBuddy())
-		disconnect(MyContact.ownerBuddy(), SIGNAL(updated()), this, SLOT(update()));
-	if (MyContact.contactAvatar())
-		disconnect(MyContact.contactAvatar(), SIGNAL(updated()), this, SLOT(update()));
-}
-
-void BuddyInfoPanel::displayContact(Contact contact)
-{
-	disconnectContact();
-	MyContact = contact;
-	connectContact();
-
-	if (!SelectionItem.selectedContact())
+	Buddy buddy = Item.buddy();
+	if (buddy)
 	{
-		setHtml(Template.arg(""));
-		return;
+		connect(buddy, SIGNAL(updated()), this, SLOT(update()));
+		if (buddy.buddyAvatar())
+			connect(buddy.buddyAvatar(), SIGNAL(updated()), this, SLOT(update()));
 	}
+
+	Contact contact = Item.contact();
+	if (contact)
+	{
+		connect(contact, SIGNAL(updated()), this, SLOT(update()));
+		if (contact.contactAvatar())
+			connect(contact.contactAvatar(), SIGNAL(updated()), this, SLOT(update()));
+	}
+}
+
+void BuddyInfoPanel::disconnectItem()
+{
+	Buddy buddy = Item.buddy();
+	if (buddy)
+	{
+		disconnect(buddy, SIGNAL(updated()), this, SLOT(update()));
+		if (buddy.buddyAvatar())
+			disconnect(buddy.buddyAvatar(), SIGNAL(updated()), this, SLOT(update()));
+	}
+
+	Contact contact = Item.contact();
+	if (contact)
+	{
+		disconnect(contact, SIGNAL(updated()), this, SLOT(update()));
+		if (contact.contactAvatar())
+			disconnect(contact.contactAvatar(), SIGNAL(updated()), this, SLOT(update()));
+	}
+}
+
+void BuddyInfoPanel::displayItem(BuddyOrContact item)
+{
+	disconnectItem();
+	Item = item;
+	connectItem();
 
 	if (!isVisible())
 		return;
 
 	HtmlDocument doc;
-	doc.parseHtml(Parser::parse(Syntax, MyContact));
+	doc.parseHtml(Parser::parse(Syntax, item));
 	UrlHandlerManager::instance()->convertAllUrls(doc);
 
 	if (EmoticonsStyleNone != (EmoticonsStyle)config_file.readNumEntry("Chat", "EmoticonsStyle") &&
@@ -175,22 +186,12 @@ void BuddyInfoPanel::displayContact(Contact contact)
 	setHtml(Template.arg(doc.generateHtml()));
 }
 
-void BuddyInfoPanel::displaySelectionItem(BuddiesListViewSelectionItem selectionItem)
-{
-	SelectionItem = selectionItem;
-
-	if (selectionItem.selectedItem() == BuddiesListViewSelectionItem::SelectedItemBuddy)
-		displayContact(BuddyPreferredManager::instance()->preferredContact(selectionItem.selectedBuddy()));
-	else
-		displayContact(selectionItem.selectedContact());
-}
-
 void BuddyInfoPanel::setVisible(bool visible)
 {
 	QWidget::setVisible(visible);
 
 	if (visible)
-		displaySelectionItem(SelectionItem);
+		displayItem(Item);
 }
 
 void BuddyInfoPanel::styleFixup(QString &syntax)

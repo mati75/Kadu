@@ -190,6 +190,19 @@ BuddySet BuddiesListView::selectedBuddies() const
 	return result;
 }
 
+BuddyOrContact BuddiesListView::buddyOrContactAt(const QModelIndex &index) const
+{
+	switch (index.data(ItemTypeRole).toInt())
+	{
+		case BuddyRole:
+			return buddyAt(index);
+		case ContactRole:
+			return contactAt(index);
+	}
+
+	return BuddyOrContact();
+}
+
 Buddy BuddiesListView::buddyAt(const QModelIndex &index) const
 {
 	const AbstractBuddiesModel *model = dynamic_cast<const AbstractBuddiesModel *>(index.model());
@@ -355,19 +368,12 @@ void BuddiesListView::leaveEvent(QEvent *event)
 void BuddiesListView::mousePressEvent(QMouseEvent *event)
 {
 	toolTipHide();
-	if (!indexAt(event->pos()).isValid())
-	{
-		clearSelection();
-		setCurrentIndex(QModelIndex());
-		update();
-	}
 	QTreeView::mousePressEvent(event);
 }
 
 void BuddiesListView::mouseReleaseEvent(QMouseEvent *event)
 {
 	QTreeView::mouseReleaseEvent(event);
-	update();
 	toolTipRestart(event->pos());
 }
 
@@ -391,41 +397,18 @@ void BuddiesListView::currentChanged(const QModelIndex &current, const QModelInd
 
 	if (!current.isValid())
 	{
-		emit currentBuddyChanged(Buddy::null);
-		emit currentContactChanged(Contact::null);
-		emit currentChanged(BuddiesListViewSelectionItem(BuddiesListViewSelectionItem::SelectedItemNone, Buddy::null, Contact::null));
+		emit currentChanged(BuddyOrContact());
 		return;
 	}
 
-	Contact contact = contactAt(current);
-	Buddy buddy = contact.ownerBuddy();
-
-	if (contact)
-	{
-		if (buddy)
-			emit currentBuddyChanged(buddy);
-		emit currentContactChanged(contact);
-	}
-
-	BuddiesListViewSelectionItem::SelectedItemType itemType = BuddiesListViewSelectionItem::SelectedItemNone;
-	switch (current.data(ItemTypeRole).toInt())
-	{
-		case BuddyRole:
-			itemType = BuddiesListViewSelectionItem::SelectedItemBuddy;
-			break;
-		case ContactRole:
-			itemType = BuddiesListViewSelectionItem::SelectedItemContact;
-			break;
-	}
-
-	emit currentChanged(BuddiesListViewSelectionItem(itemType, buddy, contact));
+	BuddyOrContact buddyOrContact = buddyOrContactAt(current);
+	if (BuddyOrContact::ItemNone != buddyOrContact.type())
+		emit currentChanged(buddyOrContact);
 }
 
 void BuddiesListView::selectionChanged(const QItemSelection &selected, const QItemSelection &deselected)
 {
-	Q_UNUSED(selected)
-	Q_UNUSED(deselected)
-
+	QTreeView::selectionChanged(selected, deselected);
 	emit buddySelectionChanged();
 }
 
@@ -533,9 +516,9 @@ void BuddiesListView::updateBackground()
 
 void BuddiesListView::toolTipTimeout()
 {
-	if (!ToolTipContact.isNull())
+	if (BuddyOrContact::ItemNone != ToolTipItem.type())
 	{
-		ToolTipClassManager::instance()->showToolTip(QCursor::pos(), ToolTipContact);
+		ToolTipClassManager::instance()->showToolTip(QCursor::pos(), ToolTipItem);
 		ToolTipTimeoutTimer.stop();
 	}
 }
@@ -544,18 +527,18 @@ void BuddiesListView::toolTipTimeout()
 
 void BuddiesListView::toolTipRestart(QPoint pos)
 {
-	Contact con = contactAt(indexAt(pos));
+	BuddyOrContact item = buddyOrContactAt(indexAt(pos));
 
-	if (!con.isNull())
+	if (BuddyOrContact::ItemNone != item.type())
 	{
-		if (con != ToolTipContact)
+		if (item != ToolTipItem)
 			toolTipHide();
-		ToolTipContact = con;
+		ToolTipItem = item;
 	}
 	else
 	{
 		toolTipHide();
-		ToolTipContact = Contact::null;
+		ToolTipItem = BuddyOrContact();
 	}
 
 	ToolTipTimeoutTimer.start(TOOL_TIP_TIMEOUT);
@@ -731,4 +714,14 @@ ContactSet BuddiesListView::contacts()
 Chat BuddiesListView::chat()
 {
 	return currentChat();
+}
+
+bool BuddiesListView::hasContactSelected()
+{
+	QModelIndexList selectionList = selectedIndexes();
+	foreach (QModelIndex selection, selectionList)
+		if (ContactRole == selection.data(ItemTypeRole).toInt())
+			return true;
+
+	return false;
 }

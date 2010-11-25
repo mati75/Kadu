@@ -19,39 +19,55 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "accounts/account-manager.h"
-#include "buddies/buddy-set.h"
-#include "buddies/buddy-shared.h"
-#include "protocols/protocol.h"
+#ifndef AGGREGATE_CHAT_MANAGER_H
+#define AGGREGATE_CHAT_MANAGER_H
 
-#include "chat/aggregate-chat-builder.h"
-#include "chat/chat-manager.h"
-#include "chat-details-aggregate.h"
+#include <QtCore/QMap>
+#include <QtCore/QObject>
+
+#include "chat/chat.h"
+#include "exports.h"
+
+class BuddySet;
 
 /**
- * @param buddies set of buddies
- * @short Makes chat object that aggregates all chats for given buddy set.
- * @return chat object that aggregates all chats for given buddy set
- *
- * This method will create and return new chat of 'Aggregate' type that
- * contains all chats (for different accounts) for given set of buddies.
+ * @addtogroup Chat
+ * @{
  */
-Chat AggregateChatBuilder::buildAggregateChat(BuddySet buddies)
+
+/**
+ * @class AggregateChatManager
+ * @short Makes chat object that aggregates all chats for given buddy set.
+ *
+ * Class contains one static method that makes chat object that
+ * aggregates all chats for given buddy set.
+ */
+class KADUAPI AggregateChatManager : public QObject
 {
-	QList<Chat> chats;
-	foreach (Chat chat, ChatManager::instance()->allItems())
-		if (chat.contacts().toBuddySet() == buddies)
-			chats.append(chat);
+	Q_OBJECT
+	Q_DISABLE_COPY(AggregateChatManager)
 
-	if (chats.size() <= 1)
-		return Chat::null;
+	static AggregateChatManager *Instance;
 
-	Chat result = Chat::create();
-	result.setType(chats[0].type());
+	QMap<BuddySet, QList<Chat> > AggregateChats;
 
-	ChatDetailsAggregate *details = new ChatDetailsAggregate(result);
-	details->setChats(chats);
-	result.setDetails(details);
+	AggregateChatManager();
+	~AggregateChatManager();
 
-	return result;
-}
+private slots:
+	void chatAdded(Chat chat);
+	void chatRemoved(Chat chat);
+
+public:
+	static AggregateChatManager * instance();
+
+	Chat aggregateChat(Chat chat);
+	Chat aggregateChat(BuddySet buddies);
+
+};
+
+/**
+ * @}
+ */
+
+#endif // AGGREGATE_CHAT_MANAGER_H

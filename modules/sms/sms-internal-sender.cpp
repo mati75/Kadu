@@ -2,6 +2,7 @@
  * %kadu copyright begin%
  * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -23,6 +24,7 @@
 #include <QtNetwork/QNetworkReply>
 #include <QtScript/QScriptEngine>
 
+#include "configuration/configuration-file.h"
 #include "gui/windows/message-dialog.h"
 #include "misc/token-reader.h"
 #include "debug.h"
@@ -47,7 +49,6 @@ void SmsInternalSender::sendMessage(const QString &message)
 
 	if (!validateNumber())
 	{
-		MessageDialog::show("dialog-warning", tr("Kadu"), tr("Mobile number is incorrect"), QMessageBox::Ok, (QWidget*)parent());
 		emit finished(tr("Mobile number is incorrect"));
 		kdebugf2();
 		return;
@@ -55,7 +56,6 @@ void SmsInternalSender::sendMessage(const QString &message)
 
 	if (!validateSignature())
 	{
-		MessageDialog::show("dialog-warning", tr("Kadu"), tr("Signature can't be empty"), QMessageBox::Ok, (QWidget*)parent());
 		emit finished(tr("Signature can't be empty"));
 		kdebugf2();
 		return;
@@ -78,8 +78,6 @@ void SmsInternalSender::gatewayQueryDone(const QString &gatewayId)
 {
 	if (gatewayId.isEmpty())
 	{
-		MessageDialog::show("dialog-warning", tr("Kadu"),
-				tr("Automatic gateway selection is not available. Please select SMS gateway manually."), QMessageBox::Ok, (QWidget*)parent());
 		emit finished(tr("Automatic gateway selection is not available. Please select SMS gateway manually."));
 		kdebugf2();
 		return;
@@ -131,6 +129,11 @@ void SmsInternalSender::tokenRead(const QString &tokenValue)
 	TokenCallbackMethod.call(TokenCallbackObject, arguments);
 }
 
+QScriptValue SmsInternalSender::readFromConfiguration(const QString &group, const QString &name, const QString &defaultValue)
+{
+	return config_file.readEntry(group, name, defaultValue);
+}
+
 void SmsInternalSender::sendSms()
 {
 	emit gatewayAssigned(number(), GatewayId);
@@ -143,7 +146,6 @@ void SmsInternalSender::sendSms()
 	QScriptValueList arguments;
 	arguments.append(GatewayId);
 	arguments.append(number());
-	arguments.append(contact());
 	arguments.append(signature());
 	arguments.append(Message);
 	arguments.append(engine->newQObject(this));

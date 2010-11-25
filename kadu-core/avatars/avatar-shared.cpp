@@ -21,7 +21,7 @@
 #include <QtCore/QDir>
 #include <QtCore/QFile>
 
-#include "buddies/avatar-manager.h"
+#include "avatars/avatar-manager.h"
 #include "misc/misc.h"
 
 #include "avatar-shared.h"
@@ -46,6 +46,7 @@ AvatarShared::AvatarShared(QUuid uuid) :
 		Shared(uuid), AvatarContact(Contact::null)
 {
 	AvatarsDir = profilePath("avatars/");
+	FilePath = AvatarsDir + uuid.toString();
 }
 
 AvatarShared::~AvatarShared()
@@ -65,7 +66,18 @@ QString AvatarShared::storageNodeName()
 QString AvatarShared::filePath()
 {
 	ensureLoaded();
-	return AvatarsDir + uuid().toString();
+	return FilePath;
+}
+
+void AvatarShared::setFilePath(const QString& filePath)
+{
+	if (FilePath != filePath)
+	{
+		FilePath = filePath;
+		Pixmap.load(filePath);
+		emitUpdated();
+		emit pixmapUpdated();
+	}
 }
 
 void AvatarShared::load()
@@ -75,6 +87,7 @@ void AvatarShared::load()
 
 	Shared::load();
 
+	FilePath = AvatarsDir + uuid().toString();
 	LastUpdated = loadValue<QDateTime>("LastUpdated");
 	NextUpdate = loadValue<QDateTime>("NextUpdate");
 	Pixmap.load(filePath());
@@ -91,6 +104,15 @@ void AvatarShared::store()
 
 	storeValue("LastUpdated", LastUpdated);
 	storeValue("NextUpdate", NextUpdate);
+
+	QDir avatarsDir(profilePath("avatars"));
+	if (!avatarsDir.exists())
+		avatarsDir.mkpath(profilePath("avatars"));
+
+	if (Pixmap.isNull())
+		QFile::remove(filePath());
+	else
+		Pixmap.save(filePath(), "PNG");
 }
 
 bool AvatarShared::shouldStore()
@@ -117,17 +139,9 @@ bool AvatarShared::isEmpty()
 
 void AvatarShared::setPixmap(QPixmap pixmap)
 {
-	QDir avatarsDir(profilePath("avatars"));
-	if (!avatarsDir.exists())
-		avatarsDir.mkpath(profilePath("avatars"));
-
 	Pixmap = pixmap;
 	dataUpdated();
-
-	if (pixmap.isNull())
-		QFile::remove(filePath());
-	else
-		pixmap.save(filePath(), "PNG");
+	emit pixmapUpdated();
 }
 
 void AvatarShared::emitUpdated()

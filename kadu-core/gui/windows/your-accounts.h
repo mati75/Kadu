@@ -38,6 +38,7 @@ class QStackedWidget;
 class QVBoxLayout;
 
 class AccountAddWidget;
+class AccountCreateWidget;
 class AccountEditWidget;
 class AccountsModel;
 class CanRegisterProtocolFilter;
@@ -65,10 +66,19 @@ class KADUAPI YourAccounts : public QWidget, AccountsAwareObject
 	ModalConfigurationWidget *CurrentWidget;
 	bool IsCurrentWidgetEditAccount;
 
+	/*
+	 * This is necessary to prevent infinite recursion when checking
+	 * if we can safely change widget. Blocking signals doesn't work
+	 * as expected, because for instance ProtocolsComboBox really wants
+	 * to have signals enabled when we set currentProtocol to 0 in
+	 * resetProtocol().
+	 */
+	bool ForceWidgetChange;
+
 	ProtocolsComboBox *Protocols;
 	QWidget *CreateAddAccountContainer;
 
-	QMap<ProtocolFactory *, QWidget *> CreateWidgets;
+	QMap<ProtocolFactory *, AccountCreateWidget *> CreateWidgets;
 	QMap<ProtocolFactory *, AccountAddWidget *> AddWidgets;
 	QMap<Account, AccountEditWidget *> EditWidgets;
 
@@ -80,7 +90,7 @@ class KADUAPI YourAccounts : public QWidget, AccountsAwareObject
 	void createAccountWidget();
 	void createEditAccountWidget();
 
-	QWidget * getAccountCreateWidget(ProtocolFactory *protocol);
+	AccountCreateWidget * getAccountCreateWidget(ProtocolFactory *protocol);
 	AccountAddWidget * getAccountAddWidget(ProtocolFactory *protocol);
 	AccountEditWidget * getAccountEditWidget(Account account);
 

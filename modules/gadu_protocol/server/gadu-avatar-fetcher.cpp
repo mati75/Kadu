@@ -28,9 +28,9 @@
 #include <QtXml/QDomDocument>
 
 #include "accounts/account.h"
-#include "buddies/avatar.h"
-#include "buddies/avatar-manager.h"
-#include "buddies/avatar-shared.h"
+#include "avatars/avatar.h"
+#include "avatars/avatar-manager.h"
+#include "avatars/avatar-shared.h"
 #include "misc/path-conversion.h"
 
 #include "server/gadu-avatar-data-parser.h"
@@ -42,14 +42,14 @@ GaduAvatarFetcher::GaduAvatarFetcher(Contact contact, QObject *parent) :
 {
 }
 
-void GaduAvatarFetcher::done(const QByteArray &avatar)
+void GaduAvatarFetcher::done()
 {
-	emit avatarFetched(MyContact, true, avatar);
+	emit avatarFetched(MyContact, true);
 }
 
 void GaduAvatarFetcher::failed()
 {
-	emit avatarFetched(MyContact, false, QByteArray());
+	emit avatarFetched(MyContact, false);
 }
 
 void GaduAvatarFetcher::fetchAvatar()
@@ -83,15 +83,18 @@ void GaduAvatarFetcher::requestFinished(int id, bool error)
 	if (parser.isBlank())
 	{
 		// clear avatar data
-		done(QByteArray());
+		Avatar contactAvatar = AvatarManager::instance()->byContact(MyContact, ActionReturnNull);
+		if (contactAvatar)
+			contactAvatar.setPixmap(QPixmap());
+		
+		done();
 		deleteLater();
 		return;
 	}
 
-	if (MyContact.contactAvatar().isNull())
-		MyContact.setContactAvatar(Avatar::create());
+	Avatar contactAvatar = AvatarManager::instance()->byContact(MyContact, ActionCreateAndAdd);
 
-	if (MyContact.contactAvatar().lastUpdated() == parser.timestamp())
+	if (contactAvatar.lastUpdated() == parser.timestamp())
 	{
 		// only if we have file too
 		if (!MyContact.contactAvatar().pixmap().isNull())
@@ -104,10 +107,8 @@ void GaduAvatarFetcher::requestFinished(int id, bool error)
 		}
 	}
 
-	MyContact.contactAvatar().setNextUpdate(QDateTime::fromTime_t(QDateTime::currentDateTime().toTime_t() + parser.delay()));
-
-	MyContact.contactAvatar().setLastUpdated(parser.timestamp());
-	AvatarManager::instance()->addItem(MyContact.contactAvatar());
+	contactAvatar.setNextUpdate(QDateTime::fromTime_t(QDateTime::currentDateTime().toTime_t() + parser.delay()));
+	contactAvatar.setLastUpdated(parser.timestamp());
 
 	QUrl url = parser.avatarUrl();
 
@@ -123,7 +124,13 @@ void GaduAvatarFetcher::avatarDownloaded(int id, bool error)
 	Q_UNUSED(id)
 	Q_UNUSED(error)
 
-	done(AvatarBuffer.buffer());
+	QPixmap pixmap;
+	if (!AvatarBuffer.buffer().isEmpty())
+		pixmap.loadFromData(AvatarBuffer.buffer());
+
+	AvatarManager::instance()->byContact(MyContact, ActionCreateAndAdd).setPixmap(pixmap);
+
+	done();
 
 	deleteLater();
 }
