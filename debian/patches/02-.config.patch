@@ -1,10 +1,10 @@
 diff --git a/.config b/.config
-index f7086e7..c240515 100644
+index 59ce48a..3590f6c 100644
 --- a/.config
 +++ b/.config
 @@ -90,7 +90,7 @@ module_growl_notify=n
  # PL: Powiadamianie przy pomocy PC-Speakera
- # Platform: Linux
+ # Platform: Linux, Mac OS X, Windows
  # Needs: libX11
 -module_pcspeaker=n
 +module_pcspeaker=m
@@ -71,7 +71,12 @@ index f7086e7..c240515 100644
  
  # Description: Automatic lookup of an interlocutor in public directory
  # PL: Automatyczne wyszukiwanie nieznajomych rozmówców w publicznym katalogu
-@@ -374,7 +374,7 @@ module_globalhotkeys=n
+@@ -370,11 +370,11 @@ module_powerkadu=n
+ # Description: Adds global hotkeys support to Kadu
+ # PL: Dodaje do Kadu obsługę skrótów globalnych
+ # Platform: Linux
+-module_globalhotkeys=n
++module_globalhotkeys=m
  
  # Description: Adds history of sent messages to chat windows
  # PL: Dodaje historię wysłanych wiadomości do okien rozmowy
@@ -152,18 +157,18 @@ index f7086e7..c240515 100644
 -icons_kadu05=n
 +icons_kadu05=y
  
- # Description: Glass 16x16 icons made by Mariusz Waluga
- icons_glass16=n
-@@ -504,7 +504,7 @@ icons_glass22=n
- icons_tango16=n
+ # Description: Glass icon theme made by Mariusz Waluga
+ icons_glass=y
+@@ -501,7 +501,7 @@ icons_glass=y
+ icons_tango=n
  
- # Description: Oxygen 16x16 icons maintained by Piotr Pelzowski
--icons_oxygen16=n
-+icons_oxygen16=y
+ # Description: Oxygen icon theme made by Piotr Pelzowski
+-icons_oxygen=n
++icons_oxygen=y
  
  ########################################### EMOTICONS #########################################################################
  # PL: ##################################### EMOTIKONY #########################################################################
-@@ -528,7 +528,7 @@ emoticons_tango=y
+@@ -525,7 +525,7 @@ emoticons_tango=y
  
  # Description: Old Gadu-Gadu 6.x emoticons
  # PL: Kompatybilne ze starą wersją Gadu-Gadu 6.x
@@ -172,7 +177,7 @@ index f7086e7..c240515 100644
  
  ########################################### SOUNDS ############################################################################
  # PL: ##################################### DŹWIĘKI ###########################################################################
-@@ -546,14 +546,14 @@ emoticons_gg6_compatible=n
+@@ -543,14 +543,14 @@ emoticons_gg6_compatible=n
  # PL: Standardowy zestaw dźwięków dostępny razem ze źródłami Kadu
  sound_default=y
  
