@@ -101,6 +101,7 @@ debian/tmp/usr/share/kadu/modules/translations/speech*
 debian/tmp/usr/share/kadu/modules/translations/spellchecker*
 debian/tmp/usr/share/kadu/modules/translations/sql_history*
 debian/tmp/usr/share/kadu/modules/translations/word_fix*
+debian/tmp/usr/share/kadu/syntax
 debian/tmp/usr/share/kadu/themes/emoticons/penguins
 debian/tmp/usr/share/kadu/themes/icons/default
 debian/tmp/usr/share/kadu/themes/sounds/default

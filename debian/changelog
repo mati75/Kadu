@@ -2,6 +2,7 @@ kadu (0.6.6-beta11-1) experimental; urgency=low
 
   * New upstream release
   * Removed oxygen16 in favor of oxygen icon theme
+  * Moved usr/share/kadu/syntax from kadu-external-modules to kadu-common
 
  -- Patryk Cisek <patryk@debian.org>  Thu, 25 Nov 2010 07:56:43 +0100
 
