@@ -10,4 +10,4 @@ STRING(REPLACE "-Werror" "" CMAKE_C_FLAGS ${CMAKE_C_FLAGS})
 
 add_executable(mimetex ${SOURCES})
 target_link_libraries(mimetex m)
-install (TARGETS mimetex DESTINATION lib/kadu/modules/bin/mime_tex)
+install (TARGETS mimetex DESTINATION lib${LIB_SUFFIX}/kadu/modules/bin/mime_tex)

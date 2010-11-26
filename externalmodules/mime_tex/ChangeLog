@@ -1,3 +1,8 @@
+2010-11-25  Patryk Cisek  <patryk@debian.org>
+	
+	* Poprawiona instalacja modułu na niektórych 64-bitowych systemach
+	  (autorem poprawki jest Mariusz Fik <fisiu@opensuse.org>)
+
 2010-10-29  Patryk Cisek  <patryk@debian.org>
 	
 	* Usunięty błąd kompilacji dla -CMAKE_BUILD_TYPE=Release
