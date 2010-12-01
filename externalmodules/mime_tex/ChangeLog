@@ -1,0 +1,79 @@
+2010-11-25  Patryk Cisek  <patryk@debian.org>
+	
+	* Poprawiona instalacja modułu na niektórych 64-bitowych systemach
+	  (autorem poprawki jest Mariusz Fik <fisiu@opensuse.org>)
+
+2010-10-29  Patryk Cisek  <patryk@debian.org>
+	
+	* Usunięty błąd kompilacji dla -CMAKE_BUILD_TYPE=Release
+
+2010-10-28  Patryk Cisek  <patryk@debian.org>
+	
+	* Moduł przystosowany do 0.6.6
+
+2009-02-22  Patryk Cisek  <patryk@prezu.one.pl>
+
+	* Dodane brakujące tłumaczenia
+
+2009-02-17  Patryk Cisek  <patryk@prezu.one.pl>
+
+	* Dodana brakująca ikona w config dialogu
+
+2008-09-11  Patryk Cisek  <patryk@prezu.one.pl>
+
+	* Moduł przystosowany do Kadu 0.6.5-svn i Qt4
+
+2008-04-08  Patryk Cisek  <patryk@prezu.one.pl>
+
+	* Poprawiony ortograf
+
+2008-02-01  Patryk Cisek  <patryk@prezu.one.pl>
+
+	* Dodany plik COPYRIGHT
+
+2008-01-20  Patryk Cisek  <patryk@prezu.one.pl>
+
+	* Dodane ikony do przyciskĂw "Undo" i "Redo" edytora
+	  autorstwa Agnieszki Cichej <aga@prezu.one.pl>
+
+2007-12-30  Patryk Cisek  <patryk@prezu.one.pl>
+
+	* Dodane przyciski 'Undo" i "Redo" do edytora formul
+	* Usuniety segfault wystepujacy, gdy Kadu zostaje zakonczone,
+	  istnieje przynajmniej jedno otware okno edytora formul. Ponadto
+	  mozna teraz wypadowac modul gdy sa otwarte okna edytora. Po prostu
+	  zostana one wczesniej zamkniete.
+
+2007-12-25  Patryk Cisek  <patryk@prezu.one.pl>
+
+	* Dostosowanie do nowego API
+	* Stworzenie przestrzeni nazw MimeTeX dla modułu
+
+2007-07-12  Patryk Cisek  <patryk@prezu.one.pl>
+
+	* moduł dostosowany do nowego API config dialoga
+
+--- 12.04.2007 Patryk Cisek <patryk@prezu.one.pl> ---
+* Brak konfliktu z PowerKadu (z PK MimeTeX usunięty)
+
+--- 05.04.2007 Patryk Cisek <patryk@prezu.one.pl> ---
+* Formula view is now QScrollView subclass
+
+--- 04.04.2007 Patryk Cisek <patryk@prezu.one.pl> ---
+* Polish translation
+* Bugfix: Now cannot unload the module until all formula editor dialogs
+  are closed, which caused segfault
+* Corrected resizing of al image when it gets to big
+
+--- 04.04.2007 Patryk Cisek <patryk@prezu.one.pl> ---
+* Added default font size to config dialog
+* Added "Use transparent background" to config dialog
+* Now module cannot be unloaded when the the config dialog is opened
+
+--- 04.04.2007 Patryk Cisek <patryk@prezu.one.pl> ---
+* Bugfix: All references to PowerKadu module have been changed to point to
+          MimeTeX
+
+--- 03.04.2007 Patryk Cisek <patryk@prezu.one.pl> ---
+* First release
+
