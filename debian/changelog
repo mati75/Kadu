@@ -1,3 +1,9 @@
+kadu (0.6.6-beta11-2) experimental; urgency=low
+
+  * Added libfirewall.so to kadu.install.noalsa
+
+ -- Patryk Cisek <patryk@debian.org>  Wed, 01 Dec 2010 09:11:32 +0100
+
 kadu (0.6.6-beta11-1) experimental; urgency=low
 
   * New upstream release

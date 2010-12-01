@@ -13,6 +13,7 @@ debian/tmp/usr/lib/kadu/modules/libdocking.so
 debian/tmp/usr/lib/kadu/modules/libexec_notify.so
 debian/tmp/usr/lib/kadu/modules/libext_sound.so
 debian/tmp/usr/lib/kadu/modules/libfiledesc.so
+debian/tmp/usr/lib/kadu/modules/libfirewall.so
 debian/tmp/usr/lib/kadu/modules/libgadu_protocol.so
 debian/tmp/usr/lib/kadu/modules/libhints.so
 debian/tmp/usr/lib/kadu/modules/libhistory.so
