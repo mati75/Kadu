@@ -20,15 +20,14 @@
  */
 
 #include "accounts/account.h"
-
 #include "buddies/buddy.h"
 #include "buddies/buddy-shared.h"
-
 #include "contacts/contact-manager.h"
-
 #include "debug.h"
 
 #include "jabber-contact-details.h"
+#include "jabber-id-validator.h"
+
 #include "jabber-open-chat-with-runner.h"
 
 JabberOpenChatWithRunner::JabberOpenChatWithRunner(Account account) :
@@ -41,19 +40,13 @@ BuddyList JabberOpenChatWithRunner::matchingContacts(const QString &query)
 	kdebugf();
 
 	BuddyList matchedContacts;
-	if (!validateUserID(query))
+	QString queryCopy(query);
+	int pos = 0;
+	if (JabberIdValidator::instance()->validate(queryCopy, pos) != QValidator::Acceptable)
 		return matchedContacts;
 
 	Contact contact = ContactManager::instance()->byId(ParentAccount, query, ActionCreate);
 	matchedContacts.append(contact.ownerBuddy());
 
 	return matchedContacts;
-}
-
-bool JabberOpenChatWithRunner::validateUserID(const QString &uid)
-{
-	Q_UNUSED(uid)
-	// TODO validate ID
-	//QString text = uid;
-	return true;
 }

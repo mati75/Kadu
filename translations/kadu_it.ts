@@ -876,8 +876,8 @@ E un rischio per la sicurezza!</translation>
         <translation>Visualizza/nascondi contatti senza descrizione</translation>
     </message>
     <message>
-        <source>New line / send message</source>
-        <translation>Nuova line / manda messaggio</translation>
+        <source>Send message</source>
+        <translation>Manda messaggio</translation>
     </message>
     <message>
         <source>Clear chat</source>
@@ -1981,8 +1981,10 @@ You can load (or unload) them by double-clicking on their names.</source>
 %2</translation>
     </message>
     <message>
-        <source>Module %1 cannot be deactivated because it is used now</source>
-        <translation>Modulo %1 non può essere disattivato perchè in uso</translation>
+        <source>Module %1 cannot be deactivated because it is used by:
+%2</source>
+        <translation>Modulo %1 non può essere disattivato perchè in uso per:
+%2</translation>
     </message>
     <message>
         <source>Module %1 conflicts with: %2</source>

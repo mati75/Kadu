@@ -52,7 +52,7 @@ BuddyShared * BuddyShared::loadFromStorage(const QSharedPointer<StoragePoint> &b
 }
 
 BuddyShared::BuddyShared(QUuid uuid) :
-		QObject(BuddyManager::instance()), Shared(uuid),
+		Shared(uuid),
 		BirthYear(0), Gender(GenderUnknown),
 		Anonymous(true), Blocked(false), OfflineTo(false)
 {
@@ -168,6 +168,7 @@ void BuddyShared::load()
 	Website = loadValue<QString>("Website");
 	Blocked = loadValue<bool>("Blocked", false);
 	OfflineTo = loadValue<bool>("OfflineTo", false);
+	Gender = (BuddyGender)loadValue<int>("Gender", 0);
 }
 
 void BuddyShared::store()
@@ -204,6 +205,7 @@ void BuddyShared::store()
 	storeValue("Anonymous", Anonymous);
 	storeValue("Blocked", Blocked);
 	storeValue("OfflineTo", OfflineTo);
+	storeValue("Gender", (int)Gender);
 
 	if (Groups.count())
 	{

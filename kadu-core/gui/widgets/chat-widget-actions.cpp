@@ -77,7 +77,7 @@ void checkBlocking(Action *action)
 {
 	BuddySet buddies = action->buddies();
 
-	if (buddies.contains(Core::instance()->myself()))
+	if (!buddies.count() || buddies.contains(Core::instance()->myself()))
 	{
 		action->setEnabled(false);
 		return;
@@ -101,7 +101,7 @@ ChatWidgetActions::ChatWidgetActions(QObject *parent) : QObject(parent)
 	AutoSend = new ActionDescription(0,
 		ActionDescription::TypeChat, "autoSendAction",
 		this, SLOT(autoSendActionActivated(QAction *, bool)),
-		"kadu_icons/kadu-enter", "kadu_icons/kadu-enter", tr("%1 Sends Message").arg(config_file.readEntry("ShortCuts", "chat_newline")), true
+		"kadu_icons/kadu-enter", "kadu_icons/kadu-enter", tr("%1 Sends Message").arg(config_file.readEntry("ShortCuts", "chat_send")), true
 	);
 	connect(AutoSend, SIGNAL(actionCreated(Action *)), this, SLOT(autoSendActionCreated(Action *)));
 

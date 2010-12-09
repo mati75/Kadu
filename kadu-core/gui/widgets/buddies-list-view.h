@@ -75,6 +75,7 @@ private:
 	void triggerActivate(const QModelIndex &index);
 
 	Chat chatForIndex(const QModelIndex &index) const;
+	Chat chatByPendingMessages(const QModelIndex &index) const;
 
 	// Tool tips
 	BuddyOrContact ToolTipItem;
@@ -113,7 +114,9 @@ protected slots:
 	virtual void selectionChanged( const QItemSelection &selected, const QItemSelection &deselected);
 
 public:
-	BuddiesListView(MainWindow *mainWindow, QWidget *parent = 0);
+	static bool shouldEventGoToFilter(QKeyEvent *event);
+
+	explicit BuddiesListView(MainWindow *mainWindow, QWidget *parent = 0);
 	virtual ~BuddiesListView();
 
 	virtual void setModel(AbstractBuddiesModel *model);

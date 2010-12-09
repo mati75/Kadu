@@ -878,8 +878,8 @@ Es ist ein Sicherheitsrisiko!</translation>
         <translation>Zeige/Verstecke Kontakte ohne Beschreibung</translation>
     </message>
     <message>
-        <source>New line / send message</source>
-        <translation>Neue Zeile / Nachricht senden</translation>
+        <source>Send message</source>
+        <translation>Nachricht senden</translation>
     </message>
     <message>
         <source>Clear chat</source>
@@ -2008,8 +2008,10 @@ Sie können diese aktivieren oder deaktivieren, indem Sie auf deren Namen doppel
 %2</translation>
     </message>
     <message>
-        <source>Module %1 cannot be deactivated because it is used now</source>
-        <translation>Modul %1 kann nicht deaktiviert werden, weil es gerade benutzt wird</translation>
+        <source>Module %1 cannot be deactivated because it is used by:
+%2</source>
+        <translation>Modul %1 kann nicht deaktiviert werden, weil es gerade benutzt wird bei:
+%2</translation>
     </message>
     <message>
         <source>Module %1 conflicts with: %2</source>

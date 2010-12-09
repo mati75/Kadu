@@ -1,7 +1,6 @@
 /*
  * %kadu copyright begin%
- * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -18,22 +17,26 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef GADU_OPEN_CHAT_WITH_RUNNER_H
-#define GADU_OPEN_CHAT_WITH_RUNNER_H
+#ifndef GADU_ID_VALIDATOR_H
+#define GADU_ID_VALIDATOR_H
 
-#include "accounts/account.h"
+#include "qt/long-validator.h"
 
-#include "gui/windows/open-chat-with/open-chat-with-runner.h"
-
-class GaduOpenChatWithRunner : public OpenChatWithRunner
+class GaduIdValidator : public LongValidator
 {
-	Account ParentAccount;
+	Q_OBJECT
+
+	static QValidator *Instance;
+
+	explicit GaduIdValidator(QObject *parent = 0);
+	virtual ~GaduIdValidator();
 
 public:
-	GaduOpenChatWithRunner(Account account);
-	virtual BuddyList matchingContacts(const QString &query);
-	void setAccount(Account account) { ParentAccount = account; }
+	static void createInstance();
+	static void destroyInstance();
+
+	static QValidator * instance();
 
 };
 
-#endif // GADU_OPEN_CHAT_WITH_RUNNER_H
+#endif // GADU_ID_VALIDATOR_H

@@ -1,6 +1,5 @@
 /*
  * %kadu copyright begin%
- * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
@@ -18,22 +17,31 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef GADU_OPEN_CHAT_WITH_RUNNER_H
-#define GADU_OPEN_CHAT_WITH_RUNNER_H
-
 #include "accounts/account.h"
+#include "protocols/protocol.h"
+#include "protocols/protocol-factory.h"
 
-#include "gui/windows/open-chat-with/open-chat-with-runner.h"
+#include "id-validity-filter.h"
 
-class GaduOpenChatWithRunner : public OpenChatWithRunner
+IdValidityFilter::IdValidityFilter(QObject *parent) :
+		AbstractAccountFilter(parent)
 {
-	Account ParentAccount;
+}
 
-public:
-	GaduOpenChatWithRunner(Account account);
-	virtual BuddyList matchingContacts(const QString &query);
-	void setAccount(Account account) { ParentAccount = account; }
+IdValidityFilter::~IdValidityFilter()
+{
+}
 
-};
+void IdValidityFilter::setId(const QString &id)
+{
+	if (Id == id)
+		return;
 
-#endif // GADU_OPEN_CHAT_WITH_RUNNER_H
+	Id = id;
+	emit filterChanged();
+}
+
+bool IdValidityFilter::acceptAccount(Account account)
+{
+	return (account.protocolHandler()->protocolFactory()->validateId(Id) >= QValidator::Intermediate);
+}

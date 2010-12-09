@@ -875,7 +875,7 @@ It&apos;s a high security risk!</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>New line / send message</source>
+        <source>Send message</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -1960,7 +1960,8 @@ You can load (or unload) them by double-clicking on their names.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Module %1 cannot be deactivated because it is used now</source>
+        <source>Module %1 cannot be deactivated because it is used by:
+%2</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
