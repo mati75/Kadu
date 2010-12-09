@@ -1,8 +1,8 @@
 diff --git a/kadu-core/gui/windows/about.cpp b/kadu-core/gui/windows/about.cpp
-index 6229559..c1a63f6 100644
+index f824428..99000e1 100644
 --- a/kadu-core/gui/windows/about.cpp
 +++ b/kadu-core/gui/windows/about.cpp
-@@ -147,7 +147,7 @@ About::About(QWidget *parent) :
+@@ -154,7 +154,7 @@ About::About(QWidget *parent) :
  	tb_changelog->setFrameStyle(QFrame::NoFrame);
  	tb_changelog->setWordWrapMode(QTextOption::NoWrap);
  	tb_changelog->viewport()->setAutoFillBackground(false);
@@ -11,7 +11,7 @@ index 6229559..c1a63f6 100644
  
  	// add tabs
  	tw_about->addTab(wb_about, tr("&About"));
-@@ -206,7 +206,10 @@ QString About::loadFile(const QString &name)
+@@ -213,7 +213,10 @@ QString About::loadFile(const QString &name)
  {
  	kdebugf();
  
