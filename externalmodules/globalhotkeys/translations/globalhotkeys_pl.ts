@@ -5,14 +5,26 @@
 
 	<message>
 		<location filename="" line="0"/>
-		<source>Shortcuts</source>
-		<translation>Skróty</translation>
+		<source>Kadu - Global hotkeys</source>
+		<translation>Kadu - Skróty globalne</translation>
 	</message>
+	<message>
+		<location filename="" line="0"/>
+		<source>Hotkey %% is used by another application.</source>
+		<translation>Skrót %% jest używany przez inną aplikację.</translation>
+	</message>
+	<message>
+		<location filename="" line="0"/>
+		<source>no buddies to display</source>
+		<translation>brak znajomych do wyświetlenia</translation>
+	</message>
+
 	<message>
 		<location filename="" line="0"/>
 		<source>Global hotkeys</source>
 		<translation>Skróty globalne</translation>
 	</message>
+
 	<message>
 		<location filename="" line="0"/>
 		<source>Show Kadu's main window</source>
@@ -25,13 +37,8 @@
 	</message>
 	<message>
 		<location filename="" line="0"/>
-		<source>Change status</source>
-		<translation>Zmień status</translation>
-	</message>
-	<message>
-		<location filename="" line="0"/>
-		<source>Change description</source>
-		<translation>Zmień opis</translation>
+		<source>Show/hide Kadu's main window</source>
+		<translation>Pokaż/ukryj główne okno Kadu</translation>
 	</message>
 	<message>
 		<location filename="" line="0"/>
@@ -48,25 +55,11 @@
 		<source>Toggle silent mode</source>
 		<translation>Przełącz tryb cichy</translation>
 	</message>
-	<message>
-		<location filename="" line="0"/>
-		<source>Show/hide Kadu's main window</source>
-		<translation>Pokaż/ukryj główne okno Kadu</translation>
-	</message>
+
 	<message>
 		<location filename="" line="0"/>
 		<source>Chats</source>
 		<translation>Rozmowy</translation>
-	</message>
-	<message>
-		<location filename="" line="0"/>
-		<source>Buddies</source>
-		<translation>Znajomi</translation>
-	</message>
-	<message>
-		<location filename="" line="0"/>
-		<source>Buddies menus</source>
-		<translation>Menu znajomych</translation>
 	</message>
 	<message>
 		<location filename="" line="0"/>
@@ -103,15 +96,65 @@
 		<source>Open chat with ...</source>
 		<translation>Rozpocznij rozmowę z ...</translation>
 	</message>
+
 	<message>
 		<location filename="" line="0"/>
-		<source>Open recent chats ...</source>
-		<translation>Ostatnie rozmowy ...</translation>
+		<source>Change status</source>
+		<translation>Zmień status</translation>
 	</message>
+	<message>
+		<location filename="" line="0"/>
+		<source>Change description</source>
+		<translation>Zmień opis</translation>
+	</message>
+
+	<message>
+		<location filename="" line="0"/>
+		<source>Add a new buddy</source>
+		<translation>Dodaj nowego znajomego</translation>
+	</message>
+	<message>
+		<location filename="" line="0"/>
+		<source>Search for buddy</source>
+		<translation>Znajdź znajmego</translation>
+	</message>
+
+	<message>
+		<location filename="" line="0"/>
+		<source>Windows shortcuts</source>
+		<translation>Skróty okien</translation>
+	</message>
+	<message>
+		<location filename="" line="0"/>
+		<source>File transfers window</source>
+		<translation>Okno transferu plików</translation>
+	</message>
+	<message>
+		<location filename="" line="0"/>
+		<source>Configuration window</source>
+		<translation>Okno konfiguracji</translation>
+	</message>
+	<message>
+		<location filename="" line="0"/>
+		<source>Account manager window</source>
+		<translation>Okno menadżera kont</translation>
+	</message>
+	<message>
+		<location filename="" line="0"/>
+		<source>Plugins window</source>
+		<translation>Okno wtyczek</translation>
+	</message>
+
 	<message>
 		<location filename="" line="0"/>
 		<source>Shortcut</source>
 		<translation>Skrót</translation>
+	</message>
+
+	<message>
+		<location filename="" line="0"/>
+		<source>Buddies shortcuts</source>
+		<translation>Skróty znajomych</translation>
 	</message>
 	<message>
 		<location filename="" line="0"/>
@@ -130,8 +173,19 @@
 	</message>
 	<message>
 		<location filename="" line="0"/>
-		<source>Add new buddies menu ...</source>
-		<translation>Dodaj nowe menu znajomych ...</translation>
+		<source>Delete this shortcut</source>
+		<translation>Usuń ten skrót</translation>
+	</message>
+
+	<message>
+		<location filename="" line="0"/>
+		<source>Buddies menus</source>
+		<translation>Menu znajomych</translation>
+	</message>
+	<message>
+		<location filename="" line="0"/>
+		<source>Add new menu ...</source>
+		<translation>Dodaj nowe menu ...</translation>
 	</message>
 	<message>
 		<location filename="" line="0"/>
@@ -183,23 +237,12 @@
 		<source>Exclude these buddies (comma separated)</source>
 		<translation>Pomiń tych znajomych (rozdzieleni przecinkami)</translation>
 	</message>
+	<message>
+		<location filename="" line="0"/>
+		<source>Delete this menu</source>
+		<translation>Usuń to menu</translation>
+	</message>
 
-
-	<message>
-		<location filename="" line="0"/>
-		<source>Kadu - Global hotkeys</source>
-		<translation>Kadu - Skróty globalne</translation>
-	</message>
-	<message>
-		<location filename="" line="0"/>
-		<source>Hotkey %% is used by another application.</source>
-		<translation>Skrót %% jest używany przez inną aplikację.</translation>
-	</message>
-	<message>
-		<location filename="" line="0"/>
-		<source>no buddies to display</source>
-		<translation>brak znajomych do wyświetlenia</translation>
-	</message>
 
 
 

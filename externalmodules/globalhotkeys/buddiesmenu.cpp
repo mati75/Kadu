@@ -33,6 +33,7 @@
 #include "chat/type/chat-type-manager.h"
 #include "chat/chat-manager.h"
 #include "chat/recent-chat-manager.h"
+#include "contacts/model/contact-data-extractor.h"
 #include "contacts/contact-set.h"
 #include "contacts/contact-shared.h"
 #include "gui/widgets/chat-widget-manager.h"
@@ -47,20 +48,26 @@
 
 
 
-BuddiesMenuActionData::BuddiesMenuActionData() {}
-
-
-BuddiesMenuActionData::BuddiesMenuActionData( ContactSet contactset, ChatState chatstate )
+BuddiesMenuActionData::BuddiesMenuActionData()
 {
-	CONTACTSET = contactset;
-	CHATSTATE  = chatstate;
+	CHATSTATE    = ChatStateNone;
+	INITIALORDER = INT_MAX;
+}
+
+
+BuddiesMenuActionData::BuddiesMenuActionData( ContactSet contactset, ChatState chatstate, int initialorder )
+{
+	CONTACTSET   = contactset;
+	CHATSTATE    = chatstate;
+	INITIALORDER = initialorder;
 }
 
 
 BuddiesMenuActionData::BuddiesMenuActionData( const BuddiesMenuActionData &other )
 {
-	CONTACTSET = other.CONTACTSET;
-	CHATSTATE  = other.CHATSTATE;
+	CONTACTSET   = other.CONTACTSET;
+	CHATSTATE    = other.CHATSTATE;
+	INITIALORDER = other.INITIALORDER;
 }
 
 
@@ -69,6 +76,8 @@ BuddiesMenuActionData::~BuddiesMenuActionData() {}
 
 bool BuddiesMenuActionData::operator<( const BuddiesMenuActionData &other ) const
 {
+	if( CHATSTATE == other.CHATSTATE )
+		return ( INITIALORDER > other.INITIALORDER );
 	return ( CHATSTATE < other.CHATSTATE );
 }
 
@@ -209,11 +218,11 @@ QIcon BuddiesMenu::createIcon( ContactSet contactset, ChatState chatstate )
 {
 	QIcon chatstateicon;
 	if( ( chatstate & ChatStatePending ) > 0x0 )
-		chatstateicon = IconsManager::instance()->iconByPath( "protocols/common/16x16/message.png" );
+		chatstateicon = IconsManager::instance()->iconByPath( "protocols/common/message" );
 	else if( ( chatstate & ChatStateCurrent ) > 0x0 )
-		chatstateicon = IconsManager::instance()->iconByPath( "16x16/internet-group-chat.png" );
+		chatstateicon = IconsManager::instance()->iconByPath( "internet-group-chat" );
 	else if( ( chatstate & ChatStateRecent ) > 0x0 )
-		chatstateicon = IconsManager::instance()->iconByPath( "kadu_icons/kadu-history.png" );
+		chatstateicon = IconsManager::instance()->iconByPath( "kadu_icons/kadu-history" );
 	else
 	{
 		QPixmap emptypixmap( GLOBALHOTKEYS_BUDDIESMENUSMALLICONSIZE, GLOBALHOTKEYS_BUDDIESMENUSMALLICONSIZE );
@@ -224,10 +233,13 @@ QIcon BuddiesMenu::createIcon( ContactSet contactset, ChatState chatstate )
 	if( contactset.count() == 1 )
 	{
 		Contact contact = *contactset.begin();
-		if( ! contact.isBlocking() )
-			statusicon = contact.contactAccount().statusContainer()->statusIcon( contact.currentStatus() );
-		else
+		statusicon = ContactDataExtractor::data( contact, Qt::DecorationRole, false ).value<QIcon>();
+/*		if( contact.isBlocking() )
 			statusicon = IconsManager::instance()->iconByPath("kadu_icons/kadu-blocking.png");
+		else if( contact.isBlocked() )
+			statusicon = IconsManager::instance()->iconByPath("kadu_icons/kadu-blocking.png");
+		else
+			statusicon = contact.contactAccount().statusContainer()->statusIcon( contact.currentStatus() );*/
 	}
 	else
 	{
@@ -274,6 +286,8 @@ void BuddiesMenu::openChat()
 void BuddiesMenu::prepareActions()
 {
 	// sort buddiesmenuactiondatalist
+	for( int k1 = 0; k1 < BUDDIESMENUACTIONDATALIST.size(); ++k1 )
+		BUDDIESMENUACTIONDATALIST[k1].setInitialOrder( k1 );
 	qSort( BUDDIESMENUACTIONDATALIST.begin(), BUDDIESMENUACTIONDATALIST.end(), qGreater<BuddiesMenuActionData>() );
 	// search contactsets for contacts with repeated ownerBuddies and mark and mark differences in contacts
 	QList<ContactSet> unique_contacts_of_repeated_buddies_list;

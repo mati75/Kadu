@@ -34,6 +34,7 @@
 HotkeyEdit::HotkeyEdit( const QString &section, const QString &item, const QString &widgetCaption, const QString &toolTip, ConfigGroupBox *parentConfigGroupBox, ConfigurationWindowDataManager *dataManager )
 	: ConfigLineEdit( section, item, widgetCaption, toolTip, parentConfigGroupBox, dataManager )
 {
+	LASTVALIDVALUE = "";
 }
 
 
@@ -45,10 +46,6 @@ HotkeyEdit::HotkeyEdit( ConfigGroupBox *parentConfigGroupBox, ConfigurationWindo
 
 bool HotkeyEdit::x11Event( XEvent *event )
 {
-	if( LASTVALIDVALUE.isNull() )  // if LASTVALIDVALUE is not initialized
-	{
-		LASTVALIDVALUE = "";
-	}
 	if( ( event->type == KeyPress ) || ( event->type == KeyRelease ) )  // is it mouse KeyPress or KeyRelease event?
 	{
 		// event data
@@ -226,15 +223,9 @@ void HotkeyEdit::focusInEvent( QFocusEvent *event )
 
 void HotkeyEdit::focusOutEvent( QFocusEvent *event )
 {
-	if( LASTVALIDVALUE.isNull() )  // if LASTVALIDVALUE is not initialized
-	{
-		LASTVALIDVALUE = "";
-	}
-	if( text().at( text().length() - 1 ) == '+' )  // if the hotkey typing is not finished yet ("+" at the end)
-	{
-		// reset the text to the last valid value
-		setText( LASTVALIDVALUE );
-	}
+	if( ! text().isEmpty() )
+		if( text().at( text().length() - 1 ) == '+' )  // if the hotkey typing is not finished yet ("+" at the end)
+			setText( LASTVALIDVALUE ); // reset the text to the last valid value
 	// important: call the default focusOutEvent
 	QLineEdit::focusOutEvent( event );
 }

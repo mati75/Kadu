@@ -53,14 +53,15 @@ class BuddiesMenuActionData
 {
 	public:
 		BuddiesMenuActionData();
-		BuddiesMenuActionData( ContactSet contactset, ChatState chatstate );
+		BuddiesMenuActionData( ContactSet contactset, ChatState chatstate, int initialorder = INT_MAX );
 		BuddiesMenuActionData( const BuddiesMenuActionData &other );
 		~BuddiesMenuActionData();
 		bool operator<( const BuddiesMenuActionData &other ) const;
 		Contact contact();
 		bool    isConference();
-		PROPERTY_RW( ContactSet, CONTACTSET, contactSet, setContactSet );
-		PROPERTY_RW( ChatState , CHATSTATE , chatState , setChatState  );
+		PROPERTY_RW( ContactSet, CONTACTSET  , contactSet  , setContactSet   );
+		PROPERTY_RW( ChatState , CHATSTATE   , chatState   , setChatState    );
+		PROPERTY_RW( int       , INITIALORDER, initialOrder, setInitialOrder );
 };
 Q_DECLARE_METATYPE( BuddiesMenuActionData );
 
