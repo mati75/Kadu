@@ -1,5 +1,6 @@
 debian/tmp/usr/lib/kadu/modules/bin/mime_tex
 debian/tmp/usr/lib/kadu/modules/libamarok2_mediaplayer.so
+debian/tmp/usr/lib/kadu/modules/libanonymous_check.so
 debian/tmp/usr/lib/kadu/modules/libaudacious_mediaplayer.so
 debian/tmp/usr/lib/kadu/modules/libcenzor.so
 debian/tmp/usr/lib/kadu/modules/libdragon_mediaplayer.so
@@ -31,6 +32,7 @@ debian/tmp/usr/share/kadu/modules/data/cenzor
 debian/tmp/usr/share/kadu/modules/data/mediaplayer
 debian/tmp/usr/share/kadu/modules/data/mime_tex
 debian/tmp/usr/share/kadu/modules/amarok2_mediaplayer.desc
+debian/tmp/usr/share/kadu/modules/anonymous_check.desc
 debian/tmp/usr/share/kadu/modules/audacious_mediaplayer.desc
 debian/tmp/usr/share/kadu/modules/bmpx_mediaplayer.desc
 debian/tmp/usr/share/kadu/modules/cenzor.desc
@@ -49,6 +51,7 @@ debian/tmp/usr/share/kadu/modules/senthistory.desc
 debian/tmp/usr/share/kadu/modules/single_window.desc
 debian/tmp/usr/share/kadu/modules/tabs.desc
 debian/tmp/usr/share/kadu/modules/xmms2_mediaplayer.desc
+debian/tmp/usr/share/kadu/modules/translations/anonymous_check*
 debian/tmp/usr/share/kadu/modules/translations/auto_hide*
 debian/tmp/usr/share/kadu/modules/translations/cenzor*
 debian/tmp/usr/share/kadu/modules/translations/globalhotkeys*
