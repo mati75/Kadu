@@ -1,8 +1,8 @@
 diff --git a/.config b/.config
-index 92f0b82..fc7bb34 100644
+index 7498552..a8c8581 100644
 --- a/.config
 +++ b/.config
-@@ -90,7 +90,7 @@ module_growl_notify=n
+@@ -92,7 +92,7 @@ module_growl_notify=n
  # PL: Powiadamianie przy pomocy PC-Speakera
  # Platform: Linux, Mac OS X, Windows
  # Needs: libX11
@@ -11,7 +11,7 @@ index 92f0b82..fc7bb34 100644
  
  # Description: KDE4 notification support
  # PL: Powiadamianie przy pomocy notyfikacji KDE
-@@ -123,7 +123,7 @@ module_alsa_sound=m
+@@ -125,7 +125,7 @@ module_alsa_sound=m
  # Platform: Linux (requires NAS), Mac OS X, Windows
  # Needs: QtSound
  # Depends: sound
@@ -20,7 +20,7 @@ index 92f0b82..fc7bb34 100644
  
  # Description: Phonon sound support
  # PL: Obsługa dźwięku przez Phonon
-@@ -138,7 +138,7 @@ module_phonon_sound=m
+@@ -140,7 +140,7 @@ module_phonon_sound=m
  # Platform: Linux
  # Needs: libao
  # Depends: sound
@@ -29,7 +29,7 @@ index 92f0b82..fc7bb34 100644
  
  # Description: Direct /dev/dsp sound support (Open Sound System)
  # PL: Obsługa dźwięku przez bezpośredni dostęp do urządzenia /dev/dsp (Open Sound System)
-@@ -171,7 +171,7 @@ module_win32_sound=n
+@@ -173,7 +173,7 @@ module_win32_sound=n
  # PL: Obsługa rozmów głosowych
  # Platform: Linux, Mac OS X, Windows
  # Depends: dcc, sound
@@ -38,7 +38,7 @@ index 92f0b82..fc7bb34 100644
  
  ###################### sms ###########################################
  
-@@ -264,7 +264,7 @@ module_split_messages=n
+@@ -273,7 +273,7 @@ module_split_messages=n
  # Description: Automatic word replacement
  # PL: Automatyczna zamiana slow
  # Platform: Linux, Mac OS X, Windows
@@ -47,7 +47,7 @@ index 92f0b82..fc7bb34 100644
  
  # Description: Autostatus
  # PL: Automatyczne zmiany statusu
-@@ -340,7 +340,7 @@ module_plus_pl_sms=n
+@@ -350,7 +350,7 @@ module_plus_pl_sms=n
  # PL: Powiadomiania diodą Scroll Lock
  # Platform: Linux
  # Needs: libX11
@@ -56,7 +56,7 @@ index 92f0b82..fc7bb34 100644
  
  # Description: Mail checking module
  # PL: Moduł do sprawdzana poczty
-@@ -350,17 +350,17 @@ module_mail=n
+@@ -360,17 +360,17 @@ module_mail=n
  # Description: TeX formula support
  # PL: Wsparcie dla formuł TeX-owych
  # Platform: Linux
@@ -77,7 +77,7 @@ index 92f0b82..fc7bb34 100644
  
  # Description: PowerKadu
  # PL: PowerKadu
-@@ -371,11 +371,11 @@ module_powerkadu=n
+@@ -381,11 +381,11 @@ module_powerkadu=n
  # Description: Adds global hotkeys support to Kadu
  # PL: Dodaje do Kadu obsługę skrótów globalnych
  # Platform: Linux
@@ -91,7 +91,7 @@ index 92f0b82..fc7bb34 100644
  # Platform: Linux, Mac OS X, Windows
  
  # Desctiption: Weather checking
-@@ -410,22 +410,22 @@ module_amarok2_mediaplayer=m
+@@ -420,22 +420,22 @@ module_amarok2_mediaplayer=m
  # Description: Audacious support for mediaplayer
  # PL: Wsparcie dla Audacious w mediaplayer
  # Platform: Linux
@@ -118,7 +118,7 @@ index 92f0b82..fc7bb34 100644
  
  # Description: iTunes support for mediaplayer
  # PL: Wsparcie dla iTunes w mediaplayer
-@@ -436,17 +436,17 @@ module_itunes_mediaplayer=n
+@@ -446,17 +446,17 @@ module_itunes_mediaplayer=n
  # PL: Wsparcie dla  MPD w mediaplayer
  # Needs: libmpdclient
  # Platform: Linux
@@ -139,7 +139,7 @@ index 92f0b82..fc7bb34 100644
  
  # Description: Winamp support for mediaplayer
  # PL: Wsparcie dla Winamp'a w mediaplayer
-@@ -461,14 +461,14 @@ module_xmms_mediaplayer=n
+@@ -471,14 +471,14 @@ module_xmms_mediaplayer=n
  # Description: XMMS2 support for mediaplayer
  # PL: Wsparcie dla XMMS2 w mediaplayer
  # Platform: Linux
@@ -156,7 +156,7 @@ index 92f0b82..fc7bb34 100644
  
  ############################################# ICONS ###########################################################################
  # PL: ####################################### IKONY ###########################################################################
-@@ -493,7 +493,7 @@ module_single_window=n
+@@ -503,7 +503,7 @@ module_single_window=n
  icons_default=y
  
  # Description: Default theme from kadu 0.5.x
@@ -165,7 +165,7 @@ index 92f0b82..fc7bb34 100644
  
  # Description: Glass icon theme made by Mariusz Waluga
  icons_glass=y
-@@ -502,7 +502,7 @@ icons_glass=y
+@@ -512,7 +512,7 @@ icons_glass=y
  icons_tango=n
  
  # Description: Oxygen icon theme made by Piotr Pelzowski
@@ -174,7 +174,7 @@ index 92f0b82..fc7bb34 100644
  
  ########################################### EMOTICONS #########################################################################
  # PL: ##################################### EMOTIKONY #########################################################################
-@@ -526,7 +526,7 @@ emoticons_tango=y
+@@ -536,7 +536,7 @@ emoticons_tango=y
  
  # Description: Old Gadu-Gadu 6.x emoticons
  # PL: Kompatybilne ze starą wersją Gadu-Gadu 6.x
@@ -183,7 +183,7 @@ index 92f0b82..fc7bb34 100644
  
  ########################################### SOUNDS ############################################################################
  # PL: ##################################### DŹWIĘKI ###########################################################################
-@@ -544,14 +544,14 @@ emoticons_gg6_compatible=n
+@@ -554,14 +554,14 @@ emoticons_gg6_compatible=n
  # PL: Standardowy zestaw dźwięków dostępny razem ze źródłami Kadu
  sound_default=y
  

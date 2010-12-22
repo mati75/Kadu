@@ -1,3 +1,10 @@
+kadu (0.6.6-beta13-1) experimental; urgency=low
+
+  * New upstream release
+  * Updated debian/patches/02-.config.patch
+
+ -- Patryk Cisek <patryk@debian.org>  Wed, 22 Dec 2010 23:37:02 +0100
+
 kadu (0.6.6-beta12-1) experimental; urgency=low
 
   * New upstream release
