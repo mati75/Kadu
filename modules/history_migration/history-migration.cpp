@@ -44,11 +44,11 @@ extern "C" KADU_EXPORT int history_migration_init(bool firstLoad)
 {
 	kdebugf();
 
-	HistoryImporter *hi = HistoryImporter::instance();
 	MainConfigurationWindow::registerUiFile(dataPath("kadu/modules/configuration/history-migration.ui"));
 
 	bool imported = config_file.readBoolEntry("History", "Imported_from_0.6.5", false);
 
+	HistoryImporter *hi = HistoryImporter::instance();
 	if (!imported && firstLoad && QFile::exists(profilePath("history")))
 		hi->run();
 
@@ -102,7 +102,7 @@ void HistoryImporter::run()
 		return;
 
 	Account gaduAccount = Account::null;
-	foreach (Account account, AccountManager::instance()->items())
+	foreach (const Account &account, AccountManager::instance()->items())
 		if (account.protocolHandler() && account.protocolHandler()->protocolFactory()
 			&& account.protocolHandler()->protocolFactory()->name() == "gadu")
 		{
@@ -126,7 +126,7 @@ void HistoryImporter::run()
 		ConfigurationWindow->widget()->widgetById("history-migration/import")->setVisible(false);
 
 	ProgressDialog = new QProgressDialog(qApp->translate("HistoryMigration", "Migrating old history: %1 of %2").arg(0).arg(totalEntries),
-	"", 0, totalEntries, Core::instance()->kaduWindow());
+	QString(), 0, totalEntries, Core::instance()->kaduWindow());
 	ProgressDialog->setCancelButton(0);
 	ProgressDialog->setWindowModality(Qt::NonModal);
 	ProgressDialog->setAutoClose(false);

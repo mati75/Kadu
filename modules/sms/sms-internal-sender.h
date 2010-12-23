@@ -33,7 +33,6 @@ class SmsInternalSender : public SmsSender
 	Q_OBJECT
 
 	QString GatewayId;
-	QString Message;
 
 	QNetworkReply *TokenReply;
 
@@ -49,7 +48,7 @@ private slots:
     void tokenImageDownloaded();
 
 public:
-	explicit SmsInternalSender(const QString &number, const QString &gatewayId = QString::null, QObject *parent = 0);
+	explicit SmsInternalSender(const QString &number, const QString &gatewayId = QString(), QObject *parent = 0);
 	virtual ~SmsInternalSender();
 
 	virtual void sendMessage(const QString& message);

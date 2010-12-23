@@ -127,13 +127,13 @@ void KdeNotify::notify(Notification *notification)
 
 	/* the new spec doesn't have this */
 	if (!UseFreedesktopStandard)
-		args.append("");
+		args.append(QString());
 
   	args.append("Kadu");
 
 	QString text;
 	if (!notification->iconPath().isEmpty())
-		text = QString("<img src=\"%1\" alt=\"icon\" align=middle> ").arg(notification->iconPath().replace("file://", ""));
+		text = QString("<img src=\"%1\" alt=\"icon\" align=middle> ").arg(notification->iconPath().remove("file://"));
 
 	if (((notification->type() == "NewMessage") || (notification->type() == "NewChat")) &&
 			config_file.readBoolEntry("KDENotify", "ShowContentMessage"))
@@ -159,7 +159,7 @@ void KdeNotify::notify(Notification *notification)
 
 	QStringList actions;
 
-	foreach (Notification::Callback callback, notification->getCallbacks())
+	foreach (const Notification::Callback &callback, notification->getCallbacks())
 	{
 		actions << callback.Signature;
 		actions << callback.Caption;
@@ -197,7 +197,7 @@ void KdeNotify::notificationClosed(Notification *notification)
 
 			return;
 		}
-		i++;
+		++i;
 	}
 }
 

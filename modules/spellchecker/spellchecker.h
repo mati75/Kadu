@@ -1,29 +1,47 @@
 #ifndef SPELLCHECKER_H
 #define SPELLCHECKER_H
 
-#include <QStringList>
-#include <QMap>
+#include <QtCore/QString>
+#include <QtCore/QMap>
 
 #include "configuration/configuration-aware-object.h"
 #include "gui/windows/main-configuration-window.h"
 
-class AspellSpeller;
-class AspellConfig;
-class ChatWidget;
-
 class QListWidget;
 class QListWidgetItem;
 
+class ChatWidget;
+
+#ifdef HAVE_ASPELL
+class AspellSpeller;
+class AspellConfig;
+#else
+namespace enchant
+{
+	class Dict;
+}
+#endif
+
 class SpellChecker : public ConfigurationUiHandler, ConfigurationAwareObject
 {
-    Q_OBJECT
+	Q_OBJECT
 
+public:
+#ifdef HAVE_ASPELL
 	typedef QMap<QString, AspellSpeller *> Checkers;
-	Checkers checkers;
-	AspellConfig *spellConfig;
+#else
+	typedef QMap<QString, enchant::Dict *> Checkers;
+#endif
 
-	QListWidget *availList;
-	QListWidget *checkList;
+private:
+#ifdef HAVE_ASPELL
+	AspellConfig *SpellConfig;
+#endif
+
+	Checkers MyCheckers;
+
+	QListWidget *AvailableLanguagesList;
+	QListWidget *CheckedLanguagesList;
 
 	void createDefaultConfiguration();
 
@@ -36,17 +54,18 @@ protected:
 public:
 	SpellChecker();
 	virtual ~SpellChecker();
-	virtual void mainConfigurationWindowCreated(MainConfigurationWindow *mainConfigurationWindow);
 
 	QStringList notCheckedLanguages();
 	QStringList checkedLanguages();
-	bool addCheckedLang(QString& name);
-	void removeCheckedLang(QString& name);
+	bool addCheckedLang(const QString &name);
+	void removeCheckedLang(const QString &name);
 	void buildMarkTag();
-	bool buildCheckers();
-	bool checkWord(QString word);
+	void buildCheckers();
+	bool checkWord(const QString &word);
 
 public slots:
+	virtual void mainConfigurationWindowCreated(MainConfigurationWindow *mainConfigurationWindow);
+
 	void chatCreated(ChatWidget *chatWidget);
 	void configForward();
 	void configBackward();
@@ -55,6 +74,6 @@ public slots:
 
 };
 
-extern SpellChecker* spellcheck;
+extern SpellChecker *spellcheck;
 
-#endif
+#endif // SPELLCHECKER_H

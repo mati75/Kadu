@@ -61,7 +61,7 @@ void KaduChatStyleEngine::pruneMessage(HtmlMessagesRenderer *renderer)
 		renderer->webPage()->mainFrame()->evaluateJavaScript("kadu_removeFirstMessage()");
 }
 
-void KaduChatStyleEngine::appendMessages(HtmlMessagesRenderer *renderer, QList<MessageRenderInfo *> messages)
+void KaduChatStyleEngine::appendMessages(HtmlMessagesRenderer *renderer, const QList<MessageRenderInfo *> &messages)
 {
 	if (ChatStylesManager::instance()->cfgNoHeaderRepeat() && renderer->pruneEnabled())
 	{
@@ -115,7 +115,7 @@ QString KaduChatStyleEngine::isStyleValid(QString stylePath)
 {
 	QFileInfo fi;
 	fi.setFile(stylePath);
-	return fi.suffix() == "syntax" ? fi.completeBaseName() : QString::null;
+	return fi.suffix() == "syntax" ? fi.completeBaseName() : QString();
 }
 
 void KaduChatStyleEngine::loadStyle(const QString &styleName, const QString &variantName)
@@ -135,7 +135,7 @@ void KaduChatStyleEngine::loadStyle(const QString &styleName, const QString &var
 	ChatSyntaxWithHeader.remove("</kadu:header>");
 
 	if (endOfHeader != -1)
-		ChatSyntaxWithoutHeader = chatSyntax.mid(0, beginOfHeader) + chatSyntax.mid(endOfHeader + strlen("</kadu:header>"));
+		ChatSyntaxWithoutHeader = chatSyntax.left(beginOfHeader) + chatSyntax.mid(endOfHeader + strlen("</kadu:header>"));
 	else
 		ChatSyntaxWithoutHeader = ChatSyntaxWithHeader;
 	CurrentStyleName = styleName;
@@ -152,7 +152,7 @@ QString KaduChatStyleEngine::formatMessage(MessageRenderInfo *message, MessageRe
 	if (msg.type() == Message::TypeSystem)
 	{
 		separatorSize = ChatStylesManager::instance()->paragraphSeparator();
-		format = ChatSyntaxWithoutHeader;
+		format = ChatSyntaxWithHeader;
 
 		message->setSeparatorSize(separatorSize);
 
@@ -193,7 +193,7 @@ QString KaduChatStyleEngine::formatMessage(MessageRenderInfo *message, MessageRe
 
 void KaduChatStyleEngine::repaintMessages(HtmlMessagesRenderer *renderer)
 {
-	if (!renderer->chat())
+	if (!renderer)
 		return;
 
 	QString text = QString(
@@ -222,16 +222,16 @@ void KaduChatStyleEngine::repaintMessages(HtmlMessagesRenderer *renderer)
 
 void KaduChatStyleEngine::configurationUpdated()
 {
-	QString chatSyntax = SyntaxList::readSyntax("chat", CurrentStyleName, "");
+	QString chatSyntax = SyntaxList::readSyntax("chat", CurrentStyleName, QString());
 	if (ChatSyntaxWithHeader != chatSyntax)
-		loadStyle(CurrentStyleName, "");
+		loadStyle(CurrentStyleName, QString());
 }
 
 void KaduChatStyleEngine::prepareStylePreview(Preview *preview, QString styleName, QString variantName)
 {
 	Q_UNUSED(variantName)
 
-	QString content = SyntaxList::readSyntax("chat", styleName, "");
+	QString content = SyntaxList::readSyntax("chat", styleName, QString());
 
 	content.replace(QRegExp("%o"), " ");
 	content.remove("<kadu:header>");

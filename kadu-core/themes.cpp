@@ -169,12 +169,12 @@ QString Themes::themePath(const QString &theme) const
 	if (theme.isEmpty())
 		t = ActualTheme;
 	if (t == "Custom")
-		return QString::null;
+		return QString();
 	if (ThemesPaths.isEmpty())
 		return "Custom";
 
 	QRegExp r("(/" + t + "/)$");
-	foreach (QString theme, ThemesPaths)
+	foreach (const QString &theme, ThemesPaths)
 		if (-1 != r.indexIn(theme))
 			return theme;
 
@@ -186,5 +186,5 @@ QString Themes::getThemeEntry(const QString &name) const
 	if (entries.contains(name))
 		return entries[name];
 	else
-		return QString::null;
+		return QString();
 }

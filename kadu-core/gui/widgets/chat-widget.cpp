@@ -26,6 +26,7 @@
  */
 
 #include <QtCore/QFileInfo>
+#include <QtGui/QIcon>
 #include <QtGui/QKeyEvent>
 #include <QtGui/QPushButton>
 #include <QtGui/QShortcut>
@@ -41,9 +42,11 @@
 #include "chat/chat-geometry-data.h"
 #include "chat/chat-manager.h"
 #include "chat/message/message-render-info.h"
+#include "chat/type/chat-type-manager.h"
 #include "configuration/configuration-file.h"
 #include "contacts/contact.h"
 #include "contacts/contact-set.h"
+#include "contacts/model/contact-data-extractor.h"
 #include "contacts/model/contact-list-model.h"
 #include "core/core.h"
 #include "gui/hot-key.h"
@@ -81,12 +84,22 @@ ChatWidget::ChatWidget(Chat chat, QWidget *parent) :
 	createGui();
 	configurationUpdated();
 
-	connect(CurrentChat.chatAccount(), SIGNAL(buddyStatusChanged(Contact, Status)),
-			this, SLOT(refreshTitle()));
-
-	foreach (Contact contact, chat.contacts())
+	foreach (const Contact &contact, CurrentChat.contacts())
+	{
+		connect(contact, SIGNAL(updated()), this, SLOT(refreshTitle()));
 		connect(contact.ownerBuddy(), SIGNAL(updated()), this, SLOT(refreshTitle()));
+	}
 
+	// icon for conference never changes
+	if (CurrentChat.contacts().count() == 1)
+		foreach (const Contact &contact, CurrentChat.contacts())
+		{
+			// actually we only need to send iconChanged() on CurrentStatus update
+			// but we don't have a signal for that in ContactShared
+			// TODO 0.6.7: consider adding currentStatusChanged() signal to ContactShared
+			connect(contact, SIGNAL(updated()), this, SIGNAL(iconChanged()));
+			connect(contact.ownerBuddy(), SIGNAL(buddySubscriptionChanged()), this, SIGNAL(iconChanged()));
+		}
 
 	kdebugf2();
 }
@@ -129,19 +142,16 @@ void ChatWidget::createGui()
 	connect(shortcut, SIGNAL(activated()), MessagesView, SLOT(pageDown()));
 	horizSplit->addWidget(MessagesView);
 
-	// shit, createContactsList needs that
-	InputBox = new ChatEditBox(CurrentChat, this);
-	InputBox->setSizePolicy(QSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored));
-
 	if (CurrentChat.contacts().count() > 1)
 		createContactsList();
+
+	InputBox = new ChatEditBox(CurrentChat, this);
+	InputBox->setSizePolicy(QSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored));
 
 	vertSplit->addWidget(horizSplit);
 	vertSplit->addWidget(InputBox);
 
 	connect(InputBox->inputBox(), SIGNAL(sendMessage()), this, SLOT(sendMessage()));
-
-	setFocusProxy(InputBox);
 }
 
 void ChatWidget::createContactsList()
@@ -288,6 +298,21 @@ void ChatWidget::setTitle(const QString &title)
 	}
 }
 
+QIcon ChatWidget::icon()
+{
+	int contactsCount = chat().contacts().count();
+	if (contactsCount == 1)
+	{
+		Contact contact = chat().contacts().toContact();
+		if (contact)
+			return ContactDataExtractor::data(contact, Qt::DecorationRole, false).value<QIcon>();
+	}
+	else if (contactsCount > 1)
+		return ChatTypeManager::instance()->chatType("Conference")->icon();
+
+	return IconsManager::instance()->iconByPath("internet-group-chat");
+}
+
 void ChatWidget::appendMessages(const QList<MessageRenderInfo *> &messages, bool pending)
 {
 	MessagesView->appendMessages(messages);
@@ -351,7 +376,7 @@ void ChatWidget::resetEditBox()
 void ChatWidget::clearChatWindow()
 {
 	kdebugf();
-	if (!config_file.readBoolEntry("Chat", "ConfirmChatClear") || MessageDialog::ask("", tr("Kadu"), tr("Chat window will be cleared. Continue?")))
+	if (!config_file.readBoolEntry("Chat", "ConfirmChatClear") || MessageDialog::ask(QString(), tr("Kadu"), tr("Chat window will be cleared. Continue?")))
 	{
 		MessagesView->clearMessages();
 		activateWindow();
@@ -518,7 +543,7 @@ void ChatWidget::dropEvent(QDropEvent *e)
 		QStringList::iterator i = files.begin();
 		QStringList::iterator end = files.end();
 
-		for (; i != end; i++)
+		for (; i != end; ++i)
 			emit fileDropped(CurrentChat, *i);
 	}
 }

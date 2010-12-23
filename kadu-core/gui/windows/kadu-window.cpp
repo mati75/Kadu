@@ -74,6 +74,8 @@ KaduWindow::KaduWindow(QWidget *parent) :
 {
 	setWindowRole("kadu-main");
 
+	WindowParent = parent;
+
 #ifdef Q_OS_MAC
 	/* Dorr: workaround for Qt window geometry bug when unified toolbars enabled */
 	setUnifiedTitleAndToolBarOnMac(false);
@@ -86,7 +88,7 @@ KaduWindow::KaduWindow(QWidget *parent) :
 	Actions = new KaduWindowActions(this);
 
 	createGui();
-	loadToolBarsFromConfig("");
+	loadToolBarsFromConfig(QString());
 	configurationUpdated();
 
 	loadWindowGeometry(this, "General", "Geometry", 0, 50, 255, 565);
@@ -348,7 +350,7 @@ void KaduWindow::openRecentChats(QAction *action)
 
 void KaduWindow::storeConfiguration()
 {
-        writeToolBarsToConfig("");
+		writeToolBarsToConfig(QString());
 #ifdef Q_OS_MAC
 	/* Dorr: workaround for Qt window geometry bug when unified toolbars enabled */
 	setUnifiedTitleAndToolBarOnMac(false);
@@ -403,12 +405,19 @@ void KaduWindow::keyPressEvent(QKeyEvent *e)
 	MainWindow::keyPressEvent(e);
 }
 
-void KaduWindow::windowActivationChange(bool b)
+void KaduWindow::changeEvent(QEvent *event)
 {
-	if (!_isActiveWindow(this))
-		ContactsWidget->clearFilter();
-
-	MainWindow::windowActivationChange(b);
+	MainWindow::changeEvent(event);
+	if (event->type() == QEvent::ActivationChange)
+	{
+		if (!_isActiveWindow(this))
+			ContactsWidget->clearFilter();
+	}
+	if (event->type() == QEvent::ParentChange)
+	{
+		emit parentChanged(WindowParent);
+		WindowParent = parentWidget();
+	}
 }
 
 bool KaduWindow::supportsActionType(ActionDescription::ActionType type)
@@ -561,8 +570,8 @@ void KaduWindow::createDefaultToolbars(QDomElement parentConfig)
 
 void KaduWindow::addAction(const QString &actionName, Qt::ToolButtonStyle style)
 {
-	addToolButton(findExistingToolbar(""), actionName, style);
-	Core::instance()->kaduWindow()->refreshToolBars("");
+	addToolButton(findExistingToolbar(QString()), actionName, style);
+	Core::instance()->kaduWindow()->refreshToolBars(QString());
 }
 
 ActionDataSource * KaduWindow::actionSource()

@@ -1,6 +1,6 @@
 /*
  * %kadu copyright begin%
- * Copyright 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -17,17 +17,24 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef BUDDY_LIST_CONFIGURATION_HELPER_H
-#define BUDDY_LIST_CONFIGURATION_HELPER_H
+#include <QtCore/QByteArray>
+#include <QtCrypto>
 
-#include "buddies/buddy-list.h"
+#include "encryption-ng-caesar-marker.h"
 
-class BuddyListConfigurationHelper
+#include "encryption-ng-caesar-encryptor.h"
+
+QByteArray EncryptionNgCaesarEncryptor::encrypt(const QByteArray &data)
 {
-public:
-	static BuddyList loadFromConfiguration(XmlConfigFile *configurationStorage, QDomElement contactListNode);
-	static void saveToConfiguration(XmlConfigFile *configurationStorage, QDomElement contactListNode, BuddyList contactList);
+    QByteArray result;
+    QCA::Base64 encoder;
 
-};
+    for (int i = 0, s = data.size(); i < s; i++)
+        result.append(data.at(i) + 1);
 
-#endif // BUDDY_LIST_CONFIGURATION_HELPER_H
+    QByteArray encoded(KADU_CAESAR_ENCRYPTION_MARKER_BEGIN);
+    encoded.append(encoder.encode(result).toByteArray());
+    encoded.append(KADU_CAESAR_ENCRYPTION_MARKER_END);
+
+    return encoded;
+}

@@ -47,6 +47,7 @@ extern "C" KADU_EXPORT void single_window_close()
 
 SingleWindowManager::SingleWindowManager()
 {
+	config_file.addVariable("SingleWindow", "RosterPosition", 0);
 	singleWindow = new SingleWindow();
 }
 
@@ -90,6 +91,8 @@ SingleWindow::SingleWindow()
 		split->addWidget(kadu);
 	}
 
+	kadu->setMaximumWidth(QWIDGETSIZE_MAX);
+	tabs->setMaximumWidth(QWIDGETSIZE_MAX);
 	kadu->setMinimumWidth(170);
 	tabs->setMinimumWidth(200);
 
@@ -201,15 +204,14 @@ void SingleWindow::onOpenChat(ChatWidget *w)
 {
 	QString title = w->chat().name();
 
-	tabs->addTab(w, w->chat().icon(), title);
+	tabs->addTab(w, w->icon(), title);
 	tabs->setCurrentIndex(tabs->count()-1);
 	w->edit()->setFocus();
 
 	connect(w, SIGNAL(messageReceived(Chat)), this, SLOT(onNewMessage(Chat)));
 	connect(w->edit(), SIGNAL(keyPressed(QKeyEvent *, CustomInput *, bool &)),
 		this, SLOT(onChatKeyPressed(QKeyEvent *, CustomInput *, bool &)));
-	connect(w, SIGNAL(titleChanged(ChatWidget *, const QString &)),
-		this, SLOT(onTitleChanged(ChatWidget *, const QString &)));
+	connect(w, SIGNAL(iconChanged()), this, SLOT(onIconChanged()));
 }
 
 void SingleWindow::closeTab(int index)
@@ -219,8 +221,7 @@ void SingleWindow::closeTab(int index)
 	disconnect(w, SIGNAL(messageReceived(Chat)), this, SLOT(onNewMessage(Chat)));
 	disconnect(w->edit(), SIGNAL(keyPressed(QKeyEvent *, CustomInput *, bool &)),
 		this, SLOT(onChatKeyPressed(QKeyEvent *, CustomInput *, bool &)));
-	disconnect(w, SIGNAL(titleChanged(ChatWidget *, const QString &)),
-		this, SLOT(onTitleChanged(ChatWidget *, const QString &)));
+	disconnect(w, SIGNAL(iconChanged()), this, SLOT(onIconChanged()));
 
 	tabs->widget(index)->deleteLater();
 	tabs->removeTab(index);
@@ -286,7 +287,7 @@ void SingleWindow::onTabChange(int index)
 		return;
 
 	ChatWidget *w = (ChatWidget *)tabs->widget(index);
-	tabs->setTabIcon(index, w->chat().icon());
+	tabs->setTabIcon(index, w->icon());
 
 	QString title = tabs->tabText(index);
 	int pos = title.indexOf(" [");
@@ -365,13 +366,13 @@ void SingleWindow::onStatusPixmapChanged(const QIcon &icon)
 	setWindowIcon(icon);
 }
 
-void SingleWindow::onTitleChanged(ChatWidget *chatChanged, const QString &newTitle)
+void SingleWindow::onIconChanged()
 {
-	Q_UNUSED(newTitle)
+	ChatWidget *chatWidget = static_cast<ChatWidget *>(sender());
 
-	int index = tabs->indexOf(chatChanged);
-	if (index >= 0 && chatChanged)
-		tabs->setTabIcon(index, chatChanged->chat().icon());
+	int index;
+	if (chatWidget && (index = tabs->indexOf(chatWidget)) != -1)
+		tabs->setTabIcon(index, chatWidget->icon());
 }
 
 

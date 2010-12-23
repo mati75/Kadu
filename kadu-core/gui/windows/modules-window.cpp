@@ -246,7 +246,7 @@ void ModulesWindow::refreshList()
 			strings << module << info.version << tr("Static") << tr("Loaded");
 		}
 		else
-			strings << module << QString::null << tr("Static") << tr("Loaded");
+			strings << module << QString() << tr("Static") << tr("Loaded");
 
 		new QTreeWidgetItem(lv_modules, strings);
 	}
@@ -264,7 +264,7 @@ void ModulesWindow::refreshList()
 			strings << module << info.version << tr("Dynamic") << tr("Loaded");
 		}
 		else
-			strings << module << QString::null << tr("Dynamic") << tr("Loaded");
+			strings << module << QString() << tr("Dynamic") << tr("Loaded");
 
 		new QTreeWidgetItem(lv_modules, strings);
 	}
@@ -282,7 +282,7 @@ void ModulesWindow::refreshList()
 			strings << module << info.version << tr("Dynamic") << tr("Not loaded");
 		}
 		else
-			strings << module << QString::null << tr("Dynamic") << tr("Not loaded");
+			strings << module << QString() << tr("Dynamic") << tr("Not loaded");
 
 		new QTreeWidgetItem(lv_modules, strings);
 	}
@@ -329,8 +329,13 @@ void ModulesWindow::getInfo()
 	kdebugf2();
 }
 
-void ModulesWindow::keyPressEvent(QKeyEvent *ke_event)
+void ModulesWindow::keyPressEvent(QKeyEvent *event)
 {
-	if (ke_event->key() == Qt::Key_Escape)
+	if (event->key() == Qt::Key_Escape)
+	{
+		event->accept();
 		close();
+	}
+	else
+		QWidget::keyPressEvent(event);
 }

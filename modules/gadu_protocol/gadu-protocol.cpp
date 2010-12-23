@@ -192,7 +192,8 @@ Buddy GaduProtocol::searchResultToBuddy(gg_pubdir50_t res, int number)
 
 	const char *pubdirStatus = gg_pubdir50_get(res, number, GG_PUBDIR50_STATUS);
 	if (pubdirStatus)
-	{	Status status;
+	{
+		Status status;
 		status.setType(statusTypeFromGaduStatus(atoi(pubdirStatus) & 127));
 		contact.setCurrentStatus(status);
 	}
@@ -556,7 +557,7 @@ void GaduProtocol::sendUserList()
 	ContactListHandler->setUpContactList(ContactManager::instance()->contacts(account()));
 }
 
-void GaduProtocol::socketContactStatusChanged(unsigned int uin, unsigned int status, const QString &description,
+void GaduProtocol::socketContactStatusChanged(UinType uin, unsigned int status, const QString &description,
 		const QHostAddress &ip, unsigned short port, unsigned int maxImageSize, unsigned int version)
 {
 	Contact contact = ContactManager::instance()->byId(account(), QString::number(uin));
@@ -564,7 +565,7 @@ void GaduProtocol::socketContactStatusChanged(unsigned int uin, unsigned int sta
 
 	if (buddy.isAnonymous())
 	{
-		kdebugmf(KDEBUG_INFO, "buddy %d not in list. Damned server!\n", uin);
+		kdebugmf(KDEBUG_INFO, "buddy %u not in list. Damned server!\n", uin);
 		emit userStatusChangeIgnored(buddy);
 		ContactListHandler->removeContactEntry(uin);
 		return;
@@ -748,7 +749,7 @@ void GaduProtocol::buddySubscriptionChanged(Buddy &buddy)
 {
 	// update offline to and other data
 	if (ContactListHandler)
-		foreach (Contact contact, buddy.contacts(account()))
+		foreach (const Contact &contact, buddy.contacts(account()))
 			ContactListHandler->updateContactEntry(contact);
 }
 
@@ -783,7 +784,7 @@ void GaduProtocol::contactIdChanged(Contact contact, const QString &oldId)
 		return;
 
 	bool ok;
-	UinType oldUin = oldId.toInt(&ok);
+	UinType oldUin = oldId.toUInt(&ok);
 	if (ok)
 		ContactListHandler->removeContactEntry(oldUin);
 

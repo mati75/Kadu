@@ -180,7 +180,7 @@ void ChatWidgetManager::store()
 
 	StringList.clear();
 
-	foreach (Chat chat, Chats.keys())
+	foreach (const Chat &chat, Chats.keys())
 	{
 		if (chat.isNull() || chat.chatAccount().isNull() || !chat.chatAccount().protocolHandler()
 			|| !chat.chatAccount().protocolHandler()->protocolFactory())
@@ -241,7 +241,7 @@ void ChatWidgetManager::unregisterChatWidget(ChatWidget *chatwidget)
 	emit chatWidgetDestroying(chatwidget);
 }
 
-ChatWidget * ChatWidgetManager::byChat(Chat chat, bool create) const
+ChatWidget * ChatWidgetManager::byChat(const Chat &chat, bool create) const
 {
 	Q_UNUSED(create)
 
@@ -335,7 +335,6 @@ void ChatWidgetManager::openPendingMsgs(Chat chat, bool forceActivate)
 		return;
 
 	QList<MessageRenderInfo *> messages;
-	Message msg;
 
 	ChatWidget *chatWidget = openChatWidget(chat, forceActivate);
 	if (!chatWidget)
@@ -401,7 +400,7 @@ void ChatWidgetManager::closeChat(Chat chat)
 
 void ChatWidgetManager::closeAllChats(Buddy buddy)
 {
-	foreach (Contact contact, buddy.contacts())
+	foreach (const Contact &contact, buddy.contacts())
 	{
 		Chat chat = ChatManager::instance()->findChat(ContactSet(contact), false);
 		if (chat)

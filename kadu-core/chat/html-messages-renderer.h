@@ -45,7 +45,7 @@ class HtmlMessagesRenderer : public QObject
 	void pruneMessages();
 
 public:
-	HtmlMessagesRenderer(Chat chat, QObject *parent = 0);
+	explicit HtmlMessagesRenderer(Chat chat, QObject *parent = 0);
 	virtual ~HtmlMessagesRenderer();
 
 	Chat  chat() { return MyChat; }
@@ -62,7 +62,7 @@ public:
 
 	const QList<MessageRenderInfo *> & messages() const { return MyChatMessages; }
 	void appendMessage(MessageRenderInfo *message);
-	void appendMessages(QList<MessageRenderInfo *> messages);
+	void appendMessages(const QList<MessageRenderInfo *> &messages);
 	void clearMessages();
 
 	MessageRenderInfo * lastMessage() { return LastMessage; }

@@ -144,7 +144,7 @@ void Firewall::accountUnregistered(Account account)
 	disconnect(account, SIGNAL(connected()), this, SLOT(accountConnected()));
 }
 
-void Firewall::filterIncomingMessage(Chat chat, Contact sender, const QString &message, time_t time, bool &ignore)
+void Firewall::filterIncomingMessage(Chat chat, Contact sender, QString &message, time_t time, bool &ignore)
 {
 	Q_UNUSED(time)
 
@@ -524,7 +524,7 @@ void Firewall::import_0_6_5_configuration()
 	kdebugf();
 
 	QString loadedStr = config_file.readEntry("Firewall", "Secured_list");
-	QStringList secured = loadedStr.split(",", QString::SkipEmptyParts);
+	QStringList secured = loadedStr.split(',', QString::SkipEmptyParts);
 
 	foreach (const QString &contact, secured)
 	{

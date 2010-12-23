@@ -53,31 +53,31 @@ QString GaduListHelper::contactToLine70(Contact contact)
 	list.append(buddy.mobile());
 
 	QStringList groups;
-	foreach (Group group, buddy.groups())
+	foreach (const Group &group, buddy.groups())
 		groups.append(group.name());
 
 	list.append(groups.join(","));
 	list.append(contact.id());
 	list.append(buddy.email());
-	list.append(""); // alive sound
-	list.append(""); // alive sound
-	list.append(""); // message sound
-	list.append(""); // message sound
-	list.append(""); // offlineTo
+	list.append(QString()); // alive sound
+	list.append(QString()); // alive sound
+	list.append(QString()); // message sound
+	list.append(QString()); // message sound
+	list.append(QString()); // offlineTo
 	list.append(buddy.homePhone());
 
 	return list.join(";");
 }
 
-QByteArray GaduListHelper::buddyListToByteArray(Account account, BuddyList buddies)
+QByteArray GaduListHelper::buddyListToByteArray(Account account, const BuddyList &buddies)
 {
 	kdebugf();
 
 	QStringList result;
 	result.append("GG70ExportString");
 
-	foreach (Buddy buddy, buddies)
-		foreach (Contact contact, buddy.contacts(account))
+	foreach (const Buddy &buddy, buddies)
+		foreach (const Contact &contact, buddy.contacts(account))
 			result.append(contactToLine70(contact));
 
 	return codec_cp1250->fromUnicode(result.join("\n"));

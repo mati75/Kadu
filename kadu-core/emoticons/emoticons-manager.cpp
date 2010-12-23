@@ -216,7 +216,7 @@ bool EmoticonsManager::loadGGEmoticonTheme(const QString &themeDirPath)
 
 		// put all emots into dictionary, to allow easy finding
 		// their occurrences in text
-		foreach(const EmoticonsListItem &item, Aliases)
+		foreach (const EmoticonsListItem &item, Aliases)
 			walker->insertString(item.alias.toLower(), i++);
 	}
 
@@ -314,7 +314,7 @@ QString EmoticonsManager::selectorString(int emot_num) const
 	if ((emot_num >= 0) && (emot_num < Selector.count()))
 		return Selector[emot_num].alias;
 	else
-		return QString::null;
+		return QString();
 }
 
 QString EmoticonsManager::selectorAnimPath(int emot_num) const
@@ -322,7 +322,7 @@ QString EmoticonsManager::selectorAnimPath(int emot_num) const
 	if ((emot_num >= 0) && (emot_num < Selector.count()))
 		return Selector[emot_num].anim;
 	else
-		return QString::null;
+		return QString();
 }
 
 QString EmoticonsManager::selectorStaticPath(int emot_num) const
@@ -330,5 +330,5 @@ QString EmoticonsManager::selectorStaticPath(int emot_num) const
 	if ((emot_num >= 0) && ((emot_num) < Selector.count()))
 		return Selector[emot_num].stat;
 	else
-		return QString::null;
+		return QString();
 }

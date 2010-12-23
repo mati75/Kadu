@@ -35,11 +35,6 @@
 
 #include "gadu-chat-image-service.h"
 
-QString GaduChatImageService::imageFileName(UinType sender, uint32_t size, uint32_t crc32)
-{
-	return QString("%1-%2-%3").arg(sender).arg(size).arg(crc32);
-}
-
 GaduChatImageService::GaduChatImageService(GaduProtocol *protocol)
 	: ChatImageService(protocol), Protocol(protocol), CurrentMinuteSendImageRequests(0)
 {
@@ -53,13 +48,13 @@ QString GaduChatImageService::saveImage(UinType sender, uint32_t size, uint32_t 
 	if (!QFileInfo(path).isDir() && !QDir().mkdir(path))
 	{
 		kdebugm(KDEBUG_INFO, "Failed creating directory: %s\n", qPrintable(path));
-		return QString::null;
+		return QString();
 	}
 
-	QString fileName = imageFileName(sender, size, crc32);
+	QString fileName = GaduFormatter::createImageId(sender, size, crc32);
 	QFile file(path + fileName);
 	if (!file.open(QIODevice::WriteOnly))
-		return QString::null;
+		return QString();
 
 	file.write(data, size);
 	file.close();
@@ -71,7 +66,7 @@ void GaduChatImageService::loadImageContent(ImageToSend &image)
 	QFile imageFile(image.fileName);
 	if (!imageFile.open(QIODevice::ReadOnly))
 	{
-		image.content = QByteArray();
+		image.content.clear();
 		kdebugm(KDEBUG_ERROR, "Error opening file\n");
 		return;
 	}
@@ -81,7 +76,7 @@ void GaduChatImageService::loadImageContent(ImageToSend &image)
 
 	if (data.length() != imageFile.size())
 	{
-		image.content = QByteArray();
+		image.content.clear();
 		kdebugm(KDEBUG_ERROR, "Error reading file\n");
 		return;
 	}
@@ -113,7 +108,7 @@ void GaduChatImageService::handleEventImageRequest(struct gg_event *e)
 
 	gg_image_reply(Protocol->gaduSession(), e->event.image_request.sender, qPrintable(image.fileName), image.content.constData(), image.content.length());
 
-	image.content = QByteArray();
+	image.content.clear();
 	image.lastSent = QDateTime::currentDateTime();
 }
 
@@ -130,7 +125,7 @@ void GaduChatImageService::handleEventImageReply(struct gg_event *e)
 	if (fileName.isEmpty())
 		return;
 
-	emit imageReceived(GaduFormater::createImageId(e->event.image_reply.sender,
+	emit imageReceived(GaduFormatter::createImageId(e->event.image_reply.sender,
 			e->event.image_reply.size, e->event.image_reply.crc32), fileName);
 }
 

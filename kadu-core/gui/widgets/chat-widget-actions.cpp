@@ -101,14 +101,14 @@ ChatWidgetActions::ChatWidgetActions(QObject *parent) : QObject(parent)
 	AutoSend = new ActionDescription(0,
 		ActionDescription::TypeChat, "autoSendAction",
 		this, SLOT(autoSendActionActivated(QAction *, bool)),
-		"kadu_icons/kadu-enter", "kadu_icons/kadu-enter", tr("%1 Sends Message").arg(config_file.readEntry("ShortCuts", "chat_send")), true
+		"kadu_icons/kadu-enter", "kadu_icons/kadu-enter", tr("Return Sends Message"), true
 	);
 	connect(AutoSend, SIGNAL(actionCreated(Action *)), this, SLOT(autoSendActionCreated(Action *)));
 
 	ClearChat = new ActionDescription(0,
 		ActionDescription::TypeChat, "clearChatAction",
 		this, SLOT(clearActionActivated(QAction *, bool)),
-		"edit-clear", "edit-clear", tr("Clear Messages in Chat Window"), false, QString::null,
+		"edit-clear", "edit-clear", tr("Clear Messages in Chat Window"), false, QString(),
 		disableEmptyMessages
 	);
 	connect(ClearChat, SIGNAL(actionCreated(Action *)), this, SLOT(clearChatActionCreated(Action *)));
@@ -140,7 +140,7 @@ ChatWidgetActions::ChatWidgetActions(QObject *parent) : QObject(parent)
 	Send = new ActionDescription(0,
 		ActionDescription::TypeChat, "sendAction",
 		this, SLOT(sendActionActivated(QAction *, bool)),
-		"go-next", "go-next", tr("&Send"), false, QString::null,
+		"go-next", "go-next", tr("&Send"), false, QString(),
 		disableEmptyTextBox
 	);
 	connect(Send, SIGNAL(actionCreated(Action *)), this, SLOT(sendActionCreated(Action *)));
@@ -148,21 +148,21 @@ ChatWidgetActions::ChatWidgetActions(QObject *parent) : QObject(parent)
 	Whois = new ActionDescription(0,
 		ActionDescription::TypeChat, "whoisAction",
 		this, SLOT(whoisActionActivated(QAction *, bool)),
-		"edit-find", "edit-find", tr("Search this User in Directory"), false, QString::null,
+		"edit-find", "edit-find", tr("Search this User in Directory"), false, QString(),
 		disableNoContact
 	);
 
 	BlockUser = new ActionDescription(0,
 		ActionDescription::TypeUser, "blockUserAction",
 		this, SLOT(blockUserActionActivated(QAction *, bool)),
-		"kadu_icons/kadu-block", "kadu_icons/kadu-block", tr("Block Buddy"), true, QString::null,
+		"kadu_icons/kadu-block", "kadu_icons/kadu-block", tr("Block Buddy"), true, QString(),
 		checkBlocking
 	);
 
 	OpenChat = new ActionDescription(0,
 		ActionDescription::TypeUser, "chatAction",
 		this, SLOT(openChatActionActivated(QAction *, bool)),
-		"internet-group-chat", "internet-group-chat", tr("&Chat"), false, QString::null,
+		"internet-group-chat", "internet-group-chat", tr("&Chat"), false, QString(),
 		disableNoChat
 	);
 
@@ -403,8 +403,8 @@ void ChatWidgetActions::blockUserActionActivated(QAction *sender, bool toggled)
 
 	bool on = false;
 
-	foreach (Buddy user, buddies)
-		if (!user.isBlocked())
+	foreach (const Buddy &buddy, buddies)
+		if (!buddy.isBlocked())
 		{
 			on = true;
 			break;

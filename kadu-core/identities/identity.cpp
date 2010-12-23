@@ -81,14 +81,21 @@ void Identity::removeAccount(Account account)
 		data()->removeAccount(account);
 }
 
-bool Identity::hasAccount(Account account)
+bool Identity::hasAccount(Account account) const
 {
 	return !isNull()
 			? data()->hasAccount(account)
 			: false;
 }
 
-bool Identity::isEmpty()
+bool Identity::hasAnyAccountWithDetails() const
+{
+	return !isNull()
+			? data()->hasAnyAccountWithDetails()
+			: false;
+}
+
+bool Identity::isEmpty() const
 {
 	return !isNull()
 			? data()->isEmpty()
@@ -96,5 +103,5 @@ bool Identity::isEmpty()
 }
 
 KaduSharedBase_PropertyBoolDef(Identity, Permanent, false)
-KaduSharedBase_PropertyDef(Identity, QString, name, Name, QString::null)
+KaduSharedBase_PropertyDef(Identity, QString, name, Name, QString())
 

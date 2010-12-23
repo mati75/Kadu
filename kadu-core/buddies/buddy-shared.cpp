@@ -76,7 +76,7 @@ QString BuddyShared::storageNodeName()
 	set##name(CustomData[#old_name]); \
 	CustomData.remove(#old_name);
 
-void BuddyShared::importConfiguration(QDomElement parent)
+void BuddyShared::importConfiguration(const QDomElement &parent)
 {
 	QDomNamedNodeMap attributes = parent.attributes();
 	int count = attributes.count();
@@ -210,7 +210,7 @@ void BuddyShared::store()
 	if (Groups.count())
 	{
 		QDomElement groupsNode = configurationStorage->getNode(parent, "ContactGroups", XmlConfigFile::ModeCreate);
-		foreach (Group group, Groups)
+		foreach (const Group &group, Groups)
 			configurationStorage->appendTextNode(groupsNode, "Group", group.uuid().toString());
 	}
 	else
@@ -229,8 +229,8 @@ void BuddyShared::aboutToBeRemoved()
 	foreach (Contact contact, Contacts)
 		contact.setOwnerBuddy(Buddy::null);
 
-	Contacts = QList<Contact>();
-	Groups = QList<Group>();
+	Contacts.clear();
+	Groups.clear();
 
 	AvatarManager::instance()->removeItem(BuddyAvatar);
 	BuddyAvatar = Avatar::null;
@@ -304,7 +304,7 @@ QString BuddyShared::id(Account account)
 	if (contactslist.count() > 0)
 		return contactslist[0].id();
 
-	return QString::null;
+	return QString();
 }
 
 bool contactPriorityLessThan(const Contact &c1, const Contact &c2)

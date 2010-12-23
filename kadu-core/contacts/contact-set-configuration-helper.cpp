@@ -47,7 +47,7 @@ ContactSet ContactSetConfigurationHelper::loadFromConfiguration(XmlConfigFile *c
 	ContactSet result;
 
 	QList<QDomElement> contactElements = configurationStorage->getNodes(contactSetNode, "Contact");
-	foreach (QDomElement contactElement, contactElements)
+	foreach (const QDomElement &contactElement, contactElements)
 	{
 		Contact contact = ContactManager::instance()->byUuid(contactElement.text());
 		// TODO: 0.6.6 this only for compatibility with previous builds of 0.6.6
@@ -74,7 +74,7 @@ ContactSet ContactSetConfigurationHelper::loadFromConfiguration(XmlConfigFile *c
 	return result;
 }
 
-void ContactSetConfigurationHelper::saveToConfiguration(StorableObject *parent, const QString &nodeName, ContactSet contactSet)
+void ContactSetConfigurationHelper::saveToConfiguration(StorableObject *parent, const QString &nodeName, const ContactSet &contactSet)
 {
 	if (!parent->isValidStorage())
 		return;
@@ -85,7 +85,7 @@ void ContactSetConfigurationHelper::saveToConfiguration(StorableObject *parent, 
 	saveToConfiguration(configurationStorage, contactSetNode, contactSet);
 }
 
-void ContactSetConfigurationHelper::saveToConfiguration(XmlConfigFile *configurationStorage, QDomElement contactSetNode, ContactSet contactSet)
+void ContactSetConfigurationHelper::saveToConfiguration(XmlConfigFile *configurationStorage, QDomElement contactSetNode, const ContactSet &contactSet)
 {
 	while (contactSetNode.childNodes().count())
 		contactSetNode.removeChild(contactSetNode.childNodes().at(0));

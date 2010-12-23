@@ -38,8 +38,6 @@
 #include "icons-manager.h"
 #include "modules.h"
 
-#include "modules/history/history.h"
-
 #include "gui/windows/sms-progress-window.h"
 #include "mobile-number-manager.h"
 #include "sms-external-sender.h"
@@ -104,9 +102,9 @@ void SmsDialog::createGui()
 	formLayout->addRow(tr("Recipient") + ':', recipientWidget);
 
 	ProviderComboBox = new QComboBox(this);
-	ProviderComboBox->addItem(tr("Select automatically"), "");
+	ProviderComboBox->addItem(tr("Select automatically"), QString());
 
-	foreach (SmsGateway gateway, SmsGatewayManager::instance()->items())
+	foreach (const SmsGateway &gateway, SmsGatewayManager::instance()->items())
 		ProviderComboBox->addItem(gateway.second, gateway.first);
 
 	formLayout->addRow(tr("GSM provider") + ':', ProviderComboBox);
@@ -188,7 +186,7 @@ void SmsDialog::recipientNumberChanged(const QString &number)
 		return;
 	}
 
-	foreach (Buddy buddy, BuddyManager::instance()->items())
+	foreach (const Buddy &buddy, BuddyManager::instance()->items())
 		if (buddy.mobile() == number)
 		{
 			RecipientComboBox->setCurrentBuddy(buddy);
@@ -237,7 +235,7 @@ void SmsDialog::sendSms()
 		sender = new SmsExternalSender(RecipientEdit->text(), this);
 	}
 
-	connect(sender, SIGNAL(gatewayAssigned(QString,QString)), this, SLOT(gatewayAssigned(QString,QString)));
+	connect(sender, SIGNAL(gatewayAssigned(QString, QString)), this, SLOT(gatewayAssigned(QString, QString)));
 	sender->setSignature(SignatureEdit->text());
 
 	SmsProgressWindow *window = new SmsProgressWindow(sender);

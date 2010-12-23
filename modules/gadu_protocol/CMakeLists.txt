@@ -57,9 +57,7 @@ set (SOURCES
 	socket-notifiers/gadu-socket-notifiers.cpp
 	socket-notifiers/gadu-token-socket-notifiers.cpp
 
-	gadu-account-data-manager.cpp
 	gadu-account-details.cpp
-	gadu-contact-data-manager.cpp
 	gadu-contact-details.cpp
 	gadu-id-validator.cpp
 	gadu-protocol.cpp
@@ -116,9 +114,6 @@ set (MOC_SOURCES
 	socket-notifiers/gadu-socket-notifiers.h
 	socket-notifiers/gadu-token-socket-notifiers.h
 
-	gadu-account-data-manager.h
-	#gadu-account-details.h
-	gadu-contact-data-manager.h
 	gadu-id-validator.h
 	gadu-protocol-factory.h
 	gadu-protocol.h
@@ -152,7 +147,7 @@ if (MINGW)
 		set (LIBGADU_LIBRARIES -lgadu -lws2_32)
 	endif (NOT MINGW_LIBGADU_DIR)
 	if (NOT MINGW_QCA_DIR)
-		message (SEND_ERROR " Pass path to libsndfile -DMINGW_QCA_DIR=path")
+		message (SEND_ERROR " Pass path to libqca2 -DMINGW_QCA_DIR=path")
 		set (MINGW_LIBSNDFILE_DIR "")
 	else (NOT MINGW_QCA_DIR)
 		set (QCA2_INCLUDE_DIRS ${MINGW_QCA_DIR}/include/QtCrypto)

@@ -32,7 +32,6 @@
 #ifndef BUDDY_DATA_WINDOW_H
 #define BUDDY_DATA_WINDOW_H
 
-#include <QtCore/QList>
 #include <QtCore/QMap>
 #include <QtGui/QWidget>
 
@@ -62,8 +61,8 @@ class KADUAPI BuddyDataWindow : public QWidget
 
 	Q_OBJECT
 
-	static QList<BuddyDataWindow *> Instances;
-	static const QList<BuddyDataWindow *> & instances() { return Instances; }
+	static QMap<Buddy, BuddyDataWindow *> Instances;
+	static const QMap<Buddy, BuddyDataWindow *> & instances() { return Instances; }
 
 	Buddy MyBuddy;
 	BuddyGeneralConfigurationWidget *ContactTab;
@@ -75,6 +74,8 @@ class KADUAPI BuddyDataWindow : public QWidget
 	QPushButton *OkButton;
 	QPushButton *ApplyButton;
 
+	BuddyDataWindow(const Buddy &buddy, QWidget *parent);
+
 	void createGui();
 	void createTabs(QLayout *layout);
 	void createGeneralTab(QTabWidget *tabWidget);
@@ -82,8 +83,6 @@ class KADUAPI BuddyDataWindow : public QWidget
 	void createPersonalInfoTab(QTabWidget *tabWidget);
 	void createOptionsTab(QTabWidget *tabWidget);
 	void createButtons(QLayout *layout);
-
-	void keyPressEvent(QKeyEvent *);
 
 	bool isValid();
 
@@ -93,15 +92,21 @@ private slots:
 	void updateBuddy();
 	void updateBuddyAndClose();
 
-signals:
-	void updatingBuddy();
+protected:
+	virtual void keyPressEvent(QKeyEvent *event);
 
 public:
-	explicit BuddyDataWindow(Buddy buddy, QWidget *parent = 0);
+	static BuddyDataWindow * instance(const Buddy &buddy, QWidget *parent = 0);
+
 	virtual ~BuddyDataWindow();
 
-	Buddy buddy() { return MyBuddy; }
-	QTabWidget *tabWidget() { return TabWidget; }
+	void show();
+
+	Buddy buddy() const { return MyBuddy; }
+	QTabWidget * tabWidget() const { return TabWidget; }
+
+signals:
+	void updatingBuddy();
 
 };
 

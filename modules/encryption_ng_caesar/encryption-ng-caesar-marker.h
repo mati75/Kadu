@@ -1,7 +1,6 @@
 /*
  * %kadu copyright begin%
- * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2008, 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -18,23 +17,10 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef GADU_ACCOUNT_DATA_MANAGER_H
-#define GADU_ACCOUNT_DATA_MANAGER_H
+#ifndef ENCRYPTION_NG_CAESAR_MARKER_H
+#define ENCRYPTION_NG_CAESAR_MARKER_H
 
-#include "configuration/account-data-manager.h"
+#define KADU_CAESAR_ENCRYPTION_MARKER_BEGIN "=== KADU CAESAR ENCRYPTION BEGIN ==="
+#define KADU_CAESAR_ENCRYPTION_MARKER_END "=== KADU CAESAR ENCRYPTION END ==="
 
-class Account;
-
-class GaduAccountDataManager : public AccountDataManager
-{
-	Q_OBJECT
-
-public:
-	GaduAccountDataManager(Account data);
-
-	virtual void writeEntry(const QString &section, const QString &name, const QVariant &value);
-	virtual QVariant readEntry(const QString &section, const QString &name);
-
-};
-
-#endif // GADU_ACCOUNT_DATA_MANAGER_H
+#endif // ENCRYPTION_NG_CAESAR_MARKER_H

@@ -109,7 +109,7 @@ TabsManager::TabsManager(bool firstload)
 	OpenInNewTabActionDescription = new ActionDescription(this,
 		ActionDescription::TypeUser, "openInNewTabAction",
 		this, SLOT(onNewTab(QAction *, bool)),
-		"internet-group-chat", "internet-group-chat", tr("Chat in New Tab"), false, QString::null, disableNewTab
+		"internet-group-chat", "internet-group-chat", tr("Chat in New Tab"), false, QString(), disableNewTab
 	);
 	BuddiesListViewMenuManager::instance()->addActionDescription(OpenInNewTabActionDescription, BuddiesListViewMenuItem::MenuCategoryChat, 200);
 
@@ -245,7 +245,27 @@ void TabsManager::onDestroyingChat(ChatWidget* chat)
 	disconnect(chat->edit(), SIGNAL(keyPressed(QKeyEvent*, CustomInput*, bool&)), TabDialog, SLOT(chatKeyPressed(QKeyEvent*, CustomInput*, bool&)));
 	disconnect(chat, SIGNAL(messageReceived(Chat)), this, SLOT(onMessageReceived(Chat)));
 	disconnect(chat, SIGNAL(closed()), this, SLOT(closeChat()));
+	disconnect(chat, SIGNAL(iconChanged()), this, SLOT(onIconChanged()));
 	disconnect(chat, SIGNAL(titleChanged(ChatWidget *, const QString &)), this, SLOT(onTitleChanged(ChatWidget *, const QString &)));
+	kdebugf2();
+}
+
+void TabsManager::onIconChanged()
+{
+	kdebugf();
+
+	ChatWidget *chatWidget = static_cast<ChatWidget *>(sender());
+
+	int chatIndex;
+	if (!chatWidget || (chatIndex = TabDialog->indexOf(chatWidget)) == -1)
+		return;
+
+	QIcon newIcon = chatWidget->icon();
+
+	TabDialog->setTabIcon(chatIndex, newIcon);
+	if (TabDialog->currentIndex() == chatIndex)
+		TabDialog->setWindowIcon(newIcon);
+
 	kdebugf2();
 }
 
@@ -258,13 +278,9 @@ void TabsManager::onTitleChanged(ChatWidget *chatChanged, const QString &newTitl
 	if (-1 == chatIndex || !chatChanged)
 		return;
 
-	refreshTab(chatIndex, chatChanged);
-
+	TabDialog->setTabToolTip(chatIndex, newTitle);
 	if (TabDialog->currentIndex() == chatIndex)
-	{
 		TabDialog->setWindowTitle(newTitle);
-		TabDialog->setWindowIcon(chatChanged->chat().icon());
-	}
 
 	kdebugf2();
 }
@@ -276,10 +292,8 @@ void TabsManager::onTabChange(int index)
 
 	ChatWidget *chat = dynamic_cast<ChatWidget *>(TabDialog->widget(index));
 
-	refreshTab(index, chat);
-
 	TabDialog->setWindowTitle(chat->title());
-	TabDialog->setWindowIcon(chat->chat().icon());
+	TabDialog->setWindowIcon(chat->icon());
 
 	emit chatWidgetActivated(chat);
 	// ustawiamy focus na pole edycji chata
@@ -378,7 +392,7 @@ void TabsManager::insertTab(ChatWidget* chat)
 	}
 
 	// Ustawiam tytul karty w zaleznosci od tego czy mamy do czynienia z rozmowa czy z konferencja
-	TabDialog->insertTab(TargetTabs, chat, chat->chat().icon(), formatTabName(chat));
+	TabDialog->insertTab(TargetTabs, chat, chat->icon(), formatTabName(chat));
 
 	TabDialog->setTabToolTip(TargetTabs, chat->title());
 
@@ -392,6 +406,7 @@ void TabsManager::insertTab(ChatWidget* chat)
 	// Podlaczamy sie do nowej wiadomości w chacie, tylko jesli dodany on zostal do kart
 	connect(chat, SIGNAL(messageReceived(Chat)),this, SLOT(onMessageReceived(Chat)));
 	connect(chat, SIGNAL(closed()), this, SLOT(closeChat()));
+	connect(chat, SIGNAL(iconChanged()), this, SLOT(onIconChanged()));
 	connect(chat, SIGNAL(titleChanged(ChatWidget * , const QString &)),
 			this, SLOT(onTitleChanged(ChatWidget *, const QString &)));
 
@@ -422,11 +437,15 @@ void TabsManager::onTimer()
 				qApp->alert(TabDialog);
 				// jesli chat jest na aktywnej karcie - zachowuje sie jak normalne okno
 				if (currentChat == chat)
-				{	if (msg && ConfigBlinkChatTitle)
-						TabDialog->setWindowTitle(QString().fill(' ', (chat->title().length() + 5)));
-					else if (!msg)
+				{
+					if (msg)
 					{
-						if(ConfigShowNewMessagesNum)
+						if (ConfigBlinkChatTitle)
+							TabDialog->setWindowTitle(QString(chat->title().length() + 5, ' '));
+					}
+					else
+					{
+						if (ConfigShowNewMessagesNum)
 							TabDialog->setWindowTitle('[' + QString::number(chat->newMessagesCount()) + "] " + chat->title());
 						else
 							TabDialog->setWindowTitle(chat->title());
@@ -443,7 +462,7 @@ void TabsManager::onTimer()
 			if (msg)
 				TabDialog->setTabIcon(i, IconsManager::instance()->iconByPath("protocols/common/message"));
 			else
-				TabDialog->setTabIcon(i, chat->chat().icon());
+				TabDialog->setTabIcon(i, chat->icon());
 
 			if (tabsActive)
 			{
@@ -453,7 +472,7 @@ void TabsManager::onTimer()
 					chat->markAllMessagesRead();
 					// a tutaj przywroc tytul�
 					TabDialog->setWindowTitle(chat->title());
-					TabDialog->setTabIcon(i, chat->chat().icon());
+					TabDialog->setTabIcon(i, chat->icon());
 					// wywal go z listy chatow z nowymi wiadomosciami
 					ChatsWithNewMessages.removeOne(chat);
 				}
@@ -628,7 +647,7 @@ void TabsManager::store()
 
 	storageFile->removeChildren(point);
 
-	foreach (ChatWidget * chatWidget, ChatWidgetManager::instance()->chats().values())
+	foreach (ChatWidget * chatWidget, ChatWidgetManager::instance()->chats())
 	{
 		if (!chatWidget)
 			continue;
@@ -653,6 +672,7 @@ void TabsManager::store()
 
 void TabsManager::mainConfigurationWindowCreated(MainConfigurationWindow *mainConfigurationWindow)
 {
+	// TODO 0.6.6: it doesn't seem to work -- beevvy
 	connect(mainConfigurationWindow->widget()->widgetById("tabs/DefaultTabs"), SIGNAL(toggled(bool)),
 			mainConfigurationWindow->widget()->widgetById("tabs/MinTabs"), SLOT(setEnabled(bool)));
 }
@@ -686,7 +706,6 @@ void TabsManager::configurationUpdated()
 	}
 	*/
 	TabDialog->configurationUpdated();
-	repaintTabs();
 
 	//uaktualniamy ikonki w menu kontekstowym pod PPM na karcie
 	// TODO : to remove ?
@@ -726,23 +745,6 @@ void TabsManager::openTabWith(QStringList altnicks, int index)
 	*/
 }
 
-void TabsManager::repaintTabs()
-{
-	if (!TabDialog->count())
-		return;
-
-	ChatWidget *chat;
-
-	for (int i = TabDialog->count() -1 ; i >= 0; i--)
-	{
-		chat = dynamic_cast<ChatWidget *>(TabDialog->widget(i));
-		refreshTab(i, chat);
-	}
-
-	//uaktualnienie ikonki w oknie tabs
-	TabDialog->setWindowIcon(dynamic_cast<ChatWidget *>(TabDialog->currentWidget())->chat().icon());
-}
-
 QString TabsManager::formatTabName(ChatWidget * chatWidget)
 {
 	int contactsCount = chatWidget->chat().contacts().count();
@@ -755,21 +757,6 @@ QString TabsManager::formatTabName(ChatWidget * chatWidget)
 		TabName = chatWidget->chat().name();
 
 	return TabName;
-}
-
-void TabsManager::refreshTab(int tabIndex, ChatWidget *chatWidget)
-{
-	if (0 == chatWidget)
-		return;
-
-	// uaktualnienie podp.
-	TabDialog->setTabToolTip(tabIndex, chatWidget->title());
-
-	//uaktualnienie ikonki
-	TabDialog->setTabIcon(tabIndex, chatWidget->chat().icon());
-
-	// uaktualnienie nazwy
-	TabDialog->setTabText(tabIndex, formatTabName(chatWidget));
 }
 
 void TabsManager::closeChat()

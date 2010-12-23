@@ -116,8 +116,8 @@ void AutoResponder::accountRegistered(Account account)
 	ChatService *chatService = protocol->chatService();
 	if (chatService)
 	{
-		connect(chatService, SIGNAL(filterIncomingMessage(Chat, Contact, const QString &, time_t, bool &)),
-				this, SLOT(filterIncomingMessage(Chat, Contact, const QString &, time_t, bool &)));
+		connect(chatService, SIGNAL(filterIncomingMessage(Chat, Contact, QString &, time_t, bool &)),
+				this, SLOT(filterIncomingMessage(Chat, Contact, QString &, time_t, bool &)));
 	}
 }
 
@@ -130,12 +130,12 @@ void AutoResponder::accountUnregistered(Account account)
 	ChatService *chatService = protocol->chatService();
 	if (chatService)
 	{
-		disconnect(chatService, SIGNAL(filterIncomingMessage(Chat, Contact, const QString &, time_t, bool &)),
-				this, SLOT(filterIncomingMessage(Chat, Contact, const QString &, time_t, bool &)));
+		disconnect(chatService, SIGNAL(filterIncomingMessage(Chat, Contact, QString &, time_t, bool &)),
+				this, SLOT(filterIncomingMessage(Chat, Contact, QString &, time_t, bool &)));
 	}
 }
 
-void AutoResponder::filterIncomingMessage(Chat chat, Contact sender, const QString &message, time_t time, bool &ignore)
+void AutoResponder::filterIncomingMessage(Chat chat, Contact sender, QString &message, time_t time, bool &ignore)
 {
 	Q_UNUSED(time)
 	Q_UNUSED(ignore)
@@ -184,7 +184,7 @@ void AutoResponder::filterIncomingMessage(Chat chat, Contact sender, const QStri
 		chatService->sendMessage(chat, tr("KADU AUTORESPONDER:") + '\n'
 				+ Parser::parse(autoRespondText, BuddyOrContact(sender)), true);
 		// dołączamy użytkowników, którym odpowiedziano
-		foreach (Contact contact, chat.contacts())
+		foreach (const Contact &contact, chat.contacts())
 			repliedUsers.insert(contact);
 	}
 
@@ -195,7 +195,7 @@ void AutoResponder::chatOpenedClosed(ChatWidget *chatWidget, bool activate)
 {
 	Q_UNUSED(activate)
 	Chat chat = chatWidget->chat();
-	foreach(Contact contact, chat.contacts())
+	foreach (const Contact &contact, chat.contacts())
 		repliedUsers.remove(contact);
 }
 

@@ -37,12 +37,15 @@
 
 #include "gadu-formatter.h"
 
-unsigned int GaduFormater::computeFormatsSize(const FormattedMessage &message)
+namespace GaduFormatter
+{
+
+unsigned int computeFormatsSize(const FormattedMessage &message)
 {
 	unsigned int size = sizeof(struct gg_msg_richtext);
 	bool first = true;
 
-	foreach (const FormattedMessagePart part, message.parts())
+	foreach (const FormattedMessagePart &part, message.parts())
 	{
 		if (!first || part.isImage() || part.bold() || part.italic() || part.underline() || part.color().isValid())
 		{
@@ -67,7 +70,7 @@ unsigned int GaduFormater::computeFormatsSize(const FormattedMessage &message)
 	return first ? 0 : size;
 }
 
-unsigned char * GaduFormater::createFormats(Account account, const FormattedMessage &message, unsigned int &size)
+unsigned char * createFormats(Account account, const FormattedMessage &message, unsigned int &size)
 {
 	size = computeFormatsSize(message);
 	if (!size)
@@ -87,7 +90,7 @@ unsigned char * GaduFormater::createFormats(Account account, const FormattedMess
 	header.length = gg_fix16(size - sizeof(struct gg_msg_richtext));
 	memcpy(result, &header, sizeof(header));
 
-	foreach (FormattedMessagePart part, message.parts())
+	foreach (const FormattedMessagePart &part, message.parts())
 	{
 		if (first && !part.isImage() && !part.bold() && !part.italic() && !part.underline() && !part.color().isValid())
 		{
@@ -149,7 +152,7 @@ unsigned char * GaduFormater::createFormats(Account account, const FormattedMess
 	return result;
 }
 
-void GaduFormater::appendToMessage(Account account, FormattedMessage &result, UinType sender, const QString &content,
+static void appendToMessage(Account account, FormattedMessage &result, UinType sender, const QString &content,
 		struct gg_msg_richtext_format &format,
 		struct gg_msg_richtext_color &color, struct gg_msg_richtext_image &image, bool receiveImages)
 {
@@ -186,7 +189,7 @@ void GaduFormater::appendToMessage(Account account, FormattedMessage &result, Ui
 			dynamic_cast<GaduChatImageService *>(gadu->chatImageService())->
 					sendImageRequest(ContactManager::instance()->byId(account, QString::number(sender)), size, crc32);
 
-			result << FormattedMessagePart(GaduChatImageService::imageFileName(sender, size, crc32));
+			result << FormattedMessagePart(createImageId(sender, size, crc32));
 		}
 	}
 	else
@@ -204,7 +207,7 @@ void GaduFormater::appendToMessage(Account account, FormattedMessage &result, Ui
 
 #define MAX_NUMBER_OF_IMAGES 5
 
-QString GaduFormater::createImageId(unsigned int sender, unsigned int size, unsigned int crc32)
+QString createImageId(unsigned int sender, unsigned int size, unsigned int crc32)
 {
 	return QString("gadu-%1-%2-%3")
 		.arg(sender)
@@ -212,7 +215,7 @@ QString GaduFormater::createImageId(unsigned int sender, unsigned int size, unsi
 		.arg(crc32);
 }
 
-FormattedMessage GaduFormater::createMessage(Account account, UinType sender, const QString &content,
+FormattedMessage createMessage(Account account, UinType sender, const QString &content,
 		unsigned char *formats, unsigned int size, bool receiveImages)
 {
 	FormattedMessage result;
@@ -242,7 +245,7 @@ FormattedMessage GaduFormater::createMessage(Account account, UinType sender, co
 		textPosition = gg_fix16(format.position);
 
 		if (first && format.position > 0)
-			result << FormattedMessagePart(content.mid(0, textPosition), false, false, false, QColor());
+			result << FormattedMessagePart(content.left(textPosition), false, false, false, QColor());
 
 		if (format.font & GG_FONT_IMAGE)
 		{
@@ -283,3 +286,4 @@ FormattedMessage GaduFormater::createMessage(Account account, UinType sender, co
 	return result;
 }
 
+} // namespace

@@ -226,7 +226,7 @@ SearchWindow::SearchWindow(QWidget *parent, Buddy buddy) :
 	}
 	else
 	{
-		foreach (Account a, AccountManager::instance()->items())
+		foreach (const Account &a, AccountManager::instance()->items())
 		{
 			// TODO 0.6.6: !!!
 			if (a.protocolHandler()->isConnected() && a.protocolHandler()->protocolFactory()->name() == "gadu")
@@ -334,7 +334,7 @@ QTreeWidgetItem * SearchWindow::selectedItem()
 
 void SearchWindow::addFound()
 {
-	foreach (Buddy buddy, selected().toBuddySet().toList())
+	foreach (const Buddy &buddy, selected().toBuddySet().toList())
 	{
 		AddBuddyWindow *a = new AddBuddyWindow(this);
 		a->setBuddy(buddy);
@@ -516,14 +516,14 @@ void SearchWindow::nextSearch()
 	kdebugf2();
 }
 
-void SearchWindow::newSearchResults(BuddyList buddies)
+void SearchWindow::newSearchResults(const BuddyList &buddies)
 {
 	kdebugf();
 
 	QTreeWidgetItem *qlv = 0;
 	QIcon pix;
 
-	foreach(Buddy buddy, buddies)
+	foreach (const Buddy &buddy, buddies)
 	{
 		QList<Contact> contactslist = buddy.contacts(CurrentAccount);
 		Contact contact = contactslist.isEmpty() ? Contact::null : contactslist[0];
@@ -543,7 +543,7 @@ void SearchWindow::newSearchResults(BuddyList buddies)
 		else
 		{
 			QStringList strings;
-			strings << QString::null << contact.id() << buddy.firstName() << buddy.city() << buddy.nickName() << QString::number(buddy.birthYear());
+			strings << QString() << contact.id() << buddy.firstName() << buddy.city() << buddy.nickName() << QString::number(buddy.birthYear());
 			qlv = new QTreeWidgetItem(results, strings);
 			qlv->setIcon(0, pix);
 			qlv = 0;

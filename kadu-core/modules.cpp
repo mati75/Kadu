@@ -55,7 +55,6 @@
 
 #include "activate.h"
 #include "debug.h"
-#include "kadu-config.h"
 #include "icons-manager.h"
 #include "misc/misc.h"
 
@@ -373,7 +372,7 @@ QString ModulesManager::moduleProvides(const QString &provides)
 			if (moduleIsLoaded(moduleName))
 				return moduleName;
 
-	return "";
+	return QString();
 }
 
 bool ModulesManager::moduleInfo(const QString& module_name, ModuleInfo& info) const

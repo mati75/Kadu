@@ -132,7 +132,6 @@ Core::~Core()
 void Core::import_0_6_5_configuration()
 {
 	config_file.addVariable("Look", "UserboxAlternateBgColor", config_file.readEntry("Look", "UserboxBgColor"));
-	config_file.addVariable("ShortCuts", "chat_send", config_file.readEntry("ShortCuts", "chat_newline"));
 }
 
 void Core::createDefaultConfiguration()
@@ -151,7 +150,7 @@ void Core::createDefaultConfiguration()
 #endif
 	config_file.addVariable("Chat", "ChatPruneLen", 20);
 	config_file.addVariable("Chat", "ConfirmChatClear", true);
-	config_file.addVariable("Chat", "EmoticonsPaths", "");
+	config_file.addVariable("Chat", "EmoticonsPaths", QString());
 	config_file.addVariable("Chat", "EmoticonsStyle", EmoticonsStyleAnimated);
 	config_file.addVariable("Chat", "EmoticonsScaling", EmoticonsScalingStatic);
 #ifdef Q_WS_X11
@@ -167,7 +166,7 @@ void Core::createDefaultConfiguration()
 	config_file.addVariable("Chat", "LastImagePath", QString(getenv("HOME")) + '/');
 	config_file.addVariable("Chat", "MessageAcks", false);
 	config_file.addVariable("Chat", "NewMessagesInChatTitle", false);
-	config_file.addVariable("Chat", "OpenChatOnMessage", true);
+	config_file.addVariable("Chat", "OpenChatOnMessage", false);
 	config_file.addVariable("Chat", "OpenChatOnMessageWhenOnline", false);
 	config_file.addVariable("Chat", "SaveOpenedWindows", true);
 	config_file.addVariable("Chat", "ReceiveMessages", true);
@@ -206,7 +205,7 @@ void Core::createDefaultConfiguration()
 	config_file.addVariable("Look", "AlignUserboxIconsTop", true);
 	config_file.addVariable("Look", "AvatarBorder", true);
 	config_file.addVariable("Look", "AvatarGreyOut", true);
-	config_file.addVariable("Look", "ChatContents", "");
+	config_file.addVariable("Look", "ChatContents", QString());
 	config_file.addVariable("Look", "ChatFont", qApp->font());
 	config_file.addVariable("Look", "ChatBgColor", QColor("#ffffff"));
 	config_file.addVariable("Look", "ChatMyBgColor", QColor("#E0E0E0"));
@@ -216,14 +215,15 @@ void Core::createDefaultConfiguration()
 	config_file.addVariable("Look", "ChatUsrBgColor", QColor("#F0F0F0"));
 	config_file.addVariable("Look", "ChatUsrFontColor", QColor("#000000"));
 	config_file.addVariable("Look", "ChatUsrNickColor", QColor("#000000"));
-	config_file.addVariable("Look", "ConferenceContents", "");
-	config_file.addVariable("Look", "ConferencePrefix", "");
+	config_file.addVariable("Look", "ConferenceContents", QString());
+	config_file.addVariable("Look", "ConferencePrefix", QString());
 	config_file.addVariable("Look", "DescriptionColor", w.palette().text().color());
 	config_file.addVariable("Look", "DisplayGroupTabs", true);
 	config_file.addVariable("Look", "HeaderSeparatorHeight", 1);
-	config_file.addVariable("Look", "IconsPaths", "");
-	config_file.addVariable("Look", "InfoPanelBgColor", w.palette().base().color());
+	config_file.addVariable("Look", "IconsPaths", QString());
 	config_file.addVariable("Look", "InfoPanelFgColor", w.palette().text().color());
+	config_file.addVariable("Look", "InfoPanelBgFilled", false);
+	config_file.addVariable("Look", "InfoPanelBgColor", w.palette().base().color());
 	config_file.addVariable("Look", "InfoPanelSyntaxFile", "default");
 	config_file.addVariable("Look", "NiceDateFormat", true);
 	config_file.addVariable("Look", "NoHeaderInterval", 30);
@@ -268,7 +268,7 @@ void Core::createDefaultConfiguration()
 	config_file.addVariable("Network", "AllowDCC", true);
 	config_file.addVariable("Network", "DefaultPort", 0);
 	config_file.addVariable("Network", "isDefServers", true);
-	config_file.addVariable("Network", "Server", "");
+	config_file.addVariable("Network", "Server", QString());
 	config_file.addVariable("Network", "TimeoutInMs", 5000);
 	config_file.addVariable("Network", "UseProxy", false);
 
@@ -290,7 +290,6 @@ void Core::createDefaultConfiguration()
 	config_file.addVariable("ShortCuts", "chat_bold", "Ctrl+B");
 	config_file.addVariable("ShortCuts", "chat_close", "Esc");
 	config_file.addVariable("ShortCuts", "chat_italic", "Ctrl+I");
-	config_file.addVariable("ShortCuts", "chat_send", "Return");
 	config_file.addVariable("ShortCuts", "chat_underline", "Ctrl+U");
 	config_file.addVariable("ShortCuts", "kadu_adduser", "Ctrl+N");
 	config_file.addVariable("ShortCuts", "kadu_deleteuser", "Del");

@@ -22,6 +22,8 @@
 
 #include <QtCore/QObject>
 
+#include <protocols/protocol.h>
+
 class Contact;
 class GaduProtocol;
 
@@ -37,14 +39,14 @@ public:
 	explicit GaduContactListHandler(GaduProtocol *protocol, QObject *parent = 0);
 	virtual ~GaduContactListHandler();
 
-	void setUpContactList(QList<Contact> contacts);
+	void setUpContactList(const QList<Contact> &contacts);
 
 	void updateContactEntry(Contact contact);
 
-	void addContactEntry(int uin, int type);
+	void addContactEntry(UinType uin, int type);
 	void addContactEntry(Contact contact);
 
-	void removeContactEntry(int uin);
+	void removeContactEntry(UinType uin);
 	void removeContactEntry(Contact contact);
 
 };

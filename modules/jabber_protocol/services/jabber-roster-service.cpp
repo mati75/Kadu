@@ -120,7 +120,7 @@ void JabberRosterService::contactUpdated(const XMPP::RosterItem &item)
 
 	GroupManager *gm = GroupManager::instance();
 	// add this contact to all groups the contact is a member of
-	foreach (QString group, item.groups())
+	foreach (const QString &group, item.groups())
 		buddy.addToGroup(gm->byName(group, true /* create group */));
 
 	Protocol->connectContactManagerSignals();
@@ -143,7 +143,7 @@ void JabberRosterService::rosterRequestFinished(bool success)
 	// the roster was imported successfully, clear
 	// all "dirty" items from the contact list
 	if (success)
-		foreach (Contact contact, ContactsForDelete)
+		foreach (const Contact &contact, ContactsForDelete)
 			BuddyManager::instance()->clearOwnerAndRemoveEmptyBuddy(contact);
 
 	InRequest = false;

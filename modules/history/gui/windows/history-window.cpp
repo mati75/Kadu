@@ -61,6 +61,7 @@
 #include "model/history-chats-model-proxy.h"
 #include "model/sms-dates-model.h"
 #include "storage/history-storage.h"
+#include "history.h"
 #include "history-tree-item.h"
 #include "timed-status.h"
 
@@ -127,7 +128,7 @@ void HistoryWindow::createGui()
 
 	MyChatDatesModel = new ChatDatesModel(Chat::null, QList<QDate>(), this);
 	MyBuddyStatusDatesModel = new BuddyStatusDatesModel(Buddy::null, QList<QDate>(), this);
-	MySmsDatesModel = new SmsDatesModel(QString::null, QList<QDate>(), this);
+	MySmsDatesModel = new SmsDatesModel(QString(), QList<QDate>(), this);
 
 	DetailsListView->setRootIsDecorated(false);
 	DetailsListView->setUniformRowHeights(true);
@@ -243,7 +244,7 @@ void HistoryWindow::updateData()
 	QList<Chat> chatsList = History::instance()->chatsList(Search);
 	QList<Chat> result;
 
-	foreach (Chat chat, chatsList)
+	foreach (const Chat &chat, chatsList)
 	{
 		if (usedChats.contains(chat))
 			continue;
@@ -253,7 +254,7 @@ void HistoryWindow::updateData()
 			ChatDetailsAggregate *details = dynamic_cast<ChatDetailsAggregate *>(aggregate.details());
 
 			if (details)
-				foreach (Chat usedChat, details->chats())
+				foreach (const Chat &usedChat, details->chats())
 					usedChats.insert(usedChat);
 
 			result.append(aggregate);
@@ -273,7 +274,7 @@ void HistoryWindow::updateData()
 	ChatsModel->setSmsRecipients(History::instance()->smsRecipientsList(Search));
 }
 
-void HistoryWindow::selectChat(Chat chat)
+void HistoryWindow::selectChat(const Chat &chat)
 {
 	QString typeName = chat.type();
 	ChatType *type = ChatTypeManager::instance()->chatType(typeName);
@@ -300,7 +301,7 @@ void HistoryWindow::selectChat(Chat chat)
 	chatActivated(chat);
 }
 
-void HistoryWindow::selectStatusBuddy(Buddy buddy)
+void HistoryWindow::selectStatusBuddy(const Buddy &buddy)
 {
 	QModelIndex statusIndex = ChatsModelProxy->statusIndex();
 	if (!statusIndex.isValid())
@@ -336,7 +337,7 @@ void HistoryWindow::selectSmsRecipient(const QString& recipient)
 	smsRecipientActivated(recipient);
 }
 
-void HistoryWindow::selectHistoryItem(HistoryTreeItem item)
+void HistoryWindow::selectHistoryItem(const HistoryTreeItem &item)
 {
 	switch (item.type())
 	{
@@ -358,7 +359,7 @@ void HistoryWindow::selectHistoryItem(HistoryTreeItem item)
 	}
 }
 
-void HistoryWindow::chatActivated(Chat chat)
+void HistoryWindow::chatActivated(const Chat &chat)
 {
 	kdebugf();
 
@@ -389,7 +390,7 @@ void HistoryWindow::chatActivated(Chat chat)
 	kdebugf2();
 }
 
-void HistoryWindow::statusBuddyActivated(Buddy buddy)
+void HistoryWindow::statusBuddyActivated(const Buddy &buddy)
 {
 	kdebugf();
 
@@ -455,7 +456,7 @@ void HistoryWindow::smsRecipientActivated(const QString& recipient)
 	kdebugf2();
 }
 
-void HistoryWindow::treeItemActivated(HistoryTreeItem item)
+void HistoryWindow::treeItemActivated(const HistoryTreeItem &item)
 {
 	switch (item.type())
 	{
@@ -491,22 +492,18 @@ void HistoryWindow::treeCurrentChanged(const QModelIndex &current, const QModelI
 
 void HistoryWindow::dateCurrentChanged(const QModelIndex &current, const QModelIndex &previous)
 {
+	kdebugf();
+
 	if (current == previous)
 		return;
-
-	Q_UNUSED(previous)
-
-	kdebugf();
 
 	HistoryTreeItem treeItem = current.data(HistoryItemRole).value<HistoryTreeItem>();
 	QDate date = current.data(DateRole).value<QDate>();
 
-	ContentBrowser->clearMessages();
-
 	switch (treeItem.type())
 	{
 		case HistoryTypeNone:
-			// do nothing
+			ContentBrowser->setChat(Chat::null);
 			break;
 
 		case HistoryTypeChat:
@@ -517,7 +514,6 @@ void HistoryWindow::dateCurrentChanged(const QModelIndex &current, const QModelI
 				messages = History::instance()->messages(chat, date);
 			ContentBrowser->setChat(chat);
 			ContentBrowser->appendMessages(messages);
-			QTimer::singleShot(500, this, SLOT(selectQueryText()));
 			break;
 		}
 
@@ -530,30 +526,33 @@ void HistoryWindow::dateCurrentChanged(const QModelIndex &current, const QModelI
 			if (buddy.contacts().size() > 0)
 				ContentBrowser->setChat(ChatManager::instance()->findChat(ContactSet(buddy.contacts()[0]), true));
 			ContentBrowser->appendMessages(statusesToMessages(statuses));
-			QTimer::singleShot(500, this, SLOT(selectQueryText()));
 			break;
 		}
 
 		case HistoryTypeSms:
 		{
 			QString recipient = treeItem.smsRecipient();
-			QList<QString> sms;
+			QList<Message> sms;
 			if (!recipient.isEmpty() && date.isValid())
 				sms = History::instance()->sms(recipient, date);
-			ContentBrowser->appendMessages(smsToMessage(sms));
-			QTimer::singleShot(500, this, SLOT(selectQueryText()));
+			ContentBrowser->setChat(Chat::null);
+			ContentBrowser->appendMessages(sms);
 			break;
 		}
 	}
 
+	if (!Search.query().isEmpty())
+		QTimer::singleShot(500, this, SLOT(selectQueryText()));
+
+
 	kdebugf2();
 }
 
-QList<Message> HistoryWindow::statusesToMessages(QList<TimedStatus> statuses)
+QList<Message> HistoryWindow::statusesToMessages(const QList<TimedStatus> &statuses)
 {
 	QList<Message> messages;
 
-	foreach (TimedStatus timedStatus, statuses)
+	foreach (const TimedStatus &timedStatus, statuses)
 	{
 		Message message = Message::create();
 		message.setStatus(Message::StatusReceived);
@@ -568,23 +567,6 @@ QList<Message> HistoryWindow::statusesToMessages(QList<TimedStatus> statuses)
 
 		message.setReceiveDate(timedStatus.dateTime());
 		message.setSendDate(timedStatus.dateTime());
-
-		messages.append(message);
-	}
-
-	return messages;
-}
-
-QList<Message> HistoryWindow::smsToMessage(QList<QString> sms)
-{
-	QList<Message> messages;
-
-	foreach (QString oneSms, sms)
-	{
-		Message message = Message::create();
-		message.setStatus(Message::StatusSent);
-		message.setType(Message::TypeReceived);
-		message.setContent(oneSms);
 
 		messages.append(message);
 	}
@@ -649,7 +631,7 @@ void HistoryWindow::showDetailsPopupMenu(const QPoint &pos)
 	DetailsPopupMenu->exec(QCursor::pos());
 }
 
-void HistoryWindow::show(Chat chat)
+void HistoryWindow::show(const Chat &chat)
 {
 	if (!History::instance()->currentStorage())
 	{
@@ -658,11 +640,11 @@ void HistoryWindow::show(Chat chat)
 	}
 
 	Chat aggregate = AggregateChatManager::instance()->aggregateChat(chat);
-	if (aggregate)
-		chat = aggregate;
+	if (!aggregate)
+		aggregate = chat;
 
 	updateData();
-	selectChat(chat);
+	selectChat(aggregate);
 
 	QWidget::show();
 	_activateWindow(this);
@@ -695,7 +677,7 @@ void HistoryWindow::clearHistory()
 void HistoryWindow::selectQueryText()
 {
 #if QT_VERSION >= QT_VERSION_CHECK(4,6,0)
-	ContentBrowser->findText(""); // clear old selection
+	ContentBrowser->findText(QString()); // clear old selection
 	ContentBrowser->findText(Search.query(), QWebPage::HighlightAllOccurrences);
 #else
 	ContentBrowser->findText(Search.query());

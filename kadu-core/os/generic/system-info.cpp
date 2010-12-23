@@ -57,7 +57,7 @@ QString SystemInfo::lsbRelease(const QStringList  &args)
 	QStringList path = QString(qgetenv("PATH")).split(':');
 	QString found;
 
-	foreach (QString dirname, path)
+	foreach (const QString &dirname, path)
 	{
 		QDir dir(dirname);
 		QFileInfo cand(dir.filePath("lsb_release"));
@@ -254,7 +254,7 @@ SystemInfo::SystemInfo()
 	if(inDST)
 		bias += i.DaylightBias;
 	TimezoneOffset = -bias;
-	Timezone = "";
+	Timezone.clear();
 	for(int n = 0; n < 32; ++n)
 	{
 		int w = inDST ? i.DaylightName[n] : i.StandardName[n];
@@ -262,7 +262,7 @@ SystemInfo::SystemInfo()
 			break;
 		Timezone += QChar(w);
 	}
-	OsFullName = QString();
+	OsFullName.clear();
 	OsName = "Windows";
 	OSVERSIONINFOEX osvi;
 	BOOL bOsVersionInfoEx;

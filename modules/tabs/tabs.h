@@ -67,11 +67,7 @@ class TabsManager : public ConfigurationUiHandler, ConfigurationAwareObject, Sto
 	ChatWidget *SelectedChat;
 	QMenu *Menu;
 
-	void repaintTabs();
-
 	QString formatTabName(ChatWidget *chatWidget);
-
-	void refreshTab(int tabIndex, ChatWidget *chatWidget);
 
 	/**
 	* Zmienne konfiguracyjne.
@@ -113,8 +109,8 @@ public:
 public slots:
 	void onNewChat(ChatWidget *chat, bool &handled);
 	void onDestroyingChat(ChatWidget *chat);
-
 	void onOpenChat(ChatWidget *chat, bool activate);
+	void onIconChanged();
 	void onTitleChanged(ChatWidget *chatChanged, const QString &newTitle);
 
 	void onTabChange(int index);

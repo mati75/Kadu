@@ -20,6 +20,7 @@
  */
 
 #include <QtCore/QChar>
+#include <QtGui/QDesktopWidget>
 #include <QtGui/QDialogButtonBox>
 #include <QtGui/QKeyEvent>
 #include <QtGui/QPushButton>
@@ -68,6 +69,10 @@ OpenChatWith::OpenChatWith() :
 
 	setWindowTitle(tr("Open chat with..."));
 	setAttribute(Qt::WA_DeleteOnClose);
+	
+	int width = QDesktopWidget().availableGeometry().width()*0.25;
+	int height = QDesktopWidget().availableGeometry().height()*0.3;
+	setGeometry(QDesktopWidget().availableGeometry().center().x()-width/2, QDesktopWidget().availableGeometry().center().y()-height/2, width, height);
 
 	MainLayout = new QVBoxLayout(this);
 	MainLayout->setMargin(0);
@@ -116,14 +121,19 @@ bool OpenChatWith::eventFilter(QObject *obj, QEvent *e)
 {
 	if (obj == ContactID && e->type() == QEvent::KeyPress)
 	{
-		int key = static_cast<QKeyEvent *>(e)->key();
-		if (key == Qt::Key_Down ||
-				key == Qt::Key_Up ||
-				key == Qt::Key_PageDown ||
-				key == Qt::Key_PageUp)
+		if (static_cast<QKeyEvent *>(e)->modifiers() == Qt::NoModifier)
 		{
-			qApp->sendEvent(BuddiesWidget, e);
-			return true;
+			int key = static_cast<QKeyEvent *>(e)->key();
+			if (key == Qt::Key_Down ||
+					key == Qt::Key_Up ||
+					key == Qt::Key_PageDown ||
+					key == Qt::Key_PageUp ||
+					(key == Qt::Key_Left && ContactID->cursorPosition() == 0) ||
+					(key == Qt::Key_Right && ContactID->cursorPosition() == ContactID->text().length()))
+			{
+				qApp->sendEvent(BuddiesWidget, e);
+				return true;
+			}
 		}
 	}
 
@@ -192,7 +202,7 @@ void OpenChatWith::inputChanged(const QString &text)
 void OpenChatWith::openChat()
 {
 	ContactSet contacts = BuddiesWidget->selectedContacts();
-	foreach (Contact contact, contacts)
+	foreach (const Contact &contact, contacts)
 		ContactManager::instance()->addItem(contact);
 
 	BuddySet buddies = contacts.toBuddySet();

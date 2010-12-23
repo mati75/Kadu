@@ -91,7 +91,7 @@ void IdentityShared::store()
 
 void IdentityShared::aboutToBeRemoved()
 {
-	Accounts = QList<Account>();
+	Accounts.clear();
 }
 
 void IdentityShared::addAccount(Account account)
@@ -115,6 +115,15 @@ bool IdentityShared::hasAccount(Account account)
 	return Accounts.contains(account);
 }
 
+bool IdentityShared::hasAnyAccountWithDetails()
+{
+	foreach (const Account &account, Accounts)
+		if (account.details())
+			return true;
+
+	return false;
+}
+
 bool IdentityShared::isEmpty()
 {
 	return Accounts.isEmpty();
@@ -122,7 +131,7 @@ bool IdentityShared::isEmpty()
 
 void IdentityShared::doSetStatus(Status status)
 {
-	foreach (Account account, Accounts)
+	foreach (const Account &account, Accounts)
 		if (account)
 			account.data()->setStatus(status);
 }
@@ -134,7 +143,7 @@ Account IdentityShared::bestAccount()
 		return result;
 
 	Status resultStatus = Status::null;
-	foreach (Account account, Accounts)
+	foreach (const Account &account, Accounts)
 		if (account.data())
 		{
 			if (resultStatus == Status::null || account.data()->status() < resultStatus)

@@ -66,7 +66,7 @@ FileTransferActions::FileTransferActions(QObject *parent)
 	SendFileActionDescription = new ActionDescription(this,
 		ActionDescription::TypeUser, "sendFileAction",
 		this, SLOT(sendFileActionActivated(QAction *, bool)),
-		"document-send", "document-send", tr("Send File..."), false, QString::null,
+		"document-send", "document-send", tr("Send File..."), false, QString(),
 		disableNonFileTransferContacts
 	);
 	SendFileActionDescription->setShortcut("kadu_sendfile");
@@ -122,7 +122,7 @@ QStringList FileTransferActions::selectFilesToSend()
 			config_file.readEntry("Network", "LastUploadDirectory"));
 }
 
-void FileTransferActions::selectFilesAndSend(ContactSet contacts)
+void FileTransferActions::selectFilesAndSend(const ContactSet &contacts)
 {
 	QStringList files = selectFilesToSend();
 	if (!files.count())

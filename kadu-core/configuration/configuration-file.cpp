@@ -56,7 +56,7 @@ PlainConfigFile &PlainConfigFile::operator=(const PlainConfigFile &c)
 {
 	filename = c.filename;
 	groups = c.groups;
-	activeGroupName = QString::null;
+	activeGroupName.clear();;
 	return *this;
 }
 
@@ -115,7 +115,6 @@ void PlainConfigFile::write() const
 	{*/
 
 	QFile file(filename);
-	QString line;
 	QStringList out;
 	QString format1("[%1]\n");
 	QString format2("%1=%2\n");
@@ -125,11 +124,11 @@ void PlainConfigFile::write() const
 		kdebugm(KDEBUG_INFO, "file opened '%s'\n", qPrintable(file.fileName()));
 		QTextStream stream(&file);
 		stream.setCodec(codec_latin2);
-		foreach(const QString &key, groups.keys())
+		foreach (const QString &key, groups.keys())
 		{
 //			kdebugm(KDEBUG_DUMP, ">> %s\n", (i.key()));
 			out.append(format1.arg(key));
-			foreach(const QString &dataKey, groups[key].keys())
+			foreach (const QString &dataKey, groups[key].keys())
 			{
 				QString q = groups[key][dataKey];
 				out.append(format2.arg(dataKey).arg(q.replace('\n', "\\n")));
@@ -137,7 +136,7 @@ void PlainConfigFile::write() const
 			}
 			out.append("\n");
 		}
-		stream << out.join(QString::null);
+		stream << out.join(QString());
 		file.close();
 	}
 	else
@@ -193,7 +192,7 @@ QString PlainConfigFile::getEntry(const QString &group, const QString &name, boo
 		{
 			if (ok)
 				*ok=false;
-			return QString::null;
+			return QString();
 		}
 
 		changeActiveGroup(group);
@@ -203,7 +202,7 @@ QString PlainConfigFile::getEntry(const QString &group, const QString &name, boo
 	if (activeGroup.contains(name))
 		return activeGroup[name];
 	else
-		return QString::null;
+		return QString();
 }
 
 void PlainConfigFile::writeEntry(const QString &group, const QString &name, const QVariant &value)

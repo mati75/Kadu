@@ -65,10 +65,16 @@ SimpleView::SimpleView() :
 	StatusButtonsHandle = KaduWindowHandle->findChild<StatusButtons *>();
 
 	configurationUpdated();
+	
+	DiffRect = config_file.readRectEntry("Look", "SimpleViewGeometry");
+	if (!DiffRect.isNull())
+		simpleViewToggle(true);
 }
 
 SimpleView::~SimpleView()
 {
+	config_file.writeEntry("Look", "SimpleViewGeometry", DiffRect);
+	
 	simpleViewToggle(false);
 
 	if (!Core::instance()->isClosing())
@@ -112,27 +118,36 @@ void SimpleView::simpleViewToggle(bool activate)
 	 *     |  +-FilterWidget (nameFilterWidget())
 	 *     +-BuddyInfoPanel (InfoPanel)
 	 */
-	if(activate != SimpleViewActive)
+	if (activate != SimpleViewActive)
 	{
 		Qt::WindowFlags flags;
-		QPoint p, cp;
-		QSize s, cs;
+		QRect mr, r;
 
 		SimpleViewActive = activate;
 
 		flags = MainWindowHandle->windowFlags();
-		cp = MainWindowHandle->pos();
-		cs = MainWindowHandle->size();
+		mr = MainWindowHandle->geometry();
 
 		if (SimpleViewActive)
 		{
+			if (DiffRect.isNull())
+			{
+				if (KeepSize)
+				{
+					r.setTopLeft(BuddiesListWidgetHandle->view()->mapToGlobal(BuddiesListWidgetHandle->view()->rect().topLeft()));
+					r.setSize(BuddiesListWidgetHandle->view()->rect().size());
+				}
+				else
+					r = MainWindowHandle->frameGeometry();
+
+				DiffRect.setRect(mr.x() - r.x(), mr.y() - r.y(), mr.width() - r.width(), mr.height() - r.height());
+			}
+			else
+				r.setRect(mr.x() - DiffRect.x(), mr.y() - DiffRect.y(), mr.width() - DiffRect.width(), mr.height() - DiffRect.height());
+
 			if (Borderless)
 				BuddiesListViewStyle = BuddiesListWidgetHandle->view()->styleSheet();
-
-			p = BuddiesListWidgetHandle->view()->mapToGlobal(BuddiesListWidgetHandle->view()->rect().topLeft());
-			s = BuddiesListWidgetHandle->view()->rect().size();
-			BackupPosition = p - cp;
-			BackupSize = cs - s;
+			
 			MainWindowHandle->hide();
 
 			/* Toolbars */
@@ -150,7 +165,9 @@ void SimpleView::simpleViewToggle(bool activate)
 			GroupBarWidgetHandle->hide();
 
 			/* Filter */
-			BuddiesListWidgetHandle->nameFilterWidget()->hide();
+			/* Note: filter hides/shows now automatically.
+			 * BuddiesListWidgetHandle->nameFilterWidget()->hide();
+			 */
 
 			/* ScrollBar */
 			if (NoScrollBar)
@@ -164,11 +181,7 @@ void SimpleView::simpleViewToggle(bool activate)
 
 			MainWindowHandle->setWindowFlags(flags | Qt::FramelessWindowHint);
 
-			if(KeepSize)
-			{
-				MainWindowHandle->move(p);
-				MainWindowHandle->resize(s);
-			}
+			MainWindowHandle->setGeometry(r);
 
 			if (Borderless)
 				BuddiesListWidgetHandle->view()->setStyleSheet(QString("QTreeView { border-style: none; }") + BuddiesListViewStyle);
@@ -180,14 +193,12 @@ void SimpleView::simpleViewToggle(bool activate)
 			if (Borderless)
 				BuddiesListWidgetHandle->view()->setStyleSheet(BuddiesListViewStyle);
 
-			if(KeepSize)
-			{
-				BackupPosition = cp - BackupPosition;
-				MainWindowHandle->move(BackupPosition);
-				MainWindowHandle->resize(cs + BackupSize);
-			}
-			MainWindowHandle->setWindowFlags(flags & ~(Qt::FramelessWindowHint));
+			r.setRect(mr.x() + DiffRect.x(), mr.y() + DiffRect.y(), mr.width() + DiffRect.width(), mr.height() + DiffRect.height());
 
+			MainWindowHandle->setWindowFlags(flags & ~(Qt::FramelessWindowHint));
+			
+			MainWindowHandle->setGeometry(r);
+			
 			/* Status button */
 			StatusButtonsHandle->setVisible(config_file.readBoolEntry("Look", "ShowStatusButton"));
 
@@ -199,7 +210,9 @@ void SimpleView::simpleViewToggle(bool activate)
 			BuddiesListWidgetHandle->view()->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
 
 			/* Filter */
-			BuddiesListWidgetHandle->nameFilterWidget()->show();
+			/* Note: filter hides/shows now automatically.
+			 * BuddiesListWidgetHandle->nameFilterWidget()->show();
+			 */
 
 			/* GroupBar */
 			GroupBarWidgetHandle->show();
@@ -214,9 +227,11 @@ void SimpleView::simpleViewToggle(bool activate)
 				if (toolBar)
 					toolBar->setVisible(true);
 			}
+			
+			DiffRect = QRect(0,0,0,0);
 		}
 		MainWindowHandle->show();
-
+		
 		if (!Core::instance()->isClosing())
 			DockAction->setChecked(SimpleViewActive);
 	}

@@ -133,8 +133,9 @@
 				<color-button caption="Descriptions font" config-section="Look" config-item="DescriptionColor" />
 			</group-box>
 			<group-box name="Information Panel">
-				<color-button caption="Background" config-section="Look" config-item="InfoPanelBgColor" />
 				<color-button caption="Font" config-section="Look" config-item="InfoPanelFgColor" />
+				<check-box caption="Use custom background color" config-section="Look" config-item="InfoPanelBgFilled" id="infoPanelBgFilled" />
+				<color-button caption="Background" config-section="Look" config-item="InfoPanelBgColor" id="infoPanelBgColor" />
 			</group-box>
 		</tab>
 
@@ -268,7 +269,6 @@
 
 		<tab name="Chat Window">
 			<group-box name="Chat Window">
-				<hot-key-edit caption="Send message" config-section="ShortCuts" config-item="chat_send" />
 				<hot-key-edit caption="Clear chat" config-section="ShortCuts" config-item="chat_clear" />
 				<hot-key-edit caption="Close chat" config-section="ShortCuts" config-item="chat_close" />
 				<hot-key-edit caption="Bold text" config-section="ShortCuts" config-item="chat_bold" />

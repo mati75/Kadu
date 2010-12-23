@@ -32,7 +32,7 @@
 
 #include "buddy-delete-window.h"
 
-BuddyDeleteWindow::BuddyDeleteWindow(BuddySet buddiesToDelete, QWidget *parent) :
+BuddyDeleteWindow::BuddyDeleteWindow(const BuddySet &buddiesToDelete, QWidget *parent) :
 		QDialog(parent), BuddiesToDelete(buddiesToDelete)
 {
 	setWindowRole("kadu-buddy-delete");
@@ -111,7 +111,7 @@ void BuddyDeleteWindow::fillAdditionalDataListView()
 QString BuddyDeleteWindow::getBuddiesNames()
 {
 	QStringList displays;
-	foreach (Buddy buddy, BuddiesToDelete)
+	foreach (const Buddy &buddy, BuddiesToDelete)
 		displays.append(QString("<b>%0</b>").arg(buddy.display()));
 
 	return displays.join(", ");
@@ -141,7 +141,7 @@ void BuddyDeleteWindow::accept()
 {
     QDialog::accept();
 
-	foreach (Buddy buddy, BuddiesToDelete)
+	foreach (const Buddy &buddy, BuddiesToDelete)
 		deleteBuddy(buddy);
 	BuddyManager::instance()->store();
 }

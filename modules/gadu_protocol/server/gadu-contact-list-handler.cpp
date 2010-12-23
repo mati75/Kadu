@@ -46,7 +46,7 @@ GaduContactListHandler::~GaduContactListHandler()
 {
 }
 
-void GaduContactListHandler::setUpContactList(QList<Contact> contacts)
+void GaduContactListHandler::setUpContactList(const QList<Contact> &contacts)
 {
 	/*
 	 * it looks like gadu-gadu now stores contact list mask (offlineto, blocked, normal)
@@ -91,7 +91,7 @@ void GaduContactListHandler::updateContactEntry(Contact contact)
 	addContactEntry(contact);
 }
 
-void GaduContactListHandler::addContactEntry(int uin, int type)
+void GaduContactListHandler::addContactEntry(UinType uin, int type)
 {
 	if (!uin || Protocol->account().id() == QString::number(uin))
 		return;
@@ -112,7 +112,7 @@ void GaduContactListHandler::addContactEntry(Contact contact)
 	addContactEntry(Protocol->uin(contact), notifyTypeFromContact(contact));
 }
 
-void GaduContactListHandler::removeContactEntry(int uin)
+void GaduContactListHandler::removeContactEntry(UinType uin)
 {
 	if (!uin)
 		return;

@@ -4,7 +4,7 @@
 		<tab name="Tabs">
 			<group-box name="General">
 				<check-box caption="Use tabs by default" config-section="Chat" config-item="DefaultTabs" id="tabs/DefaultTabs" />
-				<spin-box caption="Minimum number of tabs" config-section="Chat" config-item="MinTabs" min-value="1" max-value="255" step="1" id="tabs/MinTabs"/>
+				<spin-box caption="Minimum number of tabs" config-section="Chat" config-item="MinTabs" min-value="1" max-value="255" step="1" special-value="Always use tabs" id="tabs/MinTabs"/>
 				<check-box caption="Tabs at the bottom of the window" config-section="Chat" config-item="TabsBelowChats" />
 				<check-box caption="Auto tab change" config-section="Chat" config-item="AutoTabChange" />
 				<check-box caption="Conferences in tabs" config-section="Chat" config-item="ConferencesInTabs" />
@@ -12,8 +12,8 @@
 			</group-box>
 			<group-box name="Look">
 				<check-box caption="Show &quot;New Tab&quot; button" config-section="Tabs" config-item="OpenChatButton" />
-				<check-box caption="Show &quot;Close current Tab&quot; button" config-section="Tabs" config-item="CloseButton" />
-				<check-box caption="Close button on each tab" config-section="Tabs" config-item="CloseButtonOnTab" />
+				<check-box caption="Show common &quot;Close Current Tab&quot; button in the corner" config-section="Tabs" config-item="CloseButton" />
+				<check-box caption="Show Close button on each tab" config-section="Tabs" config-item="CloseButtonOnTab" />
 			</group-box>
 		</tab>
 	</section>

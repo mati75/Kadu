@@ -1,26 +1,26 @@
 #ifndef HIGHLIGHTER_H
 #define HIGHLIGHTER_H
 
-#include <QSyntaxHighlighter>
-
-class QString;
+#include <QtGui/QSyntaxHighlighter>
 
 class Highlighter : public QSyntaxHighlighter
 {
 	Q_OBJECT
 
-	static QList<Highlighter *> highlighters;
-	static QTextCharFormat highlightFormat;
+	static QList<Highlighter *> Highlighters;
+	static QTextCharFormat HighlightFormat;
 
 public:
-        Highlighter(QTextDocument* document);
-        ~Highlighter();
+	explicit Highlighter(QTextDocument *document);
+	virtual ~Highlighter();
 
-        virtual void highlightBlock(const QString& text);
+	virtual void highlightBlock(const QString &text);
 
 	static void rehighlightAll();
-	static void setHighlightFormat(QTextCharFormat format);
+	static void setHighlightFormat(const QTextCharFormat &format);
+	static void removeAll();
+
 };
 
-#endif
+#endif // HIGHLIGHTER_H
 

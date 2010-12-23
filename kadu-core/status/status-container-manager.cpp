@@ -1,4 +1,3 @@
-
 /*
  * %kadu copyright begin%
  * Copyright 2009, 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
@@ -70,10 +69,10 @@ void StatusContainerManager::updateIdentities()
 	if (!MainConfiguration::instance()->simpleMode())
 		return;
 
-	foreach (Identity identity, IdentityManager::instance()->items())
-		if (StatusContainers.contains(identity) && identity.isEmpty())
+	foreach (const Identity &identity, IdentityManager::instance()->items())
+		if (StatusContainers.contains(identity) && !identity.hasAnyAccountWithDetails())
 			unregisterStatusContainer(identity);
-		else if (!StatusContainers.contains(identity) && !identity.isEmpty())
+		else if (!StatusContainers.contains(identity) && identity.hasAnyAccountWithDetails())
 			registerStatusContainer(identity);
 
 	removeSelfFromList();
@@ -100,7 +99,7 @@ void StatusContainerManager::accountUnregistered(Account account)
 
 void StatusContainerManager::identityAdded(Identity identity)
 {
-	if (MainConfiguration::instance()->simpleMode() && !StatusContainers.contains(identity) && !identity.isEmpty())
+	if (MainConfiguration::instance()->simpleMode() && !StatusContainers.contains(identity) && identity.hasAnyAccountWithDetails())
 		registerStatusContainer(identity);
 }
 
@@ -134,7 +133,7 @@ void StatusContainerManager::cleanStatusContainers()
 
 void StatusContainerManager::addAllAccounts()
 {
-	foreach (Account account, AccountManager::instance()->items())
+	foreach (const Account &account, AccountManager::instance()->items())
 		registerStatusContainer(account);
 }
 
@@ -286,7 +285,7 @@ QString StatusContainerManager::statusIconPath(const QString &statusType)
 {
 	return DefaultStatusContainer && this != DefaultStatusContainer
 			? DefaultStatusContainer->statusIconPath(statusType)
-			: "";
+			: QString();
 }
 
 QIcon StatusContainerManager::statusIcon(const QString &statusType)

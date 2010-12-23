@@ -34,6 +34,7 @@
 #include "configuration/configuration-file.h"
 #include "contacts/contact-set.h"
 #include "gui/widgets/chat-widget-manager.h"
+#include "gui/widgets/custom-input.h"
 #include "gui/windows/message-dialog.h"
 
 #include "activate.h"
@@ -86,16 +87,16 @@ void ChatWindow::setChatWidget(ChatWidget *newChatWidget)
 	currentChatWidget = newChatWidget;
 	newChatWidget->setParent(this);
 	newChatWidget->show();
+	newChatWidget->edit()->setFocus();
 
 	layout->addWidget(newChatWidget);
 	layout->setContentsMargins(0, 0, 0, 0);
 	layout->setSpacing(0);
 
 	connect(currentChatWidget, SIGNAL(closed()), this, SLOT(close()));
+	connect(currentChatWidget, SIGNAL(iconChanged()), this, SLOT(updateIcon()));
 	connect(currentChatWidget, SIGNAL(titleChanged(ChatWidget *, const QString &)), this, SLOT(updateTitle()));
 	connect(currentChatWidget, SIGNAL(messageReceived(Chat)), this, SLOT(alertNewMessage()));
-
-	setFocusProxy(currentChatWidget);
 
 	kaduRestoreGeometry();
 	updateTitle();
@@ -194,7 +195,7 @@ void ChatWindow::closeEvent(QCloseEvent *e)
 
 		if (QDateTime::currentDateTime() < currentChatWidget->lastMessageTime().addSecs(period))
 		{
-			if (!MessageDialog::ask("", tr("Kadu"), tr("New message received, close window anyway?")))
+			if (!MessageDialog::ask(QString(), tr("Kadu"), tr("New message received, close window anyway?")))
 			{
 				e->ignore();
 				return;
@@ -205,11 +206,16 @@ void ChatWindow::closeEvent(QCloseEvent *e)
  	QWidget::closeEvent(e);
 }
 
+void ChatWindow::updateIcon()
+{
+	setWindowIcon(currentChatWidget->icon());
+}
+
 void ChatWindow::updateTitle()
 {
-	setWindowIcon(currentChatWidget->chat().icon());
 	setWindowTitle(currentChatWidget->title());
 
+	// TODO 0.6.6: is that really needed here? this method is called only on chat widget title change
 	if (showNewMessagesNum && currentChatWidget->newMessagesCount()) // if we don't have new messages or don't want them to be shown
 		showNewMessagesNumInTitle();
 }
@@ -226,7 +232,7 @@ void ChatWindow::blinkTitle()
 				showNewMessagesNumInTitle();
 		}
 		else
-			setWindowTitle(QString().fill(' ', (currentChatWidget->title().length() + 5)));
+			setWindowTitle(QString(currentChatWidget->title().length() + 5, ' '));
 
 		if (blinkChatTitle) // timer will not be started, if configuration option was changed
 		{
@@ -242,21 +248,23 @@ void ChatWindow::showNewMessagesNumInTitle()
 		setWindowTitle('[' + QString::number(currentChatWidget->newMessagesCount()) + "] " + currentChatWidget->title());
 }
 
-void ChatWindow::windowActivationChange(bool b)
+void ChatWindow::changeEvent(QEvent *event)
 {
-	kdebugf();
-	if (_isActiveWindow(this))
+	QWidget::changeEvent(event);
+	if (event->type() == QEvent::ActivationChange)
 	{
-		currentChatWidget->markAllMessagesRead();
-		setWindowTitle(currentChatWidget->title());
+		kdebugf();
+		if (_isActiveWindow(this))
+		{
+			currentChatWidget->markAllMessagesRead();
+			setWindowTitle(currentChatWidget->title());
 
-		if (title_timer->isActive())
 			title_timer->stop();
 
-		if (!b)
 			emit chatWidgetActivated(currentChatWidget);
+		}
+		kdebugf2();
 	}
-	kdebugf2();
 }
 
 void ChatWindow::alertNewMessage()
@@ -264,9 +272,7 @@ void ChatWindow::alertNewMessage()
 	if (!_isActiveWindow(this))
 	{
 		if (activateWithNewMessages && qApp->activeWindow() && !isMinimized())
-		{
 			_activateWindow(this);
-		}
 		else if (blinkChatTitle)
 		{
 			if (!title_timer->isActive())

@@ -237,7 +237,7 @@ void HistoryChatsModel::clearChats()
 	}
 }
 
-void HistoryChatsModel::addChat(Chat chat)
+void HistoryChatsModel::addChat(const Chat &chat)
 {
 	ChatType *chatType = ChatTypeManager::instance()->chatType(chat.type());
 	if (!chatType)
@@ -253,11 +253,11 @@ void HistoryChatsModel::addChat(Chat chat)
 	endInsertRows();
 }
 
-void HistoryChatsModel::setChats(QList<Chat> chats)
+void HistoryChatsModel::setChats(const QList<Chat> &chats)
 {
 	clearChats();
 
-	foreach (Chat chat, chats)
+	foreach (const Chat &chat, chats)
 		addChat(chat);
 }
 
@@ -279,7 +279,7 @@ void HistoryChatsModel::clearSmsRecipients()
 	endRemoveRows();
 }
 
-void HistoryChatsModel::setStatusBuddies(QList<Buddy> buddies)
+void HistoryChatsModel::setStatusBuddies(const QList<Buddy> &buddies)
 {
 	clearStatusBuddies();
 
@@ -290,7 +290,7 @@ void HistoryChatsModel::setStatusBuddies(QList<Buddy> buddies)
 	endInsertRows();
 }
 
-void HistoryChatsModel::setSmsRecipients(QList<QString> smsRecipients)
+void HistoryChatsModel::setSmsRecipients(const QList<QString> &smsRecipients)
 {
 	clearSmsRecipients();
 
@@ -310,7 +310,7 @@ QModelIndex HistoryChatsModel::chatTypeIndex(ChatType *type) const
 	return index(row, 0, QModelIndex());
 }
 
-QModelIndex HistoryChatsModel::chatIndex(Chat chat) const
+QModelIndex HistoryChatsModel::chatIndex(const Chat &chat) const
 {
 	QString typeName = chat.type();
 	ChatType *chatType = ChatTypeManager::instance()->chatType(typeName);
@@ -333,7 +333,7 @@ QModelIndex HistoryChatsModel::statusIndex() const
 	return index(ChatKeys.size(), 0, QModelIndex());
 }
 
-QModelIndex HistoryChatsModel::statusBuddyIndex(Buddy buddy) const
+QModelIndex HistoryChatsModel::statusBuddyIndex(const Buddy &buddy) const
 {
 	QModelIndex parent = statusIndex();
 	if (!parent.isValid())

@@ -46,11 +46,11 @@ public:
 
 	virtual bool supportVariants() = 0;
 	virtual bool supportEditing() = 0;
-	virtual QString isStyleValid(QString) = 0; //return QString::null, if style is not valid
+	virtual QString isStyleValid(QString) = 0; //return QString(), if style is not valid
 	virtual bool styleUsesTransparencyByDefault(QString) = 0;
 
 	virtual void clearMessages(HtmlMessagesRenderer *) = 0;
-	virtual void appendMessages(HtmlMessagesRenderer *, QList<MessageRenderInfo *>) = 0;
+	virtual void appendMessages(HtmlMessagesRenderer *, const QList<MessageRenderInfo *> &) = 0;
 	virtual void appendMessage(HtmlMessagesRenderer *, MessageRenderInfo *) = 0;
 	virtual void pruneMessage(HtmlMessagesRenderer *) = 0;
 	virtual void refreshView(HtmlMessagesRenderer *, bool useTransparency = false) = 0;

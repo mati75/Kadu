@@ -1,8 +1,6 @@
 /*
  * %kadu copyright begin%
- * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -19,27 +17,38 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef JABBER_ACCOUNT_DATA_MANAGER_H
-#define JABBER_ACCOUNT_DATA_MANAGER_H
+#ifndef ENCRYPTION_CHAT_DATA_H
+#define ENCRYPTION_CHAT_DATA_H
 
-#include "configuration/account-data-manager.h"
+#include <QtCore/QObject>
+#include <QtGui/QAction>
 
-class JabberAccountDetails;
+#include "chat/chat.h"
 
-class JabberAccountDataManager : public AccountDataManager
+class Decryptor;
+class Encryptor;
+
+class EncryptionChatData : public QObject
 {
 	Q_OBJECT
 
-	JabberAccountDetails *Data;
+	Encryptor *ChatEncryptor;
+	Decryptor *ChatDecryptor;
+
+private slots:
+	void encryptorDestroyed();
+	void decryptorDestroyed();
 
 public:
-	JabberAccountDataManager(Account data);
+	EncryptionChatData();
+	virtual ~EncryptionChatData();
 
-	JabberAccountDetails * data() { return Data; }
+	void setEncryptor(Encryptor *encryptor);
+	Encryptor * encryptor();
 
-	virtual void writeEntry(const QString &section, const QString &name, const QVariant &value);
-	virtual QVariant readEntry(const QString &section, const QString &name);
+	void setDecryptor(Decryptor *decryptor);
+	Decryptor * decryptor();
 
 };
 
-#endif // JABBER_ACCOUNT_DATA_MANAGER_H
+#endif // ENCRYPTION_CHAT_DATA_H

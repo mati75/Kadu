@@ -109,7 +109,7 @@ QString translateLanguage(const QApplication *application, const QString &locale
 	{
 		if (l2n)
 		{
-			if (locale.mid(0, 2) == local[i])
+			if (locale.leftRef(2) == local[i])
 				return application->translate("@default", name[i]);
 		}
 		else
@@ -172,7 +172,7 @@ QString narg(const QString &s, const QString **tab, int count)
 	int j = 0;
 	char maxc = '0' + count;
 	if (count > 9)
-		return QString::null;
+		return QString();
 
 	while (d != dend)
 	{

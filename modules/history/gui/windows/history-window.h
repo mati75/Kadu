@@ -53,6 +53,8 @@ class HistoryWindow : public MainWindow
 {
 	Q_OBJECT
 
+	friend class History;
+
 	QTreeView *ChatsTree;
 	QTreeView *DetailsListView;
 	HistoryChatsModel *ChatsModel;
@@ -78,24 +80,25 @@ class HistoryWindow : public MainWindow
 
 	HistorySearchParameters Search;
 
+	explicit HistoryWindow(QWidget *parent = 0);
+
 	void createGui();
 	void createChatTree(QWidget *parent);
 	void createFilterBar(QWidget *parent);
 	void connectGui();
 
 	void updateData();
-	void selectChat(Chat chat);
-	void selectStatusBuddy(Buddy buddy);
+	void selectChat(const Chat &chat);
+	void selectStatusBuddy(const Buddy &buddy);
 	void selectSmsRecipient(const QString &recipient);
-	void selectHistoryItem(HistoryTreeItem item);
+	void selectHistoryItem(const HistoryTreeItem &item);
 
-	void chatActivated(Chat chat);
-	void statusBuddyActivated(Buddy buddy);
+	void chatActivated(const Chat &chat);
+	void statusBuddyActivated(const Buddy &buddy);
 	void smsRecipientActivated(const QString &recipient);
-	void treeItemActivated(HistoryTreeItem item);
+	void treeItemActivated(const HistoryTreeItem &item);
 
-	QList<Message> statusesToMessages(QList<TimedStatus> statuses);
-	QList<Message> smsToMessage(QList<QString> sms);
+	QList<Message> statusesToMessages(const QList<TimedStatus> &statuses);
 
 private slots:
 	void treeCurrentChanged(const QModelIndex &current, const QModelIndex &previous);
@@ -118,7 +121,6 @@ protected:
 	virtual void keyPressEvent(QKeyEvent *e);
 
 public:
-	HistoryWindow(QWidget *parent = 0);
 	virtual ~HistoryWindow();
 
 	virtual QTreeView * detailsListView() { return DetailsListView; }
@@ -134,7 +136,7 @@ public:
 	virtual Chat chat() { return Chat::null; }
 	virtual bool hasContactSelected() { return false; } // we can select only buddies here
 
-	void show(Chat chat);
+	void show(const Chat &chat);
 
 };
 

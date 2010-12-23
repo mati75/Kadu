@@ -41,7 +41,7 @@ InfosDialog::InfosDialog(const LastSeen &lastSeen, QWidget *parent) :
 {
 	kdebugf();
 	setAttribute(Qt::WA_DeleteOnClose);
-        setWindowTitle(tr("Buddies Information"));
+	setWindowTitle(tr("Buddies Information"));
 
 	QVBoxLayout *layout = new QVBoxLayout(this);
 	layout->setContentsMargins(0, 0, 0, 0);
@@ -65,16 +65,16 @@ InfosDialog::InfosDialog(const LastSeen &lastSeen, QWidget *parent) :
 			<< tr("Last time seen on");
 	listView->setHeaderLabels(labels);
 
-	foreach(Contact contact, ContactManager::instance()->items())
+	foreach (const Contact &contact, ContactManager::instance()->items())
 	{
 		if(contact.ownerBuddy().isAnonymous())
 			continue;
-		
+
 		QString desc, ip;
 		if (!contact.currentStatus().description().isEmpty())
 			desc = contact.currentStatus().description();
 		desc.replace('\n', ' ');
-		if (contact.address() != QHostAddress())
+		if (!contact.address().isNull())
 			ip = contact.address().toString();
 
 		QStringList labels;
@@ -105,7 +105,7 @@ InfosDialog::InfosDialog(const LastSeen &lastSeen, QWidget *parent) :
 	layout->addWidget(buttons);
 
 	connect(closeButton, SIGNAL(clicked()), this, SLOT(close()));
-	
+
 	loadWindowGeometry(this, "LastSeen", "LastSeenWidgetGeometry", 0, 0, 800, 300);
 
 	kdebugf2();

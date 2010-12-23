@@ -104,11 +104,11 @@ Buddy ContactListService::mergeBuddy(Buddy oneBuddy)
 	return buddy;
 }
 
-void ContactListService::setBuddiesList(BuddyList buddies, bool removeOld)
+void ContactListService::setBuddiesList(const BuddyList &buddies, bool removeOld)
 {
 	QList<Contact> unImportedContacts = ContactManager::instance()->contacts(CurrentProtocol->account());
 
-	foreach (Contact c, Core::instance()->myself().contacts(CurrentProtocol->account()))
+	foreach (const Contact &c, Core::instance()->myself().contacts(CurrentProtocol->account()))
 		unImportedContacts.removeAll(c);
 
 	foreach (const Buddy &oneBuddy, buddies)
@@ -138,9 +138,9 @@ void ContactListService::setBuddiesList(BuddyList buddies, bool removeOld)
 
 	if (removeOld && !unImportedContacts.isEmpty())
 	{
-		if (MessageDialog::ask("", tr("Kadu"), tr("Following contacts from your list were not found on server: <b>%0</b>.\nDo you want to remove them from contacts list?").arg(contactsList.join("</b>, <b>"))))
+		if (MessageDialog::ask(QString(), tr("Kadu"), tr("Following contacts from your list were not found on server: <b>%0</b>.\nDo you want to remove them from contacts list?").arg(contactsList.join("</b>, <b>"))))
 		{
-			foreach (Contact contact, unImportedContacts)
+			foreach (const Contact &contact, unImportedContacts)
 				BuddyManager::instance()->clearOwnerAndRemoveEmptyBuddy(contact);
 		}
 	}
