@@ -1,17 +1,17 @@
 diff --git a/kadu-core/gui/windows/about.cpp b/kadu-core/gui/windows/about.cpp
-index f824428..99000e1 100644
+index 663679b..88724c5 100644
 --- a/kadu-core/gui/windows/about.cpp
 +++ b/kadu-core/gui/windows/about.cpp
 @@ -154,7 +154,7 @@ About::About(QWidget *parent) :
+ 	tb_changelog->setOpenLinks(false);
  	tb_changelog->setFrameStyle(QFrame::NoFrame);
- 	tb_changelog->setWordWrapMode(QTextOption::NoWrap);
  	tb_changelog->viewport()->setAutoFillBackground(false);
--	tb_changelog->setText(loadFile("ChangeLog"));
-+	tb_changelog->setText(loadFile("about-changes-tab.txt"));
- 
- 	// add tabs
- 	tw_about->addTab(wb_about, tr("&About"));
-@@ -213,7 +213,10 @@ QString About::loadFile(const QString &name)
+-	QString changelog = loadFile("ChangeLog");
++	QString changelog = loadFile("about-changes-tab.txt");
+ 	changelog.replace('\n', "<br/>");
+ 	HtmlDocument changelog_html;
+ 	changelog_html.parseHtml(changelog);
+@@ -240,7 +240,10 @@ QString About::loadFile(const QString &name)
  {
  	kdebugf();
  
