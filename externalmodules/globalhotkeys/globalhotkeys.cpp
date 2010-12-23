@@ -581,6 +581,11 @@ void GlobalHotkeys::processConfBuddiesMenu( ConfBuddiesMenu *confbuddiesmenu )
 			}
 		}
 	}
+	// remove given buddies from the menu
+	foreach( QString buddydisplay, confbuddiesmenu->excludeBuddies() )
+	{
+		menu->remove( buddydisplay );
+	}
 	// popup in the center of the screen
 	menu->popup();
 	// global data

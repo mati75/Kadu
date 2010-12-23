@@ -76,6 +76,14 @@ class BuddiesMenu : public GlobalMenu
 		void add( QList<Contact> contacts );
 		bool contains( ContactSet contactset );
 		bool contains( Contact contact );
+		bool contains( QList<Contact> contacts );
+		bool contains( Buddy buddy );
+		bool contains( QString buddydisplay );
+		void remove( ContactSet contactset );
+		void remove( Contact contact );
+		void remove( QList<Contact> contacts );
+		void remove( Buddy buddy );
+		void remove( QString buddydisplay );
 		void clear();
 		int count();
 		void popup( QPoint p = QPoint() );

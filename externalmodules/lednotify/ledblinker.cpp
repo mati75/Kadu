@@ -50,7 +50,7 @@ void LedBlinker::startInfinite()
 	if( !enabled_ || countdown_ )
 	{
 		countdown_ = false;
-		enabled_ = true;
+		enabled_   = true;
 		blink();
 	}
 }
@@ -60,9 +60,9 @@ void LedBlinker::startFinite()
 {
 	if( !enabled_ || countdown_ )
 	{
+		enabled_   = true;
 		countdown_ = true;
-		enabled_ = true;
-		counter_ = blinkCount_;
+		counter_   = blinkCount_;
 		blink();
 	}
 }
@@ -70,7 +70,11 @@ void LedBlinker::startFinite()
 
 void LedBlinker::stop()
 {
+	timer_.stop();
 	enabled_ = false;
+	countdown_ = false;
+	value_ = false;
+	led_.set( false );
 }
 
 
@@ -93,11 +97,6 @@ void LedBlinker::blink(void)
 		else
 			--counter_;
 	}
-	// Make next blink() when:
-	//	- blinking is enabled
-	//	- LED is "on" (we must turn it off)
-	if( enabled_ || value_ )
-	{
+	if( enabled_ )
 		timer_.start( delay_ );
-	}
 }

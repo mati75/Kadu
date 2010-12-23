@@ -1,3 +1,8 @@
+2010-12-19  Patryk Cisek <patryk@debian.org>
+
+	* Drobna poprawka: przycisk "TeX" w oknie czatu nie jest już
+	  "checkable"
+
 2010-11-25  Patryk Cisek  <patryk@debian.org>
 	
 	* Poprawiona instalacja modułu na niektórych 64-bitowych systemach

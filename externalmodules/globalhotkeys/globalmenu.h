@@ -59,6 +59,7 @@ class GlobalMenu : public QMenu
 		void inactivitytimerTimeout();
 	private:
 		QTimer INACTIVITYTIMER;
+		QPoint LASTMOUSEPOS;
 };
 
 

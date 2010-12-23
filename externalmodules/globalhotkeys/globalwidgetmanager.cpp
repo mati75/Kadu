@@ -28,7 +28,7 @@
 
 
 
-GlobalWidgetManager::GlobalWidgetManager( QWidget *widget, bool autostart )
+GlobalWidgetManager::GlobalWidgetManager( QWidget *widget, bool autostart, int autostartdelay )
 {
 	setParent( widget );
 	WIDGET = widget->window();
@@ -36,9 +36,23 @@ GlobalWidgetManager::GlobalWidgetManager( QWidget *widget, bool autostart )
 	INACTIVITYTIMER.setInterval( GLOBALHOTKEYS_GLOBALWIDGETINACTIVITYTIMERINTERVAL );
 	INACTIVITYTIMER.setSingleShot( true );
 	connect( &INACTIVITYTIMER, SIGNAL(timeout()), this, SLOT(inactivitytimerTimeout()) );
-		FIRSTRUN = true;
+	FIRSTRUN = true;
 	if( autostart )
-		start();
+	{
+		if( ! WIDGET->isVisible() )
+			WIDGET->show();
+		_activateWindow( WIDGET );
+		if( autostartdelay == 0 )
+		{
+			start();
+		}
+		else
+		{
+			if( autostartdelay < 0 )
+				autostartdelay = GLOBALHOTKEYS_GLOBALWIDGETMANAGERAUTOSTARTDELAY;
+			QTimer::singleShot( autostartdelay, this, SLOT(start()) );
+		}
+	}
 }
 
 

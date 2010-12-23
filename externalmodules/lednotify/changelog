@@ -1,6 +1,12 @@
+0.6.6-26
+* Poprawki wykrywania aktywnego okna.
+* Zakańczanie mrugania diodą od razu po odebraniu wiadomości.
+
+
 0.6.6-25
 * Port dla Kadu 0.6.6
 * Zmiana nazwy z "led_notify" na "LedNotify".
+
 
 0.24
 * Poprawiona obsługa diody w nowych wersjach serwera X.

@@ -114,6 +114,7 @@ void GlobalMenu::focusInEvent( QFocusEvent *event )
 
 void GlobalMenu::popup( QPoint p )
 {
+	LASTMOUSEPOS = QCursor::pos();
 	if( ! p.isNull() )
 		QMenu::popup( p );
 	else
@@ -173,15 +174,19 @@ void GlobalMenu::mousePressEvent( QMouseEvent *event )
 void GlobalMenu::mouseMoveEvent( QMouseEvent *event )
 {
 	event->ignore();
-	if( ! SUBMENU.isNull() )
+	if( event->globalPos() != LASTMOUSEPOS )
 	{
-		return;
+		if( ! SUBMENU.isNull() )
+		{
+			return;
+		}
+		QAction *action = actionAt( event->pos() );
+		if( action != NULL )
+		{
+			setActiveAction( action );
+		}
 	}
-	QAction *action = actionAt( event->pos() );
-	if( action != NULL )
-	{
-		setActiveAction( action );
-	}
+	LASTMOUSEPOS = event->globalPos();
 }
 
 

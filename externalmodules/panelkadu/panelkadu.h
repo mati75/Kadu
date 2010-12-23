@@ -61,7 +61,7 @@ class PanelKadu : public ConfigurationUiHandler, ConfigurationAwareObject
 		PanelKadu();
 		~PanelKadu();
 		void mainConfigurationWindowCreated( MainConfigurationWindow *mainConfigurationWindow );
-		EventFilter *eventfilter;
+		static QWidget *topLevel();
 	protected:
 		void configurationUpdated();
 	private:
@@ -69,6 +69,7 @@ class PanelKadu : public ConfigurationUiHandler, ConfigurationAwareObject
 		bool isInActivationRanges( int number );
 		void animate();
 		bool isCompositingManagerRunning();
+		EventFilter *eventfilter;
 		QTimer *mouseTimer;
 		QTimer *activationTimer;
 		QTimer *hidingTimer;
@@ -86,8 +87,11 @@ class PanelKadu : public ConfigurationUiHandler, ConfigurationAwareObject
 		bool dontHidePanelWhenActive;   // configuration value
 	private slots:
 		void checkMouse();
+		void panelize( QWidget *window );
+		void depanelize( QWidget *window );
 		void showKadu();
 		void hideKadu();
+		void kaduParentChanged( QWidget *oldParent );
 };
 
 extern PanelKadu *panelkadu;

@@ -74,53 +74,21 @@ extern "C" void panelkadu_close()
 
 PanelKadu::PanelKadu() : QObject()
 {
+	// reparenting handling
+	connect( Core::instance()->kaduWindow(), SIGNAL(parentChanged(QWidget*)), this, SLOT(kaduParentChanged(QWidget*)) );
 	// configuration handling
 	createDefaultConfiguration();
 	// save window geometry
-	oldGeometry = Core::instance()->kaduWindow()->geometry();
-	// hide Kadu
-	Core::instance()->kaduWindow()->hide();
-	// change window type to dock
-	Atom atomproperty = XInternAtom( QX11Info::display(), "_NET_WM_WINDOW_TYPE", False );
-	Atom atomvalue    = XInternAtom( QX11Info::display(), "_NET_WM_WINDOW_TYPE_DOCK", False );
-	XChangeProperty( QX11Info::display(), Core::instance()->kaduWindow()->winId(), atomproperty, XA_ATOM, 32, PropModeReplace, (unsigned char *)&atomvalue, 1 );
-	// remove window's decoration, set always-on-top and force taskbar and pager skipping
-	Core::instance()->kaduWindow()->setWindowFlags( Core::instance()->kaduWindow()->windowFlags() | Qt::X11BypassWindowManagerHint | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint );
-	Atom win_state = XInternAtom( QX11Info::display(), "_NET_WM_STATE", False );
-	Atom win_state_setting[] =
-	{
-		XInternAtom( QX11Info::display(), "_NET_WM_STATE_ABOVE"       , False ),
-		XInternAtom( QX11Info::display(), "_NET_WM_STATE_SKIP_TASKBAR", False ),
-		XInternAtom( QX11Info::display(), "_NET_WM_STATE_SKIP_PAGER"  , False )
-	};
-	XChangeProperty( QX11Info::display(), Core::instance()->kaduWindow()->winId(), win_state, XA_ATOM, 32, PropModeReplace, (unsigned char*)&win_state_setting, 3 );
-	// set on all desktops
-	unsigned int desktop = X11_ALLDESKTOPS;
-	Atom win_desktop = XInternAtom( QX11Info::display(), "_NET_WM_DESKTOP", False );
-	XChangeProperty( QX11Info::display(), Core::instance()->kaduWindow()->winId(), win_desktop, XA_CARDINAL, 32, PropModeReplace, (unsigned char*)&desktop, 1 );
-	// create the event filter
-	eventfilter = new EventFilter();
-	// read the configuration and force its usage
-	configurationUpdated();
-	// create activation timer
-	activationTimer = new QTimer( this );
-	activationTimer->setSingleShot( true );
-	connect( activationTimer, SIGNAL(timeout()), this, SLOT(showKadu()) );
-	// create hiding timer
-	hidingTimer = new QTimer( this );
-	hidingTimer->setSingleShot( true );
-	connect( hidingTimer, SIGNAL(timeout()), this, SLOT(hideKadu()) );
-	// start the mouse timer
-	mouseTimer = new QTimer( this );
-	connect( mouseTimer, SIGNAL(timeout()), this, SLOT(checkMouse()) );
-	mouseTimer->start( PANELKADU_MOUSEITMERINTERVAL );
-	// hide panel at module startup
-	QTimer::singleShot( 0, this, SLOT(hideKadu()) );
+	oldGeometry = Core::instance()->kaduWindow()->window()->geometry();
+	// panelize
+	panelize( Core::instance()->kaduWindow()->window() );
 }
 
 
 PanelKadu::~PanelKadu()
 {
+	// remove reparenting handling
+	disconnect( Core::instance()->kaduWindow(), SIGNAL(parentChanged(QWidget*)), this, SLOT(kaduParentChanged(QWidget*)) );
 	// remove the event filter (just in case)
 	qApp->removeEventFilter( eventfilter );
 	// stop and delete the mouse timer
@@ -132,30 +100,8 @@ PanelKadu::~PanelKadu()
 	// stop and delete hiding timer
 	hidingTimer->stop();
 	delete hidingTimer;
-	// hide Kadu (and remove StaysOnTop flag)
-	Core::instance()->kaduWindow()->hide();
-	// set on the current desktop only
-	unsigned int desktop = X11_getCurrentDesktop( QX11Info::display() );
-	Atom win_desktop = XInternAtom( QX11Info::display(), "_NET_WM_DESKTOP", False );
-	XChangeProperty( QX11Info::display(), Core::instance()->kaduWindow()->winId(), win_desktop, XA_CARDINAL, 32, PropModeReplace, (unsigned char*)&desktop, 1 );
-	// restore window's decoration, revoke always-on-top and remove taskbar and pager skipping
-	Core::instance()->kaduWindow()->setWindowFlags( Core::instance()->kaduWindow()->windowFlags() & ~Qt::X11BypassWindowManagerHint & ~Qt::FramelessWindowHint & ~Qt::WindowStaysOnTopHint );
-	Atom win_state = XInternAtom( QX11Info::display(), "_NET_WM_STATE", False );
-	XChangeProperty( QX11Info::display(), Core::instance()->kaduWindow()->winId(), win_state, XA_ATOM, 32, PropModeReplace, NULL, 0 );
-	// change window type back to normal
-	Atom atomproperty = XInternAtom( QX11Info::display(), "_NET_WM_WINDOW_TYPE", False );
-	Atom atomvalue    = XInternAtom( QX11Info::display(), "_NET_WM_WINDOW_TYPE_NORMAL", False );
-	XChangeProperty( QX11Info::display(), Core::instance()->kaduWindow()->winId(), atomproperty, XA_ATOM, 32, PropModeReplace, (unsigned char *)&atomvalue, 1 );
-	// disable window's size limits
-	Core::instance()->kaduWindow()->setMinimumSize( 0, 0 );
-	Core::instance()->kaduWindow()->setMaximumSize( QWIDGETSIZE_MAX, QWIDGETSIZE_MAX );
-	// restore old window's geometry
-	Core::instance()->kaduWindow()->setGeometry( oldGeometry );
-	if( ! Core::instance()->isClosing() )  // if the module is being unloaded
-	{
-		// show Kadu normally
-		Core::instance()->kaduWindow()->show();
-	}
+	// depanelize
+	depanelize( Core::instance()->kaduWindow()->window() );
 }
 
 
@@ -169,17 +115,17 @@ void PanelKadu::mainConfigurationWindowCreated( MainConfigurationWindow *mainCon
 
 void PanelKadu::createDefaultConfiguration()
 {
-	config_file.addVariable( "PanelKadu", "Side"                   , PANELKADU_SIDE_RIGHT                    );
-	config_file.addVariable( "PanelKadu", "Size"                   , Core::instance()->kaduWindow()->width() );
-	config_file.addVariable( "PanelKadu", "UserDefinedPanelLength" , false                                   );
-	config_file.addVariable( "PanelKadu", "PanelPosition"          , 0                                       );
-	config_file.addVariable( "PanelKadu", "PanelLength"            , PANELKADU_DEFAULTLENGTH                 );
-	config_file.addVariable( "PanelKadu", "ActivationTime"         , PANELKADU_DEFAULTACTIVATIONTIME         );
-	config_file.addVariable( "PanelKadu", "HideTime"               , PANELKADU_DEFAULTHIDETIME               );
-	config_file.addVariable( "PanelKadu", "HidingMargin"           , 0                                       );
-	config_file.addVariable( "PanelKadu", "UseActivationRanges"    , false                                   );
-	config_file.addVariable( "PanelKadu", "ActivationRanges"       , ""                                      );
-	config_file.addVariable( "PanelKadu", "DontHidePanelWhenActive", false                                   );
+	config_file.addVariable( "PanelKadu", "Side"                   , PANELKADU_SIDE_RIGHT                              );
+	config_file.addVariable( "PanelKadu", "Size"                   , Core::instance()->kaduWindow()->window()->width() );
+	config_file.addVariable( "PanelKadu", "UserDefinedPanelLength" , false                                             );
+	config_file.addVariable( "PanelKadu", "PanelPosition"          , 0                                                 );
+	config_file.addVariable( "PanelKadu", "PanelLength"            , PANELKADU_DEFAULTLENGTH                           );
+	config_file.addVariable( "PanelKadu", "ActivationTime"         , PANELKADU_DEFAULTACTIVATIONTIME                   );
+	config_file.addVariable( "PanelKadu", "HideTime"               , PANELKADU_DEFAULTHIDETIME                         );
+	config_file.addVariable( "PanelKadu", "HidingMargin"           , 0                                                 );
+	config_file.addVariable( "PanelKadu", "UseActivationRanges"    , false                                             );
+	config_file.addVariable( "PanelKadu", "ActivationRanges"       , ""                                                );
+	config_file.addVariable( "PanelKadu", "DontHidePanelWhenActive", false                                             );
 }
 
 
@@ -201,7 +147,7 @@ void PanelKadu::configurationUpdated()
 	int dW = QApplication::desktop()->width();
 	int dH = QApplication::desktop()->height();
 	// hide Kadu
-	Core::instance()->kaduWindow()->hide();
+	Core::instance()->kaduWindow()->window()->hide();
 	// minimum kadu dimensions
 	if( ( side == PANELKADU_SIDE_RIGHT ) || ( side == PANELKADU_SIDE_LEFT ) )
 	{
@@ -243,27 +189,27 @@ void PanelKadu::configurationUpdated()
 	// move Kadu to selected side and resize it
 	if( ( side == PANELKADU_SIDE_RIGHT ) || ( side == PANELKADU_SIDE_LEFT ) )
 	{
-		Core::instance()->kaduWindow()->setMinimumSize( size, length );
-		Core::instance()->kaduWindow()->setMaximumSize( size, length );
+		Core::instance()->kaduWindow()->window()->setMinimumSize( size, length );
+		Core::instance()->kaduWindow()->window()->setMaximumSize( size, length );
 	}
 	else
 	{
-		Core::instance()->kaduWindow()->setMinimumSize( length, size );
-		Core::instance()->kaduWindow()->setMaximumSize( length, size );
+		Core::instance()->kaduWindow()->window()->setMinimumSize( length, size );
+		Core::instance()->kaduWindow()->window()->setMaximumSize( length, size );
 	}
 	switch( side )
 	{
 		case PANELKADU_SIDE_RIGHT:
-			Core::instance()->kaduWindow()->setGeometry( dW-size, position, size, length );
+			Core::instance()->kaduWindow()->window()->setGeometry( dW-size, position, size, length );
 			break;
 		case PANELKADU_SIDE_BOTTOM:
-			Core::instance()->kaduWindow()->setGeometry( position, dH-size, length, size );
+			Core::instance()->kaduWindow()->window()->setGeometry( position, dH-size, length, size );
 			break;
 		case PANELKADU_SIDE_LEFT:
-			Core::instance()->kaduWindow()->setGeometry( 0, position, size, length );
+			Core::instance()->kaduWindow()->window()->setGeometry( 0, position, size, length );
 			break;
 		case PANELKADU_SIDE_TOP:
-			Core::instance()->kaduWindow()->setGeometry( position, 0, length, size );
+			Core::instance()->kaduWindow()->window()->setGeometry( position, 0, length, size );
 			break;
 	}
 }
@@ -337,23 +283,23 @@ void PanelKadu::checkMouse()
 	// Kadu window size
 	int windowsize = 0;
 	if( ( side == PANELKADU_SIDE_RIGHT ) || ( side == PANELKADU_SIDE_LEFT ) )
-		windowsize = Core::instance()->kaduWindow()->width();
+		windowsize = Core::instance()->kaduWindow()->window()->width();
 	else
-		windowsize = Core::instance()->kaduWindow()->height();
+		windowsize = Core::instance()->kaduWindow()->window()->height();
 	// Kadu window position
 	int position = 0;
 	if( ( side == PANELKADU_SIDE_RIGHT ) || ( side == PANELKADU_SIDE_LEFT ) )
-		position = Core::instance()->kaduWindow()->y();
+		position = Core::instance()->kaduWindow()->window()->y();
 	else
-		position = Core::instance()->kaduWindow()->x();
+		position = Core::instance()->kaduWindow()->window()->x();
 	// Kadu window length
 	int length = 0;
 	if( ( side == PANELKADU_SIDE_RIGHT ) || ( side == PANELKADU_SIDE_LEFT ) )
-		length = Core::instance()->kaduWindow()->height();
+		length = Core::instance()->kaduWindow()->window()->height();
 	else
-		length = Core::instance()->kaduWindow()->width();
+		length = Core::instance()->kaduWindow()->window()->width();
 	// show/hide Kadu
-	if( ! Core::instance()->kaduWindow()->isVisible() )  // panel is hidden
+	if( ! Core::instance()->kaduWindow()->window()->isVisible() )  // panel is hidden
 	{
 		hidingTimer->stop();
 		if( sidecursordist == 0 )  // is the cursor touching the edge?
@@ -388,20 +334,20 @@ void PanelKadu::checkMouse()
 			activationTimer->stop();
 		}
 	}
-	else if( Core::instance()->kaduWindow()->isVisible() )  // panel is shown
+	else if( Core::instance()->kaduWindow()->window()->isVisible() )  // panel is shown
 	{
 		bool canhide = true;
 		if( dontHidePanelWhenActive )
 		{
 			// don't hide when active
-			if( _isActiveWindow( Core::instance()->kaduWindow() ) )
+			if( _isActiveWindow( Core::instance()->kaduWindow()->window() ) )
 				canhide = false;
 		}
 		else
 		{
 			// don't hide when a menu is open
-			if( X11_getActiveWindow( QX11Info::display() ) == Core::instance()->kaduWindow()->winId() )
-				if( ! Core::instance()->kaduWindow()->isActiveWindow() )
+			if( X11_getActiveWindow( QX11Info::display() ) == Core::instance()->kaduWindow()->window()->winId() )
+				if( ! Core::instance()->kaduWindow()->window()->isActiveWindow() )
 					canhide = false;
 		}
 		if( canhide )  // panel can be hidden
@@ -448,11 +394,11 @@ void PanelKadu::showKadu()
 	// set on all desktops
 	unsigned int desktop = X11_ALLDESKTOPS;
 	Atom win_desktop = XInternAtom( QX11Info::display(), "_NET_WM_DESKTOP", False );
-	XChangeProperty( QX11Info::display(), Core::instance()->kaduWindow()->winId(), win_desktop, XA_CARDINAL, 32, PropModeReplace, (unsigned char*)&desktop, 1 );
+	XChangeProperty( QX11Info::display(), Core::instance()->kaduWindow()->window()->winId(), win_desktop, XA_CARDINAL, 32, PropModeReplace, (unsigned char*)&desktop, 1 );
 	// show panel and raise it
 	animate();
-	Core::instance()->kaduWindow()->show();
-	Core::instance()->kaduWindow()->raise();
+	Core::instance()->kaduWindow()->window()->show();
+	Core::instance()->kaduWindow()->window()->raise();
 	// install the event filter
 	qApp->installEventFilter( eventfilter );
 }
@@ -464,39 +410,40 @@ void PanelKadu::hideKadu()
 	qApp->removeEventFilter( eventfilter );
 	// hide panel
 	animate();
-	Core::instance()->kaduWindow()->hide();
+	Core::instance()->kaduWindow()->window()->hide();
 }
 
 
 void PanelKadu::animate()
 {
 	#ifdef Q_WS_X11
+		// set atom
 		Atom kdeslide = XInternAtom( QX11Info::display(), "_KDE_SLIDE", False );
 		QVarLengthArray<long, 1024> data(2);
 		switch( side )
 		{
 			case PANELKADU_SIDE_LEFT:
-					data[0] = Core::instance()->kaduWindow()->geometry().left();
+					data[0] = Core::instance()->kaduWindow()->window()->geometry().left();
 					data[1] = 0;
 					break;
 			case PANELKADU_SIDE_TOP:
-					data[0] = Core::instance()->kaduWindow()->geometry().top();
+					data[0] = Core::instance()->kaduWindow()->window()->geometry().top();
 					data[1] = 1;
 					break;
 			case PANELKADU_SIDE_RIGHT:
-					data[0] = Core::instance()->kaduWindow()->geometry().right();
+					data[0] = Core::instance()->kaduWindow()->window()->geometry().right();
 					data[1] = 2;
 					break;
 			case PANELKADU_SIDE_BOTTOM:
-					data[0] = Core::instance()->kaduWindow()->geometry().bottom();
+					data[0] = Core::instance()->kaduWindow()->window()->geometry().bottom();
 					data[1] = 3;
 			default:
 					break;
 		}
 		if( isCompositingManagerRunning() )
-			XChangeProperty( QX11Info::display(), Core::instance()->kaduWindow()->effectiveWinId(), kdeslide, kdeslide, 32, PropModeReplace, reinterpret_cast<unsigned char *>(data.data()), data.size() );
+			XChangeProperty( QX11Info::display(), Core::instance()->kaduWindow()->window()->winId(), kdeslide, kdeslide, 32, PropModeReplace, reinterpret_cast<unsigned char *>(data.data()), data.size() );
 		else
-			XDeleteProperty( QX11Info::display(), Core::instance()->kaduWindow()->effectiveWinId(), kdeslide);
+			XDeleteProperty( QX11Info::display(), Core::instance()->kaduWindow()->window()->winId(), kdeslide);
 	#endif
 }
 
@@ -504,10 +451,93 @@ void PanelKadu::animate()
 bool PanelKadu::isCompositingManagerRunning()
 {
 	#ifdef Q_WS_X11
-		Atom netwmcms0 = XInternAtom( QX11Info::display(), "_NET_WM_CM_S0", False );
-		return XGetSelectionOwner( QX11Info::display(), netwmcms0 );
+		return X11_isCompositingManagerRunning( QX11Info::display() );
 	#endif
 	return false;
+}
+
+
+void PanelKadu::kaduParentChanged( QWidget *oldParent )
+{
+	if( oldParent != NULL )
+		depanelize( oldParent->window() );
+	else
+		depanelize( Core::instance()->kaduWindow() );
+	QMetaObject::invokeMethod( this, "panelize", Qt::QueuedConnection, Q_ARG( QWidget*, Core::instance()->kaduWindow()->window() ) );
+}
+
+
+void PanelKadu::panelize( QWidget *window )
+{
+	// hide Kadu
+	window->hide();
+	// change window type to dock
+	Atom atomproperty = XInternAtom( QX11Info::display(), "_NET_WM_WINDOW_TYPE", False );
+	Atom atomvalue    = XInternAtom( QX11Info::display(), "_NET_WM_WINDOW_TYPE_DOCK", False );
+	XChangeProperty( QX11Info::display(), window->winId(), atomproperty, XA_ATOM, 32, PropModeReplace, (unsigned char *)&atomvalue, 1 );
+	// remove window's decoration, set always-on-top and force taskbar and pager skipping
+	window->setWindowFlags( window->windowFlags() | Qt::X11BypassWindowManagerHint | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint );
+	Atom win_state = XInternAtom( QX11Info::display(), "_NET_WM_STATE", False );
+	Atom win_state_setting[] =
+	{
+		XInternAtom( QX11Info::display(), "_NET_WM_STATE_ABOVE"       , False ),
+		XInternAtom( QX11Info::display(), "_NET_WM_STATE_SKIP_TASKBAR", False ),
+		XInternAtom( QX11Info::display(), "_NET_WM_STATE_SKIP_PAGER"  , False )
+	};
+	XChangeProperty( QX11Info::display(), window->winId(), win_state, XA_ATOM, 32, PropModeReplace, (unsigned char*)&win_state_setting, 3 );
+	// set on all desktops
+	unsigned int desktop = X11_ALLDESKTOPS;
+	Atom win_desktop = XInternAtom( QX11Info::display(), "_NET_WM_DESKTOP", False );
+	XChangeProperty( QX11Info::display(), window->winId(), win_desktop, XA_CARDINAL, 32, PropModeReplace, (unsigned char*)&desktop, 1 );
+	// create the event filter
+	eventfilter = new EventFilter();
+	// read the configuration and force its usage
+	configurationUpdated();
+	// create activation timer
+	activationTimer = new QTimer( this );
+	activationTimer->setSingleShot( true );
+	connect( activationTimer, SIGNAL(timeout()), this, SLOT(showKadu()) );
+	// create hiding timer
+	hidingTimer = new QTimer( this );
+	hidingTimer->setSingleShot( true );
+	connect( hidingTimer, SIGNAL(timeout()), this, SLOT(hideKadu()) );
+	// start the mouse timer
+	mouseTimer = new QTimer( this );
+	connect( mouseTimer, SIGNAL(timeout()), this, SLOT(checkMouse()) );
+	mouseTimer->start( PANELKADU_MOUSEITMERINTERVAL );
+	// update panel configuration
+	configurationUpdated();
+	// hide panel at module startup
+	QTimer::singleShot( 0, this, SLOT(hideKadu()) );
+}
+
+
+void PanelKadu::depanelize( QWidget *window )
+{
+	// hide Kadu (and remove StaysOnTop flag)
+	window->hide();
+	// set on the current desktop only
+	unsigned int desktop = X11_getCurrentDesktop( QX11Info::display() );
+	Atom win_desktop = XInternAtom( QX11Info::display(), "_NET_WM_DESKTOP", False );
+	XChangeProperty( QX11Info::display(), window->winId(), win_desktop, XA_CARDINAL, 32, PropModeReplace, (unsigned char*)&desktop, 1 );
+	// restore window's decoration, revoke always-on-top and remove taskbar and pager skipping
+	window->setWindowFlags( window->windowFlags() & ~Qt::X11BypassWindowManagerHint & ~Qt::FramelessWindowHint & ~Qt::WindowStaysOnTopHint );
+	Atom win_state = XInternAtom( QX11Info::display(), "_NET_WM_STATE", False );
+	XChangeProperty( QX11Info::display(), window->winId(), win_state, XA_ATOM, 32, PropModeReplace, NULL, 0 );
+	// change window type back to normal
+	Atom atomproperty = XInternAtom( QX11Info::display(), "_NET_WM_WINDOW_TYPE", False );
+	Atom atomvalue    = XInternAtom( QX11Info::display(), "_NET_WM_WINDOW_TYPE_NORMAL", False );
+	XChangeProperty( QX11Info::display(), window->winId(), atomproperty, XA_ATOM, 32, PropModeReplace, (unsigned char *)&atomvalue, 1 );
+	// disable window's size limits
+	window->setMinimumSize( 0, 0 );
+	window->setMaximumSize( QWIDGETSIZE_MAX, QWIDGETSIZE_MAX );
+	// restore old window's geometry
+	window->setGeometry( oldGeometry );
+	if( ! Core::instance()->isClosing() )  // if the module is being unloaded
+	{
+		// show Kadu normally
+		window->show();
+	}
 }
 
 
@@ -517,14 +547,14 @@ bool EventFilter::eventFilter( QObject *o, QEvent *e )
 	if( ( e->type() == QEvent::MouseButtonPress ) )
 	{
 		QMouseEvent *me = (QMouseEvent*)e;
-		if( Core::instance()->kaduWindow()->geometry().contains( me->globalPos() ) )
+		if( Core::instance()->kaduWindow()->window()->geometry().contains( me->globalPos() ) )
 		{
 			// remove the event filter
-			qApp->removeEventFilter( panelkadu->eventfilter );
+			qApp->removeEventFilter( this );
 			// activate Kadu's window
-			_activateWindow( Core::instance()->kaduWindow() );
+			_activateWindow( Core::instance()->kaduWindow()->window() );
 		}
 	}
 	// forward the event
-	return FALSE;
+	return false;
 }

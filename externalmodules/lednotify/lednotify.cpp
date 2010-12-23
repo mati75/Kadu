@@ -29,6 +29,7 @@
 #include "misc/misc.h"
 #include "notify/chat-notification.h"
 #include "notify/notification-manager.h"
+#include "activate.h"
 #include "debug.h"
 #include "exports.h"
 
@@ -92,7 +93,7 @@ void LedNotify::notify( Notification *notification )
 	if( notification->type() == "NewChat" )
 	{
 		// Don't blink, if "OpenChatOnMessage" is "true" - chat is already open
-		if( ! config_file.readBoolEntry( "Chat", "OpenChatOnMessage" ) )
+		if( ! config_file.readBoolEntry( "Chat", "OpenChatOnMessage" ) )	
 		{
 			chatBlinking_ = true;
 			blinker_.startInfinite();
@@ -106,8 +107,10 @@ void LedNotify::notify( Notification *notification )
 			ChatWidget* chat = ChatWidgetManager::instance()->byChat( chatnotification->chat(), false );
 			if( chat != NULL )
 			{
-				if( ! chat->edit()->hasFocus() )
+				printf( "1\n" );
+				if( ! _isActiveWindow( chat->window() ) )
 				{
+					printf( "2\n" );
 					msgChats_.insert( chat );
 					msgBlinking_ = true;
 					blinker_.startInfinite();
@@ -137,9 +140,7 @@ void LedNotify::messageReceived( Message message )
 		chatBlinking_ = false;
 		// ...and make sure "NewMessage" blinking is not running
 		if( ! msgBlinking_ )
-		{
 			blinker_.stop();
-		}
 	}
 	kdebugf2();
 }
@@ -155,9 +156,7 @@ void LedNotify::chatWidgetActivated( ChatWidget *chatwidget )
 		msgBlinking_ = false;
 		// ...and make sure "NewChat" blinking is not running
 		if( ! chatBlinking_ )
-		{
 			blinker_.stop();
-		}
 	}
 	kdebugf2();
 }
@@ -174,4 +173,3 @@ void LedNotify::mainConfigurationWindowCreated(MainConfigurationWindow* mainconf
 {
 	Q_UNUSED( mainconfigurationwindow );
 }
-

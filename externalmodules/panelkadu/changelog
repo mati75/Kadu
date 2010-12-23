@@ -2,6 +2,8 @@
 * Port dla Kadu 0.6.6.
 * Animacja panelu w KDE4.
 * Naprawione sprawdzanie aktywności okna.
+* Poprawiona kompatybilność z modułem single_window.
+* Zakładka konfiguracji przeniesiona z grupy Kadu do grupy Wygląd.
 * Poprawki drobnych błędów.
 
 

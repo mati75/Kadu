@@ -36,14 +36,14 @@ class GlobalWidgetManager : public QObject
 {
 	Q_OBJECT;
 	public:
-		GlobalWidgetManager( QWidget *widget, bool autostart = true );
+		GlobalWidgetManager( QWidget *widget, bool autostart = true, int autostartdelay = -1 );
 		~GlobalWidgetManager();
-		void start();
-		void stop();
 		PROPERTY_RO( QWidget*, WIDGET, widget );
 	private slots:
 		void inactivitytimerTimeout();
 		void widgetDestroyed();
+		void start();
+		void stop();
 	private:
 		QTimer INACTIVITYTIMER;
 		bool FIRSTRUN;

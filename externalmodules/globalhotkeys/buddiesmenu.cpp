@@ -76,17 +76,31 @@ BuddiesMenuActionData::~BuddiesMenuActionData() {}
 
 bool BuddiesMenuActionData::operator<( const BuddiesMenuActionData &other ) const
 {
+	// returning 'true' puts the current item above the &other one in the list
 	if( CHATSTATE == other.CHATSTATE )
+	{
+		Contact cc = CONTACTSET.toContact();
+		Contact oc = other.CONTACTSET.toContact();
+		if( cc && oc )
+		{
+			int cs = 0x0;
+			if( cc.isBlocking()             ) cs += 0x1;
+			if( cc.ownerBuddy().isBlocked() ) cs += 0x2;
+			int os = 0x0;
+			if( oc.isBlocking()             ) os += 0x1;
+			if( oc.ownerBuddy().isBlocked() ) os += 0x2;
+			if( cs != os )
+				return ( cs > os );
+		}
 		return ( INITIALORDER > other.INITIALORDER );
+	}
 	return ( CHATSTATE < other.CHATSTATE );
 }
 
 
 Contact BuddiesMenuActionData::contact()
 {
-	if( CONTACTSET.count() != 1 )
-		return Contact::null;
-	return *CONTACTSET.begin();
+	return CONTACTSET.toContact();
 }
 
 
@@ -165,9 +179,7 @@ bool BuddiesMenu::contains( ContactSet contactset )
 	foreach( BuddiesMenuActionData data, BUDDIESMENUACTIONDATALIST )
 	{
 		if( data.contactSet() == contactset )
-		{
 			return true;
-		}
 	}
 	return false;
 }
@@ -176,6 +188,109 @@ bool BuddiesMenu::contains( ContactSet contactset )
 bool BuddiesMenu::contains( Contact contact )
 {
 	return contains( ContactSet( contact ) );
+}
+
+
+bool BuddiesMenu::contains( QList<Contact> contacts )
+{
+	ContactSet contactset;
+	contactset.unite( contacts.toSet() );
+	return contains( contactset );
+}
+
+
+bool BuddiesMenu::contains( Buddy buddy )
+{
+	foreach( BuddiesMenuActionData data, BUDDIESMENUACTIONDATALIST )
+	{
+		Contact contact = data.contactSet().toContact();
+		if( contact )
+			if( contact.ownerBuddy() == buddy )
+				return true;
+	}
+	return false;
+}
+
+
+bool BuddiesMenu::contains( QString buddydisplay )
+{
+	foreach( BuddiesMenuActionData data, BUDDIESMENUACTIONDATALIST )
+	{
+		Contact contact = data.contactSet().toContact();
+		if( contact )
+		{
+			if( contact.ownerBuddy().display() == buddydisplay )
+				return true;
+		}
+	}
+	return false;
+}
+
+
+void BuddiesMenu::remove( ContactSet contactset )
+{
+	int i = 0;
+	while( i < BUDDIESMENUACTIONDATALIST.size() )
+	{
+		if( BUDDIESMENUACTIONDATALIST[i].contactSet() == contactset )
+		{
+			BUDDIESMENUACTIONDATALIST.removeAt( i );
+			continue;
+		}
+		++i;
+	}
+}
+
+
+void BuddiesMenu::remove( Contact contact )
+{
+	remove( ContactSet( contact ) );
+}
+
+
+void BuddiesMenu::remove( QList<Contact> contacts )
+{
+	ContactSet contactset;
+	contactset.unite( contacts.toSet() );
+	remove( contactset );
+}
+
+
+void BuddiesMenu::remove( Buddy buddy )
+{
+	int i = 0;
+	while( i < BUDDIESMENUACTIONDATALIST.size() )
+	{
+		Contact contact = BUDDIESMENUACTIONDATALIST[i].contactSet().toContact();
+		if( contact )
+		{
+			if( contact.ownerBuddy() == buddy )
+			{
+				BUDDIESMENUACTIONDATALIST.removeAt( i );
+				continue;
+			}
+		}
+		++i;
+	}
+}
+
+
+void BuddiesMenu::remove( QString buddydisplay )
+{
+	int i = 0;
+	while( i < BUDDIESMENUACTIONDATALIST.size() )
+	{
+		Contact contact = BUDDIESMENUACTIONDATALIST[i].contactSet().toContact();
+		if( contact )
+		{
+			if( contact.ownerBuddy().display() == buddydisplay )
+			{
+				BUDDIESMENUACTIONDATALIST.removeAt( i );
+				continue;
+			}
+		}
+		++i;
+	}
 }
 
 
@@ -234,12 +349,6 @@ QIcon BuddiesMenu::createIcon( ContactSet contactset, ChatState chatstate )
 	{
 		Contact contact = *contactset.begin();
 		statusicon = ContactDataExtractor::data( contact, Qt::DecorationRole, false ).value<QIcon>();
-/*		if( contact.isBlocking() )
-			statusicon = IconsManager::instance()->iconByPath("kadu_icons/kadu-blocking.png");
-		else if( contact.isBlocked() )
-			statusicon = IconsManager::instance()->iconByPath("kadu_icons/kadu-blocking.png");
-		else
-			statusicon = contact.contactAccount().statusContainer()->statusIcon( contact.currentStatus() );*/
 	}
 	else
 	{

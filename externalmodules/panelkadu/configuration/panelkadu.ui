@@ -1,5 +1,5 @@
 <configuration-ui>
-	<section name="Kadu">
+	<section name="Look">
 		<tab name="PanelKadu">
 			<group-box name="Geometry">
 				<combo-box caption="Side" config-section="PanelKadu" config-item="Side" id="panelkadu/side">
