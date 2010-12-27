@@ -1,0 +1,52 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 398fbdf..a39c7c5 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -5,7 +5,7 @@ set (QT_MIN_VERSION "4.5.0")
+ set (CMAKE_MIN_VERSION "2.6.0")
+ 
+ # configuration
+-option (ENABLE_AUTODOWNLOAD "Use automatic download of modules/icons/emoticons" ON)
++option (ENABLE_AUTODOWNLOAD "Use automatic download of modules/icons/emoticons" OFF)
+ option (SIG_HANDLING_ENABLED "Define if you want system signals handling" ON)
+ option (USE_X11_XFIXES "Use X11 Xfixes extension (Desktop Linux)" ON)
+ 
+diff --git a/varia/themes/emoticons/CMakeLists.txt b/varia/themes/emoticons/CMakeLists.txt
+index ed664e7..405e576 100644
+--- a/varia/themes/emoticons/CMakeLists.txt
++++ b/varia/themes/emoticons/CMakeLists.txt
+@@ -10,7 +10,7 @@ if (WIN32)
+ 	)
+ else (WIN32)
+ 	exec_program (${CMAKE_CURRENT_SOURCE_DIR}/get-all.sh ${CMAKE_CURRENT_SOURCE_DIR}
+-		ARGS ${ENABLE_AUTODOWNLOAD}
++		ARGS ON
+ 		OUTPUT_VARIABLE EMOTICON_THEMES
+ 	)
+ 
+diff --git a/varia/themes/icons/CMakeLists.txt b/varia/themes/icons/CMakeLists.txt
+index 8c97659..5412068 100644
+--- a/varia/themes/icons/CMakeLists.txt
++++ b/varia/themes/icons/CMakeLists.txt
+@@ -12,7 +12,7 @@ message (STATUS "ICON_THEMES: ${ICON_THEMES}")
+ message (STATUS "INSTALL_ICON_THEMES: ${INSTALL_ICON_THEMES}")
+ else (WIN32)
+ 	exec_program (${CMAKE_CURRENT_SOURCE_DIR}/get-all.sh ${CMAKE_CURRENT_SOURCE_DIR}
+-		ARGS ${ENABLE_AUTODOWNLOAD}
++		ARGS ON
+ 		OUTPUT_VARIABLE ICON_THEMES
+ 	)
+ 
+diff --git a/varia/themes/sounds/CMakeLists.txt b/varia/themes/sounds/CMakeLists.txt
+index 2ede7e5..6032fed 100644
+--- a/varia/themes/sounds/CMakeLists.txt
++++ b/varia/themes/sounds/CMakeLists.txt
+@@ -10,7 +10,7 @@ if (WIN32)
+ 	)
+ else (WIN32)
+ 	exec_program (${CMAKE_CURRENT_SOURCE_DIR}/get-all.sh ${CMAKE_CURRENT_SOURCE_DIR}
+-		ARGS ${ENABLE_AUTODOWNLOAD}
++		ARGS ON
+ 		OUTPUT_VARIABLE SOUND_THEMES
+ 	)
+ 
