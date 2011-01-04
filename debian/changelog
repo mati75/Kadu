@@ -4,8 +4,9 @@ kadu (0.6.6-beta14-1) experimental; urgency=low
   * Minor updates to debian/patches/* to make them fit new source
   * Setting 755 on /usr/share/kadu/themes/icons/oxygen/src/rebuild-
     statuses.sh
+  * Added encryption_ng and encryption_ng_simlite modules to kadu
 
- -- Patryk Cisek <patryk@debian.org>  Tue, 04 Jan 2011 16:15:52 +0100
+ -- Patryk Cisek <patryk@debian.org>  Tue, 04 Jan 2011 16:18:20 +0100
 
 kadu (0.6.6-beta13-1) experimental; urgency=low
 

@@ -10,6 +10,8 @@ debian/tmp/usr/lib/kadu/modules/libautostatus.so
 debian/tmp/usr/lib/kadu/modules/libconfig_wizard.so
 debian/tmp/usr/lib/kadu/modules/libdesktop_docking.so
 debian/tmp/usr/lib/kadu/modules/libdocking.so
+debian/tmp/usr/lib/kadu/modules/libencryption_ng_simlite.so
+debian/tmp/usr/lib/kadu/modules/libencryption_ng.so
 debian/tmp/usr/lib/kadu/modules/libexec_notify.so
 debian/tmp/usr/lib/kadu/modules/libext_sound.so
 debian/tmp/usr/lib/kadu/modules/libfiledesc.so

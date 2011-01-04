@@ -13,6 +13,7 @@ debian/tmp/usr/share/kadu/modules/configuration/autostatus.ui
 debian/tmp/usr/share/kadu/modules/configuration/config-wizard.ui
 debian/tmp/usr/share/kadu/modules/configuration/desktop_docking.ui
 debian/tmp/usr/share/kadu/modules/configuration/docking.ui
+debian/tmp/usr/share/kadu/modules/configuration/encryption-ng.ui
 debian/tmp/usr/share/kadu/modules/configuration/ext_sound.ui
 debian/tmp/usr/share/kadu/modules/configuration/filedesc.ui
 debian/tmp/usr/share/kadu/modules/configuration/firewall.ui
@@ -46,6 +47,8 @@ debian/tmp/usr/share/kadu/modules/ao_sound.desc
 debian/tmp/usr/share/kadu/modules/auto_hide.desc
 debian/tmp/usr/share/kadu/modules/desktop_docking.desc
 debian/tmp/usr/share/kadu/modules/docking.desc
+debian/tmp/usr/share/kadu/modules/encryption_ng.desc
+debian/tmp/usr/share/kadu/modules/encryption_ng_simlite.desc
 debian/tmp/usr/share/kadu/modules/exec_notify.desc
 debian/tmp/usr/share/kadu/modules/ext_sound.desc
 debian/tmp/usr/share/kadu/modules/filedesc.desc
