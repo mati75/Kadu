@@ -57,6 +57,7 @@ install-indep:
 	rm -f $(INSTALL_DIR)/usr/share/kadu/syntax/chat/Gaia/Contents/Resources/Javascript/mootools.js
 	ln -s /usr/share/javascript/mootools/mootools.js $(INSTALL_DIR)/usr/share/kadu/syntax/chat/Gaia/Contents/Resources/Javascript/mootools.js
 	rm -f $(INSTALL_DIR)/usr/share/kadu/themes/sounds/bns/sound.conf~
+	chmod 755 $(INSTALL_DIR)/usr/share/kadu/themes/icons/oxygen/src/rebuild-statuses.sh
 	dh_install -i
 
 install-arch:
