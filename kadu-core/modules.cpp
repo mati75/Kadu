@@ -56,7 +56,7 @@
 #include "activate.h"
 #include "debug.h"
 #include "icons-manager.h"
-#include "misc/misc.h"
+#include "misc/path-conversion.h"
 
 #include "modules.h"
 
@@ -143,6 +143,13 @@ ModulesManager::ModulesManager() : QObject(),
 	loaded_list = loaded_str.split(',', QString::SkipEmptyParts);
 	QString unloaded_str = config_file.readEntry("General", "UnloadedModules");
 	unloaded_list = unloaded_str.split(',', QString::SkipEmptyParts);
+
+	if (loaded_list.contains("encryption"))
+	{
+		loaded_list.removeAll("encryption");
+		loaded_list.append("encryption_ng");
+		loaded_list.append("encryption_ng_simlite");
+	}
 
 	registerStaticModules();
 
@@ -457,7 +464,7 @@ bool ModulesManager::conflictsWithLoaded(const QString &module_name, const Modul
 	{
 		if (moduleIsActive(it))
 		{
-			MessageDialog::show("dialog-warning", tr("Kadu"), narg(tr("Module %1 conflicts with: %2"), module_name, it));
+			MessageDialog::show("dialog-warning", tr("Kadu"), tr("Module %1 conflicts with: %2").arg(module_name, it));
 			kdebugf2();
 			return true;
 		}
@@ -465,7 +472,7 @@ bool ModulesManager::conflictsWithLoaded(const QString &module_name, const Modul
 			foreach (const QString &sit, Modules[key].info.provides)
 				if (it == sit)
 				{
-					MessageDialog::show("dialog-warning", tr("Kadu"), narg(tr("Module %1 conflicts with: %2"), module_name, key));
+					MessageDialog::show("dialog-warning", tr("Kadu"), tr("Module %1 conflicts with: %2").arg(module_name, key));
 					kdebugf2();
 					return true;
 				}
@@ -474,7 +481,7 @@ bool ModulesManager::conflictsWithLoaded(const QString &module_name, const Modul
 		foreach (const QString &sit, Modules[key].info.conflicts)
 			if (sit == module_name)
 			{
-				MessageDialog::show("dialog-warning", tr("Kadu"), narg(tr("Module %1 conflicts with: %2"), module_name, key));
+				MessageDialog::show("dialog-warning", tr("Kadu"), tr("Module %1 conflicts with: %2").arg(module_name, key));
 				kdebugf2();
 				return true;
 			}
@@ -528,7 +535,7 @@ bool ModulesManager::activateModule(const QString& module_name)
 		if (!m.lib->load())
 		{
 			QString err = m.lib->errorString();
-			MessageDialog::show("dialog-warning", tr("Kadu"), narg(tr("Cannot load %1 module library.:\n%2"), module_name, err));
+			MessageDialog::show("dialog-warning", tr("Kadu"), tr("Cannot load %1 module library.:\n%2").arg(module_name, err));
 			kdebugm(KDEBUG_ERROR, "cannot load %s because of: %s\n", qPrintable(module_name), qPrintable(err));
 			delete m.lib;
 			m.lib = 0;

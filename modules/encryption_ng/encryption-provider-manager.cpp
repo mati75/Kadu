@@ -55,12 +55,16 @@ void EncryptionProviderManager::registerProvider(EncryptionProvider *provider)
 	Providers.append(provider);
 
 	connect(provider, SIGNAL(keyReceived(Contact,QString,QByteArray)), this, SLOT(keyReceived(Contact,QString,QByteArray)));
+	connect(provider, SIGNAL(canDecryptChanged(Chat)), this, SIGNAL(canDecryptChanged(Chat)));
+	connect(provider, SIGNAL(canEncryptChanged(Chat)), this, SIGNAL(canEncryptChanged(Chat)));
 
 	foreach (const Chat &chat, ChatManager::instance()->items())
 	{
 		emit canDecryptChanged(chat);
 		emit canEncryptChanged(chat);
 	}
+
+	emit providerRegistered(provider);
 }
 
 void EncryptionProviderManager::unregisterProvider(EncryptionProvider *provider)
@@ -68,12 +72,16 @@ void EncryptionProviderManager::unregisterProvider(EncryptionProvider *provider)
 	Providers.removeAll(provider);
 
 	disconnect(provider, SIGNAL(keyReceived(Contact,QString,QByteArray)), this, SLOT(keyReceived(Contact,QString,QByteArray)));
+	disconnect(provider, SIGNAL(canDecryptChanged(Chat)), this, SIGNAL(canDecryptChanged(Chat)));
+	disconnect(provider, SIGNAL(canEncryptChanged(Chat)), this, SIGNAL(canEncryptChanged(Chat)));
 
 	foreach (const Chat &chat, ChatManager::instance()->items())
 	{
 		emit canDecryptChanged(chat);
 		emit canEncryptChanged(chat);
 	}
+
+	emit providerUnregistered(provider);
 }
 
 bool EncryptionProviderManager::canDecrypt(const Chat &chat)
@@ -94,11 +102,16 @@ bool EncryptionProviderManager::canEncrypt(const Chat &chat)
 	return false;
 }
 
-Decryptor * EncryptionProviderManager::decryptor(const Chat &chat)
+Decryptor * EncryptionProviderManager::acquireDecryptor(const Chat &chat)
+{
+	return new DecryptorWrapper(chat, this, this);
+}
+
+Encryptor * EncryptionProviderManager::acquireEncryptor(const Chat &chat)
 {
 	foreach (EncryptionProvider *provider, Providers)
 	{
-		Decryptor *result = provider->decryptor(chat);
+		Encryptor *result = provider->acquireEncryptor(chat);
 		if (result)
 			return result;
 	}
@@ -106,45 +119,47 @@ Decryptor * EncryptionProviderManager::decryptor(const Chat &chat)
 	return 0;
 }
 
-Decryptor * EncryptionProviderManager::decryptorWrapper(const Chat& chat)
+void EncryptionProviderManager::releaseDecryptor(const Chat &chat, Decryptor *decryptor)
 {
-	DecryptorWrapper *result = new DecryptorWrapper();
+	Q_UNUSED(chat)
 
-	foreach (EncryptionProvider *provider, Providers)
-	{
-		Decryptor *decryptor = provider->decryptor(chat);
-		if (decryptor)
-			result->addDecryptor(decryptor);
-	}
+	DecryptorWrapper *decryptorWrapper = dynamic_cast<DecryptorWrapper *>(decryptor);
+	if (!decryptorWrapper)
+		return;
 
-	return result;
+	QList<Decryptor *> decryptors = decryptorWrapper->decryptors();
+	foreach (Decryptor *decryptor, decryptors)
+		decryptor->provider()->releaseDecryptor(chat, decryptor);
+
+	delete decryptorWrapper;
 }
 
-Encryptor * EncryptionProviderManager::encryptor(const Chat &chat)
+void EncryptionProviderManager::releaseEncryptor(const Chat &chat, Encryptor *encryptor)
 {
-	foreach (EncryptionProvider *provider, Providers)
-	{
-		Encryptor *result = provider->encryptor(chat);
-		if (result)
-			return result;
-	}
+	Q_UNUSED(chat)
+	Q_UNUSED(encryptor)
 
-	return 0;
+	// should not get called, we just provide encryptors from other class
 }
 
-// I know it is not best place for invoking gui, pleace change it in future
+// I know it is not best place for invoking gui, please change it in future
 void EncryptionProviderManager::keyReceived(const Contact &contact, const QString &keyType, const QByteArray &keyData)
 {
 	Buddy buddy = BuddyManager::instance()->byContact(contact, ActionReturnNull);
 	if (!buddy)
 		return; // just ignore anonymous contacts
 
+	Key key = KeysManager::instance()->byContactAndType(contact, keyType, ActionReturnNull);
+	// we already have this key
+	if (key && key.key() == keyData)
+		return;
+
 	QString question = tr("Buddy %1 is sending you his public key.\nDo you want to save it?").arg(buddy.display());
 	bool answer = MessageDialog::ask("dialog-question", tr("Encryption"), question);
 
 	if (answer)
 	{
-		Key key = KeysManager::instance()->byContactAndType(contact, keyType, ActionCreateAndAdd);
+		key = KeysManager::instance()->byContactAndType(contact, keyType, ActionCreateAndAdd);
 		key.setKey(keyData);
 	}
 }

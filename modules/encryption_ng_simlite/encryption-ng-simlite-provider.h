@@ -24,7 +24,11 @@
 
 #include "accounts/accounts-aware-object.h"
 
+#include "modules/encryption_ng/keys/key.h"
+
 #include "modules/encryption_ng/encryption-provider.h"
+
+class EncryptioNgSimliteDecryptor;
 
 class EncryptioNgSimliteProvider : public EncryptionProvider, AccountsAwareObject
 {
@@ -33,10 +37,14 @@ class EncryptioNgSimliteProvider : public EncryptionProvider, AccountsAwareObjec
 
 	static EncryptioNgSimliteProvider *Instance;
 
+	QMap<Account, EncryptioNgSimliteDecryptor *> Decryptors;
+
 	EncryptioNgSimliteProvider();
 	virtual ~EncryptioNgSimliteProvider();
 
 private slots:
+	void keyUpdated(Key key);
+
 	void filterRawIncomingMessage(Chat chat, Contact sender, QByteArray &message, bool &ignore);
 
 protected:
@@ -52,8 +60,11 @@ public:
 	virtual bool canDecrypt(const Chat &chat);
 	virtual bool canEncrypt(const Chat &chat);
 
-	virtual Decryptor * decryptor(const Chat &chat);
-	virtual Encryptor * encryptor(const Chat &chat);
+	virtual Encryptor * acquireEncryptor(const Chat &chat);
+	virtual Decryptor * acquireDecryptor(const Chat &chat);
+
+	virtual void releaseEncryptor(const Chat &chat, Encryptor *encryptor);
+	virtual void releaseDecryptor(const Chat &chat, Decryptor *decryptor);
 
 };
 

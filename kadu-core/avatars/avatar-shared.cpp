@@ -74,7 +74,7 @@ void AvatarShared::setFilePath(const QString& filePath)
 	{
 		FilePath = filePath;
 		Pixmap.load(filePath);
-		emitUpdated();
+		dataUpdated();
 		emit pixmapUpdated();
 	}
 }
@@ -121,6 +121,10 @@ bool AvatarShared::shouldStore()
 void AvatarShared::aboutToBeRemoved()
 {
 	// cleanup references
+	AvatarBuddy.setBuddyAvatar(Avatar::null);
+	AvatarContact.setContactAvatar(Avatar::null);
+
+	AvatarBuddy = Buddy::null;
 	AvatarContact = Contact::null;
 
 	QFile avatarFile(filePath());
@@ -137,6 +141,8 @@ bool AvatarShared::isEmpty()
 
 void AvatarShared::setPixmap(QPixmap pixmap)
 {
+	ensureLoaded();
+
 	Pixmap = pixmap;
 	dataUpdated();
 	emit pixmapUpdated();

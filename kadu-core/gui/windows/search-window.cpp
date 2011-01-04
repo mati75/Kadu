@@ -64,7 +64,7 @@ ActionDescription *SearchWindow::addFoundAction;
 ActionDescription *SearchWindow::chatFoundAction;
 
 SearchWindow::SearchWindow(QWidget *parent, Buddy buddy) :
-		MainWindow(parent),
+		MainWindow("search", parent),
 		only_active(0), e_uin(0), e_name(0), e_nick(0), e_byrFrom(0), e_byrTo(0), e_surname(0),
 		c_gender(0), e_city(0), results(0), progress(0), r_uin(0), r_pers(0),
 		seq(0), selectedUsers(BuddySet()), CurrentSearchCriteria(BuddySearchCriteria()),
@@ -206,10 +206,10 @@ SearchWindow::SearchWindow(QWidget *parent, Buddy buddy) :
 
 	setCentralWidget(centralWidget);
 
-	if (loadToolBarsFromConfig("searchDockArea", Qt::BottomToolBarArea, true))
-		writeToolBarsToConfig("search"); // port old config
+	if (loadOldToolBarsFromConfig("searchDockArea", Qt::BottomToolBarArea))
+		writeToolBarsToConfig(); // port old config
 	else
-		loadToolBarsFromConfig("search"); // load new config
+		loadToolBarsFromConfig(); // load new config
 
  	setActionState(stopSearchAction, false);
  	setActionState(firstSearchAction, false);
@@ -259,7 +259,6 @@ SearchWindow::SearchWindow(QWidget *parent, Buddy buddy) :
 SearchWindow::~SearchWindow()
 {
 	kdebugf();
-	writeToolBarsToConfig("search");
  	saveWindowGeometry(this, "General", "SearchWindowGeometry");
 	closeModule();
 	kdebugf2();
@@ -274,42 +273,42 @@ void SearchWindow::initModule()
 	firstSearchAction = new ActionDescription(searchActionsSlot,
 		ActionDescription::TypeSearch, "firstSearchAction",
 		searchActionsSlot, SLOT(firstSearchActionActivated(QAction *, bool)),
-		"edit-find", "edit-find", tr("&Search")
+		"edit-find", tr("&Search")
 	);
 	QObject::connect(firstSearchAction, SIGNAL(actionCreated(Action *)), searchActionsSlot, SLOT(firstSearchActionCreated(Action *)));
 
 	nextResultsAction = new ActionDescription(searchActionsSlot,
 		ActionDescription::TypeSearch, "nextResultsAction",
 		searchActionsSlot, SLOT(nextResultsActionActivated(QAction *, bool)),
-		"go-next", "go-next", tr("&Next results")
+		"go-next", tr("&Next results")
 	);
 	QObject::connect(nextResultsAction, SIGNAL(actionCreated(Action *)), searchActionsSlot, SLOT(nextResultsActionCreated(Action *)));
 
 	stopSearchAction = new ActionDescription(searchActionsSlot,
 		ActionDescription::TypeSearch, "stopSearchAction",
 		searchActionsSlot, SLOT(stopSearchActionActivated(QAction *, bool)),
-		"dialog-cancel", "dialog-cancel", tr("Stop")
+		"dialog-cancel", tr("Stop")
 	);
 	QObject::connect(stopSearchAction, SIGNAL(actionCreated(Action *)), searchActionsSlot, SLOT(stopSearchActionCreated(Action *)));
 
 	clearResultsAction = new ActionDescription(searchActionsSlot,
 		ActionDescription::TypeSearch, "clearSearchAction",
 		searchActionsSlot, SLOT(clearResultsActionActivated(QAction *, bool)),
-		"edit-clear", "edit-clear", tr("Clear results")
+		"edit-clear", tr("Clear results")
 	);
 	QObject::connect(clearResultsAction, SIGNAL(actionCreated(Action *)), searchActionsSlot, SLOT(clearResultsActionCreated(Action *)));
 
 	addFoundAction = new ActionDescription(searchActionsSlot,
 		ActionDescription::TypeSearch, "addSearchedAction",
 		searchActionsSlot, SLOT(addFoundActionActivated(QAction *, bool)),
-		"contact-new", "contact-new", tr("Add selected user")
+		"contact-new", tr("Add selected user")
 	);
 	QObject::connect(addFoundAction, SIGNAL(actionCreated(Action *)), searchActionsSlot, SLOT(actionsFoundActionCreated(Action *)));
 
 	chatFoundAction = new ActionDescription(searchActionsSlot,
 		ActionDescription::TypeSearch, "chatSearchedAction",
 		searchActionsSlot, SLOT(chatFoundActionActivated(QAction *, bool)),
-		"internet-group-chat", "internet-group-chat", tr("&Chat")
+		"internet-group-chat", tr("&Chat")
 	);
 	QObject::connect(chatFoundAction, SIGNAL(actionCreated(Action *)), searchActionsSlot, SLOT(actionsFoundActionCreated(Action *)));
 
@@ -699,19 +698,16 @@ void SearchWindow::setActionState(ActionDescription *actionDescription, bool too
 void SearchActionsSlots::firstSearchActionCreated(Action *action)
 {
 	SearchWindow *search = dynamic_cast<SearchWindow *>(action->parent());
-	if (!search)
-		return;
 
-	if (search->searching || (search->r_pers->isChecked() && search->isPersonalDataEmpty()) || (search->r_uin->isChecked() && search->e_uin->text().isEmpty()))
+	if (!search || !search->r_pers || search->searching || (search->r_pers->isChecked() && search->isPersonalDataEmpty()) || (search->r_uin->isChecked() && search->e_uin->text().isEmpty()))
 		action->setEnabled(false);
 }
 
 void SearchActionsSlots::nextResultsActionCreated(Action *action)
 {
 	SearchWindow *search = dynamic_cast<SearchWindow *>(action->parent());
-	if (!search)
-		return;
-	if (search->searching || search->r_uin->isChecked() || search->isPersonalDataEmpty())
+
+	if (!search || !search->r_uin || search->searching || search->r_uin->isChecked() || search->isPersonalDataEmpty())
 		action->setEnabled(false);
 
 }
@@ -719,27 +715,23 @@ void SearchActionsSlots::nextResultsActionCreated(Action *action)
 void SearchActionsSlots::stopSearchActionCreated(Action *action)
 {
 	SearchWindow *search = dynamic_cast<SearchWindow *>(action->parent());
-	if (!search)
-		return;
-	if (!search->searching)
+
+	if (!search || !search->searching)
 		action->setEnabled(false);
 }
 
 void SearchActionsSlots::clearResultsActionCreated(Action *action)
 {
 	SearchWindow *search = dynamic_cast<SearchWindow *>(action->parent());
-	if (!search)
-		return;
-	if (!search->results->topLevelItemCount())
+	if (!search || !search->results || !search->results->topLevelItemCount())
 		action->setEnabled(false);
 }
 
 void SearchActionsSlots::actionsFoundActionCreated(Action *action)
 {
 	SearchWindow *search = dynamic_cast<SearchWindow *>(action->parent());
-	if (!search)
-		return;
-	if (search->results->selectedItems().count() == 0)
+
+	if (!search || !search->results || search->results->selectedItems().count() == 0)
 		action->setEnabled(false);
 }
 

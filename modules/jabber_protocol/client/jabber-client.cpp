@@ -33,7 +33,6 @@
 #include "debug.h"
 
 #include "certificates/certificate-helpers.h"
-#include "resource/jabber-resource-pool.h"
 #include "utils/pep-manager.h"
 #include "utils/server-info-manager.h"
 #include "jabber-account-details.h"
@@ -435,7 +434,9 @@ void JabberClient::connect(const XMPP::Jid &jid, const QString &password, bool a
 
 void JabberClient::disconnect()
 {
-	cleanUp();
+	// do real disconnect
+	XMPP::Status status = XMPP::Status(XMPP::Status::Offline);
+	disconnect(status);
 }
 
 void JabberClient::disconnect(XMPP::Status &reason)
@@ -543,8 +544,9 @@ void JabberClient::slotTLSHandshaken()
 	QString domain = jabberAccountDetails->tlsOverrideDomain();
 	QString host = jabberAccountDetails->useCustomHostPort() ? jabberAccountDetails->customHost() : XMPP::Jid(Protocol->account().id()).domain();
 	QByteArray cert = jabberAccountDetails->tlsOverrideCert();
+	
 	if (CertificateHelpers::checkCertificate(JabberTLS, JabberTLSHandler, domain,
-		QString("%1: ").arg(Protocol->account().accountIdentity().name()) + tr("Server Authentication"), host, Protocol->account()))
+		QString("%1: ").arg(Protocol->account().accountIdentity().name()) + tr("Server Authentication"), host, Protocol))
 		JabberTLSHandler->continueAfterHandshake();
 	else
 		Protocol->logout();
@@ -680,14 +682,14 @@ void JabberClient::slotCSError(int error)
 			}
 			else
 			{
-				Protocol->resourcePool()->clear();
+//				Protocol->resourcePool()->clear();
 				Protocol->logout();
 			}
 		}
 	}
 }
 
-void JabberClient::addContact(const XMPP::Jid &j, const QString &name, const QStringList &groups, bool authReq)
+void JabberClient::addContact(const XMPP::Jid &j, const QString &name, const QStringList &groups)
 {
 	if (AddedContacts.contains(j.bare()))
 		return;
@@ -697,9 +699,6 @@ void JabberClient::addContact(const XMPP::Jid &j, const QString &name, const QSt
 	r->go(true);
 
 	AddedContacts.append(j.bare());
-
-	if(authReq)
-		requestSubscription(j);
 }
 
 void JabberClient::removeContact(const XMPP::Jid &j)
@@ -753,10 +752,10 @@ void JabberClient::setPresence(const XMPP::Status &status)
 		XMPP::Resource newResource(jabberAccountDetails->resource(), newStatus);
 
 		// update our resource in the resource pool
-		Protocol->resourcePool()->addResource(jid(), newResource);
+		// Protocol->resourcePool()->addResource(jid(), newResource);
 
 		// make sure that we only consider our own resource locally
-		Protocol->resourcePool()->lockToResource(jid(), newResource);
+		// Protocol->resourcePool()->lockToResource(jid(), newResource);
 	}
 
 	/*

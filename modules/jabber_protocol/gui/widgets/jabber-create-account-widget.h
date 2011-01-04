@@ -75,19 +75,20 @@ class JabberCreateAccountWidget : public AccountCreateWidget
 	int port_;
 	bool ShowConnectionOptions;
 
-	void createGui();
+	void createGui(bool showButtons);
 	bool checkSSL();
 	void resetGui();
 
 private slots:
 	void dataChanged();
-	void registerNewAccountFinished(JabberServerRegisterAccount *jsra);
 	void connectionOptionsChanged();
 	void hostToggled(bool on);
 	void sslActivated(int i);
 
+	void jidRegistered(const QString &jid, const QString &tlsDomain);
+
 public:
-	explicit JabberCreateAccountWidget(QWidget *parent = 0);
+	explicit JabberCreateAccountWidget(bool showButtons, QWidget *parent = 0);
 	virtual ~JabberCreateAccountWidget();
 
 public slots:

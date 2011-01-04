@@ -37,6 +37,12 @@ KeysManager * KeysManager::instance()
 	return Instance;
 }
 
+void KeysManager::destroyInstance()
+{
+	delete Instance;
+	Instance = 0;
+}
+
 KeysManager::KeysManager()
 {
 }
@@ -78,6 +84,8 @@ void KeysManager::keyDataUpdated()
 
 Key KeysManager::byContactAndType(Contact contact, const QString &keyType, NotFoundAction action)
 {
+	ensureLoaded();
+
 	foreach (const Key &key, items())
 		if (key.keyContact() == contact && key.keyType() == keyType)
 			return key;

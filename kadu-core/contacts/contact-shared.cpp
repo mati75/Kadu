@@ -1,4 +1,3 @@
-
 /*
  * %kadu copyright begin%
  * Copyright 2009, 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
@@ -148,47 +147,82 @@ void ContactShared::emitUpdated()
 	emit updated();
 }
 
+void ContactShared::detach(const Buddy &buddy, bool emitSignals)
+{
+	if (!details() || !buddy)
+		return;
+
+	if (emitSignals)
+		emit aboutToBeDetached();
+
+	OwnerBuddy.removeContact(this);
+
+	if (emitSignals)
+		emit detached();
+}
+
+void ContactShared::attach(const Buddy &buddy, bool emitReattached)
+{
+	if (!details())
+		return;
+
+	if (!buddy)
+		return;
+
+	if (!emitReattached)
+		emit aboutToBeAttached();
+
+	OwnerBuddy.addContact(this);
+
+	if (!emitReattached)
+		emit attached();
+	else
+		emit reattached();
+}
+
 void ContactShared::setOwnerBuddy(Buddy buddy)
 {
+	ensureLoaded();
+
 	if (OwnerBuddy == buddy)
 		return;
 
 	bool hadBuddy = !OwnerBuddy.isNull() && !OwnerBuddy.isAnonymous();
-	if (!OwnerBuddy.isNull())
-	{
-		if (buddy.isNull())
-			emit aboutToBeDetached();
 
-		OwnerBuddy.removeContact(this);
-
-		if (buddy.isNull())
-			emit detached();
-	}
-
+	detach(OwnerBuddy, !buddy);
 	OwnerBuddy = buddy;
+	attach(OwnerBuddy, hadBuddy);
 
-	if (!OwnerBuddy.isNull())
-	{
-		if (!hadBuddy)
-			emit aboutToBeAttached();
-
-		OwnerBuddy.addContact(this);
-
-		if (!hadBuddy)
-			emit attached();
-		else
-			emit reattached();
-	}
 	// TODO: make it pretty
 	// don't allow empty buddy to be set, use at least anonymous one
-	else
+	if (!OwnerBuddy)
 		OwnerBuddy = BuddyManager::instance()->byContact(Contact(this), ActionCreate);
+
+	dataUpdated();
+}
+
+void ContactShared::setContactAccount(Account account)
+{
+	ensureLoaded();
+
+	if (ContactAccount == account)
+		return;
+
+	if (ContactAccount && ContactAccount.protocolHandler() && ContactAccount.protocolHandler()->protocolFactory())
+		protocolUnregistered(ContactAccount.protocolHandler()->protocolFactory());
+
+	ContactAccount = account;
+
+	if (ContactAccount && ContactAccount.protocolHandler() && ContactAccount.protocolHandler()->protocolFactory())
+		protocolRegistered(ContactAccount.protocolHandler()->protocolFactory());
 
 	dataUpdated();
 }
 
 void ContactShared::protocolRegistered(ProtocolFactory *protocolFactory)
 {
+	ensureLoaded();
+
 	if (ContactAccount.protocolName() != protocolFactory->name())
 		return;
 
@@ -200,6 +234,8 @@ void ContactShared::protocolRegistered(ProtocolFactory *protocolFactory)
 
 void ContactShared::protocolUnregistered(ProtocolFactory *protocolFactory)
 {
+	ensureLoaded();
+
 	if (ContactAccount.protocolName() != protocolFactory->name())
 		return;
 
@@ -210,7 +246,12 @@ void ContactShared::detailsAdded()
 {
 	details()->ensureLoaded();
 
-	emitUpdated();
+	dataUpdated();
+}
+
+void ContactShared::afterDetailsAdded()
+{
+	attach(OwnerBuddy, false);
 }
 
 void ContactShared::detailsAboutToBeRemoved()
@@ -218,20 +259,25 @@ void ContactShared::detailsAboutToBeRemoved()
 	// do not store contacts that are not in contact manager
 	if (ContactManager::instance()->allItems().contains(this))
 		details()->store();
+
+	detach(OwnerBuddy, true);
 }
 
 void ContactShared::detailsRemoved()
 {
-	emitUpdated();
+	dataUpdated();
 }
 
 void ContactShared::setId(const QString &id)
 {
+	ensureLoaded();
+
 	if (Id == id)
 		return;
 
 	QString oldId = Id;
 	Id = id;
 
+	dataUpdated();
 	emit idChanged(oldId);
 }

@@ -29,16 +29,17 @@
 
 #include <QtGui/QDrag>
 #include <QtGui/QToolBar>
-#include <QtXml/QDomElement>
 
 #include "configuration/configuration-aware-object.h"
 
 #include "exports.h"
 
+class QDomElement;
 class QMenu;
 class QToolButton;
 
-class UserGroup;
+class ToolBarSeparator;
+class ToolBarSpacer;
 
 #define TOOLBAR_SEPARATOR_SIZE 12 /*px*/
 
@@ -90,23 +91,27 @@ class KADUAPI ToolBar : public QToolBar, public ConfigurationAwareObject
 
 	QList<ToolBarAction> ToolBarActions;
 
+	static QMap<QString, QList<ToolBarAction> > DefaultActions;
+
 	// TODO: remove, used only when reading from config
 	int XOffset;
 	int YOffset;
 
 	QPoint MouseStart;
 
+	bool EnableUpdatedSignal;
+
 	Qt::ToolBarArea toolBarArea();
 	Qt::Orientation orientationByArea(Qt::ToolBarArea toolbararea);
 
 	bool dragging;
 
-	QAction *findActionToDropBefore(QPoint pos);
-	QAction *actionNear(QPoint pos);
+	QAction * findActionToDropBefore(const QPoint &pos);
+	QAction * actionNear(const QPoint &pos);
 	int rowCount();
-	int rowAt(QPoint pos);
+	int rowAt(const QPoint &pos);
 	QRect rowRect(int row);
-	QList<QAction*> actionsForRow(int row);
+	QList<QAction *> actionsForRow(int row);
 	int actionRow(QAction *action);
 
 	ToolBarDropMarker dropmarker;
@@ -114,7 +119,15 @@ class KADUAPI ToolBar : public QToolBar, public ConfigurationAwareObject
 
 	void addAction(const QString &actionName, Qt::ToolButtonStyle style, QAction *before = 0);
 
-	static QMap<QString, QList<ToolBarAction> > DefaultActions;
+	int indexOf(QAction *action);
+	int indexOf(const QString &action);
+
+	ToolBarSeparator * createSeparator(QAction *before, ToolBarAction &action);
+	ToolBarSpacer * createSpacer(QAction *before, ToolBarAction &action);
+	QToolButton * createPushButton(QAction *before, ToolBarAction &action);
+	QWidget * createActionWidget(QAction *before, ToolBarAction &action);
+
+	void emitUpdated();
 
 private slots:
 	/**
@@ -147,10 +160,6 @@ private slots:
 
 	void setBlockToolbars(bool checked);
 
-	void actionLoaded(const QString &name);
-	void actionUnloaded(const QString &actionName);
-
-	void updateButtons();
 	void widgetPressed();
 
 	QMenu * createContextMenu(QWidget *widget);
@@ -176,6 +185,8 @@ protected:
 		Funkcja obsługująca upuszczenie przycisku na pasku
 	**/
 	virtual void dropEvent(QDropEvent *event);
+
+	virtual bool event(QEvent *event);
 
 	virtual void dragLeaveEvent(QDragLeaveEvent *event);
 	virtual void leaveEvent(QEvent *event);
@@ -203,13 +214,13 @@ public:
 		\param parent rodzic obiektu
 		\param name nazwa obiektu
 	**/
-	ToolBar(QWidget *parent);
+	explicit ToolBar(QWidget *parent);
 
 	/**
 		\fn ~ToolBar()
 		Destruktor paska narzędzi
 	**/
-	~ToolBar();
+	virtual ~ToolBar();
 
  	void deleteAction(const QString &actionName);
 	void moveAction(const QString &actionName, Qt::ToolButtonStyle style, QAction *before);
@@ -219,7 +230,7 @@ public:
 		\param parent_element rodzic obiektu
 		Wczytuje dane z pliku konfiguracyjnego
 	**/
-	void loadFromConfig(QDomElement parent_element);
+	void loadFromConfig(const QDomElement &parent_element);
 
 	/**
 		\fn hasAction(QString action_name)
@@ -227,7 +238,7 @@ public:
 		Funkcja zwraca wartość boolowską, okreslającą, czy akcja
 		o podanej nazwie znajduje się już na pasku narzędzi.
 	**/
-	bool hasAction (const QString &action_name);
+	bool hasAction(const QString &action_name);
 
 	int xOffset() { return XOffset; }
 	int yOffset() { return YOffset; }
@@ -239,7 +250,10 @@ public slots:
 		Zapisuje ustawienia paska (jak offset), oraz (pośrednio)
 		akcje znajdujące się na pasku.
 	**/
-	void writeToConfig(QDomElement parent_element);
+	void writeToConfig(const QDomElement &parent_element);
+
+signals:
+	void updated();
 
 };
 
@@ -248,34 +262,47 @@ class KADUAPI ActionDrag : public QDrag
 	Q_OBJECT
 
 public:
-	ActionDrag(const QString &actionName, Qt::ToolButtonStyle style, QWidget *dragSource = 0);
 	static bool decode(QDropEvent *event, QString &actionName, Qt::ToolButtonStyle &style);
+
+	ActionDrag(const QString &actionName, Qt::ToolButtonStyle style, QWidget *dragSource = 0);
 };
 
 class ToolBarSeparator : public QWidget
 {
 	Q_OBJECT
+
 	static int Token;
+
+protected:
+	virtual void mousePressEvent(QMouseEvent *event);
+
+public:
+	static int token();
+
+	explicit ToolBarSeparator(QWidget *parent = 0);
+
 signals:
 	void pressed();
-protected:
-	void mousePressEvent(QMouseEvent *event);
-public:
-	ToolBarSeparator(QWidget *parent = 0);
-	static int token();
+
 };
 
 class ToolBarSpacer : public QWidget
 {
 	Q_OBJECT
+
 	static int Token;
+
+protected:
+	virtual void mousePressEvent(QMouseEvent *event);
+
+public:
+	static int token();
+
+	explicit ToolBarSpacer(QWidget *parent = 0);
+
 signals:
 	void pressed();
-protected:
-	void mousePressEvent(QMouseEvent *event);
-public:
-	ToolBarSpacer(QWidget *parent = 0);
-	static int token();
+
 };
 
-#endif
+#endif // TOOLBAR_H

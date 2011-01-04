@@ -49,21 +49,14 @@ unsigned int computeFormatsSize(const FormattedMessage &message)
 	{
 		if (!first || part.isImage() || part.bold() || part.italic() || part.underline() || part.color().isValid())
 		{
+			first = false;
+
 			size += sizeof(struct gg_msg_richtext_format);
-			first = false;
-		}
 
-		if (part.isImage())
-		{
-			size += sizeof(struct gg_msg_richtext_image);
-			first = false;
-			continue;
-		}
-
-		if (part.color().isValid())
-		{
-			size += sizeof(struct gg_msg_richtext_color);
-			first = false;
+			if (part.isImage())
+				size += sizeof(struct gg_msg_richtext_image);
+			else if (part.color().isValid())
+				size += sizeof(struct gg_msg_richtext_color);
 		}
 	}
 
@@ -92,58 +85,54 @@ unsigned char * createFormats(Account account, const FormattedMessage &message, 
 
 	foreach (const FormattedMessagePart &part, message.parts())
 	{
-		if (first && !part.isImage() && !part.bold() && !part.italic() && !part.underline() && !part.color().isValid())
+		if (!first || part.isImage() || part.bold() || part.italic() || part.underline() || part.color().isValid())
 		{
 			first = false;
-			textPosition += part.content().length();
-			continue;
-		}
 
-		format.position = gg_fix16(textPosition);
-		format.font = 0;
+			format.position = gg_fix16(textPosition);
+			format.font = 0;
 
-		if (part.isImage())
-		{
-			format.font |= GG_FONT_IMAGE;
-		}
-		else
-		{
-			if (part.bold())
-				format.font |= GG_FONT_BOLD;
-			if (part.italic())
-				format.font |= GG_FONT_ITALIC;
-			if (part.underline())
-				format.font |= GG_FONT_UNDERLINE;
-			if (part.color().isValid())
-				format.font |= GG_FONT_COLOR;
-		}
+			if (part.isImage())
+				format.font |= GG_FONT_IMAGE;
+			else
+			{
+				if (part.bold())
+					format.font |= GG_FONT_BOLD;
+				if (part.italic())
+					format.font |= GG_FONT_ITALIC;
+				if (part.underline())
+					format.font |= GG_FONT_UNDERLINE;
+				if (part.color().isValid())
+					format.font |= GG_FONT_COLOR;
+			}
 
-		memcpy(result + memoryPosition, &format, sizeof(format));
-		memoryPosition += sizeof(format);
+			memcpy(result + memoryPosition, &format, sizeof(format));
+			memoryPosition += sizeof(format);
 
-		if (part.isImage())
-		{
-			uint32_t size;
-			uint32_t crc32;
+			if (part.isImage())
+			{
+				uint32_t size;
+				uint32_t crc32;
 
-			GaduChatImageService *gcis = dynamic_cast<GaduChatImageService *>(account.protocolHandler()->chatImageService());
-			gcis->prepareImageToSend(part.imagePath(), size, crc32);
+				GaduChatImageService *gcis = dynamic_cast<GaduChatImageService *>(account.protocolHandler()->chatImageService());
+				gcis->prepareImageToSend(part.imagePath(), size, crc32);
 
-			image.unknown1 = 0x0109;
-			image.size = gg_fix32(size);
-			image.crc32 = gg_fix32(crc32);
+				image.unknown1 = 0x0109;
+				image.size = gg_fix32(size);
+				image.crc32 = gg_fix32(crc32);
 
-			memcpy(result + memoryPosition, &image, sizeof(image));
-			memoryPosition += sizeof(image);
-		}
-		else if (part.color().isValid())
-		{
-			color.red = part.color().red();
-			color.green = part.color().green();
-			color.blue = part.color().blue();
+				memcpy(result + memoryPosition, &image, sizeof(image));
+				memoryPosition += sizeof(image);
+			}
+			else if (part.color().isValid())
+			{
+				color.red = part.color().red();
+				color.green = part.color().green();
+				color.blue = part.color().blue();
 
-			memcpy(result + memoryPosition, &color, sizeof(color));
-			memoryPosition += sizeof(color);
+				memcpy(result + memoryPosition, &color, sizeof(color));
+				memoryPosition += sizeof(color);
+			}
 		}
 
 		textPosition += part.content().length();

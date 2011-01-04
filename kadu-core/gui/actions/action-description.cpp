@@ -17,6 +17,8 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <QtCore/QLatin1String>
+
 #include "gui/hot-key.h"
 #include "gui/actions/action.h"
 #include "gui/actions/actions.h"
@@ -25,22 +27,20 @@
 #include "action-description.h"
 
 ActionDescription::ActionDescription(QObject *parent, ActionType Type, const QString &Name, QObject *Object, const char *Slot,
-	const QString &IconPathOn, const QString &IconPathOff, const QString &Text, bool Checkable, const QString &CheckedText, ActionBoolCallback enableCallback)
-	: QObject(parent), ShortcutContext(Qt::WidgetShortcut)
+	const QString &IconPath, const QString &Text, bool Checkable, ActionBoolCallback enableCallback) :
+		QObject(parent), ShortcutContext(Qt::WidgetShortcut)
 {
 	this->Type = Type;
 	this->Name = Name;
 	this->Object = Object;
 	this->Slot = Slot;
-	this->IconPathOn = IconPathOn;
-	this->IconPathOff = IconPathOff;
+	this->IconPath = IconPath;
 	this->Text = Text;
 	this->Checkable = Checkable;
-	this->CheckedText = CheckedText;
 	this->EnableCallback = enableCallback;
 	this->deleted = 0;
 
-	KaduActions.insert(this);
+	Actions::instance()->insert(this);
 }
 
 ActionDescription::~ActionDescription()
@@ -48,7 +48,7 @@ ActionDescription::~ActionDescription()
 	deleted = 1;
 	qDeleteAll(MappedActions);
 	MappedActions.clear();
-	KaduActions.remove(this);
+	Actions::instance()->remove(this);
 }
 
 void ActionDescription::actionDestroyed(QObject *action)
@@ -130,4 +130,14 @@ void ActionDescription::configurationUpdated()
 		MappedActions.values()[0]->setShortcut(HotKey::shortCutFromFile("ShortCuts", ShortcutItem));
 		MappedActions.values()[0]->setShortcutContext(ShortcutContext);
 	}
+}
+
+// TODO: a hack
+void ActionDescription::connectNotify(const char *signal)
+{
+	QObject::connectNotify(signal);
+
+	if (QLatin1String(signal) == SIGNAL(actionCreated(Action*))) // do not insert space here
+		foreach (Action *action, MappedActions)
+			emit actionCreated(action);
 }

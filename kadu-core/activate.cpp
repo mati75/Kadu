@@ -1,21 +1,18 @@
-#include <QtCore/QtGlobal>
-#include "activate.h"
+#include <QtGui/QWidget>
 
+#include "activate.h"
 
 #ifdef Q_WS_X11
 
-	#include <QtGui/QApplication>
-	#include <QtGui/QDesktopWidget>
-	#include <QtGui/QMdiSubWindow>
-	#include <QtGui/QWidget>
 	#include <QtGui/QX11Info>
-	#include <math.h>
 
 	#include "configuration/configuration-file.h"
 	#include "x11tools.h"
 
 	bool _isActiveWindow( QWidget *window )
 	{
+		// we need to ensure we operate on widget's window, if not passed
+		window = window->window();
 		// desktop
 		unsigned long desktopofwindow = X11_getDesktopOfWindow( QX11Info::display(), window->winId() );
 		if( ( desktopofwindow != X11_ALLDESKTOPS ) && ( desktopofwindow != X11_NODESKTOP ) && ( desktopofwindow != X11_getCurrentDesktop( QX11Info::display() ) ) )
@@ -26,6 +23,8 @@
 
 	void _activateWindow( QWidget *window )
 	{
+		// we need to ensure we operate on widget's window, if not passed
+		window = window->window();
 		// unshade the window if needed (important!)
 		if( X11_isWindowShaded( QX11Info::display(), window->winId() ) )
 			X11_shadeWindow( QX11Info::display(), window->winId(), false );
@@ -38,7 +37,7 @@
 			unsigned long currentdesktop = X11_getCurrentDesktop( QX11Info::display() );
 			if( ( desktopofwindow != currentdesktop ) && ( desktopofwindow != X11_ALLDESKTOPS ) )
 			{
-				if( ( action == 1 ) && ( desktopofwindow != X11_NODESKTOP ) && ( desktopofwindow != X11_ALLDESKTOPS ) )
+				if( ( action == 1 ) && ( desktopofwindow != X11_NODESKTOP ) )
 				{
 					X11_setCurrentDesktop( QX11Info::display(), desktopofwindow );
 				}
@@ -71,6 +70,8 @@
 
 	void _activateWindow( QWidget *window )
 	{
+		// we need to ensure we operate on widget's window, if not passed
+		window = window->window();
 		window->activateWindow();
 		window->raise();
 		SetForegroundWindow((HWND)(window->winId()));
@@ -92,3 +93,22 @@
 	}
 
 #endif
+
+bool _isWindowActiveOrFullyVisible( QWidget *window )
+{
+	// we need to ensure we operate on widget's window, if not passed
+	window = window->window();
+#ifdef Q_WS_X11
+	if( _isActiveWindow( window ) )
+		return true;
+
+	Display *display = QX11Info::display();
+	WId wId = window->winId();
+	return ! window->isMinimized() &&
+			X11_isWindowOnDesktop( display, wId, X11_getCurrentDesktop( display ) ) &&
+			X11_isWholeWindowOnOneDesktop( display, wId ) &&
+			! X11_isWindowCovered( display, wId );
+#else
+	return _isActiveWindow( window );
+#endif
+}

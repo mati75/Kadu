@@ -29,6 +29,7 @@
 #include "exports.h"
 
 class StorableObject;
+class ToolbarConfigurationManager;
 
 class KADUAPI ConfigurationManager
 {
@@ -37,13 +38,12 @@ class KADUAPI ConfigurationManager
 	QUuid Uuid;
 	QList<StorableObject *> RegisteredStorableObjects;
 
+	ToolbarConfigurationManager *ToolbarConfiguration;
+
 	ConfigurationManager();
+	~ConfigurationManager();
 
 	void importConfiguration();
-	void copyOldContactsToImport();
-	void importOldContact(); // TODO: remove after 0.6.6 release
-	void importContactsIntoBuddies(); // TODO: remove after 0.6.6 release
-	void importContactAccountDatasIntoContacts(); // TODO: remove after 0.6.6 release
 
 public:
 	static ConfigurationManager * instance();
@@ -56,6 +56,8 @@ public:
 
 	void registerStorableObject(StorableObject *object);
 	void unregisterStorableObject(StorableObject *object);
+
+	ToolbarConfigurationManager * toolbarConfigurationManager() { return ToolbarConfiguration; }
 
 };
 

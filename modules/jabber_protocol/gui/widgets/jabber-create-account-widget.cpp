@@ -35,6 +35,7 @@
 #include <QtGui/QVBoxLayout>
 
 #include "gui/windows/message-dialog.h"
+#include "gui/windows/jabber-wait-for-account-register-window.h"
 #include "icons-manager.h"
 #include "identities/identity-manager.h"
 #include "protocols/protocols-manager.h"
@@ -44,7 +45,7 @@
 
 #include "jabber-create-account-widget.h"
 
-JabberCreateAccountWidget::JabberCreateAccountWidget(QWidget *parent) :
+JabberCreateAccountWidget::JabberCreateAccountWidget(bool showButtons, QWidget *parent) :
 		AccountCreateWidget(parent), ShowConnectionOptions(false)
 {
 	setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
@@ -54,7 +55,7 @@ JabberCreateAccountWidget::JabberCreateAccountWidget(QWidget *parent) :
 	legacy_ssl_probe_ = true;
 	port_ = 5222;
 
-	createGui();
+	createGui(showButtons);
 	resetGui();
 }
 
@@ -62,7 +63,7 @@ JabberCreateAccountWidget::~JabberCreateAccountWidget()
 {
 }
 
-void JabberCreateAccountWidget::createGui()
+void JabberCreateAccountWidget::createGui(bool showButtons)
 {
 	QVBoxLayout *mainLayout = new QVBoxLayout(this);
 
@@ -209,6 +210,9 @@ void JabberCreateAccountWidget::createGui()
 	connect(RegisterAccountButton, SIGNAL(clicked(bool)), this, SLOT(apply()));
 	connect(cancelButton, SIGNAL(clicked(bool)), this, SLOT(cancel()));
 	connect(cancelButton, SIGNAL(clicked(bool)), this, SIGNAL(cancelled()));
+
+	if (!showButtons)
+		buttons->hide();
 }
 
 bool JabberCreateAccountWidget::checkSSL()
@@ -288,10 +292,10 @@ void JabberCreateAccountWidget::apply()
 	port_ = CustomPort->text().toInt();
 
 	JabberServerRegisterAccount *jsra = new JabberServerRegisterAccount(Domain->currentText(), Username->text(), NewPassword->text(), legacy_ssl_probe_, ssl_ == 2, ssl_ == 0, opt_host_ ? host_ : QString(), port_);
-	connect(jsra, SIGNAL(finished(JabberServerRegisterAccount *)),
-			this, SLOT(registerNewAccountFinished(JabberServerRegisterAccount *)));
 
-	jsra->performAction();
+	JabberWaitForAccountRegisterWindow *window = new JabberWaitForAccountRegisterWindow(jsra);
+	connect(window, SIGNAL(jidRegistered(QString,QString)), this, SLOT(jidRegistered(QString,QString)));
+	window->exec();
 }
 
 void JabberCreateAccountWidget::cancel()
@@ -322,34 +326,27 @@ void JabberCreateAccountWidget::resetGui()
 	setState(StateNotChanged);
 }
 
-void JabberCreateAccountWidget::registerNewAccountFinished(JabberServerRegisterAccount *jsra)
+void JabberCreateAccountWidget::jidRegistered(const QString &jid, const QString &tlsDomain)
 {
-	if (jsra->result())
+	if (jid.isEmpty())
+		return;
+
+	Account jabberAccount = Account::create();
+	jabberAccount.setProtocolName("jabber");
+	jabberAccount.setAccountIdentity(IdentityCombo->currentIdentity());
+	jabberAccount.setId(jid);
+	jabberAccount.setHasPassword(true);
+	jabberAccount.setPassword(NewPassword->text());
+	jabberAccount.setRememberPassword(RememberPassword->isChecked());
+
+	JabberAccountDetails *details = dynamic_cast<JabberAccountDetails *>(jabberAccount.details());
+	if (details)
 	{
-		MessageDialog::show("dialog-information", tr("Kadu"),
-				tr("Registration was successful. Your new XMPP username is %1.\nStore it in a safe place along with the password.\n"
-				   "Now please add your friends to the buddy list.").arg(jsra->jid()), QMessageBox::Ok, this);
-
-		Account jabberAccount = Account::create();
-		jabberAccount.setProtocolName("jabber");
-		jabberAccount.setAccountIdentity(IdentityCombo->currentIdentity());
-		jabberAccount.setId(jsra->jid());
-		jabberAccount.setPassword(NewPassword->text());
-		jabberAccount.setRememberPassword(RememberPassword->isChecked());
-
-		JabberAccountDetails *details = dynamic_cast<JabberAccountDetails *>(jabberAccount.details());
-		if (details)
-		{
-			details->setState(StorableObject::StateNew);
-			details->setTlsOverrideDomain(jsra->client()->tlsOverrideDomain());
-		}
-
-		resetGui();
-
-		emit accountCreated(jabberAccount);
+		details->setState(StorableObject::StateNew);
+		details->setTlsOverrideDomain(tlsDomain);
 	}
-	else
-		MessageDialog::show("dialog-warning", tr("Kadu"), tr("An error has occurred during registration. Please try again later."), QMessageBox::Ok, this);
 
-	delete jsra;
+	resetGui();
+
+	emit accountCreated(jabberAccount);
 }

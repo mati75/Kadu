@@ -1,4 +1,5 @@
 /*
+ * Copyright 2007, 2008, 2009 Tomasz Kazmierczak
  * %kadu copyright begin%
  * Copyright 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
@@ -17,19 +18,50 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <QtCore/QCoreApplication>
 #include <QtCore/QtGlobal>
+#include <QtGui/QApplication>
+#include <QtCrypto>
 
+#include "gui/windows/message-dialog.h"
+#include "misc/path-conversion.h"
+
+#include "configuration/encryption-ng-configuration.h"
+#include "keys/keys-manager.h"
 #include "encryption-actions.h"
 #include "encryption-manager.h"
+#include "encryption-ng-configuration-ui-handler.h"
 #include "encryption-provider-manager.h"
+
+namespace EncryptionNg
+{
+	static QCA::Initializer *InitObject;
+}
 
 extern "C" int encryption_ng_init(bool firstLoad)
 {
-	Q_UNUSED(firstLoad)
+	EncryptionNg::InitObject = new QCA::Initializer();
+
+	if (!QCA::isSupported("pkey") ||
+			!QCA::PKey::supportedIOTypes().contains(QCA::PKey::RSA) ||
+			!QCA::isSupported("sha1"))
+	{
+		MessageDialog::exec("dialog-error", QApplication::tr("Encryption"),
+				QApplication::tr("The QCA OSSL plugin for libqca2 is not present!"));
+
+		delete EncryptionNg::InitObject;
+		EncryptionNg::InitObject = 0;
+		qRemovePostRoutine(QCA::deinit);
+
+		return -1;
+	}
+
+	EncryptionNgConfiguration::createInstance();
+	EncryptionNgConfigurationUiHandler::registerConfigurationUi();
 
 	EncryptionManager::createInstance();
 	EncryptionProviderManager::createInstance();
-	EncryptionActions::registerActions();
+	EncryptionActions::registerActions(firstLoad);
 
 	return 0;
 }
@@ -39,4 +71,12 @@ extern "C" void encryption_ng_close()
 	EncryptionActions::unregisterActions();
 	EncryptionProviderManager::destroyInstance();
 	EncryptionManager::destroyInstance();
+
+	EncryptionNgConfigurationUiHandler::unregisterConfigurationUi();
+	EncryptionNgConfiguration::destroyInstance();
+	KeysManager::destroyInstance();
+
+	delete EncryptionNg::InitObject;
+	EncryptionNg::InitObject = 0;
+	qRemovePostRoutine(QCA::deinit);
 }

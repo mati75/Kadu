@@ -40,6 +40,7 @@ class SmsGatewayManager
 
 public:
 	static SmsGatewayManager * instance();
+	static void destroyInstance();
 
 	const QList<SmsGateway> & items() const { return Items; }
 

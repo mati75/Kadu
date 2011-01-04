@@ -35,8 +35,10 @@
 
 #include "accounts/account.h"
 #include "configuration/configuration-file.h"
+#include "core/core.h"
 #include "gui/widgets/configuration/configuration-widget.h"
 #include "gui/windows/main-configuration-window.h"
+#include "parser/parser.h"
 #include "misc/path-conversion.h"
 #include "status/status-changer-manager.h"
 #include "debug.h"
@@ -79,16 +81,13 @@ extern "C" KADU_EXPORT void autoaway_close()
 	kdebugf2();
 }
 
-AutoAway::AutoAway()
+AutoAway::AutoAway() :
+		StatusChanged(false)
 {
 	autoAwayStatusChanger = new AutoAwayStatusChanger(this, this);
 
 	timer = new QTimer(this);
 	connect(timer, SIGNAL(timeout()), this, SLOT(checkIdleTime()));
-
-	timer->setInterval(config_file.readNumEntry("General", "AutoAwayCheckTime", 5) * 1000);
-	timer->setSingleShot(true);
-	timer->start();
 
 	createDefaultConfiguration();
 	configurationUpdated();
@@ -143,7 +142,16 @@ void AutoAway::checkIdleTime()
 		refreshStatusTime = idleTime + refreshStatusInterval;
 	}
 
-	autoAwayStatusChanger->update();
+	if (changeStatusTo() != AutoAwayStatusChanger::NoChangeStatus)
+	{
+		autoAwayStatusChanger->update();
+		StatusChanged = true;
+	}
+	else if (StatusChanged)
+	{
+		StatusChanged = false;
+		autoAwayStatusChanger->update();
+	}
 
 	if (timer)
 	{
@@ -206,7 +214,15 @@ void AutoAway::configurationUpdated()
 	changeTo = (AutoAwayStatusChanger::ChangeDescriptionTo)config_file.readNumEntry("General", "AutoChangeDescription");
 
 	autoAwayStatusChanger->update();
-	timer->setInterval(config_file.readNumEntry("General", "AutoAwayCheckTime") * 1000);
+
+	if (autoAwayEnabled || autoExtendedAwayEnabled || autoInvisibleEnabled || autoDisconnectEnabled)
+	{
+		timer->setInterval(config_file.readNumEntry("General", "AutoAwayCheckTime", 5) * 1000);
+		timer->setSingleShot(true);
+		timer->start();
+	}
+	else
+		timer->stop();
 }
 
 void AutoAway::autoAwaySpinBoxValueChanged(int value)
@@ -250,9 +266,9 @@ void AutoAway::descriptionChangeChanged(int index)
 
 QString AutoAway::parseDescription(const QString &parseDescription)
 {
-// 	if (parseAutoStatus)//TODO 0.6.6:
-// 		return (KaduParser::parse(parseDescription, AccountManager::instance()->defaultAccount(), kadu->myself(), true));
-// 	else
+	if (parseAutoStatus)
+		return (Parser::parse(parseDescription, BuddyOrContact(Core::instance()->myself()), true));
+	else
 		return parseDescription;
 }
 

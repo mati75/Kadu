@@ -24,7 +24,9 @@
 #include "configuration/main-configuration.h"
 #include "core/core.h"
 #include "identities/identity-manager.h"
+#include "protocols/protocol.h"
 #include "status/status-container-aware-object.h"
+#include "status/status-type-manager.h"
 #include "status/status-type.h"
 #include "icons-manager.h"
 
@@ -40,7 +42,7 @@ KADUAPI StatusContainerManager * StatusContainerManager::instance()
 }
 
 StatusContainerManager::StatusContainerManager() :
-		StatusContainer(0), SelfInList(false), DefaultStatusContainer(0)
+		StatusContainer(0), DefaultStatusContainer(0)
 {
 	configurationUpdated();
 
@@ -74,9 +76,6 @@ void StatusContainerManager::updateIdentities()
 			unregisterStatusContainer(identity);
 		else if (!StatusContainers.contains(identity) && identity.hasAnyAccountWithDetails())
 			registerStatusContainer(identity);
-
-	removeSelfFromList();
-	addSelfToList();
 }
 
 void StatusContainerManager::accountRegistered(Account account)
@@ -142,24 +141,6 @@ void StatusContainerManager::addAllIdentities()
 	updateIdentities();
 }
 
-void StatusContainerManager::addSelfToList()
-{
-	if (SelfInList || !StatusContainers.isEmpty())
-		return;
-
-	registerStatusContainer(this);
-	SelfInList = true;
-}
-
-void StatusContainerManager::removeSelfFromList()
-{
-	if (!SelfInList)
-		return;
-
-	unregisterStatusContainer(this);
-	SelfInList = false;
-}
-
 void StatusContainerManager::setDefaultStatusContainer(StatusContainer *defaultStatusContainer)
 {
 	if (defaultStatusContainer == DefaultStatusContainer)
@@ -168,9 +149,12 @@ void StatusContainerManager::setDefaultStatusContainer(StatusContainer *defaultS
 	if (DefaultStatusContainer)
 		disconnect(DefaultStatusContainer, SIGNAL(statusChanged()), this, SIGNAL(statusChanged()));
 
-	DefaultStatusContainer = defaultStatusContainer;
+	if (this != defaultStatusContainer)
+		DefaultStatusContainer = defaultStatusContainer;
+	else
+		DefaultStatusContainer = 0;
 
-	if (DefaultStatusContainer && this != DefaultStatusContainer)
+	if (DefaultStatusContainer)
 		connect(DefaultStatusContainer, SIGNAL(statusChanged()), this, SIGNAL(statusChanged()));
 }
 
@@ -185,8 +169,6 @@ void StatusContainerManager::simpleModeChanged()
 
 void StatusContainerManager::registerStatusContainer(StatusContainer *statusContainer)
 {
-	removeSelfFromList();
-
 	if (StatusContainers.isEmpty())
 		setDefaultStatusContainer(statusContainer);
 
@@ -209,12 +191,10 @@ void StatusContainerManager::unregisterStatusContainer(StatusContainer *statusCo
 	emit statusContainerUnregistered(statusContainer);
 	StatusContainerAwareObject::notifyStatusContainerUnregistered(statusContainer);
 
-	addSelfToList();
-
 	if (statusContainer == DefaultStatusContainer)
 	{
 		if (StatusContainers.isEmpty())
-			DefaultStatusContainer = 0;
+			setDefaultStatusContainer(0);
 		else
 			setDefaultStatusContainer(StatusContainers.first());
 	}
@@ -239,66 +219,62 @@ QString StatusContainerManager::statusContainerName()
 
 void StatusContainerManager::setStatus(Status newStatus)
 {
-	if (SelfInList)
-		return;
-
 	foreach (StatusContainer *container, StatusContainers)
 		container->setStatus(newStatus);
 }
 
 void StatusContainerManager::setDescription(const QString &description)
 {
-	if (SelfInList)
-		return;
-
 	foreach (StatusContainer *container, StatusContainers)
 		container->setDescription(description);
 }
 
 Status StatusContainerManager::status()
 {
-	return DefaultStatusContainer && this != DefaultStatusContainer
+	return DefaultStatusContainer
 			? DefaultStatusContainer->status()
 			: Status::null;
 }
 
 QString StatusContainerManager::statusName()
 {
-	return DefaultStatusContainer && this != DefaultStatusContainer
+	return DefaultStatusContainer
 			? DefaultStatusContainer->statusName()
 			: tr("Offline");
 }
 
 QIcon StatusContainerManager::statusIcon()
 {
-	return DefaultStatusContainer && this != DefaultStatusContainer
-			? DefaultStatusContainer->statusIcon()
-			: IconsManager::instance()->iconByPath("protocols/gadu-gadu/offline");
+	if (!DefaultStatusContainer)
+		return IconsManager::instance()->iconByPath("protocols/common/offline");
+	Status status = DefaultStatusContainer->status();
+	return StatusTypeManager::instance()->statusIcon("common", status.type(), status.hasDescription(), false);
 }
 
 QIcon StatusContainerManager::statusIcon(Status status)
 {
-	return statusIcon(status.type());
+	if (!DefaultStatusContainer)
+		return IconsManager::instance()->iconByPath("protocols/common/offline");
+	return StatusTypeManager::instance()->statusIcon("common", status.type(), status.hasDescription(), false);
 }
 
 QString StatusContainerManager::statusIconPath(const QString &statusType)
 {
-	return DefaultStatusContainer && this != DefaultStatusContainer
-			? DefaultStatusContainer->statusIconPath(statusType)
-			: QString();
+	if (!DefaultStatusContainer)
+		return "protocols/common/offline";
+	return StatusTypeManager::instance()->statusIconPath("common", statusType, false, false);
 }
 
 QIcon StatusContainerManager::statusIcon(const QString &statusType)
 {
-	return DefaultStatusContainer && this != DefaultStatusContainer
-			? DefaultStatusContainer->statusIcon(statusType)
-			: QIcon();
-// 			: IconsManager::instance()->loadPixmap(statusType);
+	if (!DefaultStatusContainer)
+		return IconsManager::instance()->iconByPath("protocols/common/offline");
+	return StatusTypeManager::instance()->statusIcon("common", statusType, false, false);
 }
 
 QList<StatusType *> StatusContainerManager::supportedStatusTypes()
 {
-	return DefaultStatusContainer && this != DefaultStatusContainer
+	return DefaultStatusContainer
 			? DefaultStatusContainer->supportedStatusTypes()
 			: QList<StatusType *>();
 // 			: StatusTypeManager::instance()->statusTypes();
@@ -306,7 +282,7 @@ QList<StatusType *> StatusContainerManager::supportedStatusTypes()
 
 int StatusContainerManager::maxDescriptionLength()
 {
-	return DefaultStatusContainer && this != DefaultStatusContainer
+	return DefaultStatusContainer
 			? DefaultStatusContainer->maxDescriptionLength()
 			: -1;
 }
@@ -318,9 +294,6 @@ QString StatusContainerManager::statusNamePrefix()
 
 void StatusContainerManager::storeStatus(Status status)
 {
-	if (SelfInList)
-		return;
-
 	foreach (StatusContainer *statusContainer, StatusContainers)
 		statusContainer->storeStatus(status);
 }
@@ -330,9 +303,6 @@ void StatusContainerManager::disconnectStatus(bool disconnectWithCurrentDescript
 	// TODO: 0.6.6
 	Q_UNUSED(disconnectWithCurrentDescription)
 	Q_UNUSED(disconnectDescription)
-
-	if (SelfInList)
-		return;
 
 	foreach (StatusContainer *statusContainer, StatusContainers)
 		statusContainer->disconnectStatus(DisconnectWithCurrentDescription, DisconnectDescription);

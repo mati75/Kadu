@@ -1,7 +1,9 @@
 set (SOURCES
+	gui/widgets/config-wizard-choose-network-page.cpp
 	gui/widgets/config-wizard-completed-page.cpp
 	gui/widgets/config-wizard-page.cpp
 	gui/widgets/config-wizard-profile-page.cpp
+	gui/widgets/config-wizard-set-up-account-page.cpp
 	gui/windows/config-wizard-window.cpp
 
 	config-wizard-configuration-ui-handler.cpp
@@ -9,9 +11,11 @@ set (SOURCES
 )
 
 set (MOC_SOURCES
+	gui/widgets/config-wizard-choose-network-page.h
 	gui/widgets/config-wizard-completed-page.h
 	gui/widgets/config-wizard-page.h
 	gui/widgets/config-wizard-profile-page.h
+	gui/widgets/config-wizard-set-up-account-page.h
 	gui/windows/config-wizard-window.h
 
 	config-wizard-configuration-ui-handler.h

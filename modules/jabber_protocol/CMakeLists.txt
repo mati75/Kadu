@@ -236,19 +236,21 @@ else (WIN32)
 endif (WIN32)
 
 set (SOURCES
+	actions/jabber-actions.cpp
+	actions/jabber-protocol-menu-manager.cpp
 	certificates/certificate-display-dialog.cpp
 	certificates/certificate-error-dialog.cpp
 	certificates/certificate-helpers.cpp
 	certificates/trusted-certificates-manager.cpp
 	client/jabber-client.cpp
 	client/mini-client.cpp
-	file-transfer/jabber-file-transfer-handler.cpp
 	gui/widgets/jabber-contact-personal-info-widget.cpp
 	gui/widgets/jabber-add-account-widget.cpp
 	gui/widgets/jabber-create-account-widget.cpp
 	gui/widgets/jabber-edit-account-widget.cpp
 	gui/widgets/jabber-personal-info-widget.cpp
 	gui/windows/jabber-change-password-window.cpp
+	gui/windows/jabber-wait-for-account-register-window.cpp
 	gui/windows/xml-console.cpp
 	open-chat-with/jabber-open-chat-with-runner.cpp
 	iris-status-adapter.cpp
@@ -261,8 +263,6 @@ set (SOURCES
 	jabber-url-handler.cpp
 	facebook-protocol-factory.cpp
 	gtalk-protocol-factory.cpp
-	resource/jabber-resource.cpp
-	resource/jabber-resource-pool.cpp
 	server/jabber-avatar-fetcher.cpp
 	server/jabber-avatar-pep-uploader.cpp
 	server/jabber-avatar-uploader.cpp
@@ -272,12 +272,10 @@ set (SOURCES
 	services/jabber-avatar-service.cpp
 	services/jabber-chat-service.cpp
 	services/jabber-chat-state-service.cpp
-	services/jabber-file-transfer-service.cpp
 	services/jabber-personal-info-service.cpp
 	services/jabber-contact-personal-info-service.cpp
 	services/jabber-roster-service.cpp
 	services/jabber-subscription-service.cpp
-	transport/jabber-transport.cpp
 	utils/jid-util.cpp
 	utils/vcard-factory.cpp
 	utils/pep-manager.cpp
@@ -285,12 +283,13 @@ set (SOURCES
 )
 
 set (MOC_SOURCES
+	actions/jabber-actions.h
 	certificates/certificate-display-dialog.h
+	certificates/certificate-error-dialog.h
 	certificates/trusted-certificates-manager.h
 	client/jabber-client.h
 	client/mini-client.h
 	facebook-protocol-factory.h
-	file-transfer/jabber-file-transfer-handler.h
 	gtalk-protocol-factory.h
 	gui/widgets/jabber-contact-personal-info-widget.h
 	gui/widgets/jabber-add-account-widget.h
@@ -298,13 +297,12 @@ set (MOC_SOURCES
 	gui/widgets/jabber-edit-account-widget.h
 	gui/widgets/jabber-personal-info-widget.h
 	gui/windows/jabber-change-password-window.h
+	gui/windows/jabber-wait-for-account-register-window.h
 	gui/windows/xml-console.h
 	jabber-id-validator.h
 	jabber-protocol.h
 	jabber-protocol-factory.h
 	jabber-url-handler.h
-	resource/jabber-resource.h
-	resource/jabber-resource-pool.h
 	server/jabber-avatar-fetcher.h
 	server/jabber-avatar-pep-uploader.h
 	server/jabber-avatar-uploader.h
@@ -314,12 +312,10 @@ set (MOC_SOURCES
 	services/jabber-avatar-service.h
 	services/jabber-chat-service.h
 	services/jabber-chat-state-service.h
-	services/jabber-file-transfer-service.h
 	services/jabber-personal-info-service.h
 	services/jabber-contact-personal-info-service.h
 	services/jabber-roster-service.h
 	services/jabber-subscription-service.h
-	transport/jabber-transport.h
 	utils/vcard-factory.h
 	utils/pep-manager.h
 	utils/server-info-manager.h

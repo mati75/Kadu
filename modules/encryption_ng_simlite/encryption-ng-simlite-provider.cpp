@@ -17,12 +17,15 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "chat/chat-manager.h"
 #include "contacts/contact-set.h"
+#include "contacts/contact-shared.h"
 #include "protocols/services/chat-service.h"
 #include "protocols/protocol.h"
 
 #include "modules/encryption_ng/keys/keys-manager.h"
 
+#include "encryption-ng-simlite-decryptor.h"
 #include "encryption-ng-simlite-encryptor.h"
 
 #include "encryption-ng-simlite-provider.h"
@@ -45,6 +48,10 @@ void EncryptioNgSimliteProvider::destroyInstance()
 EncryptioNgSimliteProvider::EncryptioNgSimliteProvider()
 {
 	triggerAllAccountsRegistered();
+
+	connect(KeysManager::instance(), SIGNAL(keyAdded(Key)), this, SLOT(keyUpdated(Key)));
+	connect(KeysManager::instance(), SIGNAL(keyUpdated(Key)), this, SLOT(keyUpdated(Key)));
+	connect(KeysManager::instance(), SIGNAL(keyRemoved(Key)), this, SLOT(keyUpdated(Key)));
 }
 
 EncryptioNgSimliteProvider::~EncryptioNgSimliteProvider()
@@ -54,6 +61,9 @@ EncryptioNgSimliteProvider::~EncryptioNgSimliteProvider()
 
 void EncryptioNgSimliteProvider::accountRegistered(Account account)
 {
+	EncryptioNgSimliteDecryptor *accountDecryptor = new EncryptioNgSimliteDecryptor(account, this, this);
+	Decryptors.insert(account, accountDecryptor);
+
 	Protocol *protocol = account.protocolHandler();
 	if (!protocol)
 		return;
@@ -68,6 +78,12 @@ void EncryptioNgSimliteProvider::accountRegistered(Account account)
 
 void EncryptioNgSimliteProvider::accountUnregistered(Account account)
 {
+	if (Decryptors.contains(account))
+	{
+		EncryptioNgSimliteDecryptor *decryptor = Decryptors.take(account);
+		delete decryptor;
+	}
+
 	Protocol *protocol = account.protocolHandler();
 	if (!protocol)
 		return;
@@ -76,7 +92,7 @@ void EncryptioNgSimliteProvider::accountUnregistered(Account account)
 	if (!chatService)
 		return;
 
-	connect(chatService, SIGNAL(filterRawIncomingMessage(Chat,Contact,QByteArray&,bool&)),
+	disconnect(chatService, SIGNAL(filterRawIncomingMessage(Chat,Contact,QByteArray&,bool&)),
 			this, SLOT(filterRawIncomingMessage(Chat,Contact,QByteArray&,bool&)));
 }
 
@@ -92,8 +108,13 @@ void EncryptioNgSimliteProvider::filterRawIncomingMessage(Chat chat, Contact sen
 
 bool EncryptioNgSimliteProvider::canDecrypt(const Chat &chat)
 {
-	Q_UNUSED(chat)
-	return false;
+	if (1 != chat.contacts().size())
+		return false;
+
+	if (!Decryptors.contains(chat.chatAccount()))
+		return false;
+
+	return Decryptors.value(chat.chatAccount())->isValid();
 }
 
 bool EncryptioNgSimliteProvider::canEncrypt(const Chat &chat)
@@ -102,23 +123,56 @@ bool EncryptioNgSimliteProvider::canEncrypt(const Chat &chat)
 		return false;
 
 	Key key = KeysManager::instance()->byContactAndType(*chat.contacts().begin(), "simlite", ActionReturnNull);
-	return !key.isNull();
+	return !key.isNull() && !key.isEmpty();
 }
 
-Decryptor * EncryptioNgSimliteProvider::decryptor(const Chat &chat)
-{
-	Q_UNUSED(chat)
-	return 0;
-}
-
-Encryptor * EncryptioNgSimliteProvider::encryptor(const Chat &chat)
+Decryptor * EncryptioNgSimliteProvider::acquireDecryptor(const Chat &chat)
 {
 	if (1 != chat.contacts().size())
 		return 0;
 
-	Key key = KeysManager::instance()->byContactAndType(*chat.contacts().begin(), "simlite", ActionReturnNull);
-	if (!key)
+	if (!Decryptors.contains(chat.chatAccount()))
 		return 0;
 
-	return new EncryptioNgSimliteEncryptor(key);
+	return Decryptors.value(chat.chatAccount());
+}
+
+Encryptor * EncryptioNgSimliteProvider::acquireEncryptor(const Chat &chat)
+{
+	if (1 != chat.contacts().size())
+		return 0;
+
+	EncryptioNgSimliteEncryptor *encryptor = new EncryptioNgSimliteEncryptor(*chat.contacts().begin(), this, this);
+	if (!encryptor->isValid())
+	{
+		delete encryptor;
+		return 0;
+	}
+
+	return encryptor;
+}
+
+void EncryptioNgSimliteProvider::releaseDecryptor(const Chat &chat, Decryptor *decryptor)
+{
+	Q_UNUSED(chat)
+	Q_UNUSED(decryptor)
+}
+
+void EncryptioNgSimliteProvider::releaseEncryptor(const Chat &chat, Encryptor *encryptor)
+{
+	Q_UNUSED(chat)
+	delete encryptor;
+}
+
+void EncryptioNgSimliteProvider::keyUpdated(Key key)
+{
+	Contact contact = key.keyContact();
+	ContactSet contacts;
+	contacts.insert(contact);
+
+	Chat chat = ChatManager::instance()->findChat(contacts, false);
+	if (!chat)
+		return;
+
+	emit canEncryptChanged(chat);
 }

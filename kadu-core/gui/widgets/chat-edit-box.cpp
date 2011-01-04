@@ -36,6 +36,7 @@
 #include "gui/widgets/chat-widget-manager.h"
 #include "gui/widgets/color-selector.h"
 #include "gui/windows/message-dialog.h"
+#include "protocols/services/chat-image-service.h"
 
 #include "chat-widget.h"
 #include "custom-input.h"
@@ -47,7 +48,7 @@
 QList<ChatEditBox *> chatEditBoxes;
 
 ChatEditBox::ChatEditBox(Chat chat, QWidget *parent) :
-		MainWindow(parent), CurrentChat(chat)
+		MainWindow("chat", parent), CurrentChat(chat)
 {
 	chatEditBoxes.append(this);
 
@@ -58,16 +59,16 @@ ChatEditBox::ChatEditBox(Chat chat, QWidget *parent) :
 #endif
 	setCentralWidget(InputBox);
 
-	bool old_top = loadToolBarsFromConfig("chatTopDockArea", Qt::TopToolBarArea, true);
-	bool old_middle = loadToolBarsFromConfig("chatMiddleDockArea", Qt::TopToolBarArea, true);
-	bool old_bottom = loadToolBarsFromConfig("chatBottomDockArea", Qt::BottomToolBarArea, true);
-	bool old_left = loadToolBarsFromConfig("chatLeftDockArea", Qt::LeftToolBarArea, true);
-	bool old_right = loadToolBarsFromConfig("chatRightDockArea", Qt::RightToolBarArea, true);
+	bool old_top = loadOldToolBarsFromConfig("chatTopDockArea", Qt::TopToolBarArea);
+	bool old_middle = loadOldToolBarsFromConfig("chatMiddleDockArea", Qt::TopToolBarArea);
+	bool old_bottom = loadOldToolBarsFromConfig("chatBottomDockArea", Qt::BottomToolBarArea);
+	bool old_left = loadOldToolBarsFromConfig("chatLeftDockArea", Qt::LeftToolBarArea);
+	bool old_right = loadOldToolBarsFromConfig("chatRightDockArea", Qt::RightToolBarArea);
 
 	if (old_top || old_middle || old_bottom || old_left || old_right)
-		writeToolBarsToConfig("chat"); // port old config
+		writeToolBarsToConfig(); // port old config
 	else
-		loadToolBarsFromConfig("chat"); // load new config
+		loadToolBarsFromConfig(); // load new config
 
 	connect(ChatWidgetManager::instance()->actions()->colorSelector(), SIGNAL(actionCreated(Action *)),
 			this, SLOT(colorSelectorActionCreated(Action *)));
@@ -86,8 +87,6 @@ ChatEditBox::~ChatEditBox()
 	disconnect(InputBox, SIGNAL(cursorPositionChanged()), this, SLOT(cursorPositionChanged()));
 
 	chatEditBoxes.removeAll(this);
-
-	writeToolBarsToConfig("chat");
 }
 
 void ChatEditBox::fontChanged(QFont font)
@@ -209,7 +208,7 @@ void ChatEditBox::addAction(const QString &actionName, Qt::ToolButtonStyle style
 	addToolButton(findExistingToolbar("chat"), actionName, style);
 
 	foreach (ChatEditBox *chatEditBox, chatEditBoxes)
-		chatEditBox->refreshToolBars("chat");
+		chatEditBox->refreshToolBars();
 }
 
 void ChatEditBox::openEmoticonSelector(const QWidget *activatingWidget)
@@ -266,6 +265,14 @@ void ChatEditBox::openInsertImageDialog()
 		else if (counter > 0 &&
 			!MessageDialog::ask(QString(), tr("Kadu"), tr("This file is too big for %1 of %2 contacts.\nDo you really want to send this image?\nSome of them probably will not get it.").arg(counter).arg(CurrentChat.contacts().count())))
 			return;
+
+		QString path = ChatImageService::imagesPath();
+		if (QFileInfo(path).isDir() ||QDir().mkdir(path))
+		{
+			QString copyFilePath = path + QUuid::createUuid().toString();
+			if (QFile::copy(selectedFile, copyFilePath))
+				selectedFile = copyFilePath;
+		}
 
 		InputBox->insertPlainText(QString("[IMAGE %1]").arg(selectedFile));
 	}

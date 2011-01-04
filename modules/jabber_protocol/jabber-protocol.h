@@ -33,12 +33,10 @@
 #include "services/jabber-chat-service.h"
 #include "services/jabber-chat-state-service.h"
 #include "services/jabber-contact-personal-info-service.h"
-#include "services/jabber-file-transfer-service.h"
 #include "services/jabber-personal-info-service.h"
+#include "services/jabber-roster-service.h"
 
 class JabberContactDetails;
-class JabberResourcePool;
-class JabberRosterService;
 class JabberSubscriptionService;
 
 class JabberProtocol : public Protocol
@@ -49,14 +47,12 @@ class JabberProtocol : public Protocol
 	JabberChatService *CurrentChatService;
 	JabberChatStateService *CurrentChatStateService;
 	JabberContactPersonalInfoService *CurrentContactPersonalInfoService;
-	JabberFileTransferService *CurrentFileTransferService;
 	JabberPersonalInfoService *CurrentPersonalInfoService;
 	JabberRosterService *CurrentRosterService;
 	JabberSubscriptionService *CurrentSubscriptionService;
 
 	XMPP::JabberClient *JabberClient;
 	XMPP::Jid jabberID;
-	JabberResourcePool *ResourcePool;
 
 	bool usingSSL;
 	bool confUseSSL;
@@ -114,14 +110,13 @@ public:
 	virtual ChatImageService * chatImageService() { return 0; }
 	virtual ContactListService * contactListService() { return 0; }
 	virtual ContactPersonalInfoService * contactPersonalInfoService() { return CurrentContactPersonalInfoService; }
-	virtual FileTransferService * fileTransferService() { return CurrentFileTransferService; }
+	virtual FileTransferService * fileTransferService() { return 0; }
 	virtual PersonalInfoService * personalInfoService() { return CurrentPersonalInfoService; }
+	virtual RosterService * rosterService() { return CurrentRosterService; }
 	virtual SearchService * searchService() { return 0; }
-	JabberResourcePool *resourcePool();
+	JabberSubscriptionService * subscriptionService() { return CurrentSubscriptionService; }
 
 	JabberContactDetails * jabberContactDetails(Contact contact) const;
-
-	void addContactToRoster(Contact contact, bool requestAuth = false);
 
 public slots:
 	void connectToServer();

@@ -23,120 +23,93 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "debug.h"
-#include "gui/widgets/chat-widget.h"
-//#include "gui/windows/message-dialog.h"
-#include "misc/misc.h"
+#include "accounts/account.h"
+#include "core/core.h"
+#include "gui/windows/message-dialog.h"
+#include "protocols/services/chat-service.h"
+#include "protocols/protocol.h"
+
+#include "echo-message.h"
 
 #include "echo.h"
 
-Echo *echo = 0;
+Echo * Echo::Instance = 0;
 
-extern "C" KADU_EXPORT int echo_init(bool firstLoad)
+void Echo::createInstance()
 {
-	Q_UNUSED(firstLoad)
-
-	kdebugf();
-
-	echo = new Echo();
-
-	kdebugf2();
-	return 0;
+	if (!Instance)
+		Instance = new Echo();
 }
 
-extern "C" KADU_EXPORT void echo_close()
+void Echo::destroyInstance()
 {
-	kdebugf();
-
-	delete echo;
-	echo = 0;
-
-	kdebugf2();
+	delete Instance;
+	Instance = 0;
 }
 
-Echo::Echo() :
-	QObject(0)
+Echo * Echo::instance()
 {
-	kdebugf();
-	//	MessageDialog::msg(tr("Echo started"));
+	return Instance;
+}
+
+Echo::Echo(QObject *parent) :
+		QObject(parent)
+{
+	MessageDialog::show("dialog-information", tr("Kadu"), tr("Echo started"));
 
 	triggerAllAccountsRegistered();
-	kdebugf2();
 }
 
 Echo::~Echo()
 {
-	kdebugf();
-	//	MessageDialog::msg(tr("Echo stopped"));
-	kdebugf2();
+	// if we are closing the user won't notice this message anyway
+	if (!Core::instance()->isClosing())
+		MessageDialog::show("dialog-information", tr("Kadu"), tr("Echo stopped"));
+
+	triggerAllAccountsUnregistered();
 }
 
 void Echo::accountRegistered(Account account)
 {
-	kdebugf();
 	Protocol *protocol = account.protocolHandler();
 	if (!protocol)
-	{
-		kdebugf2();
 		return;
-	}
 
 	ChatService *chatService = protocol->chatService();
 	if (chatService)
-	{
 		connect(chatService, SIGNAL(filterIncomingMessage(Chat, Contact, QString &, time_t, bool &)),
 				this, SLOT(filterIncomingMessage(Chat, Contact, QString &, time_t, bool &)));
-	}
-	kdebugf2();
 }
 
 void Echo::accountUnregistered(Account account)
 {
-	kdebugf();
 	Protocol *protocol = account.protocolHandler();
 	if (!protocol)
-	{
-		kdebugf2();
 		return;
-	}
 
 	ChatService *chatService = protocol->chatService();
 	if (chatService)
-	{
 		disconnect(chatService, SIGNAL(filterIncomingMessage(Chat, Contact, QString &, time_t, bool &)),
 				this, SLOT(filterIncomingMessage(Chat, Contact, QString &, time_t, bool &)));
-	}
-	kdebugf2();
 }
 
 void Echo::filterIncomingMessage(Chat chat, Contact sender, QString &message, time_t time, bool &ignore)
 {
+	Q_UNUSED(sender)
 	Q_UNUSED(time)
 	Q_UNUSED(ignore)
-	Q_UNUSED(sender)
 
-	kdebugf();
-	if (message.left(5) == "KADU ")
-	{
-		kdebugf2();
+	// to prevent infinite loop in case there is also Kadu Echo at the second end
+	if (message.startsWith(ECHO_MESSAGE))
 		return;
-	}
 
 	Protocol *protocol = chat.chatAccount().protocolHandler();
 	if (!protocol)
-	{
-		kdebugf2();
 		return;
-	}
 
 	ChatService *chatService = protocol->chatService();
 	if (!chatService)
-	{
-		kdebugf2();
 		return;
-	}
 
-	chatService->sendMessage(chat, QString("KADU ECHO: ") + message);
-
-	kdebugf2();
+	chatService->sendMessage(chat, ECHO_MESSAGE + message);
 }

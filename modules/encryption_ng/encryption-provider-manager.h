@@ -24,11 +24,12 @@
 
 #include "chat/chat.h"
 
+#include "encryption-provider.h"
+
 class Decryptor;
 class Encryptor;
-class EncryptionProvider;
 
-class EncryptionProviderManager : public QObject
+class EncryptionProviderManager : public EncryptionProvider
 {
 	Q_OBJECT
 	Q_DISABLE_COPY(EncryptionProviderManager)
@@ -55,13 +56,17 @@ public:
 	bool canEncrypt(const Chat &chat);
 	bool canDecrypt(const Chat &chat);
 
-	Encryptor * encryptor(const Chat &chat);
-	Decryptor * decryptor(const Chat &chat);
-	Decryptor * decryptorWrapper(const Chat &chat);
+	virtual Encryptor * acquireEncryptor(const Chat &chat);
+	virtual Decryptor * acquireDecryptor(const Chat &chat);
+
+	virtual void releaseEncryptor(const Chat &chat, Encryptor *encryptor);
+	virtual void releaseDecryptor(const Chat &chat, Decryptor *decryptor);
+
+	QList<EncryptionProvider *> providers() { return Providers; }
 
 signals:
-	void canEncryptChanged(const Chat &chat);
-	void canDecryptChanged(const Chat &chat);
+	void providerRegistered(EncryptionProvider *provider);
+	void providerUnregistered(EncryptionProvider *provider);
 
 };
 

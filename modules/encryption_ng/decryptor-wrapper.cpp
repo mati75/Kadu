@@ -19,13 +19,30 @@
 
 #include "decryptor-wrapper.h"
 
+DecryptorWrapper::DecryptorWrapper(const Chat &chat, EncryptionProviderManager *provider, QObject *parent) :
+		Decryptor(provider, parent), MyChat(chat)
+{
+	connect(provider, SIGNAL(providerRegistered(EncryptionProvider*)),
+			this, SLOT(providerRegistered(EncryptionProvider*)));
+
+	foreach (EncryptionProvider *provider, provider->providers())
+		providerRegistered(provider);
+}
+
+void DecryptorWrapper::providerRegistered(EncryptionProvider *provider)
+{
+	Decryptor *decryptor = provider->acquireDecryptor(MyChat);
+	if (decryptor)
+		addDecryptor(decryptor);
+}
+
 void DecryptorWrapper::addDecryptor(Decryptor *decryptor)
 {
 	Decryptors.append(decryptor);
 	connect(decryptor, SIGNAL(destroyed(QObject*)), this, SLOT(decryptorDestroyed(QObject*)));
 }
 
-void DecryptorWrapper::removeDecryptor(Decryptor* decryptor)
+void DecryptorWrapper::removeDecryptor(Decryptor *decryptor)
 {
 	Decryptors.removeAll(decryptor);
 	disconnect(decryptor, SIGNAL(destroyed(QObject*)), this, SLOT(decryptorDestroyed(QObject*)));
@@ -33,15 +50,20 @@ void DecryptorWrapper::removeDecryptor(Decryptor* decryptor)
 
 void DecryptorWrapper::decryptorDestroyed(QObject *decryptor)
 {
-	Decryptors.removeAll(dynamic_cast<Decryptor *>(decryptor));
+	Decryptors.removeAll(static_cast<Decryptor *>(decryptor));
 }
 
-QByteArray DecryptorWrapper::decrypt(const QByteArray &data)
+QByteArray DecryptorWrapper::decrypt(const QByteArray &data, bool *ok)
 {
 	QByteArray decrypted = data;
 
 	foreach (Decryptor *decryptor, Decryptors)
-		decrypted = decryptor->decrypt(decrypted);
+	{
+		bool thisOk;
+		decrypted = decryptor->decrypt(decrypted, &thisOk);
+		if (ok)
+			*ok = *ok || thisOk;
+	}
 
 	return decrypted;
 }

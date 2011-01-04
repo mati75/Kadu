@@ -2,9 +2,10 @@ set (BLACKLIST_MODULES
 	advanced_userlist
 	dbus
 	echo
-	encryption
-	encryption_ng_caesar
+	profiles
+	split_messages
 	tlen_protocol
+	weather
 )
 
 if (WIN32)

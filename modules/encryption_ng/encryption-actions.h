@@ -35,20 +35,26 @@ class EncryptionActions : public QObject
 	static EncryptionActions *Instance;
 
 	ActionDescription *EnableEncryptionActionDescription;
+	ActionDescription *SendPublicKeyActionDescription;
 
-	EncryptionActions();
+	EncryptionActions(bool firstLoad);
 	virtual ~EncryptionActions();
 
+	void sendPublicKey(const Contact &contact);
+
 private slots:
-	void canDecryptChanged(const Chat &chat);
+	void canEncryptChanged(const Chat &chat);
 
 	void enableEncryptionActionActivated(QAction *sender, bool toggled);
+	void sendPublicKeyActionActivated(QAction *sender, bool toggled);
 
 public:
-	static void registerActions();
+	static void registerActions(bool firstLoad);
 	static void unregisterActions();
 
 	static EncryptionActions * instance() { return Instance; }
+
+	void checkEnableEncryption(const Chat &chat, bool check);
 
 };
 

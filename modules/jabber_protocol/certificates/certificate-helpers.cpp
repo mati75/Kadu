@@ -189,6 +189,9 @@ QString CertificateHelpers::resultToString(int result, QCA::Validity validity)
 
 bool CertificateHelpers::checkCertificate(QCA::TLS* tls, XMPP::QCATLSHandler *tlsHandler, QString &tlsOverrideDomain, const QString &title, const QString &host, QObject *parent)
 {
+	if (tls->peerCertificateChain().isEmpty())
+		return false;
+
 	QCA::Certificate cert = tls->peerCertificateChain().primary();
 	int result = tls->peerIdentityResult();
 	QString hostnameOverrideable;
@@ -208,16 +211,17 @@ bool CertificateHelpers::checkCertificate(QCA::TLS* tls, XMPP::QCATLSHandler *tl
 
 	if (result != QCA::TLS::Valid)
 	{
-		CertificateErrorDialog errorDialog(
+		CertificateErrorDialog *errorDialog = new CertificateErrorDialog(
 				title, host, cert,
 				result, tls->peerCertificateValidity(),
-				hostnameOverrideable, parent, tlsOverrideDomain);
+				hostnameOverrideable, tlsOverrideDomain);
 
-		QObject::connect(parent, SIGNAL(disconnected()), errorDialog.getMessageBox(), SLOT(reject()), Qt::AutoConnection);
-		if (errorDialog.exec() == QDialog::Accepted)
-			return true;
-		else
-			return false;
+		QObject::connect(parent, SIGNAL(disconnected(Account)), errorDialog, SLOT(disconnected(Account)));
+		int res = errorDialog->exec();
+		
+		delete errorDialog;
+		
+		return res == QDialog::Accepted;
 	}
 	else
 		return true;

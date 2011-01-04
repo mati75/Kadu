@@ -22,12 +22,13 @@
 #include "contacts/contact-manager.h"
 #include "debug.h"
 
+#include "services/jabber-subscription-service.h"
 #include "jabber-protocol.h"
 
 #include "jabber-roster-service.h"
 
 JabberRosterService::JabberRosterService(JabberProtocol *protocol) :
-		QObject(protocol), Protocol(protocol), InRequest(false)
+		RosterService(protocol), Protocol(protocol), InRequest(false)
 {
 	connect(Protocol->client(), SIGNAL(newContact(const XMPP::RosterItem &)),
 			this, SLOT(contactUpdated(const XMPP::RosterItem &)));
@@ -164,4 +165,46 @@ void JabberRosterService::downloadRoster()
 	ContactsForDelete.removeAll(Protocol->account().accountContact());
 
 	Protocol->client()->requestRoster();
+}
+
+void JabberRosterService::addContact(const Contact &contact)
+{
+	if (!Protocol->isConnected() || contact.contactAccount() != Protocol->account() || contact.ownerBuddy().isAnonymous())
+		return;
+
+	if (!Protocol->client())
+		return;
+
+	Buddy buddy = contact.ownerBuddy();
+	QStringList groupsList;
+
+	foreach (const Group &group, buddy.groups())
+		groupsList.append(group.name());
+
+	Protocol->client()->addContact(contact.id(), buddy.display(), groupsList);
+
+	if (!contact.ownerBuddy().isOfflineTo())
+		Protocol->subscriptionService()->authorizeContact(contact, true);
+}
+
+void JabberRosterService::removeContact(const Contact &contact)
+{
+	if (!Protocol->isConnected() || contact.contactAccount() != Protocol->account())
+		return;
+
+	if (!Protocol->client())
+		return;
+
+	Protocol->client()->removeContact(contact.id());
+}
+
+void JabberRosterService::askForAuthorization(const Contact &contact)
+{
+	if (!Protocol->isConnected() || contact.contactAccount() != Protocol->account())
+		return;
+
+	if (!Protocol->client())
+		return;
+
+	Protocol->client()->requestSubscription(contact.id());
 }

@@ -162,12 +162,13 @@ void ChatWidget::createContactsList()
 	layout->setContentsMargins(0, 0, 0, 0);
 	layout->setSpacing(0);
 
-	BuddiesWidget = new BuddiesListWidget(BuddiesListWidget::FilterAtTop, getChatEditBox(), this);
+	BuddiesWidget = new BuddiesListWidget(BuddiesListWidget::FilterAtTop, this);
 	BuddiesWidget->view()->setItemsExpandable(false);
 	BuddiesWidget->setMinimumSize(QSize(30, 30));
 	BuddiesWidget->view()->setModel(new ContactListModel(CurrentChat.contacts().toContactList(), this));
 	BuddiesWidget->view()->setRootIsDecorated(false);
 	BuddiesWidget->view()->setShowAccountName(false);
+	BuddiesWidget->view()->setContextMenuEnabled(true);
 
 	connect(BuddiesWidget->view(), SIGNAL(chatActivated(Chat)),
 			Core::instance()->kaduWindow(), SLOT(openChatWindow(Chat)));
@@ -196,7 +197,7 @@ void ChatWidget::configurationUpdated()
 	}*/
 
 	InputBox->inputBox()->setFont(config_file.readFontEntry("Look","ChatFont"));
- 	InputBox->inputBox()->setStyleSheet(QString("QTextEdit {background-color: %1}").arg(config_file.readColorEntry("Look", "ChatTextBgColor").name()));
+ 	InputBox->inputBox()->viewport()->setStyleSheet(QString("background-color: %1").arg(config_file.readColorEntry("Look", "ChatTextBgColor").name()));
 
 	refreshTitle();
 }
@@ -223,13 +224,13 @@ bool ChatWidget::keyPressEventHandled(QKeyEvent *e)
 
 	if (HotKey::shortCut(e,"ShortCuts", "kadu_searchuser"))
 	{
-		KaduActions.createAction("whoisAction", InputBox)->activate(QAction::Trigger);
+		Actions::instance()->createAction("whoisAction", InputBox)->activate(QAction::Trigger);
 		return true;
 	}
 
 	if (HotKey::shortCut(e,"ShortCuts", "kadu_openchatwith"))
 	{
-		KaduActions.createAction("openChatWithAction", InputBox)->activate(QAction::Trigger);
+		Actions::instance()->createAction("openChatWithAction", InputBox)->activate(QAction::Trigger);
 		return true;
 	}
 
@@ -574,12 +575,14 @@ void ChatWidget::kaduRestoreGeometry()
 		return;
 
 	QList<int> vertSizes = cgd->widgetVerticalSizes();
-	if (vertSizes.empty())
+	if (vertSizes.count() != 2 || vertSizes[0] == 0 || vertSizes[1] == 0)
 	{
 		int h = height() / 3;
+		vertSizes.clear();
 		vertSizes.append(h * 2);
 		vertSizes.append(h);
 	}
+
 	vertSplit->setSizes(vertSizes);
 
 	if (horizSplit)

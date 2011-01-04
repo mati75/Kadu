@@ -78,6 +78,8 @@ extern "C" KADU_EXPORT int gadu_protocol_init(bool firstLoad)
 {
 	Q_UNUSED(firstLoad)
 
+	GaduServersManager::createInstance();
+
 	if (ProtocolsManager::instance()->hasProtocolFactory("gadu"))
 		return 0;
 
@@ -96,6 +98,8 @@ extern "C" KADU_EXPORT int gadu_protocol_init(bool firstLoad)
 
 	GaduIdValidator::createInstance();
 
+	GaduProtocolFactory::createInstance();
+
 	ProtocolsManager::instance()->registerProtocolFactory(GaduProtocolFactory::instance());
 	UrlHandlerManager::instance()->registerUrlHandler("Gadu", new GaduUrlHandler());
 
@@ -112,7 +116,10 @@ extern "C" KADU_EXPORT void gadu_protocol_close()
 	UrlHandlerManager::instance()->unregisterUrlHandler("Gadu");
 	ProtocolsManager::instance()->unregisterProtocolFactory(GaduProtocolFactory::instance());
 
+	GaduProtocolFactory::destroyInstance();
+
 	GaduIdValidator::destroyInstance();
+	GaduServersManager::destroyInstance();
 
 	qRemovePostRoutine(QCA::deinit);
 }
@@ -343,6 +350,14 @@ void GaduProtocol::everyMinuteActions()
 
 void GaduProtocol::login(const QString &password, bool permanent)
 {
+	if (password.isEmpty()) // user did not give us password, so prevent from further reconnecting
+	{
+		Status newstat = status();
+		newstat.setType("Offline");
+		setStatus(newstat);
+		return;
+	}
+  
 	account().setPassword(password);
 	account().setRememberPassword(permanent);
 	account().setHasPassword(!password.isEmpty());

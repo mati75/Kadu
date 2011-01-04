@@ -57,6 +57,7 @@
 #include "notify/window-notifier.h"
 #include "status/status-container-manager.h"
 
+#include "activate.h"
 #include "debug.h"
 #include "misc/misc.h"
 
@@ -104,7 +105,6 @@ void NotificationManager::init()
 	IsFullScreen = false;
 
 	createDefaultConfiguration();
-	configurationUpdated();
 	AutoSilentMode = false;
 	//TODO 0.6.6:
 	//triggerAllAccountsRegistered();
@@ -112,15 +112,16 @@ void NotificationManager::init()
 	notifyAboutUserActionDescription = new ActionDescription(this,
 		ActionDescription::TypeUser, "notifyAboutUserAction",
 		this, SLOT(notifyAboutUserActionActivated(QAction *, bool)),
-		"kadu_icons/kadu-notifyaboutuser", "kadu_icons/kadu-notifyaboutuser", tr("Notify about user"), true, QString(),
+		"kadu_icons/notify-about-buddy", tr("Notify About Buddy"), true,
 		checkNotify
 	);
 
 	SilentModeActionDescription = new ActionDescription(this,
 		ActionDescription::TypeGlobal, "silentModeAction",
 		this, SLOT(silentModeActionActivated(QAction *, bool)),
-		"kadu_icons/silent-mode-off", "kadu_icons/silent-mode-off", tr("Enable notifications"), true, tr("Enable notifications")
+		"kadu_icons/enable-notifications", tr("Enable Notifications"), true
 	);
+	configurationUpdated();
 	connect(SilentModeActionDescription, SIGNAL(actionCreated(Action *)), this, SLOT(silentModeActionCreated(Action *)));
 
 	connect(StatusContainerManager::instance(), SIGNAL(statusChanged()), this, SLOT(statusChanged()));
@@ -159,6 +160,11 @@ void NotificationManager::setSilentMode(bool silentMode)
 	if (silentMode != SilentMode)
 	{
 		SilentMode = silentMode;
+		foreach (Action *action, SilentModeActionDescription->actions())
+			action->setChecked(!silentMode);
+
+		config_file.writeEntry("Notify", "SilentMode", SilentMode);
+
 		emit silentModeToggled(SilentMode);
 	}
 }
@@ -235,10 +241,6 @@ void NotificationManager::silentModeActionActivated(QAction *sender, bool toggle
 	Q_UNUSED(sender)
 
 	setSilentMode(!toggled);
-	foreach (Action *action, SilentModeActionDescription->actions())
-		action->setChecked(toggled);
-
-	config_file.writeEntry("Notify", "SilentMode", SilentMode);
 }
 
 void NotificationManager::statusChanged()
@@ -372,11 +374,10 @@ void NotificationManager::messageReceived(const Message &message)
 	kdebugf();
 
 	ChatWidget *chatWidget = ChatWidgetManager::instance()->byChat(message.messageChat());
-	if (!chatWidget) // new chat
+	if (!chatWidget)
 		notify(new MessageNotification(MessageNotification::NewChat, message));
-	else // new message in chat
-		if (!chatWidget->edit()->hasFocus() || !config_file.readBoolEntry("Notify", "NewMessageOnlyIfInactive"))
-			notify(new MessageNotification(MessageNotification::NewMessage, message));
+	else if (!config_file.readBoolEntry("Notify", "NewMessageOnlyIfInactive") || !_isWindowActiveOrFullyVisible(chatWidget))
+		notify(new MessageNotification(MessageNotification::NewMessage, message));
 
 	kdebugf2();
 }

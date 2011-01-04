@@ -159,6 +159,13 @@ namespace XMPP
 
 		void setPEPAvailable(bool b);
 
+		/**
+		 * Enable file transfers. Default is false.
+		 * @param flag Whether to enable file transfers.
+		 * @param localAddress Local address to receive file transfers at. Will be determined automatically if not specified.
+		 */
+		void setFileTransfersEnabled(bool flag, const QString &localAddress = QString());
+
 	private slots:
 		/* S5B server object has been destroyed. */
 		void slotS5BServerGone();
@@ -379,13 +386,6 @@ namespace XMPP
 		XMPP::ClientStream::AllowPlainType allowPlainTextPassword() const { return AllowPlainTextPassword; }
 
 		/**
-		 * Enable file transfers. Default is false.
-		 * @param flag Whether to enable file transfers.
-		 * @param localAddress Local address to receive file transfers at. Will be determined automatically if not specified.
-		 */
-		void setFileTransfersEnabled(bool flag, const QString &localAddress = QString());
-
-		/**
 		 * Returns the address of the local interface.
 		 */
 		const QString & localAddress() const { return LocalAddress; }
@@ -580,7 +580,7 @@ namespace XMPP
 
 		static void getErrorInfo(int err, AdvancedConnector *conn, Stream *stream, QCATLSHandler *tlsHandler, QString *_str, bool *_reconn);
 
-		void addContact(const XMPP::Jid &j, const QString &name, const QStringList &groups, bool authReq);
+		void addContact(const XMPP::Jid &j, const QString &name, const QStringList &groups);
 		void updateContact(const XMPP::Jid &j, const QString &name, const QStringList &groups);
 		void removeContact(const XMPP::Jid &j);
 		void changeSubscription(const XMPP::Jid &jid, const QString &type);

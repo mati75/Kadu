@@ -19,9 +19,11 @@
  */
 
 #include "modules/encryption_ng/keys/key.h"
+#include "modules/encryption_ng/keys/keys-manager.h"
+
+#include "pkcs1_certificate.h"
 
 #include "encryption-ng-simlite-encryptor.h"
-#include "pkcs1_certificate.h"
 
 #define BEGIN_RSA_PUBLIC_KEY "-----BEGIN RSA PUBLIC KEY-----"
 #define END_RSA_PUBLIC_KEY "-----END RSA PUBLIC KEY-----"
@@ -38,34 +40,64 @@ typedef struct {
 	uint8_t flags;
 } sim_message_header;
 
-
-EncryptioNgSimliteEncryptor::EncryptioNgSimliteEncryptor(const Key &key)
+EncryptioNgSimliteEncryptor::EncryptioNgSimliteEncryptor(const Contact &contact, EncryptionProvider *provider, QObject *parent) :
+		Encryptor(provider, parent), MyContact(contact)
 {
-	Valid = true;
-	EncodingKey = getPublicKey(key);
+	connect(KeysManager::instance(), SIGNAL(keyAdded(Key)), this, SLOT(keyUpdated(Key)));
+	connect(KeysManager::instance(), SIGNAL(keyUpdated(Key)), this, SLOT(keyUpdated(Key)));
+	connect(KeysManager::instance(), SIGNAL(keyRemoved(Key)), this, SLOT(keyUpdated(Key)));
+
+	updateKey();
 }
 
 EncryptioNgSimliteEncryptor::~EncryptioNgSimliteEncryptor()
 {
+	disconnect(KeysManager::instance(), SIGNAL(keyAdded(Key)), this, SLOT(keyUpdated(Key)));
+	disconnect(KeysManager::instance(), SIGNAL(keyUpdated(Key)), this, SLOT(keyUpdated(Key)));
+	disconnect(KeysManager::instance(), SIGNAL(keyRemoved(Key)), this, SLOT(keyUpdated(Key)));
+
+}
+
+void EncryptioNgSimliteEncryptor::keyUpdated(const Key &key)
+{
+	if (key.keyContact() == MyContact && key.keyType() == "simlite")
+		updateKey();
+}
+
+void EncryptioNgSimliteEncryptor::updateKey()
+{
+	Valid = false;
+	EncodingKey = QCA::PublicKey();
+
+	Key key = KeysManager::instance()->byContactAndType(MyContact, "simlite", ActionReturnNull);
+	if (key.isNull() || key.isEmpty())
+		return;
+
+	EncodingKey = getPublicKey(key);
 }
 
 QCA::PublicKey EncryptioNgSimliteEncryptor::getPublicKey(const Key &key)
 {
-	QByteArray keyData = key.key().trimmed();
+	QByteArray keyData = key.key().toByteArray().trimmed();
 	if (!keyData.startsWith(BEGIN_RSA_PUBLIC_KEY) || !keyData.endsWith(END_RSA_PUBLIC_KEY))
 	{
 		Valid = false;
 		return QCA::PublicKey();
 	}
 
-	QByteArray keyBase64 = keyData.mid(BEGIN_RSA_PUBLIC_KEY_LENGTH, keyData.length() - BEGIN_RSA_PUBLIC_KEY_LENGTH - END_RSA_PUBLIC_KEY_LENGTH);
+	keyData = keyData.mid(BEGIN_RSA_PUBLIC_KEY_LENGTH, keyData.length() - BEGIN_RSA_PUBLIC_KEY_LENGTH - END_RSA_PUBLIC_KEY_LENGTH);
 
 	QCA::SecureArray certificate;
 
 	QCA::Base64 decoder(QCA::Decode);
 	decoder.setLineBreaksEnabled(true);
-	certificate = decoder.decode(keyBase64);
+	certificate = decoder.decode(keyData);
 	certificate += decoder.final();
+
+	// some fake security added
+	keyData.fill(' ', keyData.size());
+	keyData.clear();
+
 	if (!decoder.ok())
 	{
 		Valid = false;
@@ -88,11 +120,15 @@ QCA::PublicKey EncryptioNgSimliteEncryptor::getPublicKey(const Key &key)
 		return QCA::PublicKey();
 	}
 
+	Valid = true;
 	return publicKey;
 }
 
 QByteArray EncryptioNgSimliteEncryptor::encrypt(const QByteArray &data)
 {
+	if (!Valid)
+		return data;
+
 	//generate a symmetric key for Blowfish (16 bytes in length)
 	QCA::SymmetricKey blowfishKey(16);
 

@@ -25,6 +25,7 @@
 #include "status/status-type-manager.h"
 #include "icons-manager.h"
 
+#include "actions/jabber-protocol-menu-manager.h"
 #include "gui/widgets/jabber-contact-personal-info-widget.h"
 #include "gui/widgets/jabber-add-account-widget.h"
 #include "gui/widgets/jabber-create-account-widget.h"
@@ -37,12 +38,16 @@
 
 JabberProtocolFactory * JabberProtocolFactory::Instance = 0;
 
-JabberProtocolFactory * JabberProtocolFactory::instance()
+void JabberProtocolFactory::createInstance()
 {
 	if (!Instance)
 		Instance = new JabberProtocolFactory();
+}
 
-	return Instance;
+void JabberProtocolFactory::destroyInstance()
+{
+	delete Instance;
+	Instance = 0;
 }
 
 JabberProtocolFactory::JabberProtocolFactory()
@@ -83,19 +88,25 @@ ContactDetails * JabberProtocolFactory::createContactDetails(ContactShared *cont
 	return new JabberContactDetails(contactShared);
 }
 
-AccountAddWidget * JabberProtocolFactory::newAddAccountWidget(QWidget *parent)
+AccountAddWidget * JabberProtocolFactory::newAddAccountWidget(bool showButtons, QWidget *parent)
 {
-	return new JabberAddAccountWidget(this, parent);
+	JabberAddAccountWidget *result = new JabberAddAccountWidget(this, showButtons, parent);
+	connect(this, SIGNAL(destroyed()), result, SLOT(deleteLater()));
+	return result;
 }
 
-AccountCreateWidget * JabberProtocolFactory::newCreateAccountWidget(QWidget *parent)
+AccountCreateWidget * JabberProtocolFactory::newCreateAccountWidget(bool showButtons, QWidget *parent)
 {
-	return new JabberCreateAccountWidget(parent);
+	JabberCreateAccountWidget *result = new JabberCreateAccountWidget(showButtons, parent);
+	connect(this, SIGNAL(destroyed()), result, SLOT(deleteLater()));
+	return result;
 }
 
 AccountEditWidget * JabberProtocolFactory::newEditAccountWidget(Account account, QWidget *parent)
 {
-	return new JabberEditAccountWidget(account, parent);
+	JabberEditAccountWidget *result = new JabberEditAccountWidget(account, parent);
+	connect(this, SIGNAL(destroyed()), result, SLOT(deleteLater()));
+	return result;
 }
 
 QList<StatusType *> JabberProtocolFactory::supportedStatusTypes()
@@ -127,4 +138,9 @@ QString JabberProtocolFactory::defaultServer()
 QWidget * JabberProtocolFactory::newContactPersonalInfoWidget(Contact contact, QWidget *parent)
 {
 	return new JabberContactPersonalInfoWidget(contact, parent);
+}
+
+ProtocolMenuManager * JabberProtocolFactory::protocolMenuManager()
+{
+	return JabberProtocolMenuManager::instance();
 }

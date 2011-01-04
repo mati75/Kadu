@@ -27,6 +27,8 @@
 #include "chat/chat.h"
 
 class ActionDescription;
+class ChatWidget;
+class KeyGenerator;
 
 class EncryptionManager : public QObject, AccountsAwareObject
 {
@@ -35,12 +37,17 @@ class EncryptionManager : public QObject, AccountsAwareObject
 
 	static EncryptionManager *Instance;
 
+	KeyGenerator *Generator;
+
 	EncryptionManager();
 	virtual ~EncryptionManager();
 
 private slots:
 	void filterRawOutgoingMessage(Chat chat, QByteArray &message, bool &stop);
 	void filterRawIncomingMessage(Chat chat, Contact sender, QByteArray &message, bool &ignore);
+
+	void chatWidgetCreated(ChatWidget *chatWidget);
+	void chatWidgetDestroying(ChatWidget *chatWidget);
 
 protected:
 	virtual void accountRegistered(Account account);
@@ -52,7 +59,10 @@ public:
 
 	static EncryptionManager * instance() { return Instance; }
 
-	void setEncryptionEnabled(const Chat &chat, bool enable);
+	void setGenerator(KeyGenerator *generator);
+	KeyGenerator * generator();
+
+	bool setEncryptionEnabled(const Chat &chat, bool enable);
 
 };
 

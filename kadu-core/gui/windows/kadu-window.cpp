@@ -70,7 +70,7 @@ extern void qt_mac_set_menubar_icons(bool enable);
 #endif
 
 KaduWindow::KaduWindow(QWidget *parent) :
-		MainWindow(parent), Docked(false), CompositingEnabled(false)
+		MainWindow(QString(), parent), Docked(false), ContactsWidget(0), CompositingEnabled(false)
 {
 	setWindowRole("kadu-main");
 
@@ -85,10 +85,13 @@ KaduWindow::KaduWindow(QWidget *parent) :
 	setAttribute(Qt::WA_DeleteOnClose, true);
 	setWindowTitle(QLatin1String("Kadu"));
 
-	Actions = new KaduWindowActions(this);
-
+	// we need to create gui first, then actions, then menus
+	// TODO: fix it in 0.8 or whenever
 	createGui();
-	loadToolBarsFromConfig(QString());
+	Actions = new KaduWindowActions(this);
+	loadToolBarsFromConfig();
+	createMenu();
+
 	configurationUpdated();
 
 	loadWindowGeometry(this, "General", "Geometry", 0, 50, 255, 565);
@@ -131,13 +134,14 @@ void KaduWindow::createGui()
 	GroupBarLayout->addWidget(GroupBar, 0, Qt::AlignTop);
 	GroupBarWidget->setLayout(GroupBarLayout);
 
-	ContactsWidget = new BuddiesListWidget(BuddiesListWidget::FilterAtTop, this, hbox);
+	ContactsWidget = new BuddiesListWidget(BuddiesListWidget::FilterAtTop, hbox);
 	ContactsWidget->view()->useConfigurationColors(true);
 	ContactsWidget->view()->setModel(new BuddiesModel(this));
 	ContactsWidget->view()->addFilter(GroupBar->filter());
 	AnonymousWithoutMessagesBuddyFilter *anonymousFilter = new AnonymousWithoutMessagesBuddyFilter(this);
 	anonymousFilter->setEnabled(true);
 	ContactsWidget->view()->addFilter(anonymousFilter);
+	ContactsWidget->view()->setContextMenuEnabled(true);
 
 	connect(ContactsWidget->view(), SIGNAL(chatActivated(Chat )), this, SLOT(openChatWindow(Chat )));
 
@@ -168,8 +172,6 @@ void KaduWindow::createGui()
 
 	setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
 	setCentralWidget(MainWidget);
-
-	createMenu();
 }
 
 void KaduWindow::createMenu()
@@ -270,6 +272,8 @@ void KaduWindow::compositingEnabled()
 			ChangeStatusButtons->setAutoFillBackground(true);
 			ContactsWidget->nameFilterWidget()->setAutoFillBackground(true);
 			ContactsWidget->view()->verticalScrollBar()->setAutoFillBackground(true);
+			// TODO: find a way to paint this QFrame outside its viewport still allowing the viewport to be transparent
+			ContactsWidget->view()->setFrameShape(QFrame::NoFrame);
 			for (int i = 1; i < Split->count(); ++i)
 			{
 				QSplitterHandle *splitterHandle = Split->handle(i);
@@ -293,6 +297,7 @@ void KaduWindow::compositingDisabled()
 		ChangeStatusButtons->setAutoFillBackground(false);
 		ContactsWidget->nameFilterWidget()->setAutoFillBackground(false);
 		ContactsWidget->view()->verticalScrollBar()->setAutoFillBackground(false);
+		ContactsWidget->view()->setFrameShape(QFrame::StyledPanel);
 		for (int i = 1; i < Split->count(); ++i)
 		{
 			QSplitterHandle *splitterHandle = Split->handle(i);
@@ -350,7 +355,6 @@ void KaduWindow::openRecentChats(QAction *action)
 
 void KaduWindow::storeConfiguration()
 {
-		writeToolBarsToConfig(QString());
 #ifdef Q_OS_MAC
 	/* Dorr: workaround for Qt window geometry bug when unified toolbars enabled */
 	setUnifiedTitleAndToolBarOnMac(false);
@@ -427,7 +431,9 @@ bool KaduWindow::supportsActionType(ActionDescription::ActionType type)
 
 BuddiesListView * KaduWindow::buddiesListView()
 {
-	return ContactsWidget->view();
+	return ContactsWidget
+			? ContactsWidget->view()
+			: 0;
 }
 
 StatusContainer * KaduWindow::statusContainer()
@@ -437,22 +443,30 @@ StatusContainer * KaduWindow::statusContainer()
 
 ContactSet KaduWindow::contacts()
 {
-	return ContactsWidget->view()->selectedContacts();
+	return ContactsWidget
+			? ContactsWidget->view()->selectedContacts()
+			: ContactSet();
 }
 
 BuddySet KaduWindow::buddies()
 {
-	return ContactsWidget->view()->selectedBuddies();
+	return ContactsWidget
+			? ContactsWidget->view()->selectedBuddies()
+			: BuddySet();
 }
 
 Chat KaduWindow::chat()
 {
-	return ContactsWidget->view()->currentChat();
+	return ContactsWidget
+			? ContactsWidget->view()->currentChat()
+			: Chat::null;
 }
 
 bool KaduWindow::hasContactSelected()
 {
-	return ContactsWidget->view()->hasContactSelected();
+	return ContactsWidget
+			? ContactsWidget->view()->hasContactSelected()
+			: false;
 }
 
 void KaduWindow::configurationUpdated()
@@ -571,7 +585,7 @@ void KaduWindow::createDefaultToolbars(QDomElement parentConfig)
 void KaduWindow::addAction(const QString &actionName, Qt::ToolButtonStyle style)
 {
 	addToolButton(findExistingToolbar(QString()), actionName, style);
-	Core::instance()->kaduWindow()->refreshToolBars(QString());
+	Core::instance()->kaduWindow()->refreshToolBars();
 }
 
 ActionDataSource * KaduWindow::actionSource()

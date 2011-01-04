@@ -46,6 +46,7 @@
 #include "gui/widgets/select-buddy-combo-box.h"
 #include "misc/misc.h"
 #include "model/roles.h"
+#include "protocols/services/roster-service.h"
 #include "protocols/protocol.h"
 #include "protocols/protocol-factory.h"
 #include "icons-manager.h"
@@ -62,6 +63,7 @@ AddBuddyWindow::AddBuddyWindow(QWidget *parent) :
 	createGui();
 	addMobileAccountToComboBox();
 
+	connect(AccountCombo, SIGNAL(accountChanged(Account, Account)), this, SLOT(accountChanged(Account, Account)));
 	connect(AccountCombo, SIGNAL(currentIndexChanged(int)), this, SLOT(updateGui()));
 	connect(AccountCombo, SIGNAL(currentIndexChanged(int)), this, SLOT(setAddContactEnabled()));
 
@@ -133,23 +135,27 @@ void AddBuddyWindow::createGui()
 	connect(SelectContact, SIGNAL(buddyChanged(Buddy)), this, SLOT(setAddContactEnabled()));
 	connect(SelectContact, SIGNAL(buddyChanged(Buddy)), this, SLOT(setAccountFilter()));
 
+	AskForAuthorization = new QCheckBox(tr("Ask contact for authorization"), this);
+	AskForAuthorization->setEnabled(false);
+	layout->addWidget(AskForAuthorization, 7, 1, 1, 3);
+
 	// TODO 0.6.6: it is not used anywhere
 	AllowToSeeMeCheck = new QCheckBox(tr("Allow contact to see me when I'm available"), this);
 	AllowToSeeMeCheck->setChecked(true);
-	layout->addWidget(AllowToSeeMeCheck, 7, 1, 1, 3);
+	layout->addWidget(AllowToSeeMeCheck, 8, 1, 1, 3);
 
 	layout->setRowMinimumHeight(6, 20);
-	layout->setRowMinimumHeight(8, 20);
-	layout->setRowStretch(8, 100);
+	layout->setRowMinimumHeight(9, 20);
+	layout->setRowStretch(9, 100);
 
 	ErrorLabel = new QLabel();
 	QFont labelFont = ErrorLabel->font();
 	labelFont.setBold(true);
 	ErrorLabel->setFont(labelFont);
-	layout->addWidget(ErrorLabel, 9, 1, 1, 4);
+	layout->addWidget(ErrorLabel, 10, 1, 1, 4);
 
 	QDialogButtonBox *buttons = new QDialogButtonBox(this);
-	layout->addWidget(buttons, 10, 0, 1, 4);
+	layout->addWidget(buttons, 11, 0, 1, 4);
 
 	AddContactButton = new QPushButton(qApp->style()->standardIcon(QStyle::SP_DialogOkButton), tr("Add contact"), this);
 	AddContactButton->setDefault(true);
@@ -204,6 +210,29 @@ bool AddBuddyWindow::isMobileAccount()
 	return AccountCombo->data(ActionRole).value<QAction *>() == MobileAccountAction;
 }
 
+void AddBuddyWindow::accountChanged(Account account, Account lastAccount)
+{
+	if (lastAccount && lastAccount.protocolHandler())
+	{
+		disconnect(lastAccount.protocolHandler(), SIGNAL(connected(Account)), this, SLOT(setAddContactEnabled()));
+		disconnect(lastAccount.protocolHandler(), SIGNAL(disconnected(Account)), this, SLOT(setAddContactEnabled()));
+	}
+
+	if (!account || !account.protocolHandler() || !account.protocolHandler()->rosterService())
+	{
+		AskForAuthorization->setEnabled(false);
+		AskForAuthorization->setChecked(false);
+	}
+	else
+	{
+		connect(account.protocolHandler(), SIGNAL(connected(Account)), this, SLOT(setAddContactEnabled()));
+		connect(account.protocolHandler(), SIGNAL(disconnected(Account)), this, SLOT(setAddContactEnabled()));
+
+		AskForAuthorization->setEnabled(true);
+		AskForAuthorization->setChecked(true);
+	}
+}
+
 void AddBuddyWindow::updateAccountGui()
 {
 	Account account = AccountCombo->currentAccount();
@@ -241,6 +270,12 @@ void AddBuddyWindow::validateData()
 	if (account.isNull() || !account.protocolHandler() || !account.protocolHandler()->protocolFactory())
 	{
 		displayErrorMessage(tr("Account is not selected"));
+		return;
+	}
+
+	if (account.protocolHandler()->rosterService() && !account.protocolHandler()->isConnected())
+	{
+		displayErrorMessage(tr("You must be connected to add contacts to this account"));
 		return;
 	}
 
@@ -351,6 +386,9 @@ bool AddBuddyWindow::addContact()
 
 	buddy.addToGroup(GroupCombo->currentGroup());
 
+	if (AskForAuthorization->isChecked())
+		askForAuthorization(contact);
+
 	return true;
 }
 
@@ -384,4 +422,14 @@ void AddBuddyWindow::accept()
 void AddBuddyWindow::reject()
 {
 	QDialog::reject();
+}
+
+void AddBuddyWindow::askForAuthorization(Contact contact)
+{
+	Account account = AccountCombo->currentAccount();
+
+	if (!account || !account.protocolHandler() || !account.protocolHandler()->rosterService())
+		return;
+
+	account.protocolHandler()->rosterService()->askForAuthorization(contact);
 }

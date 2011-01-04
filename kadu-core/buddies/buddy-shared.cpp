@@ -184,7 +184,7 @@ void BuddyShared::store()
 	XmlConfigFile *configurationStorage = sp->storage();
 	QDomElement parent = sp->point();
 
-	QDomElement customDataValues = configurationStorage->getNode(parent, "CustomDataValues");
+	QDomElement customDataValues = configurationStorage->getNode(parent, "CustomDataValues", XmlConfigFile::ModeCreate);
 
 	foreach (const QString &key, CustomData.keys())
 		configurationStorage->createNamedTextNode(customDataValues, "CustomDataValue", key, CustomData[key]);
@@ -258,6 +258,8 @@ void BuddyShared::addContact(Contact contact)
 	sortContacts();
 
 	emit contactAdded(contact);
+
+	dataUpdated();
 }
 
 void BuddyShared::removeContact(Contact contact)
@@ -272,6 +274,8 @@ void BuddyShared::removeContact(Contact contact)
 	emit contactRemoved(contact);
 
 	normalizePriorities();
+
+	dataUpdated();
 }
 
 QList<Contact> BuddyShared::contacts(Account account)

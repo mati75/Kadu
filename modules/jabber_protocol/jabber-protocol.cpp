@@ -36,9 +36,10 @@
 #include "status/status-type-manager.h"
 #include "url-handlers/url-handler-manager.h"
 
-#include "resource/jabber-resource-pool.h"
+#include "actions/jabber-actions.h"
+#include "actions/jabber-protocol-menu-manager.h"
+#include "certificates/trusted-certificates-manager.h"
 #include "utils/vcard-factory.h"
-#include "iris/filetransfer.h"
 #include "iris/irisnetglobal.h"
 #include "services/jabber-roster-service.h"
 #include "services/jabber-subscription-service.h"
@@ -64,6 +65,13 @@ int JabberProtocol::initModule()
 	JabberIdValidator::createInstance();
 	VCardFactory::createInstance();
 
+	JabberActions::registerActions();
+	JabberProtocolMenuManager::createInstance();
+
+	JabberProtocolFactory::createInstance();
+	GTalkProtocolFactory::createInstance();
+	FacebookProtocolFactory::createInstance();
+
 	ProtocolsManager::instance()->registerProtocolFactory(JabberProtocolFactory::instance());
 	ProtocolsManager::instance()->registerProtocolFactory(GTalkProtocolFactory::instance());
 	ProtocolsManager::instance()->registerProtocolFactory(FacebookProtocolFactory::instance());
@@ -83,9 +91,16 @@ void JabberProtocol::closeModule()
 	ProtocolsManager::instance()->unregisterProtocolFactory(GTalkProtocolFactory::instance());
 	ProtocolsManager::instance()->unregisterProtocolFactory(FacebookProtocolFactory::instance());
 
+	JabberProtocolFactory::destroyInstance();
+	GTalkProtocolFactory::destroyInstance();
+	FacebookProtocolFactory::destroyInstance();
+
+	JabberProtocolMenuManager::destroyInstance();
+	JabberActions::unregisterActions();
+
 	VCardFactory::destroyInstance();
 	JabberIdValidator::destroyInstance();
-
+	TrustedCertificatesManager::destroyInstance();
 	XMPP::irisNetCleanup();
 
 	qRemovePostRoutine(QCA::deinit);
@@ -94,8 +109,7 @@ void JabberProtocol::closeModule()
 }
 
 JabberProtocol::JabberProtocol(Account account, ProtocolFactory *factory) :
-		Protocol(account, factory), JabberClient(0), ResourcePool(0),
-		ContactsListReadOnly(false)
+		Protocol(account, factory), JabberClient(0), ContactsListReadOnly(false)
 {
 	kdebugf();
 
@@ -108,7 +122,6 @@ JabberProtocol::JabberProtocol(Account account, ProtocolFactory *factory) :
 	CurrentChatService = new JabberChatService(this);
 	CurrentChatStateService = new JabberChatStateService(this);
 	CurrentContactPersonalInfoService = new JabberContactPersonalInfoService(this);
-	CurrentFileTransferService = new JabberFileTransferService(this);
 	CurrentPersonalInfoService = new JabberPersonalInfoService(this);
 	CurrentRosterService = new JabberRosterService(this);
 	connect(CurrentRosterService, SIGNAL(rosterDownloaded(bool)),
@@ -199,6 +212,14 @@ void JabberProtocol::login(const QString &password, bool permanent)
 {
 	if (isConnected())
 		return;
+	
+	if (password.isEmpty()) // user did not give us password, so prevent from further reconnecting
+	{
+		Status newstat = status();
+		newstat.setType("Offline");
+		setStatus(newstat);
+		return;
+	}
 
 	account().setPassword(password);
 	account().setRememberPassword(permanent);
@@ -258,7 +279,7 @@ void JabberProtocol::connectToServer()
 	JabberClient->setUseSSL(jabberAccountDetails->encryptionMode() == JabberAccountDetails::Encryption_Legacy);
 	JabberClient->setOverrideHost(jabberAccountDetails->useCustomHostPort(), jabberAccountDetails->customHost(), jabberAccountDetails->customPort());
 
-	JabberClient->setFileTransfersEnabled(true); // i haz it
+//	JabberClient->setFileTransfersEnabled(true); // i haz it
 	jabberID = account().id();
 
 	JabberClient->setAllowPlainTextPassword(plainAuthToXMPP(jabberAccountDetails->plainAuthMode()));
@@ -332,11 +353,11 @@ void JabberProtocol::disconnectFromServer(const XMPP::Status &s)
 		kdebug("Still connected, closing connection...\n");
 		// make sure that the connection animation gets stopped if we're still
 		// in the process of connecting
-		JabberClient->setPresence(s);
 
-		/* Tell backend class to disconnect. */
-		JabberClient->disconnect();
+		JabberClient->setPresence(s);
 	}
+	/* Tell backend class to disconnect. */
+	JabberClient->disconnect();
 
 	kdebug("Disconnected.\n");
 
@@ -359,6 +380,8 @@ void JabberProtocol::disconnectedFromServer()
 
 	networkStateChanged(NetworkDisconnected);
 
+	JabberClient->disconnect();
+
 	if (!nextStatus().isDisconnected()) // user still wants to login
 		QTimer::singleShot(1000, this, SLOT(login())); // try again after one second
 
@@ -376,7 +399,7 @@ void JabberProtocol::clientResourceReceived(const XMPP::Jid &jid, const XMPP::Re
 {
 	kdebugf();
 	kdebug("New resource available for %s\n", jid.full().toLocal8Bit().data());
-	resourcePool()->addResource(jid, resource);
+//	resourcePool()->addResource(jid, resource);
 
 	Status status(IrisStatusAdapter::fromIrisStatus(resource.status()));
 	Contact contact = ContactManager::instance()->byId(account(), jid.bare(), ActionReturnNull);
@@ -391,35 +414,16 @@ void JabberProtocol::clientResourceReceived(const XMPP::Jid &jid, const XMPP::Re
 	kdebugf2();
 }
 
-void JabberProtocol::addContactToRoster(Contact contact, bool requestAuth)
-{
-	if (!isConnected() || contact.contactAccount() != account() || contact.ownerBuddy().isAnonymous())
-		return;
-
-	Buddy buddy = contact.ownerBuddy();
-	QStringList groupsList;
-
-	foreach (const Group &group, buddy.groups())
-		groupsList.append(group.name());
-
-	//TODO last parameter: automagic authorization request - make it configurable
-	JabberClient->addContact(contact.id(), buddy.display(), groupsList, requestAuth);
-
-	if (!contact.ownerBuddy().isOfflineTo())
-		CurrentSubscriptionService->authorizeContact(contact, true);
-}
-
 void JabberProtocol::contactAttached(Contact contact)
 {
-	return addContactToRoster(contact, true);
+	if (CurrentRosterService)
+		CurrentRosterService->addContact(contact);
 }
 
 void JabberProtocol::contactDetached(Contact contact)
 {
-	if (!isConnected() || contact.contactAccount() != account())
-		return;
-
-	JabberClient->removeContact(contact.id());
+	if (CurrentRosterService)
+		CurrentRosterService->removeContact(contact);
 }
 
 void JabberProtocol::buddyUpdated(Buddy &buddy)
@@ -462,13 +466,6 @@ void JabberProtocol::contactIdChanged(Contact contact, const QString &oldId)
 
 	JabberClient->removeContact(oldId);
 	contactAttached(contact);
-}
-
-JabberResourcePool *JabberProtocol::resourcePool()
-{
-	if (!ResourcePool)
-		ResourcePool = new JabberResourcePool(this);
-	return ResourcePool;
 }
 
 void JabberProtocol::changeStatus()

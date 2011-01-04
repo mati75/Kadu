@@ -56,6 +56,9 @@ class KADUAPI ContactShared : public QObject, public Shared, public DetailsHolde
 	unsigned int Port;
 	QString DnsName;
 
+	void detach(const Buddy &buddy, bool emitSignals);
+	void attach(const Buddy &buddy, bool emitReattached);
+
 protected:
 	virtual void load();
 
@@ -65,6 +68,7 @@ protected:
 	virtual void protocolUnregistered(ProtocolFactory *protocolFactory);
 
 	virtual void detailsAdded();
+	virtual void afterDetailsAdded();
 	virtual void detailsAboutToBeRemoved();
 	virtual void detailsRemoved();
 
@@ -82,7 +86,9 @@ public:
 	virtual bool shouldStore();
 	virtual void aboutToBeRemoved();
 
-	KaduShared_Property(Account, contactAccount, ContactAccount)
+	KaduShared_PropertyRead(Account, contactAccount, ContactAccount)
+	void setContactAccount(Account account);
+
 	KaduShared_Property(Avatar, contactAvatar, ContactAvatar)
 	KaduShared_PropertyRead(Buddy, ownerBuddy, OwnerBuddy)
 	void setOwnerBuddy(Buddy buddy);

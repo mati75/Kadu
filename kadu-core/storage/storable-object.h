@@ -234,6 +234,19 @@ template<class T>
 
 	/**
 	 * @author Rafal 'Vogel' Malinowski
+	 * @short Check if value is available in XML node (as subnode).
+	 * @param name name of subnode that will be checked
+	 * @return true, if subnode is available
+	 *
+	 * Check if value is available in XML node (as subnode).
+	 */
+	bool hasValue(const QString &name) const
+	{
+		return Storage->storage()->hasNode(Storage->point(), name);
+	}
+
+	/**
+	 * @author Rafal 'Vogel' Malinowski
 	 * @short Loads value from XML node (as an attribute).
 	 * @param T type of returned value
 	 * @param name name of attribute that will be loaded
@@ -329,8 +342,22 @@ template<class T>
 			return 0;
 
 		T *result = new T();
-		ModulesData[module] = result;
+		ModulesData.insert(module, result);
 		return result;
+	}
+
+	/**
+	 * @author Rafal 'Vogel' Malinowski
+	 * @short Removes non-storable module data from object.
+	 * @param module name of module data to be removed
+	 *
+	 * Removed module data for given key. Caller is responsible for freeing
+	 * memory used by this module data.
+	 */
+	void removeModuleData(const QString &module)
+	{
+		if (ModulesData.contains(module))
+			ModulesData.remove(module);
 	}
 
 	void storeValue(const QString &name, const QVariant value);

@@ -61,6 +61,7 @@
 #include "debug.h"
 
 #ifdef Q_OS_MAC
+#include "notify/notification-manager.h"
 #include "mac_docking_helper.h"
 extern void qt_mac_set_dock_menu(QMenu *);
 #endif
@@ -183,7 +184,7 @@ void DockingManager::changeIcon()
 				const Status &stat = account.protocolHandler()->status();
 
 				if (CurrentDocker)
-					CurrentDocker->changeTrayIcon(account.protocolHandler()->statusIcon(stat));
+					CurrentDocker->changeTrayIcon(StatusContainerManager::instance()->statusIcon(stat));
 
 				icon_timer->setSingleShot(true);
 				icon_timer->start(500);
@@ -198,7 +199,8 @@ void DockingManager::pendingMessageAdded()
 	changeIcon();
 #ifdef Q_OS_MAC
 	MacDockingHelper::instance()->overlay(QString::number(PendingMessagesManager::instance()->pendingMessages().count()));
-	MacDockingHelper::instance()->startBounce();
+	if (!NotificationManager::instance()->silentMode())
+		MacDockingHelper::instance()->startBounce();
 #endif
 }
 
@@ -216,7 +218,7 @@ void DockingManager::pendingMessageDeleted()
 
 		const Status &stat = account.protocolHandler()->status();
 		if (CurrentDocker)
-			CurrentDocker->changeTrayIcon(account.protocolHandler()->statusIcon(stat));
+			CurrentDocker->changeTrayIcon(StatusContainerManager::instance()->statusIcon(stat));
 	}
 }
 
@@ -313,7 +315,7 @@ QIcon DockingManager::defaultPixmap()
 	if (account.isNull() || !account.protocolHandler())
 		return StatusContainerManager::instance()->statusIcon();
 
-	return account.protocolHandler()->statusIcon(account.protocolHandler()->status());
+	return StatusContainerManager::instance()->statusIcon(account.protocolHandler()->status());
 }
 
 void DockingManager::setDocker(Docker *docker)
@@ -351,9 +353,9 @@ void DockingManager::updateContextMenu()
 
 	if (statusContainersCount == 1)
 	{
-		new StatusMenu(StatusContainerManager::instance()->statusContainers()[0], DockMenu);
+		new StatusMenu(StatusContainerManager::instance()->statusContainers()[0], DockMenu, true);
 #ifdef Q_OS_MAC
-		new StatusMenu(StatusContainerManager::instance()->statusContainers()[0], MacDockMenu);
+		new StatusMenu(StatusContainerManager::instance()->statusContainers()[0], MacDockMenu, true);
 #endif
 	}
 	else
@@ -370,10 +372,13 @@ void DockingManager::updateContextMenu()
 		if (statusContainersCount > 1)
 			containersSeparator = DockMenu->addSeparator();
 
-		new StatusMenu(StatusContainerManager::instance(), DockMenu);
+		if (statusContainersCount > 0)
+		{
+			new StatusMenu(StatusContainerManager::instance(), DockMenu);
 #ifdef Q_OS_MAC
-		new StatusMenu(StatusContainerManager::instance(), MacDockMenu);
+			new StatusMenu(StatusContainerManager::instance(), MacDockMenu);
 #endif
+		}
 	}
 
 	DockMenu->addAction(CloseKaduAction);
@@ -388,33 +393,16 @@ void DockingManager::containerStatusChanged()
 
 void DockingManager::statusContainerRegistered(StatusContainer *statusContainer)
 {
-	if (StatusContainerManager::instance()->statusContainers().count() < 3)
-		updateContextMenu();
-	else
-	{
-		QMenu *menu = new QMenu(statusContainer->statusContainerName());
-		menu->setIcon(statusContainer->statusIcon());
-		new StatusMenu(statusContainer, menu);
-		StatusContainerMenus[statusContainer] = DockMenu->insertMenu(containersSeparator, menu);
-		connect(statusContainer, SIGNAL(statusChanged()), this, SLOT(containerStatusChanged()));
-	}
+	Q_UNUSED(statusContainer)
+
+	updateContextMenu();
 }
 
 void DockingManager::statusContainerUnregistered(StatusContainer *statusContainer)
 {
-	if (StatusContainerManager::instance()->statusContainers().count() < 2)
-		updateContextMenu();
-	else
-	{
-		QAction *menuAction = StatusContainerMenus[statusContainer];
-		if (!menuAction)
-			    return;
+	Q_UNUSED(statusContainer)
 
-		menuAction->menu()->clear();
-		StatusContainerMenus.remove(statusContainer);
-		DockMenu->removeAction(menuAction);
-		delete menuAction;
-	}
+	updateContextMenu();
 }
 
 void DockingManager::configurationUpdated()

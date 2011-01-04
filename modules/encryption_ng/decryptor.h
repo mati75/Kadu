@@ -22,14 +22,21 @@
 
 #include <QtCore/QObject>
 
+class EncryptionProvider;
+
 class Decryptor : public QObject
 {
 	Q_OBJECT
 
+	EncryptionProvider *Provider;
+
 public:
+	Decryptor(EncryptionProvider *provider, QObject *parent = 0);
 	virtual ~Decryptor() {}
 
-	virtual QByteArray decrypt(const QByteArray &data) = 0;
+	EncryptionProvider * provider() { return Provider; }
+
+	virtual QByteArray decrypt(const QByteArray &data, bool *ok = 0) = 0;
 
 };
 

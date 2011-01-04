@@ -23,11 +23,14 @@
 
 #include "accounts/account-manager.h"
 #include "configuration/configuration-file.h"
+#include "configuration/configuration-manager.h"
+#include "configuration/toolbar-configuration-manager.h"
 #include "configuration/xml-configuration-file.h"
 #include "buddies/buddy.h"
 #include "buddies/buddy-set.h"
 #include "gui/actions/action.h"
 #include "gui/widgets/buddies-list-view.h"
+#include "gui/widgets/toolbar.h"
 
 #include "debug.h"
 
@@ -46,26 +49,27 @@ MainWindow * MainWindow::findMainWindow(QWidget *widget)
 	return 0;
 }
 
-MainWindow::MainWindow(QWidget *parent) :
-		QMainWindow(parent), TransparencyEnabled(false)
+MainWindow::MainWindow(const QString &windowName, QWidget *parent) :
+		QMainWindow(parent), WindowName(windowName), TransparencyEnabled(false)
 {
 	setWindowRole("kadu-main");
+
+	connect(ConfigurationManager::instance()->toolbarConfigurationManager(), SIGNAL(configurationUpdated()),
+			this, SLOT(refreshToolBars()));
 }
 
 MainWindow::~MainWindow()
 {
+	disconnect(ConfigurationManager::instance()->toolbarConfigurationManager(), SIGNAL(configurationUpdated()),
+			this, SLOT(refreshToolBars()));
 }
 
-void MainWindow::loadToolBarsFromConfig(const QString &prefix)
+void MainWindow::loadToolBarsFromConfig()
 {
-	QString realPrefix;
-	if (!prefix.isEmpty())
-		realPrefix = prefix + '_';
-
-	loadToolBarsFromConfig(realPrefix + "topDockArea", Qt::TopToolBarArea);
-	loadToolBarsFromConfig(realPrefix + "leftDockArea", Qt::LeftToolBarArea);
-	loadToolBarsFromConfig(realPrefix + "bottomDockArea", Qt::BottomToolBarArea);
-	loadToolBarsFromConfig(realPrefix + "rightDockArea", Qt::RightToolBarArea);
+	loadToolBarsFromConfig(Qt::TopToolBarArea);
+	loadToolBarsFromConfig(Qt::LeftToolBarArea);
+	loadToolBarsFromConfig(Qt::BottomToolBarArea);
+	loadToolBarsFromConfig(Qt::RightToolBarArea);
 }
 
 bool horizontalToolbarComparator(ToolBar *t1, ToolBar *t2)
@@ -86,19 +90,8 @@ bool verticalToolbarComparator(ToolBar *t1, ToolBar *t2)
 	return t1->yOffset() < t2->yOffset();
 }
 
-bool MainWindow::loadToolBarsFromConfig(const QString &configName, Qt::ToolBarArea area, bool remove)
+void MainWindow::loadToolBarsFromConfigNode(QDomElement dockareaConfig, Qt::ToolBarArea area)
 {
-	kdebugf();
-
-	QDomElement toolbarsConfig = xml_config_file->findElement(xml_config_file->rootElement(), "Toolbars");
-
-	if (toolbarsConfig.isNull())
-		return false;
-
-	QDomElement dockareaConfig = xml_config_file->findElementByProperty(toolbarsConfig, "DockArea", "name", configName);
-	if (dockareaConfig.isNull())
-		return false;
-
 	QList<ToolBar *> toolBars;
 	for (QDomNode n = dockareaConfig.firstChild(); !n.isNull(); n = n.nextSibling())
 	{
@@ -143,12 +136,28 @@ bool MainWindow::loadToolBarsFromConfig(const QString &configName, Qt::ToolBarAr
 			currentLine = toolBar->yOffset();
 		}
 	}
+}
 
-	if (remove)
-		toolbarsConfig.removeChild(dockareaConfig);
+void MainWindow::loadToolBarsFromConfig(Qt::ToolBarArea area)
+{
+	QDomElement dockareaConfig = getDockAreaConfigElement(area);
+	loadToolBarsFromConfigNode(dockareaConfig, area);
+}
 
-	kdebugf2();
+bool MainWindow::loadOldToolBarsFromConfig(const QString &configName, Qt::ToolBarArea area)
+{
+	QDomElement toolbarsConfig = xml_config_file->findElement(xml_config_file->rootElement(), "Toolbars");
 
+	if (toolbarsConfig.isNull())
+		return false;
+
+	QDomElement dockareaConfig = xml_config_file->findElementByProperty(toolbarsConfig, "DockArea", "name", configName);
+	if (dockareaConfig.isNull())
+		return false;
+
+	loadToolBarsFromConfigNode(dockareaConfig, area);
+
+	dockareaConfig.parentNode().removeChild(dockareaConfig);
 	return true;
 }
 
@@ -159,6 +168,35 @@ QDomElement MainWindow::getToolbarsConfigElement()
 		toolbarsConfig = xml_config_file->createElement(xml_config_file->rootElement(), "Toolbars");
 
 	return toolbarsConfig;
+}
+
+QDomElement MainWindow::getDockAreaConfigElement(Qt::ToolBarArea area)
+{
+	QString realPrefix;
+	if (!WindowName.isEmpty())
+		realPrefix = WindowName + '_';
+
+	QString suffix;
+
+	switch (area)
+	{
+		case Qt::TopToolBarArea:
+			suffix = "topDockArea";
+			break;
+		case Qt::LeftToolBarArea:
+			suffix = "leftDockArea";
+			break;
+		case Qt::RightToolBarArea:
+			suffix = "rightDockArea";
+			break;
+		case Qt::BottomToolBarArea:
+			suffix = "bottomDockArea";
+			break;
+		default:
+			return QDomElement();
+	}
+
+	return getDockAreaConfigElement(getToolbarsConfigElement(), realPrefix + suffix);
 }
 
 QDomElement MainWindow::getDockAreaConfigElement(QDomElement toolbarsConfig, const QString &name)
@@ -225,23 +263,17 @@ QDomElement MainWindow::findExistingToolbar(const QString &prefix)
 	return xml_config_file->createElement(dockAreaConfig, "ToolBar");
 }
 
-void MainWindow::writeToolBarsToConfig(const QString &prefix)
+void MainWindow::writeToolBarsToConfig()
 {
-	QString realPrefix;
-	if (!prefix.isEmpty())
-		realPrefix = prefix + '_';
-
-	QDomElement toolbarsConfig = getToolbarsConfigElement();
-
-	writeToolBarsToConfig(toolbarsConfig, realPrefix + "topDockArea", Qt::TopToolBarArea);
-	writeToolBarsToConfig(toolbarsConfig, realPrefix + "leftDockArea", Qt::LeftToolBarArea);
-	writeToolBarsToConfig(toolbarsConfig, realPrefix + "bottomDockArea", Qt::BottomToolBarArea);
-	writeToolBarsToConfig(toolbarsConfig, realPrefix + "rightDockArea", Qt::RightToolBarArea);
+	writeToolBarsToConfig(Qt::TopToolBarArea);
+	writeToolBarsToConfig(Qt::LeftToolBarArea);
+	writeToolBarsToConfig(Qt::BottomToolBarArea);
+	writeToolBarsToConfig(Qt::RightToolBarArea);
 }
 
-void MainWindow::writeToolBarsToConfig(QDomElement toolbarsConfig, const QString &configName, Qt::ToolBarArea area)
+void MainWindow::writeToolBarsToConfig(Qt::ToolBarArea area)
 {
-	QDomElement dockAreaConfig = getDockAreaConfigElement(toolbarsConfig, configName);
+	QDomElement dockAreaConfig = getDockAreaConfigElement(area);
 	xml_config_file->removeChildren(dockAreaConfig);
 
 	// TODO: laaaaame
@@ -258,7 +290,7 @@ void MainWindow::writeToolBarsToConfig(QDomElement toolbarsConfig, const QString
 	}
 }
 
-void MainWindow::refreshToolBars(const QString &prefix)
+void MainWindow::refreshToolBars()
 {
 	foreach (const QObject *object, children())
 	{
@@ -266,7 +298,7 @@ void MainWindow::refreshToolBars(const QString &prefix)
 		if (toolBar)
 			removeToolBar(const_cast<QToolBar *>(toolBar));
 	}
-	loadToolBarsFromConfig(prefix);
+	loadToolBarsFromConfig();
 }
 
 void MainWindow::contextMenuEvent(QContextMenuEvent *event)
@@ -282,12 +314,11 @@ void MainWindow::contextMenuEvent(QContextMenuEvent *event)
 ToolBar *MainWindow::newToolbar(QWidget *parent)
 {
 	ToolBar *toolBar = new ToolBar(parent);
+	toolBar->setAttribute(Qt::WA_NoSystemBackground, !TransparencyEnabled);
+	toolBar->setAutoFillBackground(TransparencyEnabled);
 
-	if (toolBar)
-	{
-		toolBar->setAttribute(Qt::WA_NoSystemBackground, !TransparencyEnabled);
-		toolBar->setAutoFillBackground(TransparencyEnabled);
-	}
+	connect(toolBar, SIGNAL(updated()), this, SLOT(toolbarUpdated()));
+	connect(toolBar, SIGNAL(destroyed()), this, SLOT(toolbarUpdated()));
 
 	return toolBar;
 }
@@ -295,21 +326,25 @@ ToolBar *MainWindow::newToolbar(QWidget *parent)
 void MainWindow::addTopToolbar()
 {
 	addToolBar(Qt::TopToolBarArea, newToolbar(this));
+	toolbarUpdated();
 }
 
 void MainWindow::addBottomToolbar()
 {
 	addToolBar(Qt::BottomToolBarArea, newToolbar(this));
+	toolbarUpdated();
 }
 
 void MainWindow::addLeftToolbar()
 {
 	addToolBar(Qt::LeftToolBarArea, newToolbar(this));
+	toolbarUpdated();
 }
 
 void MainWindow::addRightToolbar()
 {
 	addToolBar(Qt::RightToolBarArea, newToolbar(this));
+	toolbarUpdated();
 }
 
 void MainWindow::actionAdded(Action *action)
@@ -371,3 +406,9 @@ void MainWindow::setTransparency(bool enable)
 	}
 }
 
+void MainWindow::toolbarUpdated()
+{
+	writeToolBarsToConfig();
+
+	ConfigurationManager::instance()->toolbarConfigurationManager()->notifyConfigurationUpdated();
+}

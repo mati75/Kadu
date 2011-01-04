@@ -20,8 +20,7 @@
 #ifndef JABBER_ROSTER_SERVICE_H
 #define JABBER_ROSTER_SERVICE_H
 
-#include <QtCore/QObject>
-
+#include "protocols/services/roster-service.h"
 
 namespace XMPP
 {
@@ -32,7 +31,7 @@ class Buddy;
 class Contact;
 class JabberProtocol;
 
-class JabberRosterService : public QObject
+class JabberRosterService : public RosterService
 {
 	Q_OBJECT
 
@@ -52,6 +51,10 @@ private slots:
 public:
 	explicit JabberRosterService(JabberProtocol *protocol);
 	virtual ~JabberRosterService();
+
+	virtual void addContact(const Contact &contact);
+	virtual void removeContact(const Contact &contact);
+	virtual void askForAuthorization(const Contact &contact);
 
 	void downloadRoster();
 

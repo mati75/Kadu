@@ -24,6 +24,7 @@
 
 #include <QtGui/QDialog>
 
+#include "accounts/account.h"
 #include "buddies/buddy.h"
 
 class QCheckBox;
@@ -49,6 +50,7 @@ class AddBuddyWindow : public QDialog
 	QLineEdit *DisplayNameEdit;
 	QCheckBox *MergeContact;
 	SelectBuddyComboBox *SelectContact;
+	QCheckBox *AskForAuthorization;
 	QCheckBox *AllowToSeeMeCheck;
 	QLabel *ErrorLabel;
 	QPushButton *AddContactButton;
@@ -70,7 +72,10 @@ class AddBuddyWindow : public QDialog
 	bool addContact();
 	bool addMobile();
 
+	void askForAuthorization(Contact contact);
+
 private slots:
+    void accountChanged(Account account, Account lastAccount);
 	void updateGui();
 	void setAddContactEnabled();
 	void setAccountFilter();

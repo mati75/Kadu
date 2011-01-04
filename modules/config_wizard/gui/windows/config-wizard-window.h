@@ -34,15 +34,28 @@ class ConfigWizardWindow : public QWizard
 
 	QList<ConfigWizardPage *> ConfigWizardPages;
 
+	void setPage(int id, ConfigWizardPage *page);
+	bool goToChooseNetwork() const;
+	bool goToAccountSetUp() const;
+
 private slots:
 	void acceptedSlot();
 	void rejectedSlot();
 
+protected:
+	virtual int nextId() const;
+
 public:
+	enum Pages
+	{
+		ProfilePage,
+		ChooseNetworkPage,
+		SetUpAccountPage,
+		CompletedPage
+	};
+
 	explicit ConfigWizardWindow(QWidget *parent = 0);
 	virtual ~ConfigWizardWindow();
-
-	void addPage(ConfigWizardPage *page);
 
 };
 

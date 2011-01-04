@@ -34,15 +34,19 @@ class JabberProtocolFactory : public ProtocolFactory
 	QList<StatusType *> SupportedStatusTypes;
 
 public:
-	static JabberProtocolFactory * instance();
+	static void createInstance();
+	static void destroyInstance();
+
+	static JabberProtocolFactory * instance() { return Instance; }
 
 	virtual Protocol * createProtocolHandler(Account account);
 	virtual AccountDetails * createAccountDetails(AccountShared *accountShared);
 	virtual ContactDetails * createContactDetails(ContactShared *contactShared);
-	virtual AccountAddWidget * newAddAccountWidget(QWidget *parent);
-	virtual AccountCreateWidget * newCreateAccountWidget(QWidget *parent);
+	virtual AccountAddWidget * newAddAccountWidget(bool showButtons, QWidget *parent);
+	virtual AccountCreateWidget * newCreateAccountWidget(bool showButtons, QWidget *parent);
 	virtual AccountEditWidget* newEditAccountWidget(Account, QWidget*);
 	virtual QWidget * newContactPersonalInfoWidget(Contact contact, QWidget *parent = 0);
+    virtual ProtocolMenuManager * protocolMenuManager();
 	virtual QList<StatusType *> supportedStatusTypes();
 	virtual QString idLabel();
 	virtual QValidator::State validateId(QString id);

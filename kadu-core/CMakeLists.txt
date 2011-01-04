@@ -98,6 +98,7 @@ set (kadu_SRCS
 	configuration/configuration-manager.cpp
 	configuration/main-configuration.cpp
 	configuration/notifier-configuration-data-manager.cpp
+	configuration/toolbar-configuration-manager.cpp
 	configuration/xml-configuration-file.cpp
 
 	contacts/contact.cpp
@@ -290,7 +291,6 @@ set (kadu_SRCS
 	protocols/connection-error-notification.cpp
 	protocols/invalid-password-notification.cpp
 	protocols/protocol.cpp
-	protocols/protocol-menu-manager.cpp
 	protocols/protocols-aware-object.cpp
 	protocols/protocols-manager.cpp
 	protocols/filter/can-register-protocol-filter.cpp
@@ -446,6 +446,7 @@ set (kadu_MOC_SRCS
 	configuration/configuration-window-data-manager.h
 	configuration/main-configuration.h
 	configuration/notifier-configuration-data-manager.h
+	configuration/toolbar-configuration-manager.h
 
 	core/core.h
 
@@ -616,6 +617,7 @@ set (kadu_MOC_SRCS
 	protocols/services/contact-personal-info-service.h
 	protocols/services/file-transfer-service.h
 	protocols/services/personal-info-service.h
+	protocols/services/roster-service.h
 	protocols/services/search-service.h
 
 	qt/long-validator.h

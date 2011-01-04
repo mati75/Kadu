@@ -27,7 +27,6 @@
 
 #include "gui/actions/action-data-source.h"
 #include "gui/actions/action-description.h"
-#include "gui/widgets/toolbar.h"
 
 #include "exports.h"
 
@@ -40,6 +39,7 @@ class Chat;
 class Contact;
 class ContactSet;
 class StatusContainer;
+class ToolBar;
 
 class KADUAPI MainWindow : public QMainWindow, public ActionDataSource
 {
@@ -47,17 +47,26 @@ class KADUAPI MainWindow : public QMainWindow, public ActionDataSource
 
 	friend class Actions;
 
-private:
+	QString WindowName;
 	bool TransparencyEnabled;
 
-	ToolBar *newToolbar(QWidget *parent);
+	ToolBar * newToolbar(QWidget *parent);
+
+	void loadToolBarsFromConfigNode(QDomElement dockareaConfig, Qt::ToolBarArea area);
+
+private slots:
+	void toolbarUpdated();
 
 protected:
-	void loadToolBarsFromConfig(const QString &prefix);
-	bool loadToolBarsFromConfig(const QString &configName, Qt::ToolBarArea area, bool remove = false);
+	void loadToolBarsFromConfig();
+	void loadToolBarsFromConfig(Qt::ToolBarArea area);
 
-	void writeToolBarsToConfig(const QString &prefix);
-	void writeToolBarsToConfig(QDomElement parentConfig, const QString &configName, Qt::ToolBarArea area);
+	bool loadOldToolBarsFromConfig(const QString &configName, Qt::ToolBarArea area);
+
+	void writeToolBarsToConfig();
+	void writeToolBarsToConfig(Qt::ToolBarArea area);
+
+	QDomElement getDockAreaConfigElement(Qt::ToolBarArea area);
 
 	static QDomElement getToolbarsConfigElement();
 	static QDomElement getDockAreaConfigElement(QDomElement toolbarsConfig, const QString &name);
@@ -65,16 +74,20 @@ protected:
 	static QDomElement findExistingToolbarOnArea(const QString &areaName);
 	static QDomElement findExistingToolbar(const QString &prefix);
 
-	void refreshToolBars(const QString &prefix);
 	void setTransparency(bool enable);
 
-	void contextMenuEvent(QContextMenuEvent *event);
+	virtual void contextMenuEvent(QContextMenuEvent *event);
+
+protected slots:
+	void refreshToolBars();
 
 public:
 	static MainWindow * findMainWindow(QWidget *widget);
 
-	MainWindow(QWidget *parent);
+	MainWindow(const QString &windowName, QWidget *parent);
 	virtual ~MainWindow();
+
+	QString windowName() { return WindowName; }
 
 	virtual QMenu * createPopupMenu() { return 0; }
 
@@ -92,7 +105,7 @@ public slots:
 	void addBottomToolbar();
 	void addLeftToolbar();
 	void addRightToolbar();
-	
+
 };
 
 #endif // KADU_MAIN_WINDOW_H

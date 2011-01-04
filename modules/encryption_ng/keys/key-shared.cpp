@@ -103,16 +103,22 @@ void KeyShared::store()
 
 	QDir keysDir(KeysDir + KeyType);
 	if (!keysDir.exists())
+	{
 		keysDir.mkpath(KeysDir + KeyType);
+		QFile::setPermissions(KeysDir, QFile::ReadOwner | QFile::WriteOwner | QFile::ExeOwner);
+		QFile::setPermissions(KeysDir + KeyType, QFile::ReadOwner | QFile::WriteOwner | QFile::ExeOwner);
+	}
 
 	if (Key.isEmpty())
 		QFile::remove(filePath());
 	else
 	{
 		QFile keyFile(filePath());
+		keyFile.setPermissions(QFile::ReadOwner | QFile::WriteOwner);
+
 		if (keyFile.open(QFile::WriteOnly))
 		{
-			keyFile.write(Key);
+			keyFile.write(Key.data());
 			keyFile.close();
 		}
 	}

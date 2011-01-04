@@ -25,7 +25,6 @@
 #include "debug.h"
 
 #include "gui/windows/subscription-window.h"
-#include "resource/jabber-resource-pool.h"
 #include "jabber-contact-details.h"
 #include "jabber-protocol.h"
 
@@ -84,7 +83,7 @@ void JabberSubscriptionService::subscription(const XMPP::Jid &jid, const QString
 				Protocol->emitContactStatusChanged(contact, oldStatus);
 			}
 
-			Protocol->resourcePool()->removeAllResources(jid);
+			// Protocol->resourcePool()->removeAllResources(jid);
 		}
 	}
 
@@ -108,4 +107,22 @@ void JabberSubscriptionService::authorizeContact(Contact contact, bool authorize
 		Protocol->client()->resendSubscription(jid);
 	else
 		Protocol->client()->rejectSubscription(jid);
+}
+
+void JabberSubscriptionService::resendSubscription(const Contact &contact)
+{
+	if (Protocol && Protocol->client())
+		Protocol->client()->resendSubscription(contact.id());
+}
+
+void JabberSubscriptionService::removeSubscription(const Contact &contact)
+{
+	if (Protocol && Protocol->client())
+		Protocol->client()->rejectSubscription(contact.id());
+}
+
+void JabberSubscriptionService::requestSubscription(const Contact &contact)
+{
+	if (Protocol && Protocol->client())
+		Protocol->client()->requestSubscription(contact.id());
 }

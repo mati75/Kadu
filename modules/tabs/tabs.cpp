@@ -109,14 +109,14 @@ TabsManager::TabsManager(bool firstload)
 	OpenInNewTabActionDescription = new ActionDescription(this,
 		ActionDescription::TypeUser, "openInNewTabAction",
 		this, SLOT(onNewTab(QAction *, bool)),
-		"internet-group-chat", "internet-group-chat", tr("Chat in New Tab"), false, QString(), disableNewTab
+		"internet-group-chat", tr("Chat in New Tab"), false, disableNewTab
 	);
 	BuddiesListViewMenuManager::instance()->addActionDescription(OpenInNewTabActionDescription, BuddiesListViewMenuItem::MenuCategoryChat, 200);
 
 	AttachToTabsActionDescription = new ActionDescription(this,
 		ActionDescription::TypeChat, "attachToTabsAction",
 		this, SLOT(onTabAttach(QAction *, bool)),
-		"kadu_icons/module_tabs-detach", "kadu_icons/module_tabs-detach", tr("Attach Chat to Tabs"), true, tr("Detach chat from tabs")
+		"kadu_icons/tab-detach", tr("Attach Chat to Tabs"), true
 	);
 	connect(AttachToTabsActionDescription, SIGNAL(actionCreated(Action *)), this, SLOT(attachToTabsActionCreated(Action *)));
 
@@ -233,10 +233,10 @@ void TabsManager::onDestroyingChat(ChatWidget* chat)
 
 	if (TabDialog->indexOf(chat) != -1)
 	{
-		//tabdialog->removePage(chat);
-		TabDialog->removeTab(TabDialog->indexOf(chat));
 		// zapamietuje wewnetrzne rozmiary chata
 		chat->kaduStoreGeometry();
+
+		TabDialog->removeTab(TabDialog->indexOf(chat));
 	}
 
 	NewChats.removeOne(chat);
@@ -319,16 +319,18 @@ void TabsManager::onMessageReceived(Chat chat)
 	if (!chatWidget)
 		return;
 
-	if (!(ChatsWithNewMessages.contains(chatWidget)) &&
-		(TabDialog->currentWidget() != chatWidget || !_isActiveWindow(TabDialog)))
+	if (TabDialog->currentWidget() != chatWidget || !_isWindowActiveOrFullyVisible(TabDialog))
 	{
-		ChatsWithNewMessages.append(chatWidget);
-		if (!Timer.isActive())
-			Timer.start(500);
+		if (!ChatsWithNewMessages.contains(chatWidget))
+		{
+			ChatsWithNewMessages.append(chatWidget);
+			if (!Timer.isActive())
+				Timer.start(500);
+		}
 	}
-	// jezelo chat jest aktywny zerujemy licznik nowych wiadomosci
-	if (_isActiveWindow(TabDialog) && TabDialog->currentWidget() == chatWidget)
+	else
 		chatWidget->markAllMessagesRead();
+
 	kdebugf2();
 }
 
@@ -375,11 +377,14 @@ void TabsManager::insertTab(ChatWidget* chat)
 {
 	kdebugf();
 
+	bool restoreChatGeometry = true;
+
 	// jeśli jest otwarty chatwindow przypisany do chat to zostanie on zamknięty
 	if (chat->parent())
+	{
 		chat->parent()->deleteLater();
-	else
-		chat->kaduRestoreGeometry();
+		restoreChatGeometry = false;
+	}
 
 	ContactSet contacts = chat->chat().contacts();
 
@@ -393,6 +398,9 @@ void TabsManager::insertTab(ChatWidget* chat)
 
 	// Ustawiam tytul karty w zaleznosci od tego czy mamy do czynienia z rozmowa czy z konferencja
 	TabDialog->insertTab(TargetTabs, chat, chat->icon(), formatTabName(chat));
+
+	if (restoreChatGeometry)
+		chat->kaduRestoreGeometry();
 
 	TabDialog->setTabToolTip(TargetTabs, chat->title());
 
@@ -536,10 +544,10 @@ void TabsManager::makePopupMenu()
 
 	Menu = new QMenu();
 	//menu->setCheckable(true);
-	Menu->addAction(IconsManager::instance()->iconByPath("kadu_icons/module_tabs-detach"), tr("Detach"), this, SLOT(onMenuActionDetach()));
+	Menu->addAction(IconsManager::instance()->iconByPath("kadu_icons/tab-detach"), tr("Detach"), this, SLOT(onMenuActionDetach()));
 	Menu->addAction(tr("Detach all"), this, SLOT(onMenuActionDetachAll()));
 	Menu->addSeparator();
-	Menu->addAction(IconsManager::instance()->iconByPath("kadu_icons/module_tabs-close"), tr("Close"), this, SLOT(onMenuActionClose()));
+	Menu->addAction(IconsManager::instance()->iconByPath("kadu_icons/tab-close"), tr("Close"), this, SLOT(onMenuActionClose()));
 	Menu->addAction(tr("Close all"), this, SLOT(onMenuActionCloseAll()));
 
 	kdebugf2();
@@ -660,9 +668,11 @@ void TabsManager::store()
 		if ((TabDialog->indexOf(chatWidget) == -1) && (DetachedChats.indexOf(chatWidget) == -1))
 			continue;
 
+		chatWidget->kaduStoreGeometry();
+
 		QDomElement window_elem = storageFile->createElement(point, "Tab");
 
-		window_elem.setAttribute("chat", chat.uuid() );
+		window_elem.setAttribute("chat", chat.uuid());
 		if (TabDialog->indexOf(chatWidget) != -1)
 			window_elem.setAttribute("type", "tab");
 		else if (DetachedChats.indexOf(chatWidget) != -1)
