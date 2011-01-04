@@ -1,5 +1,5 @@
 diff --git a/.config b/.config
-index 7498552..a8c8581 100644
+index 5ce231d..dbe6172 100644
 --- a/.config
 +++ b/.config
 @@ -92,7 +92,7 @@ module_growl_notify=n
@@ -29,16 +29,7 @@ index 7498552..a8c8581 100644
  
  # Description: Direct /dev/dsp sound support (Open Sound System)
  # PL: Obsługa dźwięku przez bezpośredni dostęp do urządzenia /dev/dsp (Open Sound System)
-@@ -173,7 +173,7 @@ module_win32_sound=n
- # PL: Obsługa rozmów głosowych
- # Platform: Linux, Mac OS X, Windows
- # Depends: dcc, sound
--module_voice=n
-+module_voice=m
- 
- ###################### sms ###########################################
- 
-@@ -273,7 +273,7 @@ module_split_messages=n
+@@ -242,7 +242,7 @@ module_parser_extender=m
  # Description: Automatic word replacement
  # PL: Automatyczna zamiana slow
  # Platform: Linux, Mac OS X, Windows
@@ -47,7 +38,7 @@ index 7498552..a8c8581 100644
  
  # Description: Autostatus
  # PL: Automatyczne zmiany statusu
-@@ -350,7 +350,7 @@ module_plus_pl_sms=n
+@@ -365,7 +365,7 @@ module_plus_pl_sms=n
  # PL: Powiadomiania diodą Scroll Lock
  # Platform: Linux
  # Needs: libX11
@@ -56,7 +47,7 @@ index 7498552..a8c8581 100644
  
  # Description: Mail checking module
  # PL: Moduł do sprawdzana poczty
-@@ -360,17 +360,17 @@ module_mail=n
+@@ -375,17 +375,17 @@ module_mail=n
  # Description: TeX formula support
  # PL: Wsparcie dla formuł TeX-owych
  # Platform: Linux
@@ -77,7 +68,7 @@ index 7498552..a8c8581 100644
  
  # Description: PowerKadu
  # PL: PowerKadu
-@@ -381,11 +381,11 @@ module_powerkadu=n
+@@ -396,11 +396,11 @@ module_powerkadu=n
  # Description: Adds global hotkeys support to Kadu
  # PL: Dodaje do Kadu obsługę skrótów globalnych
  # Platform: Linux
@@ -90,8 +81,8 @@ index 7498552..a8c8581 100644
 +module_senthistory=m
  # Platform: Linux, Mac OS X, Windows
  
- # Desctiption: Weather checking
-@@ -420,22 +420,22 @@ module_amarok2_mediaplayer=m
+ ######################## MEDIAPLAYER ########################
+@@ -423,22 +423,22 @@ module_amarok2_mediaplayer=m
  # Description: Audacious support for mediaplayer
  # PL: Wsparcie dla Audacious w mediaplayer
  # Platform: Linux
@@ -118,7 +109,7 @@ index 7498552..a8c8581 100644
  
  # Description: iTunes support for mediaplayer
  # PL: Wsparcie dla iTunes w mediaplayer
-@@ -446,17 +446,17 @@ module_itunes_mediaplayer=n
+@@ -449,17 +449,17 @@ module_itunes_mediaplayer=n
  # PL: Wsparcie dla  MPD w mediaplayer
  # Needs: libmpdclient
  # Platform: Linux
@@ -139,25 +130,17 @@ index 7498552..a8c8581 100644
  
  # Description: Winamp support for mediaplayer
  # PL: Wsparcie dla Winamp'a w mediaplayer
-@@ -471,14 +471,14 @@ module_xmms_mediaplayer=n
+@@ -474,7 +474,7 @@ module_xmms_mediaplayer=n
  # Description: XMMS2 support for mediaplayer
  # PL: Wsparcie dla XMMS2 w mediaplayer
  # Platform: Linux
 -module_xmms2_mediaplayer=n
 +module_xmms2_mediaplayer=m
  
- module_server_monitor=m
- 
- # Description: Single Window Mode
- # PL: Tryb pojedynczego okna
- # Platform: Linux, Mac OS X, Windows
--module_single_window=n
-+module_single_window=m
- 
  ############################################# ICONS ###########################################################################
  # PL: ####################################### IKONY ###########################################################################
-@@ -503,7 +503,7 @@ module_single_window=n
- icons_default=y
+@@ -502,7 +502,7 @@ icons_default=y
+ icons_oxygen=y
  
  # Description: Default theme from kadu 0.5.x
 -icons_kadu05=n
@@ -165,16 +148,7 @@ index 7498552..a8c8581 100644
  
  # Description: Glass icon theme made by Mariusz Waluga
  icons_glass=y
-@@ -512,7 +512,7 @@ icons_glass=y
- icons_tango=n
- 
- # Description: Oxygen icon theme made by Piotr Pelzowski
--icons_oxygen=n
-+icons_oxygen=y
- 
- ########################################### EMOTICONS #########################################################################
- # PL: ##################################### EMOTIKONY #########################################################################
-@@ -536,7 +536,7 @@ emoticons_tango=y
+@@ -532,7 +532,7 @@ emoticons_tango=y
  
  # Description: Old Gadu-Gadu 6.x emoticons
  # PL: Kompatybilne ze starą wersją Gadu-Gadu 6.x
@@ -183,7 +157,7 @@ index 7498552..a8c8581 100644
  
  ########################################### SOUNDS ############################################################################
  # PL: ##################################### DŹWIĘKI ###########################################################################
-@@ -554,14 +554,14 @@ emoticons_gg6_compatible=n
+@@ -550,14 +550,14 @@ emoticons_gg6_compatible=n
  # PL: Standardowy zestaw dźwięków dostępny razem ze źródłami Kadu
  sound_default=y
  
