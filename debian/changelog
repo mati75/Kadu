@@ -1,3 +1,10 @@
+kadu (0.6.6-beta14-1) experimental; urgency=low
+
+  * New upstream release
+  * Minor updates to debian/patches/* to make them fit new source
+
+ -- Patryk Cisek <patryk@debian.org>  Tue, 04 Jan 2011 13:13:00 +0100
+
 kadu (0.6.6-beta13-1) experimental; urgency=low
 
   * New upstream release
