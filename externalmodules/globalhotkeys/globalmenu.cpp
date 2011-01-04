@@ -60,8 +60,6 @@ void GlobalMenu::closeEvent( QCloseEvent *event )
 	QMenu::closeEvent( event );
 	if( ! SUBMENU.isNull() )
 		SUBMENU->close();
-	if( ! PARENTMENU.isNull() )
-		_activateWindow( PARENTMENU );
 }
 
 
@@ -74,9 +72,12 @@ void GlobalMenu::closeTopMostMenu()
 }
 
 
-void GlobalMenu::timerStart()
+void GlobalMenu::timerStart( int delay )
 {
-	INACTIVITYTIMER.start();
+	if( delay > 0 )
+		QTimer::singleShot( delay, &INACTIVITYTIMER, SLOT(start()) );
+	else
+		INACTIVITYTIMER.start();
 }
 
 
@@ -112,7 +113,7 @@ void GlobalMenu::focusInEvent( QFocusEvent *event )
 }
 
 
-void GlobalMenu::popup( QPoint p )
+void GlobalMenu::popup( QPoint p, int inactivitycheckdelay )
 {
 	LASTMOUSEPOS = QCursor::pos();
 	if( ! p.isNull() )
@@ -138,8 +139,13 @@ void GlobalMenu::popup( QPoint p )
 		}
 	}
 	_activateWindow( this );
+	QTimer::singleShot( 1, this, SLOT(activate()) );
 	if( PARENTMENU.isNull() )
-		timerStart();
+	{
+		if( inactivitycheckdelay < 0 )
+			inactivitycheckdelay = GLOBALHOTKEYS_GLOBALWIDGETDEFAULTINACTIVITYCHECKDELAY;
+		timerStart( inactivitycheckdelay );
+	}
 }
 
 
@@ -152,6 +158,7 @@ void GlobalMenu::keyPressEvent( QKeyEvent *event )
 			timerStop();
 			timerLock();
 			close();
+			_activateWindow( PARENTMENU );
 		}
 		return;
 	}
@@ -223,4 +230,10 @@ void GlobalMenu::inactivitytimerTimeout()
 		}
 	}
 	timerStart();
+}
+
+
+void GlobalMenu::activate()
+{
+	_activateWindow( this );
 }

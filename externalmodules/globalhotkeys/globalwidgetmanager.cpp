@@ -28,7 +28,7 @@
 
 
 
-GlobalWidgetManager::GlobalWidgetManager( QWidget *widget, bool autostart, int autostartdelay )
+GlobalWidgetManager::GlobalWidgetManager( QWidget *widget, bool autostart, int inactivitycheckdelay )
 {
 	setParent( widget );
 	WIDGET = widget->window();
@@ -39,19 +39,9 @@ GlobalWidgetManager::GlobalWidgetManager( QWidget *widget, bool autostart, int a
 	FIRSTRUN = true;
 	if( autostart )
 	{
-		if( ! WIDGET->isVisible() )
-			WIDGET->show();
-		_activateWindow( WIDGET );
-		if( autostartdelay == 0 )
-		{
-			start();
-		}
-		else
-		{
-			if( autostartdelay < 0 )
-				autostartdelay = GLOBALHOTKEYS_GLOBALWIDGETMANAGERAUTOSTARTDELAY;
-			QTimer::singleShot( autostartdelay, this, SLOT(start()) );
-		}
+		if( inactivitycheckdelay < 0 )
+			inactivitycheckdelay = GLOBALHOTKEYS_GLOBALWIDGETDEFAULTINACTIVITYCHECKDELAY;
+		start( inactivitycheckdelay );
 	}
 }
 
@@ -61,16 +51,19 @@ GlobalWidgetManager::~GlobalWidgetManager()
 }
 
 
-void GlobalWidgetManager::start()
+void GlobalWidgetManager::start( int delay )
 {
 	if( FIRSTRUN )
 	{
+		FIRSTRUN = false;
 		if( ! WIDGET->isVisible() )
 			WIDGET->show();
 		_activateWindow( WIDGET );
-		FIRSTRUN = false;
 	}
-	INACTIVITYTIMER.start();
+	if( delay > 0 )
+		QTimer::singleShot( delay, &INACTIVITYTIMER, SLOT(start()) );
+	else
+		INACTIVITYTIMER.start();
 }
 
 

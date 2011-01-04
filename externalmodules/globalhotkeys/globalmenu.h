@@ -38,9 +38,9 @@ class GlobalMenu : public QMenu
 	public:
 		GlobalMenu();
 		static bool INACTIVITYTIMERLOCK;
-		void popup( QPoint p = QPoint() );
+		void popup( QPoint p = QPoint(), int inactivitycheckdelay = -1 );
 		void timerLock();
-		void timerStart();
+		void timerStart( int delay = 0 );
 		void timerStop();
 		void timerUnlock();
 		PROPERTY_RW( QPointer<GlobalMenu>, PARENTMENU      , parentMenu      , setParentMenu       );
@@ -57,6 +57,7 @@ class GlobalMenu : public QMenu
 		virtual void mousePressEvent( QMouseEvent *event );
 	private slots:
 		void inactivitytimerTimeout();
+		void activate();
 	private:
 		QTimer INACTIVITYTIMER;
 		QPoint LASTMOUSEPOS;

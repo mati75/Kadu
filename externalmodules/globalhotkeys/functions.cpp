@@ -21,6 +21,7 @@
 
 
 
+#include <QApplication>
 #include <QDesktopWidget>
 
 #include "functions.h"
@@ -271,7 +272,7 @@ void Functions::functionOpenChatWith( ConfHotKey *confhotkey )
 			( qApp->desktop()->screenGeometry().height() - window->sizeHint().height() ) / 2
 		);
 	window->show();
-	new GlobalWidgetManager( window );	// popup in the center of the screen
+	new GlobalWidgetManager( window ); // popup in the center of the screen
 	// global data
 	globalhotkeys->SHOWNGLOBALWIDGET = window;
 	globalhotkeys->SHOWNGLOBALWIDGETHOTKEY = confhotkey->hotKey();

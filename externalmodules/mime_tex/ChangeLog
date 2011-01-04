@@ -1,3 +1,7 @@
+2011-01-03  Patryk Cisek <patryk@debian.org>
+
+	* Dostosowano no najnowszych (po 0.6.6-beta13) zmian w API
+
 2010-12-19  Patryk Cisek <patryk@debian.org>
 
 	* Drobna poprawka: przycisk "TeX" w oknie czatu nie jest już

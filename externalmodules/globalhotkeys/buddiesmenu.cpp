@@ -116,6 +116,7 @@ BuddiesMenu::BuddiesMenu() : GlobalMenu()
 {
 	MENUTYPE = BuddiesMenuTypeBuddies;
 	CONTACTSSUBMENU = true;
+	opensubmenuaction = NULL;
 	int wideiconwidth =
 		GLOBALHOTKEYS_BUDDIESMENUICONMARGINLEFT +
 		GLOBALHOTKEYS_BUDDIESMENUSMALLICONSIZE +
@@ -520,6 +521,13 @@ void BuddiesMenu::openSubmenu( QAction *action )
 		// stop timer
 		timerStop();
 		timerLock();
+		// check current submenu
+		if( ( action == opensubmenuaction ) && ( ! SUBMENU.isNull() ) && SUBMENU->isVisible() )
+		{
+			_activateWindow( SUBMENU );
+			timerStart();
+			return;
+		}
 		// close other submenus
 		if( ! SUBMENU.isNull() )
 		{
@@ -527,6 +535,7 @@ void BuddiesMenu::openSubmenu( QAction *action )
 			SUBMENU->close();
 		}
 		// submenu
+		opensubmenuaction = action;
 		BuddiesMenu *buddiessubmenu = new BuddiesMenu();
 		buddiessubmenu->setContactsSubmenu( CONTACTSSUBMENU );
 		SUBMENU = buddiessubmenu;
@@ -536,17 +545,13 @@ void BuddiesMenu::openSubmenu( QAction *action )
 			buddiessubmenu->setMenuType( BuddiesMenuTypeContacts );
 			buddiessubmenu->add( BuddyPreferredManager::instance()->preferredContact( data.contact().ownerBuddy() ) );
 			foreach( Contact contact, data.contact().ownerBuddy().contacts() )
-			{
 				buddiessubmenu->add( contact );
-			}
 			buddiessubmenu->setContactToActivate( data.contact() );
 		}
 		else
 		{
 			foreach( Contact contact, data.contactSet() )
-			{
 				buddiessubmenu->add( contact );
-			}
 		}
 		buddiessubmenu->popup( pos() + actionGeometry( action ).topRight() );
 		// start timer

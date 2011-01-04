@@ -43,18 +43,6 @@ HotKey::HotKey()
 }
 
 
-/// HotKey::HotKey( const HotKey &other )
-/// {
-/// 	SHIFT   = other.SHIFT;
-/// 	CONTROL = other.CONTROL;
-/// 	ALT     = other.ALT;
-/// 	ALTGR   = other.ALTGR;
-/// 	SUPER   = other.SUPER;
-/// 	KEYCODE = other.KEYCODE;
-/// 	STRING  = other.STRING;
-/// }
-
-
 HotKey::HotKey( bool shift, bool control, bool alt, bool altgr, bool super, int keycode, QString string )
 {
 	SHIFT   = shift;
@@ -112,19 +100,6 @@ HotKey::HotKey( QString hotkeystring )
 
 
 HotKey::~HotKey() {}
-
-
-/// HotKey& HotKey::operator=( const HotKey &other )
-/// {
-/// 	SHIFT   = other.SHIFT;
-/// 	CONTROL = other.CONTROL;
-/// 	ALT     = other.ALT;
-/// 	ALTGR   = other.ALTGR;
-/// 	SUPER   = other.SUPER;
-/// 	KEYCODE = other.KEYCODE;
-/// 	STRING  = other.STRING;
-/// 	return *this;
-/// }
 
 
 bool HotKey::operator==( const HotKey &other )

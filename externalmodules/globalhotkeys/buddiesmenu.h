@@ -102,6 +102,7 @@ class BuddiesMenu : public GlobalMenu
 		void openSubmenu( QAction *action );
 		void prepareActions();
 		QList<BuddiesMenuActionData> BUDDIESMENUACTIONDATALIST;
+		QAction *opensubmenuaction;
 };
 
 

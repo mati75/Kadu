@@ -34,11 +34,9 @@ class HotKey
 {
 	public:
 		HotKey();
-///		HotKey( const HotKey &other );
 		HotKey( bool shift, bool control, bool alt, bool altgr, bool super, int keycode, QString comment = "" );
 		HotKey( QString hotkeystring );
 		~HotKey();
-///		HotKey& operator=( const HotKey &other );
 		bool operator==( const HotKey &other );
 		bool isNull();
 		PROPERTY_RW( bool   , SHIFT  , shift  , setShift   );

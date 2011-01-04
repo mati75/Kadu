@@ -42,7 +42,7 @@ class GlobalWidgetManager : public QObject
 	private slots:
 		void inactivitytimerTimeout();
 		void widgetDestroyed();
-		void start();
+		void start( int delay = 0 );
 		void stop();
 	private:
 		QTimer INACTIVITYTIMER;
