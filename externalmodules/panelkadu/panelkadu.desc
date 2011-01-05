@@ -1,0 +1,7 @@
+[Module]
+Description=Makes Kadu look and behave like a panel.
+Description[pl]=Sprawia, ¿e Kadu wygl±da i zachowuje siê jak panel.
+Author=Piotr "ultr" D±browski
+LoadByDefault=false
+Version=0.6.6-6
+Base=false

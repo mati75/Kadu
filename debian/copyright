@@ -1,0 +1,192 @@
+This package was debianized by Patryk Cisek <patryk@debian.org> on
+Wed,  2 May 2007 14:28:08 +0200.
+
+It was downloaded from http://kadu.net
+
+Note that there are far more contributors in Kadu that the ones listed here.
+
+Kadu:
+Copyright © 2001-2010 Kadu Team
+
+agent module:
+Copyright © 2007-2010 Michał Żarłok
+
+anonymous_check module:
+Copyright © 2008-2010 PK Team, Patryk Cisek
+
+antistring, auto_hide, cenzor modules:
+Copyright © 2007-2010 PK Team
+Copyright © 2008-2010 Dorregaray
+
+ao_sound, exec_notify, xosd_notify modules:
+Copyright © 2004-2010 Marcin Slusarz
+
+audacious_mediaplayer module:
+Copyright © 2008-2010 Googie, Rafał 'Vogel' Malinowski
+
+autostatus module:
+Copyright © 2007-2010 PK Team
+Copyright © 2008-2010 Dorregaray
+
+dbus module:
+Copyright © 2010 Bartłomiej Zimoń
+
+dcc module:
+Copyright © 2004-2010 Kadu Team
+Copyright © 2004-2010 Rafał 'Vogel' Malinowski
+
+amarok_mediaplayer, falf_mediaplayer, filedesc, mediaplayer, screenshot
+modules:
+Copyright © 2004-2010 Googie
+
+dcopexport,filtering modules:
+Copyright © 2004-2010 pinkworm
+
+encryption module:
+Copyright © 2008-2010 Tomasz Kazmierczak
+
+ext_info module:
+Copyright © 2004-2010 Dzwiedziu
+
+firewall module:
+Copyright © 2005-2010 Wojtek Sulewski
+Copyright © 2005-2010 Attis
+
+globalhotkeys module:
+Copyright © 2008-2010 ultr
+
+iwait4u, osdhints_notify modules:
+Copyright © 2005-2010 Wojtek Sulewski
+
+last_seen module:
+Copyright © 2007-2010 PK Team
+Copyright © 2008-2010 Dorregaray
+
+led_notify, weather modules:
+Copyright © 2004-2010 Blysk
+
+mail module:
+Copyright © 2004-2010 Michal Podsiadlik
+
+pajacyk module:
+Copyright © 2010 Dorregaray
+
+plus_pl_sms module:
+Copyright © 2007-2010 Patryk Cisek
+
+mx610_notify module:
+Copyright © 2007-2010 Korneliusz Jarzębski
+
+config_wizard, desktop_docking, pcspeaker modules:
+Copyright © 2004-2010 Tomasz Rostanski
+
+mimeTeX (used by mime_tex module):
+Copyright © 2002-2010 John Forkosh Associates, Inc.
+
+mime_tex module:
+Copyright © 2008-2010 Agnieszka Cicha
+Copyright © 2007-2010 Patryk Cisek
+
+osdhinst_notify module:
+Copyright © 2006-2010 Wojtek Sulewski (Pan Wojtas)
+Copyright © 2008-2010 Dorregaray
+
+panelkadu module:
+Copyright © 2008-2010 ultr
+
+parser_extender module:
+Copyright © 2008-2010 Dorregaray
+
+powerkadu module:
+powerkadu © 2007-2010 PT Team
+powerkadu © 2008-2010 Dorregaray
+
+profiles module:
+Copyright © 2006-2010 Tomasz Rostanski
+
+qt4_docking_notify module:
+Copyright © 2007-2010 Kadu Team
+
+senthistory module:
+Copyright © 2008-2010 ultr
+
+spellchecker module:
+Copyright © 2004-2010 nazgul
+Copyright © 2005-2010 Googie
+
+split_messages module:
+Copyright © 2007-2010 PT Team
+Copyright © 2008-2010 Dorregaray
+
+tabs module:
+Copyright © 2005-2010 Michal Podsiadlik
+
+water_notify module:
+Copyright © 2008-2010 Korneliusz Jarzębski
+
+word_fix module:
+Copyright © 2007-2010 PT Team
+Copyright © 2008-2010 Dorregaray
+
+crystal16, crystal22 icon themes:
+Copyright © 2004-2010 Dariusz Arciszewski
+Copyright © 2004-2010 Everaldo
+
+nuvola16, nuvola22 icon themes:
+Copyright © 2004-2010 Kadu Team
+Copyright © 2004-2010 David Vignoni
+
+glass16, glass22 icon themes:
+Copyright © 2006-2010 Mariusz Waluga
+
+penguins emoticons theme:
+Copyright © 2006-2010 Kamil Dziedzic
+Copyright © 2006-2010 Lukasz Florczak
+Copyright © 2006-2010 Mariusz Waluga
+Copyright © 2006-2010 Karolina Weiss
+Copyright © 2006-2010 Hubert Wrzesinki
+
+Active members of Kadu Team (in an alphabetical order) are:
+Bartosz Brachaczek
+Tomasz Chilinski
+Piotr Galiszewski
+Rafal Malinowski
+Michal Podsiadlik
+Tomasz Rostański
+Adrian Smarzewski
+Dawid Stawiarski
+Wojciech Treter
+Bartłomiej Zimoń
+
+Not anymore active members of Kadu Team (in an alphabetical order) are:
+Dariusz Jagodzik
+Tomasz Jarzynka
+Roman Krzystyniak
+Pawel Płuciennik
+Marcin Ślusarz
+
+Members of PK Team (in an alphabetical order) are:
+Patryk Cisek
+Googie
+Graffi
+Marek Kubicki
+Maverick
+
+The Debian packaging is © 2007, Patryk Cisek <patryk@debian.org> and is
+licensed under the GPL.
+
+License:
+
+   This package is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 2 of the License, or
+   (at your option) any later version.
+
+   This package is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+
+On Debian GNU/Linux system, the complete text of the GNU General
+Public License can be found in `/usr/share/common-licenses/GPL'.
+
