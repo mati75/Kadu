@@ -1,4 +1,4 @@
-kadu (0.6.6-beta14-1) experimental; urgency=low
+kadu (0.6.6-beta14.2-1) experimental; urgency=low
 
   * New upstream release
   * Minor updates to debian/patches/* to make them fit new source
@@ -6,7 +6,7 @@ kadu (0.6.6-beta14-1) experimental; urgency=low
     statuses.sh
   * Added encryption_ng and encryption_ng_simlite modules to kadu
 
- -- Patryk Cisek <patryk@debian.org>  Tue, 04 Jan 2011 16:18:20 +0100
+ -- Patryk Cisek <patryk@debian.org>  Wed, 05 Jan 2011 09:11:21 +0100
 
 kadu (0.6.6-beta13-1) experimental; urgency=low
 
