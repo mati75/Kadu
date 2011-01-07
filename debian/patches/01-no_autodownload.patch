@@ -1,3 +1,16 @@
+Description: Disables autodownload mechanism
+ Kadu has a nice set of external (submitted by 3rd parties) plugin-like
+ modules. It also has a mechanism called autodownload that fetches source code
+ of selected external modules during cmake call, and includes them into
+ compilation and installation (make, make install) stages.
+ .
+ In Debian it is not acceptable to have any source code outside of Debian
+ source package, thus autodownload mechanism must be disabled and source code
+ of all external modules must be shipped inside Debian source package.
+ .
+ This package disabled autodownload mechanism.
+Author: Patryk Cisek <patryk@debian.org>
+---
 diff --git a/CMakeLists.txt b/CMakeLists.txt
 index 398fbdf..a39c7c5 100644
 --- a/CMakeLists.txt

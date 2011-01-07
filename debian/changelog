@@ -1,3 +1,10 @@
+kadu (0.6.6-beta14.2-2) experimental; urgency=low
+
+  * Added metadata to debian/patches to make them comply DEP3
+    http://dep.debian.net/deps/dep3
+
+ -- Patryk Cisek <patryk@debian.org>  Fri, 07 Jan 2011 20:02:19 +0100
+
 kadu (0.6.6-beta14.2-1) experimental; urgency=low
 
   * New upstream release
