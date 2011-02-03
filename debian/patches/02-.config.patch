@@ -12,7 +12,7 @@ Description: Selects all usable external modules
 Author: Patryk Cisek <patryk@debian.org>
 ---
 diff --git a/.config b/.config
-index 5ce231d..dbe6172 100644
+index a6cb13a..7e9d221 100644
 --- a/.config
 +++ b/.config
 @@ -92,7 +92,7 @@ module_growl_notify=n
@@ -51,7 +51,7 @@ index 5ce231d..dbe6172 100644
  
  # Description: Autostatus
  # PL: Automatyczne zmiany statusu
-@@ -365,7 +365,7 @@ module_plus_pl_sms=n
+@@ -371,7 +371,7 @@ module_plus_pl_sms=n
  # PL: Powiadomiania diodą Scroll Lock
  # Platform: Linux
  # Needs: libX11
@@ -60,7 +60,7 @@ index 5ce231d..dbe6172 100644
  
  # Description: Mail checking module
  # PL: Moduł do sprawdzana poczty
-@@ -375,17 +375,17 @@ module_mail=n
+@@ -381,17 +381,17 @@ module_mail=n
  # Description: TeX formula support
  # PL: Wsparcie dla formuł TeX-owych
  # Platform: Linux
@@ -81,7 +81,7 @@ index 5ce231d..dbe6172 100644
  
  # Description: PowerKadu
  # PL: PowerKadu
-@@ -396,11 +396,11 @@ module_powerkadu=n
+@@ -402,11 +402,11 @@ module_powerkadu=n
  # Description: Adds global hotkeys support to Kadu
  # PL: Dodaje do Kadu obsługę skrótów globalnych
  # Platform: Linux
@@ -94,8 +94,8 @@ index 5ce231d..dbe6172 100644
 +module_senthistory=m
  # Platform: Linux, Mac OS X, Windows
  
- ######################## MEDIAPLAYER ########################
-@@ -423,22 +423,22 @@ module_amarok2_mediaplayer=m
+ # Description: New ext_info module providing extended contact information support
+@@ -434,22 +434,22 @@ module_amarok2_mediaplayer=m
  # Description: Audacious support for mediaplayer
  # PL: Wsparcie dla Audacious w mediaplayer
  # Platform: Linux
@@ -122,7 +122,7 @@ index 5ce231d..dbe6172 100644
  
  # Description: iTunes support for mediaplayer
  # PL: Wsparcie dla iTunes w mediaplayer
-@@ -449,17 +449,17 @@ module_itunes_mediaplayer=n
+@@ -460,17 +460,17 @@ module_itunes_mediaplayer=n
  # PL: Wsparcie dla  MPD w mediaplayer
  # Needs: libmpdclient
  # Platform: Linux
@@ -143,7 +143,7 @@ index 5ce231d..dbe6172 100644
  
  # Description: Winamp support for mediaplayer
  # PL: Wsparcie dla Winamp'a w mediaplayer
-@@ -474,7 +474,7 @@ module_xmms_mediaplayer=n
+@@ -485,7 +485,7 @@ module_xmms_mediaplayer=n
  # Description: XMMS2 support for mediaplayer
  # PL: Wsparcie dla XMMS2 w mediaplayer
  # Platform: Linux
@@ -152,7 +152,7 @@ index 5ce231d..dbe6172 100644
  
  ############################################# ICONS ###########################################################################
  # PL: ####################################### IKONY ###########################################################################
-@@ -502,7 +502,7 @@ icons_default=y
+@@ -513,7 +513,7 @@ icons_default=y
  icons_oxygen=y
  
  # Description: Default theme from kadu 0.5.x
@@ -161,7 +161,7 @@ index 5ce231d..dbe6172 100644
  
  # Description: Glass icon theme made by Mariusz Waluga
  icons_glass=y
-@@ -532,7 +532,7 @@ emoticons_tango=y
+@@ -543,7 +543,7 @@ emoticons_tango=y
  
  # Description: Old Gadu-Gadu 6.x emoticons
  # PL: Kompatybilne ze starą wersją Gadu-Gadu 6.x
@@ -170,7 +170,7 @@ index 5ce231d..dbe6172 100644
  
  ########################################### SOUNDS ############################################################################
  # PL: ##################################### DŹWIĘKI ###########################################################################
-@@ -550,14 +550,14 @@ emoticons_gg6_compatible=n
+@@ -561,14 +561,14 @@ emoticons_gg6_compatible=n
  # PL: Standardowy zestaw dźwięków dostępny razem ze źródłami Kadu
  sound_default=y
  
