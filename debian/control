@@ -2,7 +2,7 @@ Source: kadu
 Section: net
 Priority: optional
 Maintainer: Patryk Cisek <patryk@debian.org>
-Build-Depends: cmake (>=2.6), debhelper (>= 7), patchutils (>= 0.2.25), sharutils, bzip2, libqt4-dev, libao-dev, libsndfile1-dev (>= 1.0), libcurl3-gnutls-dev, libaudio-dev, libxtst-dev, libgadu-dev, libaspell-dev, libasound-dev, libdbus-1-dev, libqca2-dev, x11proto-scrnsaver-dev, libxss-dev, libphonon-dev, libxfixes-dev, libmpdclient-dev
+Build-Depends: cmake (>=2.6), debhelper (>= 7), patchutils (>= 0.2.25), sharutils, bzip2, libqt4-dev, libao-dev, libsndfile1-dev (>= 1.0), libcurl4-gnutls-dev, libaudio-dev, libxtst-dev, libgadu-dev, libaspell-dev, libasound-dev, libdbus-1-dev, libqca2-dev, x11proto-scrnsaver-dev, libxss-dev, libphonon-dev, libxfixes-dev, libmpdclient-dev
 Standards-Version: 3.9.1
 Homepage: http://kadu.net
 
