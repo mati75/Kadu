@@ -48,7 +48,7 @@ class GaduChatService : public ChatService
 	QByteArray getContent(struct gg_event *e);
 	bool ignoreRichText(Contact sender);
 	bool ignoreImages(Contact sender);
-	FormattedMessage createFormattedMessage(struct gg_event *e, QString &content, Contact sender);
+	FormattedMessage createFormattedMessage(struct gg_event *e, QByteArray &content, Contact sender);
 
 	void removeTimeoutUndeliveredMessages();
 
@@ -59,7 +59,7 @@ public:
 	GaduChatService(GaduProtocol *protocol);
 
 public slots:
-	virtual bool sendMessage(Chat chat, FormattedMessage &message, bool silent = false);
+	virtual bool sendMessage(const Chat &chat, FormattedMessage &message, bool silent = false);
 
 };
 

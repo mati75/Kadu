@@ -27,6 +27,7 @@
 #include "avatars/avatar-manager.h"
 #include "protocols/services/avatar-service.h"
 #include "protocols/protocol.h"
+#include "protocols/protocol-factory.h"
 #include "icons-manager.h"
 
 #include "account-avatar-widget.h"
@@ -60,17 +61,31 @@ void AccountAvatarWidget::createGui()
 	AvatarLabel->setAlignment(Qt::AlignCenter);
 	AvatarLabel->setFixedWidth(128);
 
+	layout->addWidget(AvatarLabel);
+
+	ChangePhotoButton = new QPushButton(this);
+	connect(ChangePhotoButton, SIGNAL(clicked(bool)), this, SLOT(changeButtonClicked()));
+	setupMode();
+
+	layout->addWidget(ChangePhotoButton, 0, Qt::AlignHCenter);
+
 	Avatar avatar = MyAccount.accountContact().contactAvatar();
 	if (avatar)
 		connect(avatar, SIGNAL(updated()), this, SLOT(avatarUpdated()));
 	avatarUpdated();
+}
 
-	layout->addWidget(AvatarLabel);
+void AccountAvatarWidget::setupMode()
+{
+	if (MyAccount.protocolHandler()->protocolFactory()->canRemoveAvatar() && !MyAccount.accountContact().contactAvatar().isEmpty())
+		Mode = ModeRemove;
+	else
+		Mode = ModeChange;
 
-	ChangeAvatarButton = new QPushButton(tr("Change avatar..."), this);
-	connect(ChangeAvatarButton, SIGNAL(clicked(bool)), this, SLOT(changeAvatar()));
-
-	layout->addWidget(ChangeAvatarButton, 0, Qt::AlignHCenter);
+	if (ModeRemove == Mode)
+		ChangePhotoButton->setText(tr("Remove Photo..."));
+	else
+		ChangePhotoButton->setText(tr("Change Photo..."));
 }
 
 void AccountAvatarWidget::protocolRegistered(ProtocolFactory *protocolFactory)
@@ -111,6 +126,16 @@ void AccountAvatarWidget::avatarUpdated()
 	if (avatar.width() > 128 || avatar.height() > 128)
 		avatar = avatar.scaled(QSize(128, 128), Qt::KeepAspectRatio, Qt::SmoothTransformation);
 	AvatarLabel->setPixmap(avatar);
+
+	setupMode();
+}
+
+void AccountAvatarWidget::changeButtonClicked()
+{
+	if (ModeRemove == Mode)
+		removeAvatar();
+	else
+		changeAvatar();
 }
 
 void AccountAvatarWidget::changeAvatar()
@@ -128,7 +153,17 @@ void AccountAvatarWidget::changeAvatar()
 	WaitMovie->start();
 
 	Service->uploadAvatar(avatar);
-	ChangeAvatarButton->setEnabled(false);
+	ChangePhotoButton->setEnabled(false);
+}
+
+void AccountAvatarWidget::removeAvatar()
+{
+	AvatarLabel->setScaledContents(false);
+	AvatarLabel->setMovie(WaitMovie);
+	WaitMovie->start();
+
+	Service->uploadAvatar(QImage());
+	ChangePhotoButton->setEnabled(false);
 }
 
 void AccountAvatarWidget::avatarUploaded(bool ok, QImage image)
@@ -137,5 +172,5 @@ void AccountAvatarWidget::avatarUploaded(bool ok, QImage image)
 		AvatarManager::instance()->byContact(MyAccount.accountContact(), ActionCreateAndAdd).setPixmap(QPixmap::fromImage(image));
 
 	avatarUpdated();
-	ChangeAvatarButton->setEnabled(true);
+	ChangePhotoButton->setEnabled(true);
 }

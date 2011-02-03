@@ -36,6 +36,7 @@
 
 #include "configuration/configuration-file.h"
 #include "buddies/buddy-list-mime-data-helper.h"
+#include "buddies/buddy-manager.h"
 #include "buddies/group.h"
 #include "buddies/group-manager.h"
 #include "buddies/filter/group-buddy-filter.h"
@@ -56,7 +57,7 @@ static bool compareGroups(Group g1, Group g2)
 }
 
 GroupTabBar::GroupTabBar(QWidget *parent) :
-		QTabBar(parent), showAllGroup(true)
+		QTabBar(parent), ShowAllGroup(true), AutoGroupTabPosition(-1)
 {
 	Filter = new GroupBuddyFilter(this);
 
@@ -88,18 +89,12 @@ GroupTabBar::GroupTabBar(QWidget *parent) :
 	connect(GroupManager::instance(), SIGNAL(groupAboutToBeRemoved(Group)), this, SLOT(groupRemoved(Group)));
 	connect(GroupManager::instance(), SIGNAL(saveGroupData()), this, SLOT(saveGroupTabsPosition()));
 
-	showAllGroup = config_file.readBoolEntry("Look", "ShowGroupAll", true);
-	if (showAllGroup)
-	{
+	ShowAllGroup = config_file.readBoolEntry("Look", "ShowGroupAll", true);
+	if (ShowAllGroup)
 		AutoGroupTabPosition = config_file.readNumEntry("Look", "AllGroupTabPosition", 0);
-		insertTab(AutoGroupTabPosition, IconsManager::instance()->iconByPath("x-office-address-book"), tr("All"));
-	}
-	else
-	{
-		AutoGroupTabPosition = config_file.readNumEntry("Look", "UngroupedGroupTabPosition", 100);
-		insertTab(AutoGroupTabPosition, tr("Ungrouped"));
-	}
-	setTabData(AutoGroupTabPosition, "AutoTab");
+	else if (hasAnyUngrouppedBuddy())
+		AutoGroupTabPosition = config_file.readNumEntry("Look", "UngroupedGroupTabPosition", -1);
+	updateAutoGroupTab(ShowAllGroup);
 
 	if (!config_file.readBoolEntry("Look", "DisplayGroupTabs", true))
 	{
@@ -109,21 +104,70 @@ GroupTabBar::GroupTabBar(QWidget *parent) :
 		return;
 	}
 
-	Filter->setAllGroupShown(showAllGroup);
+	Filter->setAllGroupShown(ShowAllGroup);
 
 	int currentGroup = config_file.readNumEntry("Look", "CurrentGroupTab", 0);
 	setCurrentIndex(currentGroup);
 	currentChangedSlot(currentGroup);
+
+	connect(BuddyManager::instance(), SIGNAL(buddyUpdated(Buddy&)), this, SLOT(updateAutoGroupTab()));
 }
 
 GroupTabBar::~GroupTabBar()
 {
-	if (showAllGroup)
+	if (ShowAllGroup)
 		config_file.writeEntry("Look", "AllGroupTabPosition", AutoGroupTabPosition);
 	else
 		config_file.writeEntry("Look", "UngroupedGroupTabPosition", AutoGroupTabPosition);
 
 	config_file.writeEntry("Look", "CurrentGroupTab", currentIndex());
+}
+
+void GroupTabBar::updateAutoGroupTab()
+{
+	saveGroupTabsPosition();
+	updateAutoGroupTab(ShowAllGroup);
+}
+
+void GroupTabBar::updateAutoGroupTab(bool oldShowAllGroup)
+{
+	bool currentWasAutoGroup = false;
+
+	if (oldShowAllGroup)
+		config_file.writeEntry("Look", "AllGroupTabPosition", AutoGroupTabPosition);
+	else
+		config_file.writeEntry("Look", "UngroupedGroupTabPosition", AutoGroupTabPosition);
+
+	if (-1 != AutoGroupTabPosition && tabData(AutoGroupTabPosition) == "AutoTab")
+	{
+		if (AutoGroupTabPosition == currentIndex())
+			currentWasAutoGroup = true;
+		removeTab(AutoGroupTabPosition);
+		AutoGroupTabPosition = -1;
+	}
+
+	if (ShowAllGroup)
+	{
+		AutoGroupTabPosition = config_file.readNumEntry("Look", "AllGroupTabPosition", 0);
+		AutoGroupTabPosition = insertTab(AutoGroupTabPosition, IconsManager::instance()->iconByPath("x-office-address-book"), tr("All"));
+	}
+	else if (hasAnyUngrouppedBuddy())
+	{
+		AutoGroupTabPosition = config_file.readNumEntry("Look", "UngroupedGroupTabPosition", -1);
+		AutoGroupTabPosition = insertTab(AutoGroupTabPosition, tr("Ungrouped"));
+	}
+	else
+		AutoGroupTabPosition = -1;
+
+	if (-1 != AutoGroupTabPosition)
+	{
+		setTabData(AutoGroupTabPosition, "AutoTab");
+		if (currentWasAutoGroup)
+		{
+			setCurrentIndex(AutoGroupTabPosition);
+			currentChangedSlot(AutoGroupTabPosition);
+		}
+	}
 }
 
 void GroupTabBar::addGroup(const Group &group)
@@ -185,6 +229,15 @@ void GroupTabBar::updateGroup(Group group)
 		setTabText(groupId, QString());
 }
 
+bool GroupTabBar::hasAnyUngrouppedBuddy() const
+{
+	foreach (const Buddy &buddy, BuddyManager::instance()->items())
+		if (!buddy.isAnonymous() && buddy.groups().isEmpty())
+			return true;
+
+	return false;
+}
+
 void GroupTabBar::groupUpdated()
 {
 	Group group = sender();
@@ -207,7 +260,7 @@ void GroupTabBar::contextMenuEvent(QContextMenuEvent *event)
 	menu.addAction(tr("Rename Group"), this, SLOT(renameGroup()))->setEnabled(tabIndex != -1 && currentGroup);
 	menu.addSeparator();
 	menu.addAction(tr("Delete Group"), this, SLOT(deleteGroup()))->setEnabled(tabIndex != -1 && currentGroup);
-	menu.addAction(tr("Create New Group"), this, SLOT(createNewGroup()));
+	menu.addAction(tr("Add New Group"), this, SLOT(createNewGroup()));
 	menu.addSeparator();
 	menu.addAction(tr("Properties"), this, SLOT(groupProperties()))->setEnabled(tabIndex != -1 && currentGroup);
 
@@ -355,18 +408,18 @@ void GroupTabBar::moveToGroup()
 	}
 }
 
- void GroupTabBar::saveGroupTabsPosition()
- {
-	Group group;
+void GroupTabBar::saveGroupTabsPosition()
+{
+	AutoGroupTabPosition = -1;
 	for (int i = 0; i < count(); ++i)
 	{
-		group = GroupManager::instance()->byUuid(tabData(i).toString());
+		Group group(GroupManager::instance()->byUuid(tabData(i).toString()));
 		if (group)
 			group.setTabPosition(i);
 		else
 			AutoGroupTabPosition = i;
 	}
- }
+}
 
 void GroupTabBar::configurationUpdated()
 {
@@ -387,40 +440,11 @@ void GroupTabBar::configurationUpdated()
 
 	setVisible(true);
 
-	bool show = config_file.readBoolEntry("Look", "ShowGroupAll", true);
-
-	int autoGroupOldPosition = -1;
-
-	for (int i = 0; i < count(); ++i)
-		if (tabData(i).toString() == "AutoTab")
-		{
-			autoGroupOldPosition = i;
-			break;
-		}
-
-
-	if (showAllGroup != show)
-	{
-		if (show)
-		{
-			config_file.writeEntry("Look", "UngroupedGroupTabPosition", autoGroupOldPosition);
-			AutoGroupTabPosition = config_file.readNumEntry("Look", "AllGroupTabPosition", -1);
-			setTabText(autoGroupOldPosition, tr("All"));
-			setTabIcon(autoGroupOldPosition, IconsManager::instance()->iconByPath("x-office-address-book"));
-		}
-		else
-		{
-			config_file.writeEntry("Look", "AllGroupTabPosition", autoGroupOldPosition);
-			AutoGroupTabPosition = config_file.readNumEntry("Look", "UngroupedGroupTabPosition", -1);
-			setTabText(autoGroupOldPosition, tr("Ungrouped"));
-			setTabIcon(autoGroupOldPosition, QIcon(QString()));
-		}
-
-		moveTab(autoGroupOldPosition, AutoGroupTabPosition);
-	}
-
-	showAllGroup = show;
-	Filter->setAllGroupShown(showAllGroup);
+	saveGroupTabsPosition();
+	bool oldShowAllGroup = ShowAllGroup;
+	ShowAllGroup = config_file.readBoolEntry("Look", "ShowGroupAll", true);
+	updateAutoGroupTab(oldShowAllGroup);
+	Filter->setAllGroupShown(ShowAllGroup);
 
 	if (AutoGroupTabPosition == currentIndex())
 		Filter->refresh();

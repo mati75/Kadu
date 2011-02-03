@@ -249,7 +249,7 @@ SearchWindow::SearchWindow(QWidget *parent, Buddy buddy) :
 	{
 		CurrentSearchCriteria.SearchBuddy = buddy;
 		QList<Contact> contactslist = buddy.contacts(CurrentAccount);
-		Contact contact = contactslist.isEmpty() ? Contact::null : contactslist[0];
+		Contact contact = contactslist.isEmpty() ? Contact::null : contactslist.at(0);
 		e_uin->insert(contact.id());
 	}
 
@@ -324,9 +324,9 @@ void SearchWindow::closeModule()
 QTreeWidgetItem * SearchWindow::selectedItem()
 {
 	if (results->selectedItems().count())
-		return results->selectedItems()[0];
+		return results->selectedItems().at(0);
 	else if (results->children().count() == 1)
-		return dynamic_cast<QTreeWidgetItem *>(results->children()[0]);
+		return dynamic_cast<QTreeWidgetItem *>(results->children().at(0));
 	else
 		return NULL;
 }
@@ -334,11 +334,7 @@ QTreeWidgetItem * SearchWindow::selectedItem()
 void SearchWindow::addFound()
 {
 	foreach (const Buddy &buddy, selected().toBuddySet().toList())
-	{
-		AddBuddyWindow *a = new AddBuddyWindow(this);
-		a->setBuddy(buddy);
-		a->show();
-	}
+		(new AddBuddyWindow(this, buddy))->show();
 }
 
 void SearchWindow::chatFound()
@@ -348,7 +344,7 @@ void SearchWindow::chatFound()
 	{
 		Chat chat = ChatManager::instance()->findChat(contacts, true);
 		if (chat)
-			ChatWidgetManager::instance()->openChatWidget(chat, true);
+			ChatWidgetManager::instance()->openPendingMessages(chat, true);
 	}
 
 }
@@ -525,10 +521,10 @@ void SearchWindow::newSearchResults(const BuddyList &buddies)
 	foreach (const Buddy &buddy, buddies)
 	{
 		QList<Contact> contactslist = buddy.contacts(CurrentAccount);
-		Contact contact = contactslist.isEmpty() ? Contact::null : contactslist[0];
+		Contact contact = contactslist.isEmpty() ? Contact::null : contactslist.at(0);
 		QList <QTreeWidgetItem *> items = results->findItems(contact.id(), Qt::MatchExactly, 1);
 		if (items.count())
-			qlv = items[0];
+			qlv = items.at(0);
 		pix = contact.contactAccount().data()->statusIcon(contact.currentStatus()).pixmap(16, 16);
 
 		if (qlv)

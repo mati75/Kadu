@@ -5,6 +5,8 @@ set (SOURCES
 	keys/key-shared.cpp
 	keys/key.cpp
 
+	notify/encryption-ng-notification.cpp
+
 	decryptor.cpp
 	decryptor-wrapper.cpp
 	encryption-actions.cpp
@@ -19,6 +21,8 @@ set (SOURCES
 set (MOC_SOURCES
 	keys/keys-manager.h
 	keys/key-shared.h
+
+	notify/encryption-ng-notification.h
 
 	decryptor.h
 	decryptor-wrapper.h
@@ -60,4 +64,5 @@ kadu_module (encryption_ng
 	MODULE_TRANSLATION_SOURCES ${TRANSLATION_SOURCES}
 	MODULE_CONFIGURATION_FILES ${CONFIGURATION_FILES}
 	MODULE_LIBRARIES ${QCA2_LIBRARIES}
+	MODULE_BUILDDEF ENCRYPTION_BUILD
 )

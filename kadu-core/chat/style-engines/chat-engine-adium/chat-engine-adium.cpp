@@ -180,8 +180,7 @@ void AdiumChatStyleEngine::appendChatMessage(HtmlMessagesRenderer *renderer, Mes
 			break;
 	}
 
-	formattedMessageHtml = replaceKeywords(CurrentStyle.baseHref(), formattedMessageHtml, message);
-	formattedMessageHtml.replace('\n', ' ');
+	formattedMessageHtml = replacedNewLine(replaceKeywords(CurrentStyle.baseHref(), formattedMessageHtml, message), QLatin1String(" "));
 	formattedMessageHtml.replace('\'', QLatin1String("\\'"));
 	formattedMessageHtml.replace('\\', QLatin1String("\\\\"));
 	formattedMessageHtml.prepend("<span>");
@@ -303,33 +302,29 @@ void AdiumChatStyleEngine::prepareStylePreview(Preview *preview, QString styleNa
 	//I don't know why, sometimes 'initStyle' was performed after 'appendMessage'
 	preview->page()->mainFrame()->evaluateJavaScript("initStyle()");
 
-	QString outgoingHtml = replaceKeywords(style.baseHref(), style.outgoingHtml(), message);
-	outgoingHtml.replace('\n', ' ');
+	QString outgoingHtml(replacedNewLine(replaceKeywords(style.baseHref(), style.outgoingHtml(), message), QLatin1String(" ")));
 	outgoingHtml.replace('\'', QLatin1String("\\'"));
 	outgoingHtml.prepend("<span>");
 	outgoingHtml.append("</span>");
 	preview->page()->mainFrame()->evaluateJavaScript("appendMessage(\'" + outgoingHtml + "\')");
 
 	message = dynamic_cast<MessageRenderInfo *>(preview->getObjectsToParse().at(1));
-	QString incomingHtml = replaceKeywords(style.baseHref(), style.incomingHtml(), message);
-	incomingHtml.replace('\n', ' ');
+	QString incomingHtml(replacedNewLine(replaceKeywords(style.baseHref(), style.incomingHtml(), message), QLatin1String(" ")));
 	incomingHtml.replace('\'', QLatin1String("\\'"));
 	incomingHtml.prepend("<span>");
 	incomingHtml.append("</span>");
 	preview->page()->mainFrame()->evaluateJavaScript("appendMessage(\'" + incomingHtml + "\')");
 
-#if (QT_VERSION >= 0x040600)
 	/* in Qt 4.6.3 / WebKit there is a bug making the following call not working */
 	/* according to: https://bugs.webkit.org/show_bug.cgi?id=35633 */
 	/* the proper refreshing behaviour should occur once the bug is fixed */
 	/* possible temporary solution: use QWebElements API to randomly change */
 	/* URLs in the HTML/CSS content. */
 	preview->page()->triggerAction(QWebPage::ReloadAndBypassCache, false);
-#endif
 }
 
 // Some parts of the code below are borrowed from Kopete project (http://kopete.kde.org/)
-QString AdiumChatStyleEngine::replaceKeywords(Chat chat, const QString &styleHref, const QString &style)
+QString AdiumChatStyleEngine::replaceKeywords(const Chat &chat, const QString &styleHref, const QString &style)
 {
 	if (!chat)
 		return QString();

@@ -99,7 +99,7 @@ void checkBuddyProperties(Action *action)
 	if (action->buddy().isAnonymous())
 	{
 		action->setIcon(IconsManager::instance()->iconByPath("contact-new"));
-		action->setText(qApp->translate("KaduWindowActions", "Add Buddy"));
+		action->setText(qApp->translate("KaduWindowActions", "Add Buddy..."));
 	}
 	else
 	{
@@ -351,12 +351,12 @@ KaduWindowActions::KaduWindowActions(QObject *parent) : QObject(parent)
 	DeleteUsers->setShortcut("kadu_deleteuser");
 	BuddiesListViewMenuManager::instance()->addActionDescription(DeleteUsers, BuddiesListViewMenuItem::MenuCategoryManagement, 1000);
 
-	ShowStatus = new ActionDescription(this,
+	ChangeStatus = new ActionDescription(this,
 		ActionDescription::TypeGlobal, "openStatusAction",
-		this, SLOT(showStatusActionActivated(QAction *, bool)),
+		this, SLOT(changeStatusActionActivated(QAction *, bool)),
 		"kadu_icons/change-status", tr("Change Status")
 	);
-	connect(ShowStatus, SIGNAL(actionCreated(Action *)), this, SLOT(showStatusActionCreated(Action *)));
+	connect(ChangeStatus, SIGNAL(actionCreated(Action *)), this, SLOT(changeStatusActionCreated(Action *)));
 
 	UseProxy = new ActionDescription(this,
 		ActionDescription::TypeGlobal, "useProxyAction",
@@ -366,6 +366,8 @@ KaduWindowActions::KaduWindowActions(QObject *parent) : QObject(parent)
 	connect(UseProxy, SIGNAL(actionCreated(Action *)), this, SLOT(useProxyActionCreated(Action *)));
 
 	connect(StatusChangerManager::instance(), SIGNAL(statusChanged(StatusContainer *, Status)), this, SLOT(statusChanged(StatusContainer *, Status)));
+	foreach (StatusContainer *statusContainer, StatusContainerManager::instance()->statusContainers())
+		statusChanged(statusContainer, StatusChangerManager::instance()->status(statusContainer));
 }
 
 KaduWindowActions::~KaduWindowActions()
@@ -377,10 +379,13 @@ void KaduWindowActions::statusChanged(StatusContainer *container, Status status)
 	if (!container)
 		return;
 
-	// TODO: 0.6.6, this really SUXX
 	QIcon icon = container->statusIcon(status).pixmap(16, 16);
-	foreach (Action *action, ShowStatus->actions())
-		action->setIcon(icon);
+	foreach (Action *action, ChangeStatus->actions())
+		if (action->statusContainer() == container)
+			action->setIcon(icon);
+
+	if (container == StatusContainerManager::instance()->defaultStatusContainer() && container != StatusContainerManager::instance())
+		statusChanged(StatusContainerManager::instance(), status);
 }
 
 void KaduWindowActions::inactiveUsersActionCreated(Action *action)
@@ -451,16 +456,18 @@ void KaduWindowActions::editUserActionCreated(Action *action)
 	if (buddy && buddy.isAnonymous())
 	{
 		action->setIcon(IconsManager::instance()->iconByPath("contact-new"));
-		action->setText(tr("Add Buddy"));
+		action->setText(tr("Add Buddy..."));
 	}
 }
 
-void KaduWindowActions::showStatusActionCreated(Action *action)
+void KaduWindowActions::changeStatusActionCreated(Action *action)
 {
-	Account account = AccountManager::instance()->defaultAccount();
-
-	if (account.protocolHandler())
-		action->setIcon(account.protocolHandler()->statusIcon().pixmap(16,16));
+	StatusContainer *statusContainer = action->statusContainer();
+	if (statusContainer)
+	{
+		Status status = StatusChangerManager::instance()->status(statusContainer);
+		action->setIcon(statusContainer->statusIcon(status).pixmap(16,16));
+	}
 }
 
 void KaduWindowActions::useProxyActionCreated(Action *action)
@@ -536,12 +543,11 @@ void KaduWindowActions::addUserActionActivated(QAction *sender, bool toggled)
 		return;
 
 	Buddy buddy = action->buddy();
-	AddBuddyWindow *addBuddyWindow = new AddBuddyWindow(action->parentWidget());
 
 	if (buddy.isAnonymous())
-		addBuddyWindow->setBuddy(buddy);
-
-	addBuddyWindow->show();
+		(new AddBuddyWindow(action->parentWidget(), buddy, true))->show();
+	else
+		(new AddBuddyWindow(action->parentWidget()))->show();
 
  	kdebugf2();
 }
@@ -886,33 +892,28 @@ void KaduWindowActions::editUserActionActivated(ActionDataSource *source)
 	Buddy buddy = *buddySet.begin();
 
 	if (buddy.isAnonymous())
-	{
-		AddBuddyWindow *addBuddyWindow = new AddBuddyWindow(Core::instance()->kaduWindow());
-		addBuddyWindow->setBuddy(buddy);
-		addBuddyWindow->show();
-	}
+		(new AddBuddyWindow(Core::instance()->kaduWindow(), buddy, true))->show();
 	else
 		BuddyDataWindow::instance(buddy, Core::instance()->kaduWindow())->show();
 
 	kdebugf2();
 }
 
-void KaduWindowActions::showStatusActionActivated(QAction *sender, bool toggled)
+void KaduWindowActions::changeStatusActionActivated(QAction *sender, bool toggled)
 {
 	Q_UNUSED(toggled)
 
-	MainWindow *window = dynamic_cast<MainWindow *>(sender->parent());
-	if (!window)
+	Action *action = dynamic_cast<Action *>(sender);
+	if (!action)
 		return;
 
-	StatusContainer *container = window->statusContainer();
+	StatusContainer *container = action->statusContainer();
 	if (!container)
-		container = StatusContainerManager::instance();
+		return;
 
-	QMenu *menu = new QMenu();
-	new StatusMenu(container, menu);
+	QScopedPointer<QMenu> menu(new QMenu());
+	new StatusMenu(container, menu.data());
 	menu->exec(QCursor::pos());
-	delete menu;
 }
 
 void KaduWindowActions::useProxyActionActivated(QAction *sender, bool toggled)

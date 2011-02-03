@@ -46,7 +46,7 @@ public:
 
 	virtual void setDescription(const QString &description) = 0;
 
-	virtual QString statusName() = 0;
+	virtual QString statusDisplayName() = 0;
 	virtual QIcon statusIcon() = 0;
 	virtual QIcon statusIcon(Status status) = 0;
 	virtual QString statusIconPath(const QString &statusType) = 0;
@@ -56,7 +56,7 @@ public:
 
 	virtual int maxDescriptionLength() = 0;
 
-	virtual QString statusNamePrefix() { return QString(""); }
+	virtual QString statusNamePrefix() { return QString(); }
 
 	virtual void setDefaultStatus(const QString &startupStatus, bool offlineToInvisible,
 				      const QString &startupDescription, bool StartupLastDescription) = 0;

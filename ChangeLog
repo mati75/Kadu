@@ -1,9 +1,50 @@
++++ version 0.6.6-beta16
+
 +++ version 0.6.6-beta15
+* url-handlers: #1908 fixed: links containing HTML entities were not escaped (beevvy)
+* url-handlers: #1894 fixed: HTTP links containing e-mail addresses were wrongly interpreted (beevvy)
+* modules: creating static modules is again possible (WhE)
+* protocols: #1887 fixed: restored importing contact list after adding Gadu-Gadu account (beevvy)
+* gui: #1922 fixed: when adding buddy with "Add Buddy..." action from chat, Buddy ID and account should not be editable to not confuse users (beevvy)
+* profiles_import: #1748 half-way done: importing old profiles into new identisies, no history import yet (Vogel)
+* core: #1895 fixed: added screensaver detection for automatic fullscreen silent mode (ultr)
+* gui: #1610 fixed: flashing hints over buddies list fixed (ultr)
+* gadu: #1640 fixed: no tokens when creating a new account on Windows (dorr)
+* config_wizard: #1912 fixed: Next and Cancel buttons were invisible on Windows Vista/7 (beevvy)
+* docking: #1915 fixed: minimizing Kadu to tray by clicking on tray icon didn't work on Windows (beevvy)
+* profiles_import: #1748 done: history import added (Vogel)
+* profiles: module removed (Vogel)
+* encryption_ng_simlite: #1936 fixed: invalid encoding when encrypting messages between 0.6.6 and 0.6.6 (Vogel)
+* search: #1931 fixed: double toolbars in search window (Vogel)
+* gui: #1899 fixed: do not display "Ungroupped" group when it is empty (Vogel)
+* gui: #1724 fixed: better "cannot send image" messages (Vogel)
+* sms: #1727 fixed: removed plus gateway (Vogel)
+* nextinfo: module ported to Kadu 0.6.6 (ultr)
+* encryption_ng: #1933 fixed: do not turn on encryption when received unencrypted message (Vogel)
+* gui: added "more actions" action to chat toolbars (Vogel)
+* gui: #1733 fixed: new default layout of chat toolbars (Vogel)
+* encryption_ng_simlite: #1921 fixed: could not read some public keys (Vogel)
+* gui: #1679, #1940 fixed: scrolling chat window with emoticons and images (ultr)
+* screenshot: #1941 fixed: disable screenshot action for protocols without chat image service (Juzef)
+* gadu: download avatar from server after connection (Vogel)
+* jabber: download avatar from server after connection (Vogel)
+* jabber: PEP avatars can now be fetched for contacts (Vogel)
+* jabber: #1750 fixed: account avatar can now be removed (Vogel)
+* gadu: #1852 fixed: crash while receiving files (beevvy)
+* qt: Qt 4.6.1 is now required
+* gui: #1928 fixed: hide tooltip over conference window' buddies list when the window is closed (ultr)
+* gui: keep chat edit box height fixed - user must maually resize (Vogel)
+* gui: all chat edit boxes have the same size now (Vogel)
+* core: #1925 fixed: disappearing StatusMenu after Kadu restart after removing an account (beevvy)
+* gui: buddies with pending messages are shown on top of buddies list and are always visible (Vogel)
+* gui: fixed crash when opening chat window by pressing Enter, when a filter is active (Vogel)
+* configuration: disable some advanced chat options for Adium styles (Vogel)
+* imagelink: module to show images and youtube videos in chat added (neox/Vogel)
 
 +++ version 0.6.6-beta14.2
 * tabs: #1906 fixed: crash on tabs module load (regression from beta14) (beevvy)
 * chat: #1905 fixed: send image action enabled only for protocols that support it (Vogel)
-* chat: #1799 fixed: leave conference button now has title in two lines (Ultr)
+* chat: #1799 fixed: leave conference button now has title in two lines (ultr)
 * config_wizard: fixed crash when pressing Back button on setup account page (beevvy)
 
 +++ version 0.6.6-beta14
@@ -52,7 +93,7 @@
 * modules: #1883 fixed: properly destroy all singletons in modules (WhE, Vogel)
 * gui: #1862 fixed: occassionally incorrect text-area size when opening a tab (WhE)
 * jabber: added menu for contacts with subscription options (Vogel)
-* icons: update icons naming, added new Oxygen theme (Ultr)
+* icons: update icons naming, added new Oxygen theme (ultr)
 
 +++ version 0.6.6-beta13
 * sound: #1376 fixed: long delays on Kadu exit and warnings from Qt regarding mutexes (beevvy)

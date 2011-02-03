@@ -48,14 +48,16 @@ class AddBuddyWindow : public QDialog
 	IdValidityFilter *AccountComboIdFilter;
 	GroupsComboBox *GroupCombo;
 	QLineEdit *DisplayNameEdit;
-	QCheckBox *MergeContact;
-	SelectBuddyComboBox *SelectContact;
+	QCheckBox *MergeBuddy;
+	SelectBuddyComboBox *SelectBuddy;
 	QCheckBox *AskForAuthorization;
 	QCheckBox *AllowToSeeMeCheck;
 	QLabel *ErrorLabel;
 	QPushButton *AddContactButton;
 
 	Buddy MyBuddy;
+	Account MyAccount;
+	bool ForceBuddyAccount;
 
 	void createGui();
 	void addMobileAccountToComboBox();
@@ -85,10 +87,9 @@ protected slots:
 	virtual void reject();
 
 public:
-	AddBuddyWindow(QWidget *parent = 0);
+	explicit AddBuddyWindow(QWidget *parent = 0, const Buddy &buddy = Buddy::null, bool forceBuddyAccount = false);
 	virtual ~AddBuddyWindow();
 
-	void setBuddy(Buddy buddy);
 	void setGroup(Group group);
 
 };

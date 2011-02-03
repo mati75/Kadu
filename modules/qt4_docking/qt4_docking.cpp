@@ -23,6 +23,7 @@
  */
 
 #include <QtCore/QEvent>
+#include <QtCore/QScopedPointer>
 #include <QtGui/QMouseEvent>
 #include <QtGui/QMovie>
 
@@ -136,18 +137,21 @@ void Qt4TrayIcon::movieUpdate()
 
 void Qt4TrayIcon::trayActivated(QSystemTrayIcon::ActivationReason reason)
 {
-	QMouseEvent *ev = 0;
-	// nie przekazujemy klikniecia ppm poniewaz QSystemTrayIcon reaguje
-	// na niego i wyswietla menu kontekstowe samemu
+	QScopedPointer<QMouseEvent> event;
+
+	/* NOTE: We don't pass right button click 'cause QSystemTrayIcon
+	 * takes care of it and displays context menu for us.
+	 */
 	if (reason == QSystemTrayIcon::Trigger)
-		ev = new QMouseEvent(QEvent::MouseButtonPress, QPoint(0,0), Qt::LeftButton, Qt::NoButton, Qt::NoModifier);
+		event.reset(new QMouseEvent(QEvent::MouseButtonPress, QPoint(0,0), Qt::LeftButton, Qt::LeftButton, Qt::NoModifier));
 	else if (reason == QSystemTrayIcon::MiddleClick)
-		ev = new QMouseEvent(QEvent::MouseButtonPress, QPoint(0,0), Qt::MidButton, Qt::MidButton, Qt::NoModifier);
-	if (ev)
-		DockingManager::instance()->trayMousePressEvent(ev);
+		event.reset(new QMouseEvent(QEvent::MouseButtonPress, QPoint(0,0), Qt::MidButton, Qt::MidButton, Qt::NoModifier));
+
+	if (!event.isNull())
+		DockingManager::instance()->trayMousePressEvent(event.data());
 }
 
 
-Qt4TrayIcon* qt4_tray_icon = NULL;
+Qt4TrayIcon *qt4_tray_icon = 0;
 
 /** @} */

@@ -57,6 +57,7 @@ public:
 	{
 		MenuKadu,
 		MenuContacts,
+		MenuTools,
 		MenuHelp
 	};
 
@@ -65,7 +66,6 @@ private:
 	QMap<ActionDescription *, MenuAction> MenuActions;
 
 	bool Docked; // TODO: 0.7.1 it is a hack
-	QWidget *GroupBarWidget;
 	QSplitter *Split;
 
 	KaduWindowActions *Actions;
@@ -76,6 +76,7 @@ private:
 #endif
 	QMenu *KaduMenu;
 	QMenu *ContactsMenu;
+	QMenu *ToolsMenu;
 	QMenu *HelpMenu;
 	QMenu *RecentChatsMenu;
 	QAction *RecentChatsMenuAction;
@@ -98,6 +99,7 @@ private:
 	void createMenu();
 	void createKaduMenu();
 	void createContactsMenu();
+	void createToolsMenu();
 	void createHelpMenu();
 
 	void storeConfiguration();
@@ -133,7 +135,6 @@ protected:
 
 public:
 	static void createDefaultToolbars(QDomElement parentConfig);
-	static void addAction(const QString &actionName, Qt::ToolButtonStyle style = Qt::ToolButtonIconOnly);
 
 	explicit KaduWindow(QWidget *parent = 0);
 	virtual ~KaduWindow();

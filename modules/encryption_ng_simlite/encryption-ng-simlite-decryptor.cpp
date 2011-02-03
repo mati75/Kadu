@@ -18,6 +18,9 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <stdint.h>
+
+#include "misc/coding-conversion.h"
 #include "modules/encryption_ng/keys/key.h"
 #include "modules/encryption_ng/keys/keys-manager.h"
 
@@ -84,11 +87,11 @@ QCA::PrivateKey EncryptioNgSimliteDecryptor::getPrivateKey(const Key &key)
 		return QCA::PrivateKey();
 	}
 
-	keyData = keyData.mid(BEGIN_RSA_PRIVATE_KEY_LENGTH, keyData.length() - BEGIN_RSA_PRIVATE_KEY_LENGTH - END_RSA_PRIVATE_KEY_LENGTH);
+	keyData = keyData.mid(BEGIN_RSA_PRIVATE_KEY_LENGTH, keyData.length() - BEGIN_RSA_PRIVATE_KEY_LENGTH - END_RSA_PRIVATE_KEY_LENGTH).replace('\r', "").trimmed();
 
 	QCA::SecureArray certificate;
 
-	QCA::Base64 decoder(QCA::Decode);
+	QCA::Base64 decoder;
 	decoder.setLineBreaksEnabled(true);
 	certificate = decoder.decode(keyData);
 
@@ -96,7 +99,6 @@ QCA::PrivateKey EncryptioNgSimliteDecryptor::getPrivateKey(const Key &key)
 	keyData.fill(' ', keyData.size());
 	keyData.clear();
 
-	certificate += decoder.final();
 	if (!decoder.ok())
 	{
 		Valid = false;
@@ -125,9 +127,6 @@ QCA::PrivateKey EncryptioNgSimliteDecryptor::getPrivateKey(const Key &key)
 
 QByteArray EncryptioNgSimliteDecryptor::decrypt(const QByteArray &data, bool *ok)
 {
-	if (ok)
-		*ok = false;
-
 	if (!Valid)
 		return data;
 
@@ -160,13 +159,8 @@ QByteArray EncryptioNgSimliteDecryptor::decrypt(const QByteArray &data, bool *ok
 	QCA::Cipher cipher(QString("blowfish"), QCA::Cipher::CBC, QCA::Cipher::DefaultPadding, QCA::Decode, blowfishKey, iv);
 
 	//decipher the message (put the message into the decoding cipher object)
-	QCA::SecureArray plainText = cipher.update(encryptedMessage);
+	QCA::SecureArray plainText = cipher.process(encryptedMessage);
 	if (!cipher.ok())
-		return data;
-
-	//get the last block (with its padding removed)
-	plainText.append(cipher.final());
-	if(!cipher.ok())
 		return data;
 
 	//check whether the decrypted data length is at least the size of the header -
@@ -186,5 +180,5 @@ QByteArray EncryptioNgSimliteDecryptor::decrypt(const QByteArray &data, bool *ok
 
 	//the message has been decrypted! :D
 	//put it into the input/output byte array
-	return &plainText.data()[sizeof(sim_message_header)];
+	return cp2unicode(&plainText.data()[sizeof(sim_message_header)]).toUtf8();
 }

@@ -23,6 +23,7 @@
 
 #include <QtCore/QFile>
 #include <QtCore/QProcess>
+#include <QtCore/QRegExp>
 #include <QtCore/QUrl>
 #include <QtGui/QApplication>
 #include <QtGui/QDesktopServices>
@@ -47,9 +48,14 @@ QFontInfo *defaultFontInfo;
 long int startTime, beforeExecTime, endingTime, exitingTime;
 bool measureTime = false;
 
+QString replacedNewLine(const QString &text, const QString &newLineText)
+{
+	static const QRegExp newLineRegExp("(\r\n|\r|\n)");
+	return QString(text).replace(newLineRegExp, newLineText);
+}
+
 void saveWindowGeometry(const QWidget *w, const QString &section, const QString &name)
 {
-
 #if defined(Q_OS_MAC) || defined(Q_WS_MAEMO_5)
 	/* Dorr: on Mac OS X make sure the window will not be greater than desktop what
 	 * sometimes happends during widget resizing (because of bug in Qt?),
@@ -85,7 +91,7 @@ QString pwHash(const QString &text)
 {
 	QString newText = text;
 	for (unsigned int i = 0, textLength = text.length(); i < textLength; ++i)
-		newText[i] = QChar(text[i].unicode() ^ i ^ 1);
+		newText[i] = QChar(text.at(i).unicode() ^ i ^ 1);
 	return newText;
 }
 
@@ -148,10 +154,18 @@ QRect stringToRect(const QString &value, const QRect *def)
 	stringlist = value.split(',', QString::SkipEmptyParts);
 	if (stringlist.count() != 4)
 		return def ? *def : rect;
-	l = stringlist[0].toInt(&ok); if (!ok) return def ? *def : rect;
-	t = stringlist[1].toInt(&ok); if (!ok) return def ? *def : rect;
-	w = stringlist[2].toInt(&ok); if (!ok) return def ? *def : rect;
-	h = stringlist[3].toInt(&ok); if (!ok) return def ? *def : rect;
+	l = stringlist.at(0).toInt(&ok);
+	if (!ok)
+		return def ? *def : rect;
+	t = stringlist.at(1).toInt(&ok);
+	if (!ok)
+		return def ? *def : rect;
+	w = stringlist.at(2).toInt(&ok);
+	if (!ok)
+		return def ? *def : rect;
+	h = stringlist.at(3).toInt(&ok);
+	if (!ok)
+		return def ? *def : rect;
 	rect.setRect(l, t, w, h);
 
 	return rect;
@@ -178,4 +192,9 @@ QString fixFileName(const QString &path, const QString &fn)
 		return name + '.' + ext.toUpper();
 	// we cannot fix it, return original
 	return fn;
+}
+
+bool caseInsensitiveLessThan(const QString &s1, const QString &s2)
+{
+	return s1.toLower() < s2.toLower();
 }

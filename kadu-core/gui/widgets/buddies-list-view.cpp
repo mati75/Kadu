@@ -21,6 +21,7 @@
 
 #include <QtCore/QDir>
 #include <QtCore/QModelIndex>
+#include <QtCore/QScopedPointer>
 #include <QtCore/QTemporaryFile>
 #include <QtGui/QApplication>
 #include <QtGui/QContextMenuEvent>
@@ -251,7 +252,7 @@ Chat BuddiesListView::currentChat() const
 	QModelIndexList selectionList = selectedIndexes();
 	if (selectionList.count() == 1)
 	{
-		Chat chat = chatByPendingMessages(selectionList[0]);
+		Chat chat = chatByPendingMessages(selectionList.at(0));
 		if (chat)
 			return chat;
 	}
@@ -314,13 +315,16 @@ Chat BuddiesListView::currentChat() const
 
 void BuddiesListView::triggerActivate(const QModelIndex& index)
 {
+	// we need to fetch these 2 object first
+	// because afer calling buddyActivated or chatActivate index can became invalid
+	// because of changing filters and stuff
 	Chat chat = currentChat();
-	if (chat)
-		emit chatActivated(chat);
-
 	Buddy buddy = buddyAt(index);
+
 	if (buddy)
 		emit buddyActivated(buddy);
+	if (chat)
+		emit chatActivated(chat);
 }
 
 void BuddiesListView::setContextMenuEnabled(bool enabled)
@@ -337,9 +341,8 @@ void BuddiesListView::contextMenuEvent(QContextMenuEvent *event)
 	if (buddy.isNull())
 		return;
 
-	QMenu *menu = BuddiesListViewMenuManager::instance()->menu(this, this, buddy.contacts());
+	QScopedPointer<QMenu> menu(BuddiesListViewMenuManager::instance()->menu(this, this, buddy.contacts()));
 	menu->exec(event->globalPos());
-	delete menu;
 }
 
 bool BuddiesListView::shouldEventGoToFilter(QKeyEvent *event)
@@ -414,9 +417,10 @@ void BuddiesListView::mouseMoveEvent(QMouseEvent *event)
 void BuddiesListView::resizeEvent(QResizeEvent *event)
 {
 	QTreeView::resizeEvent(event);
-	doItemsLayout();
 	if (BackgroundImageMode == BackgroundStretched)
 		updateBackground();
+
+	scheduleDelayedItemsLayout();
 }
 
 void BuddiesListView::currentChanged(const QModelIndex &current, const QModelIndex &previous)
@@ -457,7 +461,8 @@ void BuddiesListView::simpleModeChanged()
 
 void BuddiesListView::doubleClickedSlot(const QModelIndex &index)
 {
-	triggerActivate(index);
+	if (index.isValid())
+		triggerActivate(index);
 }
 
 void BuddiesListView::setBackground(const QString &backgroundColor, const QString &alternateColor, const QString &file, BackgroundMode mode)
@@ -583,153 +588,6 @@ void BuddiesListView::toolTipHide(bool waitForAnother)
 	else
 		ToolTipTimeoutTimer.stop();
 }
-/*
-QImage *UserBox::backgroundImage = 0;
-
-class ULEComparer
-{
-	public:
-		inline bool operator()(const Contact &e1, const Contact &e2) const;
-		QList<UserBox::CmpFuncDesc> CmpFunctions;
-		ULEComparer() : CmpFunctions() {}
-};
-
-inline bool ULEComparer::operator()(const Contact &e1, const Contact &e2) const
-{
-	int ret = 0;
-	foreach(const UserBox::CmpFuncDesc &f, CmpFunctions)
-	{
-		ret = f.func(e1, e2);
-//		kdebugm(KDEBUG_WARNING, "%s %s %d\n", qPrintable(e1.altNick()), qPrintable(e2.altNick()), ret);
-		if (ret)
-			break;
-	}
-	return ret < 0;
-}*/
-
-// CreateNotifier UserBox::createNotifier;
-
-
-// 	showDescriptionAction = new ActionDescription(
-// 		ActionDescription::TypeUserList, "descriptionsAction",
-// 		this, SLOT(showDescriptionsActionActivated(QAction *, bool)),
-// 		"ShowDescription", tr("Hide descriptions"),
-// 		true, tr("Show descriptions")
-// 	);
-// 	connect(showDescriptionAction, SIGNAL(actionCreated(KaduAction *)), this, SLOT(setDescriptionsActionState()));
-
-// 	setDescriptionsActionState();
-
-// 	addCompareFunction("Status", tr("Statuses"), compareStatus);
-// 	if (brokenStringCompare)
-// 		addCompareFunction("AltNick", tr("Nicks, case insensitive"), compareAltNickCaseInsensitive);
-// 	else
-// 		addCompareFunction("AltNick", tr("Nicks"), compareAltNick);
-
-// 	connect(&pending, SIGNAL(messageFromUserAdded(Contact)), this, SLOT(messageFromUserAdded(Contact)));
-// 	connect(&pending, SIGNAL(messageFromUserDeleted(Contact)), this, SLOT(messageFromUserAdded(Contact)));
-
-// void UserBox::showDescriptionsActionActivated(QActiogn *sender, bool toggle)
-// {
-// 	config_file.writeEntry("Look", "ShowDesc", !toggle);
-// 	KaduListBoxPixmap::setShowDesc(!toggle);
-// 	UserBox::refreshAllLater();
-// 	setDescriptionsActionState();
-// }
-
-// void UserBox::setDescriptionsActionState()
-// {
-// 	foreach (KaduAction *action, showDescriptionAction->actions())
-// 		action->setChecked(!KaduListBoxPixmap::ShowDesc);
-// }
-
-// void UserBox::messageFromUserAdded(Contact elem)
-// {
-// 	if (visibleUsers()->contains(UserListElement::fromContact(elem, AccountManager::instance()->defaultAccount())))
-// 		refreshLater();
-// }
-
-// void UserBox::messageFromUserDeleted(Contact elem)
-// {
-// 	if (visibleUsers()->contains(UserListElement::fromContact(elem, AccountManager::instance()->defaultAccount())))
-// 		refreshLater();
-// }
-
-/*
-void UserBox::addCompareFunction(const QString &id, const QString &trDescription,
-			int (*cmp)(const Contact &, const Contact &))
-{
-	comparer->CmpFunctions.append(CmpFuncDesc(id, trDescription, cmp));
-	refreshLater();
-}
-
-void UserBox::removeCompareFunction(const QString &id)
-{
-	foreach(const CmpFuncDesc &c, comparer->CmpFunctions)
-		if (c.id == id)
-		{
-			comparer->CmpFunctions.remove(c);
-			refreshLater();
-			break;
-		}
-}*/
-
-// bool UserBox::moveUpCompareFunction(const QString &id)
-// {
-// 	kdebugf();
-// 	CmpFuncDesc d;
-// 	int pos = 0;
-// 	bool found = false;
-// 	QList<CmpFuncDesc>::iterator c;
-// 	for (c = comparer->CmpFunctions.begin(); c != comparer->CmpFunctions.end(); ++c)
-// 	{
-//  		if ((*c).id == id)
-//  		{
-//  			found = true;
-//  			if (pos == 0)
-//  				break;
-//  			d = *c;
-//  			--c;
-//  			c = comparer->CmpFunctions.insert(c, d);
-//  			c += 2;
-//  			comparer->CmpFunctions.remove(c);
-//  			refreshLater();
-//  			break;
-//  		}
-//  		++pos;
-// 	}
-// 	kdebugf2();
-// 	return found;
-// }
-
-// bool UserBox::moveDownCompareFunction(const QString &id)
-// {
-// 	kdebugf();
-// 	CmpFuncDesc d;
-// 	int pos = 0;
-// 	int cnt = comparer->CmpFunctions.count();
-// 	bool found = false;
-// 	QList<CmpFuncDesc>::iterator c;
-// 	for (c = comparer->CmpFunctions.begin(); c != comparer->CmpFunctions.end(); ++c)
-// 	{
-//  		if ((*c).id == id)
-//  		{
-//  			found = true;
-//  			if (pos == cnt - 1)
-//  				break;
-//  			d = *c;
-//  			++c;
-//  			c = comparer->CmpFunctions.insert(c, d);
-//  			c -= 2;
-//  			comparer->CmpFunctions.remove(c);
-//  			refreshLater();
-//  			break;
-//  		}
-//  		++pos;
-// 	}
-// 	kdebugf2();
-// 	return found;
-// }
 
 BuddySet BuddiesListView::buddies()
 {
@@ -746,6 +604,11 @@ Chat BuddiesListView::chat()
 	return currentChat();
 }
 
+StatusContainer * BuddiesListView::statusContainer()
+{
+	return currentChat().chatAccount().statusContainer();
+}
+
 bool BuddiesListView::hasContactSelected()
 {
 	QModelIndexList selectionList = selectedIndexes();
@@ -754,4 +617,10 @@ bool BuddiesListView::hasContactSelected()
 			return true;
 
 	return false;
+}
+
+void BuddiesListView::hideEvent(QHideEvent *event)
+{
+	toolTipHide(false);
+	QTreeView::hideEvent(event);
 }

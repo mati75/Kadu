@@ -22,6 +22,7 @@
  */
 
 #include <QtCore/QHash>
+#include <QtCore/QScopedArrayPointer>
 
 #include "buddies/buddy-set.h"
 #include "buddies/buddy-shared.h"
@@ -53,30 +54,30 @@ GaduChatService::GaduChatService(GaduProtocol *protocol)
 // 		this, SLOT(ackReceived(int, uin_t, int)));
 }
 
-bool GaduChatService::sendMessage(Chat chat, FormattedMessage &message, bool silent)
+bool GaduChatService::sendMessage(const Chat &chat, FormattedMessage &message, bool silent)
 {
 	kdebugf();
 
 	QString plain = message.toPlain();
 	QList<Contact> contacts = chat.contacts().toContactList();
 
-	plain.replace("\r\n", "\n");
-	plain.replace('\r', '\n');
-	plain.replace(QChar::LineSeparator, "\n");
-	plain = plain.trimmed();
+// 	plain.replace("\r\n", "\n");
+// 	plain.replace('\r', '\n');
+// 	plain.replace(QChar::LineSeparator, "\n");
+// 	plain = plain.trimmed();
 
 	if (plain.isEmpty()) // for image sending
 	{
 		message.prepend(FormattedMessagePart(" ", false, false, false, QColor(0, 0, 0)));
 
-		plain.replace("\r\n", "\n");
-		plain.replace('\r', '\n');
-		plain.replace(QChar::LineSeparator, "\n");
+// 		plain.replace("\r\n", "\n");
+// 		plain.replace('\r', '\n');
+// 		plain.replace(QChar::LineSeparator, "\n");
 	}
 
 	unsigned int uinsCount = 0;
 	unsigned int formatsSize = 0;
-	unsigned char *formats = GaduFormatter::createFormats(Protocol->account(), message, formatsSize);
+	QScopedArrayPointer<unsigned char> formats(GaduFormatter::createFormats(Protocol->account(), message, formatsSize));
 	bool stop = false;
 
 	kdebugmf(KDEBUG_INFO, "\n%s\n", (const char *)unicode2latin(plain));
@@ -89,16 +90,12 @@ bool GaduChatService::sendMessage(Chat chat, FormattedMessage &message, bool sil
 
 	if (stop)
 	{
-		delete[] formats;
-
 		kdebugmf(KDEBUG_FUNCTION_END, "end: filter stopped processing\n");
 		return false;
 	}
 
 	if (data.length() >= 2000)
 	{
-		delete[] formats;
-
 		MessageDialog::show("dialog-warning", tr("Kadu"), tr("Filtered message too long (%1>=%2)").arg(data.length()).arg(2000));
 		kdebugmf(KDEBUG_FUNCTION_END, "end: filtered message too long\n");
 		return false;
@@ -109,7 +106,7 @@ bool GaduChatService::sendMessage(Chat chat, FormattedMessage &message, bool sil
 	int messageId = -1;
 	if (uinsCount > 1)
 	{
-		UinType uins[uinsCount];
+		QScopedArrayPointer<UinType> uins(new UinType[uinsCount]);
 		unsigned int i = 0;
 
 		foreach (const Contact &contact, contacts)
@@ -117,24 +114,22 @@ bool GaduChatService::sendMessage(Chat chat, FormattedMessage &message, bool sil
 
 		if (formatsSize)
 			messageId = gg_send_message_confer_richtext(
-					Protocol->gaduSession(), GG_CLASS_CHAT, uinsCount, uins, (unsigned char *)data.data(),
-					formats, formatsSize);
+					Protocol->gaduSession(), GG_CLASS_CHAT, uinsCount, uins.data(), (unsigned char *)data.data(),
+					formats.data(), formatsSize);
 		else
 			messageId = gg_send_message_confer(
-					Protocol->gaduSession(), GG_CLASS_CHAT, uinsCount, uins, (unsigned char *)data.data());
+					Protocol->gaduSession(), GG_CLASS_CHAT, uinsCount, uins.data(), (unsigned char *)data.data());
 	}
 	else if (uinsCount == 1)
 	{
 		if (formatsSize)
 			messageId = gg_send_message_richtext(
-					Protocol->gaduSession(), GG_CLASS_CHAT, Protocol->uin(contacts.first()), (unsigned char *)data.data(),
-					formats, formatsSize);
+					Protocol->gaduSession(), GG_CLASS_CHAT, Protocol->uin(contacts.at(0)), (unsigned char *)data.data(),
+					formats.data(), formatsSize);
 		else
 			messageId = gg_send_message(
-					Protocol->gaduSession(), GG_CLASS_CHAT, Protocol->uin(contacts.first()), (unsigned char *)data.data());
+					Protocol->gaduSession(), GG_CLASS_CHAT, Protocol->uin(contacts.at(0)), (unsigned char *)data.data());
 	}
-
-	delete[] formats;
 
 	if (-1 == messageId)
 		return false;
@@ -234,7 +229,7 @@ bool GaduChatService::ignoreImages(Contact sender)
 		);
 }
 
-FormattedMessage GaduChatService::createFormattedMessage(struct gg_event *e, QString &content, Contact sender)
+FormattedMessage GaduChatService::createFormattedMessage(struct gg_event *e, QByteArray &content, Contact sender)
 {
 	if (ignoreRichText(sender))
 		return GaduFormatter::createMessage(Protocol->account(), sender.id().toUInt(), content, 0, 0, false);
@@ -272,14 +267,14 @@ void GaduChatService::handleEventMsg(struct gg_event *e)
 	bool ignore = false;
 	emit filterRawIncomingMessage(chat, sender, content, ignore);
 
-	QString stringContent = QString::fromUtf8(content);
-	QString separator(QChar::LineSeparator);
+// 	QString stringContent = QString::fromUtf8(content);
+// 	QString separator(QChar::LineSeparator);
 
-	stringContent.replace("\r\n", separator);
-	stringContent.replace("\n",   separator);
-	stringContent.replace("\r",   separator);
+// 	stringContent.replace("\r\n", separator);
+// 	stringContent.replace("\n",   separator);
+// 	stringContent.replace("\r",   separator);
 
-	FormattedMessage message = createFormattedMessage(e, stringContent, sender);
+	FormattedMessage message = createFormattedMessage(e, content, sender);
 	if (message.isEmpty())
 		return;
 

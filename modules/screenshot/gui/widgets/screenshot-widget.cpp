@@ -39,8 +39,7 @@ ScreenshotWidget::ScreenshotWidget(QWidget *parent) :
 	setWindowRole("kadu-screenshot");
 
 	setWindowFlags(Qt::Tool | Qt::CustomizeWindowHint
-			| Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint
-			| Qt::X11BypassWindowManagerHint);
+			| Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint);
 
 	QHBoxLayout *layout = new QHBoxLayout(this);
 	layout->setMargin(0);
@@ -48,6 +47,7 @@ ScreenshotWidget::ScreenshotWidget(QWidget *parent) :
 
 	CropWidget = new CropImageWidget(this);
 	connect(CropWidget, SIGNAL(pixmapCropped(QPixmap)), this, SLOT(pixmapCapturedSlot(QPixmap)));
+	connect(CropWidget, SIGNAL(canceled()), this, SLOT(canceled()));
 	layout->addWidget(CropWidget);
 }
 
@@ -67,24 +67,16 @@ void ScreenshotWidget::setPixmap(QPixmap pixmap)
 	resize(pixmap.size());
 }
 
-void ScreenshotWidget::keyPressEvent(QKeyEvent *e)
-{
-	kdebugf();
-
-	if (e->key() == Qt::Key_Escape)
-	{
-		emit closed();
-		deleteLater();
-		e->accept();
-	}
-	else
-		QWidget::keyPressEvent(e);
-}
-
 void ScreenshotWidget::pixmapCapturedSlot(QPixmap pixmap)
 {
 	hide();
 
 	emit pixmapCaptured(pixmap);
+	deleteLater();
+}
+
+void ScreenshotWidget::canceled()
+{
+	hide();
 	deleteLater();
 }

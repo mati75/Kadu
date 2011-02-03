@@ -32,8 +32,8 @@ class KADUAPI BuddyNameFilter : public AbstractBuddyFilter
 public:
 	BuddyNameFilter(QObject *parent = 0) : AbstractBuddyFilter(parent) {}
 
-	virtual bool acceptBuddy(Buddy buddy);
-	virtual bool ignoreNextFilters();
+	virtual bool acceptBuddy(const Buddy &buddy);
+	virtual bool ignoreNextFilters(const Buddy &buddy);
 
 	void setName(const QString &name);
 

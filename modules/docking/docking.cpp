@@ -111,7 +111,7 @@ DockingManager::DockingManager() :
 	OpenChatAction = new QAction(IconsManager::instance()->iconByPath("internet-group-chat"),
 		tr("Show Pending Messages"), this);
 	connect(OpenChatAction, SIGNAL(triggered()), ChatWidgetManager::instance(),
-		SLOT(openPendingMsgs()));
+		SLOT(openPendingMessages()));
 
 	MacDockMenu = new QMenu();
 	qt_mac_set_dock_menu(MacDockMenu);
@@ -211,15 +211,8 @@ void DockingManager::pendingMessageDeleted()
 	MacDockingHelper::instance()->stopBounce();
 #endif
 	if (!PendingMessagesManager::instance()->hasPendingMessages())
-	{
-		Account account = AccountManager::instance()->defaultAccount();
-		if (account.isNull() || !account.protocolHandler())
-			return;
-
-		const Status &stat = account.protocolHandler()->status();
 		if (CurrentDocker)
-			CurrentDocker->changeTrayIcon(StatusContainerManager::instance()->statusIcon(stat));
-	}
+			CurrentDocker->changeTrayIcon(StatusContainerManager::instance()->statusIcon());
 }
 
 void DockingManager::defaultToolTip()
@@ -229,8 +222,7 @@ void DockingManager::defaultToolTip()
 		Status status = AccountManager::instance()->status();
 
 		QString tiptext;
-		tiptext.append(tr("Current status:\n%1")
-			.arg(qApp->translate("@default", Status::name(status).toLocal8Bit().data())));
+		tiptext.append(tr("Current status:\n%1").arg(status.displayName()));
 
 		if (!status.description().isEmpty())
 			tiptext.append(tr("\n\nDescription:\n%2").arg(status.description()));
@@ -246,7 +238,7 @@ void DockingManager::trayMousePressEvent(QMouseEvent * e)
 	if (e->button() == Qt::MidButton)
 	{
 		emit mousePressMidButton();
-		ChatWidgetManager::instance()->openPendingMsgs(true);
+		ChatWidgetManager::instance()->openPendingMessages(true);
 		return;
 	}
 
@@ -259,7 +251,7 @@ void DockingManager::trayMousePressEvent(QMouseEvent * e)
 
 		if (PendingMessagesManager::instance()->hasPendingMessages() && (e->modifiers() != Qt::ControlModifier))
 		{
-			ChatWidgetManager::instance()->openPendingMsgs(true);
+			ChatWidgetManager::instance()->openPendingMessages(true);
 			return;
 		}
 
@@ -269,8 +261,17 @@ void DockingManager::trayMousePressEvent(QMouseEvent * e)
 			_activateWindow(kadu);
 			return;
 		}
-		else if (kadu->isVisible() && _isActiveWindow(kadu))
+		else if (kadu->isVisible()
+#ifndef Q_WS_WIN
+				// NOTE: It won't work as expected on Windows since when you click on tray icon,
+				// the tray will become active and any other window will loose focus.
+				// See bug #1915.
+				&& _isActiveWindow(kadu)
+#endif
+				)
+		{
 			kadu->hide();
+		}
 		else
 		{
 			kadu->show();
@@ -353,9 +354,9 @@ void DockingManager::updateContextMenu()
 
 	if (statusContainersCount == 1)
 	{
-		new StatusMenu(StatusContainerManager::instance()->statusContainers()[0], DockMenu, true);
+		new StatusMenu(StatusContainerManager::instance()->statusContainers().at(0), DockMenu, true);
 #ifdef Q_OS_MAC
-		new StatusMenu(StatusContainerManager::instance()->statusContainers()[0], MacDockMenu, true);
+		new StatusMenu(StatusContainerManager::instance()->statusContainers().at(0), MacDockMenu, true);
 #endif
 	}
 	else

@@ -96,18 +96,19 @@ public:
 	virtual QString storageNodeName();
 
 	void importConfiguration(const QDomElement &parent);
+	void importConfiguration(); // imports configuration from custom data values
 
 	virtual void store();
     virtual bool shouldStore();
 	virtual void aboutToBeRemoved();
 
-	QString id(Account account);
+	QString id(const Account &account);
 
 	QMap<QString, QString> & customData() { return CustomData; }
 
 	void addContact(Contact contact);
 	void removeContact(Contact contact);
-	QList<Contact> contacts(Account account);
+	QList<Contact> contacts(const Account &account);
 	QList<Contact> contacts();
 
 	void sortContacts();
@@ -115,9 +116,9 @@ public:
 
 	// properties
 	bool showInAllGroup();
-	bool isInGroup(Group group);
-	void addToGroup(Group group);
-	void removeFromGroup(Group group);
+	bool isInGroup(const Group &group);
+	void addToGroup(const Group &group);
+	void removeFromGroup(const Group &group);
 
 	bool isEmpty() const;
 

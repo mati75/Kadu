@@ -60,6 +60,7 @@ BuddyShared::BuddyShared(QUuid uuid) :
 
 BuddyShared::~BuddyShared()
 {
+	ref.ref();
 }
 
 StorableObject * BuddyShared::storageParent()
@@ -89,6 +90,11 @@ void BuddyShared::importConfiguration(const QDomElement &parent)
 
 	Anonymous = false;
 
+	importConfiguration();
+}
+
+void BuddyShared::importConfiguration()
+{
 	QStringList groups = CustomData["groups"].split(',', QString::SkipEmptyParts);
 	foreach (const QString &group, groups)
 		Groups << GroupManager::instance()->byName(group);
@@ -102,6 +108,7 @@ void BuddyShared::importConfiguration(const QDomElement &parent)
 	ImportProperty(HomePhone, home_phone)
 	ImportProperty(Mobile, mobile)
 	ImportProperty(Email, email)
+
 }
 
 void BuddyShared::load()
@@ -224,6 +231,13 @@ bool BuddyShared::shouldStore()
 
 void BuddyShared::aboutToBeRemoved()
 {
+	/* NOTE: This guard is needed to delay deleting this object when removing
+	 * Buddy from Contact which may hold last reference to it and thus wants to
+	 * delete it. But we don't want this to happen now because we have still
+	 * some things to do here.
+	 */
+	Buddy guard(this);
+
 	setAnonymous(true);
 
 	foreach (Contact contact, Contacts)
@@ -278,7 +292,7 @@ void BuddyShared::removeContact(Contact contact)
 	dataUpdated();
 }
 
-QList<Contact> BuddyShared::contacts(Account account)
+QList<Contact> BuddyShared::contacts(const Account &account)
 {
 	ensureLoaded();
 
@@ -299,14 +313,14 @@ QList<Contact> BuddyShared::contacts()
 	return Contacts;
 }
 
-QString BuddyShared::id(Account account)
+QString BuddyShared::id(const Account &account)
 {
 	ensureLoaded();
 
 	QList<Contact> contactslist;
 	contactslist = contacts(account);
 	if (contactslist.count() > 0)
-		return contactslist[0].id();
+		return contactslist.at(0).id();
 
 	return QString();
 }
@@ -335,7 +349,7 @@ void BuddyShared::emitUpdated()
 
 // properties
 
-bool BuddyShared::isInGroup(Group group)
+bool BuddyShared::isInGroup(const Group &group)
 {
 	ensureLoaded();
 
@@ -353,7 +367,7 @@ bool BuddyShared::showInAllGroup()
 	return true;
 }
 
-void BuddyShared::addToGroup(Group group)
+void BuddyShared::addToGroup(const Group &group)
 {
 	ensureLoaded();
 
@@ -364,7 +378,7 @@ void BuddyShared::addToGroup(Group group)
 	dataUpdated();
 }
 
-void BuddyShared::removeFromGroup(Group group)
+void BuddyShared::removeFromGroup(const Group &group)
 {
 	ensureLoaded();
 

@@ -28,6 +28,7 @@
 
 #include "configuration/encryption-ng-configuration.h"
 #include "keys/keys-manager.h"
+#include "notify/encryption-ng-notification.h"
 #include "encryption-actions.h"
 #include "encryption-manager.h"
 #include "encryption-ng-configuration-ui-handler.h"
@@ -40,6 +41,8 @@ namespace EncryptionNg
 
 extern "C" int encryption_ng_init(bool firstLoad)
 {
+	Q_UNUSED(firstLoad)
+
 	EncryptionNg::InitObject = new QCA::Initializer();
 
 	if (!QCA::isSupported("pkey") ||
@@ -56,12 +59,13 @@ extern "C" int encryption_ng_init(bool firstLoad)
 		return -1;
 	}
 
+	EncryptionNgNotification::registerNotifications();
 	EncryptionNgConfiguration::createInstance();
 	EncryptionNgConfigurationUiHandler::registerConfigurationUi();
 
 	EncryptionManager::createInstance();
 	EncryptionProviderManager::createInstance();
-	EncryptionActions::registerActions(firstLoad);
+	EncryptionActions::registerActions();
 
 	return 0;
 }
@@ -74,6 +78,8 @@ extern "C" void encryption_ng_close()
 
 	EncryptionNgConfigurationUiHandler::unregisterConfigurationUi();
 	EncryptionNgConfiguration::destroyInstance();
+	EncryptionNgNotification::unregisterNotifications();
+
 	KeysManager::destroyInstance();
 
 	delete EncryptionNg::InitObject;

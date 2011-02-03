@@ -7,6 +7,7 @@ set (kadu_SRCS
 	accounts/accounts-aware-object.cpp
 
 	accounts/filter/id-validity-filter.cpp
+	accounts/filter/protocol-filter.cpp
 	accounts/filter/writeable-contacts-list-filter.cpp
 
 	accounts/model/accounts-model.cpp
@@ -49,6 +50,7 @@ set (kadu_SRCS
 	buddies/filter/offline-buddy-filter.cpp
 	buddies/filter/online-and-description-buddy-filter.cpp
 	buddies/filter/online-buddy-filter.cpp
+	buddies/filter/pending-messages-filter.cpp
 
 	buddies/model/abstract-buddies-model.cpp
 	buddies/model/buddy-data-extractor.cpp
@@ -90,10 +92,8 @@ set (kadu_SRCS
 	chat/type/chat-type-manager.cpp
 	chat/type/chat-type-simple.cpp
 
-	configuration/account-data-manager.cpp
 	configuration/config-file-data-manager.cpp
 	configuration/configuration-aware-object.cpp
-	configuration/configuration-contact-data-manager.cpp
 	configuration/configuration-file.cpp
 	configuration/configuration-manager.cpp
 	configuration/main-configuration.cpp
@@ -160,6 +160,7 @@ set (kadu_SRCS
 	gui/widgets/buddy-options-configuration-widget.cpp
 	gui/widgets/buddy-info-panel.cpp
 	gui/widgets/chat-edit-box.cpp
+	gui/widgets/chat-edit-box-size-manager.cpp
 	gui/widgets/chat-messages-view.cpp
 	gui/widgets/chat-view-network-access-manager.cpp
 	gui/widgets/chat-widget.cpp
@@ -179,6 +180,7 @@ set (kadu_SRCS
 	gui/widgets/line-edit-clear-button.cpp
 	gui/widgets/line-edit-with-clear-button.cpp
 	gui/widgets/modal-configuration-widget.cpp
+	gui/widgets/path-edit.cpp
 	gui/widgets/path-list-edit.cpp
 	gui/widgets/progress-icon.cpp
 	gui/widgets/progress-label.cpp
@@ -227,7 +229,6 @@ set (kadu_SRCS
 
 	gui/windows/about.cpp
 	gui/windows/add-buddy-window.cpp
-	gui/windows/buddy-data-manager.cpp
 	gui/windows/buddy-data-window.cpp
 	gui/windows/buddy-data-window-aware-object.cpp
 	gui/windows/buddy-delete-window.cpp
@@ -289,7 +290,6 @@ set (kadu_SRCS
 	parser/parser.cpp
 
 	protocols/connection-error-notification.cpp
-	protocols/invalid-password-notification.cpp
 	protocols/protocol.cpp
 	protocols/protocols-aware-object.cpp
 	protocols/protocols-manager.cpp
@@ -366,6 +366,7 @@ set (kadu_MOC_SRCS
 
 	accounts/filter/abstract-account-filter.h
 	accounts/filter/id-validity-filter.h
+	accounts/filter/protocol-filter.h
 	accounts/filter/writeable-contacts-list-filter.h
 
 	accounts/model/accounts-model.h
@@ -397,6 +398,7 @@ set (kadu_MOC_SRCS
 	buddies/filter/offline-buddy-filter.h
 	buddies/filter/online-and-description-buddy-filter.h
 	buddies/filter/online-buddy-filter.h
+	buddies/filter/pending-messages-filter.h
 
 	buddies/model/buddy-list-model.h
 	buddies/model/buddies-model.h
@@ -440,9 +442,7 @@ set (kadu_MOC_SRCS
 	contacts/model/buddy-contact-model.h
 	contacts/model/contact-list-model.h
 
-	configuration/account-data-manager.h
 	configuration/config-file-data-manager.h
-	configuration/configuration-contact-data-manager.h
 	configuration/configuration-window-data-manager.h
 	configuration/main-configuration.h
 	configuration/notifier-configuration-data-manager.h
@@ -488,6 +488,7 @@ set (kadu_MOC_SRCS
 	gui/widgets/buddy-options-configuration-widget.h
 	gui/widgets/buddy-info-panel.h
 	gui/widgets/chat-edit-box.h
+	gui/widgets/chat-edit-box-size-manager.h
 	gui/widgets/chat-messages-view.h
 	gui/widgets/chat-view-network-access-manager.h
 	gui/widgets/chat-widget.h
@@ -507,6 +508,7 @@ set (kadu_MOC_SRCS
 	gui/widgets/line-edit-clear-button.h
 	gui/widgets/line-edit-with-clear-button.h
 	gui/widgets/modal-configuration-widget.h
+	gui/widgets/path-edit.h
 	gui/widgets/path-list-edit.h
 	gui/widgets/preview.h
 	gui/widgets/progress-icon.h
@@ -555,7 +557,6 @@ set (kadu_MOC_SRCS
 
 	gui/windows/about.h
 	gui/windows/add-buddy-window.h
-	gui/windows/buddy-data-manager.h
 	gui/windows/buddy-data-window.h
 	gui/windows/buddy-delete-window.h
 	gui/windows/chat-window.h
@@ -602,7 +603,6 @@ set (kadu_MOC_SRCS
 	os/qtsingleapplication/qtlocalpeer.h
 
 	protocols/connection-error-notification.h
-	protocols/invalid-password-notification.h
 	protocols/protocol.h
 	protocols/protocol-factory.h
 	protocols/protocols-manager.h
@@ -675,16 +675,6 @@ endif (UNIX AND NOT APPLE)
 
 qt_wrap_cpp (kadu MOC_FILES ${kadu_MOC_SRCS})
 
-# more info: cmake --help-policy CMP0003
-if (COMMAND cmake_policy)
-	cmake_policy (SET CMP0003 NEW)
-endif (COMMAND cmake_policy)
-
-# more info: cmake --help-policy CMP0015
-if (COMMAND cmake_policy AND ${CMAKE_VERSION} VERSION_GREATER 2.8.0)
-	cmake_policy (SET CMP0015 NEW)
-endif (COMMAND cmake_policy AND ${CMAKE_VERSION} VERSION_GREATER 2.8.0)
-
 link_directories (modules)
 
 if (WIN32)
@@ -741,8 +731,8 @@ if (WIN32)
 
 	set_target_properties (kadu_c PROPERTIES COMPILE_FLAGS "-DKADU_CONSOLE")
 
-	target_link_libraries (kadu kadu_core ${QT_QTMAIN_LIBRARY} ${QT_LIBRARIES})
-	target_link_libraries (kadu_c kadu_core ${QT_LIBRARIES})
+	target_link_libraries (kadu kadu_core ${QT_QTMAIN_LIBRARY} ${QT_LIBRARIES} ws2_32)
+	target_link_libraries (kadu_c kadu_core ${QT_LIBRARIES} ws2_32)
 
 	install (TARGETS kadu_core
 		RUNTIME DESTINATION ${KADU_BIN_DIR}

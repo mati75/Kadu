@@ -59,13 +59,16 @@ class KADUAPI ChatWidget : public QWidget, ConfigurationAwareObject
 	BuddiesListWidget *BuddiesWidget;
 	ChatEditBox *InputBox;
 
-	QSplitter *vertSplit, *horizSplit; /*!< obiekty oddzielaj�ce kontrolki od siebie */
+	QSplitter *VerticalSplitter;
+	QSplitter *HorizontalSplitter;
+
+	bool SplittersInitialized;
 
 	QString Title;
 
-	QDateTime LastMessageTime; /*!< czas ostatniej wiadomo�ci */
+	QDateTime LastMessageTime;
 
-	unsigned int NewMessagesCount; /*!< liczba nowych wiadomo�ci w oknie rozmowy */
+	unsigned int NewMessagesCount;
 	bool SelectionFromMessagesView;
 
 	void createGui();
@@ -78,15 +81,19 @@ class KADUAPI ChatWidget : public QWidget, ConfigurationAwareObject
 private slots:
 	void connectAcknowledgeSlots();
 	void disconnectAcknowledgeSlots();
+	void commonHeightChanged(int height);
+	void verticalSplitterMoved(int pos, int index);
 
 protected:
 	virtual void keyPressEvent(QKeyEvent *e);
+	virtual void resizeEvent(QResizeEvent *e);
+ 	virtual void showEvent(QShowEvent *e);
 	bool keyPressEventHandled(QKeyEvent *);
 
 	virtual void configurationUpdated();
 
 public:
-	explicit ChatWidget(Chat chat, QWidget *parent = 0);
+	explicit ChatWidget(const Chat &chat, QWidget *parent = 0);
 	virtual ~ChatWidget();
 
 	Chat chat() const { return CurrentChat; }
@@ -235,10 +242,10 @@ signals:
 		\fn void fileDropped(const UserGroupusers, const QString& fileName)
 		Sygna� jest emitowany, gdy w oknie Chat
 		upuszczono plik.
-	\param users lista u�ytkownik�w
+		\param users lista u�ytkownik�w
 		\param fileName nazwa pliku
 	**/
-	void fileDropped(Chat contacts, const QString &fileName);
+	void fileDropped(Chat chat, const QString &fileName);
 
 	void iconChanged();
 	void titleChanged(ChatWidget *chatWidget, const QString &newTitle);

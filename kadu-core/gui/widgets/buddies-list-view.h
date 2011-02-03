@@ -50,6 +50,8 @@ class BuddiesListView : public QTreeView, public ActionDataSource
 {
 	Q_OBJECT
 
+	friend class BuddiesListViewDelegateConfiguration;
+
 public:
 	enum BackgroundMode
 	{
@@ -109,6 +111,8 @@ protected:
 
 	virtual void resizeEvent(QResizeEvent *event);
 
+	virtual void hideEvent(QHideEvent *event);
+
 protected slots:
 	virtual void currentChanged(const QModelIndex &current, const QModelIndex &previous);
 	virtual void selectionChanged( const QItemSelection &selected, const QItemSelection &deselected);
@@ -150,6 +154,7 @@ public:
 	virtual BuddySet buddies();
 	virtual ContactSet contacts();
 	virtual Chat chat();
+    virtual StatusContainer * statusContainer();
 	virtual bool hasContactSelected();
 
 signals:

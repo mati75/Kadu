@@ -2,6 +2,7 @@
  * %kadu copyright begin%
  * Copyright 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2009 Piotr Galiszewski (piotrgaliszewski@gmail.com)
+ * Copyright 2011 Tomasz Rostanski (rozteck@interia.pl)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -25,7 +26,7 @@
 #include <QtGui/QMovie>
 #include <QtGui/QPushButton>
 
-#include "server/token-fetcher.h"
+#include "server/gadu-token-fetcher.h"
 #include "icons-manager.h"
 
 #include "token-widget.h"
@@ -61,8 +62,8 @@ TokenWidget::TokenWidget(QWidget *parent) : QWidget(parent)
 	mainLayout->addWidget(tokenFrame);
 	mainLayout->addWidget(TokenCode);
 
-	Fetcher = new TokenFetcher(false, this);
-	connect(Fetcher, SIGNAL(tokenFetched(const QString &, QPixmap)), this, SLOT(tokenFetched(const QString &, QPixmap)));
+	Fetcher = new GaduTokenFetcher(this);
+	connect(Fetcher, SIGNAL(tokenFetched(QString,QPixmap)), this, SLOT(tokenFetched(QString,QPixmap)));
 	refreshToken();
 }
 
@@ -70,7 +71,7 @@ TokenWidget::~TokenWidget()
 {
 }
 
-void TokenWidget::tokenFetched(const QString &tokenId, QPixmap tokenImage)
+void TokenWidget::tokenFetched(const QString &tokenId, const QPixmap &tokenImage)
 {
 	WaitMovie->stop();
 	TokenImage->setMovie(0);

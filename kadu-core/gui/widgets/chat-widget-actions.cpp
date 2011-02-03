@@ -23,6 +23,8 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <QtGui/QMenu>
+
 #include "accounts/account.h"
 #include "accounts/account-manager.h"
 #include "buddies/buddy-shared.h"
@@ -38,6 +40,7 @@
 #include "gui/widgets/chat-edit-box.h"
 #include "gui/widgets/chat-widget.h"
 #include "gui/widgets/chat-widget-manager.h"
+#include "gui/widgets/toolbar.h"
 #include "gui/windows/kadu-window.h"
 #include "gui/windows/kadu-window-actions.h"
 #include "gui/windows/message-dialog.h"
@@ -115,8 +118,33 @@ static void checkBlocking(Action *action)
 	action->setChecked(on);
 }
 
+// TODO: quickhack
+static void disableNoGadu(Action *action)
+{
+	action->setEnabled(false);
+
+	Chat chat = action->chat();
+	if (!chat)
+		return;
+
+	Protocol *protocol = chat.chatAccount().protocolHandler();
+	if (!protocol)
+		return;
+
+	if (!protocol->protocolFactory())
+		return;
+
+	action->setEnabled(protocol->protocolFactory()->name() == "gadu");
+}
+
 ChatWidgetActions::ChatWidgetActions(QObject *parent) : QObject(parent)
 {
+	MoreActions = new ActionDescription(0,
+		ActionDescription::TypeChat, "moreActionsAction",
+		this, SLOT(moreActionsActionActivated(QAction *, bool)),
+		"", tr("More..."), false
+	);
+	
 	AutoSend = new ActionDescription(0,
 		ActionDescription::TypeChat, "autoSendAction",
 		this, SLOT(autoSendActionActivated(QAction *, bool)),
@@ -142,19 +170,22 @@ ChatWidgetActions::ChatWidgetActions(QObject *parent) : QObject(parent)
 	Bold = new ActionDescription(0,
 		ActionDescription::TypeChat, "boldAction",
 		this, SLOT(boldActionActivated(QAction *, bool)),
-		"format-text-bold", tr("Bold"), true
+		"format-text-bold", tr("Bold"), true,
+		disableNoGadu
 	);
 
 	Italic = new ActionDescription(0,
 		ActionDescription::TypeChat, "italicAction",
 		this, SLOT(italicActionActivated(QAction *, bool)),
-		"format-text-italic", tr("Italic"), true
+		"format-text-italic", tr("Italic"), true,
+		disableNoGadu
 	);
 
 	Underline = new ActionDescription(0,
 		ActionDescription::TypeChat, "underlineAction",
 		this, SLOT(underlineActionActivated(QAction *, bool)),
-		"format-text-underline", tr("Underline"), true
+		"format-text-underline", tr("Underline"), true,
+		disableNoGadu
 	);
 
 	Send = new ActionDescription(0,
@@ -199,12 +230,12 @@ ChatWidgetActions::ChatWidgetActions(QObject *parent) : QObject(parent)
 		"face-smile", tr("Insert Emoticon")
 	);
 	connect(InsertEmoticon, SIGNAL(actionCreated(Action *)), this, SLOT(insertEmoticonActionCreated(Action *)));
-
+/*
 	ColorSelector = new ActionDescription(0,
 		ActionDescription::TypeChat, "colorAction",
 		this, SLOT(colorSelectorActionActivated(QAction *, bool)),
 		"kadu_icons/change-color", tr("Change Color")
-	);
+	);*/
 
 	BuddiesListViewMenuManager::instance()->addActionDescription(OpenChat, BuddiesListViewMenuItem::MenuCategoryChat, 25);
 }
@@ -289,6 +320,52 @@ void ChatWidgetActions::autoSendActionActivated(QAction *sender, bool toggled)
 	config_file.writeEntry("Chat", "AutoSend", toggled);
  	chatEditBox->setAutoSend(toggled);
 	autoSendActionCheck();
+}
+
+void ChatWidgetActions::moreActionsActionActivated(QAction *sender, bool toggled)
+{
+	Q_UNUSED(toggled)
+	Action *action = dynamic_cast<Action *>(sender);
+	if (!action)
+		return;
+
+	ChatEditBox *chatEditBox = dynamic_cast<ChatEditBox *>(sender->parent());
+	if (!chatEditBox)
+		return;
+
+	ChatWidget *chatWidget = chatEditBox->chatWidget();
+	if (!chatWidget)
+		return;
+
+	QList<QWidget *> widgets = sender->associatedWidgets();
+	if (widgets.size() == 0)
+		return;
+
+	QWidget *widget = widgets[widgets.size() - 1];
+
+	QWidget *parent = widget->parentWidget();
+	while (0 != parent && 0 == qobject_cast<ToolBar *>(parent))
+		parent = parent->parentWidget();
+	ToolBar *toolbar = qobject_cast<ToolBar *>(parent);
+
+	QMenu menu;
+	QMenu *subMenu = new QMenu(tr("More"), &menu);
+
+	foreach (const QString &actionName, Actions::instance()->keys())
+	{
+		if (toolbar && toolbar->windowHasAction(actionName, false))
+			continue;
+
+		ActionDescription *actionDescription = Actions::instance()->value(actionName);
+		if (ActionDescription::TypeChat == actionDescription->type())
+			menu.addAction(Actions::instance()->createAction(actionName, chatEditBox));
+		else if (ActionDescription::TypeUser == actionDescription->type())
+			subMenu->addAction(Actions::instance()->createAction(actionName, chatEditBox));
+	}
+
+	menu.addSeparator();
+	menu.addMenu(subMenu);
+	menu.exec(widget->mapToGlobal(QPoint(0, widget->height())));
 }
 
 void ChatWidgetActions::clearActionActivated(QAction *sender, bool toggled)
@@ -465,7 +542,7 @@ void ChatWidgetActions::openChatActionActivated(QAction *sender, bool toggled)
 
 	Chat chat = action->chat();
 	if (chat)
-		ChatWidgetManager::instance()->openChatWidget(chat, true);
+		ChatWidgetManager::instance()->openPendingMessages(chat, true);
 
 	kdebugf2();
 }

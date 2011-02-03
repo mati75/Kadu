@@ -34,6 +34,7 @@ class ChatWidgetActions : public QObject, ConfigurationAwareObject
 {
 	Q_OBJECT
 
+	ActionDescription *MoreActions;
 	ActionDescription *AutoSend;
 	ActionDescription *ClearChat;
 	ActionDescription *InsertImage;
@@ -46,7 +47,7 @@ class ChatWidgetActions : public QObject, ConfigurationAwareObject
 	ActionDescription *OpenChat;
 	ActionDescription *OpenWith;
 	ActionDescription *InsertEmoticon;
-	ActionDescription *ColorSelector;
+// 	ActionDescription *ColorSelector;
 
 	void autoSendActionCheck();
 	void insertEmoticonsActionCheck();
@@ -58,6 +59,7 @@ private slots:
 	void sendActionCreated(Action *action);
 	void insertEmoticonActionCreated(Action *action);
 
+	void moreActionsActionActivated(QAction *sender, bool toggled);
 	void autoSendActionActivated(QAction *sender, bool toggled);
 	void clearActionActivated(QAction *sender, bool toggled);
 	void insertImageActionActivated(QAction *sender, bool toggled);
@@ -85,7 +87,7 @@ public:
 	ActionDescription * send() { return Send; }
 	ActionDescription * blockUser() { return BlockUser; }
 	ActionDescription * openChatWith() { return OpenWith; }
-	ActionDescription * colorSelector() { return ColorSelector; }
+// 	ActionDescription * colorSelector() { return ColorSelector; }
 	ActionDescription * insertEmoticon() { return InsertEmoticon; }
 
 };

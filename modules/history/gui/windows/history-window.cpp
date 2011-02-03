@@ -21,6 +21,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <QtCore/QScopedPointer>
 #include <QtGui/QDateEdit>
 #include <QtGui/QGridLayout>
 #include <QtGui/QHBoxLayout>
@@ -523,7 +524,7 @@ void HistoryWindow::dateCurrentChanged(const QModelIndex &current, const QModelI
 			if (buddy && date.isValid())
 				statuses = History::instance()->statuses(buddy, date);
 			if (buddy.contacts().size() > 0)
-				ContentBrowser->setChat(ChatManager::instance()->findChat(ContactSet(buddy.contacts()[0]), true));
+				ContentBrowser->setChat(ChatManager::instance()->findChat(ContactSet(buddy.contacts().at(0)), true));
 			ContentBrowser->appendMessages(statusesToMessages(statuses));
 			break;
 		}
@@ -608,11 +609,10 @@ void HistoryWindow::showMainPopupMenu(const QPoint &pos)
 	if (!chat)
 		return;
 
-	QMenu *menu = BuddiesListViewMenuManager::instance()->menu(this, this, chat.contacts().toContactList());
-	menu->addAction(IconsManager::instance()->iconByPath("kadu_icons/clear-history"), tr("&Clear History"), this, SLOT(clearHistory()));
+	QScopedPointer<QMenu> menu(BuddiesListViewMenuManager::instance()->menu(this, this, chat.contacts().toContactList()));
+	menu->addAction(IconsManager::instance()->iconByPath("kadu_icons/clear-history"),
+			tr("&Clear History"), this, SLOT(clearHistory()));
 	menu->exec(QCursor::pos());
-
-	delete menu;
 }
 
 void HistoryWindow::showDetailsPopupMenu(const QPoint &pos)
@@ -656,7 +656,7 @@ void HistoryWindow::openChat()
 	if (!chat)
 		return;
 
-	ChatWidgetManager::instance()->openChatWidget(chat, true);
+	ChatWidgetManager::instance()->openPendingMessages(chat, true);
 
 	kdebugf2();
 }
@@ -675,12 +675,8 @@ void HistoryWindow::clearHistory()
 
 void HistoryWindow::selectQueryText()
 {
-#if QT_VERSION >= QT_VERSION_CHECK(4,6,0)
 	ContentBrowser->findText(QString()); // clear old selection
 	ContentBrowser->findText(Search.query(), QWebPage::HighlightAllOccurrences);
-#else
-	ContentBrowser->findText(Search.query());
-#endif
 }
 
 bool HistoryWindow::supportsActionType(ActionDescription::ActionType type)

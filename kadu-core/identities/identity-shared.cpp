@@ -55,6 +55,7 @@ IdentityShared::IdentityShared(const QUuid &uuid) :
 
 IdentityShared::~IdentityShared()
 {
+	ref.ref();
 }
 
 StorableObject * IdentityShared::storageParent()
@@ -144,7 +145,7 @@ Account IdentityShared::bestAccount()
 
 	Status resultStatus = Status::null;
 	foreach (const Account &account, Accounts)
-		if (account.data())
+		if (account.details() && account.data())
 		{
 			if (resultStatus == Status::null || account.data()->status() < resultStatus)
 			{
@@ -162,9 +163,9 @@ Status IdentityShared::status()
 	return account ? account.data()->status() : Status::null;
 }
 
-QString IdentityShared::statusName()
+QString IdentityShared::statusDisplayName()
 {
-	return Status::name(status(), false);
+	return status().displayName();
 }
 
 QIcon IdentityShared::statusIcon()

@@ -57,6 +57,7 @@
 #include "gui/widgets/status-buttons.h"
 #include "gui/widgets/status-menu.h"
 #include "notify/notification-manager.h"
+#include "status/status-container-manager.h"
 #include "activate.h"
 
 #include "misc/misc.h"
@@ -122,17 +123,7 @@ void KaduWindow::createGui()
 	hboxLayout->setMargin(0);
 	hboxLayout->setSpacing(0);
 
-	/* Must create empty widget so it can fill its background. */
-	GroupBarWidget = new QWidget(this);
-	QVBoxLayout *GroupBarLayout = new QVBoxLayout(GroupBarWidget);
-	GroupBarLayout->setMargin(0);
-	GroupBarLayout->setSpacing(0);
-	GroupBarWidget->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Expanding);
-
 	GroupBar = new GroupTabBar(this);
-
-	GroupBarLayout->addWidget(GroupBar, 0, Qt::AlignTop);
-	GroupBarWidget->setLayout(GroupBarLayout);
 
 	ContactsWidget = new BuddiesListWidget(BuddiesListWidget::FilterAtTop, hbox);
 	ContactsWidget->view()->useConfigurationColors(true);
@@ -145,11 +136,10 @@ void KaduWindow::createGui()
 
 	connect(ContactsWidget->view(), SIGNAL(chatActivated(Chat )), this, SLOT(openChatWindow(Chat )));
 
-	hboxLayout->addWidget(GroupBarWidget);
-	hboxLayout->setStretchFactor(GroupBarWidget, 1);
+	hboxLayout->addWidget(GroupBar);
+	hboxLayout->setStretchFactor(GroupBar, 1);
 	hboxLayout->addWidget(ContactsWidget);
 	hboxLayout->setStretchFactor(ContactsWidget, 100);
-	hboxLayout->setAlignment(GroupBar, Qt::AlignTop);
 
 	InfoPanel = new BuddyInfoPanel(Split);
 	connect(ContactsWidget->view(), SIGNAL(currentChanged(BuddyOrContact)), InfoPanel, SLOT(displayItem(BuddyOrContact)));
@@ -181,6 +171,7 @@ void KaduWindow::createMenu()
 #endif
 	createKaduMenu();
 	createContactsMenu();
+	createToolsMenu();
 	createHelpMenu();
 }
 
@@ -234,6 +225,14 @@ void KaduWindow::createContactsMenu()
 	menuBar()->addMenu(ContactsMenu);
 }
 
+void KaduWindow::createToolsMenu()
+{
+	ToolsMenu = new QMenu(this);
+	ToolsMenu->setTitle(tr("&Tools"));
+
+	menuBar()->addMenu(ToolsMenu);
+}
+
 void KaduWindow::createHelpMenu()
 {
 	HelpMenu = new QMenu(this);
@@ -267,7 +266,7 @@ void KaduWindow::compositingEnabled()
 			CompositingEnabled = true;
 			setTransparency(true);
 			menuBar()->setAutoFillBackground(true);
-			GroupBarWidget->setAutoFillBackground(true);
+			GroupBar->setAutoFillBackground(true);
 			InfoPanel->setAutoFillBackground(true);
 			ChangeStatusButtons->setAutoFillBackground(true);
 			ContactsWidget->nameFilterWidget()->setAutoFillBackground(true);
@@ -292,7 +291,7 @@ void KaduWindow::compositingDisabled()
 	{
 		CompositingEnabled = false;
 		menuBar()->setAutoFillBackground(false);
-		GroupBarWidget->setAutoFillBackground(false);
+		GroupBar->setAutoFillBackground(false);
 		InfoPanel->setAutoFillBackground(false);
 		ChangeStatusButtons->setAutoFillBackground(false);
 		ContactsWidget->nameFilterWidget()->setAutoFillBackground(false);
@@ -349,7 +348,7 @@ void KaduWindow::createRecentChatsMenu()
 void KaduWindow::openRecentChats(QAction *action)
 {
 	kdebugf();
-	ChatWidgetManager::instance()->openPendingMsgs(action->data().value<Chat>(), true);
+	ChatWidgetManager::instance()->openPendingMessages(action->data().value<Chat>(), true);
 	kdebugf2();
 }
 
@@ -438,7 +437,7 @@ BuddiesListView * KaduWindow::buddiesListView()
 
 StatusContainer * KaduWindow::statusContainer()
 {
-	return 0;
+	return StatusContainerManager::instance();
 }
 
 ContactSet KaduWindow::contacts()
@@ -528,6 +527,9 @@ void KaduWindow::insertMenuActionDescription(ActionDescription *actionDescriptio
 		case MenuContacts:
 			menu = ContactsMenu;
 			break;
+		case MenuTools:
+			menu = ToolsMenu;
+			break;
 		case MenuHelp:
 			menu = HelpMenu;
 	}
@@ -560,6 +562,9 @@ void KaduWindow::removeMenuActionDescription(ActionDescription *actionDescriptio
 		case MenuContacts:
 			ContactsMenu->removeAction(action);
 			break;
+		case MenuTools:
+			ToolsMenu->removeAction(action);
+			break;
 		case MenuHelp:
 			HelpMenu->removeAction(action);
 	}
@@ -580,12 +585,6 @@ void KaduWindow::createDefaultToolbars(QDomElement parentConfig)
 	addToolButton(toolbarConfig, "addGroupAction", Qt::ToolButtonTextUnderIcon);
 	addToolButton(toolbarConfig, "muteSoundsAction", Qt::ToolButtonTextUnderIcon);
 #endif
-}
-
-void KaduWindow::addAction(const QString &actionName, Qt::ToolButtonStyle style)
-{
-	addToolButton(findExistingToolbar(QString()), actionName, style);
-	Core::instance()->kaduWindow()->refreshToolBars();
 }
 
 ActionDataSource * KaduWindow::actionSource()

@@ -26,7 +26,7 @@
 class QLabel;
 class QLineEdit;
 
-class TokenFetcher;
+class GaduTokenFetcher;
 
 class TokenWidget : public QWidget
 {
@@ -38,10 +38,10 @@ class TokenWidget : public QWidget
 
 	QString TokenId;
 
-	TokenFetcher *Fetcher;
+	GaduTokenFetcher *Fetcher;
 
 private slots:
-	void tokenFetched(const QString &tokenId, QPixmap tokenImage);
+	void tokenFetched(const QString &tokenId, const QPixmap &tokenImage);
 	void refreshToken();
 
 public:

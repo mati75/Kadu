@@ -23,6 +23,7 @@
 #include "buddies/filter/abstract-buddy-filter.h"
 #include "buddies/buddy.h"
 #include "buddies/buddy-preferred-manager.h"
+#include "chat/message/pending-messages-manager.h"
 #include "contacts/filter/abstract-contact-filter.h"
 #include "contacts/contact.h"
 #include "status/status.h"
@@ -42,6 +43,11 @@ BuddiesModelProxy::BuddiesModelProxy(QObject *parent)
 	BrokenStringCompare = (QString("a").localeAwareCompare(QString("B")) > 0);
 	if (BrokenStringCompare)
 		fprintf(stderr, "There's something wrong with native string compare function. Applying workaround (slower).\n");
+
+	connect(PendingMessagesManager::instance(), SIGNAL(messageAdded(Message)),
+			this, SLOT(invalidate()));
+	connect(PendingMessagesManager::instance(), SIGNAL(messageRemoved(Message)),
+			this, SLOT(invalidate()));
 }
 
 BuddiesModelProxy::~BuddiesModelProxy()
@@ -108,6 +114,13 @@ bool BuddiesModelProxy::lessThan(const QModelIndex &left, const QModelIndex &rig
 	if (!leftBuddy.isBlocked() && rightBuddy.isBlocked())
 		return true;
 
+	bool leftHasPendingMessages = PendingMessagesManager::instance()->hasPendingMessagesForBuddy(leftBuddy);
+	bool rightHasPendingMessages = PendingMessagesManager::instance()->hasPendingMessagesForBuddy(rightBuddy);
+	if (!leftHasPendingMessages && rightHasPendingMessages)
+		return false;
+	if (leftHasPendingMessages && !rightHasPendingMessages)
+		return true;
+
 	if (SortByStatus)
 	{
 		Account leftAccount = BuddyPreferredManager::instance()->preferredAccount(leftBuddy);
@@ -155,7 +168,7 @@ bool BuddiesModelProxy::filterAcceptsRow(int sourceRow, const QModelIndex &sourc
 		foreach (AbstractBuddyFilter *filter, BuddyFilters)
 			if (!filter->acceptBuddy(buddy))
 				return false;
-			else if (filter->ignoreNextFilters())
+			else if (filter->ignoreNextFilters(buddy))
 				return true;
 	}
 

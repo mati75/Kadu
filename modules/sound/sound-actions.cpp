@@ -39,15 +39,12 @@
 
 SoundActions * SoundActions::Instance = 0;
 
-void SoundActions::registerActions(bool firstLoad)
+void SoundActions::registerActions()
 {
 	if (Instance)
 		return;
 
 	Instance = new SoundActions();
-
-	if (firstLoad)
-		KaduWindow::addAction("muteSoundsAction");
 }
 
 void SoundActions::unregisterActions()
@@ -72,7 +69,7 @@ SoundActions::SoundActions()
 	);
 	connect(MuteActionDescription, SIGNAL(actionCreated(Action *)), this, SLOT(setMuteActionState()));
 
-	Core::instance()->kaduWindow()->insertMenuActionDescription(MuteActionDescription, KaduWindow::MenuKadu, 8);
+	Core::instance()->kaduWindow()->insertMenuActionDescription(MuteActionDescription, KaduWindow::MenuKadu, 7);
 
 	setMuteActionState();
 

@@ -35,11 +35,12 @@ class JabberAvatarFetcher : public QObject
 
 	Contact MyContact;
 
-	void done();
-	void failed();
+	void fetchAvatarPEP();
+	void fetchAvatarVCard();
 
 private slots:
-	void receivedVCard();
+	void pepAvatarFetched(Contact contact, bool ok);
+	void avatarFetchedSlot(Contact contact, bool ok);
 
 public:
 	explicit JabberAvatarFetcher(Contact contact, QObject *parent = 0);

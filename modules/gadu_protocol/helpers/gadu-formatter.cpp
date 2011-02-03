@@ -111,8 +111,8 @@ unsigned char * createFormats(Account account, const FormattedMessage &message, 
 
 			if (part.isImage())
 			{
-				uint32_t size;
-				uint32_t crc32;
+				quint32 size;
+				quint32 crc32;
 
 				GaduChatImageService *gcis = dynamic_cast<GaduChatImageService *>(account.protocolHandler()->chatImageService());
 				gcis->prepareImageToSend(part.imagePath(), size, crc32);
@@ -141,7 +141,7 @@ unsigned char * createFormats(Account account, const FormattedMessage &message, 
 	return result;
 }
 
-static void appendToMessage(Account account, FormattedMessage &result, UinType sender, const QString &content,
+static void appendToMessage(Account account, FormattedMessage &result, UinType sender, const QByteArray &content,
 		struct gg_msg_richtext_format &format,
 		struct gg_msg_richtext_color &color, struct gg_msg_richtext_image &image, bool receiveImages)
 {
@@ -149,8 +149,8 @@ static void appendToMessage(Account account, FormattedMessage &result, UinType s
 
 	if (format.font & GG_FONT_IMAGE)
 	{
-		uint32_t size = gg_fix32(image.size);
-		uint32_t crc32 = gg_fix32(image.crc32);
+		quint32 size = gg_fix32(image.size);
+		quint32 crc32 = gg_fix32(image.crc32);
 
 		if (size == 20 && (crc32 == 4567 || crc32 == 99)) // fake spy images
 			return;
@@ -165,7 +165,7 @@ static void appendToMessage(Account account, FormattedMessage &result, UinType s
 		if (!details)
 			return;
 
-		if (size > (uint32_t)details->maximumImageSize() * 1024)
+		if (size > (quint32)details->maximumImageSize() * 1024)
 		{
 			result << FormattedMessagePart(qApp->translate("@default", QT_TR_NOOP("###IMAGE TOO BIG###")), false, false, false, textColor);
 			return;
@@ -190,7 +190,8 @@ static void appendToMessage(Account account, FormattedMessage &result, UinType s
 			textColor.setBlue(color.blue);
 		}
 
-		result << FormattedMessagePart(content, format.font & GG_FONT_BOLD, format.font & GG_FONT_ITALIC, format.font & GG_FONT_UNDERLINE, textColor);
+		result << FormattedMessagePart(QString::fromUtf8(content),
+				format.font & GG_FONT_BOLD, format.font & GG_FONT_ITALIC, format.font & GG_FONT_UNDERLINE, textColor);
 	}
 }
 
@@ -204,7 +205,7 @@ QString createImageId(unsigned int sender, unsigned int size, unsigned int crc32
 		.arg(crc32);
 }
 
-FormattedMessage createMessage(Account account, UinType sender, const QString &content,
+FormattedMessage createMessage(Account account, UinType sender, const QByteArray &content,
 		unsigned char *formats, unsigned int size, bool receiveImages)
 {
 	FormattedMessage result;
@@ -234,7 +235,7 @@ FormattedMessage createMessage(Account account, UinType sender, const QString &c
 		textPosition = gg_fix16(format.position);
 
 		if (first && format.position > 0)
-			result << FormattedMessagePart(content.left(textPosition), false, false, false, QColor());
+			result << FormattedMessagePart(QString::fromUtf8(content.left(textPosition)), false, false, false, QColor());
 
 		if (format.font & GG_FONT_IMAGE)
 		{

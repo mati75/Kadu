@@ -64,6 +64,8 @@ private slots:
 	void handlerMovedTo(HandlerType type, int x, int y);
 
 protected:
+    virtual void keyPressEvent(QKeyEvent *event);
+
 	virtual void mousePressEvent(QMouseEvent *event);
 	virtual void mouseReleaseEvent(QMouseEvent *event);
 	virtual void mouseMoveEvent(QMouseEvent *event);
@@ -76,10 +78,11 @@ public:
 	virtual ~CropImageWidget();
 
 	void setPixmap(QPixmap pixmap);
-	void setCropRect(QRect cropRect);
+	void setCropRect(const QRect &cropRect);
 
 signals:
 	void pixmapCropped(QPixmap pixmap);
+	void canceled();
 
 };
 

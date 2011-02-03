@@ -264,8 +264,10 @@ set (SOURCES
 	facebook-protocol-factory.cpp
 	gtalk-protocol-factory.cpp
 	server/jabber-avatar-fetcher.cpp
+	server/jabber-avatar-pep-fetcher.cpp
 	server/jabber-avatar-pep-uploader.cpp
 	server/jabber-avatar-uploader.cpp
+	server/jabber-avatar-vcard-fetcher.cpp
 	server/jabber-avatar-vcard-uploader.cpp
 	server/jabber-server-change-password.cpp
 	server/jabber-server-register-account.cpp
@@ -276,6 +278,9 @@ set (SOURCES
 	services/jabber-contact-personal-info-service.cpp
 	services/jabber-roster-service.cpp
 	services/jabber-subscription-service.cpp
+	tasks/pep-get-task.cpp
+	tasks/pep-publish-task.cpp
+	tasks/pep-retract-task.cpp
 	utils/jid-util.cpp
 	utils/vcard-factory.cpp
 	utils/pep-manager.cpp
@@ -304,8 +309,10 @@ set (MOC_SOURCES
 	jabber-protocol-factory.h
 	jabber-url-handler.h
 	server/jabber-avatar-fetcher.h
+	server/jabber-avatar-pep-fetcher.h
 	server/jabber-avatar-pep-uploader.h
 	server/jabber-avatar-uploader.h
+	server/jabber-avatar-vcard-fetcher.h
 	server/jabber-avatar-vcard-uploader.h
 	server/jabber-server-change-password.h
 	server/jabber-server-register-account.h
@@ -316,6 +323,9 @@ set (MOC_SOURCES
 	services/jabber-contact-personal-info-service.h
 	services/jabber-roster-service.h
 	services/jabber-subscription-service.h
+	tasks/pep-get-task.h
+	tasks/pep-publish-task.h
+	tasks/pep-retract-task.h
 	utils/vcard-factory.h
 	utils/pep-manager.h
 	utils/server-info-manager.h

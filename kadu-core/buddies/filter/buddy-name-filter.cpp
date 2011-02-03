@@ -22,7 +22,7 @@
 
 #include "buddy-name-filter.h"
 
-bool BuddyNameFilter::acceptBuddy(Buddy buddy)
+bool BuddyNameFilter::acceptBuddy(const Buddy &buddy)
 {
 	if (Name.isEmpty())
 		return true;
@@ -45,8 +45,10 @@ bool BuddyNameFilter::acceptBuddy(Buddy buddy)
 	return false;
 }
 
-bool BuddyNameFilter::ignoreNextFilters()
+bool BuddyNameFilter::ignoreNextFilters(const Buddy &buddy)
 {
+	Q_UNUSED(buddy)
+
 	return !Name.isEmpty();
 }
 

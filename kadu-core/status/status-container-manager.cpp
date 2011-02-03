@@ -127,7 +127,7 @@ void StatusContainerManager::configurationUpdated()
 void StatusContainerManager::cleanStatusContainers()
 {
 	while (!StatusContainers.isEmpty())
-		unregisterStatusContainer(StatusContainers.first());
+		unregisterStatusContainer(StatusContainers.at(0));
 }
 
 void StatusContainerManager::addAllAccounts()
@@ -156,6 +156,8 @@ void StatusContainerManager::setDefaultStatusContainer(StatusContainer *defaultS
 
 	if (DefaultStatusContainer)
 		connect(DefaultStatusContainer, SIGNAL(statusChanged()), this, SIGNAL(statusChanged()));
+
+	emit statusChanged();
 }
 
 void StatusContainerManager::simpleModeChanged()
@@ -196,7 +198,7 @@ void StatusContainerManager::unregisterStatusContainer(StatusContainer *statusCo
 		if (StatusContainers.isEmpty())
 			setDefaultStatusContainer(0);
 		else
-			setDefaultStatusContainer(StatusContainers.first());
+			setDefaultStatusContainer(StatusContainers.at(0));
 	}
 
 	disconnect(statusContainer, SIGNAL(statusChanged()), this, SIGNAL(statusChanged()));
@@ -236,10 +238,10 @@ Status StatusContainerManager::status()
 			: Status::null;
 }
 
-QString StatusContainerManager::statusName()
+QString StatusContainerManager::statusDisplayName()
 {
 	return DefaultStatusContainer
-			? DefaultStatusContainer->statusName()
+			? DefaultStatusContainer->statusDisplayName()
 			: tr("Offline");
 }
 

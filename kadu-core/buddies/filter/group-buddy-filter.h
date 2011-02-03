@@ -37,11 +37,12 @@ public:
 	GroupBuddyFilter(QObject *parent = 0);
 
 	void setGroup(Group group);
-	virtual bool acceptBuddy(Buddy buddy);
+	virtual bool acceptBuddy(const Buddy &buddy);
 
 	void refresh();
 
 	void setAllGroupShown(bool shown);
+
 };
 
 #endif // GROUP_BUDDY_FILTER

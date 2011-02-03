@@ -56,6 +56,7 @@ class KADUAPI MainWindow : public QMainWindow, public ActionDataSource
 
 private slots:
 	void toolbarUpdated();
+    void toolbarRemoved(ToolBar *toolBar);
 
 protected:
 	void loadToolBarsFromConfig();
@@ -87,18 +88,18 @@ public:
 	MainWindow(const QString &windowName, QWidget *parent);
 	virtual ~MainWindow();
 
-	QString windowName() { return WindowName; }
+	const QString & windowName() { return WindowName; }
 
 	virtual QMenu * createPopupMenu() { return 0; }
 
 	virtual bool supportsActionType(ActionDescription::ActionType type) = 0;
 	virtual BuddiesListView * buddiesListView() = 0;
-	virtual StatusContainer * statusContainer() = 0;
-	virtual Chat chat() = 0;
+
 	Contact contact();
 	Buddy buddy();
 
 	void actionAdded(Action *action);
+	bool hasAction(const QString &actionName, ToolBar *exclude = 0);
 
 public slots:
 	void addTopToolbar();

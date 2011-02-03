@@ -65,7 +65,9 @@ TabsManager *tabs_manager;
 
 extern "C" KADU_EXPORT int tabs_init(bool firstload)
 {
-	tabs_manager = new TabsManager(firstload);
+	Q_UNUSED(firstload)
+
+	tabs_manager = new TabsManager();
 	MainConfigurationWindow::registerUiFile(dataPath("kadu/modules/configuration/tabs.ui"));
 	return 0;
 }
@@ -89,7 +91,7 @@ static void disableNewTab(Action *action)
 	kdebugf2();
 }
 
-TabsManager::TabsManager(bool firstLoad) :
+TabsManager::TabsManager() :
 		NoTabs(false), ForceTabs(false), TargetTabs(-1)
 {
 	kdebugf();
@@ -142,9 +144,6 @@ TabsManager::TabsManager(bool firstLoad) :
 		"kadu_icons/tab-detach", tr("Attach Chat to Tabs"), true
 	);
 	connect(AttachToTabsActionDescription, SIGNAL(actionCreated(Action *)), this, SLOT(attachToTabsActionCreated(Action *)));
-
-	if (firstLoad)
-		ChatEditBox::addAction("attachToTabsAction");
 
 	if (config_file.readBoolEntry("Chat", "SaveOpenedWindows", true))
 		ensureLoaded(); //loadTabs();
@@ -364,7 +363,7 @@ void TabsManager::onNewTab(QAction *sender, bool toggled)
 		else if (chat.contacts().count() == 1 || ConfigConferencesInTabs)
 			ForceTabs = true;
 
-		ChatWidgetManager::instance()->openPendingMsgs(chat, true);
+		ChatWidgetManager::instance()->openPendingMessages(chat, true);
 	}
 
 	kdebugf2();
@@ -599,7 +598,7 @@ bool TabsManager::detachChat(ChatWidget *chat)
 	delete chat;
 
 	NoTabs = true;
-	ChatWidgetManager::instance()->openPendingMsgs(oldChat, true);
+	ChatWidgetManager::instance()->openPendingMessages(oldChat, true);
 	return true;
 }
 
@@ -633,7 +632,7 @@ void TabsManager::load()
 				ForceTabs = true;
 			else if (element.attribute("type") == "detachedChat")
 				NoTabs = true;
-			ChatWidgetManager::instance()->openPendingMsgs(chat);
+			ChatWidgetManager::instance()->openPendingMessages(chat);
 		}
 		else if (element.attribute("type") == "tab")
 			insertTab(chatWidget);
@@ -747,7 +746,7 @@ void TabsManager::openTabWith(QStringList altnicks, int index)
 	// Jeśli chat nie istnieje to go tworzymy z wymuszonym dodaniem go do kart
 		force_tabs=true;
 		target_tabs=index;
-		ChatWidgetManager::instance()->openPendingMsgs(contacts, true);
+		ChatWidgetManager::instance()->openPendingMessages(contacts, true);
 	}
 	*/
 }

@@ -5,6 +5,7 @@
  * Copyright 2008 Tomasz Rostański (rozteck@interia.pl)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
  * Copyright 2008, 2009, 2010 Piotr Galiszewski (piotrgaliszewski@gmail.com)
+ * Copyright 2011 Piotr Dąbrowski (ultr@ultr.pl)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -41,9 +42,8 @@
 
 #include "chat-messages-view.h"
 
-ChatMessagesView::ChatMessagesView(Chat chat, bool supportTransparency, QWidget *parent) :
-		KaduWebView(parent), CurrentChat(chat),
-		LastScrollValue(0), LastLine(false), SupportTransparency(supportTransparency)
+ChatMessagesView::ChatMessagesView(const Chat &chat, bool supportTransparency, QWidget *parent) :
+		KaduWebView(parent), CurrentChat(chat), SupportTransparency(supportTransparency), AtBottom(true)
 {
 	Renderer = new HtmlMessagesRenderer(CurrentChat, this);
 
@@ -58,9 +58,11 @@ ChatMessagesView::ChatMessagesView(Chat chat, bool supportTransparency, QWidget 
 	setMinimumSize(QSize(100,100));
 	setPage(Renderer->webPage());
 	settings()->setAttribute(QWebSettings::JavascriptEnabled, true);
+	settings()->setAttribute(QWebSettings::PluginsEnabled, true);
 
 	connectChat();
-	connect(this, SIGNAL(loadFinished(bool)), this, SLOT(scrollToLine()));
+
+	connect(this->page()->mainFrame(), SIGNAL(contentsSizeChanged(const QSize &)), this, SLOT(scrollToBottom()));
 
 	ChatStylesManager::instance()->chatViewCreated(this);
 }
@@ -70,6 +72,27 @@ ChatMessagesView::~ChatMessagesView()
  	ChatStylesManager::instance()->chatViewDestroyed(this);
 
 	disconnectChat();
+}
+
+void ChatMessagesView::mouseReleaseEvent(QMouseEvent *e)
+{
+	AtBottom = page()->mainFrame()->scrollBarValue(Qt::Vertical) >= page()->mainFrame()->scrollBarMaximum(Qt::Vertical);
+
+	KaduWebView::mouseReleaseEvent(e);
+}
+
+void ChatMessagesView::resizeEvent(QResizeEvent *e)
+{
+	QWebView::resizeEvent(e);
+
+	scrollToBottom();
+}
+
+void ChatMessagesView::wheelEvent(QWheelEvent* e)
+{
+	AtBottom = page()->mainFrame()->scrollBarValue(Qt::Vertical) >= page()->mainFrame()->scrollBarMaximum(Qt::Vertical);
+
+	QWebView::wheelEvent(e);
 }
 
 void ChatMessagesView::connectChat()
@@ -94,7 +117,7 @@ void ChatMessagesView::disconnectChat()
 				this, SLOT(imageReceived(const QString &, const QString &)));
 }
 
-void ChatMessagesView::setChat(Chat chat)
+void ChatMessagesView::setChat(const Chat &chat)
 {
 	disconnectChat();
 	CurrentChat = chat;
@@ -122,7 +145,6 @@ void ChatMessagesView::pageDown()
 
 void ChatMessagesView::imageReceived(const QString &imageId, const QString &imageFileName)
 {
-	rememberScrollBarPosition();
 	Renderer->replaceLoadingImages(imageId, imageFileName);
 }
 
@@ -133,7 +155,6 @@ void ChatMessagesView::updateBackgroundsAndColors()
 
 void ChatMessagesView::repaintMessages()
 {
-	rememberScrollBarPosition();
 	Renderer->refresh();
 }
 
@@ -196,6 +217,7 @@ void ChatMessagesView::clearMessages()
 {
 	Renderer->clearMessages();
 	emit messagesUpdated();
+	AtBottom = true;
 }
 
 unsigned int ChatMessagesView::countMessages()
@@ -207,30 +229,11 @@ void ChatMessagesView::messageStatusChanged(Message::Status status)
 {
 	if (!sender())
 		return;
-	rememberScrollBarPosition();
 	Renderer->messageStatusChanged(Message(sender()), status);
 }
 
-void ChatMessagesView::resizeEvent(QResizeEvent *e)
+void ChatMessagesView::scrollToBottom()
 {
- 	LastScrollValue = page()->currentFrame()->scrollBarValue(Qt::Vertical);
- 	LastLine = (LastScrollValue == page()->currentFrame()->scrollBarMaximum(Qt::Vertical));
-
- 	KaduWebView::resizeEvent(e);
-
-	scrollToLine();
-}
-
-void ChatMessagesView::rememberScrollBarPosition()
-{
-	LastScrollValue = page()->currentFrame()->scrollBarValue(Qt::Vertical);
-	LastLine = (LastScrollValue == page()->currentFrame()->scrollBarMaximum(Qt::Vertical));
-}
-
-void ChatMessagesView::scrollToLine()
-{
- 	if (LastLine)
- 		page()->currentFrame()->setScrollBarValue(Qt::Vertical, page()->currentFrame()->scrollBarMaximum(Qt::Vertical));
- 	else
- 		page()->currentFrame()->setScrollBarValue(Qt::Vertical, LastScrollValue);
+	if (AtBottom)
+		page()->mainFrame()->setScrollBarValue(Qt::Vertical, page()->mainFrame()->scrollBarMaximum(Qt::Vertical));
 }

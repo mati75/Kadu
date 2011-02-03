@@ -31,11 +31,13 @@
 #include "modules/history/history.h"
 #include "status/status.h"
 
+#include "history-importer-chat-data.h"
 #include "history-import-thread.h"
 #include "history-migration-helper.h"
 
-HistoryImportThread::HistoryImportThread(Account gaduAccount, const QList<UinsList> &uinsLists, int totalEntries, QObject *parent) :
-		QThread(parent), GaduAccount(gaduAccount), UinsLists(uinsLists), Canceled(false), TotalEntries(totalEntries), ImportedEntries(0)
+HistoryImportThread::HistoryImportThread(Account gaduAccount, const QString &path, const QList<UinsList> &uinsLists, int totalEntries, QObject *parent) :
+		QThread(parent), GaduAccount(gaduAccount), Path(path), UinsLists(uinsLists), Canceled(false), TotalEntries(totalEntries), ImportedEntries(0),
+		ImportedChats(0), TotalMessages(0), ImportedMessages(0)
 {
 }
 
@@ -45,6 +47,8 @@ HistoryImportThread::~HistoryImportThread()
 
 void HistoryImportThread::run()
 {
+	History::instance()->setSyncEnabled(false);
+
 	ImportedEntries = 0;
 
 	foreach (const UinsList &uinsList, UinsLists)
@@ -52,15 +56,45 @@ void HistoryImportThread::run()
 		if (Canceled)
 			break;
 
+		ImportedChats++;
+
 		Chat chat = chatFromUinsList(uinsList);
-		QList<HistoryEntry> entries = HistoryMigrationHelper::historyEntries(uinsList);
+		// we cannot import into non-existing chat
+		// this means chat with ourself on the list
+		if (!chat || !chat.data())
+			continue;
+
+		QList<HistoryEntry> entries = HistoryMigrationHelper::historyEntries(Path, uinsList);
+
+		HistoryImporterChatData *historyImporterChatData = chat.data()->moduleStorableData<HistoryImporterChatData>("history-importer", true);
+		if (historyImporterChatData->imported())
+		{
+			ImportedEntries += entries.count();
+			continue;
+		}
+
+		ImportedMessages = 0;
+		TotalMessages = entries.count();
 
 		foreach (const HistoryEntry &entry, entries)
 			if (Canceled)
 				break;
 			else
+			{
 				importEntry(chat, entry);
+				ImportedMessages++;
+			}
+
+		if (Canceled)
+			break;
+
+		historyImporterChatData->setImported(true);
+
+		// force sync for every chat
+		History::instance()->forceSync();
 	}
+
+	History::instance()->setSyncEnabled(true);
 }
 
 void HistoryImportThread::cancel()
@@ -77,7 +111,7 @@ Chat HistoryImportThread::chatFromUinsList(const UinsList &uinsList) const
 	return ChatManager::instance()->findChat(contacts);
 }
 
-void HistoryImportThread::importEntry(Chat chat, const HistoryEntry &entry)
+void HistoryImportThread::importEntry(const Chat &chat, const HistoryEntry &entry)
 {
 	switch (entry.Type)
 	{
@@ -102,7 +136,6 @@ void HistoryImportThread::importEntry(Chat chat, const HistoryEntry &entry)
 			msg.setReceiveDate(entry.Date);
 			msg.setType(outgoing ? Message::TypeSent : Message::TypeReceived);
 
-			// TODO 0.6.6: it's damn slow!
 			History::instance()->currentStorage()->appendMessage(msg);
 			ImportedEntries++;
 			break;
@@ -115,14 +148,20 @@ void HistoryImportThread::importEntry(Chat chat, const HistoryEntry &entry)
 				case HistoryEntry::Online:
 					statusStr = "Online";
 					break;
-				case HistoryEntry::Offline:
-					statusStr = "Offline";
-					break;
 				case HistoryEntry::Busy:
 					statusStr = "Away";
 					break;
 				case HistoryEntry::Invisible:
 					statusStr = "Invisible";
+					break;
+				case HistoryEntry::FFC:
+					statusStr = "FreeForChat";
+					break;
+				case HistoryEntry::DND:
+					statusStr = "DoNotDisturb";
+					break;
+				case HistoryEntry::Offline:
+					statusStr = "Offline";
 					break;
 				default:
 					return;
@@ -130,7 +169,6 @@ void HistoryImportThread::importEntry(Chat chat, const HistoryEntry &entry)
 
 			Status status(statusStr, entry.Content);
 			Contact contact = ContactManager::instance()->byId(GaduAccount, QString::number(entry.Uin), ActionCreateAndAdd);
-			// TODO 0.6.6: it's damn slow!
 			History::instance()->currentStorage()->appendStatus(contact, status, entry.Date);
 			ImportedEntries++;
 			break;

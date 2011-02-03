@@ -60,6 +60,7 @@ CropImageWidget::CropImageWidget(QWidget *parent) :
 
 	ToolBox = new ScreenshotToolBox();
 	connect(ToolBox, SIGNAL(crop()), this, SLOT(crop()));
+	connect(ToolBox, SIGNAL(cancel()), this, SIGNAL(canceled()));
 
 	ToolBoxTimer = new QTimer(this);
 	connect(ToolBoxTimer, SIGNAL(timeout()), this, SLOT(updateToolBoxFileSizeHint()));
@@ -192,6 +193,17 @@ void CropImageWidget::updateToolBoxFileSizeHint()
 		ToolBox->setFileSize(QString::number(ceil(1.0 * buffer.size() / 1024.0)) + " KiB");
 }
 
+void CropImageWidget::keyPressEvent(QKeyEvent *e)
+{
+	if (e->key() == Qt::Key_Escape)
+	{
+		emit canceled();
+		e->accept();
+	}
+	else
+		QWidget::keyPressEvent(e);
+}
+
 void CropImageWidget::mousePressEvent(QMouseEvent *event)
 {
 	QGraphicsView::mousePressEvent(event);
@@ -260,7 +272,7 @@ void CropImageWidget::setPixmap(QPixmap pixmap)
 	PixmapItem->setPixmap(pixmap);
 }
 
-void CropImageWidget::setCropRect(QRect cropRect)
+void CropImageWidget::setCropRect(const QRect &cropRect)
 {
 	CropRect = cropRect.normalized();
 	updateCropRectDisplay();

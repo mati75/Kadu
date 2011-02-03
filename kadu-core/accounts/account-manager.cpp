@@ -29,9 +29,9 @@
 #include "configuration/xml-configuration-file.h"
 #include "contacts/contact-manager.h"
 #include "core/core.h"
+#include "gui/windows/password-window.h"
 #include "notify/notification-manager.h"
 #include "protocols/connection-error-notification.h"
-#include "protocols/invalid-password-notification.h"
 #include "protocols/protocol.h"
 #include "protocols/protocol-factory.h"
 #include "protocols/protocols-manager.h"
@@ -52,6 +52,9 @@ KADUAPI AccountManager * AccountManager::instance()
 AccountManager::AccountManager()
 {
 	ConfigurationManager::instance()->registerStorableObject(this);
+
+	// needed for QueuedConnection
+	qRegisterMetaType<Account>("Account");
 }
 
 AccountManager::~AccountManager()
@@ -97,10 +100,16 @@ void AccountManager::itemRegistered(Account item)
 	QMutexLocker(&mutex());
 
 	AccountsAwareObject::notifyAccountRegistered(item);
+
+	/* NOTE: We need QueuedConnection here so when the protocol emits the signal, it can cleanup
+	 * itself before we do something (e.g., reset connection data after invalidPassword, so when
+	 * we try to log in after entering new password, a new connection can be estabilished instead
+	 * of giving up because of already existing connection).
+	 */
 	connect(item.protocolHandler(), SIGNAL(connectionError(Account, const QString &, const QString &)),
-			this, SLOT(connectionError(Account, const QString &, const QString &)));
+			this, SLOT(connectionError(Account, const QString &, const QString &)), Qt::QueuedConnection);
 	connect(item.protocolHandler(), SIGNAL(invalidPassword(Account)),
-			this, SLOT(invalidPassword(Account)));
+			this, SLOT(invalidPassword(Account)), Qt::QueuedConnection);
 
 	emit accountRegistered(item);
 }
@@ -226,11 +235,10 @@ void AccountManager::invalidPassword(Account account)
 {
 	QMutexLocker(&mutex());
 
-	if (!InvalidPasswordNotification::activeError(account))
-	{
-		InvalidPasswordNotification *invalidPasswordNotification = new InvalidPasswordNotification(account);
-		NotificationManager::instance()->notify(invalidPasswordNotification);
-	}
+	QString message = tr("Please provide valid password for %1 (%2) account")
+			.arg(account.accountIdentity().name())
+			.arg(account.id());
+	PasswordWindow::getPassword(message, account.protocolHandler(), SLOT(login(const QString &, bool)));
 }
 
 void AccountManager::removeAccountAndBuddies(Account account)

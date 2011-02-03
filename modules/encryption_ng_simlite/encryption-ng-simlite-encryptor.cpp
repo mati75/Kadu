@@ -18,8 +18,10 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "misc/coding-conversion.h"
 #include "modules/encryption_ng/keys/key.h"
 #include "modules/encryption_ng/keys/keys-manager.h"
+#include "modules/encryption_ng/notify/encryption-ng-notification.h"
 
 #include "pkcs1_certificate.h"
 
@@ -82,17 +84,17 @@ QCA::PublicKey EncryptioNgSimliteEncryptor::getPublicKey(const Key &key)
 	if (!keyData.startsWith(BEGIN_RSA_PUBLIC_KEY) || !keyData.endsWith(END_RSA_PUBLIC_KEY))
 	{
 		Valid = false;
+		EncryptionNgNotification::notifyEncryptionError(tr("Cannot use public key: not a valid RSA key"));
 		return QCA::PublicKey();
 	}
 
-	keyData = keyData.mid(BEGIN_RSA_PUBLIC_KEY_LENGTH, keyData.length() - BEGIN_RSA_PUBLIC_KEY_LENGTH - END_RSA_PUBLIC_KEY_LENGTH);
+	keyData = keyData.mid(BEGIN_RSA_PUBLIC_KEY_LENGTH, keyData.length() - BEGIN_RSA_PUBLIC_KEY_LENGTH - END_RSA_PUBLIC_KEY_LENGTH).replace('\r', "").trimmed();
 
 	QCA::SecureArray certificate;
 
-	QCA::Base64 decoder(QCA::Decode);
+	QCA::Base64 decoder;
 	decoder.setLineBreaksEnabled(true);
 	certificate = decoder.decode(keyData);
-	certificate += decoder.final();
 
 	// some fake security added
 	keyData.fill(' ', keyData.size());
@@ -101,6 +103,7 @@ QCA::PublicKey EncryptioNgSimliteEncryptor::getPublicKey(const Key &key)
 	if (!decoder.ok())
 	{
 		Valid = false;
+		EncryptionNgNotification::notifyEncryptionError(tr("Cannot use public key: invalid BASE64 encoding"));
 		return QCA::PublicKey();
 	}
 
@@ -111,12 +114,14 @@ QCA::PublicKey EncryptioNgSimliteEncryptor::getPublicKey(const Key &key)
 	if (PKCS1Certificate::OK != status)
 	{
 		Valid = false;
+		EncryptionNgNotification::notifyEncryptionError(tr("Cannot use public key: invalid PKCS1 certificate"));
 		return QCA::PublicKey();
 	}
 
 	if (!publicKey.canEncrypt())
 	{
 		Valid = false;
+		EncryptionNgNotification::notifyEncryptionError(tr("Cannot use public key: this key does not allow encrypttion"));
 		return QCA::PublicKey();
 	}
 
@@ -127,7 +132,10 @@ QCA::PublicKey EncryptioNgSimliteEncryptor::getPublicKey(const Key &key)
 QByteArray EncryptioNgSimliteEncryptor::encrypt(const QByteArray &data)
 {
 	if (!Valid)
+	{
+		EncryptionNgNotification::notifyEncryptionError(tr("Cannot encrypt: valid public key not available"));
 		return data;
+	}
 
 	//generate a symmetric key for Blowfish (16 bytes in length)
 	QCA::SymmetricKey blowfishKey(16);
@@ -135,7 +143,10 @@ QByteArray EncryptioNgSimliteEncryptor::encrypt(const QByteArray &data)
 	//encrypt the symmetric key using the RSA public key
 	QCA::SecureArray encryptedBlowfishKey = EncodingKey.encrypt(blowfishKey, QCA::EME_PKCS1_OAEP);
 	if (encryptedBlowfishKey.isEmpty())
+	{
+		EncryptionNgNotification::notifyEncryptionError(tr("Cannot encrypt: valid blowfish key not available"));
 		return data;
+	}
 
 	//create an initialisation vector (8 zeros)
 	char ivec[8] = {0, 0, 0, 0, 0, 0, 0, 0};
@@ -156,16 +167,14 @@ QByteArray EncryptioNgSimliteEncryptor::encrypt(const QByteArray &data)
 	memcpy(head.init, headIV.data(), 8);
 
 	//the actual encryption
-	QByteArray encryptedData = QByteArray((const char *)&head, sizeof(sim_message_header)) + data;
-	QCA::SecureArray encrypted = cipher.update(encryptedData);
+	QByteArray encryptedData = QByteArray((const char *)&head, sizeof(sim_message_header)) + unicode2cp(QString::fromUtf8(data));
+	QCA::SecureArray encrypted = cipher.process(encryptedData);
 
 	if (!cipher.ok())
+	{
+		EncryptionNgNotification::notifyEncryptionError(tr("Cannot encrypt: unknown error"));
 		return data;
-
-	//output the final block
-	encrypted.append(cipher.final());
-	if (!cipher.ok())
-		return data;
+	}
 
 	//build the encrypted message
 	encrypted = encryptedBlowfishKey + encrypted;
@@ -176,7 +185,10 @@ QByteArray EncryptioNgSimliteEncryptor::encrypt(const QByteArray &data)
 //NOTE: this seems to break the message (and without it everything works fine)
 //	encrypted += encoder.final();
 	if (!encoder.ok())
+	{
+		EncryptionNgNotification::notifyEncryptionError(tr("Cannot encrypt: unknown error"));
 		return data;
+	}
 
 	//finally, put the encrypted message into the output QByteArray
 	return encrypted.toByteArray();

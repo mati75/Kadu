@@ -1,7 +1,7 @@
 project (kadu)
 
 # minimal required versions
-set (QT_MIN_VERSION "4.5.0")
+set (QT_MIN_VERSION "4.6.0")
 set (CMAKE_MIN_VERSION "2.6.0")
 
 # configuration
@@ -26,6 +26,14 @@ if (NOT DEFINED CMAKE_VERSION)
 endif (NOT DEFINED CMAKE_VERSION)
 
 cmake_minimum_required (VERSION ${CMAKE_MIN_VERSION} FATAL_ERROR)
+
+if (COMMAND cmake_policy)
+	cmake_policy (SET CMP0003 NEW)
+
+	if (${CMAKE_VERSION} VERSION_GREATER 2.8.0)
+		cmake_policy (SET CMP0015 OLD)
+	endif (${CMAKE_VERSION} VERSION_GREATER 2.8.0)
+endif (COMMAND cmake_policy)
 
 include (FindPkgConfig)
 include (CheckIncludeFiles)
@@ -88,14 +96,14 @@ endif (MINGW)
 
 # warnings
 if (UNIX AND NOT APPLE)
-	set (CMAKE_C_FLAGS "-W -Wall -Werror -fno-strict-aliasing ${CMAKE_C_FLAGS}")
-	set (CMAKE_CXX_FLAGS "-W -Wall -Werror -fno-strict-aliasing ${CMAKE_CXX_FLAGS}")
+	set (CMAKE_C_FLAGS "-W -Wall -Werror ${CMAKE_C_FLAGS}")
+	set (CMAKE_CXX_FLAGS "-W -Wall -Werror ${CMAKE_CXX_FLAGS}")
 elseif (APPLE)
-	set (CMAKE_C_FLAGS "-W -Wall -fno-strict-aliasing ${CMAKE_C_FLAGS}")
-	set (CMAKE_CXX_FLAGS "-W -Wall -fno-strict-aliasing ${CMAKE_CXX_FLAGS}")
+	set (CMAKE_C_FLAGS "-W -Wall ${CMAKE_C_FLAGS}")
+	set (CMAKE_CXX_FLAGS "-W -Wall ${CMAKE_CXX_FLAGS}")
 elseif (MINGW)
-	set (CMAKE_C_FLAGS "-ffast-math -mtune=i686 -fno-strict-aliasing")
-	set (CMAKE_CXX_FLAGS "-ffast-math -mtune=i686 -fno-strict-aliasing")
+	set (CMAKE_C_FLAGS "-ffast-math -mtune=i686")
+	set (CMAKE_CXX_FLAGS "-ffast-math -mtune=i686")
 endif (UNIX AND NOT APPLE)
 
 if (NOT KADU_DATADIR)
@@ -216,10 +224,6 @@ macro (kadu_module)
 		)
 	endif (NOT "${MODULE_DATA_DIRECTORY}" STREQUAL "")
 
-	if (COMMAND cmake_policy)
-		cmake_policy (SET CMP0003 NEW)
-	endif (COMMAND cmake_policy)
-
 	add_library (${MODULE_NAME} ${${MODULE_NAME}} ${MODULE_SOURCES} ${MODULE_MOC_FILES})
 	add_custom_target (${MODULE_NAME}-translations DEPENDS ${MODULE_TRANSLATION_FILES})
 
@@ -253,6 +257,9 @@ set (QT_USE_QTXML 1)
 set (QT_USE_QTNETWORK 1)
 set (QT_USE_QTWEBKIT 1)
 set (QT_USE_QTSVG 1)
+if (UNIX AND NOT APPLE)
+	set (QT_USE_QTDBUS 1)
+endif (UNIX AND NOT APPLE)
 include (${QT_USE_FILE})
 include_directories (${CMAKE_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/kadu-core ${QT_INCLUDES})
 

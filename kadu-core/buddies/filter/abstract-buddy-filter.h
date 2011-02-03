@@ -34,8 +34,12 @@ public:
 			: QObject(parent) {}
 	virtual ~AbstractBuddyFilter() {}
 
-	virtual bool acceptBuddy(Buddy buddy) = 0;
-	virtual bool ignoreNextFilters() { return false; }
+	virtual bool acceptBuddy(const Buddy &buddy) = 0;
+	virtual bool ignoreNextFilters(const Buddy &buddy)
+	{
+		Q_UNUSED(buddy);
+		return false;
+	}
 
 signals:
 	void filterChanged();

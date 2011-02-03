@@ -30,6 +30,7 @@
 
 #include "keys/key.h"
 #include "keys/keys-manager.h"
+#include "notify/encryption-ng-notification.h"
 #include "encryption-manager.h"
 #include "encryption-provider-manager.h"
 
@@ -71,10 +72,10 @@ static void checkSendKey(Action *action)
 
 EncryptionActions * EncryptionActions::Instance = 0;
 
-void EncryptionActions::registerActions(bool firstLoad)
+void EncryptionActions::registerActions()
 {
 	if (!Instance)
-		Instance = new EncryptionActions(firstLoad);
+		Instance = new EncryptionActions();
 }
 
 void EncryptionActions::unregisterActions()
@@ -83,7 +84,7 @@ void EncryptionActions::unregisterActions()
 	Instance = 0;
 }
 
-EncryptionActions::EncryptionActions(bool firstLoad)
+EncryptionActions::EncryptionActions()
 {
 	EnableEncryptionActionDescription = new ActionDescription(this,
 			ActionDescription::TypeChat, "encryptionAction",
@@ -92,13 +93,10 @@ EncryptionActions::EncryptionActions(bool firstLoad)
 			true, checkCanEncrypt
 	);
 
-	if (firstLoad)
-		ChatEditBox::addAction("encryptionAction");
-
 	SendPublicKeyActionDescription = new ActionDescription(this,
 		ActionDescription::TypeUser, "sendPublicKeyAction",
 		this, SLOT(sendPublicKeyActionActivated(QAction *, bool)),
-		"security-high", tr("Send my public key"),
+		"security-high", tr("Send My Public Key"),
 		false, checkSendKey
 	);
 	BuddiesListViewMenuManager::instance()->addListActionDescription(SendPublicKeyActionDescription,
@@ -164,13 +162,18 @@ void EncryptionActions::sendPublicKey(const Contact &contact)
 
 	Key key = KeysManager::instance()->byContactAndType(account.accountContact(), "simlite", ActionReturnNull);
 	if (!key)
+	{
+		EncryptionNgNotification::notifyPublicKeySendError(contact, tr("No public key available"));
 		return;
+	}
 
 	ContactSet contacts;
 	contacts.insert(contact);
 
 	Chat chat = ChatManager::instance()->findChat(contacts, true);
 	chatService->sendMessage(chat, QString::fromUtf8(key.key().data()), true);
+
+	EncryptionNgNotification::notifyPublicKeySent(contact);
 }
 
 void EncryptionActions::checkEnableEncryption(const Chat &chat, bool check)

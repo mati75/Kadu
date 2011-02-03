@@ -102,7 +102,9 @@ const char *mediaPlayerOsdHint = "MediaPlayerOsd";
 // Kadu initializing functions
 extern "C" KADU_EXPORT int mediaplayer_init(bool firstLoad)
 {
-	mediaplayer = new MediaPlayer(firstLoad);
+	Q_UNUSED(firstLoad)
+
+	mediaplayer = new MediaPlayer();
 
 	MainConfigurationWindow::registerUiFile(dataPath("kadu/modules/configuration/mediaplayer.ui"));
 	MainConfigurationWindow::registerUiHandler(mediaplayer);
@@ -121,7 +123,7 @@ extern "C" KADU_EXPORT void mediaplayer_close()
 
 // Implementation of MediaPlayer class
 
-MediaPlayer::MediaPlayer(bool firstLoad)
+MediaPlayer::MediaPlayer()
 {
 	kdebugf();
 
@@ -190,17 +192,6 @@ MediaPlayer::MediaPlayer(bool firstLoad)
 		"audio-volume-low", tr("Volume Down"), false
 	);
 
-	if (firstLoad)
-	{
-		ChatEditBox::addAction("mediaplayer_button");
-		ChatEditBox::addAction("mediaplayer_prev");
-		ChatEditBox::addAction("mediaplayer_play");
-		ChatEditBox::addAction("mediaplayer_stop");
-		ChatEditBox::addAction("mediaplayer_next");
-		ChatEditBox::addAction("mediaplayer_vol_up");
-		ChatEditBox::addAction("mediaplayer_vol_down");
-	}
-
 	//TODO 0.6.6: remove this?
 
 	// MediaPlayer statuses menu item
@@ -215,7 +206,7 @@ MediaPlayer::MediaPlayer(bool firstLoad)
 //	}
 //	else
 //	{
-	Core::instance()->kaduWindow()->insertMenuActionDescription(enableMediaPlayerStatuses, KaduWindow::MenuKadu, 8);
+	Core::instance()->kaduWindow()->insertMenuActionDescription(enableMediaPlayerStatuses, KaduWindow::MenuKadu, 7);
 	mediaplayerStatus = NULL;
 //	}
 

@@ -52,10 +52,12 @@ struct HistoryEntry
 	{
 		StatusNone,
 		Online,
-		Offline,
 		Busy,
 		Invisible,
-		StatusLast = Invisible
+		FFC,
+		DND,
+		Offline,
+		StatusLast = Offline
 	};
 
 	EntryType Type;
@@ -73,9 +75,9 @@ struct HistoryEntry
 namespace HistoryMigrationHelper
 {
 	QString getFileNameByUinsList(UinsList uins);
-	int getHistoryEntriesCount(const UinsList &uins);
-	QList<UinsList> getUinsLists();
-	QList<HistoryEntry> historyEntries(const UinsList &uins);
+	int getHistoryEntriesCount(const QString &path, const UinsList &uins);
+	QList<UinsList> getUinsLists(const QString &path);
+	QList<HistoryEntry> historyEntries(const QString &path, const UinsList &uins);
 	QStringList mySplit(const QChar &sep, const QString &str);
 };
 

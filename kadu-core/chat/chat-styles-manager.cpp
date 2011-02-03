@@ -352,7 +352,9 @@ void ChatStylesManager::mainConfigurationWindowCreated(MainConfigurationWindow *
 	QHBoxLayout *editorLayout = new QHBoxLayout(editor);
 
 	SyntaxListCombo = new QComboBox(editor);
-	SyntaxListCombo->addItems(AvailableStyles.keys());
+	QStringList styleNames = AvailableStyles.keys();
+	qSort(styleNames.begin(), styleNames.end(), caseInsensitiveLessThan);
+	SyntaxListCombo->addItems(styleNames);
 	SyntaxListCombo->setCurrentIndex(SyntaxListCombo->findText(CurrentEngine->currentStyleName()));
 	connect(SyntaxListCombo, SIGNAL(activated(const QString &)), this, SLOT(styleChangedSlot(const QString &)));
 
@@ -457,6 +459,8 @@ void ChatStylesManager::styleChangedSlot(const QString &styleName)
 	VariantListCombo->setEnabled(engine->supportVariants());
 	engine->prepareStylePreview(EnginePreview, styleName, VariantListCombo->currentText());
 	TurnOnTransparency->setChecked(engine->styleUsesTransparencyByDefault(styleName));
+
+	emit previewSyntaxChanged(styleName);
 }
 
 void ChatStylesManager::variantChangedSlot(const QString &variantName)
@@ -504,6 +508,14 @@ void ChatStylesManager::addStyle(const QString &syntaxName, ChatStyleEngine *eng
 
 	if (SyntaxListCombo)
 		SyntaxListCombo->addItem(syntaxName);
+}
+
+StyleInfo ChatStylesManager::chatStyleInfo(const QString &name)
+{
+	if (AvailableStyles.contains(name))
+		return AvailableStyles.value(name);
+	else
+		return StyleInfo();
 }
 
 void ChatStylesManager::configurationWindowDestroyed()

@@ -22,6 +22,7 @@
  */
 
 #include <QtGui/QFileDialog>
+#include <QtGui/QResizeEvent>
 #include <QtXml/QDomElement>
 
 #include "buddies/buddy-set.h"
@@ -32,6 +33,7 @@
 #include "contacts/contact-set.h"
 #include "emoticons/emoticon-selector.h"
 #include "gui/actions/action.h"
+#include "gui/widgets/chat-edit-box-size-manager.h"
 #include "gui/widgets/chat-widget-actions.h"
 #include "gui/widgets/chat-widget-manager.h"
 #include "gui/widgets/color-selector.h"
@@ -47,7 +49,7 @@
 
 QList<ChatEditBox *> chatEditBoxes;
 
-ChatEditBox::ChatEditBox(Chat chat, QWidget *parent) :
+ChatEditBox::ChatEditBox(const Chat &chat, QWidget *parent) :
 		MainWindow("chat", parent), CurrentChat(chat)
 {
 	chatEditBoxes.append(this);
@@ -70,8 +72,8 @@ ChatEditBox::ChatEditBox(Chat chat, QWidget *parent) :
 	else
 		loadToolBarsFromConfig(); // load new config
 
-	connect(ChatWidgetManager::instance()->actions()->colorSelector(), SIGNAL(actionCreated(Action *)),
-			this, SLOT(colorSelectorActionCreated(Action *)));
+// 	connect(ChatWidgetManager::instance()->actions()->colorSelector(), SIGNAL(actionCreated(Action *)),
+// 			this, SLOT(colorSelectorActionCreated(Action *)));
 	connect(InputBox, SIGNAL(keyPressed(QKeyEvent *,CustomInput *, bool &)),
 			this, SIGNAL(keyPressed(QKeyEvent *,CustomInput *,bool &)));
 	connect(InputBox, SIGNAL(fontChanged(QFont)), this, SLOT(fontChanged(QFont)));
@@ -82,8 +84,8 @@ ChatEditBox::ChatEditBox(Chat chat, QWidget *parent) :
 
 ChatEditBox::~ChatEditBox()
 {
-	disconnect(ChatWidgetManager::instance()->actions()->colorSelector(), SIGNAL(actionCreated(Action *)),
-			this, SLOT(colorSelectorActionCreated(Action *)));
+// 	disconnect(ChatWidgetManager::instance()->actions()->colorSelector(), SIGNAL(actionCreated(Action *)),
+// 			this, SLOT(colorSelectorActionCreated(Action *)));
 	disconnect(InputBox, SIGNAL(cursorPositionChanged()), this, SLOT(cursorPositionChanged()));
 
 	chatEditBoxes.removeAll(this);
@@ -177,38 +179,20 @@ void ChatEditBox::createDefaultToolbars(QDomElement toolbarsConfig)
 {
 	QDomElement dockAreaConfig = getDockAreaConfigElement(toolbarsConfig, "chat_topDockArea");
 	QDomElement toolbarConfig = xml_config_file->createElement(dockAreaConfig, "ToolBar");
-	toolbarConfig.setAttribute("align", "right");
 
 	addToolButton(toolbarConfig, "autoSendAction");
 	addToolButton(toolbarConfig, "clearChatAction");
-	addToolButton(toolbarConfig, "insertEmoticonAction");
+	addToolButton(toolbarConfig, "insertEmoticonAction", Qt::ToolButtonTextBesideIcon);
+
 #ifndef Q_WS_MAEMO_5
-	addToolButton(toolbarConfig, "whoisAction");
 	addToolButton(toolbarConfig, "insertImageAction");
+	addToolButton(toolbarConfig, "showHistoryAction");
+	addToolButton(toolbarConfig, "encryptionAction");
 	addToolButton(toolbarConfig, "editUserAction");
+#endif
 
-	dockAreaConfig = getDockAreaConfigElement(toolbarsConfig, "chat_bottomDockArea");
-	toolbarConfig = xml_config_file->createElement(dockAreaConfig, "ToolBar");
-	toolbarConfig.setAttribute("x_offset", 0);
-#endif
-	addToolButton(toolbarConfig, "boldAction");
-	addToolButton(toolbarConfig, "italicAction");
-	addToolButton(toolbarConfig, "underlineAction");
-	addToolButton(toolbarConfig, "colorAction");
-#ifndef Q_WS_MAEMO_5
-	toolbarConfig = xml_config_file->createElement(dockAreaConfig, "ToolBar");
-	toolbarConfig.setAttribute("x_offset", 200);
-	toolbarConfig.setAttribute("align", "right");
-#endif
+	addToolButton(toolbarConfig, "__spacer1", Qt::ToolButtonTextBesideIcon);
 	addToolButton(toolbarConfig, "sendAction", Qt::ToolButtonTextBesideIcon);
-}
-
-void ChatEditBox::addAction(const QString &actionName, Qt::ToolButtonStyle style)
-{
-	addToolButton(findExistingToolbar("chat"), actionName, style);
-
-	foreach (ChatEditBox *chatEditBox, chatEditBoxes)
-		chatEditBox->refreshToolBars();
 }
 
 void ChatEditBox::openEmoticonSelector(const QWidget *activatingWidget)
@@ -250,20 +234,37 @@ void ChatEditBox::openInsertImageDialog()
 			return;
 		}
 
-		int counter = 0;
+		int tooBigCounter = 0;
+		int disconnectedCounter = 0;
 
 		foreach (const Contact &contact, CurrentChat.contacts())
 		{
-			if (contact.maximumImageSize() == 0 || contact.maximumImageSize() * 1024 < f.size())
-				counter++;
+			if (contact.currentStatus().isDisconnected())
+				disconnectedCounter++;
+			else if (contact.maximumImageSize() == 0 || contact.maximumImageSize() * 1024 < f.size())
+				tooBigCounter++;
 		}
-		if (counter == 1 && CurrentChat.contacts().count() == 1)
+
+		QString message;
+		if (1 == CurrentChat.contacts().count())
 		{
-			if (!MessageDialog::ask(QString(), tr("Kadu"), tr("This file is too big for %1.\nDo you really want to send this image?\n").arg((*CurrentChat.contacts().begin()).ownerBuddy().display())))
-				return;
+			Contact contact = *CurrentChat.contacts().begin();
+			if (tooBigCounter > 0)
+				message = tr("This file is too big for %1.\nDo you really want to send this image?").arg(contact.ownerBuddy().display());
+			else if (disconnectedCounter > 0)
+				message = tr("%1 is disconnected and cannot receive images.\nDo you really want to send this image?").arg(contact.ownerBuddy().display());
 		}
-		else if (counter > 0 &&
-			!MessageDialog::ask(QString(), tr("Kadu"), tr("This file is too big for %1 of %2 contacts.\nDo you really want to send this image?\nSome of them probably will not get it.").arg(counter).arg(CurrentChat.contacts().count())))
+		else
+		{
+			if (tooBigCounter > 0)
+				message = tr("This file is too big for %1 of %2 contacts.\n").arg(tooBigCounter).arg(CurrentChat.contacts().count());
+			if (disconnectedCounter > 0)
+				message += tr("%1 of %2 contacts are disconnected and cannot receive images.\n").arg(disconnectedCounter).arg(CurrentChat.contacts().count());
+			if (tooBigCounter > 0 || disconnectedCounter > 0)
+				message += tr("Do you really want to send this image?\nSome of them probably will not get it.");
+		}
+
+		if (!message.isEmpty() && !MessageDialog::ask(QString(), tr("Kadu"), message))
 			return;
 
 		QString path = ChatImageService::imagesPath();
@@ -296,17 +297,18 @@ void ChatEditBox::changeColor(const QColor &newColor)
 	QPixmap p(12, 12);
 	p.fill(CurrentColor);
 
-	Action *action = ChatWidgetManager::instance()->actions()->colorSelector()->action(this);
-	if (action)
-		action->setIcon(p);
+// 	Action *action = ChatWidgetManager::instance()->actions()->colorSelector()->action(this);
+// 	if (action)
+// 		action->setIcon(p);
 
 	InputBox->setTextColor(CurrentColor);
 }
 
 void ChatEditBox::setColorFromCurrentText(bool force)
 {
-	Action *action = ChatWidgetManager::instance()->actions()->colorSelector()->action(this);
+// 	Action *action = ChatWidgetManager::instance()->actions()->colorSelector()->action(this);
 
+	Action *action = 0;
 	if (!action || (!force && (InputBox->textColor() == CurrentColor)))
 		return;
 

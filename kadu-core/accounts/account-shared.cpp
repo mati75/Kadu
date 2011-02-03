@@ -55,6 +55,8 @@ AccountShared::AccountShared(QUuid uuid) :
 
 AccountShared::~AccountShared()
 {
+	ref.ref();
+
 	triggerAllProtocolsUnregistered();
 
 	if (ProtocolHandler)
@@ -83,7 +85,7 @@ void AccountShared::load()
 
 	Identity identity = IdentityManager::instance()->byUuid(loadValue<QString>("Identity"));
 	if (identity.isNull() && !IdentityManager::instance()->items().isEmpty())
-		identity = IdentityManager::instance()->items()[0];
+		identity = IdentityManager::instance()->items().at(0);
 
 	setAccountIdentity(identity);
 
@@ -239,6 +241,12 @@ void AccountShared::setAccountIdentity(Identity accountIdentity)
 	if (AccountIdentity == accountIdentity)
 		return;
 
+	/* NOTE: This guard is needed to avoid deleting this object when removing
+	 * Account from Identity which may hold last reference to it and thus wants
+	 * to delete it.
+	 */
+	Account guard(this);
+
 	AccountIdentity.removeAccount(this);
 	AccountIdentity = accountIdentity;
 	AccountIdentity.addAccount(this);
@@ -309,9 +317,9 @@ int AccountShared::maxDescriptionLength()
 		return 0;
 }
 
-QString AccountShared::statusName()
+QString AccountShared::statusDisplayName()
 {
-	return Status::name(status(), false);
+	return status().displayName();
 }
 
 QIcon AccountShared::statusIcon()
