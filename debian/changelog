@@ -1,86 +1,19 @@
 kadu (0.6.6-beta15-1) unstable; urgency=low
 
   * New upstream release
-
- -- Patryk Cisek <patryk@debian.org>  Thu, 03 Feb 2011 11:52:35 +0100
-
-kadu (0.6.6-beta14.2-2) experimental; urgency=low
-
+  * Bumped Standards-Version
+  * Added dependency on libqt4-sql-sqlite for kadu package to make history
+    module work properly
+  * Updated Kadu Team members list in debian/copyright
+  * Update of clean target in debian/rules: debian/alsa-stamp gets
+    removed as well
   * Added metadata to debian/patches to make them comply DEP3
     http://dep.debian.net/deps/dep3
-
- -- Patryk Cisek <patryk@debian.org>  Fri, 07 Jan 2011 20:02:19 +0100
-
-kadu (0.6.6-beta14.2-1) experimental; urgency=low
-
-  * New upstream release
+  * Updated debian/patches/* make them fit to new upstream version
   * Minor updates to debian/patches/* to make them fit new source
   * Setting 755 on /usr/share/kadu/themes/icons/oxygen/src/rebuild-
     statuses.sh
-  * Added encryption_ng and encryption_ng_simlite modules to kadu
-
- -- Patryk Cisek <patryk@debian.org>  Wed, 05 Jan 2011 09:11:21 +0100
-
-kadu (0.6.6-beta13-1) experimental; urgency=low
-
-  * New upstream release
-  * Updated debian/patches/02-.config.patch
-  * Updated debian/patches/03-about-dialog.patch
-
- -- Patryk Cisek <patryk@debian.org>  Mon, 27 Dec 2010 15:50:38 +0100
-
-kadu (0.6.6-beta12-1) experimental; urgency=low
-
-  * New upstream release
-  * Added anonymous_check external module to
-
- -- Patryk Cisek <patryk@debian.org>  Thu, 09 Dec 2010 10:47:07 +0100
-
-kadu (0.6.6-beta11-2) experimental; urgency=low
-
-  * Added libfirewall.so to kadu.install.noalsa
-
- -- Patryk Cisek <patryk@debian.org>  Wed, 01 Dec 2010 09:11:32 +0100
-
-kadu (0.6.6-beta11-1) experimental; urgency=low
-
-  * New upstream release
   * Updated external modules to their newest upstream versions
-  * Removed oxygen16 in favor of oxygen icon theme
-  * Moved usr/share/kadu/syntax from kadu-external-modules to kadu-common
-  * Updated debian/patches/01-no_autodownload.patch,
-    debian/patches/02-.config.patch and
-    debian/patches/03-about-dialog.patch to make them fit
-    0.6.6-beta11
-  * Removed debian/patches/05-icons_absolute_paths_fix.patch. Applied
-    upstream.
-
- -- Patryk Cisek <patryk@debian.org>  Fri, 26 Nov 2010 05:28:49 +0100
-
-kadu (0.6.6-beta9-1) experimental; urgency=low
-
-  * New upstream release
-  * Added dependency on libqt4-sql-sqlite for kadu package to make history
-    module work properly
-  * Removed dbus module for now. It's broken on 0.6.6.
-  * Updated Kadu Team members list in debian/copyright
-  * Added mime_tex and cenzor modules, since they've been ported to new
-    0.6.6 API
-  * Removed 05-mpris_mediaplayer_0.6.6_fix.patch and
-    06-word_fix_0.6.6_fix.patch from debian/patches. These fixes have been
-    applied upstream.
-  * Added debian/patches/05-icons_absolute_paths_fix.patch -- backported
-    fix from recent git's master branch. Allowes mime_tex module to
-    properly display it's icon in chat window.
-  * Update of clean target in debian/rules: debian/alsa-stamp gets
-    removed as well
-
- -- Patryk Cisek <patryk@debian.org>  Fri, 29 Oct 2010 18:41:21 +0000
-
-kadu (0.6.6-beta8-1) experimental; urgency=low
-
-  * New upstream release
-  * Bumped Standards-Version
 
  -- Patryk Cisek <patryk@debian.org>  Sun, 24 Oct 2010 11:25:06 +0000
 
