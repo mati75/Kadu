@@ -6,7 +6,6 @@ set( SOURCES
 set( MOC_SOURCES
 	ledblinker.h
 	lednotify.h
-	leddriver.h
 )
 
 if( WIN32 )

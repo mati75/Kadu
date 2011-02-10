@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2008-2010                                               *
+ *   Copyright (C) 2008-2011                                               *
  *     Michał Małek  michalm@jabster.pl                                    *
  *     Piotr Dąbrowski  ultr@ultr.pl                                       *
  *                                                                         *
@@ -58,7 +58,7 @@ extern "C" KADU_EXPORT void lednotify_close()
 }
 
 
-LedNotify::LedNotify( QObject *parent ) : QObject( parent ), Notifier( "lednotify", "Scroll Lock LED", QIcon() ), chatBlinking_( false ), msgBlinking_( false )
+LedNotify::LedNotify( QObject *parent ) : QObject( parent ), Notifier( "lednotify", "Scroll Lock LED", IconsManager::instance()->iconByPath("kadu_icons/notify-led") ), chatBlinking_( false ), msgBlinking_( false )
 {
 	config_file.addVariable( "Led Notify", "LEDdelay", 500 );
 	config_file.addVariable( "Led Notify", "LEDcount",   3 );

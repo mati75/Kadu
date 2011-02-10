@@ -35,9 +35,9 @@
 #include "gui/widgets/configuration/configuration-widget.h"
 #include "gui/windows/kadu-window.h"
 #include "misc/path-conversion.h"
+#include "os/x11tools.h"
 #include "activate.h"
 #include "debug.h"
-#include "x11tools.h"
 
 #include "panelkadu.h"
 
