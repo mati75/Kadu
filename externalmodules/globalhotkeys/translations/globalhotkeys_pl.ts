@@ -10,13 +10,19 @@
 	</message>
 	<message>
 		<location filename="" line="0"/>
-		<source>Hotkey %% is used by another application.</source>
+		<source>Hotkey %% is in use by another application.</source>
 		<translation>Skrót %% jest używany przez inną aplikację.</translation>
 	</message>
 	<message>
 		<location filename="" line="0"/>
 		<source>no buddies to display</source>
 		<translation>brak znajomych do wyświetlenia</translation>
+	</message>
+
+	<message>
+		<location filename="" line="0"/>
+		<source>no accounts defined</source>
+		<translation>brak zdefiniowanych kont</translation>
 	</message>
 
 	<message>

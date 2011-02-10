@@ -28,6 +28,11 @@
 #include "wideiconsmenu.h"
 
 
+WideIconsMenu::WideIconsMenu( int iconswidth ) : QProxyStyle(), iconswidth(iconswidth)
+{
+}
+
+
 int WideIconsMenu::pixelMetric( PixelMetric metric, const QStyleOption *option, const QWidget *widget ) const
 {
 	if( metric == QStyle::PM_SmallIconSize )
@@ -36,7 +41,7 @@ int WideIconsMenu::pixelMetric( PixelMetric metric, const QStyleOption *option, 
 		return iconswidth;
 	}
 	// orginal pixelMetric
-	return ProxyStyle::pixelMetric( metric, option, widget );
+	return QProxyStyle::pixelMetric( metric, option, widget );
 }
 
 
@@ -54,7 +59,7 @@ void WideIconsMenu::drawControl( ControlElement element, const QStyleOption *opt
 			emptypixmap.fill( Qt::transparent );
 			optionmenuitem->icon = QIcon( emptypixmap );
 			// draw the control with no icon, so Style will not scale it down
-			ProxyStyle::drawControl( element, optionmenuitem, painter, widget );
+			QProxyStyle::drawControl( element, optionmenuitem, painter, widget );
 			// draw orginal icon in its full size
 			QPixmap pixmap = icon.pixmap( iconswidth, ICONHEIGHT );
 			QRect rect(
@@ -70,5 +75,5 @@ void WideIconsMenu::drawControl( ControlElement element, const QStyleOption *opt
 		}
 	}
 	// otherwise do the orginal drawing
-	ProxyStyle::drawControl( element, option, painter, widget );
+	QProxyStyle::drawControl( element, option, painter, widget );
 }

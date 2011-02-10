@@ -1,7 +1,7 @@
 /****************************************************************************
 *                                                                           *
 *   GlobalHotkeys module for Kadu                                           *
-*   Copyright (C) 2008-2010  Piotr Dąbrowski ultr@ultr.pl                   *
+*   Copyright (C) 2008-2011  Piotr Dąbrowski ultr@ultr.pl                   *
 *                                                                           *
 *   This program is free software: you can redistribute it and/or modify    *
 *   it under the terms of the GNU General Public License as published by    *
@@ -128,7 +128,7 @@ void Functions::functionOpenIncomingChatWindow( ConfHotKey *confhotkey )
 	if( PendingMessagesManager::instance()->hasPendingMessages() )
 	{
 		// open window for pending message(s)
-		ChatWidgetManager::instance()->openPendingMsgs( true );
+		ChatWidgetManager::instance()->openPendingMessages( true );
 		// activate it
 		QWidget *win = ChatWidgetManager::instance()->chats().values().last();  // last created chat widget
 		win = win->window();
@@ -158,7 +158,7 @@ void Functions::functionOpenAllIncomingChatWindows( ConfHotKey *confhotkey )
 	while( PendingMessagesManager::instance()->hasPendingMessages() )
 	{
 		// open the window
-		ChatWidgetManager::instance()->openPendingMsgs( true );
+		ChatWidgetManager::instance()->openPendingMessages( true );
 		// activate it
 		QWidget *win = ChatWidgetManager::instance()->chats().values().last();  // last created chat widget
 		win = win->window();

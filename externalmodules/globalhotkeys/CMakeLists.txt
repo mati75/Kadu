@@ -11,7 +11,6 @@ set( SOURCES
 	serializableqstringlist.cpp
 	statusesmenu.cpp
 	wideiconsmenu.cpp
-	proxystyle.cpp
 )
 
 set( MOC_SOURCES

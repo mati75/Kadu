@@ -1,7 +1,7 @@
 /****************************************************************************
 *                                                                           *
 *   GlobalHotkeys module for Kadu                                           *
-*   Copyright (C) 2008-2010  Piotr Dąbrowski ultr@ultr.pl                   *
+*   Copyright (C) 2008-2011  Piotr Dąbrowski ultr@ultr.pl                   *
 *                                                                           *
 *   This program is free software: you can redistribute it and/or modify    *
 *   it under the terms of the GNU General Public License as published by    *
@@ -322,7 +322,7 @@ void GlobalHotkeys::grabHotKey( HotKey hotkey )
 		{
 			QMessageBox *messagebox = new QMessageBox(
 					qApp->translate( "@default", "Kadu - Global hotkeys" ),
-					qApp->translate( "@default", "Hotkey %% is being used by another application." ).replace( "%%", hotkey.string() ),
+					qApp->translate( "@default", "Hotkey %% is in use by another application." ).replace( "%%", hotkey.string() ),
 					QMessageBox::Warning,
 					QMessageBox::Ok, QMessageBox::NoButton, QMessageBox::NoButton,
 					qApp->activeWindow()
@@ -430,7 +430,7 @@ void GlobalHotkeys::processConfBuddiesShortcut( ConfBuddiesShortcut *confbuddies
 			contactset.insert( BuddyPreferredManager::instance()->preferredContact( buddy, accounts.first() ) );
 		}
 		Chat chat = ChatManager::instance()->findChat( contactset, true );
-		ChatWidgetManager::instance()->openPendingMsgs( chat, true );
+		ChatWidgetManager::instance()->openPendingMessages( chat, true );
 	}
 	else
 	{

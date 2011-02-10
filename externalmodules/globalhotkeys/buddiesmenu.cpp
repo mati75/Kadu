@@ -1,7 +1,7 @@
 /****************************************************************************
 *                                                                           *
 *   GlobalHotkeys module for Kadu                                           *
-*   Copyright (C) 2008-2010  Piotr Dąbrowski ultr@ultr.pl                   *
+*   Copyright (C) 2008-2011  Piotr Dąbrowski ultr@ultr.pl                   *
 *                                                                           *
 *   This program is free software: you can redistribute it and/or modify    *
 *   it under the terms of the GNU General Public License as published by    *
@@ -123,7 +123,7 @@ BuddiesMenu::BuddiesMenu() : GlobalMenu()
 		GLOBALHOTKEYS_BUDDIESMENUICONSPACING +
 		GLOBALHOTKEYS_BUDDIESMENUSMALLICONSIZE +
 		GLOBALHOTKEYS_BUDDIESMENUICONMARGINRIGHT;
-	setStyle( new WideIconsMenu( wideiconwidth, style()->objectName() ) );
+	setStyle( new WideIconsMenu( wideiconwidth ) );
 }
 
 
@@ -133,6 +133,9 @@ void BuddiesMenu::add( ContactSet contactset )
 		return;
 	if( contains( contactset ) )
 		return;
+	foreach( Contact contact, contactset )
+		if( ! contact.contactAccount() )
+			return;
 	// chatstate
 	ChatState chatstate = ChatStateNone;
 	Chat chat = ChatManager::instance()->findChat( contactset, false );
@@ -338,7 +341,7 @@ QIcon BuddiesMenu::createIcon( ContactSet contactset, ChatState chatstate )
 	else if( ( chatstate & ChatStateCurrent ) > 0x0 )
 		chatstateicon = IconsManager::instance()->iconByPath( "internet-group-chat" );
 	else if( ( chatstate & ChatStateRecent ) > 0x0 )
-		chatstateicon = IconsManager::instance()->iconByPath( "kadu_icons/kadu-history" );
+		chatstateicon = IconsManager::instance()->iconByPath( "kadu_icons/history" );
 	else
 	{
 		QPixmap emptypixmap( GLOBALHOTKEYS_BUDDIESMENUSMALLICONSIZE, GLOBALHOTKEYS_BUDDIESMENUSMALLICONSIZE );
@@ -389,7 +392,7 @@ void BuddiesMenu::openChat()
 	closeTopMostMenu();
 	// (re)open the chat with selected user(s)
 	Chat chat = ChatManager::instance()->findChat( data.contactSet(), true );
-	ChatWidgetManager::instance()->openPendingMsgs( chat, true );
+	ChatWidgetManager::instance()->openPendingMessages( chat, true );
 }
 
 

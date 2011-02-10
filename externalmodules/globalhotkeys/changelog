@@ -7,6 +7,7 @@
   zarządzanie ignorowanymi.
 * Dodane skróty do okien: transferu plików, konfiguracji, kont użytkownika,
   modułów.
+* Użycie klasy QProxyStyle (Qt 4.6) w WideIconsMenu.
 * Bardzo duże porzadki w kodzie.
 
 

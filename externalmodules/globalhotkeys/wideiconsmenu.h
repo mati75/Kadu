@@ -1,6 +1,6 @@
 /****************************************************************************
 *                                                                           *
-*   WideIconsMenu for Qt4                                                   *
+*   WideIconsMenu for Qt4 (4.6+)                                            *
 *   Copyright (C) 2009  Piotr Dąbrowski ultr@ultr.pl                        *
 *                                                                           *
 *   This program is free software: you can redistribute it and/or modify    *
@@ -23,17 +23,17 @@
 	#define __WIDEICONSMENU_H
 
 
-	#include "proxystyle.h"
+	#include <QProxyStyle>
 
 
 	#define  ICONHEIGHT  16  /*px*/
 	#define  LEFTMARGIN   2  /*px*/
 
 
-	class WideIconsMenu : public ProxyStyle
+	class WideIconsMenu : public QProxyStyle
 	{
 		public:
-			explicit WideIconsMenu( int _iconswidth, const QString &baseStyle ) : ProxyStyle( baseStyle ) { iconswidth = _iconswidth; }
+			WideIconsMenu( int _iconswidth );
 			int pixelMetric( PixelMetric metric, const QStyleOption *option=0, const QWidget *widget=0 ) const;
 			void drawControl( ControlElement element, const QStyleOption *option, QPainter *painter, const QWidget *widget=0 ) const;
 		private:
