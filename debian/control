@@ -21,8 +21,8 @@ Description: Gadu-Gadu client for X11
 Package: kadu-common
 Architecture: all
 Depends: libjs-mootools, ${shlibs:Depends}, ${misc:Depends}
-Recommends: kadu-external-modules (>= 0.6.5-1)
-Conflicts: kadu (<< 0.6.5-1)
+Recommends: kadu-external-modules
+Conflicts: kadu-external-modules (<= 0.6.5.4.ds1-3)
 Suggests: kadu-themes
 Description: Gadu-Gadu client for X11
  Gadu-Gadu is a Windows instant messenger, very popular in Poland.
@@ -33,7 +33,6 @@ Description: Gadu-Gadu client for X11
 Package: kadu-external-modules
 Architecture: any
 Depends: kadu (= ${binary:Version}), ${shlibs:Depends}, ${misc:Depends}
-Conflicts: kadu (<< 0.6.5-1)
 Description: Additional modules for Kadu
  Gadu-Gadu is a Windows instant messenger, very popular in Poland.
  Kadu is a Qt4 version for *nix systems.
