@@ -1,3 +1,9 @@
+Description: Fixes compilation error of panelkadu module
+ When compiling with "-O2" there's a compilation warining regarding aliasing.
+ Because "-Werror" flag is used for compilation, the warning becomes error.
+ This patch disables strict-aliasing to fix compilation warning/error.
+Author: Patryk Cisek <patryk@debian.org>
+---
 diff --git a/externalmodules/panelkadu/CMakeLists.txt b/externalmodules/panelkadu/CMakeLists.txt
 index e721929..43faa81 100644
 --- a/externalmodules/panelkadu/CMakeLists.txt
