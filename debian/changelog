@@ -1,4 +1,4 @@
-kadu (0.6.6-beta15-1) unstable; urgency=low
+kadu (0.6.6~beta15-1) unstable; urgency=low
 
   * New upstream release
   * Bumped Standards-Version
@@ -18,7 +18,7 @@ kadu (0.6.6-beta15-1) unstable; urgency=low
     rid of compilation warning, which results in an error thanks to
     "-Werror" compilation flag
 
- -- Patryk Cisek <patryk@debian.org>  Fri, 11 Feb 2011 10:39:01 +0100
+ -- Patryk Cisek <patryk@debian.org>  Fri, 11 Feb 2011 11:18:52 +0100
 
 kadu (0.6.5.4.ds1-1) unstable; urgency=low
 
