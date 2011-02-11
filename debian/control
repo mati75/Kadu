@@ -9,9 +9,8 @@ Homepage: http://kadu.net
 Package: kadu
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, kadu-common (= ${source:Version}), libqca2-plugin-ossl, libqt4-sql-sqlite
-Recommends: kadu-external-modules (>= 0.6.5-1)
-Conflicts: kadu-external-modules (<< 0.6.5-1), kadu-kde-modules, kadu-gtk-modules
-Replaces: kadu-kde-modules, kadu-gtk-modules
+Recommends: kadu-external-modules
+Conflicts: kadu-external-modules (<= 0.6.5.4.ds1-3)
 Suggests: kadu-themes
 Description: Gadu-Gadu client for X11
  Gadu-Gadu is a Windows instant messenger, very popular in Poland.
