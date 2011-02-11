@@ -1,0 +1,16 @@
+Description: Fixes compilation error on new g++
+Author: Patryk Cisek <patryk@debian.org>
+---
+diff --git a/kadu-core/protocols/protocol.h b/kadu-core/protocols/protocol.h
+index 959e2a0..9b72c39 100644
+--- a/kadu-core/protocols/protocol.h
++++ b/kadu-core/protocols/protocol.h
+@@ -26,6 +26,8 @@
+ #ifndef PROTOCOL_H
+ #define PROTOCOL_H
+ 
++#include <stdint.h>
++
+ #include <QtCore/QDateTime>
+ #include <QtCore/QObject>
+ #include <QtGui/QIcon>
