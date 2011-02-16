@@ -75,6 +75,7 @@
 ChatWidget::ChatWidget(const Chat &chat, QWidget *parent) :
 		QWidget(parent), CurrentChat(chat),
 		BuddiesWidget(0), InputBox(0), HorizontalSplitter(0),
+		IsComposing(false), CurrentContactActivity(ChatStateService::StateNone),
 		SplittersInitialized(false), NewMessagesCount(0)
 {
 	kdebugf();
@@ -85,6 +86,11 @@ ChatWidget::ChatWidget(const Chat &chat, QWidget *parent) :
 	createGui();
 	configurationUpdated();
 
+	ComposingTimer.setInterval(2 * 1000);
+	connect(&ComposingTimer, SIGNAL(timeout()), this, SLOT(checkComposing()));
+
+	connect(edit(), SIGNAL(textChanged()), this, SLOT(updateComposing()));
+
 	foreach (const Contact &contact, CurrentChat.contacts())
 	{
 		connect(contact, SIGNAL(updated()), this, SLOT(refreshTitle()));
@@ -93,6 +99,7 @@ ChatWidget::ChatWidget(const Chat &chat, QWidget *parent) :
 
 	// icon for conference never changes
 	if (CurrentChat.contacts().count() == 1)
+	{
 		foreach (const Contact &contact, CurrentChat.contacts())
 		{
 			// actually we only need to send iconChanged() on CurrentStatus update
@@ -102,14 +109,27 @@ ChatWidget::ChatWidget(const Chat &chat, QWidget *parent) :
 			connect(contact.ownerBuddy(), SIGNAL(buddySubscriptionChanged()), this, SIGNAL(iconChanged()));
 		}
 
+		ChatStateService *chatStateService = currentProtocol()->chatStateService();
+		if (chatStateService)
+			connect(chatStateService, SIGNAL(contactActivityChanged(ChatStateService::ContactActivity, const Contact &)),
+					this, SLOT(contactActivityChanged(ChatStateService::ContactActivity, const Contact &)));
+	}
+	connect(IconsManager::instance(), SIGNAL(themeChanged()), this, SIGNAL(iconChanged()));
+
 	kdebugf2();
 }
 
 ChatWidget::~ChatWidget()
 {
 	kdebugf();
+	ComposingTimer.stop();
 
 	ChatWidgetManager::instance()->unregisterChatWidget(this);
+
+	if (!currentProtocol() || !currentProtocol()->chatStateService())
+		return;
+
+	currentProtocol()->chatStateService()->chatWidgetClosed(CurrentChat);
 
 //	disconnectAcknowledgeSlots();
 
@@ -195,16 +215,8 @@ void ChatWidget::createContactsList()
 
 void ChatWidget::configurationUpdated()
 {
-/* TODO: 0.6.6
-	if (ContactsWidget)
-	{
-		ContactsWidget->viewport()->setStyleSheet(QString("QWidget {background-color:%1}").arg(config_file.readColorEntry("Look","UserboxBgColor").name()));
-		ContactsWidget->setStyleSheet(QString("QFrame {color:%1}").arg(config_file.readColorEntry("Look","UserboxFgColor").name()));
-		ContactsWidget->Q3ListBox::setFont(config_file.readFontEntry("Look","UserboxFont"));
-	}*/
-
 	InputBox->inputBox()->setFont(config_file.readFontEntry("Look","ChatFont"));
- 	InputBox->inputBox()->viewport()->setStyleSheet(QString("background-color: %1").arg(config_file.readColorEntry("Look", "ChatTextBgColor").name()));
+	InputBox->inputBox()->viewport()->setStyleSheet(QString("background-color: %1").arg(config_file.readColorEntry("Look", "ChatTextBgColor").name()));
 
 	refreshTitle();
 }
@@ -295,6 +307,11 @@ void ChatWidget::refreshTitle()
 		}
 		else
 			title = Parser::parse(config_file.readEntry("Look", "ChatContents"), BuddyOrContact(contact), false);
+
+		if (CurrentContactActivity == ChatStateService::StateComposing)
+			title = tr("%1 (Composing...)").arg(title);
+		else if (CurrentContactActivity == ChatStateService::StateInactive)
+			title = tr("%1 (Inactive)").arg(title);
 	}
 
 	title.replace("<br/>", " ");
@@ -588,12 +605,12 @@ void ChatWidget::verticalSplitterMoved(int pos, int index)
 	Q_UNUSED(index)
 
 	if (SplittersInitialized)
-		ChatEditBoxSizeManager::instance()->setCommonHeight(VerticalSplitter->sizes()[1]);
+		ChatEditBoxSizeManager::instance()->setCommonHeight(VerticalSplitter->sizes().at(1));
 }
 
 void ChatWidget::kaduRestoreGeometry()
 {
-	ChatGeometryData *cgd = chat().data()->moduleStorableData<ChatGeometryData>("chat-geometry");
+	ChatGeometryData *cgd = chat().data()->moduleStorableData<ChatGeometryData>("chat-geometry", ChatWidgetManager::instance(), false);
 
 	if (cgd && HorizontalSplitter)
 	{
@@ -605,7 +622,7 @@ void ChatWidget::kaduRestoreGeometry()
 
 void ChatWidget::kaduStoreGeometry()
 {
-  	ChatGeometryData *cgd = chat().data()->moduleStorableData<ChatGeometryData>("chat-geometry", true);
+  	ChatGeometryData *cgd = chat().data()->moduleStorableData<ChatGeometryData>("chat-geometry", ChatWidgetManager::instance(), true);
 	if (!cgd)
 		return;
 
@@ -618,7 +635,12 @@ void ChatWidget::kaduStoreGeometry()
 void ChatWidget::showEvent(QShowEvent *e)
 {
 	QWidget::showEvent(e);
+	if (!SplittersInitialized)
+		QMetaObject::invokeMethod(this, "setUpVerticalSizes", Qt::QueuedConnection);
+}
 
+void ChatWidget::setUpVerticalSizes()
+{
 	// now we can accept this signal
 	connect(ChatEditBoxSizeManager::instance(), SIGNAL(commonHeightChanged(int)), this, SLOT(commonHeightChanged(int)));
 
@@ -630,7 +652,7 @@ void ChatWidget::showEvent(QShowEvent *e)
 		return;
 	}
 
-	ChatGeometryData *cgd = chat().data()->moduleStorableData<ChatGeometryData>("chat-geometry");
+	ChatGeometryData *cgd = chat().data()->moduleStorableData<ChatGeometryData>("chat-geometry", ChatWidgetManager::instance(), false);
 	// no window has set up common height yet, so we use this data
 	QList<int> vertSizes;
 	if (cgd)
@@ -646,6 +668,7 @@ void ChatWidget::showEvent(QShowEvent *e)
 	}
 	VerticalSplitter->setSizes(vertSizes);
 	SplittersInitialized = true;
+	ChatEditBoxSizeManager::instance()->setCommonHeight(vertSizes.at(1));
 }
 
 void ChatWidget::commonHeightChanged(int commonHeight)
@@ -655,20 +678,76 @@ void ChatWidget::commonHeightChanged(int commonHeight)
 	int sum = 0;
 	if (2 == sizes.count())
 	{
-		if (sizes[1] == commonHeight)
+		if (sizes.at(1) == commonHeight)
 			return;
-		sum = sizes[0] + sizes[1];
+		sum = sizes.at(0) + sizes.at(1);
 	}
 	else
 		sum = height();
 
 	if (sum < commonHeight)
-		commonHeight = sum/3;
+		commonHeight = sum / 3;
 
 	sizes.clear();
 	sizes.append(sum - commonHeight);
 	sizes.append(commonHeight);
 	VerticalSplitter->setSizes(sizes);
+}
+
+void ChatWidget::checkComposing()
+{
+	if (!IsComposing)
+	{
+		ComposingTimer.stop();
+
+		if (!currentProtocol() || !currentProtocol()->chatStateService())
+			return;
+
+		currentProtocol()->chatStateService()->composingStopped(chat());
+	}
+
+	IsComposing = false;
+}
+
+void ChatWidget::updateComposing()
+{
+	if (!ComposingTimer.isActive())
+	{
+		if (!currentProtocol() || !currentProtocol()->chatStateService())
+			return;
+
+		currentProtocol()->chatStateService()->composingStarted(chat());
+
+		ComposingTimer.start();
+	}
+	IsComposing = true;
+}
+
+void ChatWidget::contactActivityChanged(ChatStateService::ContactActivity state, const Contact &contact)
+{
+	if (!CurrentChat.contacts().contains(contact))
+		return;
+
+	if (CurrentContactActivity == state)
+		return;
+
+	CurrentContactActivity = state;
+
+	if (CurrentContactActivity != ChatStateService::StateGone)
+		refreshTitle();
+	else
+	{
+		QString msg = "[ " + tr("%1 ended the conversation").arg(contact.ownerBuddy().display()) + " ]";
+		Message message = Message::create();
+		message.setMessageChat(CurrentChat);
+		message.setType(Message::TypeSystem);
+		message.setMessageSender(contact);
+		message.setContent(msg);
+		message.setSendDate(QDateTime::currentDateTime());
+		message.setReceiveDate(QDateTime::currentDateTime());
+
+		MessagesView->appendMessage(message);
+	}
 }
 
 void ChatWidget::leaveConference()

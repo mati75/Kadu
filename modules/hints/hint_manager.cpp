@@ -58,7 +58,7 @@
 #define BORDER_RADIUS 0
 
 HintManager::HintManager(QWidget *parent) :
-		Notifier("Hint", "Hints", IconsManager::instance()->iconByPath("kadu_icons/notify-hints"), parent), AbstractToolTip(),
+		Notifier("Hint", "Hints", "kadu_icons/notify-hints", parent), AbstractToolTip(),
 		hint_timer(new QTimer(this)),
 		tipFrame(0), hints()
 {
@@ -232,7 +232,7 @@ void HintManager::deleteHint(Hint *hint)
 	kdebugf();
 
 	hints.removeAll(hint);
-	layout->removeWidget(static_cast<QWidget *>(hint));
+	layout->removeWidget(hint);
 	hint->deleteLater();
 
 	if (hints.isEmpty())
@@ -392,7 +392,7 @@ Hint *HintManager::addHint(Notification *notification)
 	hints.append(hint);
 
 	setLayoutDirection();
-	layout->addWidget(static_cast<QWidget *>(hint));
+	layout->addWidget(hint);
 
 	connect(hint, SIGNAL(leftButtonClicked(Hint *)), this, SLOT(leftButtonSlot(Hint *)));
 	connect(hint, SIGNAL(rightButtonClicked(Hint *)), this, SLOT(rightButtonSlot(Hint *)));
@@ -539,8 +539,8 @@ void HintManager::notify(Notification *notification)
 {
 	kdebugf();
 
-	ChatNotification *chatNotification = dynamic_cast<ChatNotification *>(notification);
-	//TODO 0.6.6: hack
+	ChatNotification *chatNotification = qobject_cast<ChatNotification *>(notification);
+	//TODO hack
 	if (!chatNotification || notification->type().contains("StatusChanged"))
 	{
 		addHint(notification);
@@ -565,7 +565,7 @@ void HintManager::notify(Notification *notification)
 
 void HintManager::notificationClosed(Notification *notification)
 {
-	ChatNotification *chatNotification = dynamic_cast<ChatNotification *>(notification);
+	ChatNotification *chatNotification = qobject_cast<ChatNotification *>(notification);
 	if (!chatNotification)
 		return;
 

@@ -2,7 +2,86 @@
 <!DOCTYPE TS>
 <TS version="2.0" language="pl">
 <context>
+    <name>@default</name>
+    <message>
+        <source>Screenshot</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>General</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>General Settings</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>File format</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Select image format, which screenshots will be stored and sent in.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Force .jpg extension for JPEG format</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Forces to use short .jpg extension for files in JPEG format. Some other instant messagers needs it.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Screenshots quality</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>-1 for autodetection, 0 for best file compression, 100 for best image quality.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Paste [IMAGE] clause automatically</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>When enabled, module will automatically paste ready to send [IMAGE] clause in chat window.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Directory</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Screenshots directory path</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Screenshots filename prefix</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Enable directory size control</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>When enabled, module will check for shots directory size and warn you if it gets size specified below.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Maximum directory size</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Define, how many kbytes can shots take in the directory before module will warn you.</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>ScreenShot</name>
+    <message>
+        <source>Kadu</source>
+        <translation>Kadu</translation>
+    </message>
     <message>
         <source>Image size is bigger than maximal image size for this chat.</source>
         <translation>Rozmiar obrazka większy niż maksymalny rozmiar dla tej rozmowy.</translation>
@@ -10,6 +89,10 @@
 </context>
 <context>
     <name>ScreenShotSaver</name>
+    <message>
+        <source>Kadu</source>
+        <translation>Kadu</translation>
+    </message>
     <message>
         <source>Unable to create direcotry %1 for storing screenshots!</source>
         <translation>Nie można utworzyć katalogu %1 dla zapisywania zrzutów ekranu!</translation>
@@ -67,12 +150,16 @@ Powinien być większy.</translation>
 <context>
     <name>ScreenshotToolBox</name>
     <message>
-        <source>0 KB</source>
-        <translation>0 KB</translation>
+        <source>0 KiB</source>
+        <translation>0 KiB</translation>
     </message>
     <message>
         <source>Crop</source>
         <translation>Przytnij</translation>
+    </message>
+    <message>
+        <source>Cancel</source>
+        <translation>Anuluj</translation>
     </message>
 </context>
 </TS>

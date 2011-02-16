@@ -80,6 +80,7 @@ private:
 	QMenu *HelpMenu;
 	QMenu *RecentChatsMenu;
 	QAction *RecentChatsMenuAction;
+	bool RecentChatsMenuNeedsUpdate;
 	GroupTabBar *GroupBar;
 
 	BuddiesListWidget *ContactsWidget;
@@ -113,9 +114,13 @@ private:
 
 private slots:
 	void openChatWindow(Chat chat);
+	void buddyActivated(const Buddy &buddy);
 
-	void createRecentChatsMenu();
+	void invalidateRecentChatsMenu();
+	void updateRecentChatsMenu();
 	void openRecentChats(QAction *action);
+
+	void iconThemeChanged();
 
 protected:
 	virtual void closeEvent(QCloseEvent *);

@@ -1,50 +1,73 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE TS>
-<TS version="2.0" language="de_DE">
-<context>
-    <name>Cenzor</name>
-    <message>
-        <source>Add</source>
-        <translation>Hinzufügen</translation>
-    </message>
-    <message>
-        <source>Change</source>
-        <translation>Ändern</translation>
-    </message>
-    <message>
-        <source>Delete</source>
-        <translation>Löschen</translation>
-    </message>
-    <message>
-        <source>Your interlocutor used obscene word and became admonished</source>
-        <translation>Dein Gegenüber schimpft und wurde auf sein Fehlverhalten hingewiesen</translation>
-    </message>
-    <message>
-        <source>Cenzor: Watch your mouth!! &lt;nonono&gt;</source>
-        <translation>Zensor: Überdenke Deinen Wortschatz!! &lt;nonono&gt;</translation>
-    </message>
-</context>
+<TS version="2.0" language="de">
 <context>
     <name>@default</name>
     <message>
+        <location filename="../.configuration-ui-translations.cpp" line="4"/>
+        <source>Chat</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../.configuration-ui-translations.cpp" line="7"/>
+        <source>Cenzor</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../.configuration-ui-translations.cpp" line="10"/>
+        <source>General</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../.configuration-ui-translations.cpp" line="13"/>
         <source>Enable cenzor</source>
-        <translation>Zensor einschalten</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Admonition:</source>
-        <translation>Ermahnung:</translation>
-    </message>
-    <message>
-        <source>Swearwords</source>
-        <translation>Schimpfwörter</translation>
-    </message>
-    <message>
-        <source>Exclusions</source>
-        <translation>Ausnahmen</translation>
-    </message>
-    <message>
+        <location filename="../.configuration-ui-translations.cpp" line="16"/>
         <source>Admonition</source>
-        <translation>Ermahnung</translation>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../.configuration-ui-translations.cpp" line="21"/>
+        <source>Swearwords</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../.configuration-ui-translations.cpp" line="25"/>
+        <source>Exclusions</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>CenzorNotification</name>
+    <message>
+        <location filename="../notify/cenzor-notification.cpp" line="50"/>
+        <source>Message was cenzored</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../notify/cenzor-notification.cpp" line="52"/>
+        <source>Your interlocutor used obscene word and became admonished</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>ListEditWidget</name>
+    <message>
+        <location filename="../gui/widgets/list-edit-widget.cpp" line="48"/>
+        <source>Add</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../gui/widgets/list-edit-widget.cpp" line="49"/>
+        <source>Change</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../gui/widgets/list-edit-widget.cpp" line="50"/>
+        <source>Delete</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 </TS>

@@ -19,20 +19,17 @@
 #include <QtGui/QMenu>
 #include <QtGui/QMenuBar>
 #include <QtGui/QToolBar>
-#include <QtGui/QTabBar>
-#include <QtGui/QSplitter>
 
 #include "core/core.h"
 #include "configuration/configuration-file.h"
-#include "misc/path-conversion.h"
 #include "gui/hot-key.h"
 #include "gui/widgets/buddies-list-view.h"
 #include "gui/widgets/buddies-list-widget.h"
 #include "gui/widgets/buddy-info-panel.h"
-#include "gui/widgets/group-tab-bar.h"
 #include "gui/widgets/status-buttons.h"
 #include "gui/windows/kadu-window.h"
 #include "gui/windows/main-window.h"
+#include "misc/path-conversion.h"
 
 #include "modules/docking/docking.h"
 #include "simpleview-config-ui.h"
@@ -44,7 +41,6 @@ SimpleView::SimpleView() :
 	SimpleViewActive(false)
 {
 	BuddiesListView *buddiesListViewHandle;
-	GroupTabBar *groupBarTabHandle;
 
 	SimpleViewConfigUi::createInstance();
 
@@ -58,14 +54,13 @@ SimpleView::SimpleView() :
 
 	KaduWindowHandle = Core::instance()->kaduWindow();
 	MainWindowHandle = KaduWindowHandle->findMainWindow(KaduWindowHandle);
-	buddiesListViewHandle = dynamic_cast<BuddiesListView *>(MainWindowHandle->buddiesListView());
-	BuddiesListWidgetHandle = dynamic_cast<BuddiesListWidget *>(buddiesListViewHandle->parent());
-	groupBarTabHandle = KaduWindowHandle->findChild<GroupTabBar *>();
-	GroupBarWidgetHandle = dynamic_cast<QWidget *>(groupBarTabHandle->parent());
+	buddiesListViewHandle = MainWindowHandle->buddiesListView();
+	BuddiesListWidgetHandle = qobject_cast<BuddiesListWidget *>(buddiesListViewHandle->parentWidget());
+	GroupTabBarHandle = KaduWindowHandle->findChild<GroupTabBar *>();
 	StatusButtonsHandle = KaduWindowHandle->findChild<StatusButtons *>();
 
 	configurationUpdated();
-	
+
 	DiffRect = config_file.readRectEntry("Look", "SimpleViewGeometry");
 	if (!DiffRect.isNull())
 		simpleViewToggle(true);
@@ -74,7 +69,7 @@ SimpleView::SimpleView() :
 SimpleView::~SimpleView()
 {
 	config_file.writeEntry("Look", "SimpleViewGeometry", DiffRect);
-	
+
 	simpleViewToggle(false);
 
 	if (!Core::instance()->isClosing())
@@ -109,9 +104,7 @@ void SimpleView::simpleViewToggle(bool activate)
 	 *   +-QSplitter (Split)
 	 *     +-QWidget (hbox)
 	 *     |=QHBoxLayout (hboxLayout)
-	 *     |+-QWidget (GroupBarWidget)
-	 *     |  =QVBoxLayout (GroupBarLayout)
-	 *     |  +-GroupTabBar (GroupBar)
+	 *     |+-GroupTabBar (GroupBar)
 	 *     |+-BuddiesListWidget (ContactsWidget)
 	 *     |  =QVBoxLayout (layout)
 	 *     |  +-BuddiesListView (ContactsWidget->view())
@@ -147,13 +140,13 @@ void SimpleView::simpleViewToggle(bool activate)
 
 			if (Borderless)
 				BuddiesListViewStyle = BuddiesListWidgetHandle->view()->styleSheet();
-			
+
 			MainWindowHandle->hide();
 
 			/* Toolbars */
 			foreach (QObject *object, MainWindowHandle->children())
 			{
-				QToolBar *toolBar = dynamic_cast<QToolBar *>(object);
+				QToolBar *toolBar = qobject_cast<QToolBar *>(object);
 				if (toolBar)
 					toolBar->setVisible(false);
 			}
@@ -162,7 +155,7 @@ void SimpleView::simpleViewToggle(bool activate)
 			KaduWindowHandle->menuBar()->hide();
 
 			/* GroupBar */
-			GroupBarWidgetHandle->hide();
+			GroupTabBarHandle->setVisible(false);
 
 			/* Filter */
 			/* Note: filter hides/shows now automatically.
@@ -196,9 +189,9 @@ void SimpleView::simpleViewToggle(bool activate)
 			r.setRect(mr.x() + DiffRect.x(), mr.y() + DiffRect.y(), mr.width() + DiffRect.width(), mr.height() + DiffRect.height());
 
 			MainWindowHandle->setWindowFlags(flags & ~(Qt::FramelessWindowHint));
-			
+
 			MainWindowHandle->setGeometry(r);
-			
+
 			/* Status button */
 			StatusButtonsHandle->setVisible(config_file.readBoolEntry("Look", "ShowStatusButton"));
 
@@ -215,7 +208,8 @@ void SimpleView::simpleViewToggle(bool activate)
 			 */
 
 			/* GroupBar */
-			GroupBarWidgetHandle->show();
+			if (config_file.readBoolEntry("Look", "DisplayGroupTabs"))
+				GroupTabBarHandle->setVisible(true);
 
 			/* Menu bar */
 			KaduWindowHandle->menuBar()->show();
@@ -223,15 +217,15 @@ void SimpleView::simpleViewToggle(bool activate)
 			/* Toolbars */
 			foreach (QObject *object, MainWindowHandle->children())
 			{
-				QToolBar *toolBar = dynamic_cast<QToolBar *>(object);
+				QToolBar *toolBar = qobject_cast<QToolBar *>(object);
 				if (toolBar)
 					toolBar->setVisible(true);
 			}
-			
+
 			DiffRect = QRect(0,0,0,0);
 		}
 		MainWindowHandle->show();
-		
+
 		if (!Core::instance()->isClosing())
 			DockAction->setChecked(SimpleViewActive);
 	}

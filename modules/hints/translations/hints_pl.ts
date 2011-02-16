@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE TS>
-<TS version="2.0" language="pl_PL">
+<TS version="2.0" language="pl">
 <context>
     <name>@default</name>
     <message>
@@ -128,6 +128,10 @@
         <translation>Prawy</translation>
     </message>
     <message>
+        <source>&apos;Open chat&apos; works on all events</source>
+        <translation>&apos;Otwórz rozmowę&apos; działa z każdym zdarzeniem</translation>
+    </message>
+    <message>
         <source>Show message content in hint</source>
         <translation>Pokaż treść wiadomości w dymku</translation>
     </message>
@@ -140,16 +144,12 @@
         <translation>Usuń oczekujące wiadomości przy usuwaniu dymka</translation>
     </message>
     <message>
-        <source>&apos;Open chat&apos; works on all events</source>
-        <translation>&apos;Otwórz rozmowę&apos; działa z każdym zdarzeniem</translation>
-    </message>
-    <message>
         <source>Buddy List</source>
-		<translation>Lista znajomych</translation>
+        <translation>Lista znajomych</translation>
     </message>
     <message>
         <source>Hint Over Buddy</source>
-		<translation>Dymek nad listą znajomych</translation>
+        <translation>Dymek nad listą znajomych</translation>
     </message>
     <message>
         <source>Border color</source>
@@ -160,8 +160,24 @@
         <translation>Szerokość ramki</translation>
     </message>
     <message>
+        <source>Transparency</source>
+        <translation>Przezroczystość</translation>
+    </message>
+    <message>
+        <source>Mouse Buttons</source>
+        <translation>Przyciski myszy</translation>
+    </message>
+    <message>
+        <source>Syntax</source>
+        <translation>Składnia</translation>
+    </message>
+    <message>
         <source>Icon size</source>
         <translation>Rozmiar ikon</translation>
+    </message>
+    <message>
+        <source>16px</source>
+        <translation>16px</translation>
     </message>
     <message>
         <source>22px</source>
@@ -172,28 +188,28 @@
         <translation>32px</translation>
     </message>
     <message>
+        <source>48px</source>
+        <translation>48px</translation>
+    </message>
+    <message>
         <source>64px</source>
         <translation>64px</translation>
-    </message>
-    <message>
-        <source>Transparency</source>
-        <translation>Przezroczystość</translation>
-    </message>
-    <message>
-        <source>Syntax</source>
-        <translation>Składnia</translation>
     </message>
     <message>
         <source>Show buttons only when necessary</source>
         <translation>Pokaż przyciski tylko gdy konieczne</translation>
     </message>
     <message>
-        <source>Mouse Buttons</source>
-        <translation>Przyciski myszy</translation>
-    </message>
-    <message>
         <source>New Chat/Message</source>
         <translation>Nowa rozmowa lub wiadomość</translation>
+    </message>
+    <message>
+        <source>Advanced</source>
+        <translation>Zaawansowane</translation>
+    </message>
+    <message>
+        <source>Advanced...</source>
+        <translation>Zaawansowane...</translation>
     </message>
 </context>
 <context>
@@ -207,7 +223,7 @@
     <name>HintOverUserConfigurationWindow</name>
     <message>
         <source>Hint Over Buddy Configuration</source>
-		<translation>Dymek nad listą znajomych</translation>
+        <translation>Dymek nad listą znajomych</translation>
     </message>
     <message>
         <source>Update preview</source>
@@ -223,6 +239,10 @@
     <message>
         <source>Configure</source>
         <translation>Konfiguruj</translation>
+    </message>
+    <message>
+        <source>Advenced hints&apos;s configuration</source>
+        <translation>Zaawansowana konfiguracja dymków</translation>
     </message>
 </context>
 <context>
@@ -243,7 +263,7 @@
         <translation>Konfiguracja dymków</translation>
     </message>
     <message>
-        <source>Dont hide</source>
+        <source>Don&apos;t hide</source>
         <translation>Nie ukrywaj</translation>
     </message>
 </context>

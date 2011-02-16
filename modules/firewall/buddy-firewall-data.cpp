@@ -26,8 +26,8 @@
 
 #include "buddy-firewall-data.h"
 
-BuddyFirewallData::BuddyFirewallData(StorableObject *parent) :
-		ModuleData(parent), SecuredSending(false)
+BuddyFirewallData::BuddyFirewallData(const QString &moduleName, StorableObject *parent, QObject *qobjectParent) :
+		ModuleData(moduleName, parent, qobjectParent), SecuredSending(false)
 {
 }
 

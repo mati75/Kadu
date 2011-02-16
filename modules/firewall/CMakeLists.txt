@@ -7,12 +7,16 @@ set (SOURCES
 )
 
 set (MOC_SOURCES
+	buddy-firewall-data.h
 	firewall-configuration-ui-handler.h
 	firewall-notification.h
 	firewall.h
 )
 
 set (TRANSLATION_SOURCES
+	translations/firewall_de.ts
+	translations/firewall_fr.ts
+	translations/firewall_it.ts
 	translations/firewall_pl.ts
 )
 

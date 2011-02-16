@@ -68,7 +68,6 @@ ChatWidgetManager * ChatWidgetManager::instance()
 	if (0 == Instance)
 	{
 		Instance = new ChatWidgetManager();
-		// TODO 0.6.6 Remove
 		// Load configuration in constructor creates loop because Instance == 0
 		Instance->ensureLoaded();
 	}
@@ -135,7 +134,7 @@ void ChatWidgetManager::closeAllWindows()
 	QHash<Chat, ChatWidget *>::iterator i = Chats.begin();
 	while (i != Chats.end())
 	{
-		ChatWindow *window = dynamic_cast<ChatWindow *>(i.value()->window());
+		ChatWindow *window = qobject_cast<ChatWindow *>(i.value()->window());
 		if (window)
 		{
 			i = Chats.erase(i);
@@ -179,11 +178,10 @@ void ChatWidgetManager::store()
 
 	if (config_file.readBoolEntry("Chat", "SaveOpenedWindows", true))
 	{
-		// TODO: are all this conditions needed?
 		foreach (const Chat &chat, Chats.keys())
 		{
-			if (chat.isNull() || chat.chatAccount().isNull() || !chat.chatAccount().protocolHandler()
-				|| !chat.chatAccount().protocolHandler()->protocolFactory() || !dynamic_cast<ChatWindow *>(Chats.value(chat)->window()))
+			Protocol *protocolHandler = chat.chatAccount().protocolHandler();
+			if (!protocolHandler || !protocolHandler->protocolFactory() || !qobject_cast<ChatWindow *>(Chats.value(chat)->window()))
 					continue;
 
 			StringList.append(chat.uuid().toString());
@@ -195,18 +193,24 @@ void ChatWidgetManager::store()
 
 void ChatWidgetManager::insertEmoticonActionEnabled()
 {
+	QString toolTip;
+	bool enabled;
+
+	if ((EmoticonsStyle)config_file.readNumEntry("Chat","EmoticonsStyle") == EmoticonsStyleNone)
+	{
+		toolTip =  tr("Insert emoticon - enable in configuration");
+		enabled = false;
+	}
+	else
+	{
+		toolTip = tr("Insert emoticon");
+		enabled = true;
+	}
+
  	foreach (Action *action, Actions->insertEmoticon()->actions())
 	{
-		if ((EmoticonsStyle)config_file.readNumEntry("Chat","EmoticonsStyle") == EmoticonsStyleNone)
-		{
-			action->setToolTip(tr("Insert emoticon - enable in configuration"));
-			action->setEnabled(false);
-		}
-		else
-		{
-			action->setToolTip(tr("Insert emoticon"));
-			action->setEnabled(true);
-		}
+		action->setToolTip(toolTip);
+		action->setEnabled(enabled);
 	}
 }
 
@@ -230,14 +234,11 @@ void ChatWidgetManager::unregisterChatWidget(ChatWidget *chatwidget)
 
 	Chats.remove(chatwidget->chat());
 
-	if (chatwidget->countMessages())
-		RecentChatManager::instance()->addRecentChat(chatwidget->chat());
-
-	if (chatwidget->chat().contacts().count() == 1)
-	{
-		Contact contact = chatwidget->chat().contacts().toContact();
-		BuddyPreferredManager::instance()->updatePreferred(contact.ownerBuddy());
-	}
+//	if (chatwidget->chat().contacts().count() == 1)
+//	{
+//		Contact contact = chatwidget->chat().contacts().toContact();
+//		BuddyPreferredManager::instance()->updatePreferred(contact.ownerBuddy());
+//	}
 
 	emit chatWidgetDestroying(chatwidget);
 }
@@ -290,11 +291,11 @@ ChatWidget * ChatWidgetManager::openChatWidget(const Chat &chat, bool forceActiv
 		chatWidget->makeActive();
 	}
 
-	if (chatWidget->chat().contacts().count() == 1)
-	{
-		Contact contact = chatWidget->chat().contacts().toContact();
-		BuddyPreferredManager::instance()->updatePreferred(contact.ownerBuddy());
-	}
+//	if (chatWidget->chat().contacts().count() == 1)
+//	{
+//		Contact contact = chatWidget->chat().contacts().toContact();
+//		BuddyPreferredManager::instance()->updatePreferred(contact.ownerBuddy());
+//	}
 
 	emit chatWidgetCreated(chatWidget);
 // TODO: remove, it is so stupid ...

@@ -43,6 +43,12 @@
 <context>
     <name>DockingManager</name>
     <message>
+        <source>Current status:
+%1</source>
+        <translation>Aktualny status:
+%1</translation>
+    </message>
+    <message>
         <source>
 
 Description:
@@ -51,12 +57,6 @@ Description:
 
 Opis:
 %2</translation>
-    </message>
-    <message>
-        <source>Current status:
-%1</source>
-        <translation>Aktualny status:
-%1</translation>
     </message>
     <message>
         <source>Show Pending Messages</source>

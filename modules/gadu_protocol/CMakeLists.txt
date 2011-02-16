@@ -1,7 +1,6 @@
 set (LIBGADU_MIN_VERSION "1.9.0")
 
 set (SOURCES
-	dcc/dcc-manager.cpp
 	dcc/dcc-socket-notifiers.cpp
 
 	file-transfer/gadu-file-transfer-handler.cpp
@@ -47,11 +46,15 @@ set (SOURCES
 	services/gadu-avatar-service.cpp
 	services/gadu-chat-image-service.cpp
 	services/gadu-chat-service.cpp
+	services/gadu-chat-state-service.cpp
 	services/gadu-contact-list-service.cpp
-	services/gadu-file-transfer-service.cpp
-	services/gadu-personal-info-service.cpp
 	services/gadu-contact-personal-info-service.cpp
+	services/gadu-file-transfer-service.cpp
+	services/gadu-multilogon-service.cpp
+	services/gadu-personal-info-service.cpp
 	services/gadu-search-service.cpp
+
+	services/multilogon/gadu-multilogon-session.cpp
 
 	socket-notifiers/gadu-protocol-socket-notifiers.cpp
 	socket-notifiers/gadu-pubdir-socket-notifiers.cpp
@@ -67,7 +70,6 @@ set (SOURCES
 )
 
 set (MOC_SOURCES
-	dcc/dcc-manager.h
 	dcc/dcc-socket-notifiers.h
 
 	file-transfer/gadu-file-transfer-handler.h
@@ -103,11 +105,15 @@ set (MOC_SOURCES
 	services/gadu-avatar-service.h
 	services/gadu-chat-image-service.h
 	services/gadu-chat-service.h
+	services/gadu-chat-state-service.h
 	services/gadu-contact-list-service.h
-	services/gadu-file-transfer-service.h
-	services/gadu-personal-info-service.h
 	services/gadu-contact-personal-info-service.h
+	services/gadu-file-transfer-service.h
+	services/gadu-multilogon-service.h
+	services/gadu-personal-info-service.h
 	services/gadu-search-service.h
+
+	services/multilogon/gadu-multilogon-session.h
 
 	socket-notifiers/gadu-protocol-socket-notifiers.h
 	socket-notifiers/gadu-pubdir-socket-notifiers.h
@@ -121,9 +127,9 @@ set (MOC_SOURCES
 )
 
 set (TRANSLATION_SOURCES
-#	translations/gadu_protocol_de.ts
-#	translations/gadu_protocol_fr.ts
-#	translations/gadu_protocol_it.ts
+	translations/gadu_protocol_de.ts
+	translations/gadu_protocol_fr.ts
+	translations/gadu_protocol_it.ts
 	translations/gadu_protocol_pl.ts
 )
 

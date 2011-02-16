@@ -34,7 +34,6 @@
 #include "buddies/buddy-set.h"
 #include "buddies/buddy-shared.h"
 #include "buddies/model/buddies-model.h"
-#include "buddies/filter/anonymous-without-messages-buddy-filter.h"
 #include "buddies/filter/group-buddy-filter.h"
 #include "chat/type/chat-type-manager.h"
 #include "chat/chat-manager.h"
@@ -57,7 +56,9 @@
 #include "gui/widgets/status-buttons.h"
 #include "gui/widgets/status-menu.h"
 #include "notify/notification-manager.h"
+#include "os/generic/url-opener.h"
 #include "status/status-container-manager.h"
+#include "url-handlers/url-handler-manager.h"
 #include "activate.h"
 
 #include "misc/misc.h"
@@ -129,12 +130,10 @@ void KaduWindow::createGui()
 	ContactsWidget->view()->useConfigurationColors(true);
 	ContactsWidget->view()->setModel(new BuddiesModel(this));
 	ContactsWidget->view()->addFilter(GroupBar->filter());
-	AnonymousWithoutMessagesBuddyFilter *anonymousFilter = new AnonymousWithoutMessagesBuddyFilter(this);
-	anonymousFilter->setEnabled(true);
-	ContactsWidget->view()->addFilter(anonymousFilter);
 	ContactsWidget->view()->setContextMenuEnabled(true);
 
-	connect(ContactsWidget->view(), SIGNAL(chatActivated(Chat )), this, SLOT(openChatWindow(Chat )));
+	connect(ContactsWidget->view(), SIGNAL(chatActivated(Chat)), this, SLOT(openChatWindow(Chat)));
+	connect(ContactsWidget->view(), SIGNAL(buddyActivated(Buddy)), this, SLOT(buddyActivated(Buddy)));
 
 	hboxLayout->addWidget(GroupBar);
 	hboxLayout->setStretchFactor(GroupBar, 1);
@@ -186,7 +185,13 @@ void KaduWindow::createKaduMenu()
 	RecentChatsMenu = new QMenu(this);
 	RecentChatsMenu->setIcon(IconsManager::instance()->iconByPath("internet-group-chat"));
 	RecentChatsMenu->setTitle(tr("Recent chats"));
-	connect(KaduMenu, SIGNAL(aboutToShow()), this, SLOT(createRecentChatsMenu()));
+	RecentChatsMenuNeedsUpdate = true;
+	connect(IconsManager::instance(), SIGNAL(themeChanged()), this, SLOT(iconThemeChanged()));
+	connect(ChatWidgetManager::instance(), SIGNAL(chatWidgetCreated(ChatWidget*)), this, SLOT(invalidateRecentChatsMenu()));
+	connect(ChatWidgetManager::instance(), SIGNAL(chatWidgetDestroying(ChatWidget*)), this, SLOT(invalidateRecentChatsMenu()));
+	connect(RecentChatManager::instance(), SIGNAL(recentChatAdded(Chat)), this, SLOT(invalidateRecentChatsMenu()));
+	connect(RecentChatManager::instance(), SIGNAL(recentChatRemoved(Chat)), this, SLOT(invalidateRecentChatsMenu()));
+	connect(KaduMenu, SIGNAL(aboutToShow()), this, SLOT(updateRecentChatsMenu()));
 	connect(RecentChatsMenu, SIGNAL(triggered(QAction *)), this, SLOT(openRecentChats(QAction *)));
 
 	insertMenuActionDescription(Actions->Configuration, MenuKadu);
@@ -229,6 +234,8 @@ void KaduWindow::createToolsMenu()
 {
 	ToolsMenu = new QMenu(this);
 	ToolsMenu->setTitle(tr("&Tools"));
+
+	insertMenuActionDescription(Actions->ShowMultilogons, MenuTools);
 
 	menuBar()->addMenu(ToolsMenu);
 }
@@ -314,33 +321,40 @@ void KaduWindow::openChatWindow(Chat chat)
 		ChatWidgetManager::instance()->sendMessage(chat);
 		return;
 	}
-
-// TODO: 0.6.6
-// 	contact = *contacts.begin();
-// 	if (contact.mobile().isEmpty() && !contact.email().isEmpty())
-// 		openMailClient(contact.email());
 }
 
-void KaduWindow::createRecentChatsMenu()
+void KaduWindow::buddyActivated(const Buddy &buddy)
+{
+	if (buddy.contacts().isEmpty() && buddy.mobile().isEmpty() && !buddy.email().isEmpty())
+		if (buddy.email().indexOf(UrlHandlerManager::instance()->mailRegExp()) == 0)
+			UrlOpener::openEmail(buddy.email());
+}
+
+void KaduWindow::invalidateRecentChatsMenu()
+{
+	RecentChatsMenuNeedsUpdate = true;
+}
+
+void KaduWindow::updateRecentChatsMenu()
 {
 	kdebugf();
 
+	if (!RecentChatsMenuNeedsUpdate)
+		return;
+
 	RecentChatsMenu->clear();
 
-	QList<Chat> recentChats = RecentChatManager::instance()->recentChats();
-	bool addedAnyChat = false;
-	foreach (const Chat chat, recentChats)
+	foreach (const Chat &chat, RecentChatManager::instance()->recentChats())
 		if (!ChatWidgetManager::instance()->byChat(chat))
 		{
 			ChatType *type = ChatTypeManager::instance()->chatType(chat.type());
-			QAction *action = new QAction(type ? type->icon() : QIcon(), chat.name(), this);
+			QAction *action = new QAction(type ? type->icon() : QIcon(), chat.name(), RecentChatsMenu);
 			action->setData(QVariant::fromValue<Chat>(chat));
 			RecentChatsMenu->addAction(action);
-
-			addedAnyChat = true;
 		}
 
-	RecentChatsMenuAction->setEnabled(addedAnyChat);
+	RecentChatsMenuAction->setEnabled(!RecentChatsMenu->actions().isEmpty());
+	RecentChatsMenuNeedsUpdate = false;
 
 	kdebugf2();
 }
@@ -350,6 +364,11 @@ void KaduWindow::openRecentChats(QAction *action)
 	kdebugf();
 	ChatWidgetManager::instance()->openPendingMessages(action->data().value<Chat>(), true);
 	kdebugf2();
+}
+
+void KaduWindow::iconThemeChanged()
+{
+	RecentChatsMenu->setIcon(IconsManager::instance()->iconByPath("internet-group-chat"));
 }
 
 void KaduWindow::storeConfiguration()
@@ -371,9 +390,6 @@ void KaduWindow::storeConfiguration()
 	}
 	if (config_file.readBoolEntry("Look", "ShowStatusButton"))
 		config_file.writeEntry("General", "UserBoxHeight", ContactsWidget->size().height());
-
-// TODO: 0.6.6
-//	config_file.writeEntry("General", "DefaultDescription", defaultdescriptions.join("<-->"));
 }
 
 void KaduWindow::closeEvent(QCloseEvent *e)
@@ -396,10 +412,6 @@ void KaduWindow::keyPressEvent(QKeyEvent *e)
 			hide();
 		}
 	}
-	// TODO: 0.6.6 THIS SUXX
-	// after action moving this could be restored
-	// else if (HotKey::shortCut(e,"ShortCuts", "kadu_deleteuser"))
-	//	deleteUsersActionDescription->createAction(this)->trigger();
 	else if (e->matches(QKeySequence::Copy))
 		InfoPanel->pageAction(QWebPage::Copy)->trigger();
 
@@ -515,8 +527,8 @@ void KaduWindow::insertMenuActionDescription(ActionDescription *actionDescriptio
 	kdebugf();
 	if (!actionDescription)
 		return;
-	Action *action = actionDescription->createAction(this, this);
 
+	Action *action = actionDescription->createAction(this, this);
 	QMenu *menu = 0;
 
 	switch (type)
@@ -532,29 +544,32 @@ void KaduWindow::insertMenuActionDescription(ActionDescription *actionDescriptio
 			break;
 		case MenuHelp:
 			menu = HelpMenu;
+			break;
 	}
 
 	if (!menu)
 		return;
 
 	QList<QAction *> menuActions = menu->actions();
-	if (pos >= menuActions.count() - 1 || pos == -1)
+	if (pos < 0 || pos >= menuActions.count())
 		menu->addAction(action);
 	else
-		menu->insertAction(menuActions[pos], action);
+		menu->insertAction(menuActions.at(pos), action);
 
-	MenuActions[actionDescription] = MenuAction(action, type);
+	MenuActions.insert(actionDescription, MenuAction(action, type));
 }
 
 void KaduWindow::removeMenuActionDescription(ActionDescription *actionDescription)
 {
 	if (!actionDescription)
 		return;
-	Action *action = MenuActions[actionDescription].first;
 
-	if (!action)
+	QMap<ActionDescription *, MenuAction>::iterator it = MenuActions.find(actionDescription);
+	if (it == MenuActions.end())
 		return;
-	switch (MenuActions[actionDescription].second)
+
+	Action *action = it.value().first;
+	switch (it.value().second)
 	{
 		case MenuKadu:
 			KaduMenu->removeAction(action);
@@ -567,8 +582,11 @@ void KaduWindow::removeMenuActionDescription(ActionDescription *actionDescriptio
 			break;
 		case MenuHelp:
 			HelpMenu->removeAction(action);
+			break;
 	}
-	MenuActions.remove(actionDescription);
+
+	MenuActions.erase(it);
+	delete action;
 }
 
 void KaduWindow::createDefaultToolbars(QDomElement parentConfig)
@@ -596,16 +614,4 @@ void KaduWindow::setDocked(bool docked)
 {
 	Docked = docked;
 	qApp->setQuitOnLastWindowClosed(!Docked);
-
-// TODO: 0.6.6
-// 	if (config_file.readBoolEntry("General", "ShowAnonymousWithMsgs") || !Docked || dontHideOnClose)
-// 	{
-// 	Userbox->removeNegativeFilter(anonymousUsers);
-// 	Userbox->applyNegativeFilter(anonymousUsersWithoutMessages);
-// 	}
-// 	else
-// 	{
-// 		Userbox->removeNegativeFilter(anonymousUsersWithoutMessages);
-// 		Userbox->applyNegativeFilter(anonymousUsers);
-// 	}
 }

@@ -133,6 +133,10 @@ History::~History()
 	kdebugf();
 	stopSaveThread();
 	deleteActionDescriptions();
+
+	delete HistoryDialog;
+	HistoryDialog = 0;
+
 	kdebugf2();
 }
 
@@ -169,11 +173,11 @@ void History::showHistoryActionActivated(QAction *sender, bool toggled)
 {
 	Q_UNUSED(toggled)
 
-	Action *action = dynamic_cast<Action *>(sender);
+	Action *action = qobject_cast<Action *>(sender);
 	if (!action)
 		return;
 
-	ChatEditBox *chatEditBox = dynamic_cast<ChatEditBox *>(sender->parent());
+	ChatEditBox *chatEditBox = qobject_cast<ChatEditBox *>(sender->parent());
 	Chat chat = action->chat();
 	if (!chatEditBox || chat != chatEditBox->chat())
 		HistoryDialog->show(chat);
@@ -215,7 +219,7 @@ void History::showMoreMessages(QAction *action)
 	if (!CurrentStorage)
 		return;
 
-	ChatWidget *chatWidget = dynamic_cast<ChatWidget *>(sender()->parent());
+	ChatWidget *chatWidget = qobject_cast<ChatWidget *>(sender()->parent());
 	if (!chatWidget)
 		return;
 
@@ -261,7 +265,7 @@ void History::clearHistoryActionActivated(QAction *sender, bool toggled)
 	if (!CurrentStorage)
 		return;
 
-	Action *action = dynamic_cast<Action *>(sender);
+	Action *action = qobject_cast<Action *>(sender);
 	if (!action)
 		return;
 
@@ -428,7 +432,7 @@ void History::stopSaveThread()
 
 void History::mainConfigurationWindowCreated(MainConfigurationWindow *mainConfigurationWindow)
 {
-	dontCiteOldMessagesLabel = dynamic_cast<QLabel *>(mainConfigurationWindow->widget()->widgetById("history/dontCiteOldMessagesLabel"));
+	dontCiteOldMessagesLabel = static_cast<QLabel *>(mainConfigurationWindow->widget()->widgetById("history/dontCiteOldMessagesLabel"));
 	connect(mainConfigurationWindow->widget()->widgetById("history/dontCiteOldMessages"), SIGNAL(valueChanged(int)),
 		this, SLOT(updateQuoteTimeLabel(int)));
 

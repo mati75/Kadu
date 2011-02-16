@@ -6,6 +6,7 @@ set (kadu_SRCS
 	accounts/account-shared.cpp
 	accounts/accounts-aware-object.cpp
 
+	accounts/filter/have-multilogon-filter.cpp
 	accounts/filter/id-validity-filter.cpp
 	accounts/filter/protocol-filter.cpp
 	accounts/filter/writeable-contacts-list-filter.cpp
@@ -45,11 +46,9 @@ set (kadu_SRCS
 	buddies/filter/group-buddy-filter.cpp
 	buddies/filter/has-description-buddy-filter.cpp
 	buddies/filter/mobile-buddy-filter.cpp
-	buddies/filter/non-account-buddy-filter.cpp
 	buddies/filter/non-buddy-filter.cpp
 	buddies/filter/offline-buddy-filter.cpp
 	buddies/filter/online-and-description-buddy-filter.cpp
-	buddies/filter/online-buddy-filter.cpp
 	buddies/filter/pending-messages-filter.cpp
 
 	buddies/model/abstract-buddies-model.cpp
@@ -244,9 +243,11 @@ set (kadu_SRCS
 	gui/windows/merge-buddies-window.cpp
 	gui/windows/message-dialog.cpp
 	gui/windows/modules-window.cpp
+	gui/windows/multilogon-window.cpp
 	gui/windows/password-window.cpp
 	gui/windows/progress-window.cpp
 	gui/windows/search-window.cpp
+	gui/windows/search-window-actions.cpp
 	gui/windows/subscription-window.cpp
 	gui/windows/syntax-editor-window.cpp
 	gui/windows/updates-dialog.cpp
@@ -271,10 +272,15 @@ set (kadu_SRCS
 
 	model/actions-proxy-model.cpp
 
+	multilogon/model/multilogon-model.cpp
+
+	multilogon/multilogon-session.cpp
+
 	notify/account-notification.cpp
 	notify/buddy-notify-data.cpp
 	notify/chat-notification.cpp
 	notify/new-message-notification.cpp
+	notify/multilogon-notification.cpp
 	notify/notification.cpp
 	notify/notification-manager.cpp
 	notify/notifier.cpp
@@ -349,7 +355,7 @@ set (kadu_SRCS
 if (UNIX AND NOT APPLE)
 	set (kadu_SRCS
 		${kadu_SRCS}
-		x11tools.cpp
+		os/x11tools.cpp
 	)
 endif (UNIX AND NOT APPLE)
 if (NOT WIN32)
@@ -365,6 +371,7 @@ set (kadu_MOC_SRCS
 	accounts/account-shared.h
 
 	accounts/filter/abstract-account-filter.h
+	accounts/filter/have-multilogon-filter.h
 	accounts/filter/id-validity-filter.h
 	accounts/filter/protocol-filter.h
 	accounts/filter/writeable-contacts-list-filter.h
@@ -378,6 +385,7 @@ set (kadu_MOC_SRCS
 	avatars/avatar-shared.h
 
 	buddies/buddy-additional-data-delete-handler-manager.h
+	buddies/buddy-kadu-data.h
 	buddies/buddy-shared.h
 	buddies/buddy-manager.h
 	buddies/group-manager.h
@@ -393,11 +401,9 @@ set (kadu_MOC_SRCS
 	buddies/filter/group-buddy-filter.h
 	buddies/filter/has-description-buddy-filter.h
 	buddies/filter/mobile-buddy-filter.h
-	buddies/filter/non-account-buddy-filter.h
 	buddies/filter/non-buddy-filter.h
 	buddies/filter/offline-buddy-filter.h
 	buddies/filter/online-and-description-buddy-filter.h
-	buddies/filter/online-buddy-filter.h
 	buddies/filter/pending-messages-filter.h
 
 	buddies/model/buddy-list-model.h
@@ -410,6 +416,7 @@ set (kadu_MOC_SRCS
 	chat/chat-details-aggregate.h
 	chat/chat-details-conference.h
 	chat/chat-details-simple.h
+	chat/chat-geometry-data.h
 
 	chat/aggregate-chat-manager.h
 	chat/chat-manager.h
@@ -570,9 +577,11 @@ set (kadu_MOC_SRCS
 	gui/windows/main-window.h
 	gui/windows/merge-buddies-window.h
 	gui/windows/modules-window.h
+	gui/windows/multilogon-window.h
 	gui/windows/password-window.h
 	gui/windows/progress-window.h
 	gui/windows/search-window.h
+	gui/windows/search-window-actions.h
 	gui/windows/subscription-window.h
 	gui/windows/syntax-editor-window.h
 	gui/windows/updates-dialog.h
@@ -586,13 +595,19 @@ set (kadu_MOC_SRCS
 	identities/identity-manager.h
 	identities/identity-shared.h
 
-	model/actions-proxy-model.h
-
 	misc/syntax-list.h
 
+	model/actions-proxy-model.h
+
+	multilogon/model/multilogon-model.h
+
+	multilogon/multilogon-session.h
+
 	notify/account-notification.h
+	notify/buddy-notify-data.h
 	notify/chat-notification.h
 	notify/new-message-notification.h
+	notify/multilogon-notification.h
 	notify/notification.h
 	notify/notification-manager.h
 	notify/notifier.h
@@ -613,9 +628,11 @@ set (kadu_MOC_SRCS
 	protocols/services/avatar-service.h
 	protocols/services/chat-image-service.h
 	protocols/services/chat-service.h
+	protocols/services/chat-state-service.h
 	protocols/services/contact-list-service.h
 	protocols/services/contact-personal-info-service.h
 	protocols/services/file-transfer-service.h
+	protocols/services/multilogon-service.h
 	protocols/services/personal-info-service.h
 	protocols/services/roster-service.h
 	protocols/services/search-service.h
@@ -630,6 +647,8 @@ set (kadu_MOC_SRCS
 	status/status-changer-manager.h
 	status/status-container.h
 	status/status-container-manager.h
+
+	storage/module-data.h
 
 	themes/emoticon-theme-manager.h
 	themes/icon-theme-manager.h

@@ -34,6 +34,7 @@
 
 #include "accounts/account.h"
 #include "accounts/account-manager.h"
+#include "accounts/account-shared.h"
 #include "avatars/avatar-manager.h"
 #include "chat/chat.h"
 #include "chat/message/formatted-message.h"
@@ -54,7 +55,6 @@
 #include "icons-manager.h"
 #include "misc/misc.h"
 
-#include "dcc/dcc-manager.h"
 #include "helpers/gadu-formatter.h"
 #include "server/gadu-contact-list-handler.h"
 #include "server/gadu-servers-manager.h"
@@ -84,14 +84,15 @@ extern "C" KADU_EXPORT int gadu_protocol_init(bool firstLoad)
 	if (ProtocolsManager::instance()->hasProtocolFactory("gadu"))
 		return 0;
 
-	gg_debug_level = debug_mask | ~255;
+	// 8 bits for gadu debug
+	gg_debug_level = debug_mask & 255;
 
 	gg_proxy_host = 0;
 	gg_proxy_username = 0;
 	gg_proxy_password = 0;
 
 #ifndef DEBUG_ENABLED
-	gg_debug_level = 1;
+	gg_debug_level = 0;
 #endif
 #ifndef Q_OS_WIN
 	gg_global_set_custom_resolver(gadu_resolver_start, gadu_resolver_cleanup);
@@ -104,9 +105,10 @@ extern "C" KADU_EXPORT int gadu_protocol_init(bool firstLoad)
 	ProtocolsManager::instance()->registerProtocolFactory(GaduProtocolFactory::instance());
 	UrlHandlerManager::instance()->registerUrlHandler("Gadu", new GaduUrlHandler());
 
+	GaduImporter::createInstance();
+
 	if (AccountManager::instance()->allItems().isEmpty())
 		GaduImporter::instance()->importAccounts();
-
 	GaduImporter::instance()->importContacts();
 
 	return 0;
@@ -114,6 +116,8 @@ extern "C" KADU_EXPORT int gadu_protocol_init(bool firstLoad)
 
 extern "C" KADU_EXPORT void gadu_protocol_close()
 {
+	GaduImporter::destroyInstance();
+
 	UrlHandlerManager::instance()->unregisterUrlHandler("Gadu");
 	ProtocolsManager::instance()->unregisterProtocolFactory(GaduProtocolFactory::instance());
 
@@ -219,7 +223,7 @@ Buddy GaduProtocol::searchResultToBuddy(gg_pubdir50_t res, int number)
 }
 
 GaduProtocol::GaduProtocol(Account account, ProtocolFactory *factory) :
-		Protocol(account, factory), Dcc(0),
+		Protocol(account, factory), CurrentFileTransferService(0),
 		ActiveServer(), GaduLoginParams(), GaduSession(0), PingTimer(0)
 {
 	kdebugf();
@@ -231,10 +235,14 @@ GaduProtocol::GaduProtocol(Account account, ProtocolFactory *factory) :
 	CurrentChatService = new GaduChatService(this);
 	CurrentContactListService = new GaduContactListService(this);
 	CurrentContactPersonalInfoService = new GaduContactPersonalInfoService(this);
-	CurrentFileTransferService = new GaduFileTransferService(this);
 	CurrentPersonalInfoService = new GaduPersonalInfoService(this);
 	CurrentSearchService = new GaduSearchService(this);
-
+#ifdef GADU_HAVE_MULTILOGON
+	CurrentMultilogonService = new GaduMultilogonService(account, this);
+#endif // GADU_HAVE_MULTILOGON
+#ifdef GADU_HAVE_TYPING_NOTIFY
+	CurrentChatStateService = new GaduChatStateService(this);
+#endif // GADU_HAVE_TYPING_NOTIFY
 	ContactListHandler = 0;
 
 	connect(BuddyManager::instance(), SIGNAL(buddySubscriptionChanged(Buddy &)),
@@ -247,6 +255,7 @@ GaduProtocol::GaduProtocol(Account account, ProtocolFactory *factory) :
 			this, SLOT(contactAboutToBeDetached(Contact)));
 	connect(ContactManager::instance(), SIGNAL(contactIdChanged(Contact, const QString &)),
 			this, SLOT(contactIdChanged(Contact, const QString &)));
+	connect(account, SIGNAL(updated()), this, SLOT(accountUpdated()));
 
 	kdebugf2();
 }
@@ -265,6 +274,7 @@ GaduProtocol::~GaduProtocol()
 			this, SLOT(contactAboutToBeDetached(Contact)));
 	disconnect(ContactManager::instance(), SIGNAL(contactIdChanged(Contact, const QString &)),
 			this, SLOT(contactIdChanged(Contact, const QString &)));
+	disconnect(account(), SIGNAL(updated()), this, SLOT(accountUpdated()));
 
 	networkDisconnected(false, false);
 
@@ -356,14 +366,20 @@ void GaduProtocol::login(const QString &password, bool permanent)
 		Status newstat = status();
 		newstat.setType("Offline");
 		setStatus(newstat);
+		statusChanged(newstat);
 		return;
 	}
-  
+
 	account().setPassword(password);
 	account().setRememberPassword(permanent);
 	account().setHasPassword(!password.isEmpty());
 
 	login();
+}
+
+void GaduProtocol::accountUpdated()
+{
+	setUpFileTransferService();
 }
 
 void GaduProtocol::login()
@@ -382,6 +398,7 @@ void GaduProtocol::login()
 	{
 		MessageDialog::show("dialog-warning", tr("Kadu"), tr("UIN not set!"));
 		setStatus(Status());
+		statusChanged(Status());
 		kdebugmf(KDEBUG_FUNCTION_END, "end: gadu UIN not set\n");
 		return;
 	}
@@ -398,7 +415,6 @@ void GaduProtocol::login()
 	networkStateChanged(NetworkConnecting);
 
 	setupProxy();
-	setupDcc();
 	setupLoginParams();
 
 	GaduSession = gg_login(&GaduLoginParams);
@@ -454,27 +470,6 @@ void GaduProtocol::setupProxy()
 	}
 }
 
-void GaduProtocol::setupDcc()
-{
-	GaduAccountDetails *gaduAccountDetails = dynamic_cast<GaduAccountDetails *>(account().details());
-	if (!gaduAccountDetails)
-		return;
-
-	if (gaduAccountDetails->allowDcc())
-	{
-		if (!Dcc)
-			Dcc = new DccManager(this);
-	}
-	else
-	{
-		if (Dcc)
-		{
-			delete Dcc;
-			Dcc = 0;
-		}
-	}
-}
-
 void GaduProtocol::setupLoginParams()
 {
 	memset(&GaduLoginParams, 0, sizeof(GaduLoginParams));
@@ -500,15 +495,26 @@ void GaduProtocol::setupLoginParams()
 	GaduLoginParams.protocol_version = GG_DEFAULT_PROTOCOL_VERSION;
 	GaduLoginParams.client_version = (char *)GG_DEFAULT_CLIENT_VERSION;
 	GaduLoginParams.protocol_features = GG_FEATURE_DND_FFC; // enable new statuses
+
+#ifdef GADU_HAVE_MULTILOGON
+	GaduLoginParams.protocol_features |= GG_FEATURE_MULTILOGON;
+#endif // GADU_HAVE_MULTILOGON
+
+#ifdef GADU_HAVE_TYPING_NOTIFY
+	GaduLoginParams.protocol_features |=GG_FEATURE_TYPING_NOTIFICATION;
+#endif // GADU_HAVE_TYPING_NOTIFY
+
 	GaduLoginParams.encoding = GG_ENCODING_UTF8;
 
-	GaduLoginParams.has_audio = false; // gaduAccountDetails->allowDcc();
+	GaduLoginParams.has_audio = false;
 	GaduLoginParams.last_sysmsg = config_file.readNumEntry("General", "SystemMsgIndex", 1389);
 
-	if (Dcc)
-		Dcc->setUpExternalAddress(GaduLoginParams);
-
+#ifdef GADU_HAVE_TLS
+	GaduLoginParams.tls = gaduAccountDetails->tlsEncryption() ? 1 : 0;
+#else
 	GaduLoginParams.tls = 0;
+#endif
+
 	GaduLoginParams.image_size = gaduAccountDetails->maximumImageSize();
 }
 
@@ -525,12 +531,43 @@ void GaduProtocol::cleanUpLoginParams()
 	}
 }
 
+void GaduProtocol::setUpFileTransferService(bool forceClose)
+{
+	bool close = forceClose;
+	if (!close)
+		close = NetworkConnected != state();
+	if (!close)
+	{
+		GaduAccountDetails *gaduAccountDetails = dynamic_cast<GaduAccountDetails *>(account().details());
+		if (!gaduAccountDetails)
+			close = true;
+		else
+			close = !gaduAccountDetails->allowDcc();
+	}
+
+	if (close)
+	{
+		delete CurrentFileTransferService;
+		CurrentFileTransferService = 0;
+		account().data()->fileTransferServiceChanged(0);
+	}
+	else
+		if (!CurrentFileTransferService)
+		{
+			CurrentFileTransferService = new GaduFileTransferService(this);
+			account().data()->fileTransferServiceChanged(CurrentFileTransferService);
+		}
+}
+
 void GaduProtocol::networkConnected()
 {
 	networkStateChanged(NetworkConnected);
 
 	// fetch current avatar after connection
 	AvatarManager::instance()->updateAvatar(account().accountContact(), true);
+
+	// set up DCC if needed
+	setUpFileTransferService();
 }
 
 void GaduProtocol::networkDisconnected(bool tryAgain, bool waitForPassword)
@@ -538,11 +575,7 @@ void GaduProtocol::networkDisconnected(bool tryAgain, bool waitForPassword)
 	if (!tryAgain)
 		networkStateChanged(NetworkDisconnected);
 
-	if (Dcc)
-	{
-		delete Dcc;
-		Dcc = 0;
-	}
+	setUpFileTransferService(true);
 
 	if (PingTimer)
 	{
@@ -564,11 +597,18 @@ void GaduProtocol::networkDisconnected(bool tryAgain, bool waitForPassword)
 
 	setAllOffline();
 
+#ifdef GADU_HAVE_MULTILOGON
+	CurrentMultilogonService->removeAllSessions();
+#endif // GADU_HAVE_MULTILOGON
+
 	if (tryAgain && !nextStatus().isDisconnected()) // user still wants to login
 		QTimer::singleShot(1000, this, SLOT(login())); // try again after one second
 	else if (!nextStatus().isDisconnected())
 		if (!waitForPassword)
+		{
 			setStatus(Status());
+			statusChanged(Status());
+		}
 }
 
 void GaduProtocol::sendUserList()
@@ -707,8 +747,6 @@ void GaduProtocol::socketConnSuccess()
 {
 	kdebugf();
 
-	sendUserList();
-
 	GaduServersManager::instance()->markServerAsGood(ActiveServer);
 
 	PingTimer = new QTimer(0);
@@ -717,6 +755,8 @@ void GaduProtocol::socketConnSuccess()
 
 	statusChanged(nextStatus());
 	networkConnected();
+
+	sendUserList();
 
 	GaduAccountDetails *details = dynamic_cast<GaduAccountDetails *>(account().details());
 

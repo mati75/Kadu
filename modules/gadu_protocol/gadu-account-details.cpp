@@ -29,9 +29,7 @@
 #include "gadu-account-details.h"
 
 GaduAccountDetails::GaduAccountDetails(AccountShared *data) :
-		AccountDetails(data),
-		AllowDcc(true), DccIpDetect(true),
-		DccPort(0), DccExternalPort(0), DccLocalPort(0), RemoveCompletedTransfers(0), DccForwarding(0), InitialRosterImport(false)
+		AccountDetails(data), AllowDcc(true), InitialRosterImport(false)
 {
 	OpenChatRunner = new GaduOpenChatWithRunner(data);
 	OpenChatWithRunnerManager::instance()->registerRunner(OpenChatRunner);
@@ -51,26 +49,19 @@ void GaduAccountDetails::load()
 
 	AccountDetails::load();
 
-	AllowDcc = loadValue<bool>("AllowDcc");
-	DccIpDetect = loadValue<bool>("DccIpDetect");
-	DccPort = loadValue<int>("DccPort");
-	DccExternalPort = loadValue<int>("DccExternalPort");
-	DccLocalPort = loadValue<int>("DccLocalPort");
-	RemoveCompletedTransfers = loadValue<bool>("RemoveCompletedTransfers");
-	DccForwarding = loadValue<bool>("DccForwarding");
+	AllowDcc = loadValue<bool>("AllowDcc", true);
 	MaximumImageSize = loadValue<short int>("MaximumImageSize", 255);
 	ReceiveImagesDuringInvisibility = loadValue<bool>("ReceiveImagesDuringInvisibility", true);
 	MaximumImageRequests = loadValue<short int>("MaximumImageRequests", 10);
 	InitialRosterImport = loadValue<bool>("InitialRosterImport", false);
-	
 
-	QHostAddress host;
-	if (!host.setAddress(loadValue<QString>("DccExternalIp")))
-		host.setAddress("0.0.0.0");
-	DccExternalIP = host;
-	if (!host.setAddress(loadValue<QString>("DccIP")))
-		host.setAddress("0.0.0.0");
-	DccIP = host;
+#ifdef GADU_HAVE_TYPING_NOTIFY
+	SendTypingNotification = loadValue<bool>("SendTypingNotification", true);
+#endif // GADU_HAVE_TYPING_NOTIFY
+
+#ifdef GADU_HAVE_TLS
+	TlsEncryption = loadValue<bool>("TlsEncryption", true);
+#endif // GADU_HAVE_TLS
 }
 
 void GaduAccountDetails::store()
@@ -79,19 +70,18 @@ void GaduAccountDetails::store()
 		return;
 
 	storeValue("AllowDcc", AllowDcc);
-	storeValue("DccIP", DccIP.toString());
-	storeValue("DccIpDetect", DccIpDetect);
-	storeValue("DccPort", DccPort);
-	storeValue("DccExternalIp", DccExternalIP.toString());
-	storeValue("DccExternalPort", DccExternalPort);
-	storeValue("DccLocalPort", DccLocalPort);
-	storeValue("RemoveCompletedTransfers", RemoveCompletedTransfers);
-	storeValue("DccForwarding", DccForwarding);
 	storeValue("MaximumImageSize", MaximumImageSize);
 	storeValue("ReceiveImagesDuringInvisibility", ReceiveImagesDuringInvisibility);
 	storeValue("MaximumImageRequests", MaximumImageRequests);
 	storeValue("InitialRosterImport", InitialRosterImport);
-	
+
+#ifdef GADU_HAVE_TLS
+	storeValue("TlsEncryption", TlsEncryption);
+#endif
+
+#ifdef GADU_HAVE_TYPING_NOTIFY
+	storeValue("SendTypingNotification", SendTypingNotification);
+#endif // GADU_HAVE_TYPING_NOTIFY
 }
 
 void GaduAccountDetails::import_0_6_5_LastStatus()

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE TS>
-<TS version="2.0" language="pl_PL">
+<TS version="2.0" language="pl">
 <context>
     <name>@default</name>
     <message>
@@ -57,6 +57,26 @@ Argumenty powinny być oddzielone spacjami. %n jest zamieniane na numer, %m na w
         <source>Send SMS</source>
         <translation>Wyślij SMS</translation>
     </message>
+    <message>
+        <source>SMS Era Gateway</source>
+        <translation>Bramka SMS Era</translation>
+    </message>
+    <message>
+        <source>Sponsored</source>
+        <translation>Sponsorowana</translation>
+    </message>
+    <message>
+        <source>OmnixMultimedia</source>
+        <translation>OmnixMultimedia</translation>
+    </message>
+    <message>
+        <source>User ID (48xxxxxxxxx)</source>
+        <translation>ID użytkownika (48xxxxxxxxx)</translation>
+    </message>
+    <message>
+        <source>Password</source>
+        <translation>Hasło</translation>
+    </message>
 </context>
 <context>
     <name>SmsActions</name>
@@ -66,18 +86,54 @@ Argumenty powinny być oddzielone spacjami. %n jest zamieniane na numer, %m na w
     </message>
 </context>
 <context>
-    <name>SmsConfigurationUiHandler</name>
+    <name>SmsDialog</name>
     <message>
-        <source>Up</source>
-        <translation>Przenieś w górę</translation>
+        <source>Send SMS</source>
+        <translation>Wyślij SMS</translation>
     </message>
     <message>
-        <source>Down</source>
-        <translation>Przenieś w dół</translation>
+        <source>Recipient</source>
+        <translation>Odbiorca</translation>
     </message>
     <message>
-        <source>Gateways priorites</source>
-        <translation>Priorytety bramek</translation>
+        <source>Select automatically</source>
+        <translation>Wybierz automatycznie</translation>
+    </message>
+    <message>
+        <source>GSM provider</source>
+        <translation>Operator GSM</translation>
+    </message>
+    <message>
+        <source>Content</source>
+        <translation>Treść</translation>
+    </message>
+    <message>
+        <source>Signature</source>
+        <translation>Podpis</translation>
+    </message>
+    <message>
+        <source>Save SMS in history</source>
+        <translation>Zapisz SMS w historii</translation>
+    </message>
+    <message>
+        <source>&amp;Send</source>
+        <translation>&amp;Wyślij</translation>
+    </message>
+    <message>
+        <source>Close</source>
+        <translation>Zamknij</translation>
+    </message>
+    <message>
+        <source>Clear</source>
+        <translation>Wyczyść</translation>
+    </message>
+    <message>
+        <source>Kadu</source>
+        <translation>Kadu</translation>
+    </message>
+    <message>
+        <source>SMS application was not specified. Visit the configuration section</source>
+        <translation>Nie określono aplikacji SMS. Sprawdź konfigurację</translation>
     </message>
 </context>
 <context>
@@ -89,6 +145,29 @@ Argumenty powinny być oddzielone spacjami. %n jest zamieniane na numer, %m na w
     <message>
         <source>The process exited abnormally. The SMS may not be sent</source>
         <translation>Proces zakończony nieprawidłowo. SMS mógł nie zostać wysłany</translation>
+    </message>
+</context>
+<context>
+    <name>SmsImageDialog</name>
+    <message>
+        <source>Enter text from the picture:</source>
+        <translation>Przepisz tekst z obrazka:</translation>
+    </message>
+    <message>
+        <source>Ok</source>
+        <translation>Ok</translation>
+    </message>
+    <message>
+        <source>Cancel</source>
+        <translation>Anuluj</translation>
+    </message>
+    <message>
+        <source>SMS</source>
+        <translation>SMS</translation>
+    </message>
+    <message>
+        <source>Unable to fetch required token</source>
+        <translation>Nie udało się pobrać wymaganego tokena</translation>
     </message>
 </context>
 <context>
@@ -104,6 +183,25 @@ Argumenty powinny być oddzielone spacjami. %n jest zamieniane na numer, %m na w
     <message>
         <source>Automatic gateway selection is not available. Please select SMS gateway manually.</source>
         <translation>Automatyczny wybór bramki jest niedostępny. Proszę wybierz bramkę SMS.</translation>
+    </message>
+</context>
+<context>
+    <name>SmsProgressWindow</name>
+    <message>
+        <source>Sending SMS in progress.</source>
+        <translation>Trwa wysyłanie SMSa.</translation>
+    </message>
+    <message>
+        <source>Enter text from the picture:</source>
+        <translation>Przepisz tekst z obrazka:</translation>
+    </message>
+    <message>
+        <source>Ok</source>
+        <translation>Ok</translation>
+    </message>
+    <message>
+        <source>SMS sent successfully</source>
+        <translation>SMS został pomyślnie wysłany</translation>
     </message>
 </context>
 </TS>

@@ -78,7 +78,7 @@ ExecConfigurationWidget::ExecConfigurationWidget(QWidget *parent)
 	QHBoxLayout *layout = new QHBoxLayout(this);
 	layout->addWidget(commandLineEdit);
 
-	dynamic_cast<NotifyGroupBox *>(parent)->addWidget(this);
+	static_cast<NotifyGroupBox *>(parent)->addWidget(this);
 }
 
 ExecConfigurationWidget::~ExecConfigurationWidget()
@@ -106,9 +106,8 @@ void ExecConfigurationWidget::switchToEvent(const QString &event)
 		commandLineEdit->setText(config_file.readEntry("Exec Notify", event + "Cmd"));
 }
 
-//TODO 0.6.6 icon:
 ExecNotify::ExecNotify(QObject *parent) :
-		Notifier("Exec", "Run command", IconsManager::instance()->iconByPath("external_modules/execnotify"), parent)
+		Notifier("Exec", "Run command", "external_modules/execnotify", parent)
 {
 	kdebugf();
 
@@ -243,7 +242,7 @@ void ExecNotify::notify(Notification *notification)
 	QStringList s = mySplit(' ', syntax);
 	QStringList result;
 
-	ChatNotification *chatNotification = dynamic_cast<ChatNotification *>(notification);
+	ChatNotification *chatNotification = qobject_cast<ChatNotification *>(notification);
 	if (chatNotification)
 	{
 		ContactSet contacts = chatNotification->chat().contacts();

@@ -38,8 +38,7 @@ void BaseStatusContainer::setStatus(Status status)
 	doSetStatus(status);
 	storeStatus(status);
 
-//	TODO: this cannot be called here, causes accounts to be removed
-// 	ConfigurationManager::instance()->flush();
+	ConfigurationManager::instance()->flush();
 }
 
 void BaseStatusContainer::setDescription(const QString &description)
@@ -90,22 +89,4 @@ void BaseStatusContainer::storeStatus(Status status)
 
 	MyStorableObject->storeValue("LastStatusDescription", status.description());
 	MyStorableObject->storeValue("LastStatusName", status.type());
-}
-
-void BaseStatusContainer::disconnectStatus(bool disconnectWithCurrentDescription,
-		const QString &disconnectDescription)
-{
-	if (status().type() == "Offline")
-		return;
-
-	Status disconnectStatus;
-	disconnectStatus.setType("Offline");
-	QString description;
-	if (disconnectWithCurrentDescription)
-		description = status().description();
-	else
-		description = disconnectDescription;
-
-	disconnectStatus.setDescription(description);
-	doSetStatus(disconnectStatus); // this does not stores status to configuration
 }

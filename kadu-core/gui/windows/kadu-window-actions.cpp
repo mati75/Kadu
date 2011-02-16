@@ -58,6 +58,7 @@
 #include "gui/windows/main-configuration-window.h"
 #include "gui/windows/merge-buddies-window.h"
 #include "gui/windows/message-dialog.h"
+#include "gui/windows/multilogon-window.h"
 #include "gui/windows/search-window.h"
 #include "gui/windows/your-accounts.h"
 #include "misc/misc.h"
@@ -127,24 +128,10 @@ void disableNoDescriptionUrl(Action *action)
 
 void disableNoEMail(Action *action)
 {
-	kdebugf();
+	const Buddy &buddy = action->buddy();
+	bool hasMail = !buddy.email().isEmpty() && buddy.email().indexOf(UrlHandlerManager::instance()->mailRegExp()) == 0;
 
-	if (action->contacts().count() != 1)
-	{
-		action->setEnabled(false);
-		return;
-	}
-
-	const Buddy buddy = action->contact().ownerBuddy();
-
-	if (buddy.email().isEmpty() || buddy.email().indexOf(UrlHandlerManager::instance()->mailRegExp()) < 0)
-	{
-		action->setEnabled(false);
-		return;
-	}
-
-	action->setEnabled(true);
-	kdebugf2();
+	action->setEnabled(hasMail);
 }
 
 void disableIfContactSelected(Action *action)
@@ -166,6 +153,12 @@ KaduWindowActions::KaduWindowActions(QObject *parent) : QObject(parent)
 		ActionDescription::TypeMainMenu, "yourAccountsAction",
 		this, SLOT(yourAccountsActionActivated(QAction *, bool)),
 		"x-office-address-book", tr("Your Accounts...")
+	);
+
+	ShowMultilogons = new ActionDescription(this,
+		ActionDescription::TypeMainMenu, "showMultilogonsAction",
+		this, SLOT(showMultilogonsActionActivated(QAction *, bool)),
+		"", tr("Multilogons...")
 	);
 
 	ManageModules = new ActionDescription(this,
@@ -367,7 +360,7 @@ KaduWindowActions::KaduWindowActions(QObject *parent) : QObject(parent)
 
 	connect(StatusChangerManager::instance(), SIGNAL(statusChanged(StatusContainer *, Status)), this, SLOT(statusChanged(StatusContainer *, Status)));
 	foreach (StatusContainer *statusContainer, StatusContainerManager::instance()->statusContainers())
-		statusChanged(statusContainer, StatusChangerManager::instance()->status(statusContainer));
+		statusChanged(statusContainer, StatusChangerManager::instance()->realStatus(statusContainer));
 }
 
 KaduWindowActions::~KaduWindowActions()
@@ -390,7 +383,7 @@ void KaduWindowActions::statusChanged(StatusContainer *container, Status status)
 
 void KaduWindowActions::inactiveUsersActionCreated(Action *action)
 {
-	MainWindow *window = qobject_cast<MainWindow *>(action->parent());
+	MainWindow *window = qobject_cast<MainWindow *>(action->parentWidget());
 	if (!window)
 		return;
 	if (!window->buddiesListView())
@@ -408,7 +401,7 @@ void KaduWindowActions::inactiveUsersActionCreated(Action *action)
 
 void KaduWindowActions::descriptionUsersActionCreated(Action *action)
 {
-	MainWindow *window = qobject_cast<MainWindow *>(action->parent());
+	MainWindow *window = qobject_cast<MainWindow *>(action->parentWidget());
 	if (!window)
 		return;
 	if (!window->buddiesListView())
@@ -432,7 +425,7 @@ void KaduWindowActions::showDescriptionsActionCreated(Action *action)
 
 void KaduWindowActions::onlineAndDescUsersActionCreated(Action *action)
 {
-	MainWindow *window = qobject_cast<MainWindow *>(action->parent());
+	MainWindow *window = qobject_cast<MainWindow *>(action->parentWidget());
 	if (!window)
 		return;
 	if (!window->buddiesListView())
@@ -465,7 +458,7 @@ void KaduWindowActions::changeStatusActionCreated(Action *action)
 	StatusContainer *statusContainer = action->statusContainer();
 	if (statusContainer)
 	{
-		Status status = StatusChangerManager::instance()->status(statusContainer);
+		Status status = StatusChangerManager::instance()->realStatus(statusContainer);
 		action->setIcon(statusContainer->statusIcon(status).pixmap(16,16));
 	}
 }
@@ -482,7 +475,7 @@ void KaduWindowActions::showInfoPanelActionCreated(Action *action)
 
 void KaduWindowActions::showBlockedActionCreated(Action *action)
 {
-	MainWindow *window = qobject_cast<MainWindow *>(action->parent());
+	MainWindow *window = qobject_cast<MainWindow *>(action->parentWidget());
 	if (!window)
 		return;
 	if (!window->buddiesListView())
@@ -514,6 +507,14 @@ void KaduWindowActions::yourAccountsActionActivated(QAction *sender, bool toggle
 	YourAccounts::instance()->show();
 }
 
+void KaduWindowActions::showMultilogonsActionActivated(QAction *sender, bool toggled)
+{
+	Q_UNUSED(sender)
+	Q_UNUSED(toggled)
+
+	MultilogonWindow::instance()->show();
+}
+
 void KaduWindowActions::exitKaduActionActivated(QAction *sender, bool toggled)
 {
 	Q_UNUSED(sender)
@@ -521,14 +522,6 @@ void KaduWindowActions::exitKaduActionActivated(QAction *sender, bool toggled)
 
 	kdebugf();
 
-	// TODO: 0.6.6
-	//if (measureTime)
-	//{
-	//	time_t sec;
-	//	int msec;
-	//	getTime(&sec, &msec);
-	//	endingTime = (sec % 1000) * 1000 + msec;
-	//}
 	qApp->quit();
 }
 
@@ -538,7 +531,7 @@ void KaduWindowActions::addUserActionActivated(QAction *sender, bool toggled)
 
 	kdebugf();
 
-	Action *action = dynamic_cast<Action *>(sender);
+	Action *action = qobject_cast<Action *>(sender);
 	if (!action)
 		return;
 
@@ -558,7 +551,7 @@ void KaduWindowActions::mergeContactActionActivated(QAction *sender, bool toggle
 
 	kdebugf();
 
-	Action *action = dynamic_cast<Action *>(sender);
+	Action *action = qobject_cast<Action *>(sender);
 	if (!action)
 		return;
 
@@ -649,7 +642,7 @@ void KaduWindowActions::translateActionActivated(QAction *sender, bool toggled)
 	Q_UNUSED(sender)
 	Q_UNUSED(toggled)
 
-	UrlOpener::openUrl("http://www.kadu.net/forum/viewforum.php?f=19");
+	UrlOpener::openUrl("http://www.transifex.net/projects/p/kadu/");
 }
 
 void KaduWindowActions::showInfoPanelActionActivated(QAction *sender, bool toggled)
@@ -679,7 +672,7 @@ void KaduWindowActions::writeEmailActionActivated(QAction *sender, bool toggled)
 
 	kdebugf();
 
-	Action *action = dynamic_cast<Action *>(sender);
+	Action *action = qobject_cast<Action *>(sender);
 	if (!action)
 		return;
 
@@ -699,7 +692,7 @@ void KaduWindowActions::copyDescriptionActionActivated(QAction *sender, bool tog
 
 	kdebugf();
 
-	Action *action = dynamic_cast<Action *>(sender);
+	Action *action = qobject_cast<Action *>(sender);
 	if (!action)
 		return;
 
@@ -724,7 +717,7 @@ void KaduWindowActions::openDescriptionLinkActionActivated(QAction *sender, bool
 
 	kdebugf();
 
-	Action *action = dynamic_cast<Action *>(sender);
+	Action *action = qobject_cast<Action *>(sender);
 	if (!action)
 		return;
 
@@ -751,7 +744,7 @@ void KaduWindowActions::copyPersonalInfoActionActivated(QAction *sender, bool to
 
 	kdebugf();
 
-	Action *action = dynamic_cast<Action *>(sender);
+	Action *action = qobject_cast<Action *>(sender);
 	if (!action)
 		return;
 
@@ -778,7 +771,7 @@ void KaduWindowActions::lookupInDirectoryActionActivated(QAction *sender, bool t
 
 	kdebugf();
 
-	Action *action = dynamic_cast<Action *>(sender);
+	Action *action = qobject_cast<Action *>(sender);
 	if (!action)
 		return;
 
@@ -799,7 +792,7 @@ void KaduWindowActions::deleteUsersActionActivated(QAction *sender, bool toggled
 
 	kdebugf();
 
-	Action *action = dynamic_cast<Action *>(sender);
+	Action *action = qobject_cast<Action *>(sender);
 	if (!action)
 		return;
 
@@ -843,11 +836,11 @@ void KaduWindowActions::showDescriptionsActionActivated(QAction *sender, bool to
 {
 	config_file.writeEntry("Look", "ShowDesc", toggled);
 
-	Action *action = dynamic_cast<Action *>(sender);
+	Action *action = qobject_cast<Action *>(sender);
 	if (!action)
 		return;
 
-	MainWindow *window = qobject_cast<MainWindow *>(action->parent());
+	MainWindow *window = qobject_cast<MainWindow *>(action->parentWidget());
 	if (!window)
 		return;
 	if (!window->buddiesListView())
@@ -874,7 +867,7 @@ void KaduWindowActions::editUserActionActivated(QAction *sender, bool toggled)
 
 	kdebugf();
 
-	Action *action = dynamic_cast<Action *>(sender);
+	Action *action = qobject_cast<Action *>(sender);
 	if (!action)
 		return;
 
@@ -903,7 +896,7 @@ void KaduWindowActions::changeStatusActionActivated(QAction *sender, bool toggle
 {
 	Q_UNUSED(toggled)
 
-	Action *action = dynamic_cast<Action *>(sender);
+	Action *action = qobject_cast<Action *>(sender);
 	if (!action)
 		return;
 
@@ -938,8 +931,3 @@ void KaduWindowActions::configurationUpdated()
 		ShowBlockedBuddies->action(Core::instance()->kaduWindow())->trigger();
 
 }
-
-// void Kadu::setProxyActionsStatus() TODO: 0.6.6
-// {
-// 	setProxyActionsStatus(config_file.readBoolEntry("Network", "UseProxy", false));
-// }

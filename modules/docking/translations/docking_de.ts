@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE TS>
-<TS version="2.0" language="de_DE">
+<TS version="2.0" language="de">
 <context>
     <name>@default</name>
     <message>
@@ -43,6 +43,12 @@
 <context>
     <name>DockingManager</name>
     <message>
+        <source>Current status:
+%1</source>
+        <translation>Gegenwärtiger Zustand:
+%1</translation>
+    </message>
+    <message>
         <source>
 
 Description:
@@ -53,10 +59,12 @@ Beschreibung:
 %2</translation>
     </message>
     <message>
-        <source>Current status:
-%1</source>
-        <translation>Gegenwärtiger Zustand:
-%1</translation>
+        <source>Show Pending Messages</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&amp;Exit Kadu</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 </TS>

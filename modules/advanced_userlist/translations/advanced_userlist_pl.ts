@@ -1,4 +1,6 @@
-<!DOCTYPE TS><TS>
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE TS>
+<TS version="2.0" language="pl">
 <context>
     <name>@default</name>
     <message>
@@ -6,23 +8,27 @@
         <translation>Wygląd</translation>
     </message>
     <message>
-        <source>Userbox</source>
-        <translation>Lista kontaktów</translation>
-    </message>
-    <message>
         <source>Sorting</source>
         <translation>Sortowanie</translation>
+    </message>
+    <message>
+        <source>Buddy List</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
     <name>AdvancedUserList</name>
     <message>
-        <source>Priority</source>
-        <translation>Priorytet</translation>
+        <source>Number of pending messages</source>
+        <translation>Liczba oczekujących wiadomości</translation>
     </message>
     <message>
         <source>Priorities</source>
         <translation>Priorytety</translation>
+    </message>
+    <message>
+        <source>Priority</source>
+        <translation>Priorytet</translation>
     </message>
     <message>
         <source>Up</source>
@@ -35,10 +41,6 @@
     <message>
         <source>Sorting functions</source>
         <translation>Sortowanie</translation>
-    </message>
-    <message>
-        <source>Number of pending messages</source>
-        <translation>Liczba oczekujących wiadomości</translation>
     </message>
 </context>
 </TS>

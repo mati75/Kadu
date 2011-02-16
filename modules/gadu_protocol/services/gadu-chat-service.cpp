@@ -49,7 +49,7 @@
 GaduChatService::GaduChatService(GaduProtocol *protocol)
 	: ChatService(protocol), Protocol(protocol)
 {
-	// TODO: 0.6.6
+	// TODO
 // 	connect(protocol->socketNotifiers(), SIGNAL(ackReceived(int, uin_t, int)),
 // 		this, SLOT(ackReceived(int, uin_t, int)));
 }
@@ -61,19 +61,8 @@ bool GaduChatService::sendMessage(const Chat &chat, FormattedMessage &message, b
 	QString plain = message.toPlain();
 	QList<Contact> contacts = chat.contacts().toContactList();
 
-// 	plain.replace("\r\n", "\n");
-// 	plain.replace('\r', '\n');
-// 	plain.replace(QChar::LineSeparator, "\n");
-// 	plain = plain.trimmed();
-
 	if (plain.isEmpty()) // for image sending
-	{
 		message.prepend(FormattedMessagePart(" ", false, false, false, QColor(0, 0, 0)));
-
-// 		plain.replace("\r\n", "\n");
-// 		plain.replace('\r', '\n');
-// 		plain.replace(QChar::LineSeparator, "\n");
-	}
 
 	unsigned int uinsCount = 0;
 	unsigned int formatsSize = 0;
@@ -229,28 +218,17 @@ bool GaduChatService::ignoreImages(Contact sender)
 		);
 }
 
-FormattedMessage GaduChatService::createFormattedMessage(struct gg_event *e, QByteArray &content, Contact sender)
+FormattedMessage GaduChatService::createFormattedMessage(struct gg_event *e, const QByteArray &content, Contact sender)
 {
 	if (ignoreRichText(sender))
-		return GaduFormatter::createMessage(Protocol->account(), sender.id().toUInt(), content, 0, 0, false);
+		return GaduFormatter::createMessage(Protocol->account(), sender.id().toUInt(), QString::fromUtf8(content), 0, 0, false);
 	else
-		return GaduFormatter::createMessage(Protocol->account(), sender.id().toUInt(), content,
+		return GaduFormatter::createMessage(Protocol->account(), sender.id().toUInt(), QString::fromUtf8(content),
 				(unsigned char *)e->event.msg.formats, e->event.msg.formats_length, !ignoreImages(sender));
 }
 
-void GaduChatService::handleEventMsg(struct gg_event *e)
+void GaduChatService::handleMsg(Contact sender, ContactSet recipients, Message::Type type, gg_event *e)
 {
-	kdebugmf(KDEBUG_NETWORK|KDEBUG_INFO, "recipients_count: %d\n", e->event.msg.recipients_count);
-
-	if (isSystemMessage(e))
-		return;
-
-	Contact sender = getSender(e);
-	if (ignoreSender(e, sender.ownerBuddy()))
-		return;
-
-	ContactSet recipients = getRecipients(e);
-
 	ContactSet conference = recipients;
 	conference += sender;
 
@@ -267,13 +245,6 @@ void GaduChatService::handleEventMsg(struct gg_event *e)
 	bool ignore = false;
 	emit filterRawIncomingMessage(chat, sender, content, ignore);
 
-// 	QString stringContent = QString::fromUtf8(content);
-// 	QString separator(QChar::LineSeparator);
-
-// 	stringContent.replace("\r\n", separator);
-// 	stringContent.replace("\n",   separator);
-// 	stringContent.replace("\r",   separator);
-
 	FormattedMessage message = createFormattedMessage(e, content, sender);
 	if (message.isEmpty())
 		return;
@@ -288,14 +259,50 @@ void GaduChatService::handleEventMsg(struct gg_event *e)
 
 	Message msg = Message::create();
 	msg.setMessageChat(chat);
-	msg.setType(Message::TypeReceived);
+	msg.setType(type);
 	msg.setMessageSender(sender);
-	msg.setStatus(Message::StatusReceived);
+	msg.setStatus(Message::TypeReceived == type ? Message::StatusReceived : Message::StatusSent);
 	msg.setContent(message.toHtml());
 	msg.setSendDate(time);
 	msg.setReceiveDate(QDateTime::currentDateTime());
-	emit messageReceived(msg);
+
+	if (Message::TypeReceived == type)
+		emit messageReceived(msg);
+	else
+		emit messageSent(msg);
 }
+
+void GaduChatService::handleEventMsg(struct gg_event *e)
+{
+	kdebugmf(KDEBUG_NETWORK|KDEBUG_INFO, "recipients_count: %d\n", e->event.msg.recipients_count);
+
+	if (isSystemMessage(e))
+		return;
+
+	Contact sender = getSender(e);
+	if (ignoreSender(e, sender.ownerBuddy()))
+		return;
+
+	ContactSet recipients = getRecipients(e);
+
+	handleMsg(sender, recipients, Message::TypeReceived, e);
+}
+
+#ifdef GADU_HAVE_MULTILOGON
+void GaduChatService::handleEventMultilogonMsg(gg_event *e)
+{
+	// warning: this may be not intuitive code
+
+	// we are sender
+	Contact sender = Protocol->account().accountContact();
+
+	// e.sender + e.recipeints are real recipients
+	ContactSet recipients = getRecipients(e);
+	recipients.insert(getSender(e));
+
+	handleMsg(sender, recipients, Message::TypeSent, e);
+}
+#endif
 
 void GaduChatService::handleEventAck(struct gg_event *e)
 {
@@ -357,14 +364,14 @@ void GaduChatService::removeTimeoutUndeliveredMessages()
 	QDateTime now;
 	QList<int> toRemove;
 
-	QHash<int, Message>::const_iterator message = UndeliveredMessages.constBegin();
-	QHash<int, Message>::const_iterator end = UndeliveredMessages.constEnd();
+	QHash<int, Message>::iterator message = UndeliveredMessages.begin();
+	QHash<int, Message>::iterator end = UndeliveredMessages.end();
 	for (; message != end; ++message)
 	{
 		if (message.value().sendDate().addSecs(MAX_DELIVERY_TIME) < now)
 		{
 			toRemove.append(message.key());
-			UndeliveredMessages[message.key()].setStatus(Message::StatusWontDeliver);
+			message.value().setStatus(Message::StatusWontDeliver);
 		}
 	}
 

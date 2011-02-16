@@ -392,7 +392,7 @@ void ChatStylesManager::mainConfigurationWindowCreated(MainConfigurationWindow *
 	groupBox->addWidgets(new QLabel(qApp->translate("@default", "Style variant") + ':'), VariantListCombo);
 	groupBox->addWidgets(new QLabel(qApp->translate("@default", "Preview") + ':'), EnginePreview);
 
-	TurnOnTransparency = dynamic_cast<QCheckBox *>(window->widget()->widgetById("useTransparency"));
+	TurnOnTransparency = static_cast<QCheckBox *>(window->widget()->widgetById("useTransparency"));
 	TurnOnTransparency->setEnabled(CompositingEnabled);
 }
 
@@ -415,7 +415,7 @@ void ChatStylesManager::preparePreview(Preview *preview)
 	details->setContact(BuddyPreferredManager::instance()->preferredContact(example));
 	chat.setDetails(details);
 
-	connect(preview, SIGNAL(destroyed(QObject *)), chat, SLOT(deleteLater()));
+	connect(preview, SIGNAL(destroyed()), chat, SLOT(deleteLater()));
 
 	Message messageSent = Message::create();
 	messageSent.setMessageChat(chat);

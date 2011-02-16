@@ -26,7 +26,6 @@
 
 #include "buddies/buddy.h"
 
-#include "dcc/dcc-manager.h"
 #include "socket-notifiers/gadu-socket-notifiers.h"
 #include "gadu-protocol.h"
 
@@ -48,45 +47,21 @@ class /*GADU_LOCAL*/ DccSocketNotifiers : public GaduSocketNotifiers
 {
 	Q_OBJECT
 
-	GaduProtocol *Protocol;
-
-	friend class DccManager;
-	DccManager *Manager;
-
 	GaduFileTransferHandler *FileTransferHandler;
 
-	DccVersion Version;
-	struct gg_dcc *Socket;
 	struct gg_dcc7 *Socket7;
-	int *DccCheckField;
+
+	void watchFor();
 
 	void accepted();
 	void rejected();
 	void finished(bool ok);
 
-	void handleEventDccError(struct gg_event *e);
-	void handleEventDccDone(struct gg_event *e);
-	void handleEventDccClientAccept(struct gg_event *e);
-	void handleEventDccCallback(struct gg_event *e);
-	void handleEventDccNeedFileInfo(struct gg_event *e);
-	void handleEventDccNeedFileAck(struct gg_event *e);
-	void handleEventDccNeedVoiceAck(struct gg_event *e);
-	void handleEventDccVoiceData(struct gg_event *e);
-
-	void handleEventDcc7Accept(struct gg_event *e);
-	void handleEventDcc7Reject(struct gg_event *e);
 	void handleEventDcc7Connected(struct gg_event *e);
 	void handleEventDcc7Error(struct gg_event *e);
 	void handleEventDcc7Done(struct gg_event *e);
-	void handleEventDcc7Pending(struct gg_event *e);
-
-private slots:
-	void dcc7Accepted(struct gg_dcc7 *);
-	void dcc7Rejected(struct gg_dcc7 *);
 
 protected:
-	DccManager * manager() { return Manager; }
-
 	virtual bool checkRead();
 	virtual bool checkWrite();
 	virtual void socketEvent();
@@ -95,14 +70,14 @@ protected:
 	virtual void connectionTimeout();
 
 public:
-	DccSocketNotifiers(GaduProtocol *protocol, DccManager *manager) :
-			GaduSocketNotifiers(manager), Protocol(protocol),
-			Manager(manager), FileTransferHandler(0), Version(DccUnknown),
-			Socket(0), Socket7(0), DccCheckField(0) {}
-	~DccSocketNotifiers();
+	explicit DccSocketNotifiers(struct gg_dcc7 *socket, QObject *parent = 0);
+	virtual ~DccSocketNotifiers();
 
-	void watchFor(struct gg_dcc *socket);
-	void watchFor(struct gg_dcc7 *socket);
+	void start();
+
+	void handleEventDcc7Accept(struct gg_event *e);
+	void handleEventDcc7Reject(struct gg_event *e);
+	void handleEventDcc7Pending(struct gg_event *e);
 
 	UinType peerUin();
 
@@ -116,9 +91,6 @@ public:
 
 signals:
 	void done(bool ok);
-
-	void incomingConnection(struct gg_dcc *incomingConnection);
-	void callbackReceived(DccSocketNotifiers *);
 
 };
 

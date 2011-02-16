@@ -79,6 +79,8 @@ NotifyTreeWidget::NotifyTreeWidget(NotifyConfigurationUiHandler *uiHandler, QWid
 	setItemsExpandable(true);
 	setExpandsOnDoubleClick(true);
 
+	connect(IconsManager::instance(), SIGNAL(themeChanged()), this, SLOT(refresh()));
+
 	//Extract icon size as the font height (as h=w on icons)
 	QStyleOptionViewItem iconOption;
 	iconOption.initFrom(this);
@@ -134,6 +136,8 @@ void NotifyTreeWidget::refresh()
 		if (items.count())
 			setCurrentItem(items.at(0));
 	}
+
+	expandAll();
 }
 
 QString NotifyTreeWidget::currentEvent()

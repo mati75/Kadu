@@ -17,10 +17,16 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <QtGui/QMenu>
+
 #include "accounts/account.h"
+#include "accounts/account-manager.h"
 #include "contacts/contact.h"
+#include "core/core.h"
 #include "gui/actions/action.h"
 #include "gui/actions/action-description.h"
+#include "gui/windows/kadu-window.h"
+#include "gui/windows/xml-console.h"
 #include "protocols/protocol.h"
 
 #include "services/jabber-subscription-service.h"
@@ -28,7 +34,7 @@
 
 #include "jabber-actions.h"
 
-void disableNoRosterContact(Action *action)
+static void disableNoRosterContact(Action *action)
 {
 	action->setEnabled(false);
 
@@ -62,19 +68,39 @@ void JabberActions::unregisterActions()
 
 JabberActions::JabberActions()
 {
+	ShowXmlConsole = new ActionDescription(this, ActionDescription::TypeMainMenu, "showXmlConsole",
+			0, 0, QString(), tr("Show XML Console for Account"));
+	connect(ShowXmlConsole, SIGNAL(actionCreated(Action*)), this, SLOT(showXmlConsoleActionCreated(Action*)));
+
+	// HACK: It is needed bacause of loading protocol modules before creating GUI.
+	// TODO 0.8: Fix it!
+	QMetaObject::invokeMethod(this, "insertMenuToMainWindow", Qt::QueuedConnection);
+
+	ShowXmlConsoleMenu = new QMenu();
+	updateShowXmlConsoleMenu();
+	connect(ShowXmlConsoleMenu, SIGNAL(triggered(QAction*)),
+			this, SLOT(showXmlConsoleActionActivated(QAction*)));
+	connect(AccountManager::instance(), SIGNAL(accountRegistered(Account)),
+			this, SLOT(updateShowXmlConsoleMenu()));
+	connect(AccountManager::instance(), SIGNAL(accountUnregistered(Account)),
+			this, SLOT(updateShowXmlConsoleMenu()));
+
 	ResendSubscription = new ActionDescription(this, ActionDescription::TypeUser, "rosterResendSubscription",
-			this, SLOT(resendSubscriptionActionActivated(QAction*,bool)), "", tr("Resend Subscription"), false,
-			disableNoRosterContact);
+			this, SLOT(resendSubscriptionActionActivated(QAction*)), QString(), tr("Resend Subscription"),
+			false, disableNoRosterContact);
 	RemoveSubscription = new ActionDescription(this, ActionDescription::TypeUser, "rosterRemoveSubscription",
-			this, SLOT(removeSubscriptionActionActivated(QAction*,bool)), "", tr("Remove Subscription"), false,
-			disableNoRosterContact);
+			this, SLOT(removeSubscriptionActionActivated(QAction*)), QString(), tr("Remove Subscription"),
+			false, disableNoRosterContact);
 	AskForSubscription = new ActionDescription(this, ActionDescription::TypeUser, "rosterAskForSubscription",
-			this, SLOT(askForSubscriptionActionActivated(QAction*,bool)), "", tr("Ask for Subscription"), false,
-			disableNoRosterContact);
+			this, SLOT(askForSubscriptionActionActivated(QAction*)), QString(), tr("Ask for Subscription"),
+			false, disableNoRosterContact);
 }
 
 JabberActions::~JabberActions()
 {
+	Core::instance()->kaduWindow()->removeMenuActionDescription(ShowXmlConsole);
+
+	delete ShowXmlConsoleMenu;
 }
 
 Contact JabberActions::contactFromAction(QAction *action)
@@ -88,21 +114,15 @@ Contact JabberActions::contactFromAction(QAction *action)
 
 JabberSubscriptionService * JabberActions::subscriptionServiceFromContact(const Contact& contact)
 {
-	Protocol *protocolHandler = contact.contactAccount().protocolHandler();
-	if (!protocolHandler)
-		return 0;
-
-	JabberProtocol *jabberProtocolHandler = qobject_cast<JabberProtocol *>(protocolHandler);
+	JabberProtocol *jabberProtocolHandler = qobject_cast<JabberProtocol *>(contact.contactAccount().protocolHandler());
 	if (!jabberProtocolHandler)
 		return 0;
 
 	return jabberProtocolHandler->subscriptionService();
 }
 
-void JabberActions::resendSubscriptionActionActivated(QAction *sender, bool toggled)
+void JabberActions::resendSubscriptionActionActivated(QAction *sender)
 {
-	Q_UNUSED(toggled)
-
 	Contact contact = contactFromAction(sender);
 	if (!contact)
 		return;
@@ -114,10 +134,8 @@ void JabberActions::resendSubscriptionActionActivated(QAction *sender, bool togg
 	subscriptionService->resendSubscription(contact);
 }
 
-void JabberActions::removeSubscriptionActionActivated(QAction *sender, bool toggled)
+void JabberActions::removeSubscriptionActionActivated(QAction *sender)
 {
-	Q_UNUSED(toggled)
-
 	Contact contact = contactFromAction(sender);
 	if (!contact)
 		return;
@@ -129,10 +147,8 @@ void JabberActions::removeSubscriptionActionActivated(QAction *sender, bool togg
 	subscriptionService->removeSubscription(contact);
 }
 
-void JabberActions::askForSubscriptionActionActivated(QAction *sender, bool toggled)
+void JabberActions::askForSubscriptionActionActivated(QAction *sender)
 {
-	Q_UNUSED(toggled)
-
 	Contact contact = contactFromAction(sender);
 	if (!contact)
 		return;
@@ -143,3 +159,37 @@ void JabberActions::askForSubscriptionActionActivated(QAction *sender, bool togg
 
 	subscriptionService->requestSubscription(contact);
 }
+
+void JabberActions::showXmlConsoleActionCreated(Action *action)
+{
+	action->setMenu(ShowXmlConsoleMenu);
+	action->setEnabled(!ShowXmlConsoleMenu->actions().isEmpty());
+}
+
+void JabberActions::showXmlConsoleActionActivated(QAction *sender)
+{
+	(new XmlConsole(sender->data().value<Account>()))->show();
+}
+
+void JabberActions::updateShowXmlConsoleMenu()
+{
+	ShowXmlConsoleMenu->clear();
+
+	foreach (const Account &account, AccountManager::instance()->items())
+		if (account.protocolName() == QLatin1String("jabber"))
+		{
+			QAction *action = new QAction(account.id(), ShowXmlConsoleMenu);
+			action->setData(QVariant::fromValue(account));
+			ShowXmlConsoleMenu->addAction(action);
+		}
+
+	bool enable = !ShowXmlConsoleMenu->actions().isEmpty();
+	foreach (Action *action, ShowXmlConsole->actions())
+		action->setEnabled(enable);
+}
+
+void JabberActions::insertMenuToMainWindow()
+{
+	Core::instance()->kaduWindow()->insertMenuActionDescription(ShowXmlConsole, KaduWindow::MenuTools);
+}
+

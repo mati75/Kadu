@@ -38,13 +38,11 @@
 #include "debug.h"
 #include "misc/misc.h"
 
-#include "dcc/dcc-manager.h"
-
 #include "gadu-protocol-socket-notifiers.h"
 
 GaduProtocolSocketNotifiers::GaduProtocolSocketNotifiers(Account account, GaduProtocol *protocol) :
-	GaduSocketNotifiers(protocol), CurrentAccount(account), CurrentProtocol(protocol), Sess(0),
-		Timeout(config_file.readUnsignedNumEntry("Network", "TimeoutInMs"))
+		GaduSocketNotifiers(protocol), CurrentAccount(account), CurrentProtocol(protocol), Sess(0),
+		Timeout(15000)
 {
 }
 
@@ -109,21 +107,30 @@ void GaduProtocolSocketNotifiers::handleEventMsg(struct gg_event *e)
 	Contact contact = ContactManager::instance()->byId(CurrentAccount, QString::number(e->event.msg.sender));
 	Buddy sender = contact.ownerBuddy();
 
-	if (GG_CLASS_CTCP == e->event.msg.msgclass)
-	{
-		if (!CurrentProtocol->dccManager())
-			return; // we don't support dcc connections now
-
-		if (config_file.readBoolEntry("Network", "AllowDCC") &&
-				!sender.isBlocked() &&
-				!sender.isAnonymous())
-			CurrentProtocol->dccManager()->connectionRequestReceived(contact);
-
+	if (GG_CLASS_CTCP == e->event.msg.msgclass) // old DCC6, not supported now
 		return;
-	}
 
 	CurrentProtocol->CurrentChatService->handleEventMsg(e);
 }
+
+#ifdef GADU_HAVE_MULTILOGON
+void GaduProtocolSocketNotifiers::handleEventMultilogonMsg(struct gg_event *e)
+{
+	CurrentProtocol->CurrentChatService->handleEventMultilogonMsg(e);
+}
+
+void GaduProtocolSocketNotifiers::handleEventMultilogonInfo(gg_event* e)
+{
+	CurrentProtocol->CurrentMultilogonService->handleEventMultilogonInfo(e);
+}
+#endif // GADU_HAVE_MULTILOGON
+
+#ifdef GADU_HAVE_TYPING_NOTIFY
+void GaduProtocolSocketNotifiers::handleEventTypingNotify(struct gg_event *e)
+{
+	CurrentProtocol->CurrentChatStateService->handleEventTypingNotify(e);
+}
+#endif // GADU_HAVE_TYPING_NOTIFY
 
 void GaduProtocolSocketNotifiers::handleEventNotify(struct gg_event *e)
 {
@@ -228,11 +235,8 @@ void GaduProtocolSocketNotifiers::socketEvent()
 		return;
 	}
 
-	if (GG_STATE_CONNECTING_HUB == Sess->state || GG_STATE_CONNECTING_GG == Sess->state)
-	{
-		kdebugmf(KDEBUG_NETWORK|KDEBUG_INFO, "changing QSocketNotifiers.\n");
-		watchFor(Sess); // maybe fd has changed
-	}
+	kdebugmf(KDEBUG_NETWORK|KDEBUG_INFO, "changing QSocketNotifiers.\n");
+	watchFor(Sess); // maybe fd has changed, we need to check always
 
 	dumpConnectionState();
 	kdebugmf(KDEBUG_NETWORK|KDEBUG_INFO, "event: %d\n", e->type);
@@ -242,6 +246,22 @@ void GaduProtocolSocketNotifiers::socketEvent()
 		case GG_EVENT_MSG:
 			handleEventMsg(e);
 			break;
+
+#ifdef GADU_HAVE_MULTILOGON
+		case GG_EVENT_MULTILOGON_MSG:
+			handleEventMultilogonMsg(e);
+			break;
+
+		case GG_EVENT_MULTILOGON_INFO:
+			handleEventMultilogonInfo(e);
+			break;
+#endif // GADU_HAVE_MULTILOGON
+
+#ifdef GADU_HAVE_TYPING_NOTIFY
+		case GG_EVENT_TYPING_NOTIFICATION:
+			handleEventTypingNotify(e);
+			break;
+#endif // GADU_HAVE_TYPING_NOTIFY
 
 		case GG_EVENT_NOTIFY:
 		case GG_EVENT_NOTIFY_DESCR:
@@ -299,58 +319,58 @@ void GaduProtocolSocketNotifiers::socketEvent()
 			break;
 
 		case GG_EVENT_DCC7_NEW:
-			if (!CurrentProtocol->Dcc)
+			if (!CurrentProtocol->CurrentFileTransferService)
 			{
 				gg_dcc7_reject(e->event.dcc7_new, GG_DCC7_REJECT_USER);
 				gg_dcc7_free(e->event.dcc7_new);
 				e->event.dcc7_new = NULL;
 			}
 			else
-				CurrentProtocol->Dcc->handleEventDcc7New(e);
+				CurrentProtocol->CurrentFileTransferService->handleEventDcc7New(e);
 			break;
 
 		case GG_EVENT_DCC7_ACCEPT:
-			if (!CurrentProtocol->Dcc)
+			if (!CurrentProtocol->CurrentFileTransferService)
 			{
 				gg_dcc7_reject(e->event.dcc7_new, GG_DCC7_REJECT_USER);
 				gg_dcc7_free(e->event.dcc7_new);
 				e->event.dcc7_new = NULL;
 			}
 			else
-				CurrentProtocol->Dcc->handleEventDcc7Accept(e);
+				CurrentProtocol->CurrentFileTransferService->handleEventDcc7Accept(e);
 			break;
 
 		case GG_EVENT_DCC7_REJECT:
-			if (!CurrentProtocol->Dcc)
+			if (!CurrentProtocol->CurrentFileTransferService)
 			{
 				gg_dcc7_reject(e->event.dcc7_new, GG_DCC7_REJECT_USER);
 				gg_dcc7_free(e->event.dcc7_new);
 				e->event.dcc7_new = NULL;
 			}
 			else
-				CurrentProtocol->Dcc->handleEventDcc7Reject(e);
+				CurrentProtocol->CurrentFileTransferService->handleEventDcc7Reject(e);
 			break;
 
 		case GG_EVENT_DCC7_ERROR:
-			if (!CurrentProtocol->Dcc)
+			if (!CurrentProtocol->CurrentFileTransferService)
 			{
 				gg_dcc7_reject(e->event.dcc7_new, GG_DCC7_REJECT_USER);
 				gg_dcc7_free(e->event.dcc7_new);
 				e->event.dcc7_new = NULL;
 			}
 			else
-				CurrentProtocol->Dcc->handleEventDcc7Error(e);
+				CurrentProtocol->CurrentFileTransferService->handleEventDcc7Error(e);
 			break;
 
 		case GG_EVENT_DCC7_PENDING:
-			if (!CurrentProtocol->Dcc)
+			if (!CurrentProtocol->CurrentFileTransferService)
 			{
 				gg_dcc7_reject(e->event.dcc7_new, GG_DCC7_REJECT_USER);
 				gg_dcc7_free(e->event.dcc7_new);
 				e->event.dcc7_new = NULL;
 			}
 			else
-				CurrentProtocol->Dcc->handleEventDcc7Pending(e);
+				CurrentProtocol->CurrentFileTransferService->handleEventDcc7Pending(e);
 			break;
 	}
 

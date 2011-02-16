@@ -41,6 +41,7 @@ class ActionDescription;
 class ConfigurationUiHandler;
 class Group;
 class Message;
+class MultilogonSession;
 class Notification;
 class Notifier;
 class NotifyConfigurationUiHandler;
@@ -90,6 +91,8 @@ class KADUAPI NotificationManager : public QObject, AccountsAwareObject, Configu
 
 private slots:
 	void messageReceived(const Message &message);
+	void multilogonSessionConnected(MultilogonSession *session);
+	void multilogonSessionDisconnected(MultilogonSession *session);
 
 	void statusChanged();
 	void contactStatusChanged(Contact contact, Status oldStatus);
@@ -123,8 +126,8 @@ public:
 	void registerNotifyEvent(NotifyEvent *notifyEvent);
 	void unregisterNotifyEvent(NotifyEvent *notifyEvent);
 
-	QList<Notifier *> notifiers();
-	QList<NotifyEvent *> notifyEvents();
+	const QList<Notifier *> & notifiers() const;
+	const QList<NotifyEvent *> & notifyEvents() const;
 
 	bool notifyAboutAll() { return NotifyAboutAll; }
 

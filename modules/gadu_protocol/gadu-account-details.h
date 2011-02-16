@@ -26,23 +26,24 @@
 #include "accounts/account-details.h"
 
 #include "open-chat-with/gadu-open-chat-with-runner.h"
+#include "gadu-features.h"
 #include "gadu-protocol.h"
 
 class GaduAccountDetails : public AccountDetails
 {
 	PROPERTY_DEC(bool, AllowDcc)
-	PROPERTY_DEC(QHostAddress, DccIP)
-	PROPERTY_DEC(bool, DccIpDetect)
-	PROPERTY_DEC(short int, DccPort)
-	PROPERTY_DEC(QHostAddress, DccExternalIP)
-	PROPERTY_DEC(short int, DccExternalPort)
-	PROPERTY_DEC(short int, DccLocalPort)
-	PROPERTY_DEC(bool, RemoveCompletedTransfers)
-	PROPERTY_DEC(bool, DccForwarding)
 	PROPERTY_DEC(short int, MaximumImageSize)
 	PROPERTY_DEC(bool, ReceiveImagesDuringInvisibility)
 	PROPERTY_DEC(short int, MaximumImageRequests)
 	PROPERTY_DEC(bool, InitialRosterImport)
+
+#ifdef GADU_HAVE_TLS
+	PROPERTY_DEC(bool, TlsEncryption)
+#endif
+
+#ifdef GADU_HAVE_TYPING_NOTIFY
+	PROPERTY_DEC(bool, SendTypingNotification)
+#endif // GADU_HAVE_TYPING_NOTIFY
 
 	GaduOpenChatWithRunner *OpenChatRunner;
 
@@ -58,18 +59,18 @@ public:
 	UinType uin();
 
 	PROPERTY_DEF(bool, allowDcc, setAllowDcc, AllowDcc)
-	PROPERTY_DEF(QHostAddress, dccIP, setDccIP, DccIP)
-	PROPERTY_DEF(bool, dccIpDetect, setDccIpDetect, DccIpDetect)
-	PROPERTY_DEF(short int, dccPort, setDccPort, DccPort)
-	PROPERTY_DEF(QHostAddress, dccExternalIP, setDccExternalIP, DccExternalIP)
-	PROPERTY_DEF(short int, dccExternalPort, setDccExternalPort, DccExternalPort)
-	PROPERTY_DEF(short int, dccLocalPort, setDccLocalPort, DccLocalPort)
-	PROPERTY_DEF(bool, removeCompletedTransfers, setRemoveCompletedTransfers, RemoveCompletedTransfers)
-	PROPERTY_DEF(bool, dccForwarding, setDccForwarding, DccForwarding)
 	PROPERTY_DEF(short int, maximumImageSize, setMaximumImageSize, MaximumImageSize)
 	PROPERTY_DEF(bool, receiveImagesDuringInvisibility, setReceiveImagesDuringInvisibility, ReceiveImagesDuringInvisibility)
 	PROPERTY_DEF(short int, maximumImageRequests, setMaximumImageRequests, MaximumImageRequests)
 	PROPERTY_DEF(bool, initialRosterImport, setInitialRosterImport, InitialRosterImport)
+
+#ifdef GADU_HAVE_TLS
+	PROPERTY_DEF(bool, tlsEncryption, setTlsEncryption, TlsEncryption)
+#endif // GADU_HAVE_TLS
+
+#ifdef GADU_HAVE_TYPING_NOTIFY
+	PROPERTY_DEF(bool, sendTypingNotification, setSendTypingNotification, SendTypingNotification)
+#endif // GADU_HAVE_TYPING_NOTIFY
 
 	void import_0_6_5_LastStatus();
 

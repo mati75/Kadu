@@ -1,4 +1,6 @@
-<!DOCTYPE TS><TS>
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE TS>
+<TS version="2.0" language="fr">
 <context>
     <name>@default</name>
     <message>
@@ -10,7 +12,7 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Desktop docking</source>
+        <source>Desktop Docking</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -46,7 +48,7 @@
     <name>DesktopDock</name>
     <message>
         <source>Move</source>
-        <translation type="unfinished">Transfert</translation>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 </TS>

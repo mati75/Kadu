@@ -79,6 +79,7 @@ void ContactShared::load()
 	Shared::load();
 
 	Id = loadValue<QString>("Id");
+
 	Priority = loadValue<int>("Priority", -1);
 
 	ContactAccount = AccountManager::instance()->byUuid(loadValue<QString>("Account"));
@@ -251,6 +252,9 @@ void ContactShared::protocolUnregistered(ProtocolFactory *protocolFactory)
 {
 	ensureLoaded();
 
+	if (Id.isEmpty())
+		return;
+
 	if (ContactAccount.protocolName() != protocolFactory->name())
 		return;
 
@@ -262,6 +266,8 @@ void ContactShared::detailsAdded()
 	details()->ensureLoaded();
 
 	dataUpdated();
+
+	ContactManager::instance()->detailsLoaded(this);
 }
 
 void ContactShared::afterDetailsAdded()
@@ -272,7 +278,7 @@ void ContactShared::afterDetailsAdded()
 void ContactShared::detailsAboutToBeRemoved()
 {
 	// do not store contacts that are not in contact manager
-	if (ContactManager::instance()->allItems().contains(this))
+	if (ContactManager::instance()->allItems().contains(uuid().toString()))
 		details()->store();
 
 	detach(OwnerBuddy, true);
@@ -280,6 +286,8 @@ void ContactShared::detailsAboutToBeRemoved()
 
 void ContactShared::detailsRemoved()
 {
+	ContactManager::instance()->detailsUnloaded(this);
+
 	dataUpdated();
 }
 

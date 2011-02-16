@@ -19,7 +19,9 @@
  */
 
 #include "chat/chat-manager.h"
+#include "chat/message/message.h"
 #include "configuration/configuration-file.h"
+#include "core/core.h"
 
 #include "recent-chat-manager.h"
 
@@ -49,6 +51,11 @@ RecentChatManager::RecentChatManager()
 	connect(&CleanUpTimer, SIGNAL(timeout()), this, SLOT(cleanUp()));
 
 	configurationUpdated();
+
+	connect(Core::instance(), SIGNAL(messageReceived(Message)),
+			this, SLOT(onNewMessage(Message)));
+	connect(Core::instance(), SIGNAL(messageSent(Message)),
+			this, SLOT(onNewMessage(Message)));
 }
 
 RecentChatManager::~RecentChatManager()
@@ -143,7 +150,7 @@ void RecentChatManager::store()
  *
  * Returns list of recent chats sorted from most recent to least recent.
  */
-QList<Chat> RecentChatManager::recentChats()
+const QList<Chat> & RecentChatManager::recentChats()
 {
 	ensureLoaded();
 	return RecentChats;
@@ -166,7 +173,15 @@ void RecentChatManager::addRecentChat(Chat chat, QDateTime datetime)
 		return;
 
 	ensureLoaded();
+
+	if (!RecentChats.isEmpty() && RecentChats.at(0) == chat)
+		return;
+
 	removeRecentChat(chat);
+
+	// limit
+	while (RecentChats.count() >= MAX_RECENT_CHAT_COUNT)
+		removeRecentChat(RecentChats.last());
 
 	QDateTime *recentChatData = chat.data()->moduleData<QDateTime>("recent-chat", true);
 	*recentChatData = datetime;
@@ -174,10 +189,6 @@ void RecentChatManager::addRecentChat(Chat chat, QDateTime datetime)
 	emit recentChatAboutToBeAdded(chat);
 	RecentChats.prepend(chat);
 	emit recentChatAdded(chat);
-
-	// limit
-	while (RecentChats.count() > MAX_RECENT_CHAT_COUNT)
-		removeRecentChat(RecentChats.last());
 }
 
 /**
@@ -213,7 +224,8 @@ void RecentChatManager::removeRecentChat(Chat chat)
 void RecentChatManager::configurationUpdated()
 {
 	CleanUpTimer.stop();
-	if (config_file.readNumEntry("Chat", "RecentChatsTimeout") > 0)
+	RecentChatsTimeout = config_file.readNumEntry("Chat", "RecentChatsTimeout") * 60;
+	if (RecentChatsTimeout > 0)
 		CleanUpTimer.start();
 }
 
@@ -226,27 +238,27 @@ void RecentChatManager::configurationUpdated()
  */
 void RecentChatManager::cleanUp()
 {
-	int secs = config_file.readNumEntry("Chat", "RecentChatsTimeout") * 60;
-
-	if (secs <= 0)
+	if (RecentChatsTimeout <= 0)
 		return;
 
 	QDateTime now = QDateTime::currentDateTime();
 
-	QList<Chat> toRemove;
 	foreach (const Chat &chat, RecentChats)
 	{
 		QDateTime *recentChatData = chat.data()->moduleData<QDateTime>("recent-chat");
-		if (!recentChatData)
-		{
-			toRemove.append(chat);
-			continue;
-		}
-
-		if (recentChatData->addSecs(secs) < now)
-			toRemove.append(chat);
+		if (!recentChatData || recentChatData->addSecs(RecentChatsTimeout) < now)
+			removeRecentChat(chat);
 	}
+}
 
-	foreach (const Chat &chat, toRemove)
-		removeRecentChat(chat);
+/**
+ * @author Bartosz 'beevvy' Brachaczek
+ * @short Adds given message's chat to the list.
+ *
+ * Called every time a new message is sent or received. Adds that message's
+ * chat to the list with addRecentChat method.
+ */
+void RecentChatManager::onNewMessage(const Message &message)
+{
+	addRecentChat(message.messageChat());
 }

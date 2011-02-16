@@ -22,10 +22,11 @@
 #define STATUS_CONTAINER_H
 
 #include "status/status.h"
+#include "exports.h"
 
 class StatusType;
 
-class StatusContainer : public QObject
+class KADUAPI StatusContainer : public QObject
 {
 	Q_OBJECT
 
@@ -61,7 +62,6 @@ public:
 	virtual void setDefaultStatus(const QString &startupStatus, bool offlineToInvisible,
 				      const QString &startupDescription, bool StartupLastDescription) = 0;
 	virtual void storeStatus(Status status) = 0;
-	virtual void disconnectStatus(bool disconnectWithCurrentDescription, const QString &disconnectDescription) = 0;
 
 signals:
 	void statusChanged();

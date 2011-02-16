@@ -273,7 +273,7 @@ QList<ConfigWidget *> ConfigurationWidget::processUiGroupBoxFromDom(QDomNode gro
 	}
 
 	if (!groupBoxId.isEmpty())
-		Widgets[groupBoxId] = dynamic_cast<QWidget *>(configGroupBoxWidget->widget());
+		Widgets[groupBoxId] = configGroupBoxWidget->widget();
 
 	const QDomNodeList &children = groupBoxElement.childNodes();
 	int length = children.length();
@@ -506,6 +506,9 @@ void ConfigurationWidget::changeSection(const QString &newSectionName)
 
 void ConfigurationWidget::configSectionDestroyed(QObject *obj)
 {
+	// see ConfigSection::~ConfigSection()
+	disconnect(obj, SIGNAL(destroyed(QObject *)), this, SLOT(configGroupBoxDestroyed(QObject *)));
+
 	ConfigSections.remove(static_cast<ConfigSection *>(obj)->name());
 
 	if (CurrentSection == obj)

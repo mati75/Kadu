@@ -36,13 +36,13 @@
 #include "storage/shared.h"
 
 class AccountDetails;
-class AccountManager;
 class Buddy;
+class FileTransferService;
 class Protocol;
 class ProtocolFactory;
 class StatusType;
 
-class KADUAPI AccountShared : public BaseStatusContainer, public Shared, public DetailsHolder<AccountShared, AccountDetails, AccountManager>, ProtocolsAwareObject
+class KADUAPI AccountShared : public BaseStatusContainer, public Shared, public DetailsHolder<AccountDetails>, ProtocolsAwareObject
 {
 	Q_OBJECT
 	Q_DISABLE_COPY(AccountShared)
@@ -65,22 +65,30 @@ private:
 	short int MaximumImageSize;
 
 	bool PrivateStatus;
+	// TODO: hack, remove at some time
+	bool Removing;
 
+	void setDisconnectStatus();
 	void useProtocolFactory(ProtocolFactory *factory);
 
 protected:
 	virtual void load();
+
+	// TODO: 0.11, fix this
+	// hack, changing details does not trigger this
+	friend class GaduEditAccountWidget;
 	void emitUpdated();
 
 	virtual void detailsAdded();
 	virtual void detailsAboutToBeRemoved();
+	virtual void detailsRemoved();
+
+	virtual void protocolRegistered(ProtocolFactory *protocolHandler);
 	virtual void protocolUnregistered(ProtocolFactory *protocolHandler);
 
 	virtual void doSetStatus(Status newStatus);
 
-public: //TODO 0.6.6: it is needed in Buddy::dummy()
-	virtual void protocolRegistered(ProtocolFactory *protocolHandler);
-
+public:
 	static AccountShared * loadStubFromStorage(const QSharedPointer<StoragePoint> &storagePoint);
 	static AccountShared * loadFromStorage(const QSharedPointer<StoragePoint> &storagePoint);
 
@@ -109,6 +117,7 @@ public: //TODO 0.6.6: it is needed in Buddy::dummy()
 	KaduShared_Property(QString, password, Password)
 	KaduShared_Property(AccountProxySettings, proxySettings, ProxySettings)
 	KaduShared_PropertyRead(bool, privateStatus, PrivateStatus)
+	KaduShared_Property(bool, removing, Removing)
 
 	// StatusContainer implementation
 
@@ -128,6 +137,10 @@ public: //TODO 0.6.6: it is needed in Buddy::dummy()
 
 	virtual void setPrivateStatus(bool isPrivate);
 
+	// TODO: 0.11, find better API
+	// this is only for GG now
+    void fileTransferServiceChanged(FileTransferService *service);
+
 signals:
 	void buddyStatusChanged(Contact contact, Status oldStatus);
 	void protocolLoaded();
@@ -137,6 +150,11 @@ signals:
 	void disconnected();
 
 	void updated();
+
+	// TODO: 0.11, find better API
+	// this is only for GG now
+	void fileTransferServiceRegistered();
+	void fileTransferServiceUnregistered();
 
 };
 

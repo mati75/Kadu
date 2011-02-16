@@ -41,7 +41,7 @@
 #endif
 
 #ifdef Q_WS_X11
-#include "x11tools.h"
+#include "os/x11tools.h"
 // TODO: hack :/
 #undef Status
 #endif
@@ -104,6 +104,8 @@ DockingManager::DockingManager() :
 	connect(PendingMessagesManager::instance(), SIGNAL(messageRemoved(Message)), this, SLOT(pendingMessageDeleted()));
 
 	connect(Core::instance(), SIGNAL(searchingForTrayPosition(QPoint&)), this, SLOT(searchingForTrayPosition(QPoint&)));
+
+	connect(IconsManager::instance(), SIGNAL(themeChanged()), this, SLOT(iconThemeChanged()));
 
 	DockMenu = new QMenu();
 
@@ -388,8 +390,18 @@ void DockingManager::updateContextMenu()
 void DockingManager::containerStatusChanged()
 {
 	StatusContainer *container;
-	if (sender() && (container = dynamic_cast<StatusContainer *>(sender())) && StatusContainerMenus[container])
+	if (sender() && (container = qobject_cast<StatusContainer *>(sender())) && StatusContainerMenus[container])
 		StatusContainerMenus[container]->setIcon(container->statusIcon());
+}
+
+void DockingManager::iconThemeChanged()
+{
+	QMapIterator<StatusContainer *, QAction *> i(StatusContainerMenus);
+	while (i.hasNext())
+	{
+		i.next();
+		i.value()->setIcon(i.key()->statusIcon());
+	}
 }
 
 void DockingManager::statusContainerRegistered(StatusContainer *statusContainer)

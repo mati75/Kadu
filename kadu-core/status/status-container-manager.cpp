@@ -42,7 +42,7 @@ KADUAPI StatusContainerManager * StatusContainerManager::instance()
 }
 
 StatusContainerManager::StatusContainerManager() :
-		StatusContainer(0), DefaultStatusContainer(0)
+		StatusContainer(0), AllowSetDefaultStatus(false), DefaultStatusContainer(0)
 {
 	configurationUpdated();
 
@@ -181,7 +181,8 @@ void StatusContainerManager::registerStatusContainer(StatusContainer *statusCont
 
 	connect(statusContainer, SIGNAL(statusChanged()), this, SIGNAL(statusChanged()));
 
-	statusContainer->setDefaultStatus(StartupStatus, OfflineToInvisible, StartupDescription, StartupLastDescription);
+	if (AllowSetDefaultStatus)
+		statusContainer->setDefaultStatus(StartupStatus, OfflineToInvisible, StartupDescription, StartupLastDescription);
 
 	emitStatusContainerUpdated();
 }
@@ -204,6 +205,17 @@ void StatusContainerManager::unregisterStatusContainer(StatusContainer *statusCo
 	disconnect(statusContainer, SIGNAL(statusChanged()), this, SIGNAL(statusChanged()));
 
 	emitStatusContainerUpdated();
+}
+
+void StatusContainerManager::setAllowSetDefaultStatus(bool allowSetDefaultStatus)
+{
+	if (AllowSetDefaultStatus == allowSetDefaultStatus)
+		return;
+
+	AllowSetDefaultStatus = allowSetDefaultStatus;
+	if (AllowSetDefaultStatus)
+		foreach (StatusContainer *statusContainer, StatusContainers)
+			statusContainer->setDefaultStatus(StartupStatus, OfflineToInvisible, StartupDescription, StartupLastDescription);
 }
 
 bool StatusContainerManager::allStatusEqual(StatusType *type)
@@ -235,7 +247,7 @@ Status StatusContainerManager::status()
 {
 	return DefaultStatusContainer
 			? DefaultStatusContainer->status()
-			: Status::null;
+			: Status();
 }
 
 QString StatusContainerManager::statusDisplayName()
@@ -298,14 +310,4 @@ void StatusContainerManager::storeStatus(Status status)
 {
 	foreach (StatusContainer *statusContainer, StatusContainers)
 		statusContainer->storeStatus(status);
-}
-
-void StatusContainerManager::disconnectStatus(bool disconnectWithCurrentDescription, const QString& disconnectDescription)
-{
-	// TODO: 0.6.6
-	Q_UNUSED(disconnectWithCurrentDescription)
-	Q_UNUSED(disconnectDescription)
-
-	foreach (StatusContainer *statusContainer, StatusContainers)
-		statusContainer->disconnectStatus(DisconnectWithCurrentDescription, DisconnectDescription);
 }

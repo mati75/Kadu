@@ -52,13 +52,13 @@ Speech * Speech::instance()
 	return Instance;
 }
 
-bool isFemale(QString s)
+bool isFemale(const QString &s)
 {
 	return s.endsWith('a', Qt::CaseInsensitive);
 }
 
 Speech::Speech() :
-		Notifier("Speech", "Read a text", QIcon()), lastSpeech()
+		Notifier("Speech", "Read a text", QString()), lastSpeech()
 {
 	kdebugf();
 
@@ -223,7 +223,7 @@ void Speech::notify(Notification *notification)
 	QString text;
 	QString sex = "Male";
 
-	ChatNotification *chatNotification = dynamic_cast<ChatNotification *>(notification);
+	ChatNotification *chatNotification = qobject_cast<ChatNotification *>(notification);
 	Chat chat = chatNotification ? chatNotification->chat() : Chat::null;
 
 	// TODO:

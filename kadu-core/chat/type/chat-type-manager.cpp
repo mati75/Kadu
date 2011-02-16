@@ -41,7 +41,6 @@ ChatTypeManager * ChatTypeManager::instance()
 
 ChatTypeManager::ChatTypeManager()
 {
-	// TODO: 0.6.6 fix icons
 	addChatType(new ChatTypeSimple());
 	addChatType(new ChatTypeConference());
 }
@@ -100,18 +99,6 @@ void ChatTypeManager::removeChatType(ChatType *chatType)
  * Returns list of all registered chat types.
  */
 const QList<ChatType *> & ChatTypeManager::chatTypes() const
-{
-	return ChatTypes;
-}
-
-/**
- * @author Rafal 'Vogel' Malinowski
- * @short Returns list of all registered chat types.
- * @return list of all registered chat types
- *
- * Returns list of all registered chat types.
- */
-QList<ChatType *> ChatTypeManager::chatTypes()
 {
 	return ChatTypes;
 }

@@ -22,6 +22,7 @@
 #include "pcspeaker.h"
 #include "pcspeaker_configuration_widget.h"
 #include "debug.h"
+#include "exports.h"
 
 #include "configuration/configuration-file.h"
 #include "gui/widgets/configuration/configuration-widget.h"
@@ -104,8 +105,10 @@ void PCSpeaker::beep(int pitch, int duration)
 }
 #endif
 
-extern "C" int pcspeaker_init()
+extern "C" KADU_EXPORT int pcspeaker_init(bool firstLoad)
 {
+	Q_UNUSED(firstLoad)
+
 	kdebugf();
 	pcspeaker = new PCSpeaker();
 	kdebugf2();
@@ -113,7 +116,7 @@ extern "C" int pcspeaker_init()
 }
 
 
-extern "C" void pcspeaker_close()
+extern "C" KADU_EXPORT void pcspeaker_close()
 {
 	kdebugf();
 	delete pcspeaker;
@@ -121,7 +124,7 @@ extern "C" void pcspeaker_close()
 }
 
 
-PCSpeaker::PCSpeaker() : Notifier("PC Speaker", "PC Speaker", IconsManager::instance()->iconByPath("audio-volume-low"), NULL)
+PCSpeaker::PCSpeaker() : Notifier("PC Speaker", "PC Speaker", "audio-volume-low")
 {
 	NotificationManager::instance()->registerNotifier(this);
 	createDefaultConfiguration();

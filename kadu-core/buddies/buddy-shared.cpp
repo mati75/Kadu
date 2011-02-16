@@ -226,6 +226,8 @@ void BuddyShared::store()
 
 bool BuddyShared::shouldStore()
 {
+	ensureLoaded();
+
     return UuidStorableObject::shouldStore() && !isAnonymous();
 }
 
@@ -302,7 +304,6 @@ QList<Contact> BuddyShared::contacts(const Account &account)
 		if (contact.contactAccount() == account)
 			contacts.append(contact);
 
-	// TODO 0.6.6 : if count() > 1 ... sort out! (0 - preferred)
 	return contacts;
 }
 
@@ -386,7 +387,9 @@ void BuddyShared::removeFromGroup(const Group &group)
 	dataUpdated();
 }
 
-bool BuddyShared::isEmpty() const
+bool BuddyShared::isEmpty()
 {
+	ensureLoaded();
+
 	return Contacts.isEmpty() && HomePhone.isEmpty() && Mobile.isEmpty() && Website.isEmpty() && Email.isEmpty();
 }

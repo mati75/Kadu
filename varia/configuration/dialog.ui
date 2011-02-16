@@ -18,6 +18,7 @@
 			</group-box>
 			<group-box name="Default Language">
 				<combo-box caption="Language" config-section="General" config-item="Language" id="languages" tool-tip="Choose your language" />
+				<label caption="Kadu needs to be restarted before changes to the language settings will take effect." />
 				<!-- <label caption="Kadu will use [regional application] as the default network in this configuration." />
 				<action-button caption="Change..." id="change-network" /> -->
 			</group-box>
@@ -71,7 +72,6 @@
 					config-item="IgnoreAnonymousUsersInConferences" id="ignoreMessagesFromAnonymousInConferences" />
 				<check-box caption="Ignore richtext from anonymous users" config-section="Chat" config-item="IgnoreAnonymousRichtext"
 					tool-tip="Displays messages from anonymous users without formatting (colors, images, font weight...)." />
-				<!-- <check-box caption="Always show anonymous contacts with messages" config-section="General" config-item="ShowAnonymousWithMsgs" /> -->
 			</group-box>
 		</tab>
 	</section>
@@ -149,7 +149,6 @@
 
 		<tab name="Chat Window">
 			<group-box name="New Messages Notifications">
-				<check-box caption="Activate windows with new messages" config-section="Chat" config-item="ActivateWithNewMessages" />
 				<check-box caption="Flash chat title on new message" config-section="Chat" config-item="BlinkChatTitle" />
 				<check-box caption="Show number of new messages on chat title" config-section="Chat" config-item="NewMessagesInChatTitle" />
 				<check-box caption="Nice date format" config-section="Look" config-item="NiceDateFormat"

@@ -29,6 +29,8 @@
 #include "chat/message/message.h"
 #include "protocols/services/chat-service.h"
 
+#include "gadu-features.h"
+
 class GaduProtocol;
 
 class GaduChatService : public ChatService
@@ -48,11 +50,17 @@ class GaduChatService : public ChatService
 	QByteArray getContent(struct gg_event *e);
 	bool ignoreRichText(Contact sender);
 	bool ignoreImages(Contact sender);
-	FormattedMessage createFormattedMessage(struct gg_event *e, QByteArray &content, Contact sender);
+	FormattedMessage createFormattedMessage(struct gg_event *e, const QByteArray &content, Contact sender);
 
 	void removeTimeoutUndeliveredMessages();
 
+	void handleMsg(Contact sender, ContactSet recipients, Message::Type type, struct gg_event *e);
+
 	void handleEventMsg(struct gg_event *e);
+#ifdef GADU_HAVE_MULTILOGON
+	void handleEventMultilogonMsg(struct gg_event *e);
+#endif
+
 	void handleEventAck(struct gg_event *e);
 
 public:

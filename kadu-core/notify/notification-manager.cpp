@@ -54,10 +54,13 @@
 #include "gui/windows/main-configuration-window.h"
 #include "gui/windows/main-window.h"
 #include "gui/windows/message-dialog.h"
+#include "multilogon/multilogon-session.h"
 #include "notify/buddy-notify-data.h"
+#include "notify/multilogon-notification.h"
 #include "notify/notifier.h"
 #include "notify/notify-configuration-ui-handler.h"
 #include "notify/window-notifier.h"
+#include "protocols/services/multilogon-service.h"
 #include "status/status-container-manager.h"
 
 #include "activate.h"
@@ -68,8 +71,8 @@
 #include "status-changed-notification.h"
 
 #ifdef Q_WS_X11
-#include "x11tools.h" // this should be included as last one,
-#undef Status         // and Status defined by Xlib.h must be undefined
+#include "os/x11tools.h" // this should be included as last one,
+#undef Status            // and Status defined by Xlib.h must be undefined
 #endif
 
 #define FULLSCREENCHECKTIMER_INTERVAL 2000 /*ms*/
@@ -85,6 +88,7 @@ NotificationManager * NotificationManager::instance()
 
 		MessageNotification::registerEvents();
 		StatusChangedNotification::registerEvents();
+		MultilogonNotification::registerEvents();
 	}
 
 	return Instance;
@@ -149,6 +153,7 @@ NotificationManager::~NotificationManager()
 
 	StatusChangedNotification::unregisterEvents();
 	MessageNotification::unregisterEvents();
+	MultilogonNotification::unregisterEvents();
 
 	triggerAllAccountsUnregistered();
 
@@ -190,7 +195,7 @@ void NotificationManager::notifyAboutUserActionActivated(QAction *sender, bool t
 
 	kdebugf();
 
-	Action *action = dynamic_cast<Action *>(sender);
+	Action *action = qobject_cast<Action *>(sender);
 	if (!action)
 		return;
 
@@ -201,7 +206,7 @@ void NotificationManager::notifyAboutUserActionActivated(QAction *sender, bool t
 	{
 		BuddyNotifyData *bnd = 0;
 		if (buddy.data())
-			bnd = buddy.data()->moduleStorableData<BuddyNotifyData>("notify");
+			bnd = buddy.data()->moduleStorableData<BuddyNotifyData>("notify", this, false);
 
 		if (!bnd || !bnd->notify())
 		{
@@ -223,7 +228,7 @@ void NotificationManager::notifyAboutUserActionActivated(QAction *sender, bool t
 
 		BuddyNotifyData *bnd = 0;
 		if (buddy.data())
-			bnd = buddy.data()->moduleStorableData<BuddyNotifyData>("notify", true);
+			bnd = buddy.data()->moduleStorableData<BuddyNotifyData>("notify", this, true);
 		if (!bnd)
 			continue;
 
@@ -283,9 +288,16 @@ void NotificationManager::accountRegistered(Account account)
 
 	ChatService *chatService = protocol->chatService();
 	if (chatService)
-	{
 		connect(chatService, SIGNAL(messageReceived(const Message &)),
 				this, SLOT(messageReceived(const Message &)));
+
+	MultilogonService *multilogonService = protocol->multilogonService();
+	if (multilogonService)
+	{
+		connect(multilogonService, SIGNAL(multilogonSessionConnected(MultilogonSession*)),
+				this, SLOT(multilogonSessionConnected(MultilogonSession*)));
+		connect(multilogonService, SIGNAL(multilogonSessionDisconnected(MultilogonSession*)),
+				this, SLOT(multilogonSessionDisconnected(MultilogonSession*)));
 	}
 }
 
@@ -302,9 +314,16 @@ void NotificationManager::accountUnregistered(Account account)
 
 	ChatService *chatService = protocol->chatService();
 	if (chatService)
-	{
 		disconnect(chatService, SIGNAL(messageReceived(const Message &)),
 				this, SLOT(messageReceived(const Message &)));
+
+	MultilogonService *multilogonService = protocol->multilogonService();
+	if (multilogonService)
+	{
+		disconnect(multilogonService, SIGNAL(multilogonSessionConnected(MultilogonSession*)),
+				this, SLOT(multilogonSessionConnected(MultilogonSession*)));
+		disconnect(multilogonService, SIGNAL(multilogonSessionDisconnected(MultilogonSession*)),
+				this, SLOT(multilogonSessionDisconnected(MultilogonSession*)));
 	}
 }
 
@@ -341,7 +360,7 @@ void NotificationManager::contactStatusChanged(Contact contact, Status oldStatus
 
 	bool notify_contact = true;
 	BuddyNotifyData *bnd = 0;
-	bnd = contact.ownerBuddy().data()->moduleStorableData<BuddyNotifyData>("notify");
+	bnd = contact.ownerBuddy().data()->moduleStorableData<BuddyNotifyData>("notify", this, false);
 
 	if (!bnd || !bnd->notify())
 		notify_contact = false;
@@ -372,7 +391,7 @@ void NotificationManager::contactStatusChanged(Contact contact, Status oldStatus
 	ContactSet contacts(contact);
 
 	StatusChangedNotification *statusChangedNotification;
-	statusChangedNotification = new StatusChangedNotification(changedTo, contacts);
+	statusChangedNotification = new StatusChangedNotification(changedTo, contact);
 
 	notify(statusChangedNotification);
 
@@ -390,6 +409,16 @@ void NotificationManager::messageReceived(const Message &message)
 		notify(new MessageNotification(MessageNotification::NewMessage, message));
 
 	kdebugf2();
+}
+
+void NotificationManager::multilogonSessionConnected(MultilogonSession *session)
+{
+	MultilogonNotification::notifyMultilogonSessionConnected(session);
+}
+
+void NotificationManager::multilogonSessionDisconnected(MultilogonSession *session)
+{
+	MultilogonNotification::notifyMultilogonSessionDisonnected(session);
 }
 
 void NotificationManager::registerNotifyEvent(NotifyEvent *notifyEvent)
@@ -445,12 +474,12 @@ void NotificationManager::unregisterNotifier(Notifier *notifier)
 	kdebugf2();
 }
 
-QList<Notifier *> NotificationManager::notifiers()
+const QList<Notifier *> & NotificationManager::notifiers() const
 {
 	return Notifiers;
 }
 
-QList<NotifyEvent *> NotificationManager::notifyEvents()
+const QList<NotifyEvent *> & NotificationManager::notifyEvents() const
 {
 	return NotifyEvents;
 }
@@ -543,7 +572,7 @@ void NotificationManager::groupUpdated()
 
 		BuddyNotifyData *bnd = 0;
 		if (buddy.data())
-			buddy.data()->moduleStorableData<BuddyNotifyData>("notify", true);
+			buddy.data()->moduleStorableData<BuddyNotifyData>("notify", this, true);
 		if (!bnd)
 			continue;
 
@@ -658,7 +687,7 @@ void checkNotify(Action *action)
 	{
 		BuddyNotifyData *bnd = 0;
 		if (buddy.data())
-			bnd = buddy.data()->moduleStorableData<BuddyNotifyData>("notify");
+			bnd = buddy.data()->moduleStorableData<BuddyNotifyData>("notify", NotificationManager::instance(), false);
 
 		if (!bnd || !bnd->notify())
 		{

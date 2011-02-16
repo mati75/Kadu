@@ -68,7 +68,6 @@ private slots:
 
 	void deleteOldConfigurationFiles();
 	void kaduWindowDestroyed();
-	void showMainWindow();
 
 protected:
 	virtual void accountAdded(Account account);
@@ -85,8 +84,10 @@ public:
 
 	void createGui();
 	void setShowMainWindowOnStart(bool show);
+	void showMainWindow();
 	KaduWindow * kaduWindow();
 
+	void initialized();
 	void setIcon(const QIcon &icon);
 
 public slots:

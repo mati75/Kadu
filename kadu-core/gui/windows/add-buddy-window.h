@@ -31,6 +31,7 @@ class QCheckBox;
 class QLabel;
 class QLineEdit;
 class QRegExpValidator;
+class QScrollArea;
 
 class AccountsComboBox;
 class GroupsComboBox;
@@ -41,9 +42,13 @@ class AddBuddyWindow : public QDialog
 {
 	Q_OBJECT
 
+#ifdef Q_WS_MAEMO_5
+	QScrollArea *ScrollArea;
+#endif
 	QLabel *UserNameLabel;
 	QLineEdit *UserNameEdit;
 	QAction *MobileAccountAction; // TODO: hack
+	QAction *EmailAccountAction; // TODO: hack
 	AccountsComboBox *AccountCombo;
 	IdValidityFilter *AccountComboIdFilter;
 	GroupsComboBox *GroupCombo;
@@ -60,24 +65,32 @@ class AddBuddyWindow : public QDialog
 	bool ForceBuddyAccount;
 
 	void createGui();
-	void addMobileAccountToComboBox();
+	void addFakeAccountsToComboBox();
 	void displayErrorMessage(const QString &message);
 
 	bool isMobileAccount();
+	bool isEmailAccount();
 
 	void updateAccountGui();
 	void updateMobileGui();
+	void updateEmailGui();
 
 	void validateData();
 	void validateMobileData();
+	void validateEmailData();
 
 	bool addContact();
 	bool addMobile();
+	bool addEmail();
 
 	void askForAuthorization(Contact contact);
 
+#ifdef Q_WS_MAEMO_5
+	void resizeEvent(QResizeEvent *event);
+#endif
+
 private slots:
-    void accountChanged(Account account, Account lastAccount);
+	void accountChanged(Account account, Account lastAccount);
 	void updateGui();
 	void setAddContactEnabled();
 	void setAccountFilter();

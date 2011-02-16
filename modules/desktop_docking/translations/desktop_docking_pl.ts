@@ -1,45 +1,47 @@
-<!DOCTYPE TS><TS>
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE TS>
+<TS version="2.0" language="pl">
 <context>
     <name>@default</name>
     <message>
         <source>Kadu</source>
-        <translation>Kadu</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <source>Tray</source>
-        <translation>Tacka systemowa</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Desktop docking</source>
-        <translation>Dokowanie na pulpicie</translation>
+        <source>Desktop Docking</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <source>Horizontal position</source>
-        <translation>Pozycja pozioma</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <source>Vertical position</source>
-        <translation>Pozycja pionowa</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <source>Transparent</source>
-        <translation>Przezroczystość</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <source>Background color</source>
-        <translation>Kolor tła</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <source>Enable Move entry in docklet&apos;s menu</source>
-        <translation>Pokaż element &apos;Przesuń&apos; w menu ikony</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <source>Move</source>
-        <translation>Przesuń</translation>
+        <translation type="unfinished">Przesuń</translation>
     </message>
     <message>
         <source>Enable icon moving on desktop. After pressing move cursor over docking icon and then move. Press any mouse key when the icon is in right place.</source>
-        <translation>Zezwól na przesuwanie ikony po pulpicie. Po wciśnięciu przycisku myszy zacznj przesuwać kursor. Naciśnij przycisk myszy gdy ikona znajdzie się na pożądanej pozycji.</translation>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>

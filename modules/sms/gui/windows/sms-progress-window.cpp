@@ -45,7 +45,7 @@ SmsProgressWindow::SmsProgressWindow(SmsSender *sender, QWidget *parent) :
 	Sender->setParent(this);
 	Sender->setTokenReader(this);
 
-	setState(ProgressIcon::StateInProgress, tr("Sending SMS in progress."));
+	setState(ProgressIcon::StateInProgress, tr("Sending SMS in progress."), true);
 }
 
 SmsProgressWindow::~SmsProgressWindow()
@@ -92,16 +92,18 @@ void SmsProgressWindow::readTokenAsync(const QPixmap &tokenPixmap, TokenAcceptor
 
 void SmsProgressWindow::tokenValueEntered()
 {
+	if (!TokenEdit)
+		return;
+
 	Sender->tokenRead(TokenEdit->text());
 
-	delete TokenLabel;
+	// don't delete sender immediately
+	TokenLabel->deleteLater();
 	TokenLabel = 0;
-	delete TokenEdit;
+	TokenEdit->deleteLater();
 	TokenEdit = 0;
-	delete TokenAcceptButton;
+	TokenAcceptButton->deleteLater();
 	TokenAcceptButton = 0;
-
-	container()->layout()->invalidate();
 }
 
 void SmsProgressWindow::sendingFailed(const QString &errorMessage)
@@ -114,5 +116,5 @@ void SmsProgressWindow::sendingSucceed(const QString &message)
 	if (History::instance()->currentStorage())
 		History::instance()->currentStorage()->appendSms(Sender->number(), message);
 
-	setState(ProgressIcon::StateFinished, tr("Sms sent successfully"));
+	setState(ProgressIcon::StateFinished, tr("SMS sent successfully"));
 }

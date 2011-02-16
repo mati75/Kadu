@@ -69,7 +69,7 @@ void MainWindow::loadToolBarsFromConfig()
 
 	foreach (QObject *object, children())
 	{
-		QToolBar *toolBar = dynamic_cast<QToolBar *>(object);
+		QToolBar *toolBar = qobject_cast<QToolBar *>(object);
 		if (toolBar)
 		{
 			removeToolBar(toolBar);
@@ -290,7 +290,7 @@ void MainWindow::writeToolBarsToConfig(Qt::ToolBarArea area)
 	// TODO: laaaaame
 	foreach(QObject *child, children())
 	{
-		ToolBar *toolBar = dynamic_cast<ToolBar *>(child);
+		ToolBar *toolBar = qobject_cast<ToolBar *>(child);
 		if (!toolBar)
 			continue;
 
@@ -303,10 +303,10 @@ void MainWindow::writeToolBarsToConfig(Qt::ToolBarArea area)
 
 void MainWindow::refreshToolBars()
 {
-#ifdef Q_OS_MAC
+	// We don't need it when closing.
+	// BTW, on Mac it caused crashes on exit. TODO: check out why, as there is probably a bug somewhere.
 	if (Core::instance()->isClosing())
 		return;
-#endif
 
 	loadToolBarsFromConfig();
 }
@@ -315,9 +315,9 @@ void MainWindow::contextMenuEvent(QContextMenuEvent *event)
 {
 	if (!ToolBar::isBlockToolbars())
 	{
-		QMenu *menu = new QMenu(this);
-		menu->addAction(tr("Create new toolbar"), this, SLOT(addTopToolbar()));
-		menu->exec(event->globalPos());
+		QMenu menu;
+		menu.addAction(tr("Create new toolbar"), this, SLOT(addTopToolbar()));
+		menu.exec(event->globalPos());
 	}
 }
 
@@ -407,7 +407,7 @@ void MainWindow::setTransparency(bool enable)
 
 		foreach (QObject *object, children())
 		{
-			QToolBar *toolBar = dynamic_cast<QToolBar *>(object);
+			QToolBar *toolBar = qobject_cast<QToolBar *>(object);
 			if (toolBar)
 			{
 				toolBar->setAttribute(Qt::WA_NoSystemBackground, false);
@@ -419,7 +419,7 @@ void MainWindow::setTransparency(bool enable)
 	{
 		foreach (QObject *object, children())
 		{
-			QToolBar *toolBar = dynamic_cast<QToolBar *>(object);
+			QToolBar *toolBar = qobject_cast<QToolBar *>(object);
 			if (toolBar)
 				toolBar->setAutoFillBackground(false);
 		}

@@ -60,8 +60,10 @@
 
 #include "exports.h"
 
-extern "C" KADU_EXPORT int tlen_protocol_init()
+extern "C" KADU_EXPORT int tlen_protocol_init(bool firstLoad)
 {
+	Q_UNUSED(firstLoad)
+
 	return TlenProtocol::initModule();
 }
 
@@ -76,6 +78,8 @@ int TlenProtocol::initModule()
 
 	if (ProtocolsManager::instance()->hasProtocolFactory("tlen"))
 		return 0;
+	
+	TlenProtocolFactory::createInstance();
 
 	ProtocolsManager::instance()->registerProtocolFactory(TlenProtocolFactory::instance());
 
@@ -88,6 +92,8 @@ void TlenProtocol::closeModule()
 	kdebugf();
 
 	ProtocolsManager::instance()->unregisterProtocolFactory(TlenProtocolFactory::instance());
+	
+	TlenProtocolFactory::destroyInstance();
 
 	kdebugf2();
 }

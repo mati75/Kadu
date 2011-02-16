@@ -50,7 +50,6 @@
 #include "icons-manager.h"
 
 #include "gui/windows/jabber-change-password-window.h"
-#include "gui/windows/xml-console.h"
 
 #include "jabber-edit-account-widget.h"
 
@@ -313,27 +312,16 @@ void JabberEditAccountWidget::createOptionsTab(QTabWidget *tabWidget)
 	QGroupBox *notifications = new QGroupBox(tr("Notifications"), this);
 
 	QVBoxLayout *notificationsLayout = new QVBoxLayout(notifications);
-	SendTypingNotification = new QCheckBox(tr("Send typing notifications"));
+	SendTypingNotification = new QCheckBox(tr("Send composing events"));
 	connect(SendTypingNotification, SIGNAL(clicked()), this, SLOT(dataChanged()));
 	notificationsLayout->addWidget(SendTypingNotification);
 
-	SendGoneNotification = new QCheckBox(tr("Send gone notifications (closing the window)"));
+	SendGoneNotification = new QCheckBox(tr("Send inactivity events (end/suspend conversation)"));
 	connect(SendGoneNotification, SIGNAL(clicked()), this, SLOT(dataChanged()));
+	connect(SendTypingNotification, SIGNAL(toggled(bool)), SendGoneNotification, SLOT(setEnabled(bool)));
 	notificationsLayout->addWidget(SendGoneNotification);
 
 	layout->addWidget(notifications);
-
-#ifdef DEBUG_ENABLED
-	QGroupBox *debug = new QGroupBox(tr("Debug"), this);
-
-	QVBoxLayout *debugLayout = new QVBoxLayout(debug);
-
-	QPushButton *consoleButton = new QPushButton(tr("Show XML console for this account"), debug);
-	connect(consoleButton, SIGNAL(clicked()), this, SLOT(showXmlConsole()));
-
-	debugLayout->addWidget(consoleButton);
-	layout->addWidget(debug);
-#endif
 
 	layout->addStretch(100);
 }
@@ -544,9 +532,4 @@ void JabberEditAccountWidget::changePasssword()
 void JabberEditAccountWidget::passwordChanged(const QString &newPassword)
 {
 	AccountPassword->setText(newPassword);
-}
-
-void JabberEditAccountWidget::showXmlConsole()
-{
-	(new XmlConsole(account()))->show();
 }

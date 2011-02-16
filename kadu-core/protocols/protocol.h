@@ -45,12 +45,14 @@ class AccountShared;
 class AvatarService;
 class ChatImageService;
 class ChatService;
+class ChatStateService;
 class ContactListService;
+class ContactPersonalInfoService;
 class ContactSet;
 class FileTransferService;
 class Message;
+class MultilogonService;
 class PersonalInfoService;
-class ContactPersonalInfoService;
 class ProtocolFactory;
 class RosterService;
 class SearchService;
@@ -98,13 +100,14 @@ public:
 	virtual AvatarService * avatarService() { return 0; }
 	virtual ChatImageService * chatImageService() { return 0; }
 	virtual ChatService * chatService() { return 0; }
+	virtual ChatStateService * chatStateService() { return 0; }
+	virtual ContactPersonalInfoService * contactPersonalInfoService() { return 0; }
 	virtual ContactListService * contactListService() { return 0; }
 	virtual FileTransferService * fileTransferService() { return 0; }
+	virtual MultilogonService * multilogonService() { return 0; }
 	virtual PersonalInfoService * personalInfoService() { return 0; }
-	virtual ContactPersonalInfoService * contactPersonalInfoService() { return 0; }
 	virtual RosterService * rosterService() { return 0; }
 	virtual SearchService * searchService() { return 0; }
-
 	virtual bool contactsListReadOnly() = 0;
 	virtual bool supportsPrivateStatus() { return false; }
 

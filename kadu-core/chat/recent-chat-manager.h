@@ -31,6 +31,7 @@
 class QTimer;
 
 class Chat;
+class Message;
 
 /**
  * @addtogroup Chat
@@ -61,15 +62,19 @@ class KADUAPI RecentChatManager : public QObject, public StorableObject, private
 	QList<Chat> RecentChats;
 	QTimer CleanUpTimer;
 
+	int RecentChatsTimeout;
+
 	RecentChatManager();
 	virtual ~RecentChatManager();
 
 	virtual void load();
 
+	void addRecentChat(Chat chat, QDateTime datetime = QDateTime::currentDateTime());
 	void removeRecentChat(Chat chat);
 
 private slots:
 	void cleanUp();
+	void onNewMessage(const Message &message);
 
 protected:
 	virtual void configurationUpdated();
@@ -98,8 +103,7 @@ public:
 
 	virtual void store();
 
-	void addRecentChat(Chat chat, QDateTime datetime = QDateTime::currentDateTime());
-	QList<Chat> recentChats();
+	const QList<Chat> & recentChats();
 
 signals:
 	/**

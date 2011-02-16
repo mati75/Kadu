@@ -1,17 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE TS>
-<TS version="2.0" language="de_DE">
+<TS version="2.0" language="de">
 <context>
     <name>@default</name>
     <message>
+        <location filename="../.configuration-ui-translations.cpp" line="4"/>
+        <source>Notifications</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../.configuration-ui-translations.cpp" line="7"/>
+        <source>KNotify</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../.configuration-ui-translations.cpp" line="10"/>
+        <source>General</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../.configuration-ui-translations.cpp" line="13"/>
         <source>Timeout</source>
         <translation>Timeout</translation>
     </message>
     <message>
+        <location filename="../.configuration-ui-translations.cpp" line="16"/>
         <source>Show message content in hint</source>
         <translation>Zeige Nachrichteninhalt in der Sprechblase</translation>
     </message>
     <message>
+        <location filename="../.configuration-ui-translations.cpp" line="19"/>
         <source>Number of quoted characters</source>
         <translation>Anzahl de zu zitierenden Zeichen</translation>
     </message>
@@ -19,16 +37,9 @@
 <context>
     <name>KdeNotify</name>
     <message>
-        <source>View</source>
-        <translation>Zeigen</translation>
-    </message>
-    <message>
-        <source>Chat</source>
-        <translation>Chat</translation>
-    </message>
-    <message>
-        <source>Ignore</source>
-        <translation>Ignorieren</translation>
+        <location filename="../kde_notify.cpp" line="67"/>
+        <source>KDE4 notifications</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 </TS>

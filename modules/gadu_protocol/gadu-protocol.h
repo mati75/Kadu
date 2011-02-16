@@ -31,14 +31,17 @@
 #include "services/gadu-avatar-service.h"
 #include "services/gadu-chat-image-service.h"
 #include "services/gadu-chat-service.h"
+#include "services/gadu-chat-state-service.h"
 #include "services/gadu-contact-list-service.h"
 #include "services/gadu-contact-personal-info-service.h"
 #include "services/gadu-file-transfer-service.h"
+#include "services/gadu-multilogon-service.h"
 #include "services/gadu-personal-info-service.h"
 #include "services/gadu-search-service.h"
 
 #include "server/gadu-servers-manager.h"
 #include "gadu-exports.h"
+#include "gadu-features.h"
 #include "gadu-search-record.h"
 #include "gadu-search-result.h"
 
@@ -83,11 +86,14 @@ private:
 	GaduFileTransferService *CurrentFileTransferService;
 	GaduPersonalInfoService *CurrentPersonalInfoService;
 	GaduSearchService *CurrentSearchService;
+#ifdef GADU_HAVE_MULTILOGON
+	GaduMultilogonService *CurrentMultilogonService;
+#endif // GADU_HAVE_TYPING_NOTIFY
+#ifdef GADU_HAVE_TYPING_NOTIFY
+	GaduChatStateService *CurrentChatStateService;
+#endif // GADU_HAVE_TYPING_NOTIFY
 
 	GaduContactListHandler *ContactListHandler;
-
-	friend class DccManager;
-	DccManager *Dcc;
 
 	GaduServersManager::GaduServer ActiveServer;
 
@@ -100,10 +106,11 @@ private:
 	QTimer *PingTimer;
 
 	void setupProxy();
-	void setupDcc();
 	void setupLoginParams();
 	void cleanUpLoginParams();
 	void cleanUpProxySettings();
+
+	void setUpFileTransferService(bool forceClose = false);
 
 	void networkConnected();
 	void networkDisconnected(bool tryAgain, bool waitForPassword);
@@ -118,6 +125,8 @@ private:
 	void changeStatus(bool force);
 
 private slots:
+	void accountUpdated();
+
 	void login();
 
 	void connectionTimeoutTimerSlot();
@@ -148,7 +157,12 @@ public:
 	virtual FileTransferService * fileTransferService() { return CurrentFileTransferService; }
 	virtual PersonalInfoService * personalInfoService() { return CurrentPersonalInfoService; }
 	virtual SearchService * searchService() { return CurrentSearchService; }
-
+#ifdef GADU_HAVE_MULTILOGON
+    virtual MultilogonService * multilogonService() { return CurrentMultilogonService; }
+#endif // GADU_HAVE_MULTILOGON
+#ifdef GADU_HAVE_TYPING_NOTIFY
+	virtual GaduChatStateService * chatStateService()  { return CurrentChatStateService; }
+#endif // GADU_HAVE_TYPING_NOTIFY
 	virtual bool contactsListReadOnly() { return false; }
 	virtual bool supportsPrivateStatus() { return true; }
 
@@ -163,7 +177,6 @@ public:
 
 	gg_session * gaduSession() { return GaduSession; }
 	GaduProtocolSocketNotifiers * socketNotifiers() { return SocketNotifiers; }
-	DccManager * dccManager() { return Dcc; }
 
 public slots:
 	virtual void login(const QString &password, bool permanent);

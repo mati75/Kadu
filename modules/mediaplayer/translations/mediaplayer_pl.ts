@@ -4,6 +4,18 @@
 <context>
     <name>@default</name>
     <message>
+        <source>Syntax: %t - song title,
+%a - album, %r - artist, %f - file name,
+%l - song length (MM:SS), %c - current song position (MM:SS),
+%p - percents of played song, %n - player name, %v - player version
+</source>
+        <translation>Składnia: %t - tytuł,
+%a - album, %r - wykonawca, %f - nazwa pliku,
+%l - długość utworu (MM:SS), %c - pozycja odtwarzania (MM:SS),
+%p - procent odtwarzania, %n - nazwa odtwarzacza, %v - wersja odtwarzacza
+</translation>
+    </message>
+    <message>
         <source>Pseudo-OSD for MediaPlayer</source>
         <translation>Pseudo-OSD dla MediaPlayer</translation>
     </message>
@@ -76,28 +88,8 @@
         <translation>Wstaw włącznik statusów w menu dokowania</translation>
     </message>
     <message>
-        <source>Syntax: %t - song title,
-%a - album, %r - artist, %f - file name,
-%l - song length (MM:SS), %c - current song position (MM:SS),
-%p - percents of played song, %n - player name, %v - player version
-</source>
-        <translation>Składnia: %t - tytuł,
-%a - album, %r - wykonawca, %f - nazwa pliku,
-%l - długość utworu (MM:SS), %c - pozycja odtwarzania (MM:SS),
-%p - procent odtwarzania, %n - nazwa odtwarzacza, %v - wersja odtwarzacza
-</translation>
-    </message>
-    <message>
         <source>Enable this to put MediaPlayer statuses switch into docked icon menu.</source>
         <translation>Dodaj przełącznik statusów MediaPlayer do menu dokowania.</translation>
-    </message>
-    <message>
-        <source>With this option enabled you&apos;ll be able to control
-your MediaPlayer in chat window by keyboard shortcuts:
-Control+ Enter/Backspace/Left/Right/Up/Down.Win+ Enter/Backspace/Left/Right/Up/Down.</source>
-        <translation>Po włączeniu tej opcji będziesz móc kontrolować
-swój odtwarzacz z okna rozmowy za pomocą następujących skrótów:
-Control+ Enter/Backspace/Left/Right/Up/Down.Win+ Enter/Backspace/Left/Right/Up/Down.</translation>
     </message>
     <message>
         <source>General Settings</source>
@@ -114,6 +106,14 @@ Control+ Enter/Backspace/Left/Right/Up/Down.Win+ Enter/Backspace/Left/Right/Up/D
     <message>
         <source>Other Settings</source>
         <translation>Inne ustawienia</translation>
+    </message>
+    <message>
+        <source>With this option enabled you&apos;ll be able to control
+your MediaPlayer in chat window by keyboard shortcuts:
+Control+ Enter/Backspace/Left/Right/Up/Down.Win+ Enter/Backspace/Left/Right/Up/Down.</source>
+        <translation>Po włączeniu tej opcji będziesz móc kontrolować
+swój odtwarzacz z okna rozmowy za pomocą następujących skrótów:
+Control+ Enter/Backspace/Left/Right/Up/Down.Win+ Enter/Backspace/Left/Right/Up/Down.</translation>
     </message>
 </context>
 <context>
@@ -143,12 +143,12 @@ Control+ Enter/Backspace/Left/Right/Up/Down.Win+ Enter/Backspace/Left/Right/Up/D
         <translation>Włącz statusy MediaPlayer</translation>
     </message>
     <message>
-        <source>%1 isn&apos;t running!</source>
-        <translation>%1 nie jest uruchomiony!</translation>
+        <source>MediaPlayer</source>
+        <translation>MediaPlayer</translation>
     </message>
     <message>
-        <source>More than 1/10 of titles you&apos;re trying to send are empty.&lt;br&gt;Perhaps %1 havn&apos;t read all titles yet, give its some more time.&lt;br&gt;Do you want to send playlist anyway?</source>
-        <translation>Więcej  niż 1/10 tytułów, które próbujesz wysłać, jest pusta.&lt;br&gt;Być może %1 nie odczytał jeszcze wszystkich tytułów. Zaleca się odczekanie chwili.&lt;br&gt;Wysłać listę mimo to?</translation>
+        <source>%1 isn&apos;t running!</source>
+        <translation>%1 nie jest uruchomiony!</translation>
     </message>
     <message>
         <source>You&apos;re trying to send %1 entries of %2 playlist.&lt;br&gt;It will be split and sent in few messages&lt;br&gt;Are you sure to do that?</source>
@@ -161,10 +161,6 @@ Control+ Enter/Backspace/Left/Right/Up/Down.Win+ Enter/Backspace/Left/Right/Up/D
     <message>
         <source>Player turned off.</source>
         <translation>Odtwarzacz wyłączony.</translation>
-    </message>
-    <message>
-        <source>MediaPlayer</source>
-        <translation>MediaPlayer</translation>
     </message>
     <message>
         <source>Enable MediaPlayer Statuses</source>
@@ -193,6 +189,14 @@ Control+ Enter/Backspace/Left/Right/Up/Down.Win+ Enter/Backspace/Left/Right/Up/D
     <message>
         <source>Volume Down</source>
         <translation>Ścisz</translation>
+    </message>
+    <message>
+        <source>Kadu</source>
+        <translation>Kadu</translation>
+    </message>
+    <message>
+        <source>More than 1/10 of titles you&apos;re trying to send are empty.&lt;br&gt;Perhaps %1 hasn&apos;t read all titles yet, give its some more time.&lt;br&gt;Do you want to send playlist anyway?</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <source>Pause</source>

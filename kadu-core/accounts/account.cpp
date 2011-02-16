@@ -66,7 +66,7 @@ Account::Account(AccountShared *data) :
 
 Account::Account(QObject *data)
 {
-	AccountShared *shared = dynamic_cast<AccountShared *>(data);
+	AccountShared *shared = qobject_cast<AccountShared *>(data);
 	if (shared)
 		setData(shared);
 }
@@ -110,3 +110,4 @@ KaduSharedBase_PropertyDef(Account, bool, hasPassword, HasPassword, false)
 KaduSharedBase_PropertyDef(Account, QString, password, Password, QString())
 KaduSharedBase_PropertyDef(Account, AccountProxySettings, proxySettings, ProxySettings, AccountProxySettings())
 KaduSharedBase_PropertyDef(Account, bool, privateStatus, PrivateStatus, true)
+KaduSharedBase_PropertyDef(Account, bool, removing, Removing, true)

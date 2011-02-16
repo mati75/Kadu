@@ -92,8 +92,7 @@ ChatWindow::~ChatWindow()
 void ChatWindow::configurationUpdated()
 {
 	triggerCompositingStateChanged();
-
-	activateWithNewMessages = config_file.readBoolEntry("Chat", "ActivateWithNewMessages", false);
+  
 	showNewMessagesNum = config_file.readBoolEntry("Chat", "NewMessagesInChatTitle", false);
 	blinkChatTitle = config_file.readBoolEntry("Chat", "BlinkChatTitle", true);
 
@@ -146,7 +145,7 @@ void ChatWindow::setDefaultGeometry()
 
 void ChatWindow::kaduRestoreGeometry()
 {
-	ChatGeometryData *cgd = currentChatWidget->chat().data()->moduleStorableData<ChatGeometryData>("chat-geometry");
+	ChatGeometryData *cgd = currentChatWidget->chat().data()->moduleStorableData<ChatGeometryData>("chat-geometry", ChatWidgetManager::instance(), false);
 
 	if (!cgd || !cgd->windowGeometry().isValid())
 		setDefaultGeometry();
@@ -165,7 +164,7 @@ void ChatWindow::kaduStoreGeometry()
 {
 	currentChatWidget->kaduStoreGeometry();
 
-	ChatGeometryData *cgd = currentChatWidget->chat().data()->moduleStorableData<ChatGeometryData>("chat-geometry", true);
+	ChatGeometryData *cgd = currentChatWidget->chat().data()->moduleStorableData<ChatGeometryData>("chat-geometry", ChatWidgetManager::instance(), true);
 	if (!cgd)
 		return;
 
@@ -260,9 +259,7 @@ void ChatWindow::alertNewMessage()
 {
 	if (!_isWindowActiveOrFullyVisible(this))
 	{
-		if (activateWithNewMessages)
-			_activateWindow(this);
-		else if (blinkChatTitle)
+		if (blinkChatTitle)
 		{
 			if (!title_timer->isActive())
 				blinkTitle(); // blinking is able to show new messages also...
@@ -275,12 +272,7 @@ void ChatWindow::alertNewMessage()
 		}
 	}
 	else
-	{
-		if (activateWithNewMessages)
-			_activateWindow(this);
-
 		currentChatWidget->markAllMessagesRead();
-	}
 }
 
 void ChatWindow::setWindowTitle(const QString &title)

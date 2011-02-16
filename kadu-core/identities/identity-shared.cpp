@@ -97,6 +97,8 @@ void IdentityShared::aboutToBeRemoved()
 
 void IdentityShared::addAccount(Account account)
 {
+	ensureLoaded();
+
 	Accounts.append(account);
 	connect(account, SIGNAL(statusChanged()), this, SIGNAL(statusChanged()));
 
@@ -105,6 +107,8 @@ void IdentityShared::addAccount(Account account)
 
 void IdentityShared::removeAccount(Account account)
 {
+	ensureLoaded();
+
 	Accounts.removeAll(account);
 	disconnect(account, SIGNAL(statusChanged()), this, SIGNAL(statusChanged()));
 
@@ -113,11 +117,15 @@ void IdentityShared::removeAccount(Account account)
 
 bool IdentityShared::hasAccount(Account account)
 {
+	ensureLoaded();
+
 	return Accounts.contains(account);
 }
 
 bool IdentityShared::hasAnyAccountWithDetails()
 {
+	ensureLoaded();
+
 	foreach (const Account &account, Accounts)
 		if (account.details())
 			return true;
@@ -127,11 +135,15 @@ bool IdentityShared::hasAnyAccountWithDetails()
 
 bool IdentityShared::isEmpty()
 {
+	ensureLoaded();
+
 	return Accounts.isEmpty();
 }
 
 void IdentityShared::doSetStatus(Status status)
 {
+	ensureLoaded();
+
 	foreach (const Account &account, Accounts)
 		if (account)
 			account.data()->setStatus(status);
@@ -139,15 +151,17 @@ void IdentityShared::doSetStatus(Status status)
 
 Account IdentityShared::bestAccount()
 {
+	ensureLoaded();
+
 	Account result = Account::null;
 	if (Accounts.isEmpty())
 		return result;
 
-	Status resultStatus = Status::null;
+	Status resultStatus;
 	foreach (const Account &account, Accounts)
 		if (account.details() && account.data())
 		{
-			if (resultStatus == Status::null || account.data()->status() < resultStatus)
+			if (resultStatus == Status() || account.data()->status() < resultStatus)
 			{
 				result = account;
 				resultStatus = account.data()->status();
@@ -160,7 +174,7 @@ Account IdentityShared::bestAccount()
 Status IdentityShared::status()
 {
 	Account account = bestAccount();
-	return account ? account.data()->status() : Status::null;
+	return account ? account.data()->status() : Status();
 }
 
 QString IdentityShared::statusDisplayName()

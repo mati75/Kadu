@@ -27,6 +27,10 @@
 #include <QtGui/QLabel>
 #include <QtGui/QLineEdit>
 #include <QtGui/QPushButton>
+#ifdef Q_WS_MAEMO_5
+# include <QtGui/QResizeEvent>
+# include <QtGui/QScrollArea>
+#endif
 #include <QtGui/QSortFilterProxyModel>
 
 #include "accounts/account.h"
@@ -50,12 +54,13 @@
 #include "protocols/services/roster-service.h"
 #include "protocols/protocol.h"
 #include "protocols/protocol-factory.h"
+#include "url-handlers/url-handler-manager.h"
 #include "icons-manager.h"
 
 #include "add-buddy-window.h"
 
 AddBuddyWindow::AddBuddyWindow(QWidget *parent, const Buddy &buddy, bool forceBuddyAccount) :
-		QDialog(parent, Qt::Window), UserNameLabel(0), UserNameEdit(0), MobileAccountAction(0),
+		QDialog(parent, Qt::Window), UserNameLabel(0), UserNameEdit(0), MobileAccountAction(0), EmailAccountAction(0),
 		AccountCombo(0), AccountComboIdFilter(0), GroupCombo(0), DisplayNameEdit(0), MergeBuddy(0),
 		SelectBuddy(0), AskForAuthorization(0), AllowToSeeMeCheck(0), ErrorLabel(0), AddContactButton(0),
 		MyBuddy(buddy), ForceBuddyAccount(forceBuddyAccount)
@@ -73,7 +78,7 @@ AddBuddyWindow::AddBuddyWindow(QWidget *parent, const Buddy &buddy, bool forceBu
 
 	createGui();
 	if (!MyBuddy)
-		addMobileAccountToComboBox();
+		addFakeAccountsToComboBox();
 }
 
 AddBuddyWindow::~AddBuddyWindow()
@@ -81,11 +86,31 @@ AddBuddyWindow::~AddBuddyWindow()
 	saveWindowGeometry(this, "General", "AddBuddyWindowGeometry");
 }
 
+#ifdef Q_WS_MAEMO_5
+void AddBuddyWindow::resizeEvent(QResizeEvent *event)
+{
+	ScrollArea->resize(event->size());
+}
+#endif
+
 void AddBuddyWindow::createGui()
 {
 	loadWindowGeometry(this, "General", "AddBuddyWindowGeometry", 0, 50, 425, 430);
 
+#ifdef Q_WS_MAEMO_5
+	QWidget *mainWidget = new QWidget(this);
+
+	ScrollArea = new QScrollArea(this);
+	ScrollArea->setFrameStyle(QFrame::NoFrame);
+	ScrollArea->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+	ScrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+	ScrollArea->setWidget(mainWidget);
+	ScrollArea->setWidgetResizable(true);
+
+	QGridLayout *layout = new QGridLayout(mainWidget);
+#else
 	QGridLayout *layout = new QGridLayout(this);
+#endif
 
 	UserNameEdit = new QLineEdit(this);
 
@@ -105,7 +130,7 @@ void AddBuddyWindow::createGui()
 	}
 
 	AccountCombo = new AccountsComboBox(MyBuddy.isNull(), this);
-	AccountCombo->setModelColumn(1); // use long account name
+	AccountCombo->setIncludeIdInDisplay(true);
 
 	AccountComboIdFilter = new IdValidityFilter(AccountCombo);
 	AccountCombo->addFilter(AccountComboIdFilter);
@@ -121,7 +146,7 @@ void AddBuddyWindow::createGui()
 
 		if (ForceBuddyAccount)
 		{
-			// NOTE: keep "%2 (%3)" consistent with AccountsModel::data() for DisplayRole, column 1
+			// NOTE: keep "%2 (%3)" consistent with AccountsModel::data() for DisplayRole, when IncludeIdInDisplay is true
 			// TODO 0.8: remove such code duplication
 			addingBuddyDescription->setText(addingBuddyDescription->text() + ' ' + tr("%1 account <b>%2 (%3)</b>")
 					.arg(MyAccount.protocolHandler()->protocolFactory()->displayName(),
@@ -213,8 +238,10 @@ void AddBuddyWindow::createGui()
 		layout->setColumnMinimumWidth(0, 140);
 	layout->setColumnMinimumWidth(1, 200);
 
+#ifndef Q_WS_MAEMO_5
 	setFixedHeight(layout->minimumSize().height());
 	setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
+#endif
 
 	connect(AccountCombo, SIGNAL(accountChanged(Account, Account)), this, SLOT(accountChanged(Account, Account)));
 	connect(AccountCombo, SIGNAL(currentIndexChanged(int)), this, SLOT(updateGui()));
@@ -232,12 +259,15 @@ void AddBuddyWindow::createGui()
 	updateGui();
 }
 
-void AddBuddyWindow::addMobileAccountToComboBox()
+void AddBuddyWindow::addFakeAccountsToComboBox()
 {
 	ActionsProxyModel *actionsModel = AccountCombo->actionsModel();
 
 	MobileAccountAction = new QAction(IconsManager::instance()->iconByPath("phone"), tr("Mobile"), AccountCombo);
 	actionsModel->addAfterAction(MobileAccountAction);
+
+	EmailAccountAction = new QAction(IconsManager::instance()->iconByPath("mail-message-new"), tr("E-mail"), AccountCombo);
+	actionsModel->addAfterAction(EmailAccountAction);
 }
 
 void AddBuddyWindow::displayErrorMessage(const QString &message)
@@ -253,6 +283,11 @@ void AddBuddyWindow::setGroup(Group group)
 bool AddBuddyWindow::isMobileAccount()
 {
 	return (MobileAccountAction && AccountCombo->data(ActionRole).value<QAction *>() == MobileAccountAction);
+}
+
+bool AddBuddyWindow::isEmailAccount()
+{
+	return (EmailAccountAction && AccountCombo->data(ActionRole).value<QAction *>() == EmailAccountAction);
 }
 
 void AddBuddyWindow::accountChanged(Account account, Account lastAccount)
@@ -302,10 +337,21 @@ void AddBuddyWindow::updateMobileGui()
 	AllowToSeeMeCheck->setEnabled(false);
 }
 
+void AddBuddyWindow::updateEmailGui()
+{
+	UserNameLabel->setText(tr("E-mail address:"));
+	MergeBuddy->setChecked(false);
+	MergeBuddy->setEnabled(false);
+	SelectBuddy->setCurrentBuddy(Buddy::null);
+	AllowToSeeMeCheck->setEnabled(false);
+}
+
 void AddBuddyWindow::updateGui()
 {
 	if (isMobileAccount())
 		updateMobileGui();
+	else if (isEmailAccount())
+		updateEmailGui();
 	else
 		updateAccountGui();
 }
@@ -381,10 +427,30 @@ void AddBuddyWindow::validateMobileData()
 	displayErrorMessage(QString());
 }
 
+void AddBuddyWindow::validateEmailData()
+{
+	if (!UrlHandlerManager::instance()->mailRegExp().exactMatch(UserNameEdit->text()))
+	{
+		displayErrorMessage(tr("Entered e-mail is invalid"));
+		return;
+	}
+
+	if (MergeBuddy->isChecked())
+	{
+		displayErrorMessage(tr("Merging e-mail with buddy is not supported. Please use edit buddy window."));
+		return;
+	}
+
+	AddContactButton->setEnabled(true);
+	displayErrorMessage(QString());
+}
+
 void AddBuddyWindow::setAddContactEnabled()
 {
 	if (isMobileAccount())
 		validateMobileData();
+	else if (isEmailAccount())
+		validateEmailData();
 	else
 		validateData();
 }
@@ -454,12 +520,28 @@ bool AddBuddyWindow::addMobile()
 	return true;
 }
 
+bool AddBuddyWindow::addEmail()
+{
+	Buddy buddy = Buddy::create();
+	buddy.data()->setState(StorableObject::StateNew);
+	buddy.setAnonymous(false);
+	buddy.setEmail(UserNameEdit->text());
+	buddy.setDisplay(DisplayNameEdit->text().isEmpty() ? UserNameEdit->text() : DisplayNameEdit->text());
+	buddy.addToGroup(GroupCombo->currentGroup());
+
+	BuddyManager::instance()->addItem(buddy);
+
+	return true;
+}
+
 void AddBuddyWindow::accept()
 {
 	bool ok;
 
 	if (isMobileAccount())
 		ok = addMobile();
+	else if (isEmailAccount())
+		ok = addEmail();
 	else
 		ok = addContact();
 

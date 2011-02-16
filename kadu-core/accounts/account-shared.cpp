@@ -28,6 +28,7 @@
 #include "misc/misc.h"
 #include "protocols/protocol.h"
 #include "protocols/protocols-manager.h"
+#include "status/status-changer-manager.h"
 
 #include "account-shared.h"
 
@@ -49,7 +50,7 @@ AccountShared * AccountShared::loadFromStorage(const QSharedPointer<StoragePoint
 
 AccountShared::AccountShared(QUuid uuid) :
 		BaseStatusContainer(this), Shared(uuid),
-		ProtocolHandler(0), RememberPassword(false), HasPassword(false)
+		ProtocolHandler(0), RememberPassword(false), HasPassword(false), Removing(false)
 {
 }
 
@@ -139,6 +140,8 @@ void AccountShared::store()
 
 bool AccountShared::shouldStore()
 {
+	ensureLoaded();
+
 	return UuidStorableObject::shouldStore() &&
 			!Id.isEmpty();
 }
@@ -153,6 +156,25 @@ void AccountShared::emitUpdated()
 	emit updated();
 }
 
+void AccountShared::setDisconnectStatus()
+{
+	if (status().type() == "Offline")
+		return;
+
+	bool disconnectWithCurrentDescription = config_file.readBoolEntry("General", "DisconnectWithCurrentDescription");
+	QString disconnectDescription = config_file.readEntry("General", "DisconnectDescription");
+
+	Status disconnectStatus;
+	disconnectStatus.setType("Offline");
+
+	if (disconnectWithCurrentDescription)
+		disconnectStatus.setDescription(status().description());
+	else
+		disconnectStatus.setDescription(disconnectDescription);
+
+	doSetStatus(disconnectStatus); // this does not store status
+}
+
 void AccountShared::useProtocolFactory(ProtocolFactory *factory)
 {
 	Protocol *oldProtocolHandler = ProtocolHandler;
@@ -165,11 +187,8 @@ void AccountShared::useProtocolFactory(ProtocolFactory *factory)
 		disconnect(ProtocolHandler, SIGNAL(connected(Account)), this, SIGNAL(connected()));
 		disconnect(ProtocolHandler, SIGNAL(disconnected(Account)), this, SIGNAL(disconnected()));
 
-		bool disconnectWithCurrentDescription = config_file.readBoolEntry("General", "DisconnectWithCurrentDescription");
-		QString disconnectDescription = config_file.readEntry("General", "DisconnectDescription");
-
-		storeStatus(status());
-		disconnectStatus(disconnectWithCurrentDescription, disconnectDescription);
+		storeStatus(StatusChangerManager::instance()->manuallySetStatus(this));
+		setDisconnectStatus();
 	}
 
 	if (!factory)
@@ -227,11 +246,18 @@ void AccountShared::protocolUnregistered(ProtocolFactory* factory)
 void AccountShared::detailsAdded()
 {
 	details()->ensureLoaded();
+
+	AccountManager::instance()->detailsLoaded(this);
 }
 
 void AccountShared::detailsAboutToBeRemoved()
 {
 	details()->store();
+}
+
+void AccountShared::detailsRemoved()
+{
+	AccountManager::instance()->detailsUnloaded(this);
 }
 
 void AccountShared::setAccountIdentity(Identity accountIdentity)
@@ -306,7 +332,7 @@ Status AccountShared::status()
 	if (ProtocolHandler)
 		return ProtocolHandler->status();
 	else
-		return Status::null;
+		return Status();
 }
 
 int AccountShared::maxDescriptionLength()
@@ -368,4 +394,12 @@ QList<StatusType *> AccountShared::supportedStatusTypes()
 		return ProtocolHandler->protocolFactory()->supportedStatusTypes();
 	else
 		return QList<StatusType *>();
+}
+
+void AccountShared::fileTransferServiceChanged(FileTransferService *service)
+{
+	if (service)
+		emit fileTransferServiceRegistered();
+	else
+		emit fileTransferServiceUnregistered();
 }

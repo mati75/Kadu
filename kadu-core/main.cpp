@@ -63,6 +63,25 @@
 #include "misc/misc.h"
 #include "modules.h"
 
+// Qt 4.6 version produces warning here which causes build to fail with -Werror
+#if (QT_VERSION < 0x040700)
+#undef QT_REQUIRE_VERSION
+#define QT_REQUIRE_VERSION(argc, argv, str) { QString s = QString::fromLatin1(str);\
+QString sq = QString::fromLatin1(qVersion()); \
+if ((sq.section(QChar::fromLatin1('.'),0,0).toInt()<<16)+\
+(sq.section(QChar::fromLatin1('.'),1,1).toInt()<<8)+\
+sq.section(QChar::fromLatin1('.'),2,2).toInt()<(s.section(QChar::fromLatin1('.'),0,0).toInt()<<16)+\
+(s.section(QChar::fromLatin1('.'),1,1).toInt()<<8)+\
+s.section(QChar::fromLatin1('.'),2,2).toInt()) { \
+if (!qApp){ \
+    new QApplication(argc,argv); \
+} \
+QString s = QApplication::tr("Executable '%1' requires Qt "\
+ "%2, found Qt %3.").arg(qAppName()).arg(QString::fromLatin1(\
+str)).arg(QString::fromLatin1(qVersion())); QMessageBox::critical(0, QApplication::tr(\
+"Incompatible Qt Library Error"), s, QMessageBox::Abort, 0); qFatal("%s", s.toLatin1().data()); }}
+#endif
+
 #ifndef Q_WS_WIN
 static void kaduQtMessageHandler(QtMsgType type, const char *msg)
 {
@@ -215,7 +234,7 @@ int main(int argc, char *argv[])
 		if (param == "--version")
 		{
 			printVersion();
-			//delete qApp;
+			delete qApp;
 #ifdef Q_WS_WIN
 			WSACleanup();
 #endif
@@ -225,7 +244,7 @@ int main(int argc, char *argv[])
 		{
 			printUsage();
 			printKaduOptions();
-			//delete qApp;
+			delete qApp;
 #ifdef Q_WS_WIN
 			WSACleanup();
 #endif
@@ -235,7 +254,7 @@ int main(int argc, char *argv[])
 		{
 			printUsage();
 			printQtOptions();
-			//delete qApp;
+			delete qApp;
 #ifdef Q_WS_WIN
 			WSACleanup();
 #endif
@@ -246,7 +265,7 @@ int main(int argc, char *argv[])
 			printUsage();
 			printKaduOptions();
 			printQtOptions();
-			//delete qApp;
+			delete qApp;
 #ifdef Q_WS_WIN
 			WSACleanup();
 #endif
@@ -304,7 +323,7 @@ int main(int argc, char *argv[])
 			}
 		}
 #else
-		char *tmp = getenv("TEMP");
+		const char *tmp = getenv("TEMP");
 		if (!tmp)
 			tmp = ".";
 		sprintf(path, "%s\\kadu-dbg-%04d-%02d-%02d-%02d-%02d-%02d.txt",
@@ -335,7 +354,7 @@ int main(int argc, char *argv[])
 
 		delete xml_config_file;
 		delete config_file_ptr;
-		//delete qApp;
+		delete qApp;
 #ifdef Q_WS_WIN
 		WSACleanup();
 #endif
@@ -364,7 +383,7 @@ int main(int argc, char *argv[])
 
 		delete config_file_ptr;
 		delete xml_config_file;
-		//delete qApp;
+		delete qApp;
 #ifdef Q_WS_WIN
 		WSACleanup();
 #endif
@@ -416,12 +435,16 @@ int main(int argc, char *argv[])
 		beforeExecTime = (sec % 1000) * 1000 + msec;
 	}
 
+	// it has to be called after loading modules (docking might want to block showing the window)
+	Core::instance()->showMainWindow();
+	Core::instance()->initialized();
+
 	int ret = qApp->exec();
 	kdebugm(KDEBUG_INFO, "after exec\n");
 
-	// TODO 0.6.6: it causes segfault on exit with QGtkStyle, at least
-	// on Ubuntu 10.10 (I tested it) --beevvy
-	// it's a hackish WORKAROUND!
+	// On some systems it leads to crash with sms module.
+	// Reproducible by simply calling "delete new QScriptEngine();" in a module,
+	// so it's probably a bug in Qt. Sigh.
 	//delete qApp;
 
 #ifdef Q_WS_WIN

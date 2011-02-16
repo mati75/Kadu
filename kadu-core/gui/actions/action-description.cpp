@@ -53,10 +53,6 @@ ActionDescription::~ActionDescription()
 
 void ActionDescription::actionDestroyed(QObject *action)
 {
-	Action *kaduAction = static_cast<Action *>(action);
-	if (!kaduAction)
-		return;
-
 	MainWindow *kaduMainWindow = static_cast<MainWindow *>(action->parent());
 	if (!kaduMainWindow)
 		return;
@@ -82,7 +78,8 @@ Action * ActionDescription::createAction(ActionDataSource *dataSource, QObject *
 	MappedActions[dataSource] = result;
 
 	connect(result, SIGNAL(destroyed(QObject *)), this, SLOT(actionDestroyed(QObject *)));
-	connect(result, SIGNAL(triggered(QAction *, bool)), Object, Slot);
+	if (Object && Slot)
+		connect(result, SIGNAL(triggered(QAction *, bool)), Object, Slot);
 
 	emit actionCreated(result);
 

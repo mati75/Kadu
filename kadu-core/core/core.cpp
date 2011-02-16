@@ -138,7 +138,6 @@ void Core::createDefaultConfiguration()
 {
 	QWidget w;
 
-	config_file.addVariable("Chat", "ActivateWithNewMessages", false);
 	config_file.addVariable("Chat", "AutoSend", true);
 	config_file.addVariable("Chat", "BlinkChatTitle", true);
 	config_file.addVariable("Chat", "ChatCloseTimer", true);
@@ -269,7 +268,6 @@ void Core::createDefaultConfiguration()
 	config_file.addVariable("Network", "DefaultPort", 0);
 	config_file.addVariable("Network", "isDefServers", true);
 	config_file.addVariable("Network", "Server", QString());
-	config_file.addVariable("Network", "TimeoutInMs", 5000);
 	config_file.addVariable("Network", "UseProxy", false);
 
 #ifdef Q_OS_MAC
@@ -338,14 +336,21 @@ void Core::init()
 	new Updates(this);
 
 	setIcon(IconsManager::instance()->iconByPath(QLatin1String("protocols/common/offline")));
+	connect(IconsManager::instance(), SIGNAL(themeChanged()), this, SLOT(statusChanged()));
 	QTimer::singleShot(15000, this, SLOT(deleteOldConfigurationFiles()));
 
-	NotificationManager::instance(); // TODO: 0.6.6
+	// TODO: add some life-cycle management
+	NotificationManager::instance();
 
 	AccountManager::instance()->ensureLoaded();
 	BuddyManager::instance()->ensureLoaded();
 	ContactManager::instance()->ensureLoaded();
 	AvatarManager::instance(); // initialize that
+}
+
+void Core::initialized()
+{
+	StatusContainerManager::instance()->setAllowSetDefaultStatus(true);
 }
 
 void Core::storeConfiguration()
@@ -462,24 +467,19 @@ void Core::createGui()
 {
 	Window = new KaduWindow(0);
 	Window->setWindowIcon(QApplication::windowIcon());
-	connect(Window, SIGNAL(destroyed(QObject *)), this, SLOT(kaduWindowDestroyed()));
+	connect(Window, SIGNAL(destroyed()), this, SLOT(kaduWindowDestroyed()));
 
 	// initialize file transfers
 	FileTransferManager::instance();
-
-	/* That method is meant to be called before the event loop starts
-	 * (QCoreApplication::exec()), so this shot should assure that
-	 * showMainWindow() is called immediately after qApp->exec()
-	 * to let docking module call setShowMainWindowOnStart() before
-	 * ShowMainWindowOnStart is used.
-	 */
-	QTimer::singleShot(0, this, SLOT(showMainWindow()));
 }
 
 void Core::showMainWindow()
 {
 	if (ShowMainWindowOnStart)
 		Window->show();
+
+	// after first call which has to be placed in main(), this method should always show Window
+	ShowMainWindowOnStart = true;
 }
 
 void Core::setShowMainWindowOnStart(bool show)

@@ -59,13 +59,13 @@ void BuddiesModelProxy::setSourceModel(QAbstractItemModel *sourceModel)
 {
 	QAbstractItemModel *oldModel = dynamic_cast<QAbstractItemModel *>(SourceBuddyModel);
 	if (oldModel)
-		disconnect(oldModel, SIGNAL(destroyed(QObject *)), this, SLOT(modelDestroyed()));
+		disconnect(oldModel, SIGNAL(destroyed()), this, SLOT(modelDestroyed()));
 
 	SourceBuddyModel = dynamic_cast<AbstractBuddiesModel *>(sourceModel);
 	QSortFilterProxyModel::setSourceModel(sourceModel);
 
 	if (sourceModel)
-		connect(sourceModel, SIGNAL(destroyed(QObject *)), this, SLOT(modelDestroyed()));
+		connect(sourceModel, SIGNAL(destroyed()), this, SLOT(modelDestroyed()));
 
 	setDynamicSortFilter(true);
 	sort(0);
@@ -137,10 +137,10 @@ bool BuddiesModelProxy::lessThan(const QModelIndex &left, const QModelIndex &rig
 
 		Status leftStatus = !leftContact.isNull()
 				? leftContact.currentStatus()
-				: Status::null;
+				: Status();
 		Status rightStatus = !rightContact.isNull()
 				? rightContact.currentStatus()
-				: Status::null;
+				: Status();
 
 		if (leftStatus.isDisconnected() && !rightStatus.isDisconnected())
 			return false;

@@ -1,4 +1,6 @@
-<!DOCTYPE TS><TS>
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE TS>
+<TS version="2.0" language="fr">
 <context>
     <name>@default</name>
     <message>
@@ -10,7 +12,7 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>General settings</source>
+        <source>General Settings</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -77,19 +79,18 @@
 <context>
     <name>ScreenShot</name>
     <message>
-        <source>Simple shot</source>
+        <source>Kadu</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>With chat window hidden</source>
+        <source>Image size is bigger than maximal image size for this chat.</source>
         <translation type="unfinished"></translation>
     </message>
+</context>
+<context>
+    <name>ScreenShotSaver</name>
     <message>
-        <source>Window shot</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>ScreenShot</source>
+        <source>Kadu</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -106,27 +107,56 @@ Access denied or other problem!</source>
 It should be bigger.</source>
         <translation type="unfinished"></translation>
     </message>
+</context>
+<context>
+    <name>ScreenshotActions</name>
     <message>
-        <source>Image size is bigger than maximal image size
-set by all of conference contacts.</source>
+        <source>ScreenShot</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Image size is bigger than maximal image size
-set by some of conference contacts:
-%1.</source>
+        <source>Simple shot</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Image size is bigger than maximal image size set by %1. Send it anyway?</source>
+        <source>With chat window hidden</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>Window shot</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>ScreenshotNotification</name>
     <message>
         <source>ScreenShot size limit</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <source>Images size limit exceed: %1 KB</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>ScreenshotTaker</name>
+    <message>
+        <source>Drag icon to some window</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>ScreenshotToolBox</name>
+    <message>
+        <source>0 KiB</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Crop</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Cancel</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

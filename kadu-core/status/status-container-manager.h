@@ -34,6 +34,8 @@ class KADUAPI StatusContainerManager : public StatusContainer,
 
 	static StatusContainerManager *Instance;
 
+	bool AllowSetDefaultStatus;
+
 	StatusContainerManager();
 	virtual ~StatusContainerManager();
 
@@ -110,8 +112,8 @@ public:
 	}
 
 	virtual void storeStatus(Status status);
-	virtual void disconnectStatus(bool disconnectWithCurrentDescription,
-						  const QString &disconnectDescription);
+
+	void setAllowSetDefaultStatus(bool allowSetDefaultStatus);
 
 signals:
 	void statusContainerAboutToBeRegistered(StatusContainer *);

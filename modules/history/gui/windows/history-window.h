@@ -36,6 +36,7 @@
 #include "modules/history/history.h"
 #include "modules/history/history_exports.h"
 
+class BuddyNameFilter;
 class BuddyStatusDatesModel;
 class ChatDatesModel;
 class ChatNameFilter;
@@ -59,6 +60,7 @@ class HistoryWindow : public MainWindow
 	QTreeView *DetailsListView;
 	HistoryChatsModel *ChatsModel;
 	HistoryChatsModelProxy *ChatsModelProxy;
+	BuddyNameFilter *StatusBuddyNameFilter;
 	ChatNameFilter *NameFilter;
 
 	ChatDatesModel *MyChatDatesModel;
@@ -114,7 +116,11 @@ private slots:
 	void dateFilteringEnabled(int state);
 
 	void openChat();
-	void clearHistory();
+	void clearChatHistory();
+	void clearStatusHistory();
+	void clearSmsHistory();
+	void removeHistoryEntriesPerDate();
+
 	void selectQueryText();
 
 protected:
@@ -130,10 +136,10 @@ public:
 	virtual bool supportsActionType(ActionDescription::ActionType type);
 	virtual ContactSet contacts();
 	virtual BuddySet buddies();
+	virtual Chat chat();
 	virtual ChatWidget * chatWidget() { return 0; }
 	virtual BuddiesListView * buddiesListView() { return 0; }
 	virtual StatusContainer* statusContainer() { return 0; }
-	virtual Chat chat() { return Chat::null; }
 	virtual bool hasContactSelected() { return false; } // we can select only buddies here
 
 	void show(const Chat &chat);
