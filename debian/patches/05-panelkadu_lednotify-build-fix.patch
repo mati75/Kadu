@@ -1,0 +1,26 @@
+diff --git a/externalmodules/lednotify/lednotify.cpp b/externalmodules/lednotify/lednotify.cpp
+index a082887..de8a467 100644
+--- a/externalmodules/lednotify/lednotify.cpp
++++ b/externalmodules/lednotify/lednotify.cpp
+@@ -58,7 +58,7 @@ extern "C" KADU_EXPORT void lednotify_close()
+ }
+ 
+ 
+-LedNotify::LedNotify( QObject *parent ) : QObject( parent ), Notifier( "lednotify", "Scroll Lock LED", IconsManager::instance()->iconByPath("kadu_icons/notify-led") ), chatBlinking_( false ), msgBlinking_( false )
++LedNotify::LedNotify( QObject *parent ) : QObject( parent ), Notifier( "lednotify", "Scroll Lock LED", "kadu_icons/notify-led" ), chatBlinking_( false ), msgBlinking_( false )
+ {
+ 	config_file.addVariable( "Led Notify", "LEDdelay", 500 );
+ 	config_file.addVariable( "Led Notify", "LEDcount",   3 );
+diff --git a/externalmodules/panelkadu/panelkadu.cpp b/externalmodules/panelkadu/panelkadu.cpp
+index 7de92cb..f8edc4d 100644
+--- a/externalmodules/panelkadu/panelkadu.cpp
++++ b/externalmodules/panelkadu/panelkadu.cpp
+@@ -35,7 +35,7 @@
+ #include "gui/widgets/configuration/configuration-widget.h"
+ #include "gui/windows/kadu-window.h"
+ #include "misc/path-conversion.h"
+-#include "x11tools.h"
++#include "os/x11tools.h"
+ #include "activate.h"
+ #include "debug.h"
+ 
