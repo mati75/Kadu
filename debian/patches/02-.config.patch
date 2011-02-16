@@ -1,18 +1,5 @@
-Description: Selects all usable external modules
- Kadu has a nice set of external (submitted by 3rd parties) plugin-like
- modules. It also has a mechanism called autodownload that fetches source code
- of selected external modules during cmake call, and includes them into
- compilation and installation (make, make install) stages.
- .
- In Debian it is not acceptable to have any source code outside of Debian
- source package, thus autodownload mechanism must be disabled and source code
- of all external modules must be shipped inside Debian source package.
- .
- This patch enables all usable external modules to be compiled and installed
-Author: Patryk Cisek <patryk@debian.org>
----
 diff --git a/.config b/.config
-index 6538cb9..2ca7410 100644
+index 6538cb9..78c6eb2 100644
 --- a/.config
 +++ b/.config
 @@ -92,7 +92,7 @@ module_growl_notify=n
@@ -81,7 +68,7 @@ index 6538cb9..2ca7410 100644
  
  # Description: PowerKadu
  # PL: PowerKadu
-@@ -402,17 +402,17 @@ module_powerkadu=n
+@@ -402,11 +402,11 @@ module_powerkadu=n
  # Description: Adds global hotkeys support to Kadu
  # PL: Dodaje do Kadu obsługę skrótów globalnych
  # Platform: Linux
@@ -95,13 +82,6 @@ index 6538cb9..2ca7410 100644
  # Platform: Linux, Mac OS X, Windows
  
  # Description: New ext_info module providing extended contact information support
- # PL: Nowy moduł ext_info wprowadzający obsługę dodatkowych informacji o kontaktach
- # Platform: Linux, Mac OS X, Windows
--module_nextinfo=n
-+module_nextinfo=m
- 
- ######################## MEDIAPLAYER ########################
- 
 @@ -434,22 +434,22 @@ module_amarok2_mediaplayer=m
  # Description: Audacious support for mediaplayer
  # PL: Wsparcie dla Audacious w mediaplayer
