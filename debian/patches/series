@@ -2,4 +2,3 @@
 02-.config.patch
 03-about-dialog.patch
 04-gcc4.4-build-fix.patch
-05-panelkadu_no-strict-aliasing.patch
