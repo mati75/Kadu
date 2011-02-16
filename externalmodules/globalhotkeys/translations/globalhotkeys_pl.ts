@@ -61,6 +61,11 @@
 		<source>Toggle silent mode</source>
 		<translation>Przełącz tryb cichy</translation>
 	</message>
+	<message>
+		<location filename="" line="0"/>
+		<source>Quit Kadu</source>
+		<translation>Wyłącz Kadu</translation>
+	</message>
 
 	<message>
 		<location filename="" line="0"/>
