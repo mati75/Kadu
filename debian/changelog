@@ -5,8 +5,10 @@ kadu (0.6.6~beta15-1) unstable; urgency=low
   * Refreshed debian/patches/02-.config.patch
   * Removed 05-panelkadu_no-strict-aliasing.patch, since panelkadu's
     been fixed upstream
+  * Removed libcurl4-gnutls-dev from Build-Depends, since it's no longer
+    needed
 
- -- Patryk Cisek <patryk@debian.org>  Wed, 16 Feb 2011 16:42:27 +0100
+ -- Patryk Cisek <patryk@debian.org>  Wed, 16 Feb 2011 16:44:58 +0100
 
 kadu (0.6.6~beta15-1) unstable; urgency=low
 
