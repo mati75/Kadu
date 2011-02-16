@@ -9,8 +9,9 @@ kadu (0.6.6~beta16-1) unstable; urgency=low
     needed
   * debian/handle_external.sh: externalthemes/icons is no longer
     taken care of.
+  * Added libidn11-dev to Build-Depends
 
- -- Patryk Cisek <patryk@debian.org>  Wed, 16 Feb 2011 17:14:29 +0100
+ -- Patryk Cisek <patryk@debian.org>  Wed, 16 Feb 2011 17:17:47 +0100
 
 kadu (0.6.6~beta15-1) unstable; urgency=low
 
