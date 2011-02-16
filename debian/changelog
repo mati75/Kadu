@@ -1,4 +1,4 @@
-kadu (0.6.6~beta15-1) unstable; urgency=low
+kadu (0.6.6~beta16-1) unstable; urgency=low
 
   * New upstream release
   * Added code.google.com to debian/watch
