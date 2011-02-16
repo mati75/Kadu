@@ -1,6 +1,13 @@
 kadu (0.6.6~beta15-1) unstable; urgency=low
 
   * New upstream release
+  * Added code.google.com to debian/watch
+
+ -- Patryk Cisek <patryk@debian.org>  Wed, 16 Feb 2011 15:55:37 +0100
+
+kadu (0.6.6~beta15-1) unstable; urgency=low
+
+  * New upstream release
   * Bumped Standards-Version
   * Added dependency on libqt4-sql-sqlite for kadu package to make history
     module work properly
