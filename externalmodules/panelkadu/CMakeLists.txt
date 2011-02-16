@@ -14,6 +14,8 @@ set( CONFIGURATION_FILES
 	configuration/panelkadu.ui
 )
 
+set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-strict-aliasing" )
+
 kadu_module( panelkadu
 	MODULE_SOURCES ${SOURCES}
 	MODULE_MOC_SOURCES ${MOC_SOURCES}
