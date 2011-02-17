@@ -12,8 +12,9 @@ kadu (0.6.6~beta16-1) unstable; urgency=low
   * Added libidn11-dev to Build-Depends
   * Added debian/patches/05-panelkadu_lednotify-build-fix.patch, that
     fixes panelkadu and lednotify build errors
+  * Removed kadu05 icon theme from being installed
 
- -- Patryk Cisek <patryk@debian.org>  Wed, 16 Feb 2011 17:41:38 +0100
+ -- Patryk Cisek <patryk@debian.org>  Thu, 17 Feb 2011 09:38:04 +0100
 
 kadu (0.6.6~beta15-1) unstable; urgency=low
 

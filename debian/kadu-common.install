@@ -111,6 +111,7 @@ debian/tmp/usr/share/kadu/modules/translations/config_wizard*
 debian/tmp/usr/share/kadu/modules/translations/desktop_docking*
 debian/tmp/usr/share/kadu/modules/translations/desktop_docking*
 debian/tmp/usr/share/kadu/modules/translations/docking*
+debian/tmp/usr/share/kadu/modules/translations/encryption_ng_*
 debian/tmp/usr/share/kadu/modules/translations/exec_notify*
 debian/tmp/usr/share/kadu/modules/translations/ext_sound*
 debian/tmp/usr/share/kadu/modules/translations/filedesc*
@@ -126,9 +127,10 @@ debian/tmp/usr/share/kadu/modules/translations/mediaplayer*
 debian/tmp/usr/share/kadu/modules/translations/mpris_mediaplayer*
 debian/tmp/usr/share/kadu/modules/translations/parser_extender*
 debian/tmp/usr/share/kadu/modules/translations/pcspeaker*
+debian/tmp/usr/share/kadu/modules/translations/profiles_import*
 debian/tmp/usr/share/kadu/modules/translations/qt4_docking_notify*
 debian/tmp/usr/share/kadu/modules/translations/screenshot*
-debian/tmp/usr/share/kadu/modules/translations/server-monitor*
+debian/tmp/usr/share/kadu/modules/translations/server_monitor*
 debian/tmp/usr/share/kadu/modules/translations/simpleview*
 debian/tmp/usr/share/kadu/modules/translations/single_window*
 debian/tmp/usr/share/kadu/modules/translations/sms*
