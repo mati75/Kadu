@@ -11,16 +11,3 @@ index a082887..de8a467 100644
  {
  	config_file.addVariable( "Led Notify", "LEDdelay", 500 );
  	config_file.addVariable( "Led Notify", "LEDcount",   3 );
-diff --git a/externalmodules/panelkadu/panelkadu.cpp b/externalmodules/panelkadu/panelkadu.cpp
-index 7de92cb..f8edc4d 100644
---- a/externalmodules/panelkadu/panelkadu.cpp
-+++ b/externalmodules/panelkadu/panelkadu.cpp
-@@ -35,7 +35,7 @@
- #include "gui/widgets/configuration/configuration-widget.h"
- #include "gui/windows/kadu-window.h"
- #include "misc/path-conversion.h"
--#include "x11tools.h"
-+#include "os/x11tools.h"
- #include "activate.h"
- #include "debug.h"
- 
