@@ -49,8 +49,9 @@
 
 class BuddyNExtInfoData : public ModuleData
 {
+	Q_OBJECT
 	public:
-		BuddyNExtInfoData( StorableObject *parent );
+		BuddyNExtInfoData( const QString &moduleName, StorableObject *parent, QObject *qobjectParent );
 		virtual ~BuddyNExtInfoData();
 		virtual void store();
 		virtual QString name() const;

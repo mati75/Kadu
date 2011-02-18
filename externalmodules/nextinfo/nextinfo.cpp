@@ -207,7 +207,7 @@ BuddyNExtInfoData *NExtInfo::bData( Buddy buddy )
 {
 	if( ! buddy.data() )
 		return NULL;
-	return buddy.data()->moduleStorableData<BuddyNExtInfoData>( "nextinfo", true );
+	return buddy.data()->moduleStorableData<BuddyNExtInfoData>( "nextinfo", nextinfo, true );
 }
 
 

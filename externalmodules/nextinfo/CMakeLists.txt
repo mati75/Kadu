@@ -7,6 +7,7 @@ set( SOURCES
 
 set( MOC_SOURCES
 	nextinfo.h
+	buddynextinfodata.h
 	extendedinformationwidgets.h
 	photowidget.h
 )

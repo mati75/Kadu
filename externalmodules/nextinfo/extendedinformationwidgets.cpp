@@ -423,7 +423,7 @@ void ExtendedInformationWidgets::loadBuddy()
 	// module data
 	BuddyNExtInfoData *bdata = 0;
 	if( buddy.data() )
-		bdata = buddy.data()->moduleStorableData<BuddyNExtInfoData>( "nextinfo", true );
+		bdata = buddy.data()->moduleStorableData<BuddyNExtInfoData>( "nextinfo", 0, true );
 	if( ! bdata )
 		return;
 	// load standard information
@@ -453,7 +453,7 @@ void ExtendedInformationWidgets::saveBuddy()
 	// module data
 	BuddyNExtInfoData *bdata = 0;
 	if( buddy.data() )
-		bdata = buddy.data()->moduleStorableData<BuddyNExtInfoData>( "nextinfo", true );
+		bdata = buddy.data()->moduleStorableData<BuddyNExtInfoData>( "nextinfo", 0, true );
 	if( ! bdata )
 		return;
 	// check birthday format

@@ -34,7 +34,8 @@
 
 
 
-BuddyNExtInfoData::BuddyNExtInfoData( StorableObject *parent ) : ModuleData( parent )
+BuddyNExtInfoData::BuddyNExtInfoData( const QString &moduleName, StorableObject *parent, QObject *qobjectParent )
+	: ModuleData( moduleName, parent, qobjectParent )
 {
 }
 

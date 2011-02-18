@@ -36,7 +36,7 @@ static BuddyNExtInfoData *bData( BuddyOrContact buddyorcontact )
 	Buddy buddy = buddyorcontact.buddy();
 	BuddyNExtInfoData *bdata = 0;
 	if( buddy.data() )
-		bdata = buddy.data()->moduleStorableData<BuddyNExtInfoData>( "nextinfo", true );
+		bdata = buddy.data()->moduleStorableData<BuddyNExtInfoData>( "nextinfo", nextinfo, true );
 	return bdata;
 }
 
