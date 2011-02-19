@@ -28,6 +28,7 @@ debian/tmp/usr/share/kadu/modules/configuration/kde_notify.ui
 debian/tmp/usr/share/kadu/modules/configuration/mediaplayer.ui
 debian/tmp/usr/share/kadu/modules/configuration/mpd_config.ui
 debian/tmp/usr/share/kadu/modules/configuration/mpris_mediaplayer.ui
+debian/tmp/usr/share/kadu/modules/configuration/nextinfo.ui
 debian/tmp/usr/share/kadu/modules/configuration/parser_extender.ui
 debian/tmp/usr/share/kadu/modules/configuration/qt4-docking-notify.ui
 debian/tmp/usr/share/kadu/modules/configuration/screenshot.ui
@@ -74,6 +75,7 @@ debian/tmp/usr/share/kadu/modules/last_seen.desc
 debian/tmp/usr/share/kadu/modules/mediaplayer.desc
 debian/tmp/usr/share/kadu/modules/mpd_mediaplayer.desc
 debian/tmp/usr/share/kadu/modules/mpris_mediaplayer.desc
+debian/tmp/usr/share/kadu/modules/nextinfo.desc
 debian/tmp/usr/share/kadu/modules/parser_extender.desc
 debian/tmp/usr/share/kadu/modules/pcspeaker.desc
 debian/tmp/usr/share/kadu/modules/phonon_sound.desc
@@ -125,6 +127,7 @@ debian/tmp/usr/share/kadu/modules/translations/kde_notify*
 debian/tmp/usr/share/kadu/modules/translations/last_seen*
 debian/tmp/usr/share/kadu/modules/translations/mediaplayer*
 debian/tmp/usr/share/kadu/modules/translations/mpris_mediaplayer*
+debian/tmp/usr/share/kadu/modules/translations/nextinfo*
 debian/tmp/usr/share/kadu/modules/translations/parser_extender*
 debian/tmp/usr/share/kadu/modules/translations/pcspeaker*
 debian/tmp/usr/share/kadu/modules/translations/profiles_import*

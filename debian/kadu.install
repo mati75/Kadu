@@ -34,6 +34,7 @@ debian/tmp/usr/lib/kadu/modules/liblast_seen.so
 debian/tmp/usr/lib/kadu/modules/libmediaplayer.so
 debian/tmp/usr/lib/kadu/modules/libmpd_mediaplayer.so
 debian/tmp/usr/lib/kadu/modules/libmpris_mediaplayer.so
+debian/tmp/usr/lib/kadu/modules/libnextinfo.so
 debian/tmp/usr/lib/kadu/modules/libparser_extender.so
 debian/tmp/usr/lib/kadu/modules/libpcspeaker.so
 debian/tmp/usr/lib/kadu/modules/libphonon_sound.so
