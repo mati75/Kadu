@@ -5,11 +5,18 @@
 
 set -e
 
+n=$(expr $(head -1 debian/changelog | awk '{printf $2}' | /usr/bin/wc -c) - 1)
+version=$(head -1 debian/changelog | awk '{printf $2}' | cut -b2-$n)
+upstream_version=$(echo $version | awk -F "-" '{printf $1}')
+
 git clean -d -f -x
 git reset --hard
 git co 0.6.6/upstream-kadu
 git br -D 0.6.6/master || true
 git co -b 0.6.6/master 0.6.6/upstream-kadu
 git merge 0.6.6/upstream-modules 0.6.6/upstream-themes 0.6.6/debian
+
+tar c externalmodules | bzip2 -9 > ../kadu_$upstream_version.orig-externalmodules.tar.bz2
+tar c externalthemes | bzip2 -9 > ../kadu_$upstream_version.orig-externalthemes.tar.bz2
 debuild -us -uc -I.git $@
 
