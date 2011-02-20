@@ -5,13 +5,13 @@ debian/tmp/usr/lib/kadu/modules/liblednotify.so
 debian/tmp/usr/lib/kadu/modules/libmime_tex.so
 debian/tmp/usr/lib/kadu/modules/libpanelkadu.so
 debian/tmp/usr/lib/kadu/modules/libsenthistory.so
+debian/tmp/usr/share/kadu/modules/anonymous_check.desc
 debian/tmp/usr/share/kadu/modules/configuration/globalhotkeys.ui
 debian/tmp/usr/share/kadu/modules/configuration/lednotify.ui
 debian/tmp/usr/share/kadu/modules/configuration/mime_tex.ui
 debian/tmp/usr/share/kadu/modules/configuration/panelkadu.ui
 debian/tmp/usr/share/kadu/modules/configuration/senthistory.ui
 debian/tmp/usr/share/kadu/modules/data/mime_tex
-debian/tmp/usr/share/kadu/modules/anonymous_check.desc
 debian/tmp/usr/share/kadu/modules/globalhotkeys.desc
 debian/tmp/usr/share/kadu/modules/idle.desc
 debian/tmp/usr/share/kadu/modules/lednotify.desc

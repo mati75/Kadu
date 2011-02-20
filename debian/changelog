@@ -1,3 +1,11 @@
+kadu (0.6.6~beta17-2) unstable; urgency=low
+
+  * Used wrap-and-sort from ubuntu-dev-tools to sort .install files, sort
+    dependency fields in debian/control and wrap fields longer than 80
+    characters
+
+ -- Patryk Cisek <patryk@debian.org>  Sun, 20 Feb 2011 14:32:02 +0000
+
 kadu (0.6.6~beta17-1) unstable; urgency=low
 
   * New upstream release

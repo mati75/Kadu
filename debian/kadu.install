@@ -1,6 +1,7 @@
 debian/kadu.desktop usr/share/applications
 debian/kadu.xpm /usr/share/pixmaps
 debian/tmp/usr/bin/kadu
+debian/tmp/usr/lib/kadu/modules/libalsa_sound.so
 debian/tmp/usr/lib/kadu/modules/libamarok2_mediaplayer.so
 debian/tmp/usr/lib/kadu/modules/libantistring.so
 debian/tmp/usr/lib/kadu/modules/libao_sound.so
@@ -55,4 +56,3 @@ debian/tmp/usr/lib/kadu/modules/libtabs.so
 debian/tmp/usr/lib/kadu/modules/libvlc_mediaplayer.so
 debian/tmp/usr/lib/kadu/modules/libword_fix.so
 debian/tmp/usr/lib/kadu/modules/libxmms2_mediaplayer.so
-debian/tmp/usr/lib/kadu/modules/libalsa_sound.so
