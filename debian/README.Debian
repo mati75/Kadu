@@ -33,7 +33,7 @@ Currently we have following external modules modules:
 * PanelKadu:
   Turns Kadu's main window into a desktop panel.
 
-* SentHistory
+* SentHistory:
   Adds history of sent messages to chat windows.
 
- -- Patryk Cisek <patryk@debian.org>  Sat, 08 Mar 2008 10:02:00 +0200
+ -- Patryk Cisek <patryk@debian.org>  Mon, 21 Feb 2011 11:17:54 +0100

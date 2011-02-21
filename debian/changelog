@@ -11,7 +11,7 @@ kadu (0.6.6~beta17-2) unstable; urgency=low
     packaging
   * Refreshed external modules list in debian/README.Debian
 
- -- Patryk Cisek <patryk@debian.org>  Mon, 21 Feb 2011 10:21:49 +0100
+ -- Patryk Cisek <patryk@debian.org>  Mon, 21 Feb 2011 11:18:13 +0100
 
 kadu (0.6.6~beta17-1) unstable; urgency=low
 
