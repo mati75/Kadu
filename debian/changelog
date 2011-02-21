@@ -4,7 +4,7 @@ kadu (0.6.6~beta17-2) unstable; urgency=low
     dependency fields in debian/control and wrap fields longer than 80
     characters
   * Added Vcs-Git and Vcs-Browser to debian/control
-  * Added debian_build.sh script, which may be used to build Kadu
+  * Added debian/build_kadu.sh script, which may be used to build Kadu
     packages when in Git checkout of Vcs-Git repository
   * Updated debian/README.source; added info about Vcs-* in
     debian/control, deleted CDBS info -- it's no longer used in Kadu
