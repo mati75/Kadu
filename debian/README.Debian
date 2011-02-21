@@ -3,118 +3,37 @@ Kadu for Debian
 
 When compiling Kadu from sources we are able to select which modules we want
 to compile by editing .config file located in Kadu's source tree. This file is
-than parsed by configure script (Kadu is auto-tools based). Some of these
-modules are located in Kadu's source tree, and some (the ones not officially
-included, or developed by external developers) are not.
+than parsed during cmake run. Some of these modules are located in Kadu's
+source tree, and some (the ones not officially included, or developed by
+external developers) are not.
 
-These external modules are downloaded by the configure script and than
-compiled (on make) and installed (on make install). In Debian most of them are
-in kadu-external-modules package.
+These external modules are downloaded during cmake run, than compiled (when
+executing make) and finally installed (when executing make install). In Debian
+these modules are in kadu-external-modules package.
 
 Currently we have following external modules modules:
-* AmaroKMediaplayer:
-  AmaroK player support
-
 * AnonymousCheck:
   Adds ability to automatically search for a contact in public directory in
   case the interlocutor is not on our contact list.
   Previously part of PowerKadu. Now it's separate module.
 
-* Antistring:
-  Antistring functionality was previously a part of PowerKadu module. Now
-  it's a separate one.
-
-* AOSound:
-  libao library sound module (libao works with ALSA, OSS, ESD, AIX, IRIX, NAS,
-  Sun, NenBSD, OpenBSD)
-
-* AudaciousMediaplayer:
-  Audacious player support
-
-* AutoHide:
-  Hides the main Kadu window after certain amount of inactivity time.
-  Previously part of PowerKadu. Now it's separate module.
-
-* AutoStatus:
-  Automatic status changing scheduler
-
-* Cenzor:
-  Adds ability to detect abusive messages.
-  Previously part of PowerKadu. Now it's separate module.
-
-* DCOPExport:
-  Exports some functions via DCOP
-
-* ExecNotify:
-  Notification by external commands module
-
-* FileDesc:
-  Description from file module
-
-* Filtering:
-  User list filtering
-
-* Firewall:
-  Protection against unwanted chats
-
 * GlobalHotKeys:
-  Adds global hotkeys support to Kadu
-
-* LastSeen:
-  Gathers information about when every single contact was last seen as
-  visible
+  Adds global hotkeys support to Kadu.
 
 * LEDNotify:
-  Notification by Scroll Lock LED
+  Notification by Scroll Lock LED.
 
-* MiastoplusaSMS:
-  Miasto Plusa SMS Gateway support
+* MimeTeX:
+  Adds ability to send gif images containing mathematical formulas easily
+  edited by built-in graphical editor.
 
-* OSDHintsNotify:
-  Fancy notification bubbles.
+* NextInfo:
+  Adds additional information about contacts.
 
 * PanelKadu:
   Turns Kadu's main window into a desktop panel.
 
-* ParserExtender:
-  Adds an API to extend Kadu's parser syntax. It lets to add e. g. new
-  variables to info panel (like %s for status, or %i for IP).
-  
-* PCSpeaker:
-  PC-Speaker support
-
-* PowerKadu:
-  Meta-module, that doesn't add any additional functionality, or changes.
-  Instead it's dependent of all modules, that were previously (Kadu 0.4.x,
-  0.5.x) part of PowerKadu. After breaking PowerKadu into separate modules,
-  we (PowerKadu Team) decided to create this meta-module to add ability of
-  easily loading all modules, which were previously part of PowerKadu.
-
-* Profiles:
-  Profiles support - this module lets one to run several instances of Kadu for
-  different Gadu-Gadu accounts on the same unix account.
-
-* Screenshot:
-  Lets one do snapshots and send them in a chat window to an interlocutor(s).
-
-* Spellchecker:
-  Spellchecker for chat text.
-
-* SplitMessages:
-  The maximum length of a message is about 2000 characters in GaduGadu
-  protocol. This module automatically breaks long messages to several
-  independent ones, sent one after another.
-  Previously part of PowerKadu. Now it's separate module.
-
-* Tabs:
-  Tabbed chat dialog module
-
-* Weather:
-  Weather checking
-
-* WordFix:
-  Somewhat similar to Spellchecker. However instead of highlighting typos,
-  it automatically corrects them.
-  Previously part of PowerKadu. Now it's separate module.
+* SentHistory
+  Adds history of sent messages to chat windows.
 
  -- Patryk Cisek <patryk@debian.org>  Sat, 08 Mar 2008 10:02:00 +0200
