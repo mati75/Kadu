@@ -1,0 +1,39 @@
+Kadu for Debian
+---------------
+
+When compiling Kadu from sources we are able to select which modules we want
+to compile by editing .config file located in Kadu's source tree. This file is
+than parsed during cmake run. Some of these modules are located in Kadu's
+source tree, and some (the ones not officially included, or developed by
+external developers) are not.
+
+These external modules are downloaded during cmake run, than compiled (when
+executing make) and finally installed (when executing make install). In Debian
+these modules are in kadu-external-modules package.
+
+Currently we have following external modules modules:
+* AnonymousCheck:
+  Adds ability to automatically search for a contact in public directory in
+  case the interlocutor is not on our contact list.
+  Previously part of PowerKadu. Now it's separate module.
+
+* GlobalHotKeys:
+  Adds global hotkeys support to Kadu.
+
+* LEDNotify:
+  Notification by Scroll Lock LED.
+
+* MimeTeX:
+  Adds ability to send gif images containing mathematical formulas easily
+  edited by built-in graphical editor.
+
+* NextInfo:
+  Adds additional information about contacts.
+
+* PanelKadu:
+  Turns Kadu's main window into a desktop panel.
+
+* SentHistory:
+  Adds history of sent messages to chat windows.
+
+ -- Patryk Cisek <patryk@debian.org>  Mon, 21 Feb 2011 11:17:54 +0100

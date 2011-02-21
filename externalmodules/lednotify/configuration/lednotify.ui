@@ -1,0 +1,15 @@
+<configuration-ui>
+
+	<section name="Notifications">
+
+		<tab name="LED">
+			<group-box name="General">
+				<spin-box caption="Blinking count" config-section="Led Notify" config-item="LEDcount" min-value="1" max-value="10000" step="1" tool-tip="This option doesn't affect events 'new chat' and 'new message'" />
+				<spin-box caption="Blinking delay" config-section="Led Notify" config-item="LEDdelay" min-value="50" max-value="10000" step="100" suffix="ms" tool-tip="Defines blinking frequency of the LED
+(half of the period)" />
+			</group-box>
+		</tab>
+
+	</section>
+
+</configuration-ui>
