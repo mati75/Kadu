@@ -6,8 +6,11 @@ kadu (0.6.6~beta17-2) unstable; urgency=low
   * Added Vcs-Git and Vcs-Browser to debian/control
   * Added debian_build.sh script, which may be used to build Kadu
     packages when in Git checkout of Vcs-Git repository
+  * Updated debian/README.source; added info about Vcs-* in
+    debian/control, deleted CDBS info -- it's no longer used in Kadu
+    packaging
 
- -- Patryk Cisek <patryk@debian.org>  Sun, 20 Feb 2011 14:32:02 +0000
+ -- Patryk Cisek <patryk@debian.org>  Mon, 21 Feb 2011 09:59:12 +0100
 
 kadu (0.6.6~beta17-1) unstable; urgency=low
 
