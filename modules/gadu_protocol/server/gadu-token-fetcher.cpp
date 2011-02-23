@@ -1,5 +1,7 @@
 /*
  * %kadu copyright begin%
+ * Copyright 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2011 Tomasz Rostanski (rozteck@interia.pl)
  * %kadu copyright end%
  *
@@ -38,7 +40,7 @@ void GaduTokenFetcher::fetchToken()
 {
 	TokenId.clear();
 
-	QHttpRequestHeader header("POST", QUrl::toPercentEncoding("/appsvc/regtoken.asp"));
+	QHttpRequestHeader header("POST", "/appsvc/regtoken.asp");
 	header.setValue("Host", GG_REGISTER_HOST);
 	header.setValue("User-Agent", GG_HTTP_USERAGENT);
 	header.setValue("Content-Type", "application/x-www-form-urlencoded");

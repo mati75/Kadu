@@ -1,9 +1,10 @@
 /*
  * %kadu copyright begin%
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2009, 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2009 Tomasz Rostański (rozteck@interia.pl)
- * Copyright 2009 Piotr Galiszewski (piotrgaliszewski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -25,6 +26,7 @@
 #include <QtGui/QTextDocument>
 
 #include "misc/misc.h"
+#include "protocols/services/chat-image-service.h"
 
 #include "formatted-message-part.h"
 
@@ -33,8 +35,8 @@ FormattedMessagePart::FormattedMessagePart(const QString &content, bool bold, bo
 {
 }
 
-FormattedMessagePart::FormattedMessagePart(const QString &imageFileName) :
-		Content('\n'), IsImage(true), ImageFileName(imageFileName)
+FormattedMessagePart::FormattedMessagePart(const QString &imagePath) :
+		Content('\n'), IsImage(true), ImagePath(imagePath)
 {
 }
 
@@ -42,12 +44,22 @@ FormattedMessagePart::~FormattedMessagePart()
 {
 }
 
+QString FormattedMessagePart::imagePath() const
+{
+	if (!IsImage)
+		return QString();
+	
+	return QFileInfo(ImagePath).isAbsolute()
+			? ImagePath
+			: ChatImageService::imagesPath() + ImagePath;
+}
+
 QString FormattedMessagePart::toHtml() const
 {
 	if (IsImage)
-		return QFileInfo(ImageFileName).isRelative()
-				? QString("<img src=\"kaduimg:///%1\" />").arg(ImageFileName)
-				: QString("<img src=\"file://%1\" />").arg(ImageFileName); // TODO 0.6.6: remove once we're saving sent images in imagesPath
+		return QFileInfo(ImagePath).isAbsolute()
+				? QString("<img src=\"file://%1\" />").arg(ImagePath)
+				: QString("<img src=\"kaduimg:///%1\" />").arg(ImagePath);
 
 	QString result(replacedNewLine(Qt::escape(Content), QLatin1String("<br/>")));
 	result.replace(QChar::LineSeparator, QLatin1String("<br/>"));

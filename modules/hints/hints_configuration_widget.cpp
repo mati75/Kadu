@@ -1,10 +1,11 @@
 /*
  * %kadu copyright begin%
  * Copyright 2007 Dawid Stawiarski (neeo@kadu.net)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2007, 2008, 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2008, 2009, 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2008 Michał Podsiadlik (michal@kadu.net)
- * Copyright 2008, 2009 Piotr Galiszewski (piotrgaliszewski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -72,10 +73,10 @@ void HintsConfigurationWidget::showConfigurationWindow()
 
 void HintsConfigurationWidget::updatePreview()
 {
-	preview->setFont(config_file.readFontEntry("Hints", "Event_" + currentNotifyEvent + "_font"));
+	preview->setFont(config_file.readFontEntry("Hints", "Event_" + currentNotifyEvent + "_font", &qApp->font()));
 
-	QColor bcolor = config_file.readColorEntry("Hints", "Event_" + currentNotifyEvent + "_bgcolor");
-	QColor fcolor = config_file.readColorEntry("Hints", "Event_" + currentNotifyEvent + "_fgcolor");
+	QColor bcolor = config_file.readColorEntry("Hints", "Event_" + currentNotifyEvent + "_bgcolor", &qApp->palette().background().color());
+	QColor fcolor = config_file.readColorEntry("Hints", "Event_" + currentNotifyEvent + "_fgcolor", &qApp->palette().foreground().color());
 	QString style = QString("QWidget {color:%1; background-color:%2}").arg(fcolor.name(), bcolor.name());
 	preview->setStyleSheet(style);
 }

@@ -1,5 +1,4 @@
 /*
- * %kadu copyright begin%
  * Copyright 2007, 2008 Dawid Stawiarski (neeo@kadu.net)
  * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2004, 2005, 2006, 2007 Marcin Ślusarz (joi@kadu.net)
@@ -7,9 +6,13 @@
  * Copyright 2003, 2004 Tomasz Chiliński (chilek@chilan.com)
  * Copyright 2007, 2008, 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2004, 2008 Michał Podsiadlik (michal@kadu.net)
- * Copyright 2008, 2009, 2010 Piotr Galiszewski (piotrgaliszewski@gmail.com)
+ * Copyright 2008, 2009 Piotr Galiszewski (piotrgaliszewski@gmail.com)
  * Copyright 2003, 2005 Paweł Płuciennik (pawel_p@kadu.net)
  * Copyright 2003, 2004 Dariusz Jagodzik (mast3r@kadu.net)
+ * %kadu copyright begin%
+ * Copyright 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -29,6 +32,7 @@
 #include <QtCore/QDir>
 #include <QtCore/QFile>
 #include <QtCore/QTextStream>
+#include <QtGui/QTextDocument>
 
 #include "configuration/configuration-file.h"
 #include "emoticons/emots-walker.h"
@@ -171,8 +175,6 @@ bool EmoticonsManager::loadGGEmoticonThemePart(const QString &themeSubDirPath)
 		foreach (const QString &alias, aliases)
 		{
 			item.alias = alias;
-			item.escapedAlias = alias;
-			HtmlDocument::escapeText(item.escapedAlias);
 			Aliases.push_back(item);
 		}
 
@@ -253,12 +255,12 @@ void EmoticonsManager::expandEmoticons(HtmlDocument &doc, EmoticonsStyle style)
 		QString text = doc.elementText(e_i).toLower();
 		// variables storing position of last occurrence
 		// of emot matching current emots dictionary
-		unsigned int lastBegin = 10000;
+		int lastBegin = -1;
 		int lastEmot = -1;
 		// intitialize automata for checking occurrences
 		// of emots in text
 		walker->initWalking();
-		for (unsigned int j = 0, textlength = text.length(); j < textlength; ++j)
+		for (int j = 0, textlength = text.length(); j < textlength; ++j)
 		{
 			// find out if there is some emot occurrence when we
 			// add current character
@@ -268,14 +270,14 @@ void EmoticonsManager::expandEmoticons(HtmlDocument &doc, EmoticonsStyle style)
 			{
 				// check if there already was some occurrence, whose
 				// beginning is before beginning of currently found one
-				if (lastEmot >= 0 && lastBegin < j - Aliases.at(idx).alias.length() + 1)
+				if (lastEmot >= 0 && lastBegin >= 0 && lastBegin < j - Aliases.at(idx).alias.length() + 1)
 				{
 					// if so, then replace that previous occurrence
 					// with html tag
-					QString new_text = emotTemplate.arg(Aliases.at(lastEmot).escapedAlias, animated ? Aliases.at(lastEmot).anim : Aliases.at(lastEmot).stat);
-
 					doc.splitElement(e_i, lastBegin, Aliases.at(lastEmot).alias.length());
+					QString new_text = emotTemplate.arg(Qt::escape(doc.elementText(e_i)), animated ? Aliases.at(lastEmot).anim : Aliases.at(lastEmot).stat);
 					doc.setElementValue(e_i, new_text, true);
+
 					// our analysis will begin directly after
 					// occurrence of previous emot
 					lastEmot = -1;
@@ -292,9 +294,8 @@ void EmoticonsManager::expandEmoticons(HtmlDocument &doc, EmoticonsStyle style)
 		// this is the case, when only one emot was found in current text part
 		if (lastEmot >= 0)
 		{
-			QString new_text = emotTemplate.arg(Aliases.at(lastEmot).escapedAlias, animated ? Aliases.at(lastEmot).anim : Aliases.at(lastEmot).stat);
-
 			doc.splitElement(e_i, lastBegin, Aliases.at(lastEmot).alias.length());
+			QString new_text = emotTemplate.arg(Qt::escape(doc.elementText(e_i)), animated ? Aliases.at(lastEmot).anim : Aliases.at(lastEmot).stat);
 			doc.setElementValue(e_i, new_text, true);
 		}
 	}

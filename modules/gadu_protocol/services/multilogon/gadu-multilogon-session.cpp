@@ -1,5 +1,6 @@
 /*
  * %kadu copyright begin%
+ * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
@@ -16,6 +17,15 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
+
+// for Q_OS_WIN macro
+#include <QtCore/QtGlobal>
+
+#ifdef Q_OS_WIN
+#include <winsock2.h>
+#else
+#include <arpa/inet.h>
+#endif
 
 #include "gadu-multilogon-session.h"
 
@@ -37,7 +47,7 @@ GaduMultilogonSession::GaduMultilogonSession(Account account, const gg_multilogo
 	setName(session.name);
 
 	QHostAddress remoteAddress;
-	remoteAddress.setAddress(session.remote_addr);
+	remoteAddress.setAddress(ntohl(session.remote_addr));
 	setRemoteAddres(remoteAddress);
 
 	QDateTime logonTime;

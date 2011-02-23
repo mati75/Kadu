@@ -1,5 +1,6 @@
 /*
  * %kadu copyright begin%
+ * Copyright 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
@@ -77,6 +78,9 @@ void HistoryMigrationActions::runImportHistoryAction()
 	Account gaduAccount = AccountManager::instance()-> byId("gadu", uin);
 	if (!gaduAccount)
 		return; // maybe message?
+
+	if (HistoryImporterManager::instance()->containsImporter(profilePath("history/")))
+		return;
 
 	HistoryImporter *hi = new HistoryImporter(gaduAccount, profilePath("history/"));
 	HistoryImporterManager::instance()->addImporter(hi);

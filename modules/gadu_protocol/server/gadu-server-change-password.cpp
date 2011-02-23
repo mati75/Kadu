@@ -1,5 +1,6 @@
 /*
  * %kadu copyright begin%
+ * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
@@ -39,7 +40,7 @@ void GaduServerChangePassword::performAction()
 			NewPassword.toUtf8().constData(),
 			TokenId.toUtf8().constData(),
 			TokenValue.toUtf8().constData(),
-			1);
+			false);
 
 	if (H)
 	{

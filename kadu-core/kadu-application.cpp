@@ -1,5 +1,4 @@
 /*
- * %kadu copyright begin%
  * Copyright 2007, 2008, 2009 Dawid Stawiarski (neeo@kadu.net)
  * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2004, 2005, 2006, 2007 Marcin Ślusarz (joi@kadu.net)
@@ -11,6 +10,11 @@
  * Copyright 2008, 2009, 2010 Piotr Galiszewski (piotrgaliszewski@gmail.com)
  * Copyright 2004, 2005 Paweł Płuciennik (pawel_p@kadu.net)
  * Copyright 2002, 2003 Dariusz Jagodzik (mast3r@kadu.net)
+ * %kadu copyright begin%
+ * Copyright 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2010 Tomasz Rostański (rozteck@interia.pl)
+ * Copyright 2010, 2011 Tomasz Rostanski (rozteck@interia.pl)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -40,50 +44,10 @@
 #include "os/generic/compositing-aware-object.h"
 #endif // Q_WS_X11 && !Q_WS_MAEMO_5
 
-#ifdef Q_OS_MAC
-#include "core/core.h"
-#include "gui/windows/kadu-window.h"
-#include "gui/widgets/chat-widget-manager.h"
-#include "chat/message/pending-messages-manager.h"
-
-static OSStatus appleEventProcessor(const AppleEvent *ae, AppleEvent *event, long handlerRefCon)
-{
-	Q_UNUSED(event)
-	Q_UNUSED(handlerRefCon)
-
-	OSType aeID = typeWildCard;
-	OSType aeClass = typeWildCard;
-
-	AEGetAttributePtr(ae, keyEventClassAttr, typeType, 0, &aeClass, sizeof(aeClass), 0);
-	AEGetAttributePtr(ae, keyEventIDAttr, typeType, 0, &aeID, sizeof(aeID), 0);
-
-	if (aeClass == kCoreEventClass)
-	{
-		if (aeID == kAEReopenApplication)
-		{
-			if (PendingMessagesManager::instance()->hasPendingMessages())
-				ChatWidgetManager::instance()->openPendingMessages(true);
-			else
-				Core::instance()->kaduWindow()->show();
-		}
-		return noErr;
-	}
-
-	return eventNotHandledErr;
-}
-#endif // Q_OS_MAC
-
 KaduApplication::KaduApplication(int &argc, char *argv[]) :
 		QApplication(argc, argv)
 {
 	setApplicationName("Kadu");
-
-#ifdef Q_OS_MAC
-	/* Install Reopen Application Event (Dock Clicked) */
-	m_appleEventProcessorUPP = AEEventHandlerUPP(appleEventProcessor);
-	AEInstallEventHandler(kCoreEventClass, kAEReopenApplication,
-		m_appleEventProcessorUPP, (long) this, true);
-#endif // Q_OS_MAC
 
 #if defined(Q_WS_X11) && !defined(Q_WS_MAEMO_5)
 	xfixes_event_base = -1;

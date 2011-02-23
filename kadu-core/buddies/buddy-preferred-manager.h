@@ -1,6 +1,9 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010, Piotr Dąbrowski (ultr@ultr.pl)
+ * Copyright 2010 Piotr Dąbrowski (ultr@ultr.pl)
+ * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -51,6 +54,7 @@ public:
 	Contact preferredContact(const Buddy &buddy, bool includechats = true);
 	Account preferredAccount(const Buddy &buddy, bool includechats = true);
 
+	Contact preferredContactByPriority(const Buddy &buddy, const Account &account = Account::null);
 	Contact preferredContactByPendingMessages(const Buddy &buddy, const Account &account = Account::null);
 	Contact preferredContactByChatWidgets(const Buddy &buddy, const Account &account = Account::null);
 	Contact preferredContactByStatus(const Buddy &buddy, const Account &account = Account::null);

@@ -1,12 +1,14 @@
 /*
  * %kadu copyright begin%
  * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2008, 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2004, 2005, 2006 Marcin Ślusarz (joi@kadu.net)
  * Copyright 2002, 2003, 2004 Adrian Smarzewski (adrian@kadu.net)
  * Copyright 2003 Tomasz Chiliński (chilek@chilan.com)
- * Copyright 2007, 2008, 2009 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2007, 2008, 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2004, 2008 Michał Podsiadlik (michal@kadu.net)
- * Copyright 2008, 2009, 2010 Piotr Galiszewski (piotrgaliszewski@gmail.com)
+ * Copyright 2010 Tomasz Rostański (rozteck@interia.pl)
+ * Copyright 2010, 2011 Tomasz Rostanski (rozteck@interia.pl)
  * Copyright 2005 Paweł Płuciennik (pawel_p@kadu.net)
  * Copyright 2002, 2003 Dariusz Jagodzik (mast3r@kadu.net)
  * %kadu copyright end%
@@ -54,11 +56,12 @@ class DOCKINGAPI DockingManager : public QObject, ConfigurationAwareObject, Stat
 
 	QMenu *DockMenu;
  #ifdef Q_OS_MAC
-	QAction *OpenChatAction;
 	QMenu *MacDockMenu;
  #endif
 	QAction *CloseKaduAction;
 	QAction *containersSeparator;
+
+	QList<QAction *> ModulesActions;
 
 	QMap<StatusContainer *, QAction *> StatusContainerMenus;
 
@@ -99,6 +102,14 @@ public:
 	QMenu * dockMenu() { return DockMenu; }
 
 	void setDocker(Docker *docker);
+
+#ifdef Q_OS_MAC
+	void showMinimizedChats();
+	void dockIconClicked();
+#endif
+
+	void registerModuleAction(QAction *action);
+	void unregisterModuleAction(QAction *action);
 
 signals:
 	void mousePressMidButton();

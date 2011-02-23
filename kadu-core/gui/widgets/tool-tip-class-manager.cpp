@@ -1,7 +1,7 @@
 /*
  * %kadu copyright begin%
- * Copyright 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010 Piotr Galiszewski (piotrgaliszewski@gmail.com)
+ * Copyright 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -33,9 +33,10 @@ ToolTipClassManager * ToolTipClassManager::instance()
 	return Instance;
 }
 
-ToolTipClassManager::ToolTipClassManager()
-	: CurrentToolTipClass(0)
+ToolTipClassManager::ToolTipClassManager() :
+		CurrentToolTipClass(0)
 {
+	config_file.addVariable("Look", "UserboxToolTipStyle", "Hints");
 	configurationUpdated();
 }
 
@@ -107,5 +108,5 @@ bool ToolTipClassManager::hideToolTip()
 
 void ToolTipClassManager::configurationUpdated()
 {
-	useToolTipClass(config_file.readEntry("Look", "UserboxToolTipStyle"));
+	useToolTipClass(config_file.readEntry("Look", "UserboxToolTipStyle", "Hints"));
 }

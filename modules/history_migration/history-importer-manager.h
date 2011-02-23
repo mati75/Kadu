@@ -1,6 +1,8 @@
 /*
  * %kadu copyright begin%
+ * Copyright 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011 Tomasz Rostanski (rozteck@interia.pl)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -46,6 +48,8 @@ public:
 	static void destroyInstance();
 
 	static HistoryImporterManager * instance() { return Instance; }
+
+	bool containsImporter(const QString &path);
 
 	void addImporter(HistoryImporter *importer);
 	void removeImporter(HistoryImporter *importer);

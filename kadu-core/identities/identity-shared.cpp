@@ -1,8 +1,9 @@
 /*
  * %kadu copyright begin%
- * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2009, 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010 Piotr Galiszewski (piotrgaliszewski@gmail.com)
+ * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2009, 2010 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -27,9 +28,9 @@
 #include "protocols/protocol.h"
 
 #include "identity-shared.h"
-#include <status/status-type-manager.h>
-#include <status/status-type.h>
-#include <status/status-group.h>
+#include "status/status-type-manager.h"
+#include "status/status-type.h"
+#include "status/status-group.h"
 
 IdentityShared * IdentityShared::loadStubFromStorage(const QSharedPointer<StoragePoint> &storagePoint)
 {
@@ -153,7 +154,7 @@ Account IdentityShared::bestAccount()
 {
 	ensureLoaded();
 
-	Account result = Account::null;
+	Account result;
 	if (Accounts.isEmpty())
 		return result;
 
@@ -161,7 +162,10 @@ Account IdentityShared::bestAccount()
 	foreach (const Account &account, Accounts)
 		if (account.details() && account.data())
 		{
-			if (resultStatus == Status() || account.data()->status() < resultStatus)
+			// TODO: hack
+			if (result.isNull() || account.data()->status() < resultStatus ||
+					(account.data()->status() == resultStatus &&
+					account.protocolName() == "gadu" && result.protocolName() != "gadu"))
 			{
 				result = account;
 				resultStatus = account.data()->status();

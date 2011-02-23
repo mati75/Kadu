@@ -1,7 +1,10 @@
 /*
  * %kadu copyright begin%
  * Copyright 2010 Tomasz Rostański (rozteck@interia.pl)
+ * Copyright 2010, 2011 Tomasz Rostanski (rozteck@interia.pl)
  * %kadu copyright end%
+ *
+ * Copyright 2011 Adam "Vertex" Makświej (vertexbz@gmail.com)
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -19,116 +22,121 @@
 
 #include <QtGui/QApplication>
 #include <QtGui/QIcon>
+#include <Cocoa/Cocoa.h>
 
 #include "ApplicationServices/ApplicationServices.h"
-#include "Carbon/Carbon.h"
-
 #include "mac_docking_helper.h"
+#include "core/core.h"
+#include "gui/windows/kadu-window.h"
+#include "configuration/configuration-file.h"
+#include "docking.h"
 
-#define DOCK_FONT_NAME "LucidaGrande-Bold"
-#define DOCK_FONT_SIZE 24
+@interface MacDockingHelperObjC : NSObject {
+}
+
+- (id) init;
+- (void) appReopen:(NSAppleEventDescriptor *)event withReplyEvent:(NSAppleEventDescriptor *)replyEvent;
+@end
+
+@implementation MacDockingHelperObjC
+- (id) init
+{
+	NSAutoreleasePool *pool = [NSAutoreleasePool new];
+	[super init];
+	[[NSAppleEventManager sharedAppleEventManager] setEventHandler:self
+		andSelector:@selector(appReopen:withReplyEvent:)
+		forEventClass:kCoreEventClass
+		andEventID:kAEReopenApplication];
+	[pool release];
+	return self;
+}
+
+- (void) dealloc
+{
+	NSAutoreleasePool *pool = [NSAutoreleasePool new];
+	[[NSAppleEventManager sharedAppleEventManager] removeEventHandlerForEventClass:kCoreEventClass
+		andEventID:kAEReopenApplication];
+	[pool release];
+	[super dealloc];
+}
+
+- (void) appReopen:(NSAppleEventDescriptor *)event withReplyEvent:(NSAppleEventDescriptor *)replyEvent
+{
+	Q_UNUSED(event)
+	Q_UNUSED(replyEvent)
+	DockingManager::instance()->dockIconClicked();
+}
+@end
+
+struct MacDockingHelperStruct { MacDockingHelperObjC * macDockingHelperObjC; };
 
 MacDockingHelper *MacDockingHelper::Instance = 0;
 
-MacDockingHelper::MacDockingHelper(QObject *parent) : QObject(parent)
+MacDockingHelper::MacDockingHelper(QObject *parent) : QObject(parent) , d( new MacDockingHelperStruct )
 {
 	isBouncing = false;
-	isOverlayed = false;
+	d->macDockingHelperObjC = [[MacDockingHelperObjC alloc] init];
+	if (config_file.readBoolEntry("General", "RunDocked"))
+		Core::instance()->setShowMainWindowOnStart(false);
+	Core::instance()->kaduWindow()->setDocked(true);
 }
 
 MacDockingHelper::~MacDockingHelper()
 {
 	stopBounce();
 	removeOverlay();
+	if (!Core::instance()->isClosing())
+		Core::instance()->kaduWindow()->show();
+	Core::instance()->kaduWindow()->setDocked(false);
+	[d->macDockingHelperObjC release];
+	delete d;
 }
 
 void MacDockingHelper::startBounce()
 {
-	/* The following code is taken from PSI mac_dock sources */
 	if (!isBouncing)
 	{
-		bounceRec.qType = nmType;
-		bounceRec.nmMark = 1;
-		bounceRec.nmIcon = NULL;
-		bounceRec.nmSound = NULL;
-		bounceRec.nmStr = NULL;
-		bounceRec.nmResp = NULL;
-		bounceRec.nmRefCon = 0;
-		NMInstall(&bounceRec);
+		currentAttentionRequest = [NSApp requestUserAttention:NSCriticalRequest];
 		isBouncing = true;
 	}
 }
 
 void MacDockingHelper::stopBounce()
 {
-	/* The following code is taken from PSI mac_dock sources */
 	if (isBouncing)
 	{
-		NMRemove(&bounceRec);
+		[NSApp cancelUserAttentionRequest:currentAttentionRequest];
 		isBouncing = false;
 	}
 }
 
 void MacDockingHelper::removeOverlay()
 {
-	if (isOverlayed)
-	{
-		isOverlayed = false;
-
-		CGContextRef context = BeginCGContextForApplicationDockTile();
-		CGContextRestoreGState(context);
-		CGContextFlush(context);
-		EndCGContextForApplicationDockTile(context);
-
-		qApp->setWindowIcon(qApp->windowIcon());
-		//RestoreApplicationDockTileImage();
-	}
+	[[[NSApplication sharedApplication] dockTile]setBadgeLabel:nil];
+	qApp->setWindowIcon(qApp->windowIcon());
 }
 
-void MacDockingHelper::overlay(const QString& text)
+void MacDockingHelper::overlay(const NSInteger count)
 {
-	/* The following code is taken from PSI mac_dock sources */
-
-	CGContextRef context = BeginCGContextForApplicationDockTile();
-
-	if (!isOverlayed)
-	{
-		CGContextSaveGState(context);
-		isOverlayed = true;
-
-		// Add some subtle drop down shadow
-		CGSize s = { 2.0, -4.0 };
-		CGContextSetShadow(context, s, 5.0);
+	if (count == 0) {
+		removeOverlay();
+		return;
 	}
+	QPixmap pixmap = qApp->windowIcon().pixmap(128, 128);
+	CGImageRef image = pixmap.toMacCGImageRef();
 
-	// Draw a circle
-	CGContextBeginPath(context);
-	CGContextAddArc(context, 95.0, 95.0, 25.0, 0.0, 2 * M_PI, true);
-	CGContextClosePath(context);
-	CGContextSetRGBFillColor(context, 1, 0.0, 0.0, 1);
-	CGContextFillPath(context);
+	NSRect imageRect = NSMakeRect(0.0, 0.0, CGImageGetWidth(image), CGImageGetHeight(image));
+	NSImage *newImage = 0;
+	newImage = [[NSImage alloc] initWithSize:imageRect.size];
+	[newImage lockFocus];
+	{
+		CGContextRef imageContext = (CGContextRef)[[NSGraphicsContext currentContext] graphicsPort];
+		CGContextDrawImage(imageContext, *(CGRect *)&imageRect, image);
+	}
+	[newImage unlockFocus];
+	CFRelease(image);
 
-	// Set the clipping path to the same circle
-	CGContextBeginPath(context);
-	CGContextAddArc(context, 95.0, 95.0, 25.0, 0.0, 2 * M_PI, true);
-	CGContextClip(context);
-
-	// Select the appropriate font
-	CGContextSelectFont(context,DOCK_FONT_NAME, DOCK_FONT_SIZE, kCGEncodingMacRoman);
-	CGContextSetRGBFillColor(context, 1, 1, 1, 1);
-
-	// Draw the text invisible
-	CGPoint begin = CGContextGetTextPosition(context);
-	CGContextSetTextDrawingMode(context, kCGTextInvisible);
-	CGContextShowTextAtPoint(context, begin.x, begin.y, text.toStdString().c_str(), text.length());
-	CGPoint end = CGContextGetTextPosition(context);
-
-	// Draw the text
-	CGContextSetTextDrawingMode(context, kCGTextFill);
-	CGContextShowTextAtPoint(context, 95 - (end.x - begin.x)/2, 95 - 8, text.toStdString().c_str(), text.length());
-
-	// Cleanup
-	CGContextFlush(context);
-	EndCGContextForApplicationDockTile(context);
+	[NSApp setApplicationIconImage:newImage];
+	[newImage release];
+	[[[NSApplication sharedApplication] dockTile]setBadgeLabel:[NSString stringWithFormat:@"%d", count]];
 }
-

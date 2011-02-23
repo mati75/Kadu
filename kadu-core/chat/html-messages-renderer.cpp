@@ -1,7 +1,8 @@
 /*
  * %kadu copyright begin%
- * Copyright 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2009 Piotr Galiszewski (piotrgaliszewski@gmail.com)
+ * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -107,7 +108,12 @@ void HtmlMessagesRenderer::appendMessage(MessageRenderInfo *message)
 void HtmlMessagesRenderer::appendMessages(const QList<MessageRenderInfo *> &messages)
 {
 	MyChatMessages.append(messages);
-	pruneMessages();
+
+//  Do not prune messages here. When we are adding many massages to renderer, probably
+//  we want all of them to be visible on message view. This also fixes crash from
+//  http://kadu.net/mantis/view.php?id=1963 . This crash occured, when we are trying to
+//  cite more messages from history, than our message pruning setting
+//	pruneMessages();
 
 	ChatStylesManager::instance()->currentEngine()->appendMessages(this, messages);
 }

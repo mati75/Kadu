@@ -1,5 +1,9 @@
 /*
  * %kadu copyright begin%
+ * Copyright 2010, 2011 Piotr Dąbrowski (ultr@ultr.pl)
+ * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2010 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
@@ -138,6 +142,9 @@ void StatusActions::statusChanged()
 		StatusType *statusType = action->data().value<StatusType *>();
 		if (!statusType)
 			continue;
+
+		if (!CommonStatusIcons)
+			action->setIcon(MyStatusContainer->statusIcon(statusType->name()));
 
 		// For 'All xxx' status menu items - check only if all accounts have the same status
 		if (StatusContainerManager::instance() == MyStatusContainer)

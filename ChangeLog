@@ -1,9 +1,34 @@
-+++ version 0.6.6-beta18
++++ version 0.6.6-rc2
+
++++ version 0.6.6-rc1
+* chat: #1963 fixed: crash on opening chats, when citing from history is greater than message prunning setting (WhE)
+* jabber: #1972: Kadu sends invalid version string in capabilities information - XEP-0115: Entity Capabilities (WhE)
+* docking/simple_view: #1984 fixed: "simple view" option disappears from docking menu (WhE)
+* gadu: #1758 fixed: invalid behaviour of status buttons and menus when server disconnects (WhE)
+* gui: #1889 fixed: possibility of not displaying status icon (WhE)
+* gui: #1903 fixed: Invalid icon of "Change Status" action (Vogel, WhE)
+* jabber: #1988 fixed: "Send inactivity events" options is always active after opening "Your accounts" window (WhE)
+* gadu: #1967 fixed: multilogon ips are displayed improperly (Vogel)
+* chat: #1819 fixed: properly display system messages in Satin style (Vogel)
+* history: #1564 fixed: save contacts statuses after login (Vogel)
+* gui: #1886 fixed: removed unused proxy configuration widgets (Vogel)
+* jabber: #1914 fixed: added information about Facebook username (Vogel)
+* status: #1845 fixed: if Identity has a connected Gadu-Gadu account, always use its status (i.e., status icon, status menu, etc.) (beevvy, WhE)
+* icons: #1989 fixed: Oxygen's dialog-warning icons works again (ultr)
+* gui: copying folded links from chat view now copies the entire links, not their folded versions (beevvy)
+* buddies: added possibility to choose preferred contact only by priority, regardless of its status (off by default) (beevvy)
+* gadu: fixed resolver to work with more than one gadu account (beevvy)
+* gui: #1999 fixed: display avatar for dummy buddy when using default icon style (Vogel)
+* gui: #1994 fixed: add break-word to CSS styles for Satin (Vogel)
+* history_migration: #1990 fixed: running simultaneously more than one history import for the same history is possible (WhE)
+* gui: SpinBox widgets translate their suffixes now (ultr)
+* gadu: #2001 fixed: crash on changing account password (WhE)
 
 +++ version 0.6.6-beta17
 * gui: always use bold font on buddies with new messages (Vogel)
 * gadu: #1966 fixed: use only 443 port when connecting with TLS (Vogel)
 * core: fix serious regression from beta16, when Kadu sometimes lost some contacts after upgrade to beta16 (WhE)
+* docking: mac docking helper rewritten using Cocoa (Dorr/Vertex)
 
 +++ version 0.6.6-beta16
 * gadu: fixed invalid encoding and invalid formatting in some received messages, especially from GG10 (still not compatible with Infobot) (beevvy)

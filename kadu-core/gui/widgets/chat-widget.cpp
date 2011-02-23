@@ -7,7 +7,7 @@
  * Copyright 2008, 2009 Michał Podsiadlik (michal@kadu.net)
  * Copyright 2010 Tomasz Rostanski (rozteck@interia.pl)
  * Copyright 2008 Tomasz Rostański (rozteck@interia.pl)
- * Copyright 2009, 2009 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
  * Copyright 2008, 2009, 2010 Piotr Galiszewski (piotrgaliszewski@gmail.com)
  * %kadu copyright end%
  *
@@ -189,6 +189,7 @@ void ChatWidget::createContactsList()
 	layout->setSpacing(0);
 
 	BuddiesWidget = new BuddiesListWidget(BuddiesListWidget::FilterAtTop, this);
+	BuddiesWidget->setShowAnonymous(true);
 	BuddiesWidget->view()->setItemsExpandable(false);
 	BuddiesWidget->setMinimumSize(QSize(30, 30));
 	BuddiesWidget->view()->setModel(new ContactListModel(CurrentChat.contacts().toContactList(), this));

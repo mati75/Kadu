@@ -1,6 +1,6 @@
 /*
  * %kadu copyright begin%
- * Copyright 2009, 2009 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2009, 2010 Piotr Galiszewski (piotrgaliszewski@gmail.com)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
@@ -84,4 +84,12 @@ bool FacebookProtocolFactory::allowChangeServer()
 QString FacebookProtocolFactory::defaultServer()
 {
     return QLatin1String("chat.facebook.com");
+}
+
+QString FacebookProtocolFactory::whatIsMyUsername()
+{
+	return tr(
+		"Your username is available at <a href='https://www.facebook.com/editaccount.php?settings'>https://www.facebook.com/editaccount.php?settings</a> under Username field. "
+		"If this field is empty, you can choose your Username and enter it there."
+	);
 }

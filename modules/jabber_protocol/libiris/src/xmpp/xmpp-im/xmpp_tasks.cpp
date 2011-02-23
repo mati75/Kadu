@@ -580,6 +580,8 @@ void JT_Presence::pres(const Status &s)
 		if(!s.capsNode().isEmpty() && !s.capsVersion().isEmpty()) {
 			QDomElement c = doc()->createElement("c");
 			c.setAttribute("xmlns","http://jabber.org/protocol/caps");
+			if (!s.capsHashAlgorithm().isEmpty())
+				c.setAttribute("hash",s.capsHashAlgorithm());
 			c.setAttribute("node",s.capsNode());
 			c.setAttribute("ver",s.capsVersion());
 			if (!s.capsExt().isEmpty()) 
@@ -1458,22 +1460,22 @@ bool JT_ServInfo::take(const QDomElement &e)
 
 		QDomElement feature;
 		if (node.isEmpty() || node == client()->capsNode() + "#" + client()->capsVersion()) {
-			// Standard features
-			feature = doc()->createElement("feature");
-			feature.setAttribute("var", "http://jabber.org/protocol/bytestreams");
-			query.appendChild(feature);
+//			// Standard features
+//			feature = doc()->createElement("feature");
+//			feature.setAttribute("var", "http://jabber.org/protocol/bytestreams");
+//			query.appendChild(feature);
 
-			feature = doc()->createElement("feature");
-			feature.setAttribute("var", "http://jabber.org/protocol/si");
-			query.appendChild(feature);
+//			feature = doc()->createElement("feature");
+//			feature.setAttribute("var", "http://jabber.org/protocol/si");
+//			query.appendChild(feature);
 
-			feature = doc()->createElement("feature");
-			feature.setAttribute("var", "http://jabber.org/protocol/si/profile/file-transfer");
-			query.appendChild(feature);
+//			feature = doc()->createElement("feature");
+//			feature.setAttribute("var", "http://jabber.org/protocol/si/profile/file-transfer");
+//			query.appendChild(feature);
 			
-			feature = doc()->createElement("feature");
-			feature.setAttribute("var", "http://jabber.org/protocol/disco#info");
-			query.appendChild(feature);
+//			feature = doc()->createElement("feature");
+//			feature.setAttribute("var", "http://jabber.org/protocol/disco#info");
+//			query.appendChild(feature);
 
 			// Client-specific features
 			QStringList clientFeatures = client()->features().list();

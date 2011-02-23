@@ -1,8 +1,9 @@
 /*
  * %kadu copyright begin%
- * Copyright 2009, 2009 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2009, 2010 Piotr Galiszewski (piotrgaliszewski@gmail.com)
+ * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2009, 2010 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
  * %kadu copyright end%
  *
@@ -52,9 +53,10 @@ public:
 	virtual QValidator::State validateId(QString id);
 	virtual bool allowChangeServer();
 	virtual QString defaultServer();
+	virtual QString whatIsMyUsername() { return QString(); }
 
 	virtual QString name() { return "jabber"; }
-	virtual QString displayName() { return "Jabber"; }
+	virtual QString displayName() { return "Jabber/XMPP"; }
 
 	virtual QIcon icon();
 	virtual QString iconPath();

@@ -1,9 +1,10 @@
 /*
  * %kadu copyright begin%
- * Copyright 2009, 2009, 2009, 2010 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2009, 2010 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2009 Michał Podsiadlik (michal@kadu.net)
- * Copyright 2009, 2010 Piotr Galiszewski (piotrgaliszewski@gmail.com)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
  * %kadu copyright end%
  *
@@ -21,6 +22,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <QtCore/QCryptographicHash>
 #include <QtCore/QRegExp>
 #include <QtCore/QTimer>
 #include <QtCrypto>
@@ -408,7 +410,6 @@ void JabberClient::connect(const XMPP::Jid &jid, const QString &password, bool a
 
 	// Set caps information
 	jabberClient->setCapsNode(capsNode());
-	jabberClient->setCapsVersion(capsVersion());
 
 	// Set Disco Identity
 	//jabberClient->setIdentity( discoIdentity());
@@ -421,11 +422,17 @@ void JabberClient::connect(const XMPP::Jid &jid, const QString &password, bool a
 	jabberClient->setIdentity(identity);
 
 	QStringList features;
-//	features << "http://jabber.org/protocol/commands";
-	features << "http://jabber.org/protocol/rosterx";
-//	features << "http://jabber.org/protocol/muc";
-	features << "jabber:x:data";
-	features << "urn:xmpp:avatar:metadata+notify";
+	features << "http://jabber.org/protocol/chatstates"
+	<< "http://jabber.org/protocol/disco#info"
+	<< "jabber:iq:version"
+	<< "jabber:x:data"
+	<< "urn:xmpp:avatar:data"
+	<< "urn:xmpp:avatar:metadata"
+	<< "urn:xmpp:avatar:metadata+notify";
+
+	setCapsVersion(calculateCapsVersion(identity, features));
+
+	jabberClient->setCapsVersion(capsVersion());
 
 	jabberClient->setFeatures(Features(features));
 
@@ -744,6 +751,7 @@ void JabberClient::setPresence(const XMPP::Status &status)
 	// Send entity capabilities
 	newStatus.setCapsNode(capsNode());
 	newStatus.setCapsVersion(capsVersion());
+	newStatus.setCapsHashAlgorithm(QLatin1String("sha-1"));
 	newStatus.setCapsExt(capsExt());
 
 	JabberAccountDetails *jabberAccountDetails = dynamic_cast<JabberAccountDetails *>(Protocol->account().details());
@@ -1062,6 +1070,20 @@ void JabberClient::setPEPAvailable(bool b)
 	}
 	else if (!b && client()->extensions().contains("ep"))
 		client()->removeExtension("ep");
+}
+
+QString JabberClient::calculateCapsVersion(const DiscoItem::Identity &identity, const QStringList &features)
+{
+	QString result(identity.category);
+	result.append('/');
+	result.append(identity.type);
+	result.append("//");
+	result.append(identity.name);
+	result.append('<');
+	result.append(features.join(QLatin1String("<")));
+	result.append('<');
+
+	return QString::fromAscii(QCryptographicHash::hash(result.toAscii(), QCryptographicHash::Sha1).toBase64());
 }
 
 }

@@ -739,11 +739,11 @@ To poważne zagrożenie bezpieczeństwa!</translation>
     </message>
     <message>
         <source>Multilogon session connected</source>
-        <translation type="unfinished"></translation>
+        <translation>Podłączono sesję multilogowania</translation>
     </message>
     <message>
         <source>Multilogon session disconnected</source>
-        <translation type="unfinished"></translation>
+        <translation>Rozłączono sesję multilogowania</translation>
     </message>
     <message>
         <source>Ignore status changes from available / busy to busy / available</source>
@@ -1225,7 +1225,35 @@ znajomych po połączeniu się z serwerem</translation>
     </message>
     <message>
         <source>Free for chat</source>
-        <translation type="unfinished">Chętny do rozmowy</translation>
+        <translation>Chętny do rozmowy</translation>
+    </message>
+    <message numerus="yes">
+        <source>%n minute(s)</source>
+        <translation>
+            <numerusform>%n minuta</numerusform>
+            <numerusform>%n minuty</numerusform>
+            <numerusform>%n minut</numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <source>%n second(s)</source>
+        <translation>
+            <numerusform>%n sekunda</numerusform>
+            <numerusform>%n sekundy</numerusform>
+            <numerusform>%n sekund</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>never remove recent chats</source>
+        <translation>nigdy nie czyść ostatnich rozmów</translation>
+    </message>
+    <message numerus="yes">
+        <source>[for] %n minute(s)</source>
+        <translation>
+            <numerusform>[przez] %n minutę</numerusform>
+            <numerusform>[przez] %n minuty</numerusform>
+            <numerusform>[przez] %n minut</numerusform>
+        </translation>
     </message>
 </context>
 <context>
@@ -1449,7 +1477,7 @@ Eksport listy kontaktów na serwer się nie powiódł</translation>
     </message>
     <message>
         <source>Merging mobile number with buddy is not supported. Please use edit buddy window.</source>
-        <translation type="unfinished"></translation>
+        <translation>Scalenie numeru telefonu nie jest możliwe. Proszę użyć okna edycji kontaktu</translation>
     </message>
     <message>
         <source>Entered e-mail is invalid</source>
@@ -1457,7 +1485,7 @@ Eksport listy kontaktów na serwer się nie powiódł</translation>
     </message>
     <message>
         <source>Merging e-mail with buddy is not supported. Please use edit buddy window.</source>
-        <translation type="unfinished"></translation>
+        <translation>Scalanie adresu e-mail nie jest możliwe. Proszę użyć okna edycji kontaktu.</translation>
     </message>
 </context>
 <context>
@@ -1649,6 +1677,14 @@ Eksport listy kontaktów na serwer się nie powiódł</translation>
         <source>Website</source>
         <translation>Strona internetowa</translation>
     </message>
+    <message>
+        <source>Prefer the most available contact</source>
+        <translation>Preferuj najbardziej dostępny kontakt</translation>
+    </message>
+    <message>
+        <source>&lt;p&gt;When enabled and one of this buddy&apos;s contacts has higher status (i.e., more available) than the others, that contact will be considered preferred regardless of its priority&lt;/p&gt;</source>
+        <translation>&lt;p&gt;Gdy włączone, a jeden z kontaktów tego znajomego ma wyższy status (czyli bardziej dostępny) od pozostałych kontaktów, będzie on preferowany bez względu na priorytet&lt;/p&gt;</translation>
+    </message>
 </context>
 <context>
     <name>BuddyGroupsConfigurationWidget</name>
@@ -1835,15 +1871,15 @@ zostaną zignorowane. Czy na pewno chcesz opuścić konferencję?</translation>
     </message>
     <message>
         <source>%1 (Composing...)</source>
-        <translation type="unfinished"></translation>
+        <translation>%1 (Pisze...)</translation>
     </message>
     <message>
         <source>%1 (Inactive)</source>
-        <translation type="unfinished"></translation>
+        <translation>%1 (Nieaktywny)</translation>
     </message>
     <message>
         <source>%1 ended the conversation</source>
-        <translation type="unfinished"></translation>
+        <translation>%1 zakończył rozmowę</translation>
     </message>
 </context>
 <context>
@@ -2339,7 +2375,7 @@ Jest to prawdopodobnie dalsza część pliku &lt;b&gt;%5&lt;/b&gt;
     </message>
     <message>
         <source>Add Group</source>
-        <translation type="unfinished"></translation>
+        <translation>Dodaj grupę</translation>
     </message>
 </context>
 <context>
@@ -2369,15 +2405,15 @@ Jest to prawdopodobnie dalsza część pliku &lt;b&gt;%5&lt;/b&gt;
     </message>
     <message>
         <source>New Identity</source>
-		<translation>Nowa tożsamość</translation>
+        <translation>Nowa tożsamość</translation>
     </message>
     <message>
         <source>Please enter the name for the new identity:</source>
-		<translation>Podaj nazwę dla nowej tożsamości:</translation>
+        <translation>Podaj nazwę dla nowej tożsamości:</translation>
     </message>
     <message>
         <source> - Select identity - </source>
-		<translation> - Wybierz tożsamość - </translation>
+        <translation> - Wybierz tożsamość - </translation>
     </message>
 </context>
 <context>
@@ -2585,10 +2621,6 @@ Jest to prawdopodobnie dalsza część pliku &lt;b&gt;%5&lt;/b&gt;
     <message>
         <source>Change Status</source>
         <translation>Zmień status</translation>
-    </message>
-    <message>
-        <source>Use Proxy</source>
-        <translation>Używaj proxy</translation>
     </message>
     <message>
         <source>New Group</source>
@@ -2805,11 +2837,17 @@ Jeśli zechcesz włączyć (lub wyłączyć) któryś z nich, wystarczy dwukrotn
     </message>
     <message>
         <source>Multilogon session connected from %1 at %2 with %3 for %4 account</source>
-        <translation type="unfinished"></translation>
+        <translation>Inny klient połączył się z kontem %4
+IP: %1
+Czas: %2
+Klient: %3</translation>
     </message>
     <message>
         <source>Multilogon session disconnected from %1 at %2 with %3 for %4 account</source>
-        <translation type="unfinished"></translation>
+        <translation>Inny klient rozłączył się od konta %4
+IP: %1
+Czas: %2
+Klient: %3</translation>
     </message>
 </context>
 <context>
@@ -3079,118 +3117,118 @@ Jeśli zechcesz włączyć (lub wyłączyć) któryś z nich, wystarczy dwukrotn
     </message>
     <message>
         <source>Search User in Directory</source>
-        <translation type="unfinished"></translation>
+        <translation>Znajdź kontakt w katalogu</translation>
     </message>
     <message>
         <source>Search Criteria</source>
-        <translation type="unfinished"></translation>
+        <translation>Kryteria wyszukiwania</translation>
     </message>
     <message>
         <source>Search for this uin exclusively</source>
-        <translation type="unfinished"></translation>
+        <translation>Wyszukuj wyłącznie tego identyfikatora</translation>
     </message>
     <message>
         <source>Search using the personal data typed above (name, nickname, etc.)</source>
-        <translation type="unfinished"></translation>
+        <translation>Wyszukuj na podstawie danych osobistych podanych powyżej (nazwa, pseudonim)</translation>
     </message>
     <message>
         <source>Uin Number</source>
-        <translation type="unfinished"></translation>
+        <translation>Numer GG</translation>
     </message>
     <message>
         <source>Uin:</source>
-        <translation type="unfinished"></translation>
+        <translation>Numer GG</translation>
     </message>
     <message>
         <source>Personal Data</source>
-        <translation type="unfinished"></translation>
+        <translation>Dane osobowe</translation>
     </message>
     <message>
         <source>Nick:</source>
-        <translation type="unfinished"></translation>
+        <translation>Pseudonim:</translation>
     </message>
     <message>
         <source>Gender:</source>
-        <translation type="unfinished"></translation>
+        <translation>Płeć:</translation>
     </message>
     <message>
         <source>First name:</source>
-        <translation type="unfinished"></translation>
+        <translation>Imię:</translation>
     </message>
     <message>
         <source>Last name:</source>
-        <translation type="unfinished"></translation>
+        <translation>Nazwisko:</translation>
     </message>
     <message>
         <source>Birth year from:</source>
-        <translation type="unfinished"></translation>
+        <translation>Rok urodzenia od:</translation>
     </message>
     <message>
         <source>to:</source>
-        <translation type="unfinished"></translation>
+        <translation>do</translation>
     </message>
     <message>
         <source>City:</source>
-        <translation type="unfinished"></translation>
+        <translation>Miasto:</translation>
     </message>
     <message>
         <source>Search only for active users</source>
-        <translation type="unfinished"></translation>
+        <translation>Szukaj tylko aktywnych użytkowników</translation>
     </message>
     <message>
         <source>First Name</source>
-        <translation type="unfinished"></translation>
+        <translation>Imię</translation>
     </message>
     <message>
         <source>Birth Year</source>
-        <translation type="unfinished"></translation>
+        <translation>Rok urodzenia</translation>
     </message>
     <message>
         <source>Ready</source>
-        <translation type="unfinished"></translation>
+        <translation>Gotowe</translation>
     </message>
     <message>
         <source>To be able to search you have to set up an account first.</source>
-        <translation type="unfinished"></translation>
+        <translation>Aby wyszukiwać musisz najpierw skonfigurować konto.</translation>
     </message>
     <message>
         <source>We don&apos;t offer contacts search feature for your network yet.</source>
-        <translation type="unfinished"></translation>
+        <translation>Wyszukiwanie kontaktów dla tej sieci nie jest wspierane</translation>
     </message>
     <message>
         <source>Cannot search contacts in offline mode.</source>
-        <translation type="unfinished"></translation>
+        <translation>Nie można szukać kontaktów w trybie &quot;niedostępny&quot;</translation>
     </message>
     <message>
         <source>There were no results of your search.</source>
-        <translation type="unfinished"></translation>
+        <translation>Nie było żadnych wyników Twojego wyszukiwania</translation>
     </message>
 </context>
 <context>
     <name>SearchWindowActions</name>
     <message>
         <source>&amp;Search</source>
-        <translation type="unfinished">&amp;Szukaj</translation>
+        <translation>&amp;amp;Szukaj</translation>
     </message>
     <message>
         <source>&amp;Next results</source>
-        <translation type="unfinished">&amp;Następne wyniki</translation>
+        <translation>&amp;amp;Następne wyniki</translation>
     </message>
     <message>
         <source>Stop</source>
-        <translation type="unfinished">Zatrzymaj</translation>
+        <translation>Zatrzymaj</translation>
     </message>
     <message>
         <source>Clear results</source>
-        <translation type="unfinished">Wyczyść rezultaty</translation>
+        <translation>Wyczyść rezultaty</translation>
     </message>
     <message>
         <source>Add selected user</source>
-        <translation type="unfinished">Dodaj wybrany kontakt</translation>
+        <translation>Dodaj wybrany kontakt</translation>
     </message>
     <message>
         <source>&amp;Chat</source>
-        <translation type="unfinished">&amp;Rozmowa</translation>
+        <translation>&amp;amp;Rozmowa</translation>
     </message>
 </context>
 <context>

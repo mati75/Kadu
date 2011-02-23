@@ -1,15 +1,17 @@
 /*
  * %kadu copyright begin%
- * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2011 Piotr Dąbrowski (ultr@ultr.pl)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2009, 2010 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2008, 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2004, 2005, 2006 Marcin Ślusarz (joi@kadu.net)
  * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
- * Copyright 2007, 2008, 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2009, 2010 Maciej Płaza (plaza.maciej@gmail.com)
+ * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2008 Michał Podsiadlik (michal@kadu.net)
  * Copyright 2004 Roman Krzystyniak (Ron_K@tlen.pl)
- * Copyright 2009, 2010 Kermit (plaza.maciej@gmail.com)
  * Copyright 2008, 2009 Tomasz Rostański (rozteck@interia.pl)
- * Copyright 2009, 2009 Bartłomiej Zimoń (uzi18@o2.pl)
- * Copyright 2008, 2009, 2010 Piotr Galiszewski (piotrgaliszewski@gmail.com)
+ * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
  * Copyright 2005 Paweł Płuciennik (pawel_p@kadu.net)
  * %kadu copyright end%
  *
@@ -58,7 +60,7 @@
 #define BORDER_RADIUS 0
 
 HintManager::HintManager(QWidget *parent) :
-		Notifier("Hint", "Hints", "kadu_icons/notify-hints", parent), AbstractToolTip(),
+		Notifier("Hints", "Hints", "kadu_icons/notify-hints", parent), AbstractToolTip(),
 		hint_timer(new QTimer(this)),
 		tipFrame(0), hints()
 {
@@ -91,7 +93,24 @@ HintManager::HintManager(QWidget *parent) :
 	connect(hint_timer, SIGNAL(timeout()), this, SLOT(oneSecond()));
 	connect(ChatWidgetManager::instance(), SIGNAL(chatWidgetActivated(ChatWidget *)), this, SLOT(chatWidgetActivated(ChatWidget *)));
 
-	const QString default_hints_syntax(QT_TRANSLATE_NOOP("HintManager", "[<i>%s</i><br/>][<br/><b>Description:</b><br/>%d<br/><br/>][<i>Mobile:</i> <b>%m</b><br/>]"));
+	const QString default_hints_syntax(QT_TRANSLATE_NOOP("HintManager", "<table>"
+"<tr>"
+"<td align=\"left\" valign=\"top\">"
+"<img"
+"style=\"max-width:64px; max-height:64px;\""
+"src=\"{#{avatarPath} #{avatarPath}}{~#{avatarPath} @{kadu_icons/64x64/kadu.png}}\""
+">"
+"</td>"
+"<td width=\"100%\">"
+"<div>[<b>%a</b>][&nbsp;<b>(%g)</b>]</div>"
+"[<div><img align=\"left\" valign=\"middle\" height=\"16\" width=\"16\" src=\"file:///#{statusIconPath}\">&nbsp;&nbsp;%u</div>]"
+"[<div><img align=\"left\" valign=\"middle\" height=\"16\" width=\"16\" src=\"file:///@{16x16/phone.png}\">&nbsp;&nbsp;%m</div>]"
+"[<div><img align=\"left\" valign=\"middle\" height=\"16\" width=\"16\" src=\"file:///@{16x16/mail-message-new.png}\">&nbsp;&nbsp;%e</div>]"
+"[<div><img align=\"left\" valign=\"middle\" height=\"16\" width=\"16\" src=\"file:///@{kadu_icons/kadu-blocking.png}\">&nbsp;%oDoesn't have you on the list</div>]"
+"</td>"
+"</tr>"
+"</table>"
+"[<hr><b>%s</b>][<b>:</b><br><small>%d</small>]"));
 	if (config_file.readEntry("Hints", "MouseOverUserSyntax") == default_hints_syntax || config_file.readEntry("Hints", "MouseOverUserSyntax").isEmpty())
 		config_file.writeEntry("Hints", "MouseOverUserSyntax", tr(default_hints_syntax.toAscii()));
 

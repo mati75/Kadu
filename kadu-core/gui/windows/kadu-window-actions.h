@@ -1,7 +1,7 @@
 /*
  * %kadu copyright begin%
- * Copyright 2009, 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2009 Piotr Galiszewski (piotrgaliszewski@gmail.com)
+ * Copyright 2009, 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -71,7 +71,6 @@ class KaduWindowActions : QObject, ConfigurationAwareObject
 	ActionDescription *OnlineAndDescriptionUsers;
 	ActionDescription *EditUser;
 	ActionDescription *ChangeStatus;
-	ActionDescription *UseProxy;
 
 private slots:
 	void statusChanged(StatusContainer *container, Status status);
@@ -82,7 +81,6 @@ private slots:
 	void onlineAndDescUsersActionCreated(Action *action);
 	void editUserActionCreated(Action *action);
 	void changeStatusActionCreated(Action *action);
-	void useProxyActionCreated(Action *action);
 	void showInfoPanelActionCreated(Action *action);
 	void showBlockedActionCreated(Action *action);
 
@@ -116,7 +114,6 @@ private slots:
 	void onlineAndDescUsersActionActivated(QAction *sender, bool toggled);
 	void editUserActionActivated(QAction *sender, bool toggled);
 	void changeStatusActionActivated(QAction *sender, bool toggled);
-	void useProxyActionActivated(QAction *sender, bool toggled);
 
 protected:
 	virtual void configurationUpdated();

@@ -1,10 +1,11 @@
 /*
  * %kadu copyright begin%
  * Copyright 2007 Dawid Stawiarski (neeo@kadu.net)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2008, 2009, 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2006 Adrian Smarzewski (adrian@kadu.net)
  * Copyright 2005, 2006, 2007 Marcin Ślusarz (joi@kadu.net)
  * Copyright 2007, 2008, 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2008, 2009, 2010 Piotr Galiszewski (piotrgaliszewski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -172,8 +173,7 @@ MessageRenderInfo::MessageRenderInfo(const Message &msg) :
 	while ((pos = kaduimgRegExp.indexIn(HtmlMessageContent, pos)) != -1)
 	{
 		QString imgId = kaduimgRegExp.cap(1);
-		// TODO 0.6.6: remove the first condition before RC release (will break compatibility with sent images saved in history by beta11)
-		if (!imgId.startsWith('/') && !QFile(ChatImageService::imagesPath() + imgId).exists())
+		if (!QFile(ChatImageService::imagesPath() + imgId).exists())
 			HtmlMessageContent.replace(kaduimgRegExp.cap(0), loadingImageHtml(imgId));
 		else
 			pos += kaduimgRegExp.matchedLength();

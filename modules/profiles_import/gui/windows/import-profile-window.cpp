@@ -1,5 +1,6 @@
 /*
  * %kadu copyright begin%
+ * Copyright 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
@@ -120,7 +121,7 @@ void ImportProfileWindow::accept()
 	{
 		MessageDialog::exec("dialog-information", tr("Import external profile..."), tr("Profile successfully imported!"));
 
-		if (ImportHistory->isChecked())
+		if (ImportHistory->isChecked() && !HistoryImporterManager::instance()->containsImporter(kaduConfFile.absoluteDir().absolutePath() + "/history/"))
 		{
 			HistoryImporter *hi = new HistoryImporter(importer.resultAccount(), kaduConfFile.absoluteDir().absolutePath() + "/history/");
 			HistoryImporterManager::instance()->addImporter(hi);

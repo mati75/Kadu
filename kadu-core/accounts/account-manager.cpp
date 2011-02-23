@@ -1,8 +1,9 @@
 /*
  * %kadu copyright begin%
- * Copyright 2008, 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2008 Michał Podsiadlik (michal@kadu.net)
- * Copyright 2009 Piotr Galiszewski (piotrgaliszewski@gmail.com)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
  * %kadu copyright end%
  *
@@ -156,6 +157,12 @@ Account AccountManager::defaultAccount()
 	QMutexLocker(&mutex());
 
 	ensureLoaded();
+
+	// TODO: hack
+	foreach (const Account &account, items())
+		if (account.protocolName() == "gadu")
+			return account;
+
 	return byIndex(0);
 }
 
@@ -205,7 +212,7 @@ Status AccountManager::status()
 	QMutexLocker(&mutex());
 
 	Account account = defaultAccount();
-	return !account.isNull()
+	return account.statusContainer()
 			? account.statusContainer()->status()
 			: Status();
 }

@@ -1,8 +1,9 @@
 /*
  * %kadu copyright begin%
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2008, 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2008, 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2008, 2009 Piotr Galiszewski (piotrgaliszewski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -19,44 +20,80 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <QtCore/QDir>
+#include <QtCore/QFile>
+#include <QtCore/QFileInfo>
+#include <QtCore/QRegExp>
 #include <QtGui/QTextBlock>
 #include <QtGui/QTextDocument>
 
+#include "protocols/services/chat-image-service.h"
 #include "html_document.h"
 #include "icons-manager.h"
 
 #include "formatted-message.h"
 
-QRegExp FormattedMessage::ImageRegExp("\\[IMAGE ([^\\]]+)\\]");
+QString FormattedMessage::saveInImagesPath(const QString &filePath)
+{
+	QFileInfo fileInfo(filePath);
+	if (!fileInfo.exists())
+		return filePath;
+
+	QFileInfo imagesPathInfo(ChatImageService::imagesPath());
+	if (!imagesPathInfo.isDir() && !QDir().mkdir(imagesPathInfo.absolutePath()))
+		return filePath;
+
+	// if already in imagesPath, it'd be a waste to copy it in the same dir
+	if (fileInfo.absolutePath() == imagesPathInfo.absolutePath())
+		return fileInfo.fileName();
+
+	QString copyFileName = QUuid::createUuid().toString();
+	// Make this file name less exotic. First, get rid of '{' and '}' on edges.
+	if (copyFileName.length() > 2)
+		copyFileName = copyFileName.mid(1, copyFileName.length() - 2);
+	// Second, try to add extension.
+	QString ext = fileInfo.completeSuffix();
+	if (!ext.isEmpty())
+		copyFileName += '.' + ext;
+
+	if (QFile::copy(filePath, imagesPathInfo.absolutePath() + '/' + copyFileName))
+		return copyFileName;
+
+	return filePath;
+}
 
 void FormattedMessage::parseImages(FormattedMessage &message, const QString &messageString, bool b, bool i, bool u, QColor color)
 {
-	QString partContent;
+	static QRegExp imageRegExp("\\[IMAGE ([^\\]]+)\\]");
 
 	int lastPos = -1;
 	int pos = 0;
 
-	while ((pos = ImageRegExp.indexIn(messageString, pos)) != -1)
+	while ((pos = imageRegExp.indexIn(messageString, pos)) != -1)
 	{
 		if (lastPos != pos)
 		{
-			partContent = messageString.mid(lastPos, pos - lastPos);
-			message << FormattedMessagePart(partContent, b, i, u, color);
+			if (lastPos == -1)
+				message << FormattedMessagePart(messageString.left(pos), b, i, u, color);
+			else
+				message << FormattedMessagePart(messageString.mid(lastPos, pos - lastPos), b, i, u, color);
 		}
 
-		QString filePath = ImageRegExp.cap(1);
-		if (!filePath.isEmpty())
-			message << FormattedMessagePart(filePath);
+		QString filePath = imageRegExp.cap(1);
+		QFileInfo fileInfo(filePath);
+		if (fileInfo.isAbsolute() && fileInfo.exists() && fileInfo.isFile())
+			message << FormattedMessagePart(saveInImagesPath(filePath));
+		else
+			message << FormattedMessagePart(messageString.mid(pos, imageRegExp.matchedLength()), b, i, u, color);
 
-		pos += ImageRegExp.matchedLength();
+		pos += imageRegExp.matchedLength();
 		lastPos = pos;
 	}
 
-	if (lastPos != messageString.length())
-	{
-		partContent = messageString.mid(lastPos, messageString.length() - lastPos);
-		message << FormattedMessagePart(partContent, b, i, u, color);
-	}
+	if (lastPos == -1)
+		message << FormattedMessagePart(messageString, b, i, u, color);
+	else if (lastPos != messageString.length())
+		message << FormattedMessagePart(messageString.mid(lastPos, messageString.length() - lastPos), b, i, u, color);
 }
 
 FormattedMessage FormattedMessage::parse(const QTextDocument *document)
@@ -77,7 +114,7 @@ FormattedMessage FormattedMessage::parse(const QTextDocument *document)
 				continue;
 
 			if (!firstParagraph && firstFragment)
-				text = QString("\n") + fragment.text();
+				text = '\n' + fragment.text();
 			else
 				text = fragment.text();
 

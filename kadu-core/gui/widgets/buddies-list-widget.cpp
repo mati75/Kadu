@@ -1,9 +1,12 @@
 /*
  * %kadu copyright begin%
- * Copyright 2009, 2009 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2009, 2010 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2010 Przemysław Rudy (prudy1@o2.pl)
+ * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010 Tomasz Rostański (rozteck@interia.pl)
  * Copyright 2009 Longer (longer89@gmail.com)
- * Copyright 2009, 2010 Piotr Galiszewski (piotrgaliszewski@gmail.com)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
  * %kadu copyright end%
  *
@@ -50,7 +53,8 @@ BuddiesListWidget::BuddiesListWidget(FilterPosition filterPosition, QWidget *par
 	View = new BuddiesListView(this);
 	View->addFilter(new PendingMessagesFilter(this));
 
-	View->addFilter(new AnonymousBuddyFilter(this));
+	AnonymousFilter = new AnonymousBuddyFilter(this);
+	View->addFilter(AnonymousFilter);
 
 	NameFilterWidget->setView(View);
 #ifndef Q_OS_MAC
@@ -78,6 +82,11 @@ BuddiesListWidget::~BuddiesListWidget()
 void BuddiesListWidget::clearFilter()
 {
 	NameFilterWidget->setFilter(QString());
+}
+
+void BuddiesListWidget::setShowAnonymous(bool show)
+{
+	AnonymousFilter->setEnabled(!show);
 }
 
 void BuddiesListWidget::nameFilterChanged(const QString &filter)

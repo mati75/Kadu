@@ -1,10 +1,12 @@
 /*
  * %kadu copyright begin%
- * Copyright 2009, 2009 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2008, 2009, 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010 Piotr Dąbrowski (ultr@ultr.pl)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2009 Michał Podsiadlik (michal@kadu.net)
- * Copyright 2009, 2010 Piotr Galiszewski (piotrgaliszewski@gmail.com)
- * Copyright 2009, 2009, 2010 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2009, 2010 Bartłomiej Zimoń (uzi18@o2.pl)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -108,7 +110,6 @@ void BuddyShared::importConfiguration()
 	ImportProperty(HomePhone, home_phone)
 	ImportProperty(Mobile, mobile)
 	ImportProperty(Email, email)
-
 }
 
 void BuddyShared::load()
@@ -176,6 +177,7 @@ void BuddyShared::load()
 	Blocked = loadValue<bool>("Blocked", false);
 	OfflineTo = loadValue<bool>("OfflineTo", false);
 	Gender = (BuddyGender)loadValue<int>("Gender", 0);
+	PreferHigherStatuses = loadValue<bool>("PreferHigherStatuses", true);
 }
 
 void BuddyShared::store()
@@ -213,6 +215,7 @@ void BuddyShared::store()
 	storeValue("Blocked", Blocked);
 	storeValue("OfflineTo", OfflineTo);
 	storeValue("Gender", (int)Gender);
+	storeValue("PreferHigherStatuses", PreferHigherStatuses);
 
 	if (Groups.count())
 	{
@@ -264,7 +267,7 @@ void BuddyShared::addContact(Contact contact)
 	if (contact.priority() == -1)
 	{
 		int last = Contacts.count() > 1
-				? Contacts[Contacts.count() - 1].priority()
+				? Contacts.at(Contacts.count() - 1).priority()
 				: 0;
 		contact.setPriority(last);
 	}
@@ -361,7 +364,7 @@ bool BuddyShared::showInAllGroup()
 {
 	ensureLoaded();
 
-	foreach (const Group group, Groups)
+	foreach (const Group &group, Groups)
 		if (!group.isNull() && !group.showInAllGroup())
 			return false;
 

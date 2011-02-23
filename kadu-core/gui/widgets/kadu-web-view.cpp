@@ -1,11 +1,13 @@
 /*
  * %kadu copyright begin%
  * Copyright 2007 Dawid Stawiarski (neeo@kadu.net)
+ * Copyright 2010 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2008, 2009, 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2005, 2006, 2007 Marcin Ślusarz (joi@kadu.net)
  * Copyright 2007, 2008, 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2009 Michał Podsiadlik (michal@kadu.net)
- * Copyright 2008 Tomasz Rostański (rozteck@interia.pl)
- * Copyright 2008, 2009, 2010 Piotr Galiszewski (piotrgaliszewski@gmail.com)
+ * Copyright 2008, 2010 Tomasz Rostański (rozteck@interia.pl)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -190,7 +192,7 @@ void KaduWebView::mouseReleaseEvent(QMouseEvent *e)
 
 #ifdef Q_WS_X11
 	if (!page()->selectedText().isEmpty())
-		convertClipboardHtmlImages(QClipboard::Selection);
+		convertClipboardHtml(QClipboard::Selection);
 #endif
 }
 
@@ -247,10 +249,8 @@ void KaduWebView::saveImage()
 	kdebugf();
 
 	QUrl imageUrl = page()->currentFrame()->hitTestContent(ContextMenuPos).imageUrl();
-	QString imageFullPath = imageUrl.scheme() == "kaduimg"
-			? (imageUrl.path().startsWith("//") // TODO 0.6.6: remove before RC release (will break compatibility with sent images saved in history by beta11)
-				? imageUrl.path()
-				: ChatImageService::imagesPath() + imageUrl.path())
+	QString imageFullPath = (imageUrl.scheme() == "kaduimg")
+			? ChatImageService::imagesPath() + imageUrl.path()
 			: imageUrl.toLocalFile();
 	if (imageFullPath.isEmpty())
 		return;
@@ -332,16 +332,23 @@ void KaduWebView::saveImage()
 
 void KaduWebView::textCopied() const
 {
-	convertClipboardHtmlImages(QClipboard::Clipboard);
+	convertClipboardHtml(QClipboard::Clipboard);
 }
 
 // taken from Psi+'s webkit patch, SVN rev. 2638, and slightly modified
-void KaduWebView::convertClipboardHtmlImages(QClipboard::Mode mode)
+void KaduWebView::convertClipboardHtml(QClipboard::Mode mode)
 {
+	static QRegExp emotsRegExpApos("<img[^>]+title\\s*=\\s*'([^']+)'[^>]*>");
+	static QRegExp emotsRegExpQuot("<img[^>]+title\\s*=\\s*\"([^\"]+)\"[^>]*>");
+	static QRegExp linksRegExpApos("<a[^>]+href\\s*=\\s*'([^']+)'[^>]*>[^<]*<[^>]*>");
+	static QRegExp linksRegExpQuot("<a[^>]+href\\s*=\\s*\"([^\"]+)\"[^>]*>[^<]*<[^>]*>");
+
 	QClipboard *cb = QApplication::clipboard();
 	QString html = cb->mimeData(mode)->html();
-	html.replace(QRegExp("<img[^>]+title\\s*=\\s*'([^']+)'[^>]*>"), "\\1");
-	html.replace(QRegExp("<img[^>]+title\\s*=\\s*\"([^\"]+)\"[^>]*>"), "\\1");
+	html.replace(emotsRegExpApos, QLatin1String("\\1"));
+	html.replace(emotsRegExpQuot, QLatin1String("\\1"));
+	html.replace(linksRegExpApos, QLatin1String("<a href='\\1'>\\1</a>"));
+	html.replace(linksRegExpQuot, QLatin1String("<a href=\"\\1\">\\1</a>"));
 	QTextDocument htmlToPlainTextConverter;
 	htmlToPlainTextConverter.setHtml(html);
 	QMimeData *data = new QMimeData();

@@ -1,9 +1,11 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2009, 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011 Piotr Dąbrowski (ultr@ultr.pl)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2009 Michał Podsiadlik (michal@kadu.net)
- * Copyright 2009, 2010 Piotr Galiszewski (piotrgaliszewski@gmail.com)
+ * Copyright 2010 Tomasz Rostański (rozteck@interia.pl)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
  * %kadu copyright end%
  *
@@ -228,12 +230,6 @@ void ChatEditBox::openInsertImageDialog()
 			return;
 		}
 
-		if (f.size() >= (1 << 18)) // 256kB
-		{
-			MessageDialog::show("dialog-warning", tr("Kadu"), tr("This file is too big (%1 >= %2)").arg(f.size()).arg(1<<18), QMessageBox::Ok, this);
-			return;
-		}
-
 		int tooBigCounter = 0;
 		int disconnectedCounter = 0;
 
@@ -264,16 +260,11 @@ void ChatEditBox::openInsertImageDialog()
 				message += tr("Do you really want to send this image?\nSome of them probably will not get it.");
 		}
 
-		if (!message.isEmpty() && !MessageDialog::ask(QString(), tr("Kadu"), message))
+		if (!message.isEmpty() && !MessageDialog::ask("dialog-question", tr("Kadu"), message))
 			return;
 
-		QString path = ChatImageService::imagesPath();
-		if (QFileInfo(path).isDir() ||QDir().mkdir(path))
-		{
-			QString copyFilePath = path + QUuid::createUuid().toString();
-			if (QFile::copy(selectedFile, copyFilePath))
-				selectedFile = copyFilePath;
-		}
+		if (f.size() >= (1 << 18)) // 256kB
+			MessageDialog::show("dialog-warning", tr("Kadu"), tr("This file is too big (%1 >= %2)").arg(f.size()).arg(1<<18), QMessageBox::Ok, this);
 
 		InputBox->insertPlainText(QString("[IMAGE %1]").arg(selectedFile));
 	}

@@ -1,8 +1,9 @@
 /*
  * %kadu copyright begin%
+ * Copyright 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2009, 2010 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010 Piotr Galiszewski (piotrgaliszewski@gmail.com)
+ * Copyright 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
  * %kadu copyright end%
  *
@@ -86,6 +87,16 @@ void JabberAddAccountWidget::createGui(bool showButtons)
 	{
 		Domain->setVisible(false);
 		AtLabel->setVisible(false);
+
+		QString toolTip = Factory->whatIsMyUsername();
+		if (!toolTip.isEmpty())
+		{
+			QLabel *whatIsMyUsernameLabel = new QLabel(tr("<a href='#'>What is my username?</a>"), this);
+			whatIsMyUsernameLabel->setTextInteractionFlags(Qt::LinksAccessibleByMouse);
+			jidLayout->addWidget(whatIsMyUsernameLabel, 0, 2, Qt::AlignRight);
+
+			connect(whatIsMyUsernameLabel, SIGNAL(linkActivated(QString)), this, SLOT(showWhatIsMyUsername()));
+		}
 	}
 	else
 	{
@@ -196,4 +207,9 @@ void JabberAddAccountWidget::resetGui()
 
 	IdentityManager::instance()->removeUnused();
 	setState(StateNotChanged);
+}
+
+void JabberAddAccountWidget::showWhatIsMyUsername()
+{
+	MessageDialog::exec("dialog-information", Factory->displayName(), Factory->whatIsMyUsername());
 }

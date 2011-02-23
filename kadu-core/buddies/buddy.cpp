@@ -1,9 +1,11 @@
 /*
  * %kadu copyright begin%
+ * Copyright 2010 Piotr Dąbrowski (ultr@ultr.pl)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2008, 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2009, 2009 Bartłomiej Zimoń (uzi18@o2.pl)
- * Copyright 2008, 2009, 2010 Piotr Galiszewski (piotrgaliszewski@gmail.com)
+ * Copyright 2008, 2009, 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -269,7 +271,7 @@ Buddy Buddy::dummy()
 		Avatar avatar = AvatarManager::instance()->byContact(contact, ActionCreate);
 
 		avatar.setLastUpdated(QDateTime::currentDateTime());
-		avatar.setFilePath(IconsManager::instance()->iconPath("system-users", "64x64"));
+		avatar.setFilePath(IconsManager::instance()->iconPath("system-users", "32x32"));
 
 		example.addContact(contact);
 		example.setAnonymous(false);
@@ -295,6 +297,7 @@ KaduSharedBase_PropertyDef(Buddy, QString, website, Website, QString())
 KaduSharedBase_PropertyDef(Buddy, unsigned short, birthYear, BirthYear, 0)
 KaduSharedBase_PropertyDef(Buddy, BuddyGender, gender, Gender, GenderUnknown)
 KaduSharedBase_PropertyDef(Buddy, QList<Group>, groups, Groups, QList<Group>())
+KaduSharedBase_PropertyDef(Buddy, bool, preferHigherStatuses, PreferHigherStatuses, true)
 KaduSharedBase_PropertyBoolDef(Buddy, Anonymous, true)
 KaduSharedBase_PropertyBoolDef(Buddy, Blocked, false)
 KaduSharedBase_PropertyBoolDef(Buddy, OfflineTo, false)

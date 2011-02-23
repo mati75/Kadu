@@ -1,7 +1,10 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Tomasz Rostanski (rozteck@interia.pl)
+ * Copyright 2011 Tomasz Rostanski (rozteck@interia.pl)
+ * Copyright 2010 Tomasz Rostański (rozteck@interia.pl)
  * %kadu copyright end%
+ *
+ * Copyright 2011 Adam "Vertex" Makświej (vertexbz@gmail.com)
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -22,32 +25,46 @@
 
 #include <QtCore/QObject>
 
-#include "Carbon/Carbon.h"
+#if __LP64__ || NS_BUILD_32_LIKE_64
+typedef long NSInteger;
+#else
+typedef int NSInteger;
+#endif
 
+struct MacDockingHelperStruct;
 class MacDockingHelper : public QObject
 {
 	Q_OBJECT
 
 private:
-	bool isBouncing;
-	bool isOverlayed;
-	NMRec bounceRec;
 	static MacDockingHelper *Instance;
-
+	NSInteger currentAttentionRequest;
+	bool isBouncing;
+	MacDockingHelperStruct *d;
 	MacDockingHelper(QObject *parent = 0);
 	~MacDockingHelper();
+	void showMinimizedChats();
 
 public:
 	static MacDockingHelper *instance()
+	{
+		if (!Instance)
+			Instance = new MacDockingHelper();
+		return Instance;
+	};
+	static void destroyInstance()
+	{
+		if (Instance)
 		{
-			if (!Instance)
-				Instance = new MacDockingHelper();
-			return Instance; 
-		};
+			delete Instance;
+			Instance = 0;
+		}
+	};
+
 	void startBounce();
 	void stopBounce();
 	void removeOverlay();
-	void overlay(const QString& text);
+	void overlay(const NSInteger count);
 };
 
 #endif // MAC_DOCKING_HELPER_H

@@ -1,7 +1,8 @@
 /*
  * %kadu copyright begin%
- * Copyright 2009, 2010 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2008, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -74,7 +75,8 @@ void ConfigWizardConfigurationUiHandler::showConfigWizard()
 	kdebugf();
 
 	ConfigWizardWindow *wizard = new ConfigWizardWindow();
-	wizard->show();
+	// we have to delay it a bit to show after main window to have focus on startup
+	QMetaObject::invokeMethod(wizard, "show", Qt::QueuedConnection);
 }
 
 void ConfigWizardConfigurationUiHandler::showConfigWizardSlot()

@@ -1,8 +1,9 @@
 /*
  * %kadu copyright begin%
- * Copyright 2009, 2009, 2010 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2009, 2010 Piotr Galiszewski (piotrgaliszewski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2009, 2010 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
  * %kadu copyright end%
  *
@@ -165,6 +166,9 @@ namespace XMPP
 		 * @param localAddress Local address to receive file transfers at. Will be determined automatically if not specified.
 		 */
 		void setFileTransfersEnabled(bool flag, const QString &localAddress = QString());
+
+		// TODO 0.10: move this to proper place:
+		QString calculateCapsVersion(const DiscoItem::Identity &identity, const QStringList &features);
 
 	private slots:
 		/* S5B server object has been destroyed. */

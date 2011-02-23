@@ -1,11 +1,15 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2009, 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010 Piotr Dąbrowski (ultr@ultr.pl)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2009, 2010, 2011 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2010 Przemysław Rudy (prudy1@o2.pl)
+ * Copyright 2010 badboy (badboy@gen2.org)
+ * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2009, 2010 Maciej Płaza (plaza.maciej@gmail.com)
  * Copyright 2009 Michał Podsiadlik (michal@kadu.net)
- * Copyright 2009, 2010 Kermit (plaza.maciej@gmail.com)
- * Copyright 2009, 2010 Piotr Galiszewski (piotrgaliszewski@gmail.com)
+ * Copyright 2010 Tomasz Rostański (rozteck@interia.pl)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
  * %kadu copyright end%
  *
@@ -198,11 +202,11 @@ void Core::createDefaultConfiguration()
 	config_file.addVariable("General", "StartupStatusInvisibleWhenLastWasOffline", true);
 	config_file.addVariable("General", "UserBoxHeight", 300);
 	config_file.addVariable("General", "WindowActivationMethod", 0);
-	config_file.addVariable("General", "MainConfiguration_Geometry", "50, 50, 790, 480");
+	config_file.addVariable("General", "MainConfiguration_Geometry", "50, 50, 790, 580");
 	config_file.addVariable("General", "LookChatAdvanced_Geometry", "50, 50, 620, 540");
 
 	config_file.addVariable("Look", "AlignUserboxIconsTop", true);
-	config_file.addVariable("Look", "AvatarBorder", true);
+	config_file.addVariable("Look", "AvatarBorder", false);
 	config_file.addVariable("Look", "AvatarGreyOut", true);
 	config_file.addVariable("Look", "ChatContents", QString());
 	config_file.addVariable("Look", "ChatFont", qApp->font());
@@ -223,10 +227,10 @@ void Core::createDefaultConfiguration()
 	config_file.addVariable("Look", "InfoPanelFgColor", w.palette().text().color());
 	config_file.addVariable("Look", "InfoPanelBgFilled", false);
 	config_file.addVariable("Look", "InfoPanelBgColor", w.palette().base().color());
-	config_file.addVariable("Look", "InfoPanelSyntaxFile", "default");
+	config_file.addVariable("Look", "InfoPanelSyntaxFile", "ultr");
 	config_file.addVariable("Look", "NiceDateFormat", true);
 	config_file.addVariable("Look", "NoHeaderInterval", 30);
-	config_file.addVariable("Look", "NoHeaderRepeat", false);
+	config_file.addVariable("Look", "NoHeaderRepeat", true);
 	config_file.addVariable("Look", "NoServerTime", true);
 	config_file.addVariable("Look", "NoServerTimeDiff", 60);
 	config_file.addVariable("Look", "PanelFont", qApp->font());
@@ -394,7 +398,11 @@ void Core::statusChanged()
 {
 	kdebugf();
 
-	setIcon(StatusContainerManager::instance()->statusIcon());
+	Account account = AccountManager::instance()->defaultAccount();
+	if (account.isNull() || !account.protocolHandler())
+		setIcon(StatusContainerManager::instance()->statusIcon());
+	else
+		setIcon(StatusContainerManager::instance()->statusIcon(account.protocolHandler()->status()));
 }
 
 void Core::kaduWindowDestroyed()

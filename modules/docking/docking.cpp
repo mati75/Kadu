@@ -1,20 +1,25 @@
 /*
  * %kadu copyright begin%
+ * Copyright 2010, 2011 Piotr Dąbrowski (ultr@ultr.pl)
  * Copyright 2007 Dawid Stawiarski (neeo@kadu.net)
- * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2009, 2010 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2008, 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2004, 2005, 2006, 2007 Marcin Ślusarz (joi@kadu.net)
  * Copyright 2002, 2003, 2004 Adrian Smarzewski (adrian@kadu.net)
  * Copyright 2002, 2003 Tomasz Chiliński (chilek@chilan.com)
  * Copyright 2010 Maciej Płaza (plaza.maciej@gmail.com)
- * Copyright 2007, 2008, 2009, 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2004 Roman Krzystyniak (Ron_K@tlen.pl)
  * Copyright 2004, 2008 Michał Podsiadlik (michal@kadu.net)
- * Copyright 2009, 2009 Bartłomiej Zimoń (uzi18@o2.pl)
- * Copyright 2008, 2009, 2010 Piotr Galiszewski (piotrgaliszewski@gmail.com)
+ * Copyright 2010 Tomasz Rostański (rozteck@interia.pl)
+ * Copyright 2010, 2011 Tomasz Rostanski (rozteck@interia.pl)
+ * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
  * Copyright 2004, 2005 Paweł Płuciennik (pawel_p@kadu.net)
  * Copyright 2002, 2003 Dariusz Jagodzik (mast3r@kadu.net)
- * Copyright 2010 Tomasz Rostański (rozteck@interia.pl)
  * %kadu copyright end%
+ *
+ * Copyright 2011 Adam "Vertex" Makświej (vertexbz@gmail.com)
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -76,10 +81,16 @@ void DockingManager::createInstance()
 {
 	if (!Instance)
 		Instance = new DockingManager();
+#ifdef Q_OS_MAC
+	MacDockingHelper::instance();
+#endif
 }
 
 void DockingManager::destroyInstance()
 {
+#ifdef Q_OS_MAC
+	MacDockingHelper::destroyInstance();
+#endif
 	delete Instance;
 	Instance = 0;
 }
@@ -110,11 +121,6 @@ DockingManager::DockingManager() :
 	DockMenu = new QMenu();
 
 #ifdef Q_OS_MAC
-	OpenChatAction = new QAction(IconsManager::instance()->iconByPath("internet-group-chat"),
-		tr("Show Pending Messages"), this);
-	connect(OpenChatAction, SIGNAL(triggered()), ChatWidgetManager::instance(),
-		SLOT(openPendingMessages()));
-
 	MacDockMenu = new QMenu();
 	qt_mac_set_dock_menu(MacDockMenu);
 #endif
@@ -183,10 +189,9 @@ void DockingManager::changeIcon()
 				if (account.isNull() || !account.protocolHandler())
 					return;
 
-				const Status &stat = account.protocolHandler()->status();
-
 				if (CurrentDocker)
-					CurrentDocker->changeTrayIcon(StatusContainerManager::instance()->statusIcon(stat));
+					CurrentDocker->changeTrayIcon(
+							StatusContainerManager::instance()->statusIcon(account.protocolHandler()->status()));
 
 				icon_timer->setSingleShot(true);
 				icon_timer->start(500);
@@ -200,7 +205,7 @@ void DockingManager::pendingMessageAdded()
 {
 	changeIcon();
 #ifdef Q_OS_MAC
-	MacDockingHelper::instance()->overlay(QString::number(PendingMessagesManager::instance()->pendingMessages().count()));
+	MacDockingHelper::instance()->overlay(PendingMessagesManager::instance()->pendingMessages().count());
 	if (!NotificationManager::instance()->silentMode())
 		MacDockingHelper::instance()->startBounce();
 #endif
@@ -209,12 +214,12 @@ void DockingManager::pendingMessageAdded()
 void DockingManager::pendingMessageDeleted()
 {
 #ifdef Q_OS_MAC
-	MacDockingHelper::instance()->removeOverlay();
+	MacDockingHelper::instance()->overlay(PendingMessagesManager::instance()->pendingMessages().count());
 	MacDockingHelper::instance()->stopBounce();
 #endif
 	if (!PendingMessagesManager::instance()->hasPendingMessages())
 		if (CurrentDocker)
-			CurrentDocker->changeTrayIcon(StatusContainerManager::instance()->statusIcon());
+			CurrentDocker->changeTrayIcon(defaultPixmap());
 }
 
 void DockingManager::defaultToolTip()
@@ -309,7 +314,6 @@ void DockingManager::searchingForTrayPosition(QPoint &point)
 {
 	if (CurrentDocker)
 		point = CurrentDocker->trayPosition();
-
 }
 
 QIcon DockingManager::defaultPixmap()
@@ -329,6 +333,7 @@ void DockingManager::setDocker(Docker *docker)
 	{
 		changeIcon();
 		defaultToolTip();
+#ifndef Q_OS_MAC
 		if (config_file.readBoolEntry("General", "RunDocked"))
 			Core::instance()->setShowMainWindowOnStart(false);
 		Core::instance()->kaduWindow()->setDocked(true);
@@ -338,6 +343,7 @@ void DockingManager::setDocker(Docker *docker)
  		if (!Core::instance()->isClosing())
 			Core::instance()->kaduWindow()->show();
 		Core::instance()->kaduWindow()->setDocked(false);
+#endif
 	}
 }
 
@@ -346,7 +352,6 @@ void DockingManager::updateContextMenu()
 	DockMenu->clear();
 #ifdef Q_OS_MAC
 	MacDockMenu->clear();
-	DockMenu->addAction(OpenChatAction);
 #endif
 
 	qDeleteAll(StatusContainerMenus.values());
@@ -384,6 +389,13 @@ void DockingManager::updateContextMenu()
 		}
 	}
 
+	if (!ModulesActions.isEmpty())
+	{
+		foreach (QAction *action, ModulesActions)
+			DockMenu->addAction(action);
+
+		DockMenu->addSeparator();
+	}
 	DockMenu->addAction(CloseKaduAction);
 }
 
@@ -442,3 +454,61 @@ void DockingManager::createDefaultConfiguration()
 	config_file.addVariable("General", "ShowTooltipInTray", true);
 	config_file.addVariable("Look", "NewMessageIcon", 0);
 }
+
+void DockingManager::registerModuleAction(QAction *action)
+{
+	if (ModulesActions.contains(action))
+		return;
+
+	ModulesActions.append(action);
+	updateContextMenu();
+}
+
+void DockingManager::unregisterModuleAction(QAction *action)
+{
+	if (!ModulesActions.contains(action))
+		return;
+
+	ModulesActions.removeAll(action);
+
+	updateContextMenu();
+}
+
+#ifdef Q_OS_MAC
+void DockingManager::showMinimizedChats()
+{
+	foreach (ChatWidget *chat, ChatWidgetManager::instance()->chats())
+	{
+		ChatWidgetManager::instance()->activateChatWidget(chat, false);
+	}
+}
+
+void DockingManager::dockIconClicked()
+{
+	QWidget *kadu = Core::instance()->kaduWindow();
+
+	if (PendingMessagesManager::instance()->hasPendingMessages())
+	{
+		ChatWidgetManager::instance()->openPendingMessages(true);
+		return;
+	}
+
+	if (kadu->isMinimized())
+	{
+		kadu->showNormal();
+		showMinimizedChats();
+		return;
+	}
+	else if (kadu->isVisible())
+	{
+		//raczej nie bedziemy ukrywac okna klikajac ikonke w docku
+		//kadu->hide();
+	}
+	else
+	{
+		kadu->show();
+		showMinimizedChats();
+	}
+	return;
+}
+#endif

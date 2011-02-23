@@ -1,7 +1,8 @@
 /*
  * %kadu copyright begin%
+ * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2009, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2009 Piotr Galiszewski (piotrgaliszewski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -22,7 +23,6 @@
 #define FORMATTED_MESSAGE_H
 
 #include <QtCore/QList>
-#include <QtCore/QRegExp>
 #include <QtGui/QColor>
 
 #include "protocols/protocol.h"
@@ -46,7 +46,7 @@ class QTextDocument;
  */
 class KADUAPI FormattedMessage
 {
-	static QRegExp ImageRegExp;
+	static QString saveInImagesPath(const QString &filePath);
 	static void parseImages(FormattedMessage &message, const QString &messageString, bool b, bool i, bool u, QColor color);
 
 	QList<FormattedMessagePart> Parts;

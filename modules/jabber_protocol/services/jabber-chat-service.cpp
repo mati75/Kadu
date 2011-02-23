@@ -1,10 +1,11 @@
 /*
  * %kadu copyright begin%
- * Copyright 2009, 2009, 2010 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2009, 2010 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2009 Michał Podsiadlik (michal@kadu.net)
- * Copyright 2009, 2010 Piotr Galiszewski (piotrgaliszewski@gmail.com)
- * Copyright 2009, 2009 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -106,21 +107,12 @@ void JabberChatService::clientMessageReceived(const XMPP::Message &msg)
 {
 	kdebugf();
 
-	// skip empty messages, but not if the message contains a data form
-	if(msg.body().isEmpty() && msg.urlList().isEmpty() && msg.invite().isEmpty() && !msg.containsEvents() && msg.chatState() == XMPP::StateNone
-		&& msg.subject().isEmpty() && msg.rosterExchangeItems().isEmpty() && msg.mucInvites().isEmpty() &&  msg.getForm().fields().empty())
-		return;
-
-	// TODO zapobiega otwieraniu okienka z pusta wiadomoscia
-	if ((XMPP::StateNone != msg.chatState()) && msg.body().isEmpty())
+	// skip empty messages
+	if (msg.body().isEmpty())
 		return;
 
 	// skip messages with type error == Cancel (fixes mantis #1642)
-	if (msg.type () == "error")
-		return;
-
-	// dalej obslugujemy juz tylko wiadomosci
-	if (msg.containsEvents() && msg.body().isEmpty())
+	if (msg.type() == "error")
 		return;
 
 	Contact contact = ContactManager::instance()->byId(Protocol->account(), msg.from().bare(), ActionCreateAndAdd);

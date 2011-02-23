@@ -36,12 +36,6 @@
         <translation>Benutze eigene SMS-Zeichenkette</translation>
     </message>
     <message>
-        <source>Check this box if your sms application doesn&apos;t understand arguments: number &amp;message&amp;
-Arguments should be separated with spaces. %n argument is converted to number, %m to message</source>
-        <translation>Markieren Sie hier, wenn Ihr Programm für SMS die Agrumente nicht versteht: Nummer &amp;Nachricht&amp;
-Argumente werder durch Leerzeichen getrennt. %n Argumente werden in Nummer, %m in Nachricht umgewandelt</translation>
-    </message>
-    <message>
         <source>SMS custom string</source>
         <translation>Eigene SMS-Zeichenkette</translation>
     </message>
@@ -76,6 +70,12 @@ Argumente werder durch Leerzeichen getrennt. %n Argumente werden in Nummer, %m i
     <message>
         <source>Password</source>
         <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Check this box if your sms application doesn&apos;t understand arguments: number &amp;message&amp;
+Arguments should be separated with spaces. %k argument is converted to number, %m to message</source>
+        <translation>Markieren Sie hier, wenn Ihr Programm für SMS die Agrumente nicht versteht: Nummer &amp;Nachricht&amp;
+Argumente werder durch Leerzeichen getrennt. %k Argumente werden in Nummer, %m in Nachricht umgewandelt</translation>
     </message>
 </context>
 <context>

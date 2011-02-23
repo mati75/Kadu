@@ -1,6 +1,9 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Przemysław Rudy (prudy1@o2.pl)
+ * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2010, 2011 Przemysław Rudy (prudy1@o2.pl)
+ * Copyright 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -50,7 +53,7 @@ SimpleView::SimpleView() :
 	DockAction = new QAction(IconsManager::instance()->iconByPath("view-refresh"), tr("Simple view"), this);
 	DockAction->setCheckable(true);
 	connect(DockAction, SIGNAL(triggered(bool)), this, SLOT(simpleViewToggle(bool)));
-	DockingManager::instance()->dockMenu()->insertAction(DockingManager::instance()->dockMenu()->actions().last(), DockAction);
+	DockingManager::instance()->registerModuleAction(DockAction);
 
 	KaduWindowHandle = Core::instance()->kaduWindow();
 	MainWindowHandle = KaduWindowHandle->findMainWindow(KaduWindowHandle);
@@ -73,7 +76,7 @@ SimpleView::~SimpleView()
 	simpleViewToggle(false);
 
 	if (!Core::instance()->isClosing())
-		DockingManager::instance()->dockMenu()->removeAction(DockAction);
+		DockingManager::instance()->unregisterModuleAction(DockAction);
 
 	MainConfigurationWindow::unregisterUiFile(dataPath("kadu/modules/configuration/simpleview.ui"));
 	MainConfigurationWindow::unregisterUiHandler(SimpleViewConfigUi::instance());

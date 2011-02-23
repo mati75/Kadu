@@ -1,5 +1,7 @@
 /*
  * %kadu copyright begin%
+ * Copyright 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
@@ -54,6 +56,17 @@ void HistoryImporterManager::addImporter(HistoryImporter *importer)
 {
 	Importers.append(importer);
 	connect(importer, SIGNAL(destroyed(QObject*)), this, SLOT(importerDestroyed(QObject*)));
+}
+
+bool HistoryImporterManager::containsImporter(const QString &path)
+{
+	foreach (HistoryImporter *importer, Importers)
+	{
+		if (importer->sourceDirectory() == path)
+			return true;
+	}
+
+	return false;
 }
 
 void HistoryImporterManager::removeImporter(HistoryImporter *importer)
