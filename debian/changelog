@@ -1,3 +1,9 @@
+kadu (0.6.6~rc1-1) unstable; urgency=low
+
+  * New upstream release
+
+ -- Patryk Cisek <patryk@debian.org>  Wed, 23 Feb 2011 16:28:39 +0100
+
 kadu (0.6.6~beta17-2) unstable; urgency=low
 
   * Used wrap-and-sort from ubuntu-dev-tools to sort .install files, sort
