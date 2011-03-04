@@ -39,11 +39,11 @@ Depends: kadu-common (= ${source:Version}),
 Recommends: kadu-external-modules
 Conflicts: kadu-external-modules (<= 0.6.5.4.ds1-3)
 Suggests: kadu-themes
-Description: Gadu-Gadu client for X11
+Description: Gadu-Gadu/XMPP client for X11
  Gadu-Gadu is a Windows instant messenger, very popular in Poland.
- Kadu is a Qt4 version for *nix systems.
+ Kadu is a Qt4 client of Gadu-Gadu and XMPP for *nix systems.
  .
- This package provides Kadu along with modules developed by Kadu developers.
+ This package provides Kadu along with plugins developed by Kadu developers.
 
 Package: kadu-common
 Architecture: all
@@ -53,9 +53,9 @@ Depends: libjs-mootools,
 Recommends: kadu-external-modules
 Conflicts: kadu-external-modules (<= 0.6.5.4.ds1-3)
 Suggests: kadu-themes
-Description: Gadu-Gadu client for X11
+Description: Gadu-Gadu/XMPP client for X11
  Gadu-Gadu is a Windows instant messenger, very popular in Poland.
- Kadu is a Qt4 version for *nix systems.
+ Kadu is a Qt4 client of Gadu-Gadu and XMPP for *nix systems.
  .
  This package provides data common for all architectures.
 
@@ -64,9 +64,9 @@ Architecture: any
 Depends: kadu (= ${binary:Version}),
          ${misc:Depends},
          ${shlibs:Depends}
-Description: Additional modules for Kadu
+Description: Additional plugins for Kadu
  Gadu-Gadu is a Windows instant messenger, very popular in Poland.
- Kadu is a Qt4 version for *nix systems.
+ Kadu is a Qt4 client of Gadu-Gadu and XMPP for *nix systems.
  .
  This package provides additional packages developed by external developers.
  See README.Debian for more details.
@@ -77,6 +77,7 @@ Depends: ${misc:Depends}
 Recommends: kadu (>= 0.5.0-1)
 Description: Additional icons and emoticons for Kadu
  Gadu-Gadu is a Windows instant messenger, very popular in Poland.
- Kadu is a Qt4 version for *nix systems.
+ Kadu is a Qt4 client of Gadu-Gadu and XMPP for *nix systems.
  .
- This package provides additional icons and emoticons themes for Kadu.
+ This package provides additional icons, sounds and emoticons themes for
+ Kadu.
