@@ -109,9 +109,8 @@ ChatWidget::ChatWidget(const Chat &chat, QWidget *parent) :
 			connect(contact.ownerBuddy(), SIGNAL(buddySubscriptionChanged()), this, SIGNAL(iconChanged()));
 		}
 
-		ChatStateService *chatStateService = currentProtocol()->chatStateService();
-		if (chatStateService)
-			connect(chatStateService, SIGNAL(contactActivityChanged(ChatStateService::ContactActivity, const Contact &)),
+		if (currentProtocol() && currentProtocol()->chatStateService())
+			connect(currentProtocol()->chatStateService(), SIGNAL(contactActivityChanged(ChatStateService::ContactActivity, const Contact &)),
 					this, SLOT(contactActivityChanged(ChatStateService::ContactActivity, const Contact &)));
 	}
 	connect(IconsManager::instance(), SIGNAL(themeChanged()), this, SIGNAL(iconChanged()));
@@ -178,6 +177,8 @@ void ChatWidget::createGui()
 
 	connect(VerticalSplitter, SIGNAL(splitterMoved(int, int)), this, SLOT(verticalSplitterMoved(int, int)));
 	connect(InputBox->inputBox(), SIGNAL(sendMessage()), this, SLOT(sendMessage()));
+	connect(InputBox->inputBox(), SIGNAL(keyPressed(QKeyEvent *, CustomInput *, bool &)),
+			this, SLOT(keyPressedSlot(QKeyEvent *, CustomInput *, bool &)));
 }
 
 void ChatWidget::createContactsList()
@@ -717,6 +718,11 @@ void ChatWidget::updateComposing()
 		if (!currentProtocol() || !currentProtocol()->chatStateService())
 			return;
 
+		// If the text was deleted either by sending a message or explicitly by the user,
+		// let's not report it as composing.
+		if (edit()->toPlainText().isEmpty())
+			return;
+
 		currentProtocol()->chatStateService()->composingStarted(chat());
 
 		ComposingTimer.start();
@@ -760,4 +766,14 @@ void ChatWidget::leaveConference()
 		CurrentChat.setIgnoreAllMessages(true);
 
 	emit closed();
+}
+
+void ChatWidget::keyPressedSlot(QKeyEvent *e, CustomInput *input, bool &handled)
+{
+	Q_UNUSED(input)
+
+	if (handled)
+		return;
+
+	handled = keyPressEventHandled(e);
 }

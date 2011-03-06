@@ -98,15 +98,15 @@ HintManager::HintManager(QWidget *parent) :
 "<td align=\"left\" valign=\"top\">"
 "<img"
 "style=\"max-width:64px; max-height:64px;\""
-"src=\"{#{avatarPath} #{avatarPath}}{~#{avatarPath} @{kadu_icons/64x64/kadu.png}}\""
+"src=\"{#{avatarPath} #{avatarPath}}{~#{avatarPath} @{kadu_icons/kadu:64x64}}\""
 ">"
 "</td>"
 "<td width=\"100%\">"
 "<div>[<b>%a</b>][&nbsp;<b>(%g)</b>]</div>"
 "[<div><img align=\"left\" valign=\"middle\" height=\"16\" width=\"16\" src=\"file:///#{statusIconPath}\">&nbsp;&nbsp;%u</div>]"
-"[<div><img align=\"left\" valign=\"middle\" height=\"16\" width=\"16\" src=\"file:///@{16x16/phone.png}\">&nbsp;&nbsp;%m</div>]"
-"[<div><img align=\"left\" valign=\"middle\" height=\"16\" width=\"16\" src=\"file:///@{16x16/mail-message-new.png}\">&nbsp;&nbsp;%e</div>]"
-"[<div><img align=\"left\" valign=\"middle\" height=\"16\" width=\"16\" src=\"file:///@{kadu_icons/kadu-blocking.png}\">&nbsp;%oDoesn't have you on the list</div>]"
+"[<div><img align=\"left\" valign=\"middle\" height=\"16\" width=\"16\" src=\"file:///@{phone:16x16}\">&nbsp;&nbsp;%m</div>]"
+"[<div><img align=\"left\" valign=\"middle\" height=\"16\" width=\"16\" src=\"file:///@{mail-message-new:16x16}\">&nbsp;&nbsp;%e</div>]"
+"[<div><img align=\"left\" valign=\"middle\" height=\"16\" width=\"16\" src=\"file:///@{kadu_icons/blocking:16x16}\">&nbsp;%oDoesn't have you on the list</div>]"
 "</td>"
 "</tr>"
 "</table>"
@@ -363,16 +363,15 @@ void HintManager::chatWidgetActivated(ChatWidget *chatWidget)
 	QPair<Chat , QString> newChat = qMakePair(chatWidget->chat(), QString("NewChat"));
 	QPair<Chat , QString> newMessage = qMakePair(chatWidget->chat(), QString("NewMessage"));
 
-	if (linkedHints.count(newChat))
+	if (linkedHints.contains(newChat))
 	{
-		linkedHints[newChat]->close();
-		linkedHints.remove(newChat);
+		Hint *linkedHint = linkedHints.take(newChat);
+		linkedHint->close();
 	}
-
-	if (linkedHints.count(newMessage))
+	if (linkedHints.contains(newMessage))
 	{
-		linkedHints[newMessage]->close();
-		linkedHints.remove(newMessage);
+		Hint *linkedHint = linkedHints.take(newMessage);
+		linkedHint->close();
 	}
 
 	foreach (Hint *h, hints)
@@ -392,7 +391,10 @@ void HintManager::deleteAllHints()
 	foreach (Hint *h, hints)
 	{
 		if (!h->requireManualClosing())
+		{
+			h->discardNotification();
 			deleteHint(h);
+		}
 	}
 
 	if (hints.isEmpty())
@@ -568,15 +570,15 @@ void HintManager::notify(Notification *notification)
 		return;
 	}
 
-	if (linkedHints.count(qMakePair(chatNotification->chat(), notification->type())))
+	if (linkedHints.contains(qMakePair(chatNotification->chat(), notification->type())))
 	{
-		Hint *linkedHint = linkedHints[qMakePair(chatNotification->chat(), notification->type())];
+		Hint *linkedHint = linkedHints.value(qMakePair(chatNotification->chat(), notification->type()));
 		linkedHint->addDetail(notification->details());
 	}
 	else
 	{
 		Hint *linkedHint = addHint(notification);
-		linkedHints[qMakePair(chatNotification->chat(), notification->type())] = linkedHint;
+		linkedHints.insert(qMakePair(chatNotification->chat(), notification->type()), linkedHint);
 	}
 
 	kdebugf2();
@@ -588,7 +590,7 @@ void HintManager::notificationClosed(Notification *notification)
 	if (!chatNotification)
 		return;
 
-	if (linkedHints.count(qMakePair(chatNotification->chat(), notification->type())))
+	if (linkedHints.contains(qMakePair(chatNotification->chat(), notification->type())))
 		linkedHints.remove(qMakePair(chatNotification->chat(), notification->type()));
 }
 
@@ -637,6 +639,7 @@ void HintManager::import_0_6_5_configuration()
 				realCopyConfiguration("OSDHints", event, event);
 
 			config_file.writeEntry("Notify", event + "_Hints", true);
+			config_file.removeVariable("Notify", event + "_OSDHints");
 		}
 		else if (hintsSetAll)
 				realCopyConfiguration("Hints", "SetAll", event);
@@ -651,6 +654,7 @@ void HintManager::import_0_6_5_configuration()
 			realCopyConfiguration("OSDHints", "StatusChanged/ToBusy", "StatusChanged/ToAway");
 
 		config_file.writeEntry("Notify", "StatusChanged/ToAway_Hints", true);
+		config_file.removeVariable("Notify", "StatusChanged/ToBusy_OSDHints");
 	}
 	else
 	{
@@ -659,6 +663,9 @@ void HintManager::import_0_6_5_configuration()
 		else
 			realCopyConfiguration("Hints", "StatusChanged/ToBusy", "StatusChanged/ToAway");
 	}
+	config_file.removeVariable("OSDHints", "SetAll");
+	config_file.removeVariable("Hints", "SetAll");
+
 }
 
 void HintManager::createDefaultConfiguration()

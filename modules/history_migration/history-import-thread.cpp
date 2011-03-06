@@ -38,8 +38,9 @@
 #include "history-migration-helper.h"
 
 HistoryImportThread::HistoryImportThread(Account gaduAccount, const QString &path, const QList<UinsList> &uinsLists, int totalEntries, QObject *parent) :
-		QThread(parent), GaduAccount(gaduAccount), Path(path), UinsLists(uinsLists), Canceled(false), TotalEntries(totalEntries), ImportedEntries(0),
-		ImportedChats(0), TotalMessages(0), ImportedMessages(0)
+		QThread(parent), GaduAccount(gaduAccount), Path(path), UinsLists(uinsLists),
+		TotalEntries(totalEntries), ImportedEntries(0), ImportedChats(0), TotalMessages(0),
+		ImportedMessages(0), Canceled(false), CancelForced(false)
 {
 }
 
@@ -85,16 +86,18 @@ void HistoryImportThread::run()
 		ImportedMessages = 0;
 		TotalMessages = entries.count();
 
-		foreach (const HistoryEntry &entry, entries)
-			if (Canceled)
-				break;
-			else
-			{
-				importEntry(chat, entry);
-				ImportedMessages++;
-			}
-
 		if (Canceled)
+			break;
+
+		foreach (const HistoryEntry &entry, entries)
+		{
+			if (Canceled && CancelForced)
+				break;
+			importEntry(chat, entry);
+			ImportedMessages++;
+		}
+
+		if (Canceled && CancelForced)
 			break;
 
 		historyImporterChatData->setImported(true);
@@ -109,9 +112,10 @@ void HistoryImportThread::run()
 	History::instance()->setSyncEnabled(true);
 }
 
-void HistoryImportThread::cancel()
+void HistoryImportThread::cancel(bool force)
 {
 	Canceled = true;
+	CancelForced = force;
 }
 
 Chat HistoryImportThread::chatFromUinsList(const UinsList &uinsList) const

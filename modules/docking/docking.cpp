@@ -370,7 +370,7 @@ void DockingManager::updateContextMenu()
 	{
 		foreach (StatusContainer *container, StatusContainerManager::instance()->statusContainers())
 		{
-			QMenu *menu = new QMenu(container->statusContainerName());
+			QMenu *menu = new QMenu(container->statusContainerName(), DockMenu);
 			menu->setIcon(container->statusIcon());
 			new StatusMenu(container, menu);
 			StatusContainerMenus[container] = DockMenu->addMenu(menu);
@@ -470,7 +470,6 @@ void DockingManager::unregisterModuleAction(QAction *action)
 		return;
 
 	ModulesActions.removeAll(action);
-
 	updateContextMenu();
 }
 

@@ -41,6 +41,9 @@ bool JabberChatStateService::shouldSendEvent(const Chat &chat)
 	if (!info.UserRequestedEvents && info.ContactChatState == XMPP::StateNone)
 		return false;
 
+	if (info.ContactChatState == XMPP::StateGone)
+		return false;
+
 	JabberAccountDetails *jabberAccountDetails = dynamic_cast<JabberAccountDetails *>(Protocol->account().details());
 	if (!jabberAccountDetails)
 		return false;
@@ -75,11 +78,10 @@ void JabberChatStateService::setChatState(const Chat &chat, XMPP::ChatState stat
 		return;
 
 	// Check if we should send a message
-	if (state == info.LastChatState || state == XMPP::StateActive || (info.LastChatState == XMPP::StateActive && state == XMPP::StatePaused))
-	{
-		info.LastChatState = state;
+	if (state == info.LastChatState ||
+			(state == XMPP::StateActive && info.LastChatState == XMPP::StatePaused) ||
+			(info.LastChatState == XMPP::StateActive && state == XMPP::StatePaused))
 		return;
-	}
 
 	// Build event message
 	XMPP::Message m(chat.contacts().toContact().id());
@@ -99,10 +101,12 @@ void JabberChatStateService::setChatState(const Chat &chat, XMPP::ChatState stat
 			if ((state == XMPP::StateInactive && info.LastChatState == XMPP::StateComposing)
 				|| (state == XMPP::StateComposing && info.LastChatState == XMPP::StateInactive))
 			{
-				// First go to the paused state
+				// First go to the paused or active state
 				XMPP::Message tm(chat.contacts().toContact().id());
 				tm.setType("chat");
-				tm.setChatState(XMPP::StatePaused);
+				tm.setChatState(info.LastChatState == XMPP::StateComposing
+						? XMPP::StatePaused
+						: XMPP::StateActive);
 
 				if (Protocol->isConnected())
 					Protocol->client()->client()->sendMessage(tm);
@@ -195,8 +199,14 @@ void JabberChatStateService::incomingMessage(const XMPP::Message &msg)
 
 void JabberChatStateService::messageAboutToSend(XMPP::Message &message)
 {
-	message.addEvent(XMPP::ComposingEvent);
+	Contact contact = ContactManager::instance()->byId(Protocol->account(), message.to().bare(), ActionCreateAndAdd);
+	Chat chat = ChatManager::instance()->findChat(ContactSet(contact), true);
+
+	if (ChatInfos[chat].UserRequestedEvents)
+		message.addEvent(XMPP::ComposingEvent);
+
 	message.setChatState(XMPP::StateActive);
+	ChatInfos[chat].LastChatState = XMPP::StateActive;
 }
 
 void JabberChatStateService::composingStarted(const Chat &chat)
