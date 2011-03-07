@@ -5,8 +5,10 @@ kadu (0.6.6~rc2-1) unstable; urgency=low
   * Changed "module(s)" to "plugin(s)" in package descriptions
   * Updated debian/patches/02-.config.patch to make it fit 0.6.6~rc2
   * Updated debian/patches/03-about-dialog.patch to make it fit 0.6.6~rc2
+  * Removed debian/patches/04-gcc4.4-build-fix.patch, since it's no
+    longer needed
 
- -- Patryk Cisek <patryk@debian.org>  Mon, 07 Mar 2011 15:14:41 +0100
+ -- Patryk Cisek <patryk@debian.org>  Mon, 07 Mar 2011 15:16:01 +0100
 
 kadu (0.6.6~rc1-1) unstable; urgency=low
 
