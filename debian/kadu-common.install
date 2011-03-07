@@ -22,7 +22,6 @@ debian/tmp/usr/share/kadu/modules/configuration/autoaway.ui
 debian/tmp/usr/share/kadu/modules/configuration/autoresponder.ui
 debian/tmp/usr/share/kadu/modules/configuration/autostatus.ui
 debian/tmp/usr/share/kadu/modules/configuration/cenzor.ui
-debian/tmp/usr/share/kadu/modules/configuration/config-wizard.ui
 debian/tmp/usr/share/kadu/modules/configuration/desktop_docking.ui
 debian/tmp/usr/share/kadu/modules/configuration/docking.ui
 debian/tmp/usr/share/kadu/modules/configuration/encryption-ng.ui
