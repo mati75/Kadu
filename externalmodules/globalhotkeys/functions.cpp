@@ -40,7 +40,7 @@
 #include "gui/windows/kadu-window.h"
 #include "gui/windows/search-window.h"
 #include "gui/windows/your-accounts.h"
-#include "file-transfer/file-transfer-manager.h"
+///#include "file-transfer/file-transfer-manager.h"
 #include "misc/path-conversion.h"
 #include "notify/notification-manager.h"
 #include "status/status-container-manager.h"
@@ -374,11 +374,11 @@ void Functions::functionSearchForBuddy( ConfHotKey *confhotkey )
 }
 
 
-void Functions::functionFileTransfersWindow( ConfHotKey *confhotkey )
-{
-	Q_UNUSED( confhotkey );
-	FileTransferManager::instance()->showFileTransferWindow();
-}
+///void Functions::functionFileTransfersWindow( ConfHotKey *confhotkey )
+///{
+///	Q_UNUSED( confhotkey );
+///	FileTransferManager::instance()->showFileTransferWindow();
+///}
 
 
 void Functions::functionConfigurationWindow( ConfHotKey *confhotkey )

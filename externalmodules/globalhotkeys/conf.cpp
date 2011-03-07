@@ -68,7 +68,11 @@ void ConfGroups::createGroups()
 {
 	foreach( QString group, GROUPS )
 	{
-		MainConfigurationWindow::instance()->widget()->configGroupBox( "Shortcuts", "Global hotkeys", group );
+		MainConfigurationWindow::instance()->widget()->configGroupBox(
+			QT_TRANSLATE_NOOP( "@default", "Shortcuts" ),
+			QT_TRANSLATE_NOOP( "@default", "Global hotkeys" ),
+			group
+		);
 	}
 }
 
@@ -79,7 +83,12 @@ void ConfGroups::deleteGroups()
 	{
 		foreach( QString group, GROUPS )
 		{
-			ConfigGroupBox *configgroupbox = MainConfigurationWindow::instance()->widget()->configGroupBox( "Shortcuts", "Global hotkeys", group, false );
+			ConfigGroupBox *configgroupbox = MainConfigurationWindow::instance()->widget()->configGroupBox(
+				QT_TRANSLATE_NOOP( "@default", "Shortcuts" ),
+				QT_TRANSLATE_NOOP( "@default", "Global hotkeys" ),
+				group,
+				false
+			);
 			if( configgroupbox != NULL )
 				delete configgroupbox;
 		}
@@ -101,7 +110,8 @@ ConfHotKey::ConfHotKey( QObject *parent, QString group, QString caption, QString
 	FUNCTION = function;
 	if( ! ConfGroups::GROUPS.contains( GROUP ) )
 		ConfGroups::GROUPS.append( GROUP );
-	config_file.addVariable( "GlobalHotkeys", name, defaulthotkey );
+	if( config_file.readEntry( "GlobalHotkeys", name, " " ) == " " )
+		config_file.addVariable( "GlobalHotkeys", name, defaulthotkey );
 	configurationSaved();
 	connect( GlobalHotkeys::instance(), SIGNAL(mainConfigurationWindowCreatedSignal(MainConfigurationWindow*)), this, SLOT(mainConfigurationWindowCreated(MainConfigurationWindow*)) );
 	if( forcecreate && MainConfigurationWindow::hasInstance() )
@@ -177,7 +187,11 @@ void ConfHotKey::mainConfigurationWindowCreated( MainConfigurationWindow *mainCo
 {
 	if( ! HOTKEYEDIT.isNull() )
 		return;
-	ConfigGroupBox *configgroupbox = mainConfigurationWindow->widget()->configGroupBox( "Shortcuts", "Global hotkeys", GROUP );
+	ConfigGroupBox *configgroupbox = mainConfigurationWindow->widget()->configGroupBox(
+		QT_TRANSLATE_NOOP( "@default", "Shortcuts" ),
+		QT_TRANSLATE_NOOP( "@default", "Global hotkeys" ),
+		GROUP
+	);
 	HOTKEYEDIT = new HotkeyEdit( "GlobalHotkeys", NAME, CAPTION, "", configgroupbox, (ConfigurationWindowDataManager*)MainConfigurationWindow::instanceDataManager() );
 	HOTKEYEDIT->setText( HOTKEY.string() );
 	connect( mainConfigurationWindow, SIGNAL(configurationSaved()), this, SLOT(configurationSaved()) );
@@ -189,8 +203,8 @@ void ConfHotKey::mainConfigurationWindowCreated( MainConfigurationWindow *mainCo
 ConfManager::ConfManager( QObject *parent ) : QObject( parent )
 {
 	// load BuddiesShortcuts
-	if( ! ConfGroups::GROUPS.contains( "Buddies shortcuts" ) )
-		ConfGroups::GROUPS.append( "Buddies shortcuts" );
+	if( ! ConfGroups::GROUPS.contains( QT_TRANSLATE_NOOP( "@default", "Buddies shortcuts" ) ) )
+		ConfGroups::GROUPS.append( QT_TRANSLATE_NOOP( "@default", "Buddies shortcuts" ) );
 	{
 		SerializableQStringList list;
 		list.deserialize( config_file.readEntry( "GlobalHotkeys", "BuddiesShortcuts" ) );
@@ -198,14 +212,14 @@ ConfManager::ConfManager( QObject *parent ) : QObject( parent )
 		{
 			if( ! string.isEmpty() )
 			{
-				ConfBuddiesShortcut *confbuddiesshortcut = new ConfBuddiesShortcut( this, "Buddies shortcuts" );
+				ConfBuddiesShortcut *confbuddiesshortcut = new ConfBuddiesShortcut( this, QT_TRANSLATE_NOOP( "@default", "Buddies shortcuts" ) );
 				confbuddiesshortcut->deserialize( string );
 			}
 		}
 	}
 	// load BuddiesMenus
-	if( ! ConfGroups::GROUPS.contains( "Buddies menus" ) )
-		ConfGroups::GROUPS.append( "Buddies menus" );
+	if( ! ConfGroups::GROUPS.contains( QT_TRANSLATE_NOOP( "@default", "Buddies menus" ) ) )
+		ConfGroups::GROUPS.append( QT_TRANSLATE_NOOP( "@default", "Buddies menus" ) );
 	{
 		SerializableQStringList list;
 		list.deserialize( config_file.readEntry( "GlobalHotkeys", "BuddiesMenus" ) );
@@ -213,7 +227,7 @@ ConfManager::ConfManager( QObject *parent ) : QObject( parent )
 		{
 			if( ! string.isEmpty() )
 			{
-				ConfBuddiesMenu *confbuddiesmenu = new ConfBuddiesMenu( this, "Buddies menus" );
+				ConfBuddiesMenu *confbuddiesmenu = new ConfBuddiesMenu( this, QT_TRANSLATE_NOOP( "@default", "Buddies menus" ) );
 				confbuddiesmenu->deserialize( string );
 			}
 		}
@@ -379,12 +393,16 @@ void ConfBuddiesShortcut::mainConfigurationWindowCreated( MainConfigurationWindo
 	DELETED = false;
 	if( HOTKEYEDIT.isNull() )
 	{
-		ConfigGroupBox *configgroupbox = mainConfigurationWindow->widget()->configGroupBox( "Shortcuts", "Global hotkeys", GROUP );
-		LINESEPARATOR    = new ConfigLineSeparator(                                                              configgroupbox, NULL );
-		HOTKEYEDIT       = new HotkeyEdit(          "", "", "Shortcut"                                     , "", configgroupbox, NULL );
-		BUDDIESEDIT      = new ConfigLineEdit(      "", "", "Buddies (comma separated)"                    , "", configgroupbox, NULL );
-		SHOWMENUCHECKBOX = new ConfigCheckBox(      "", "", "If possible, show a menu with available chats", "", configgroupbox, NULL );
-		DELETEBUTTON     = new ConfigActionButton(          "Delete this shortcut"                         , "", configgroupbox, NULL );
+		ConfigGroupBox *configgroupbox = mainConfigurationWindow->widget()->configGroupBox(
+			QT_TRANSLATE_NOOP( "@default", "Shortcuts"),
+			QT_TRANSLATE_NOOP( "@default", "Global hotkeys" ),
+			GROUP
+		);
+		LINESEPARATOR    = new ConfigLineSeparator(                                                                                               configgroupbox, NULL );
+		HOTKEYEDIT       = new HotkeyEdit(          "", "", QT_TRANSLATE_NOOP( "@default", "Shortcut"                                      ), "", configgroupbox, NULL );
+		BUDDIESEDIT      = new ConfigLineEdit(      "", "", QT_TRANSLATE_NOOP( "@default", "Buddies (comma separated)"                     ), "", configgroupbox, NULL );
+		SHOWMENUCHECKBOX = new ConfigCheckBox(      "", "", QT_TRANSLATE_NOOP( "@default", "If possible, show a menu with available chats" ), "", configgroupbox, NULL );
+		DELETEBUTTON     = new ConfigActionButton(          QT_TRANSLATE_NOOP( "@default", "Delete this shortcut"                          ), "", configgroupbox, NULL );
 		connect( DELETEBUTTON, SIGNAL(clicked()), this, SLOT(deletebuttonClicked()) );
 		fillUIData();
 	}
@@ -566,19 +584,23 @@ void ConfBuddiesMenu::mainConfigurationWindowCreated( MainConfigurationWindow *m
 	DELETED = false;
 	if( HOTKEYEDIT.isNull() )
 	{
-		ConfigGroupBox *configgroupbox = mainConfigurationWindow->widget()->configGroupBox( "Shortcuts", "Global hotkeys", GROUP );
-		LINESEPARATOR                        = new ConfigLineSeparator(                                                                                                      configgroupbox, NULL );
-		HOTKEYEDIT                           = new HotkeyEdit(          "", "", "Shortcut"                                           , ""                                  , configgroupbox, NULL );
-		CURRENTCHATSCHECKBOX                 = new ConfigCheckBox(      "", "", "Include current chats"                              , ""                                  , configgroupbox, NULL );
-		PENDINGCHATSCHECKBOX                 = new ConfigCheckBox(      "", "", "Include chats with pending messages"                , ""                                  , configgroupbox, NULL );
-		RECENTCHATSCHECKBOX                  = new ConfigCheckBox(      "", "", "Include recent chats"                               , ""                                  , configgroupbox, NULL );
-		ONLINEBUDDIESCHECKBOX                = new ConfigCheckBox(      "", "", "Include online buddies"                             , ""                                  , configgroupbox, NULL );
-		ONLINEBUDDIESGROUPSEDIT              = new ConfigLineEdit(      "", "", "only from these groups (comma separated)"           , "leave empty to disable this filter", configgroupbox, NULL );
-		ONLINEBUDDIESINCLUDEBLOCKINGCHECKBOX = new ConfigCheckBox(      "", "", "Treat buddies blocking me as online"                , ""                                  , configgroupbox, NULL );
-		BUDDIESEDIT                          = new ConfigLineEdit(      "", "", "Include these buddies (comma separated)"            , ""                                  , configgroupbox, NULL );
-		GROUPSEDIT                           = new ConfigLineEdit(      "", "", "Include buddies from these gropus (comma separated)", ""                                  , configgroupbox, NULL );
-		EXCLUDEBUDDIESEDIT                   = new ConfigLineEdit(      "", "", "Exclude these buddies (comma separated)"            , ""                                  , configgroupbox, NULL );
-		DELETEBUTTON                         = new ConfigActionButton(          "Delete this menu"                                   , ""                                  , configgroupbox, NULL );
+		ConfigGroupBox *configgroupbox = mainConfigurationWindow->widget()->configGroupBox(
+			QT_TRANSLATE_NOOP( "@default", "Shortcuts" ),
+			QT_TRANSLATE_NOOP( "@default", "Global hotkeys" ),
+			GROUP
+		);
+		LINESEPARATOR                        = new ConfigLineSeparator(                                                                                                                                       configgroupbox, NULL );
+		HOTKEYEDIT                           = new HotkeyEdit(          "", "", QT_TRANSLATE_NOOP( "@default", "Shortcut"                                            ), ""                                  , configgroupbox, NULL );
+		CURRENTCHATSCHECKBOX                 = new ConfigCheckBox(      "", "", QT_TRANSLATE_NOOP( "@default", "Include current chats"                               ), ""                                  , configgroupbox, NULL );
+		PENDINGCHATSCHECKBOX                 = new ConfigCheckBox(      "", "", QT_TRANSLATE_NOOP( "@default", "Include chats with pending messages"                 ), ""                                  , configgroupbox, NULL );
+		RECENTCHATSCHECKBOX                  = new ConfigCheckBox(      "", "", QT_TRANSLATE_NOOP( "@default", "Include recent chats"                                ), ""                                  , configgroupbox, NULL );
+		ONLINEBUDDIESCHECKBOX                = new ConfigCheckBox(      "", "", QT_TRANSLATE_NOOP( "@default", "Include online buddies"                              ), ""                                  , configgroupbox, NULL );
+		ONLINEBUDDIESGROUPSEDIT              = new ConfigLineEdit(      "", "", QT_TRANSLATE_NOOP( "@default", "only from these groups (comma separated)"            ), "leave empty to disable this filter", configgroupbox, NULL );
+		ONLINEBUDDIESINCLUDEBLOCKINGCHECKBOX = new ConfigCheckBox(      "", "", QT_TRANSLATE_NOOP( "@default", "Treat buddies blocking me as online"                 ), ""                                  , configgroupbox, NULL );
+		BUDDIESEDIT                          = new ConfigLineEdit(      "", "", QT_TRANSLATE_NOOP( "@default", "Include these buddies (comma separated)"             ), ""                                  , configgroupbox, NULL );
+		GROUPSEDIT                           = new ConfigLineEdit(      "", "", QT_TRANSLATE_NOOP( "@default", "Include buddies from these gropus (comma separated)" ), ""                                  , configgroupbox, NULL );
+		EXCLUDEBUDDIESEDIT                   = new ConfigLineEdit(      "", "", QT_TRANSLATE_NOOP( "@default", "Exclude these buddies (comma separated)"             ), ""                                  , configgroupbox, NULL );
+		DELETEBUTTON                         = new ConfigActionButton(          QT_TRANSLATE_NOOP( "@default", "Delete this menu"                                    ), ""                                  , configgroupbox, NULL );
 		connect( DELETEBUTTON, SIGNAL(clicked()), this, SLOT(deletebuttonClicked()) );
 		connect( ONLINEBUDDIESCHECKBOX, SIGNAL(toggled(bool)), ONLINEBUDDIESGROUPSEDIT             , SLOT(setEnabled(bool)) );
 		connect( ONLINEBUDDIESCHECKBOX, SIGNAL(toggled(bool)), ONLINEBUDDIESINCLUDEBLOCKINGCHECKBOX, SLOT(setEnabled(bool)) );

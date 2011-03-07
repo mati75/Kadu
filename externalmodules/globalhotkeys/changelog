@@ -1,3 +1,11 @@
+0.6.6-21 => 0.6.6-22
+* Tymczasowe usunięcie skrótu okna transferu plików.
+
+
+0.6.6-20 => 0.6.6-21
+* Poprawione nadpisywanie pustych skrótów przez ich domyślne wartości.
+
+
 0.6.5-18 => 0.6.6-20
 * Port dla Kadu 0.6.6.
 * Menu kontaktów zamienione na rozbudowane menu znajomych (BuddiesMenu).

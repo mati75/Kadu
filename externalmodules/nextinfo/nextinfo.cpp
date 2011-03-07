@@ -126,7 +126,7 @@ NExtInfo::NExtInfo( bool firstLoad ) : QObject( 0 )
 	Parser::registerTag( "nextinfo_interests" , getTag_interests );
 	Parser::registerTag( "nextinfo_notes"     , getTag_notes     );
 	// register the notification
-	notifyevent = new NotifyEvent( "NExtInfo", NotifyEvent::CallbackNotRequired, QT_TRANSLATE_NOOP( "@nextinfo", "Birthday/name-day notification" ) );
+	notifyevent = new NotifyEvent( "NExtInfo", NotifyEvent::CallbackNotRequired, QT_TRANSLATE_NOOP( "@default", "Birthday/name-day notification" ) );
 	NotificationManager::instance()->registerNotifyEvent( notifyevent );
 	// add widgets to already opened BuddyDataWindow-s
 	triggerAllBuddyDataWindowsCreated();
@@ -766,24 +766,24 @@ void NExtInfo::notifyBirthdayNameday()
 	}
 }
 #ifdef ADDITIONAL_TRANSLATIONS_FOR_LUPDATE
-	qApp->translate( "@nextinfo", "%1 has their %2 birthday today"      );
-	qApp->translate( "@nextinfo", "%1 has her %2 birthday today"        );
-	qApp->translate( "@nextinfo", "%1 has his %2 birthday today"        );
-	qApp->translate( "@nextinfo", "%1 has their %2 birthday tomorrow"   );
-	qApp->translate( "@nextinfo", "%1 has her %2 birthday tomorrow"     );
-	qApp->translate( "@nextinfo", "%1 has his %2 birthday tomorrow"     );
-	qApp->translate( "@nextinfo", "%1 has their %2 birthday in %3 days" );
-	qApp->translate( "@nextinfo", "%1 has her %2 birthday in %3 days"   );
-	qApp->translate( "@nextinfo", "%1 has his %2 birthday in %3 days"   );
-	qApp->translate( "@nextinfo", "%1 has their name-day today"         );
-	qApp->translate( "@nextinfo", "%1 has her name-day today"           );
-	qApp->translate( "@nextinfo", "%1 has his name-day today"           );
-	qApp->translate( "@nextinfo", "%1 has their name-day tomorrow"      );
-	qApp->translate( "@nextinfo", "%1 has her name-day tomorrow"        );
-	qApp->translate( "@nextinfo", "%1 has his name-day tomorrow"        );
-	qApp->translate( "@nextinfo", "%1 has their name-day in %2 days"    );
-	qApp->translate( "@nextinfo", "%1 has her name-day in %2 days"      );
-	qApp->translate( "@nextinfo", "%1 has his name-day in %2 days"      );
+	QT_TRANSLATE_NOOP( "@nextinfo", "%1 has their %2 birthday today"      );
+	QT_TRANSLATE_NOOP( "@nextinfo", "%1 has her %2 birthday today"        );
+	QT_TRANSLATE_NOOP( "@nextinfo", "%1 has his %2 birthday today"        );
+	QT_TRANSLATE_NOOP( "@nextinfo", "%1 has their %2 birthday tomorrow"   );
+	QT_TRANSLATE_NOOP( "@nextinfo", "%1 has her %2 birthday tomorrow"     );
+	QT_TRANSLATE_NOOP( "@nextinfo", "%1 has his %2 birthday tomorrow"     );
+	QT_TRANSLATE_NOOP( "@nextinfo", "%1 has their %2 birthday in %3 days" );
+	QT_TRANSLATE_NOOP( "@nextinfo", "%1 has her %2 birthday in %3 days"   );
+	QT_TRANSLATE_NOOP( "@nextinfo", "%1 has his %2 birthday in %3 days"   );
+	QT_TRANSLATE_NOOP( "@nextinfo", "%1 has their name-day today"         );
+	QT_TRANSLATE_NOOP( "@nextinfo", "%1 has her name-day today"           );
+	QT_TRANSLATE_NOOP( "@nextinfo", "%1 has his name-day today"           );
+	QT_TRANSLATE_NOOP( "@nextinfo", "%1 has their name-day tomorrow"      );
+	QT_TRANSLATE_NOOP( "@nextinfo", "%1 has her name-day tomorrow"        );
+	QT_TRANSLATE_NOOP( "@nextinfo", "%1 has his name-day tomorrow"        );
+	QT_TRANSLATE_NOOP( "@nextinfo", "%1 has their name-day in %2 days"    );
+	QT_TRANSLATE_NOOP( "@nextinfo", "%1 has her name-day in %2 days"      );
+	QT_TRANSLATE_NOOP( "@nextinfo", "%1 has his name-day in %2 days"      );
 #endif
 
 
@@ -1149,7 +1149,7 @@ void NExtInfo::showHelp()
 		"#{nextinfo_notes}"     + "\n" +
 		"\n";
 	QMessageBox *messagebox = new QMessageBox(
-			qApp->translate( "@nextinfo", "Kadu - extended information - help" ),
+			qApp->translate( "@nextinfo", "Kadu" ) + " - " + qApp->translate( "@nextinfo", "Extended information" ) + " - " + qApp->translate( "@nextinfo", "Help" ),
 			helpmessage,
 			QMessageBox::Information,
 			QMessageBox::Ok, QMessageBox::NoButton, QMessageBox::NoButton,

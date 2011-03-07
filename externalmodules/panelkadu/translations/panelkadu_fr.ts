@@ -1,52 +1,52 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE TS>
-<TS version="2.0" language="pl">
+<TS version="2.0" language="fr_FR">
 <context>
     <name>@default</name>
     <message>
         <location filename="../.configuration-ui-translations.cpp" line="4"/>
         <source>Look</source>
-        <translation>Wygląd</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../.configuration-ui-translations.cpp" line="7"/>
         <source>PanelKadu</source>
-        <translation>PanelKadu</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../.configuration-ui-translations.cpp" line="10"/>
         <source>Geometry</source>
-        <translation>Geometria</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../.configuration-ui-translations.cpp" line="13"/>
         <source>Side</source>
-        <translation>Strona</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../.configuration-ui-translations.cpp" line="16"/>
         <source>Right</source>
-        <translation>Prawo</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../.configuration-ui-translations.cpp" line="19"/>
         <source>Bottom</source>
-        <translation>Dół</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../.configuration-ui-translations.cpp" line="22"/>
         <source>Left</source>
-        <translation>Lewo</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../.configuration-ui-translations.cpp" line="25"/>
         <source>Top</source>
-        <translation>Góra</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../.configuration-ui-translations.cpp" line="29"/>
         <source>Size</source>
-        <translation>Rozmiar</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../.configuration-ui-translations.cpp" line="31"/>
@@ -54,80 +54,78 @@
         <location filename="../.configuration-ui-translations.cpp" line="44"/>
         <location filename="../.configuration-ui-translations.cpp" line="63"/>
         <source> px</source>
-        <translation> px</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../.configuration-ui-translations.cpp" line="34"/>
         <source>User defined panel length</source>
-        <translation>Własna długość panelu</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../.configuration-ui-translations.cpp" line="37"/>
         <source>Position</source>
-        <translation>Pozycja</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../.configuration-ui-translations.cpp" line="42"/>
         <source>Length</source>
-        <translation>Długość</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../.configuration-ui-translations.cpp" line="48"/>
         <source>Behaviour</source>
-        <translation>Zachowanie</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../.configuration-ui-translations.cpp" line="51"/>
         <source>Activation time</source>
-        <translation>Czas aktywacji</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message numerus="yes">
         <location filename="../.configuration-ui-translations.cpp" line="53"/>
         <source>%n millisecond(s)</source>
-        <translation>
-            <numerusform>%n milisekunda</numerusform>
-            <numerusform>%n milisekundy</numerusform>
-            <numerusform>%n milisekund</numerusform>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+            <numerusform></numerusform>
         </translation>
     </message>
     <message>
         <location filename="../.configuration-ui-translations.cpp" line="56"/>
         <source>Hide panel after</source>
-        <translation>Ukryj panel po</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message numerus="yes">
         <location filename="../.configuration-ui-translations.cpp" line="58"/>
         <source>[after] %n millisecond(s)</source>
-        <translation>
-            <numerusform>[po] %n milisekundzie</numerusform>
-            <numerusform>[po] %n milisekundach</numerusform>
-            <numerusform>[po] %n milisekundach</numerusform>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+            <numerusform></numerusform>
         </translation>
     </message>
     <message>
         <location filename="../.configuration-ui-translations.cpp" line="61"/>
         <source>Hiding margin</source>
-        <translation>Margines ukrywania</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../.configuration-ui-translations.cpp" line="66"/>
         <source>Use activation ranges</source>
-        <translation>Używaj przedziałów aktywacji</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../.configuration-ui-translations.cpp" line="69"/>
         <source>Activation ranges</source>
-        <translation>Przedziały aktywacji</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../.configuration-ui-translations.cpp" line="71"/>
         <source>Use spaces to separate ranges: &apos;0-100 200-300 400-500&apos;</source>
-        <translation>Użyj spacji do rozdzielenia przedziałów: &apos;0-100 200-300 400-500&apos;</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../.configuration-ui-translations.cpp" line="74"/>
         <source>Don&apos;t hide panel when active</source>
-        <translation>Nie ukrywaj panelu gdy aktywny</translation>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 </TS>

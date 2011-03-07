@@ -51,7 +51,7 @@
 #include "gui/windows/add-buddy-window.h"
 #include "gui/windows/kadu-window.h"
 #include "gui/windows/your-accounts.h"
-#include "file-transfer/file-transfer-manager.h"
+///#include "file-transfer/file-transfer-manager.h"
 #include "misc/path-conversion.h"
 #include "notify/notification-manager.h"
 #include "status/status-container-manager.h"
@@ -126,35 +126,35 @@ GlobalHotkeys::GlobalHotkeys() : QObject( 0 )
 	// create Functions
 	new Functions();
 	// create simple hotkeys
-	new ConfHotKey( this, "Kadu"             , "Show Kadu's main window"           , "ShowKadusMainWindow"        , "functionShowKadusMainWindow"                  );
-	new ConfHotKey( this, "Kadu"             , "Hide Kadu's main window"           , "HideKadusMainWindow"        , "functionHideKadusMainWindow"                  );
-	new ConfHotKey( this, "Kadu"             , "Show/hide Kadu's main window"      , "ShowHideKadusMainWindow"    , "functionShowHideKadusMainWindow"    , "Alt+S" );
-	new ConfHotKey( this, "Kadu"             , "Turn silent mode on"               , "TurnSilentModeOn"           , "functionTurnSilentModeOn"                     );
-	new ConfHotKey( this, "Kadu"             , "Turn silent mode off"              , "TurnSilentModeOff"          , "functionTurnSilentModeOff"                    );
-	new ConfHotKey( this, "Kadu"             , "Toggle silent mode"                , "ToggleSilentMode"           , "functionToggleSilentMode"                     );
-	new ConfHotKey( this, "Kadu"             , "Quit Kadu"                         , "QuitKadu"                   , "functionQuitKadu"                             );
-	new ConfHotKey( this, "Chats"            , "Open incoming chat window"         , "OpenIncomingChatWindow"     , "functionOpenIncomingChatWindow"     , "Alt+E" );
-	new ConfHotKey( this, "Chats"            , "Open all incoming chat windows"    , "OpenAllIncomingChatWindows" , "functionOpenAllIncomingChatWindows"           );
-	new ConfHotKey( this, "Chats"            , "Minimize all opened chat windows"  , "MinimizeOpenedChatWindows"  , "functionMinimizeOpenedChatWindows"            );
-	new ConfHotKey( this, "Chats"            , "Restore all minimized chat windows", "RestoreMinimizedChatWindows", "functionRestoreMinimizedChatWindows"          );
-	new ConfHotKey( this, "Chats"            , "Minimize/restore all chat windows" , "MinimizeRestoreChatWindows" , "functionMinimizeRestoreChatWindows"           );
-	new ConfHotKey( this, "Chats"            , "Close all chat windows"            , "CloseAllChatWindows"        , "functionCloseAllChatWindows"                  );
-	new ConfHotKey( this, "Chats"            , "Open chat with ..."                , "OpenChatWith"               , "functionOpenChatWith"               , "Alt+W" );
-	new ConfHotKey( this, "Status"           , "Change status"                     , "ChangeStatus"               , "functionChangeStatus"               , "Alt+F" );
-	new ConfHotKey( this, "Status"           , "Change description"                , "ChangeDescription"          , "functionChangeDescription"          , "Alt+D" );
-	new ConfHotKey( this, "Buddies"          , "Add a new buddy"                   , "AddANewBuddy"               , "functionAddANewBuddy"                         );
-	new ConfHotKey( this, "Buddies"          , "Search for buddy"                  , "SearchForBuddy"             , "functionSearchForBuddy"                       );
-	new ConfHotKey( this, "Windows shortcuts", "File transfers window"             , "FileTransfersWindow"        , "functionFileTransfersWindow"                  );
-	new ConfHotKey( this, "Windows shortcuts", "Configuration window"              , "ConfigurationWindow"        , "functionConfigurationWindow"                  );
-	new ConfHotKey( this, "Windows shortcuts", "Account manager window"            , "AccountManagerWindow"       , "functionAccountManagerWindow"                 );
-	new ConfHotKey( this, "Windows shortcuts", "Plugins window"                    , "PluginsWindow"              , "functionPluginsWindow"                        );
+	new ConfHotKey( this, QT_TRANSLATE_NOOP( "@default", "Kadu"              ), QT_TRANSLATE_NOOP( "@default", "Show Kadu's main window"            ), "ShowKadusMainWindow"        , "functionShowKadusMainWindow"                  );
+	new ConfHotKey( this, QT_TRANSLATE_NOOP( "@default", "Kadu"              ), QT_TRANSLATE_NOOP( "@default", "Hide Kadu's main window"            ), "HideKadusMainWindow"        , "functionHideKadusMainWindow"                  );
+	new ConfHotKey( this, QT_TRANSLATE_NOOP( "@default", "Kadu"              ), QT_TRANSLATE_NOOP( "@default", "Show/hide Kadu's main window"       ), "ShowHideKadusMainWindow"    , "functionShowHideKadusMainWindow"    , "Alt+S" );
+	new ConfHotKey( this, QT_TRANSLATE_NOOP( "@default", "Kadu"              ), QT_TRANSLATE_NOOP( "@default", "Turn silent mode on"                ), "TurnSilentModeOn"           , "functionTurnSilentModeOn"                     );
+	new ConfHotKey( this, QT_TRANSLATE_NOOP( "@default", "Kadu"              ), QT_TRANSLATE_NOOP( "@default", "Turn silent mode off"               ), "TurnSilentModeOff"          , "functionTurnSilentModeOff"                    );
+	new ConfHotKey( this, QT_TRANSLATE_NOOP( "@default", "Kadu"              ), QT_TRANSLATE_NOOP( "@default", "Toggle silent mode"                 ), "ToggleSilentMode"           , "functionToggleSilentMode"                     );
+	new ConfHotKey( this, QT_TRANSLATE_NOOP( "@default", "Kadu"              ), QT_TRANSLATE_NOOP( "@default", "Quit Kadu"                          ), "QuitKadu"                   , "functionQuitKadu"                             );
+	new ConfHotKey( this, QT_TRANSLATE_NOOP( "@default", "Chats"             ), QT_TRANSLATE_NOOP( "@default", "Open incoming chat window"          ), "OpenIncomingChatWindow"     , "functionOpenIncomingChatWindow"     , "Alt+E" );
+	new ConfHotKey( this, QT_TRANSLATE_NOOP( "@default", "Chats"             ), QT_TRANSLATE_NOOP( "@default", "Open all incoming chat windows"     ), "OpenAllIncomingChatWindows" , "functionOpenAllIncomingChatWindows"           );
+	new ConfHotKey( this, QT_TRANSLATE_NOOP( "@default", "Chats"             ), QT_TRANSLATE_NOOP( "@default", "Minimize all opened chat windows"   ), "MinimizeOpenedChatWindows"  , "functionMinimizeOpenedChatWindows"            );
+	new ConfHotKey( this, QT_TRANSLATE_NOOP( "@default", "Chats"             ), QT_TRANSLATE_NOOP( "@default", "Restore all minimized chat windows" ), "RestoreMinimizedChatWindows", "functionRestoreMinimizedChatWindows"          );
+	new ConfHotKey( this, QT_TRANSLATE_NOOP( "@default", "Chats"             ), QT_TRANSLATE_NOOP( "@default", "Minimize/restore all chat windows"  ), "MinimizeRestoreChatWindows" , "functionMinimizeRestoreChatWindows"           );
+	new ConfHotKey( this, QT_TRANSLATE_NOOP( "@default", "Chats"             ), QT_TRANSLATE_NOOP( "@default", "Close all chat windows"             ), "CloseAllChatWindows"        , "functionCloseAllChatWindows"                  );
+	new ConfHotKey( this, QT_TRANSLATE_NOOP( "@default", "Chats"             ), QT_TRANSLATE_NOOP( "@default", "Open chat with ..."                 ), "OpenChatWith"               , "functionOpenChatWith"               , "Alt+W" );
+	new ConfHotKey( this, QT_TRANSLATE_NOOP( "@default", "Status"            ), QT_TRANSLATE_NOOP( "@default", "Change status"                      ), "ChangeStatus"               , "functionChangeStatus"               , "Alt+F" );
+	new ConfHotKey( this, QT_TRANSLATE_NOOP( "@default", "Status"            ), QT_TRANSLATE_NOOP( "@default", "Change description"                 ), "ChangeDescription"          , "functionChangeDescription"          , "Alt+D" );
+	new ConfHotKey( this, QT_TRANSLATE_NOOP( "@default", "Buddies"           ), QT_TRANSLATE_NOOP( "@default", "Add a new buddy"                    ), "AddANewBuddy"               , "functionAddANewBuddy"                         );
+	new ConfHotKey( this, QT_TRANSLATE_NOOP( "@default", "Buddies"           ), QT_TRANSLATE_NOOP( "@default", "Search for buddy"                   ), "SearchForBuddy"             , "functionSearchForBuddy"                       );
+	///new ConfHotKey( this, QT_TRANSLATE_NOOP( "@default", "Windows shortcuts" ), QT_TRANSLATE_NOOP( "@default", "File transfers window"              ), "FileTransfersWindow"        , "functionFileTransfersWindow"                  );
+	new ConfHotKey( this, QT_TRANSLATE_NOOP( "@default", "Windows shortcuts" ), QT_TRANSLATE_NOOP( "@default", "Configuration window"               ), "ConfigurationWindow"        , "functionConfigurationWindow"                  );
+	new ConfHotKey( this, QT_TRANSLATE_NOOP( "@default", "Windows shortcuts" ), QT_TRANSLATE_NOOP( "@default", "Account manager window"             ), "AccountManagerWindow"       , "functionAccountManagerWindow"                 );
+	new ConfHotKey( this, QT_TRANSLATE_NOOP( "@default", "Windows shortcuts" ), QT_TRANSLATE_NOOP( "@default", "Plugins window"                     ), "PluginsWindow"              , "functionPluginsWindow"                        );
 	// create config manager for BuddiesShotrcuts and BuddiesMenus
 	new ConfManager( this );
 	// create default configuration for BuddiesMenus
 	if( config_file.readEntry( "GlobalHotkeys", "BuddiesMenus", QString::null ).isNull() )
 	{
 		ConfBuddiesMenu *confbuddiesmenu;
-		confbuddiesmenu = new ConfBuddiesMenu( this, "Buddies menus", false );
+		confbuddiesmenu = new ConfBuddiesMenu( this, QT_TRANSLATE_NOOP( "@default", "Buddies menus" ), false );
 		confbuddiesmenu->HOTKEY                       = HotKey( "Alt+Q" );
 		confbuddiesmenu->CURRENTCHATS                 = true;
 		confbuddiesmenu->PENDINGCHATS                 = true;
@@ -165,7 +165,7 @@ GlobalHotkeys::GlobalHotkeys() : QObject( 0 )
 		confbuddiesmenu->BUDDIES                      = QStringList();
 		confbuddiesmenu->GROUPS                       = QStringList();
 		confbuddiesmenu->EXCLUDEBUDDIES               = QStringList();
-		confbuddiesmenu = new ConfBuddiesMenu( this, "Buddies menus", false );
+		confbuddiesmenu = new ConfBuddiesMenu( this, QT_TRANSLATE_NOOP( "@default", "Buddies menus" ), false );
 		confbuddiesmenu->HOTKEY                       = HotKey( "Alt+A" );
 		confbuddiesmenu->CURRENTCHATS                 = false;
 		confbuddiesmenu->PENDINGCHATS                 = false;
@@ -235,8 +235,12 @@ void GlobalHotkeys::mainConfigurationWindowCreated( MainConfigurationWindow *mai
 	// add BUDDIESSHORTCUTSADDNEWBUTTON button
 	if( BUDDIESSHORTCUTSADDNEWBUTTON == NULL )
 	{
-		ConfigGroupBox *groupBuddiesShortcuts = mainConfigurationWindow->widget()->configGroupBox( "Shortcuts", "Global hotkeys", "Buddies shortcuts" );
-		BUDDIESSHORTCUTSADDNEWBUTTON = new ConfigActionButton( "Add new shortcut ...", "", groupBuddiesShortcuts, NULL );
+		ConfigGroupBox *groupBuddiesShortcuts = mainConfigurationWindow->widget()->configGroupBox(
+			QT_TRANSLATE_NOOP( "@default", "Shortcuts" ),
+			QT_TRANSLATE_NOOP( "@default", "Global hotkeys" ),
+			QT_TRANSLATE_NOOP( "@default", "Buddies shortcuts" )
+		);
+		BUDDIESSHORTCUTSADDNEWBUTTON = new ConfigActionButton( QT_TRANSLATE_NOOP( "@default", "Add new shortcut ..." ), "", groupBuddiesShortcuts, NULL );
 		groupBuddiesShortcuts->widget()->layout()->removeWidget( BUDDIESSHORTCUTSADDNEWBUTTON );
 		groupBuddiesShortcuts->addWidget( BUDDIESSHORTCUTSADDNEWBUTTON, true );  // re-insert the button so that it takes full available horizontal space
 		connect( BUDDIESSHORTCUTSADDNEWBUTTON, SIGNAL(clicked()), this, SLOT(buddiesShortcutsAddNewButtonPressed()));
@@ -244,8 +248,12 @@ void GlobalHotkeys::mainConfigurationWindowCreated( MainConfigurationWindow *mai
 	// add BUDDIESMENUSADDNEWBUTTON button
 	if( BUDDIESMENUSADDNEWBUTTON == NULL )
 	{
-		ConfigGroupBox *groupBuddiesMenus = mainConfigurationWindow->widget()->configGroupBox( "Shortcuts", "Global hotkeys", "Buddies menus" );
-		BUDDIESMENUSADDNEWBUTTON = new ConfigActionButton( "Add new menu ...", "", groupBuddiesMenus, NULL );
+		ConfigGroupBox *groupBuddiesMenus = mainConfigurationWindow->widget()->configGroupBox(
+			QT_TRANSLATE_NOOP( "@default", "Shortcuts" ),
+			QT_TRANSLATE_NOOP( "@default", "Global hotkeys" ),
+			QT_TRANSLATE_NOOP( "@default", "Buddies menus" )
+		);
+		BUDDIESMENUSADDNEWBUTTON = new ConfigActionButton( QT_TRANSLATE_NOOP( "@default", "Add new menu ..." ), "", groupBuddiesMenus, NULL );
 		groupBuddiesMenus->widget()->layout()->removeWidget( BUDDIESMENUSADDNEWBUTTON );
 			groupBuddiesMenus->addWidget( BUDDIESMENUSADDNEWBUTTON, true );  // re-insert the button so that it takes full available horizontal space
 		connect( BUDDIESMENUSADDNEWBUTTON, SIGNAL(clicked()), this, SLOT(buddiesMenusAddNewButtonPressed()) );
@@ -266,24 +274,45 @@ void GlobalHotkeys::configurationUpdated()
 	}
 	DISPLAY = XOpenDisplay( 0 );
 	// grab hotkeys
+	QStringList notgrabbedhotkeys;
 	foreach( ConfHotKey* confhotkey, ConfHotKey::instances() )
 	{
-		grabHotKey( confhotkey->hotKey() );
+		if( grabHotKey( confhotkey->hotKey() ) == 1 )
+			notgrabbedhotkeys.append( confhotkey->hotKey().string() );
 	}
 	foreach( ConfBuddiesShortcut* confbuddiesshortcut, ConfBuddiesShortcut::instances() )
-		grabHotKey( confbuddiesshortcut->hotKey() );
+	{
+		if( grabHotKey( confbuddiesshortcut->hotKey() ) == 1 )
+			notgrabbedhotkeys.append( confbuddiesshortcut->hotKey().string() );
+	}
 	foreach( ConfBuddiesMenu* confbuddiesmenu, ConfBuddiesMenu::instances() )
-		grabHotKey( confbuddiesmenu->hotKey() );
+	{
+		if( grabHotKey( confbuddiesmenu->hotKey() ) == 1 )
+			notgrabbedhotkeys.append( confbuddiesmenu->hotKey().string() );
+	}
+	if( notgrabbedhotkeys.count() > 0 )
+	{
+		QMessageBox *messagebox = new QMessageBox(
+			qApp->translate( "@default", "Kadu" ) + " - " + qApp->translate( "@default", "Global hotkeys" ),
+			qApp->translate( "@default", "%n hotkey(s):\n- %1\nis/are in use by another application.", 0, QCoreApplication::CodecForTr, notgrabbedhotkeys.count() ).arg( notgrabbedhotkeys.join( "\n- " ) ),
+			QMessageBox::Warning,
+			QMessageBox::Ok, QMessageBox::NoButton, QMessageBox::NoButton,
+			qApp->activeWindow()
+		);
+		messagebox->show();
+	}
 	// single shot the hotkeys timer
 	HOTKEYSTIMER->start( GLOBALHOTKEYS_HOTKEYSTIMERINTERVAL );
 }
 
 
-void GlobalHotkeys::grabHotKey( HotKey hotkey )
+int GlobalHotkeys::grabHotKey( HotKey hotkey )
 {
 	uint modifiers;
+	int result = -1;
 	if( ! hotkey.isNull() )
 	{
+		result = 0;
 		modifiers = 0;
 		modifiers |= ( hotkey.shift()   ? GLOBALHOTKEYS_X11SHIFTMASK   : 0 );
 		modifiers |= ( hotkey.control() ? GLOBALHOTKEYS_X11CONTROLMASK : 0 );
@@ -320,30 +349,24 @@ void GlobalHotkeys::grabHotKey( HotKey hotkey )
 		// check for X11 errors
 		if( messageshandled > 0 )
 		{
-			QMessageBox *messagebox = new QMessageBox(
-					qApp->translate( "@default", "Kadu - Global hotkeys" ),
-					qApp->translate( "@default", "Hotkey %% is in use by another application." ).replace( "%%", hotkey.string() ),
-					QMessageBox::Warning,
-					QMessageBox::Ok, QMessageBox::NoButton, QMessageBox::NoButton,
-					qApp->activeWindow()
-				);
-			messagebox->show();
+			result = 1;
 			messageshandled = 0;
 		}
 	}
+	return result;
 }
 
 
 void GlobalHotkeys::buddiesShortcutsAddNewButtonPressed()
 {
-	ConfBuddiesShortcut *confbuddiesshortcut = new ConfBuddiesShortcut( this, "Buddies shortcuts", true );
+	ConfBuddiesShortcut *confbuddiesshortcut = new ConfBuddiesShortcut( this, QT_TRANSLATE_NOOP( "@default", "Buddies shortcuts" ), true );
 	confbuddiesshortcut->focus();
 }
 
 
 void GlobalHotkeys::buddiesMenusAddNewButtonPressed()
 {
-	ConfBuddiesMenu *confbuddiesmenu = new ConfBuddiesMenu( this, "Buddies menus", true );
+	ConfBuddiesMenu *confbuddiesmenu = new ConfBuddiesMenu( this, QT_TRANSLATE_NOOP( "@default", "Buddies menus" ), true );
 	confbuddiesmenu->focus();
 }
 

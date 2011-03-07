@@ -2,166 +2,244 @@
 <!DOCTYPE TS>
 <TS version="2.0" language="pl">
 <context>
-    <name>@nextinfo</name>
+    <name>@default</name>
     <message>
-        <location filename="../extendedinformationwidgets.cpp" line="312"/>
+        <location filename="../.configuration-ui-translations.cpp" line="4"/>
+        <source>Buddies</source>
+        <translation>Znajomi</translation>
+    </message>
+    <message>
+        <location filename="../.configuration-ui-translations.cpp" line="7"/>
         <source>Extended information</source>
         <translation>Rozszerzone informacje</translation>
     </message>
     <message>
-        <location filename="../nextinfo.cpp" line="695"/>
+        <location filename="../.configuration-ui-translations.cpp" line="10"/>
+        <source>Notifications</source>
+        <translation>Powiadomienia</translation>
+    </message>
+    <message>
+        <location filename="../.configuration-ui-translations.cpp" line="13"/>
+        <source>Enable notifications</source>
+        <translation>Włącz powiadomienia</translation>
+    </message>
+    <message>
+        <location filename="../.configuration-ui-translations.cpp" line="16"/>
+        <source>Notification advance</source>
+        <translation>Powiadamiaj z wyprzedzeniem</translation>
+    </message>
+    <message numerus="yes">
+        <location filename="../.configuration-ui-translations.cpp" line="18"/>
+        <source>%n day(s)</source>
+        <translatorcomment>Notification advance: %n day(s)</translatorcomment>
+        <translation>
+            <numerusform>%n dnia</numerusform>
+            <numerusform>%n dni</numerusform>
+            <numerusform>%n dni</numerusform>
+        </translation>
+    </message>
+    <message>
+        <location filename="../.configuration-ui-translations.cpp" line="21"/>
+        <source>Delay between notifications</source>
+        <translation>Odstęp między powiadomieniami</translation>
+    </message>
+    <message numerus="yes">
+        <location filename="../.configuration-ui-translations.cpp" line="23"/>
+        <source>%n second(s)</source>
+        <translation>
+            <numerusform>%n sekunda</numerusform>
+            <numerusform>%n sekundy</numerusform>
+            <numerusform>%n sekund</numerusform>
+        </translation>
+    </message>
+    <message>
+        <location filename="../.configuration-ui-translations.cpp" line="26"/>
+        <source>Notify about birthdays</source>
+        <translation>Powiadamiaj o urodzinach</translation>
+    </message>
+    <message>
+        <location filename="../.configuration-ui-translations.cpp" line="29"/>
+        <source>Notify about name-days</source>
+        <translation>Powiadamiaj o imieninach</translation>
+    </message>
+    <message>
+        <location filename="../.configuration-ui-translations.cpp" line="33"/>
+        <source>Help</source>
+        <translation>Pomoc</translation>
+    </message>
+    <message>
+        <location filename="../.configuration-ui-translations.cpp" line="36"/>
+        <source>Show help</source>
+        <translation>Pokaż pomoc</translation>
+    </message>
+    <message>
+        <location filename="../.configuration-ui-translations.cpp" line="40"/>
+        <source>Data</source>
+        <translation>Dane</translation>
+    </message>
+    <message>
+        <location filename="../.configuration-ui-translations.cpp" line="43"/>
+        <source>Import data from ext_info module</source>
+        <translation>Importuj dane z modułu ext_info</translation>
+    </message>
+    <message>
+        <location filename="../nextinfo.cpp" line="129"/>
+        <source>Birthday/name-day notification</source>
+        <translation>Powiadomienia o urodzinach/imieninach</translation>
+    </message>
+</context>
+<context>
+    <name>@nextinfo</name>
+    <message>
+        <location filename="../extendedinformationwidgets.cpp" line="318"/>
+        <location filename="../nextinfo.cpp" line="1152"/>
+        <source>Extended information</source>
+        <translation>Rozszerzone informacje</translation>
+    </message>
+    <message>
+        <location filename="../nextinfo.cpp" line="708"/>
         <source>Birthday notification</source>
         <translation>Powiadomienie o urodzinach</translation>
     </message>
     <message>
-        <location filename="../nextinfo.cpp" line="728"/>
+        <location filename="../nextinfo.cpp" line="741"/>
         <source>Name-day notification</source>
         <translation>Powiadomienie o imieninach</translation>
     </message>
     <message>
-        <location filename="../extendedinformationwidgets.cpp" line="314"/>
+        <location filename="../extendedinformationwidgets.cpp" line="320"/>
         <source>First name</source>
         <translation>Imię</translation>
     </message>
     <message>
-        <location filename="../extendedinformationwidgets.cpp" line="315"/>
+        <location filename="../extendedinformationwidgets.cpp" line="321"/>
         <source>Last name</source>
         <translation>Nazwisko</translation>
     </message>
     <message>
-        <location filename="../extendedinformationwidgets.cpp" line="316"/>
+        <location filename="../extendedinformationwidgets.cpp" line="322"/>
         <source>Nickname</source>
         <translation>Pseudonim</translation>
     </message>
     <message>
-        <location filename="../extendedinformationwidgets.cpp" line="318"/>
-        <location filename="../nextinfo.cpp" line="893"/>
+        <location filename="../extendedinformationwidgets.cpp" line="324"/>
+        <location filename="../nextinfo.cpp" line="906"/>
         <source>Address</source>
         <translation>Adres</translation>
     </message>
     <message>
-        <location filename="../extendedinformationwidgets.cpp" line="319"/>
-        <location filename="../nextinfo.cpp" line="900"/>
+        <location filename="../extendedinformationwidgets.cpp" line="325"/>
+        <location filename="../nextinfo.cpp" line="913"/>
         <source>City</source>
         <translation>Miasto</translation>
     </message>
     <message>
-        <location filename="../extendedinformationwidgets.cpp" line="317"/>
+        <location filename="../extendedinformationwidgets.cpp" line="323"/>
         <source>Gender</source>
         <translation>Płeć</translation>
     </message>
     <message>
-        <location filename="../extendedinformationwidgets.cpp" line="320"/>
-        <location filename="../nextinfo.cpp" line="907"/>
-        <location filename="../nextinfo.cpp" line="1046"/>
+        <location filename="../extendedinformationwidgets.cpp" line="326"/>
+        <location filename="../nextinfo.cpp" line="920"/>
+        <location filename="../nextinfo.cpp" line="1059"/>
         <source>Phone</source>
         <translation>Telefon</translation>
     </message>
     <message>
-        <location filename="../extendedinformationwidgets.cpp" line="321"/>
-        <location filename="../nextinfo.cpp" line="879"/>
+        <location filename="../extendedinformationwidgets.cpp" line="327"/>
+        <location filename="../nextinfo.cpp" line="892"/>
         <source>Mobile</source>
         <translation>Telefon komórkowy</translation>
     </message>
     <message>
-        <location filename="../extendedinformationwidgets.cpp" line="329"/>
+        <location filename="../extendedinformationwidgets.cpp" line="335"/>
         <source>female</source>
         <translation>kobieta</translation>
     </message>
     <message>
-        <location filename="../extendedinformationwidgets.cpp" line="330"/>
+        <location filename="../extendedinformationwidgets.cpp" line="336"/>
         <source>male</source>
         <translation>mężczyzna</translation>
     </message>
     <message>
-        <location filename="../extendedinformationwidgets.cpp" line="322"/>
+        <location filename="../extendedinformationwidgets.cpp" line="328"/>
         <source>e-mail</source>
         <translation>Adres e-mail</translation>
     </message>
     <message>
-        <location filename="../extendedinformationwidgets.cpp" line="323"/>
+        <location filename="../extendedinformationwidgets.cpp" line="329"/>
         <source>Alternative e-mail</source>
         <translation>Alternatywny adres e-mail</translation>
     </message>
     <message>
-        <location filename="../extendedinformationwidgets.cpp" line="324"/>
-        <location filename="../nextinfo.cpp" line="919"/>
-        <location filename="../nextinfo.cpp" line="1054"/>
+        <location filename="../extendedinformationwidgets.cpp" line="330"/>
+        <location filename="../nextinfo.cpp" line="932"/>
+        <location filename="../nextinfo.cpp" line="1067"/>
         <source>Website</source>
         <translation>Strona WWW</translation>
     </message>
     <message>
-        <location filename="../extendedinformationwidgets.cpp" line="325"/>
+        <location filename="../extendedinformationwidgets.cpp" line="331"/>
         <source>Birthday (DD.MM.YYYY)</source>
         <translation>Urodziny (DD.MM.RRRR)</translation>
     </message>
     <message>
-        <location filename="../extendedinformationwidgets.cpp" line="326"/>
+        <location filename="../extendedinformationwidgets.cpp" line="332"/>
         <source>Name-day (DD.MM)</source>
         <translation>Imieniny (DD.MM)</translation>
     </message>
     <message>
-        <location filename="../extendedinformationwidgets.cpp" line="389"/>
-        <location filename="../extendedinformationwidgets.cpp" line="391"/>
+        <location filename="../extendedinformationwidgets.cpp" line="395"/>
+        <location filename="../extendedinformationwidgets.cpp" line="397"/>
         <source>Notes</source>
         <translation>Notatki</translation>
     </message>
     <message>
-        <location filename="../extendedinformationwidgets.cpp" line="390"/>
+        <location filename="../extendedinformationwidgets.cpp" line="396"/>
         <source>Interests</source>
         <translation>Zainteresowania</translation>
     </message>
     <message>
-        <location filename="../nextinfo.cpp" line="1139"/>
-        <source>Kadu - extended information - help</source>
-        <translation>Kadu - rozszerzone informacje - pomoc</translation>
-    </message>
-    <message>
-        <location filename="../nextinfo.cpp" line="1129"/>
+        <location filename="../nextinfo.cpp" line="1142"/>
         <source>These tags are recognised by the Kadu&apos;s parser:</source>
         <translation>Te tagi są rozpoznawane przez parser Kadu:</translation>
     </message>
     <message>
-        <location filename="../nextinfo.cpp" line="103"/>
+        <location filename="../nextinfo.cpp" line="108"/>
         <source>Birthday notifications</source>
         <translation>Powiadomienia o urodzinach</translation>
     </message>
     <message>
-        <location filename="../nextinfo.cpp" line="110"/>
+        <location filename="../nextinfo.cpp" line="115"/>
         <source>Name-day notifications</source>
         <translation>Powiadomienia o imieninach</translation>
     </message>
     <message>
-        <location filename="../nextinfo.cpp" line="124"/>
-        <source>Birthday/name-day notification</source>
-        <translation>Powiadomienia o urodzinach/imieninach</translation>
-    </message>
-    <message>
-        <location filename="../nextinfo.cpp" line="308"/>
-        <location filename="../nextinfo.cpp" line="341"/>
+        <location filename="../nextinfo.cpp" line="317"/>
+        <location filename="../nextinfo.cpp" line="350"/>
         <source>Keep reminding me now</source>
         <translation>Przypominaj teraz</translation>
     </message>
     <message>
-        <location filename="../nextinfo.cpp" line="309"/>
-        <location filename="../nextinfo.cpp" line="342"/>
+        <location filename="../nextinfo.cpp" line="318"/>
+        <location filename="../nextinfo.cpp" line="351"/>
         <source>Remind me tomorrow</source>
         <translation>Przypomnij jutro</translation>
     </message>
     <message>
-        <location filename="../nextinfo.cpp" line="310"/>
-        <location filename="../nextinfo.cpp" line="343"/>
+        <location filename="../nextinfo.cpp" line="319"/>
+        <location filename="../nextinfo.cpp" line="352"/>
         <source>Remind me on the day</source>
         <translation>Przypomnij w tym dniu</translation>
     </message>
     <message>
-        <location filename="../nextinfo.cpp" line="311"/>
-        <location filename="../nextinfo.cpp" line="344"/>
+        <location filename="../nextinfo.cpp" line="320"/>
+        <location filename="../nextinfo.cpp" line="353"/>
         <source>Remind me next year</source>
         <translation>Przypomij za rok</translation>
     </message>
     <message>
-        <location filename="../nextinfo.cpp" line="713"/>
+        <location filename="../nextinfo.cpp" line="726"/>
         <source>code(n-th birthday)</source>
         <translation>
 var s = &quot;&quot;;
@@ -185,106 +263,106 @@ return &quot;&quot; + n + s;
        </translation>
     </message>
     <message>
-        <location filename="../nextinfo.cpp" line="756"/>
+        <location filename="../nextinfo.cpp" line="769"/>
         <source>%1 has their %2 birthday today</source>
         <translation>%1 obchodzi dzisiaj swoje %2 urodziny</translation>
     </message>
     <message>
-        <location filename="../nextinfo.cpp" line="757"/>
+        <location filename="../nextinfo.cpp" line="770"/>
         <source>%1 has her %2 birthday today</source>
         <translation>%1 obchodzi dzisiaj swoje %2 urodziny</translation>
     </message>
     <message>
-        <location filename="../nextinfo.cpp" line="758"/>
+        <location filename="../nextinfo.cpp" line="771"/>
         <source>%1 has his %2 birthday today</source>
         <translation>%1 obchodzi dzisiaj swoje %2 urodziny</translation>
     </message>
     <message>
-        <location filename="../nextinfo.cpp" line="759"/>
+        <location filename="../nextinfo.cpp" line="772"/>
         <source>%1 has their %2 birthday tomorrow</source>
         <translation>%1 obchodzi jutro swoje %2 urodziny</translation>
     </message>
     <message>
-        <location filename="../nextinfo.cpp" line="760"/>
+        <location filename="../nextinfo.cpp" line="773"/>
         <source>%1 has her %2 birthday tomorrow</source>
         <translation>%1 obchodzi jutro swoje %2 urodziny</translation>
     </message>
     <message>
-        <location filename="../nextinfo.cpp" line="761"/>
+        <location filename="../nextinfo.cpp" line="774"/>
         <source>%1 has his %2 birthday tomorrow</source>
         <translation>%1 obchodzi jutro swoje %2 urodziny</translation>
     </message>
     <message>
-        <location filename="../nextinfo.cpp" line="762"/>
+        <location filename="../nextinfo.cpp" line="775"/>
         <source>%1 has their %2 birthday in %3 days</source>
         <translation>%1 obchodzi swoje %2 urodziny za %3 dni</translation>
     </message>
     <message>
-        <location filename="../nextinfo.cpp" line="763"/>
+        <location filename="../nextinfo.cpp" line="776"/>
         <source>%1 has her %2 birthday in %3 days</source>
         <translation>%1 obchodzi swoje %2 urodziny za %3 dni</translation>
     </message>
     <message>
-        <location filename="../nextinfo.cpp" line="764"/>
+        <location filename="../nextinfo.cpp" line="777"/>
         <source>%1 has his %2 birthday in %3 days</source>
         <translation>%1 obchodzi swoje %2 urodziny za %3 dni</translation>
     </message>
     <message>
-        <location filename="../nextinfo.cpp" line="793"/>
+        <location filename="../nextinfo.cpp" line="806"/>
         <source>Select ext_info data file to import</source>
         <translation>Wybierz plik z danymi ext_info do zaimportowania</translation>
     </message>
     <message>
-        <location filename="../nextinfo.cpp" line="858"/>
+        <location filename="../nextinfo.cpp" line="871"/>
         <source>First Name</source>
         <translation>Imię</translation>
     </message>
     <message>
-        <location filename="../nextinfo.cpp" line="865"/>
+        <location filename="../nextinfo.cpp" line="878"/>
         <source>Last Name</source>
         <translation>Nazwisko</translation>
     </message>
     <message>
-        <location filename="../nextinfo.cpp" line="872"/>
+        <location filename="../nextinfo.cpp" line="885"/>
         <source>Nick Name</source>
         <translation>Pseudonim</translation>
     </message>
     <message>
-        <location filename="../nextinfo.cpp" line="886"/>
+        <location filename="../nextinfo.cpp" line="899"/>
         <source>E-Mail</source>
         <translation>e-mail</translation>
     </message>
     <message>
-        <location filename="../nextinfo.cpp" line="923"/>
-        <location filename="../nextinfo.cpp" line="1093"/>
+        <location filename="../nextinfo.cpp" line="936"/>
+        <location filename="../nextinfo.cpp" line="1106"/>
         <source>IRC</source>
         <translation>IRC</translation>
     </message>
     <message>
-        <location filename="../nextinfo.cpp" line="927"/>
-        <location filename="../nextinfo.cpp" line="1096"/>
+        <location filename="../nextinfo.cpp" line="940"/>
+        <location filename="../nextinfo.cpp" line="1109"/>
         <source>Tlen</source>
         <translation>Tlen</translation>
     </message>
     <message>
-        <location filename="../nextinfo.cpp" line="931"/>
-        <location filename="../nextinfo.cpp" line="1099"/>
+        <location filename="../nextinfo.cpp" line="944"/>
+        <location filename="../nextinfo.cpp" line="1112"/>
         <source>WP</source>
         <translation>WP</translation>
     </message>
     <message>
-        <location filename="../nextinfo.cpp" line="935"/>
-        <location filename="../nextinfo.cpp" line="1102"/>
+        <location filename="../nextinfo.cpp" line="948"/>
+        <location filename="../nextinfo.cpp" line="1115"/>
         <source>ICQ</source>
         <translation>ICQ</translation>
     </message>
     <message>
-        <location filename="../nextinfo.cpp" line="998"/>
+        <location filename="../nextinfo.cpp" line="1011"/>
         <source>Kadu - extended information - data import</source>
         <translation>Kadu - rozszerzone informacje - import danych</translation>
     </message>
     <message numerus="yes">
-        <location filename="../nextinfo.cpp" line="999"/>
+        <location filename="../nextinfo.cpp" line="1012"/>
         <source>%n contact(s) imported.</source>
         <translation>
             <numerusform>Zaimportowano %n kontakt.</numerusform>
@@ -293,57 +371,67 @@ return &quot;&quot; + n + s;
         </translation>
     </message>
     <message>
-        <location filename="../nextinfo.cpp" line="942"/>
+        <location filename="../nextinfo.cpp" line="1152"/>
+        <source>Kadu</source>
+        <translation>Kadu</translation>
+    </message>
+    <message>
+        <location filename="../nextinfo.cpp" line="1152"/>
+        <source>Help</source>
+        <translation>Pomoc</translation>
+    </message>
+    <message>
+        <location filename="../nextinfo.cpp" line="955"/>
         <source>Birthday</source>
         <translation>Urodziny</translation>
     </message>
     <message>
-        <location filename="../nextinfo.cpp" line="949"/>
+        <location filename="../nextinfo.cpp" line="962"/>
         <source>Name-day</source>
         <translation>Imieniny</translation>
     </message>
     <message>
-        <location filename="../nextinfo.cpp" line="765"/>
+        <location filename="../nextinfo.cpp" line="778"/>
         <source>%1 has their name-day today</source>
         <translation>%1 obchodzi dzisiaj imieniny</translation>
     </message>
     <message>
-        <location filename="../nextinfo.cpp" line="766"/>
+        <location filename="../nextinfo.cpp" line="779"/>
         <source>%1 has her name-day today</source>
         <translation>%1 obchodzi dzisiaj imieniny</translation>
     </message>
     <message>
-        <location filename="../nextinfo.cpp" line="767"/>
+        <location filename="../nextinfo.cpp" line="780"/>
         <source>%1 has his name-day today</source>
         <translation>%1 obchodzi dzisiaj imieniny</translation>
     </message>
     <message>
-        <location filename="../nextinfo.cpp" line="768"/>
+        <location filename="../nextinfo.cpp" line="781"/>
         <source>%1 has their name-day tomorrow</source>
         <translation>%1 obchodzi jutro imieniny</translation>
     </message>
     <message>
-        <location filename="../nextinfo.cpp" line="769"/>
+        <location filename="../nextinfo.cpp" line="782"/>
         <source>%1 has her name-day tomorrow</source>
         <translation>%1 obchodzi jutro imieniny</translation>
     </message>
     <message>
-        <location filename="../nextinfo.cpp" line="770"/>
+        <location filename="../nextinfo.cpp" line="783"/>
         <source>%1 has his name-day tomorrow</source>
         <translation>%1 obchodzi jutro imieniny</translation>
     </message>
     <message>
-        <location filename="../nextinfo.cpp" line="771"/>
+        <location filename="../nextinfo.cpp" line="784"/>
         <source>%1 has their name-day in %2 days</source>
         <translation>%1 obchodzi imieniny za %2 dni</translation>
     </message>
     <message>
-        <location filename="../nextinfo.cpp" line="772"/>
+        <location filename="../nextinfo.cpp" line="785"/>
         <source>%1 has her name-day in %2 days</source>
         <translation>%1 obchodzi imieniny za %2 dni</translation>
     </message>
     <message>
-        <location filename="../nextinfo.cpp" line="773"/>
+        <location filename="../nextinfo.cpp" line="786"/>
         <source>%1 has his name-day in %2 days</source>
         <translation>%1 obchodzi imieniny za %2 dni</translation>
     </message>

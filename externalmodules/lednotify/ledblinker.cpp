@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2008-2010                                               *
+ *   Copyright (C) 2008-2011                                               *
  *     Michał Małek  michalm@jabster.pl                                    *
  *     Piotr Dąbrowski  ultr@ultr.pl                                       *
  *                                                                         *
@@ -80,8 +80,8 @@ void LedBlinker::stop()
 
 void LedBlinker::configurationUpdated()
 {
-	delay_ = config_file.readNumEntry("Led Notify", "LEDdelay");
-	blinkCount_ = config_file.readNumEntry("Led Notify", "LEDcount");
+	delay_ = config_file.readNumEntry("LedNotify", "LEDdelay");
+	blinkCount_ = config_file.readNumEntry("LedNotify", "LEDcount");
 }
 
 

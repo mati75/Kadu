@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2008-2010                                               *
+ *   Copyright (C) 2008-2011                                               *
  *     Michał Małek  michalm@jabster.pl                                    *
  *     Piotr Dąbrowski  ultr@ultr.pl                                       *
  *                                                                         *

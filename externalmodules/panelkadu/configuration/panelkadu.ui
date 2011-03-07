@@ -14,8 +14,8 @@
 				<spin-box caption="Length" config-section="PanelKadu" config-item="PanelLength" min-value="100" max-value="10000" step="1" suffix=" px" id="panelkadu/panelLength" />
 			</group-box>
 			<group-box name="Behaviour">
-				<spin-box caption="Activation time" config-section="PanelKadu" config-item="ActivationTime" min-value="0" max-value="10000" step="10" suffix=" ms" id="panelkadu/activationTime" />
-				<spin-box caption="Hide panel after" config-section="PanelKadu" config-item="HideTime" min-value="0" max-value="10000" step="10" suffix=" ms" id="panelkadu/hideTime" />
+				<spin-box caption="Activation time" config-section="PanelKadu" config-item="ActivationTime" min-value="0" max-value="10000" step="10" suffix="%n millisecond(s)" id="panelkadu/activationTime" />
+				<spin-box caption="Hide panel after" config-section="PanelKadu" config-item="HideTime" min-value="0" max-value="10000" step="10" suffix="[after] %n millisecond(s)" id="panelkadu/hideTime" />
 				<spin-box caption="Hiding margin" config-section="PanelKadu" config-item="HidingMargin" min-value="0" max-value="10000" step="1" suffix=" px" id="panelkadu/hidingMargin" />
 				<check-box caption="Use activation ranges" config-section="PanelKadu" config-item="UseActivationRanges" id="panelkadu/useActivationRanges" />
 				<line-edit caption="Activation ranges" config-section="PanelKadu" config-item="ActivationRanges" id="panelkadu/activationRanges"

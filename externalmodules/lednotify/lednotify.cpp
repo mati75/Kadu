@@ -58,10 +58,12 @@ extern "C" KADU_EXPORT void lednotify_close()
 }
 
 
-LedNotify::LedNotify( QObject *parent ) : QObject( parent ), Notifier( "lednotify", "Scroll Lock LED", "kadu_icons/notify-led" ), chatBlinking_( false ), msgBlinking_( false )
+LedNotify::LedNotify( QObject *parent ) : QObject( parent ),
+	Notifier( "lednotify", QT_TRANSLATE_NOOP( "@default", "Scroll Lock LED" ), "kadu_icons/notify-led" ),
+	chatBlinking_( false ), msgBlinking_( false )
 {
-	config_file.addVariable( "Led Notify", "LEDdelay", 500 );
-	config_file.addVariable( "Led Notify", "LEDcount",   3 );
+	config_file.addVariable( "LedNotify", "LEDdelay", 500 );
+	config_file.addVariable( "LedNotify", "LEDcount",   3 );
 	MainConfigurationWindow::registerUiFile( dataPath( "kadu/modules/configuration/lednotify.ui" ) );
 	NotificationManager::instance()->registerNotifier( this );
 	connect( PendingMessagesManager::instance(), SIGNAL(messageRemoved(Message))          , this, SLOT(messageReceived(Message))         );
@@ -93,7 +95,7 @@ void LedNotify::notify( Notification *notification )
 	if( notification->type() == "NewChat" )
 	{
 		// Don't blink, if "OpenChatOnMessage" is "true" - chat is already open
-		if( ! config_file.readBoolEntry( "Chat", "OpenChatOnMessage" ) )	
+		if( ! config_file.readBoolEntry( "Chat", "OpenChatOnMessage" ) )
 		{
 			chatBlinking_ = true;
 			blinker_.startInfinite();

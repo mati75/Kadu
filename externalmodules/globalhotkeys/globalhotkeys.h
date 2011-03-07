@@ -66,7 +66,7 @@ class GlobalHotkeys : public ConfigurationUiHandler, ConfigurationAwareObject
 		void checkPendingHotkeys();
 	private:
 		static GlobalHotkeys *INSTANCE;
-		void grabHotKey( HotKey hotkey );
+		int grabHotKey( HotKey hotkey );
 		void processConfBuddiesShortcut( ConfBuddiesShortcut *confbuddiesshortcut );
 		void processConfBuddiesMenu( ConfBuddiesMenu *confbuddiesmenu );
 		bool processHotKey( HotKey hotkey );
