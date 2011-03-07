@@ -3,8 +3,10 @@ kadu (0.6.6~rc2-1) unstable; urgency=low
   * New upstream release
   * Included information about XMPP protocol support in package descriptions
   * Changed "module(s)" to "plugin(s)" in package descriptions
+  * Updated debian/patches/02-.config.patch to make it fit 0.6.6~rc2
+  * Updated debian/patches/03-about-dialog.patch to make it fit 0.6.6~rc2
 
- -- Patryk Cisek <patryk@debian.org>  Fri, 04 Mar 2011 15:00:13 +0100
+ -- Patryk Cisek <patryk@debian.org>  Mon, 07 Mar 2011 15:14:41 +0100
 
 kadu (0.6.6~rc1-1) unstable; urgency=low
 
