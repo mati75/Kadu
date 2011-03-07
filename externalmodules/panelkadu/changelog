@@ -1,0 +1,76 @@
+0.6.5-5 => 0.6.6-6
+* Port dla Kadu 0.6.6.
+* Animacja panelu w KDE4.
+* Naprawione sprawdzanie aktywności okna.
+* Poprawiona kompatybilność z modułem single_window.
+* Zakładka konfiguracji przeniesiona z grupy Kadu do grupy Wygląd.
+* Poprawki drobnych błędów.
+
+
+0.6.5-4 => 0.6.5-5
+* PanelKadu::PanelKadu(): typ okna Kadu zmienia się teraz na
+  _NET_WM_WINDOW_TYPE_DOCK.
+* XGrabButton zastąpiony przez Event Filter, dzięki czemu aktywacja okna działa
+  także z Compizem.
+* Usunięta zależność od rozszerzenia XTest (-lXtst).
+
+
+0.6.5-3 => 0.6.5-4
+* CMakeLists.txt: zastąpienie "lib/kadu/modules" przez "${MODULEDIR}".
+
+
+0.6.5-2 => 0.6.5-3
+* Dodanie opcji ustawienia marginesu ukrywania.
+* Opcja nieukrywania okna Kadu kiedy jest ono aktywne ("Nie ukrywaj panelu gdy
+  aktywny") nie jest już oznaczona jako zalecana i domyślnie jest wyłączona.
+
+
+0.6.0-2 => 0.6.5-2
+* Port dla Kadu 0.6.5
+
+
+0.6.0-1 => 0.6.0-2
+* panelkadu/panelkadu.cpp: dodany "#define QT_CLEAN_NAMESPACE" w celu uniknięcia
+  błędu kompilacji http://www.kadu.net/forum/viewtopic.php?p=84272#84272.
+
+
+0.6-rc1 => 0.6.0-1
+* Plik spec: Dodanie "-L/usr/X11R6/lib" do MODULE_LDFLAGS.
+
+
+0.6-beta4 => 0.6-rc1
+* PanelKadu::showKadu(): drobne zmiany usprawniające aktywację okna Kadu i
+  przekazywanie zdarzeń myszy.
+* Opcja nieukrywania okna Kadu kiedy jest ono aktywne ("Nie ukrywaj panelu gdy
+  aktywny") została oznaczona w oknie konfiguracji jako zalecana.
+
+
+0.6-beta3 => 0.6-beta4
+* Moduł jest teraz zależny od X11 oraz rozszerzenia XTest
+  (biblioteki: -lX11 -lXtst).
+* Po pokazaniu okna Kadu zdarzenia myszy ButtonPress i ButtonRelease
+  przychodzące do tego okna są przechwytywane, a po wykryciu zdarzenia
+  ButtonPress okno kadu jest aktywowane, a dane zdarzenie przesyłane dalej do
+  okna przy użyciu XTest. Dzięki tej zmianie okno Kadu otrzymuje focus, który
+  jest wymagany do poprawnego działania Kadu.
+* Dodanie opcji nieukrywania okna Kadu kiedy jest ono aktywne, co pozwala na
+  wygodne korzystanie z menu oraz nie powoduje błędów przy ukryciu panelu
+  podczas przenoszenia toolbarów - warunek:
+  kadu->isVisible() && ( ( ! dontHidePanelWhenActive ) || ( ! kadu->isActiveWindow() ) ).
+
+
+0.6-beta2 => 0.6-beta3
+* Dodanie aktywacji wyświetlenia panelu po ustalonym czasie (timer
+  activationTimer).
+
+
+0.6-beta1 => 0.6-beta2
+* PanelKadu::PanelKadu(): typ okna Kadu zmienia się teraz na
+  Qt::WType_TopLevel|Qt::WStyle_Customize|Qt::WX11BypassWM|Qt::WStyle_NoBorder
+  zamiast Qt::WType_Popup.
+
+
+0.6-alpha2 => 0.6-beta1
+* PanelKadu::PanelKadu(): przeniesienie zapisu starej geometrii okna na moment
+  przed jego ukryciem.
+* Dodanie ukrywania panelu po ustalonym czasie (timer hidingTimer).
