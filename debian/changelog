@@ -1,3 +1,9 @@
+kadu (0.6.6~rc2-2) unstable; urgency=low
+
+  * Added libqtwebkit-dev to Build-Depends. (Closes: #618214)
+
+ -- Patryk Cisek <patryk@debian.org>  Sun, 13 Mar 2011 20:27:13 +0100
+
 kadu (0.6.6~rc2-1) unstable; urgency=low
 
   * New upstream release

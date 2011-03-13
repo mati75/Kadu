@@ -18,6 +18,7 @@ Build-Depends: bzip2,
                libphonon-dev,
                libqca2-dev,
                libqt4-dev,
+               libqtwebkit-dev,
                libsndfile1-dev (>= 1.0),
                libxfixes-dev,
                libxss-dev,
@@ -47,9 +48,7 @@ Description: Gadu-Gadu/XMPP client for X11
 
 Package: kadu-common
 Architecture: all
-Depends: libjs-mootools,
-         ${misc:Depends},
-         ${shlibs:Depends}
+Depends: libjs-mootools, ${misc:Depends}, ${shlibs:Depends}
 Recommends: kadu-external-modules
 Conflicts: kadu-external-modules (<= 0.6.5.4.ds1-3)
 Suggests: kadu-themes
@@ -61,9 +60,7 @@ Description: Gadu-Gadu/XMPP client for X11
 
 Package: kadu-external-modules
 Architecture: any
-Depends: kadu (= ${binary:Version}),
-         ${misc:Depends},
-         ${shlibs:Depends}
+Depends: kadu (= ${binary:Version}), ${misc:Depends}, ${shlibs:Depends}
 Description: Additional plugins for Kadu
  Gadu-Gadu is a Windows instant messenger, very popular in Poland.
  Kadu is a Qt4 client of Gadu-Gadu and XMPP for *nix systems.
