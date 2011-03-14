@@ -1,3 +1,23 @@
++++ version 0.6.6-rc4
+
++++ version 0.6.6-rc3
+* buddies: disable merging buddy with itself (Vogel)
+* tabs: fixed some issues with blinking icons/titles (beevvy)
+* notify: do not notify about status change if the status did not change actually (beevvy)
+* buddies: fixed possible crash at start or restoring main window from tray (beevvy)
+* gui: fix Ctrl+C copying from chat edit box (WhE)
+* gui: #2046 fixed: info panel is empty for buddies without contacts (WhE)
+* gui: fix crash in "Open chat with..." window after accepting empty input (WhE)
+* emoticons, icons, sound: fixed non-working custom theme paths on Windows (beevvy)
+* gadu: #1992 fixed: (un)registering GG account on Windows (Dorr)
+* buddies: adding new buddy from chat window does not require changing display name (Vogel)
+* accounts: properly set ownerBuddy for account contacts for all new accounts (Vogel)
+* jabber: fixed stupid bug in account connection options when changing SSL settings (Vogel)
+* jabber: #2047 fixed: properly send authorization after adding contact to roster (WhE)
+* tabs: better tabs look (beevvy/Vogel)
+* modules: fixed bug when protocols modules were not loaded after Kadu upgrade (Vogel)
+* contacts: fixed bad avatar pixmaps in some cases for contacts without avatars (WhE)
+
 +++ version 0.6.6-rc2
 * jabber: #2026 fixed: incorrect XEP-0085: Chat State Notifications implementation (WhE, beevvy)
 * xmms_mediaplayer: compilation fixed (Dorr)
@@ -8,7 +28,7 @@
 * file_transfer: #2014 fixed: removed file transfer code from 0.6.6.x branch (Vogel)
 * config_wizard: #2013 fixed: moved configuration widget trigger back to menu (Vogel)
 * core: #2023 fixed: parser's %i tag should return empty strings for null addresses (ultr)
-* gui: Fixes for config preview widgets (ultr)
+* gui: fixes for config preview widgets (ultr)
 * encryption: #2015 fixed: moved generate-keys action from configuration window to menu (Vogel)
 * status: #2031 fixed: Add missing statuses to "On startup, set" ComboBox (WhE)
 * core: #2036 fixed: shortcuts with "Alt" midifier don't work in chat window (WhE)

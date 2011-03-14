@@ -399,7 +399,8 @@ void AddBuddyWindow::validateData()
 	}
 	else
 	{
-		if (BuddyManager::instance()->byDisplay(DisplayNameEdit->text(), ActionReturnNull))
+		Buddy existingBuddy = BuddyManager::instance()->byDisplay(DisplayNameEdit->text(), ActionReturnNull);
+		if (existingBuddy && existingBuddy != MyBuddy)
 		{
 			displayErrorMessage(tr("Visible name is already used for another buddy"));
 			return;
@@ -503,6 +504,9 @@ bool AddBuddyWindow::addContact()
 
 	buddy.addToGroup(GroupCombo->currentGroup());
 
+	if (!buddy.isOfflineTo())
+		sendAuthorization(contact);
+
 	if (AskForAuthorization->isChecked())
 		askForAuthorization(contact);
 
@@ -557,7 +561,7 @@ void AddBuddyWindow::reject()
 	QDialog::reject();
 }
 
-void AddBuddyWindow::askForAuthorization(Contact contact)
+void AddBuddyWindow::askForAuthorization(const Contact &contact)
 {
 	Account account = AccountCombo->currentAccount();
 
@@ -565,4 +569,14 @@ void AddBuddyWindow::askForAuthorization(Contact contact)
 		return;
 
 	account.protocolHandler()->rosterService()->askForAuthorization(contact);
+}
+
+void AddBuddyWindow::sendAuthorization(const Contact &contact)
+{
+	Account account = AccountCombo->currentAccount();
+
+	if (!account || !account.protocolHandler() || !account.protocolHandler()->rosterService())
+		return;
+
+	account.protocolHandler()->rosterService()->sendAuthorization(contact);
 }

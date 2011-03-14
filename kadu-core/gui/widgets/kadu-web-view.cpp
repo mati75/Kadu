@@ -289,7 +289,7 @@ void KaduWebView::saveImage()
 		QString file = fd.data()->selectedFiles().at(0);
 		if (QFile::exists(file))
 		{
-			if (MessageDialog::ask(QString(), tr("Kadu"), tr("File already exists. Overwrite?")))
+			if (MessageDialog::ask("dialog-question", tr("Kadu"), tr("File already exists. Overwrite?")))
 			{
 				QFile removeMe(file);
 				if (!removeMe.remove())
@@ -340,8 +340,8 @@ void KaduWebView::convertClipboardHtml(QClipboard::Mode mode)
 {
 	static QRegExp emotsRegExpApos("<img[^>]+title\\s*=\\s*'([^']+)'[^>]*>");
 	static QRegExp emotsRegExpQuot("<img[^>]+title\\s*=\\s*\"([^\"]+)\"[^>]*>");
-	static QRegExp linksRegExpApos("<a[^>]+href\\s*=\\s*'([^']+)'[^>]*>[^<]*<[^>]*>");
-	static QRegExp linksRegExpQuot("<a[^>]+href\\s*=\\s*\"([^\"]+)\"[^>]*>[^<]*<[^>]*>");
+	static QRegExp linksRegExpApos("<a[^>]+href\\s*=[^>]+title\\s*=\\s*'([^']+)'[^>]*>[^<]*<[^>]*>");
+	static QRegExp linksRegExpQuot("<a[^>]+href\\s*=[^>]+title\\s*=\\s*\"([^\"]+)\"[^>]*>[^<]*<[^>]*>");
 
 	QClipboard *cb = QApplication::clipboard();
 	QString html = cb->mimeData(mode)->html();

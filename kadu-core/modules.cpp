@@ -160,6 +160,12 @@ ModulesManager::ModulesManager() : QObject(),
 			loaded_list.append("hints");
 	}
 
+	ensureLoadedAtLeastOnce("gadu_protocol");
+	ensureLoadedAtLeastOnce("jabber_protocol");
+	ensureLoadedAtLeastOnce("sql_history");
+	ensureLoadedAtLeastOnce("history_migration");
+	ensureLoadedAtLeastOnce("profiles_import");
+
 	registerStaticModules();
 
 	foreach (const QString &i, staticModules())
@@ -176,6 +182,15 @@ ModulesManager::~ModulesManager()
 {
 	kdebugf();
 	kdebugf2();
+}
+
+void ModulesManager::ensureLoadedAtLeastOnce(const QString& moduleName)
+{
+	if (!everLoaded.contains(moduleName) && !loaded_list.contains(moduleName) && unloaded_list.contains(moduleName))
+	{
+		loaded_list.append(moduleName);
+		unloaded_list.removeAll(moduleName);
+	}
 }
 
 void ModulesManager::loadProtocolModules()

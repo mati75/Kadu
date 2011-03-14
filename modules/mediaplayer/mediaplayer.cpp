@@ -77,17 +77,23 @@ const char *MediaPlayerSyntaxText = QT_TRANSLATE_NOOP
 	"%p - percents of played song, %n - player name, %v - player version\n"
 );
 
+#ifdef Q_OS_MAC
 const char *MediaPlayerChatShortCutsText = QT_TRANSLATE_NOOP
 (
 	"@default",
 	"With this option enabled you'll be able to control\n"
 	"your MediaPlayer in chat window by keyboard shortcuts:\n"
-#ifdef Q_OS_MAC
 	"Control+ Enter/Backspace/Left/Right/Up/Down."
-#else
-	"Win+ Enter/Backspace/Left/Right/Up/Down."
-#endif
 );
+#else
+const char *MediaPlayerChatShortCutsText = QT_TRANSLATE_NOOP
+(
+	"@default",
+	"With this option enabled you'll be able to control\n"
+	"your MediaPlayer in chat window by keyboard shortcuts:\n"
+	"Win+ Enter/Backspace/Left/Right/Up/Down."
+);
+#endif
 
 // TODO: remove For CP1250->ISO8859-2 converter
 const char CODE_CP1250[]    = {0xb9, 0x9c, 0x9f, 0xa5, 0x8c, 0x8f};
@@ -506,13 +512,13 @@ void MediaPlayer::putPlayList(int ident)
 
 	if (emptyEntries > (lgt / 10))
 	{
-		if (!MessageDialog::ask(QString(), tr("Kadu"), tr("More than 1/10 of titles you're trying to send are empty.<br>Perhaps %1 hasn't read all titles yet, give its some more time.<br>Do you want to send playlist anyway?").arg(getPlayerName())))
+		if (!MessageDialog::ask("dialog-question", tr("Kadu"), tr("More than 1/10 of titles you're trying to send are empty.<br>Perhaps %1 hasn't read all titles yet, give its some more time.<br>Do you want to send playlist anyway?").arg(getPlayerName())))
 			return;
 	}
 
 	if (chars >= 2000)
 	{
-		if (!MessageDialog::ask(QString(), tr("Kadu"), tr("You're trying to send %1 entries of %2 playlist.<br>It will be split and sent in few messages<br>Are you sure to do that?")
+		if (!MessageDialog::ask("dialog-question", tr("Kadu"), tr("You're trying to send %1 entries of %2 playlist.<br>It will be split and sent in few messages<br>Are you sure to do that?")
 			.arg(QString::number(lgt)).arg(getPlayerName())) )
 			return;
 	}
