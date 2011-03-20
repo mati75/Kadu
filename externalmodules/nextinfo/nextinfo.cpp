@@ -707,20 +707,20 @@ void NExtInfo::notifyBirthdayNameday()
 				Notification *notification = new Notification( "NExtInfo", "external_modules/nextinfo-birthday" );
 				notification->setTitle( qApp->translate( "@nextinfo", "Birthday notification" ) );
 				QString string; // 9 formats: %1 has {their|her|his} %2 birthday {today|tomorrow|in %3 days}
-				string += "%1 has ";
+				string += "<b>%1</b> has ";
 				if( buddy.gender() == 0 )
 					string += "their";
 				else if( buddy.gender() == 1 )
 					string += "her";
 				else if( buddy.gender() == 2 )
 					string += "his";
-				string += " %2 birthday ";
+				string += " <b>%2 birthday</b> ";
 				if( checkdata.second.first == 0 )
-					string += "today";
+					string += "<b>today</b>";
 				else if( checkdata.second.first == 1 )
-					string += "tomorrow";
+					string += "<b>tomorrow</b>";
 				else
-					string += "in %3 days";
+					string += "in <b>%3 days</b>";
 				QString notificationtext = qApp->translate( "@nextinfo", string.toUtf8().data() );
 				notificationtext = notificationtext.arg( buddy.display() );
 				notificationtext = notificationtext.arg( ordinal( qApp->translate( "@nextinfo", "code(n-th birthday)" ), checkdata.second.second ) );
@@ -740,20 +740,20 @@ void NExtInfo::notifyBirthdayNameday()
 				Notification *notification = new Notification( "NExtInfo", "external_modules/nextinfo-nameday" );
 				notification->setTitle( qApp->translate( "@nextinfo", "Name-day notification" ) );
 				QString string; // 9 formats: %1 has {their|her|his} name-day {today|tomorrow|in %2 days}
-				string += "%1 has ";
+				string += "<b>%1</b> has ";
 				if( buddy.gender() == 0 )
 					string += "their";
 				else if( buddy.gender() == 1 )
 					string += "her";
 				else if( buddy.gender() == 2 )
 					string += "his";
-				string += " name-day ";
+				string += " <b>name-day</b> ";
 				if( checkdata.second.first == 0 )
-					string += "today";
+					string += "<b>today</b>";
 				else if( checkdata.second.first == 1 )
-					string += "tomorrow";
+					string += "<b>tomorrow</b>";
 				else
-					string += "in %2 days";
+					string += "in <b>%2 days</b>";
 				QString notificationtext = qApp->translate( "@nextinfo", string.toUtf8().data() );
 				QString age = checkdata.second.second >= 0 ? QString(" (%1)").arg(checkdata.second.second) : "";
 				notificationtext = notificationtext.arg( buddy.display() + age );
@@ -766,24 +766,24 @@ void NExtInfo::notifyBirthdayNameday()
 	}
 }
 #ifdef ADDITIONAL_TRANSLATIONS_FOR_LUPDATE
-	QT_TRANSLATE_NOOP( "@nextinfo", "%1 has their %2 birthday today"      );
-	QT_TRANSLATE_NOOP( "@nextinfo", "%1 has her %2 birthday today"        );
-	QT_TRANSLATE_NOOP( "@nextinfo", "%1 has his %2 birthday today"        );
-	QT_TRANSLATE_NOOP( "@nextinfo", "%1 has their %2 birthday tomorrow"   );
-	QT_TRANSLATE_NOOP( "@nextinfo", "%1 has her %2 birthday tomorrow"     );
-	QT_TRANSLATE_NOOP( "@nextinfo", "%1 has his %2 birthday tomorrow"     );
-	QT_TRANSLATE_NOOP( "@nextinfo", "%1 has their %2 birthday in %3 days" );
-	QT_TRANSLATE_NOOP( "@nextinfo", "%1 has her %2 birthday in %3 days"   );
-	QT_TRANSLATE_NOOP( "@nextinfo", "%1 has his %2 birthday in %3 days"   );
-	QT_TRANSLATE_NOOP( "@nextinfo", "%1 has their name-day today"         );
-	QT_TRANSLATE_NOOP( "@nextinfo", "%1 has her name-day today"           );
-	QT_TRANSLATE_NOOP( "@nextinfo", "%1 has his name-day today"           );
-	QT_TRANSLATE_NOOP( "@nextinfo", "%1 has their name-day tomorrow"      );
-	QT_TRANSLATE_NOOP( "@nextinfo", "%1 has her name-day tomorrow"        );
-	QT_TRANSLATE_NOOP( "@nextinfo", "%1 has his name-day tomorrow"        );
-	QT_TRANSLATE_NOOP( "@nextinfo", "%1 has their name-day in %2 days"    );
-	QT_TRANSLATE_NOOP( "@nextinfo", "%1 has her name-day in %2 days"      );
-	QT_TRANSLATE_NOOP( "@nextinfo", "%1 has his name-day in %2 days"      );
+	QT_TRANSLATE_NOOP( "@nextinfo", "<b>%1</b> has their <b>%2 birthday</b> <b>today</b>"      );
+	QT_TRANSLATE_NOOP( "@nextinfo", "<b>%1</b> has her <b>%2 birthday</b> <b>today</b>"        );
+	QT_TRANSLATE_NOOP( "@nextinfo", "<b>%1</b> has his <b>%2 birthday</b> <b>today</b>"        );
+	QT_TRANSLATE_NOOP( "@nextinfo", "<b>%1</b> has their <b>%2 birthday</b> <b>tomorrow</b>"   );
+	QT_TRANSLATE_NOOP( "@nextinfo", "<b>%1</b> has her <b>%2 birthday</b> <b>tomorrow</b>"     );
+	QT_TRANSLATE_NOOP( "@nextinfo", "<b>%1</b> has his <b>%2 birthday</b> <b>tomorrow</b>"     );
+	QT_TRANSLATE_NOOP( "@nextinfo", "<b>%1</b> has their <b>%2 birthday</b> in <b>%3 days</b>" );
+	QT_TRANSLATE_NOOP( "@nextinfo", "<b>%1</b> has her <b>%2 birthday</b> in <b>%3 days</b>"   );
+	QT_TRANSLATE_NOOP( "@nextinfo", "<b>%1</b> has his <b>%2 birthday</b> in <b>%3 days</b>"   );
+	QT_TRANSLATE_NOOP( "@nextinfo", "<b>%1</b> has their <b>name-day</b> <b>today</b>"         );
+	QT_TRANSLATE_NOOP( "@nextinfo", "<b>%1</b> has her <b>name-day</b> <b>today</b>"           );
+	QT_TRANSLATE_NOOP( "@nextinfo", "<b>%1</b> has his <b>name-day</b> <b>today</b>"           );
+	QT_TRANSLATE_NOOP( "@nextinfo", "<b>%1</b> has their <b>name-day</b> <b>tomorrow</b>"      );
+	QT_TRANSLATE_NOOP( "@nextinfo", "<b>%1</b> has her <b>name-day</b> <b>tomorrow</b>"        );
+	QT_TRANSLATE_NOOP( "@nextinfo", "<b>%1</b> has his <b>name-day</b> <b>tomorrow</b>"        );
+	QT_TRANSLATE_NOOP( "@nextinfo", "<b>%1</b> has their <b>name-day</b> in <b>%2 days</b>"    );
+	QT_TRANSLATE_NOOP( "@nextinfo", "<b>%1</b> has her <b>name-day</b> in <b>%2 days</b>"      );
+	QT_TRANSLATE_NOOP( "@nextinfo", "<b>%1</b> has his <b>name-day</b> in <b>%2 days</b>"      );
 #endif
 
 
@@ -868,21 +868,21 @@ void NExtInfo::importDataFromExtInfo()
 										if( buddy.firstName().isEmpty() )
 											buddy.setFirstName( value );
 										else
-											notes += qApp->translate( "@nextinfo", "First Name" ) + QString( ": %1\n" ).arg( value );
+											notes += qApp->translate( "@nextinfo", "First name" ) + QString( ": %1\n" ).arg( value );
 									}
 									else if( field == "Nazwisko" )
 									{
 										if( buddy.lastName().isEmpty() )
 											buddy.setLastName( value );
 										else
-											notes += qApp->translate( "@nextinfo", "Last Name" ) + QString( ": %1\n" ).arg( value );
+											notes += qApp->translate( "@nextinfo", "Last name" ) + QString( ": %1\n" ).arg( value );
 									}
 									else if( field == "Pseudo" )
 									{
 										if( buddy.nickName().isEmpty() )
 											buddy.setNickName( value );
 										else
-											notes += qApp->translate( "@nextinfo", "Nick Name" ) + QString( ": %1\n" ).arg( value );
+											notes += qApp->translate( "@nextinfo", "Nickname" ) + QString( ": %1\n" ).arg( value );
 									}
 									else if( field == "TelKom" )
 									{
@@ -1008,7 +1008,7 @@ void NExtInfo::importDataFromExtInfo()
 		}
 		QMessageBox *messagebox = new QMessageBox(
 				QMessageBox::Information,
-				qApp->translate( "@nextinfo", "Kadu - extended information - data import" ),
+				qApp->translate( "@nextinfo", "Kadu" ) + " - " + qApp->translate( "@nextinfo", "Extended information" ) + " - " + qApp->translate( "@nextinfo", "Data import" ),
 				qApp->translate( "@nextinfo", "%n contact(s) imported.", 0, QApplication::CodecForTr, imported ),
 				QMessageBox::Ok
 			);

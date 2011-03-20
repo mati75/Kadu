@@ -1,2 +1,0 @@
-MODULE_SOURCES="senthistory.cpp"
-MODULE_MOC_HEADERS="senthistory.h"

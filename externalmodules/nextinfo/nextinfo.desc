@@ -1,7 +1,7 @@
 [Module]
-Description=New ext_info module providing extended contact information support
-Description[pl]=Nowy modu³ ext_info wprowadzaj±cy obs³ugê dodatkowych informacji o kontaktach
+Description=New ext_info module providing extended buddies information support
+Description[pl]=Nowy modu³ ext_info wprowadzaj±cy obs³ugê dodatkowych informacji o znajomych
 Author=Piotr "ultr" D±browski
 LoadByDefault=false
-Version=0.6.6-4
+Version=0.9.0-5
 Base=false

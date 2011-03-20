@@ -92,6 +92,7 @@
     <name>@nextinfo</name>
     <message>
         <location filename="../extendedinformationwidgets.cpp" line="318"/>
+        <location filename="../nextinfo.cpp" line="1011"/>
         <location filename="../nextinfo.cpp" line="1152"/>
         <source>Extended information</source>
         <translation>Rozszerzone informacje</translation>
@@ -108,16 +109,19 @@
     </message>
     <message>
         <location filename="../extendedinformationwidgets.cpp" line="320"/>
+        <location filename="../nextinfo.cpp" line="871"/>
         <source>First name</source>
         <translation>Imię</translation>
     </message>
     <message>
         <location filename="../extendedinformationwidgets.cpp" line="321"/>
+        <location filename="../nextinfo.cpp" line="878"/>
         <source>Last name</source>
         <translation>Nazwisko</translation>
     </message>
     <message>
         <location filename="../extendedinformationwidgets.cpp" line="322"/>
+        <location filename="../nextinfo.cpp" line="885"/>
         <source>Nickname</source>
         <translation>Pseudonim</translation>
     </message>
@@ -241,10 +245,11 @@
     <message>
         <location filename="../nextinfo.cpp" line="726"/>
         <source>code(n-th birthday)</source>
-        <translation>
-var s = &quot;&quot;;
-if( n == 0 )
-	s = &quot;-cie&quot;;
+        <translation>var s = &quot;&quot;;
+if( n &lt; 0 )
+	s = &quot;.&quot;;
+else if( n == 0 )
+	s = &quot;-we&quot;;
 else if( n &gt; 10 &amp;&amp; n &lt; 20 )
 	s = &quot;-te&quot;;
 else if( n % 10 == 1 )
@@ -259,73 +264,12 @@ else if( n % 10 == 8 )
 	s = &quot;-me&quot;;
 else
 	s = &quot;-te&quot;;
-return &quot;&quot; + n + s;
-       </translation>
-    </message>
-    <message>
-        <location filename="../nextinfo.cpp" line="769"/>
-        <source>%1 has their %2 birthday today</source>
-        <translation>%1 obchodzi dzisiaj swoje %2 urodziny</translation>
-    </message>
-    <message>
-        <location filename="../nextinfo.cpp" line="770"/>
-        <source>%1 has her %2 birthday today</source>
-        <translation>%1 obchodzi dzisiaj swoje %2 urodziny</translation>
-    </message>
-    <message>
-        <location filename="../nextinfo.cpp" line="771"/>
-        <source>%1 has his %2 birthday today</source>
-        <translation>%1 obchodzi dzisiaj swoje %2 urodziny</translation>
-    </message>
-    <message>
-        <location filename="../nextinfo.cpp" line="772"/>
-        <source>%1 has their %2 birthday tomorrow</source>
-        <translation>%1 obchodzi jutro swoje %2 urodziny</translation>
-    </message>
-    <message>
-        <location filename="../nextinfo.cpp" line="773"/>
-        <source>%1 has her %2 birthday tomorrow</source>
-        <translation>%1 obchodzi jutro swoje %2 urodziny</translation>
-    </message>
-    <message>
-        <location filename="../nextinfo.cpp" line="774"/>
-        <source>%1 has his %2 birthday tomorrow</source>
-        <translation>%1 obchodzi jutro swoje %2 urodziny</translation>
-    </message>
-    <message>
-        <location filename="../nextinfo.cpp" line="775"/>
-        <source>%1 has their %2 birthday in %3 days</source>
-        <translation>%1 obchodzi swoje %2 urodziny za %3 dni</translation>
-    </message>
-    <message>
-        <location filename="../nextinfo.cpp" line="776"/>
-        <source>%1 has her %2 birthday in %3 days</source>
-        <translation>%1 obchodzi swoje %2 urodziny za %3 dni</translation>
-    </message>
-    <message>
-        <location filename="../nextinfo.cpp" line="777"/>
-        <source>%1 has his %2 birthday in %3 days</source>
-        <translation>%1 obchodzi swoje %2 urodziny za %3 dni</translation>
+return &quot;&quot; + n + s;</translation>
     </message>
     <message>
         <location filename="../nextinfo.cpp" line="806"/>
         <source>Select ext_info data file to import</source>
         <translation>Wybierz plik z danymi ext_info do zaimportowania</translation>
-    </message>
-    <message>
-        <location filename="../nextinfo.cpp" line="871"/>
-        <source>First Name</source>
-        <translation>Imię</translation>
-    </message>
-    <message>
-        <location filename="../nextinfo.cpp" line="878"/>
-        <source>Last Name</source>
-        <translation>Nazwisko</translation>
-    </message>
-    <message>
-        <location filename="../nextinfo.cpp" line="885"/>
-        <source>Nick Name</source>
-        <translation>Pseudonim</translation>
     </message>
     <message>
         <location filename="../nextinfo.cpp" line="899"/>
@@ -356,11 +300,6 @@ return &quot;&quot; + n + s;
         <source>ICQ</source>
         <translation>ICQ</translation>
     </message>
-    <message>
-        <location filename="../nextinfo.cpp" line="1011"/>
-        <source>Kadu - extended information - data import</source>
-        <translation>Kadu - rozszerzone informacje - import danych</translation>
-    </message>
     <message numerus="yes">
         <location filename="../nextinfo.cpp" line="1012"/>
         <source>%n contact(s) imported.</source>
@@ -371,9 +310,105 @@ return &quot;&quot; + n + s;
         </translation>
     </message>
     <message>
+        <location filename="../nextinfo.cpp" line="1011"/>
         <location filename="../nextinfo.cpp" line="1152"/>
         <source>Kadu</source>
         <translation>Kadu</translation>
+    </message>
+    <message>
+        <location filename="../nextinfo.cpp" line="769"/>
+        <source>&lt;b&gt;%1&lt;/b&gt; has their &lt;b&gt;%2 birthday&lt;/b&gt; &lt;b&gt;today&lt;/b&gt;</source>
+        <translation>&lt;b&gt;%1&lt;/b&gt; obchodzi &lt;b&gt;dzisiaj&lt;/b&gt; swoje &lt;b&gt;%2 urodziny&lt;/b&gt;</translation>
+    </message>
+    <message>
+        <location filename="../nextinfo.cpp" line="770"/>
+        <source>&lt;b&gt;%1&lt;/b&gt; has her &lt;b&gt;%2 birthday&lt;/b&gt; &lt;b&gt;today&lt;/b&gt;</source>
+        <translation>&lt;b&gt;%1&lt;/b&gt; obchodzi &lt;b&gt;dzisiaj&lt;/b&gt; swoje &lt;b&gt;%2 urodziny&lt;/b&gt;</translation>
+    </message>
+    <message>
+        <location filename="../nextinfo.cpp" line="771"/>
+        <source>&lt;b&gt;%1&lt;/b&gt; has his &lt;b&gt;%2 birthday&lt;/b&gt; &lt;b&gt;today&lt;/b&gt;</source>
+        <translation>&lt;b&gt;%1&lt;/b&gt; obchodzi &lt;b&gt;dzisiaj&lt;/b&gt; swoje &lt;b&gt;%2 urodziny&lt;/b&gt;</translation>
+    </message>
+    <message>
+        <location filename="../nextinfo.cpp" line="772"/>
+        <source>&lt;b&gt;%1&lt;/b&gt; has their &lt;b&gt;%2 birthday&lt;/b&gt; &lt;b&gt;tomorrow&lt;/b&gt;</source>
+        <translation>&lt;b&gt;%1&lt;/b&gt; obchodzi &lt;b&gt;jutro&lt;/b&gt; swoje &lt;b&gt;%2 urodziny&lt;/b&gt;</translation>
+    </message>
+    <message>
+        <location filename="../nextinfo.cpp" line="773"/>
+        <source>&lt;b&gt;%1&lt;/b&gt; has her &lt;b&gt;%2 birthday&lt;/b&gt; &lt;b&gt;tomorrow&lt;/b&gt;</source>
+        <translation>&lt;b&gt;%1&lt;/b&gt; obchodzi &lt;b&gt;jutro&lt;/b&gt; swoje &lt;b&gt;%2 urodziny&lt;/b&gt;</translation>
+    </message>
+    <message>
+        <location filename="../nextinfo.cpp" line="774"/>
+        <source>&lt;b&gt;%1&lt;/b&gt; has his &lt;b&gt;%2 birthday&lt;/b&gt; &lt;b&gt;tomorrow&lt;/b&gt;</source>
+        <translation>&lt;b&gt;%1&lt;/b&gt; obchodzi &lt;b&gt;jutro&lt;/b&gt; swoje &lt;b&gt;%2 urodziny&lt;/b&gt;</translation>
+    </message>
+    <message>
+        <location filename="../nextinfo.cpp" line="775"/>
+        <source>&lt;b&gt;%1&lt;/b&gt; has their &lt;b&gt;%2 birthday&lt;/b&gt; in &lt;b&gt;%3 days&lt;/b&gt;</source>
+        <translation>&lt;b&gt;%1&lt;/b&gt; obchodzi swoje &lt;b&gt;%2 urodziny&lt;/b&gt; za &lt;b&gt;%3 dni&lt;/b&gt;</translation>
+    </message>
+    <message>
+        <location filename="../nextinfo.cpp" line="776"/>
+        <source>&lt;b&gt;%1&lt;/b&gt; has her &lt;b&gt;%2 birthday&lt;/b&gt; in &lt;b&gt;%3 days&lt;/b&gt;</source>
+        <translation>&lt;b&gt;%1&lt;/b&gt; obchodzi swoje &lt;b&gt;%2 urodziny&lt;/b&gt; za &lt;b&gt;%3 dni&lt;/b&gt;</translation>
+    </message>
+    <message>
+        <location filename="../nextinfo.cpp" line="777"/>
+        <source>&lt;b&gt;%1&lt;/b&gt; has his &lt;b&gt;%2 birthday&lt;/b&gt; in &lt;b&gt;%3 days&lt;/b&gt;</source>
+        <translation>&lt;b&gt;%1&lt;/b&gt; obchodzi swoje &lt;b&gt;%2 urodziny&lt;/b&gt; za &lt;b&gt;%3 dni&lt;/b&gt;</translation>
+    </message>
+    <message>
+        <location filename="../nextinfo.cpp" line="778"/>
+        <source>&lt;b&gt;%1&lt;/b&gt; has their &lt;b&gt;name-day&lt;/b&gt; &lt;b&gt;today&lt;/b&gt;</source>
+        <translation>&lt;b&gt;%1&lt;/b&gt; obchodzi &lt;b&gt;dzisiaj&lt;/b&gt; &lt;b&gt;imieniny&lt;/b&gt;</translation>
+    </message>
+    <message>
+        <location filename="../nextinfo.cpp" line="779"/>
+        <source>&lt;b&gt;%1&lt;/b&gt; has her &lt;b&gt;name-day&lt;/b&gt; &lt;b&gt;today&lt;/b&gt;</source>
+        <translation>&lt;b&gt;%1&lt;/b&gt; obchodzi &lt;b&gt;dzisiaj&lt;/b&gt; &lt;b&gt;imieniny&lt;/b&gt;</translation>
+    </message>
+    <message>
+        <location filename="../nextinfo.cpp" line="780"/>
+        <source>&lt;b&gt;%1&lt;/b&gt; has his &lt;b&gt;name-day&lt;/b&gt; &lt;b&gt;today&lt;/b&gt;</source>
+        <translation>&lt;b&gt;%1&lt;/b&gt; obchodzi &lt;b&gt;dzisiaj&lt;/b&gt; &lt;b&gt;imieniny&lt;/b&gt;</translation>
+    </message>
+    <message>
+        <location filename="../nextinfo.cpp" line="781"/>
+        <source>&lt;b&gt;%1&lt;/b&gt; has their &lt;b&gt;name-day&lt;/b&gt; &lt;b&gt;tomorrow&lt;/b&gt;</source>
+        <translation>&lt;b&gt;%1&lt;/b&gt; obchodzi &lt;b&gt;jutro&lt;/b&gt; &lt;b&gt;imieniny&lt;/b&gt;</translation>
+    </message>
+    <message>
+        <location filename="../nextinfo.cpp" line="782"/>
+        <source>&lt;b&gt;%1&lt;/b&gt; has her &lt;b&gt;name-day&lt;/b&gt; &lt;b&gt;tomorrow&lt;/b&gt;</source>
+        <translation>&lt;b&gt;%1&lt;/b&gt; obchodzi &lt;b&gt;jutro&lt;/b&gt; &lt;b&gt;imieniny&lt;/b&gt;</translation>
+    </message>
+    <message>
+        <location filename="../nextinfo.cpp" line="783"/>
+        <source>&lt;b&gt;%1&lt;/b&gt; has his &lt;b&gt;name-day&lt;/b&gt; &lt;b&gt;tomorrow&lt;/b&gt;</source>
+        <translation>&lt;b&gt;%1&lt;/b&gt; obchodzi &lt;b&gt;jutro&lt;/b&gt; &lt;b&gt;imieniny&lt;/b&gt;</translation>
+    </message>
+    <message>
+        <location filename="../nextinfo.cpp" line="784"/>
+        <source>&lt;b&gt;%1&lt;/b&gt; has their &lt;b&gt;name-day&lt;/b&gt; in &lt;b&gt;%2 days&lt;/b&gt;</source>
+        <translation>&lt;b&gt;%1&lt;/b&gt; obchodzi &lt;b&gt;imieniny&lt;/b&gt; za &lt;b&gt;%2 dni&lt;/b&gt;</translation>
+    </message>
+    <message>
+        <location filename="../nextinfo.cpp" line="785"/>
+        <source>&lt;b&gt;%1&lt;/b&gt; has her &lt;b&gt;name-day&lt;/b&gt; in &lt;b&gt;%2 days&lt;/b&gt;</source>
+        <translation>&lt;b&gt;%1&lt;/b&gt; obchodzi &lt;b&gt;imieniny&lt;/b&gt; za &lt;b&gt;%2 dni&lt;/b&gt;</translation>
+    </message>
+    <message>
+        <location filename="../nextinfo.cpp" line="786"/>
+        <source>&lt;b&gt;%1&lt;/b&gt; has his &lt;b&gt;name-day&lt;/b&gt; in &lt;b&gt;%2 days&lt;/b&gt;</source>
+        <translation>&lt;b&gt;%1&lt;/b&gt; obchodzi &lt;b&gt;imieniny&lt;/b&gt; za &lt;b&gt;%2 dni&lt;/b&gt;</translation>
+    </message>
+    <message>
+        <location filename="../nextinfo.cpp" line="1011"/>
+        <source>Data import</source>
+        <translation>Import danych</translation>
     </message>
     <message>
         <location filename="../nextinfo.cpp" line="1152"/>
@@ -389,51 +424,6 @@ return &quot;&quot; + n + s;
         <location filename="../nextinfo.cpp" line="962"/>
         <source>Name-day</source>
         <translation>Imieniny</translation>
-    </message>
-    <message>
-        <location filename="../nextinfo.cpp" line="778"/>
-        <source>%1 has their name-day today</source>
-        <translation>%1 obchodzi dzisiaj imieniny</translation>
-    </message>
-    <message>
-        <location filename="../nextinfo.cpp" line="779"/>
-        <source>%1 has her name-day today</source>
-        <translation>%1 obchodzi dzisiaj imieniny</translation>
-    </message>
-    <message>
-        <location filename="../nextinfo.cpp" line="780"/>
-        <source>%1 has his name-day today</source>
-        <translation>%1 obchodzi dzisiaj imieniny</translation>
-    </message>
-    <message>
-        <location filename="../nextinfo.cpp" line="781"/>
-        <source>%1 has their name-day tomorrow</source>
-        <translation>%1 obchodzi jutro imieniny</translation>
-    </message>
-    <message>
-        <location filename="../nextinfo.cpp" line="782"/>
-        <source>%1 has her name-day tomorrow</source>
-        <translation>%1 obchodzi jutro imieniny</translation>
-    </message>
-    <message>
-        <location filename="../nextinfo.cpp" line="783"/>
-        <source>%1 has his name-day tomorrow</source>
-        <translation>%1 obchodzi jutro imieniny</translation>
-    </message>
-    <message>
-        <location filename="../nextinfo.cpp" line="784"/>
-        <source>%1 has their name-day in %2 days</source>
-        <translation>%1 obchodzi imieniny za %2 dni</translation>
-    </message>
-    <message>
-        <location filename="../nextinfo.cpp" line="785"/>
-        <source>%1 has her name-day in %2 days</source>
-        <translation>%1 obchodzi imieniny za %2 dni</translation>
-    </message>
-    <message>
-        <location filename="../nextinfo.cpp" line="786"/>
-        <source>%1 has his name-day in %2 days</source>
-        <translation>%1 obchodzi imieniny za %2 dni</translation>
     </message>
 </context>
 </TS>

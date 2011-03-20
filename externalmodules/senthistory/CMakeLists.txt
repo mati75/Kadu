@@ -7,6 +7,7 @@ set( MOC_SOURCES
 )
 
 set( TRANSLATION_SOURCES
+	translations/senthistory_en.ts
 	translations/senthistory_pl.ts
 )
 

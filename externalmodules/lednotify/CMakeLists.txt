@@ -9,21 +9,15 @@ set( MOC_SOURCES
 )
 
 if( WIN32 )
-	set( SOURCES
-		${SOURCES}
-		leddriver.cpp.win32
-	)
+	list( APPEND SOURCES leddriver_win32.cpp ../module.rc )
 	include_directories( ${CMAKE_CURRENT_SOURCE_DIR} )
-	set( SOURCES ${SOURCES} ../module.rc )
 else( WIN32 )
-	set( SOURCES
-		${SOURCES}
-		leddriver.cpp
-	)
+	list( APPEND SOURCES leddriver_x11.cpp )
 endif( WIN32 )
 
 
 set( TRANSLATION_SOURCES
+	translations/lednotify_en.ts
 	translations/lednotify_pl.ts
 )
 

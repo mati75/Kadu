@@ -6,37 +6,37 @@
     <message>
         <location filename="../.configuration-ui-translations.cpp" line="4"/>
         <source>Shortcuts</source>
-        <translation type="unfinished"></translation>
+        <translation>Shortcuts</translation>
     </message>
     <message>
         <location filename="../.configuration-ui-translations.cpp" line="7"/>
         <source>Chat Window</source>
-        <translation type="unfinished"></translation>
+        <translation>Chat Window</translation>
     </message>
     <message>
         <location filename="../.configuration-ui-translations.cpp" line="10"/>
         <source>Sent messages&apos; history</source>
-        <translation type="unfinished"></translation>
+        <translation>Sent messages&apos; history</translation>
     </message>
     <message>
         <location filename="../.configuration-ui-translations.cpp" line="13"/>
         <source>Previous message</source>
-        <translation type="unfinished"></translation>
+        <translation>Previous message</translation>
     </message>
     <message>
         <location filename="../.configuration-ui-translations.cpp" line="16"/>
         <source>Next message</source>
-        <translation type="unfinished"></translation>
+        <translation>Next message</translation>
     </message>
     <message>
         <location filename="../.configuration-ui-translations.cpp" line="19"/>
         <source>Previous message from all chats</source>
-        <translation type="unfinished"></translation>
+        <translation>Previous message from all chats</translation>
     </message>
     <message>
         <location filename="../.configuration-ui-translations.cpp" line="22"/>
         <source>Next message from all chats</source>
-        <translation type="unfinished"></translation>
+        <translation>Next message from all chats</translation>
     </message>
 </context>
 </TS>

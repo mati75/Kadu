@@ -93,7 +93,10 @@ void LedBlinker::blink(void)
 	if( countdown_ && value_ )
 	{
 		if( counter_ <= 1 )
+		{
 			enabled_ = false;
+			timer_.start( delay_ );
+		}
 		else
 			--counter_;
 	}

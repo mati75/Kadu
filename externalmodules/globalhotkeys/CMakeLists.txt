@@ -24,6 +24,7 @@ set( MOC_SOURCES
 )
 
 set( TRANSLATION_SOURCES
+	translations/globalhotkeys_en.ts
 	translations/globalhotkeys_pl.ts
 )
 

@@ -5,4 +5,4 @@ Author=Micha³ Ma³ek, Piotr "ultr" D±browski
 Provides=notify_method
 Base=false
 LoadByDefault=false
-Version=0.6.6-26
+Version=0.9.0-28

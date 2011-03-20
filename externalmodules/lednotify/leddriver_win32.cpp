@@ -23,9 +23,10 @@
  ***************************************************************************/
 
 
-#include <windows.h>
-
 #include "leddriver.h"
+
+#include <windows.h>
+#include <winioctl.h>
 
 
 namespace
