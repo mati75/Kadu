@@ -38,9 +38,7 @@
 BuddiesModelProxy::BuddiesModelProxy(QObject *parent)
 	: QSortFilterProxyModel(parent), SourceBuddyModel(0), SortByStatus(true)
 {
-	QSortFilterProxyModel::setSourceModel(0);
 	setDynamicSortFilter(true);
-	sort(0);
 
 	BrokenStringCompare = (QString("a").localeAwareCompare(QString("B")) > 0);
 	if (BrokenStringCompare)
@@ -73,7 +71,7 @@ void BuddiesModelProxy::setSourceModel(QAbstractItemModel *sourceModel)
 	sort(0);
 }
 
-int BuddiesModelProxy::compareNames(QString n1, QString n2) const
+int BuddiesModelProxy::compareNames(const QString &n1, const QString &n2) const
 {
 	return BrokenStringCompare
 		? n1.toLower().localeAwareCompare(n2.toLower())
@@ -86,16 +84,13 @@ void BuddiesModelProxy::setSortByStatus(bool sortByStatus)
 		return;
 
 	SortByStatus = sortByStatus;
-	invalidateFilter();
 	invalidate();
-
-	sort(1);
-	sort(0);
 }
 
 void BuddiesModelProxy::modelDestroyed()
 {
 	SourceBuddyModel = 0;
+	QSortFilterProxyModel::setSourceModel(0);
 }
 
 bool BuddiesModelProxy::lessThan(const QModelIndex &left, const QModelIndex &right) const

@@ -1,4 +1,17 @@
++++ version 0.9.1-rc1
+
++++ version 0.9.0
+* configuration: configuration is now always properly imported on Windows (Vogel)
+* version: bump version to 0.9.0
+
 +++ version 0.6.6-rc4
+* single_window: fixed crash when docking was unloaded (beevvy)
+* single_window: fixed hiding Kadu widget instead of Single Window in some cases (beevvy)
+* buddies: fixed priorities that were broken since rc2 (beevvy)
+* translations: enabled Czech translation in configuration window and configuration wizard (Vogel)
+* gui: #2056 fixed: only one buddy can be selected in merge buddies combobox (Vogel)
+* gui: fixed rare crash at startup (beevvy)
+* hints: #2060 fixed: remove configuration widgets after unloading module (Vogel)
 
 +++ version 0.6.6-rc3
 * buddies: disable merging buddy with itself (Vogel)
@@ -17,6 +30,9 @@
 * tabs: better tabs look (beevvy/Vogel)
 * modules: fixed bug when protocols modules were not loaded after Kadu upgrade (Vogel)
 * contacts: fixed bad avatar pixmaps in some cases for contacts without avatars (WhE)
+
++++ version 0.6.6-rc3
+* buddies: disable merging buddy with itself (Vogel)
 
 +++ version 0.6.6-rc2
 * jabber: #2026 fixed: incorrect XEP-0085: Chat State Notifications implementation (WhE, beevvy)

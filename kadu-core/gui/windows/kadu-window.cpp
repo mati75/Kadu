@@ -93,7 +93,7 @@ KaduWindow::KaduWindow(QWidget *parent) :
 	setWindowTitle(QLatin1String("Kadu"));
 
 	// we need to create gui first, then actions, then menus
-	// TODO: fix it in 0.8 or whenever
+	// TODO: fix it in 0.10 or whenever
 	createGui();
 	Actions = new KaduWindowActions(this);
 	loadToolBarsFromConfig();
@@ -399,22 +399,32 @@ void KaduWindow::storeConfiguration()
 
 void KaduWindow::closeEvent(QCloseEvent *e)
 {
-	e->ignore();
-
-	if (Docked)
-		hide();
+	if (!parentWidget())
+	{
+		if (Docked)
+		{
+			e->ignore();
+			hide();
+		}
+		else
+		{
+			MainWindow::closeEvent(e);
+			qApp->quit();
+		}
+	}
 	else
-		qApp->quit();
+		MainWindow::closeEvent(e);
 }
 
 void KaduWindow::keyPressEvent(QKeyEvent *e)
 {
 	if (e->key() == Qt::Key_Escape)
 	{
-		if (Docked)
+		if (Docked && !parentWidget())
 		{
 			kdebugm(KDEBUG_INFO, "Kadu::keyPressEvent(Key_Escape): Kadu hide\n");
 			hide();
+			return;
 		}
 	}
 	else if (e->matches(QKeySequence::Copy))

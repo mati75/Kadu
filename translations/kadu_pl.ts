@@ -1255,6 +1255,10 @@ znajomych po połączeniu się z serwerem</translation>
             <numerusform>[przez] %n minut</numerusform>
         </translation>
     </message>
+	<message>
+		<source>Show a window with notification</source>
+		<translation>Pokaż okno</translation>
+	</message>
 </context>
 <context>
     <name>About</name>
@@ -2011,12 +2015,8 @@ zostaną zignorowane. Czy na pewno chcesz opuścić konferencję?</translation>
         <translation>Błąd połączenia</translation>
     </message>
     <message>
-        <source>&lt;b&gt;Connection error:&lt;/b&gt; %1</source>
-        <translation>&lt;b&gt;Błąd połączenia:&lt;/b&gt; %1</translation>
-    </message>
-    <message>
-        <source>&lt;b&gt;Connection error:&lt;/b&gt; (%1) %2</source>
-        <translation>&lt;b&gt;Błąd połączenia:&lt;/b&gt; (%1) %2</translation>
+        <source>Connection error on account: %1 (%2)</source>
+        <translation>Błąd połaczenia konta %1 (%2)</translation>
     </message>
 </context>
 <context>
@@ -2254,7 +2254,7 @@ Jest to prawdopodobnie dalsza część pliku &lt;b&gt;%5&lt;/b&gt;
     <name>GroupPropertiesWindow</name>
     <message>
         <source>Properties of group %1</source>
-		<translation>Ustawienia grupy %1</translation>
+        <translation>Ustawienia grupy %1</translation>
     </message>
     <message>
         <source>Behaviour</source>
@@ -2266,7 +2266,7 @@ Jest to prawdopodobnie dalsza część pliku &lt;b&gt;%5&lt;/b&gt;
     </message>
     <message>
         <source>Offline for this group</source>
-		<translation>Niedostępny dla tej grupy</translation>
+        <translation>Niedostępny dla tej grupy</translation>
     </message>
     <message>
         <source>Supported for Gadu-Gadu network</source>
@@ -2278,7 +2278,7 @@ Jest to prawdopodobnie dalsza część pliku &lt;b&gt;%5&lt;/b&gt;
     </message>
     <message>
         <source>Show in group &quot;All&quot;</source>
-		<translation>Pokaż w grupie &quot;Wszyscy&quot;</translation>
+        <translation>Pokaż w grupie &quot;Wszyscy&quot;</translation>
     </message>
     <message>
         <source>Look</source>
@@ -2286,7 +2286,7 @@ Jest to prawdopodobnie dalsza część pliku &lt;b&gt;%5&lt;/b&gt;
     </message>
     <message>
         <source>Use custom icon</source>
-		<translation>Użyj własnej ikony</translation>
+        <translation>Użyj własnej ikony</translation>
     </message>
     <message>
         <source> Set Icon</source>
@@ -2341,7 +2341,7 @@ Jest to prawdopodobnie dalsza część pliku &lt;b&gt;%5&lt;/b&gt;
     </message>
     <message>
         <source>Properties</source>
-		<translation>Ustawienia grupy</translation>
+        <translation>Ustawienia grupy</translation>
     </message>
     <message>
         <source>New Group</source>
@@ -3350,6 +3350,10 @@ Klient: %3</translation>
         <source>Kadu</source>
         <translation>Kadu</translation>
     </message>
+	<message>
+		<source>Refresh Preview</source>
+		<translation>Odśwież podgląd</translation>
+	</message>
 </context>
 <context>
     <name>SyntaxEditorWindow</name>
