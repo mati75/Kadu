@@ -77,6 +77,15 @@ Description: Additional plugins for Kadu
  This package provides additional packages developed by external developers.
  See README.Debian for more details.
 
+Package: kadu-external-modules-dbg
+Architecture: any
+Depends: kadu (= ${source:Version})
+Description: Gadu-Gadu/XMPP client for X11
+ Gadu-Gadu is a Windows instant messenger, very popular in Poland.
+ Kadu is a Qt4 client of Gadu-Gadu and XMPP for *nix systems.
+ .
+ This package provides debugging symbols for external plug-ins for Kadu.
+
 Package: kadu-themes
 Architecture: all
 Depends: ${misc:Depends}

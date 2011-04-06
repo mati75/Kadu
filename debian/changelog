@@ -1,9 +1,9 @@
 kadu (0.9.0-2) unstable; urgency=low
 
-  * Added kadu-dbg
+  * Added kadu-dbg and kadu-external-modules-dbg
   * Updated debian/build_kadu.sh to make it use 0.9.9/* branches
 
- -- Patryk Cisek <patryk@debian.org>  Wed, 06 Apr 2011 11:07:50 +0200
+ -- Patryk Cisek <patryk@debian.org>  Wed, 06 Apr 2011 11:23:23 +0200
 
 kadu (0.9.0-1) unstable; urgency=low
 

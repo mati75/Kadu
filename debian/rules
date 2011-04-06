@@ -82,7 +82,7 @@ binary-common:
 	dh_installmenu
 	dh_installman
 	dh_link
-	dh_strip
+	dh_strip --dbg-package=kadu-dbg
 	dh_compress -XAUTHORS -XTHANKS -XLICENSE -Xabout-changes-tab.txt
 	dh_fixperms
 	dh_makeshlibs
