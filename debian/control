@@ -27,7 +27,7 @@ Build-Depends: bzip2,
                sharutils,
                x11proto-scrnsaver-dev,
                zlib1g-dev
-Standards-Version: 3.9.1
+Standards-Version: 3.9.2
 Homepage: http://kadu.net
 
 Package: kadu
