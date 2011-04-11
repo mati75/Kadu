@@ -537,6 +537,9 @@ void GaduProtocol::networkConnected()
 
 void GaduProtocol::networkDisconnected(bool tryAgain, bool waitForPassword)
 {
+	if (ContactListHandler)
+		ContactListHandler->reset();
+
 	if (!tryAgain)
 		networkStateChanged(NetworkDisconnected);
 
@@ -581,7 +584,14 @@ void GaduProtocol::networkDisconnected(bool tryAgain, bool waitForPassword)
 
 void GaduProtocol::sendUserList()
 {
-	ContactListHandler->setUpContactList(ContactManager::instance()->contacts(account()));
+	QList<Contact> contacts = ContactManager::instance()->contacts(account());
+	QList<Contact> contactsToSend;
+
+	foreach (const Contact &contact, contacts)
+		if (!contact.ownerBuddy().isAnonymous())
+			contactsToSend.append(contact);
+
+	ContactListHandler->setUpContactList(contactsToSend);
 }
 
 void GaduProtocol::socketContactStatusChanged(UinType uin, unsigned int status, const QString &description,
