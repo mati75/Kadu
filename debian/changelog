@@ -3,14 +3,7 @@ kadu (0.9.1-1) unstable; urgency=low
   * New upstream release
   * debian/kadu.desktop: Kadu now supports XMPP as well as Gadu-Gadu
 
- -- Patryk Cisek <patryk@debian.org>  Mon, 11 Apr 2011 17:52:57 +0200
-
-kadu (0.9.0-2) unstable; urgency=low
-
-  * Added kadu-dbg and kadu-external-modules-dbg
-  * Updated debian/build_kadu.sh to make it use 0.9.9/* branches
-
- -- Patryk Cisek <patryk@debian.org>  Wed, 06 Apr 2011 11:23:23 +0200
+ -- Patryk Cisek <patryk@debian.org>  Mon, 11 Apr 2011 13:16:43 +0200
 
 kadu (0.9.0-1) unstable; urgency=low
 
