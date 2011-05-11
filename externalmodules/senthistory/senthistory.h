@@ -1,7 +1,7 @@
 /****************************************************************************
 *                                                                           *
 *   SentHistory module for Kadu                                             *
-*   Copyright (C) 2008-2010  Piotr Dąbrowski ultr@ultr.pl                   *
+*   Copyright (C) 2008-2011  Piotr Dąbrowski ultr@ultr.pl                   *
 *                                                                           *
 *   This program is free software: you can redistribute it and/or modify    *
 *   it under the terms of the GNU General Public License as published by    *
@@ -53,13 +53,13 @@ class SentHistory : public ConfigurationUiHandler, ConfigurationAwareObject
 		void chatDestroying( ChatWidget *chatwidget );
 		void messageSendRequested( ChatWidget *chatwidget );
 		void editKeyPressed( QKeyEvent* e, CustomInput* custominput, bool &handled );
-		void inputMessage( ChatWidget* edit );
 	private:
 		void createDefaultConfiguration();
+		void inputMessage( ChatWidget* edit );
 		static QList< QPair<Chat,QString> > sentmessages;
-		ChatWidget *lastChatWidget;
-		int message_n;
-		bool thischatonly;
+		QMap<Chat,int> messagen;
+		QMap<Chat,bool> thischatonly;
+		QMap<Chat,QString> currentmessage;
 };
 
 

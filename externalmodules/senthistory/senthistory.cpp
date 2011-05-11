@@ -1,7 +1,7 @@
 /****************************************************************************
 *                                                                           *
 *   SentHistory module for Kadu                                             *
-*   Copyright (C) 2008-2010  Piotr Dąbrowski ultr@ultr.pl                   *
+*   Copyright (C) 2008-2011  Piotr Dąbrowski ultr@ultr.pl                   *
 *                                                                           *
 *   This program is free software: you can redistribute it and/or modify    *
 *   it under the terms of the GNU General Public License as published by    *
@@ -70,10 +70,6 @@ SentHistory::SentHistory() : QObject()
 	createDefaultConfiguration();
 	// read the configuration and force its usage
 	configurationUpdated();
-	// variables' values
-	lastChatWidget = NULL;
-	message_n = 0;
-	thischatonly = true;
 	// connect chat widgets events and handle opened ones
 	connect( ChatWidgetManager::instance(), SIGNAL(chatWidgetCreated(ChatWidget*))   , this, SLOT(chatCreated(ChatWidget*))    );
 	connect( ChatWidgetManager::instance(), SIGNAL(chatWidgetDestroying(ChatWidget*)), this, SLOT(chatDestroying(ChatWidget*)) );
@@ -117,6 +113,13 @@ void SentHistory::chatCreated( ChatWidget *chatwidget )
 	// connect new chat's events
 	connect( chatwidget                  , SIGNAL( messageSendRequested( ChatWidget* ) )          , this, SLOT( messageSendRequested( ChatWidget* ) )               );
 	connect( chatwidget->getChatEditBox(), SIGNAL( keyPressed( QKeyEvent*, CustomInput*, bool& ) ), this, SLOT( editKeyPressed( QKeyEvent*, CustomInput*, bool& ) ) );
+	Chat chat = chatwidget->chat();
+	if( ! messagen.contains( chat ) )
+		messagen[chat] = 0;
+	if( ! thischatonly.contains( chat ) )
+		thischatonly[chat] = true;
+	if( ! currentmessage.contains( chat ) )
+		currentmessage[chat] = QString();
 }
 
 void SentHistory::chatDestroying( ChatWidget *chatwidget )
@@ -133,7 +136,7 @@ void SentHistory::messageSendRequested( ChatWidget *chatwidget )
 	Chat chat = chatwidget->chat();
 	QString sentmessage = chatwidget->edit()->toHtml();
 	// reset message number
-	message_n = 0;
+	messagen[chat] = 0;
 	// find last message in this chat
 	QListIterator< QPair<Chat,QString> > it( sentmessages );
 	while( it.hasNext() )
@@ -161,86 +164,84 @@ void SentHistory::editKeyPressed( QKeyEvent* e, CustomInput* custominput, bool &
 	if( chateditbox == NULL )
 		return;
 	ChatWidget *chatwidget = chateditbox->chatWidget();
-	// check chatwidget
-	if( chatwidget != lastChatWidget )
-	{
-		lastChatWidget = chatwidget;
-		message_n = 0;
-	}
+	Chat chat = chatwidget->chat();
 	// local sent messages' history
 	if( HotKey::shortCut( e, "SentHistory", "PreviousMessage") )
 	{
-		if( thischatonly == false ) message_n = 0;  // start from the begining
-		thischatonly = true;
-		message_n++;  // next message ( "1" is first )
+		if( messagen[chat] == 0 )
+			currentmessage[chat] = chatwidget->edit()->toHtml();
+		if( thischatonly[chat] == false )
+			messagen[chat] = 0;  // start from the begining
+		thischatonly[chat] = true;
+		messagen[chat]++;  // next message ( 1 is first )
 		inputMessage( chatwidget );
 		handled = true;
 		return;
 	}
 	if( HotKey::shortCut( e, "SentHistory", "NextMessage") )
 	{
-		if( thischatonly == false ) message_n = 0;  // start from the begining
-		thischatonly = true;
-		message_n--;  // previous message
+		if( thischatonly[chat] == false )
+			messagen[chat] = 0;  // start from the begining
+		thischatonly[chat] = true;
+		messagen[chat]--;  // previous message
 		inputMessage( chatwidget );
 		handled = true;
 		return;
 	}
 	// global sent messages' history
-	else if( HotKey::shortCut( e, "SentHistory", "PreviousMessageFromAllChats") )
+	if( HotKey::shortCut( e, "SentHistory", "PreviousMessageFromAllChats") )
 	{
-		if( thischatonly == true ) message_n = 0;  // start from the begining
-		thischatonly = false;
-		message_n++;  // next message ( "1" is first )
+		if( messagen[chat] == 0 )
+			currentmessage[chat] = chatwidget->edit()->toHtml();
+		if( thischatonly[chat] == true )
+			messagen[chat] = 0;  // start from the begining
+		thischatonly[chat] = false;
+		messagen[chat]++;  // next message ( 1 is first )
 		inputMessage( chatwidget );
 		handled = true;
 		return;
 	}
-	else if( HotKey::shortCut( e, "SentHistory", "NextMessageFromAllChats") )
+	if( HotKey::shortCut( e, "SentHistory", "NextMessageFromAllChats") )
 	{
-		if( thischatonly == true ) message_n = 0;  // start from the begining
-		thischatonly = false;
-		message_n--;  // previous message
+		if( thischatonly[chat] == true )
+			messagen[chat] = 0;  // start from the begining
+		thischatonly[chat] = false;
+		messagen[chat]--;  // previous message
 		inputMessage( chatwidget );
 		handled = true;
 		return;
-	}
-	// any other key
-	else
-	{
-		// reset message number
-		message_n = 0;
 	}
 }
 
 
 void SentHistory::inputMessage( ChatWidget* chatwidget )
 {
-	Chat thischat = chatwidget->chat();
-	if( message_n <= 0 )  // message out of range
+	Chat chat = chatwidget->chat();
+	if( messagen[chat] <= 0 )  // message out of range
 	{
 		// last, empty message
-		chatwidget->edit()->setHtml( "" );
-		message_n = 0;
+		messagen[chat] = 0;
+		chatwidget->edit()->setHtml( currentmessage[chat] );
+		chatwidget->edit()->moveCursor( QTextCursor::End );
 		return;
 	}
-	if( message_n > (int)(sentmessages.count()) )  // message out of range
+	if( messagen[chat] > (int)(sentmessages.count()) )  // message out of range
 	{
 		// previous, valid message
-		message_n = message_n - 1;
+		messagen[chat]--;
 		return;
 	}
-	if( thischatonly )  // input only messages sent to this chat
+	if( thischatonly[chat] )  // input only messages sent to this chat
 	{
 		// find requested message in chat's sentmessages
 		int foundmessage = 0;
 		QListIterator< QPair<Chat,QString> > it( sentmessages );
 		while( it.hasNext() )
 		{
-			if( it.peekNext().first == thischat )
+			if( it.peekNext().first == chat )
 			{
 				foundmessage++;
-				if( foundmessage == message_n )
+				if( foundmessage == messagen[chat] )
 				{
 					chatwidget->edit()->setHtml( it.peekNext().second );
 					chatwidget->edit()->moveCursor( QTextCursor::End );
@@ -249,16 +250,16 @@ void SentHistory::inputMessage( ChatWidget* chatwidget )
 			}
 			it.next();
 		}
-		if( foundmessage < message_n )
+		if( foundmessage < messagen[chat] )
 		{
-			message_n = message_n - 1;
+			// previous, valid message
+			messagen[chat]--;
 			return;
 		}
 	}
 	else  // input all sent messages
 	{
-		// message_n-1 is in range, checked alraedy
-		chatwidget->edit()->setHtml( sentmessages[ message_n - 1 ].second );  // message_n==1 is the first message
+		chatwidget->edit()->setHtml( sentmessages[ messagen[chat] - 1 ].second );  // 1 is the first message
 		chatwidget->edit()->moveCursor( QTextCursor::End );
 	}
 }
