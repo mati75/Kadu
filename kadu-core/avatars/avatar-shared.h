@@ -58,6 +58,7 @@ public:
 	virtual QString storageNodeName();
 
 	virtual void store();
+	virtual void storeAvatar();
 	virtual bool shouldStore();
 	virtual void aboutToBeRemoved();
 

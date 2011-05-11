@@ -96,6 +96,11 @@ void AvatarShared::load()
 
 void AvatarShared::store()
 {
+	// do nothing. This dummy method avoid calling of ensureLoade on storing configuration
+}
+
+void AvatarShared::storeAvatar()
+{
 	if (!isValidStorage())
 		return;
 
