@@ -1,5 +1,18 @@
+Description: Selects all usable external modules
+ Kadu has a nice set of external (submitted by 3rd parties) plugin-like
+ modules. It also has a mechanism called autodownload that fetches source code
+ of selected external modules during cmake call, and includes them into
+ compilation and installation (make, make install) stages.
+ .
+ In Debian it is not acceptable to have any source code outside of Debian
+ source package, thus autodownload mechanism must be disabled and source code
+ of all external modules must be shipped inside Debian source package.
+ .
+ This patch enables all usable external modules to be compiled and installed
+Author: Patryk Cisek <patryk@debian.org>
+---
 diff --git a/.config b/.config
-index 2905cec..c28ee5f 100644
+index e0068bf..396c7a5 100644
 --- a/.config
 +++ b/.config
 @@ -92,7 +92,7 @@ module_growl_notify=n
@@ -29,7 +42,7 @@ index 2905cec..c28ee5f 100644
  
  # Description: External application sound support
  # PL: Obsługa dźwięku poprzez zewnętrzną aplikację
-@@ -365,37 +365,37 @@ module_weather=n
+@@ -360,37 +360,37 @@ module_weather=n
  # PL: Powiadomiania diodą Scroll Lock
  # Platform: Linux
  # Needs: libX11
@@ -74,7 +87,7 @@ index 2905cec..c28ee5f 100644
  
  ######################## MEDIAPLAYER ########################
  
-@@ -417,22 +417,22 @@ module_amarok2_mediaplayer=m
+@@ -412,22 +412,22 @@ module_amarok2_mediaplayer=m
  # Description: Audacious support for mediaplayer
  # PL: Wsparcie dla Audacious w mediaplayer
  # Platform: Linux
@@ -101,7 +114,7 @@ index 2905cec..c28ee5f 100644
  
  # Description: iTunes support for mediaplayer
  # PL: Wsparcie dla iTunes w mediaplayer
-@@ -443,17 +443,17 @@ module_itunes_mediaplayer=n
+@@ -438,17 +438,17 @@ module_itunes_mediaplayer=n
  # PL: Wsparcie dla  MPD w mediaplayer
  # Needs: libmpdclient
  # Platform: Linux
@@ -122,7 +135,7 @@ index 2905cec..c28ee5f 100644
  
  # Description: Winamp support for mediaplayer
  # PL: Wsparcie dla Winamp'a w mediaplayer
-@@ -468,7 +468,7 @@ module_xmms_mediaplayer=n
+@@ -463,7 +463,7 @@ module_xmms_mediaplayer=n
  # Description: XMMS2 support for mediaplayer
  # PL: Wsparcie dla XMMS2 w mediaplayer
  # Platform: Linux
@@ -131,7 +144,7 @@ index 2905cec..c28ee5f 100644
  
  ############################################# ICONS ###########################################################################
  # PL: ####################################### IKONY ###########################################################################
-@@ -520,7 +520,7 @@ emoticons_tango=y
+@@ -515,7 +515,7 @@ emoticons_tango=y
  
  # Description: Old Gadu-Gadu 6.x emoticons
  # PL: Kompatybilne ze starą wersją Gadu-Gadu 6.x
@@ -140,7 +153,7 @@ index 2905cec..c28ee5f 100644
  
  ########################################### SOUNDS ############################################################################
  # PL: ##################################### DŹWIĘKI ###########################################################################
-@@ -538,14 +538,14 @@ emoticons_gg6_compatible=n
+@@ -533,14 +533,14 @@ emoticons_gg6_compatible=n
  # PL: Standardowy zestaw dźwięków dostępny razem ze źródłami Kadu
  sound_default=y
  
