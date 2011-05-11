@@ -12,18 +12,18 @@ Description: Disables autodownload mechanism
 Author: Patryk Cisek <patryk@debian.org>
 ---
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index 398fbdf..a39c7c5 100644
+index f0dc25f..5cb03da 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
-@@ -5,7 +5,7 @@ set (QT_MIN_VERSION "4.5.0")
+@@ -5,7 +5,7 @@ set (QT_MIN_VERSION "4.6.0")
  set (CMAKE_MIN_VERSION "2.6.0")
  
  # configuration
 -option (ENABLE_AUTODOWNLOAD "Use automatic download of modules/icons/emoticons" ON)
 +option (ENABLE_AUTODOWNLOAD "Use automatic download of modules/icons/emoticons" OFF)
+ option (ENABLE_DEVELOPER_BUILD "Turn on some features helpful during development process (does not necessarily turn on debug symbols in binaries)" OFF)
  option (SIG_HANDLING_ENABLED "Define if you want system signals handling" ON)
  option (USE_X11_XFIXES "Use X11 Xfixes extension (Desktop Linux)" ON)
- 
 diff --git a/varia/themes/emoticons/CMakeLists.txt b/varia/themes/emoticons/CMakeLists.txt
 index ed664e7..405e576 100644
 --- a/varia/themes/emoticons/CMakeLists.txt
@@ -51,7 +51,7 @@ index 8c97659..5412068 100644
  	)
  
 diff --git a/varia/themes/sounds/CMakeLists.txt b/varia/themes/sounds/CMakeLists.txt
-index 2ede7e5..6032fed 100644
+index 8d60015..d72afd3 100644
 --- a/varia/themes/sounds/CMakeLists.txt
 +++ b/varia/themes/sounds/CMakeLists.txt
 @@ -10,7 +10,7 @@ if (WIN32)
