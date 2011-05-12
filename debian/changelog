@@ -3,8 +3,10 @@ kadu (0.9.2-1) unstable; urgency=low
   * New upstream release
   * Updated debian/patches/02-.config.patch to make it fit 0.9.2
   * Updated debian/patches/01-no_autodownload.patch to make it fit 0.9.2
+  * Removed server_monitor module's files from *.install -- module's been
+    removed upstream.
 
- -- Patryk Cisek <patryk@debian.org>  Wed, 11 May 2011 13:50:08 +0200
+ -- Patryk Cisek <patryk@debian.org>  Thu, 12 May 2011 13:30:41 +0200
 
 kadu (0.9.1-1) unstable; urgency=low
 

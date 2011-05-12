@@ -43,7 +43,6 @@ debian/tmp/usr/lib/kadu/modules/libqt4_docking.so
 debian/tmp/usr/lib/kadu/modules/libqt4_docking_notify.so
 debian/tmp/usr/lib/kadu/modules/libqt4_sound.so
 debian/tmp/usr/lib/kadu/modules/libscreenshot.so
-debian/tmp/usr/lib/kadu/modules/libserver_monitor.so
 debian/tmp/usr/lib/kadu/modules/libsimpleview.so
 debian/tmp/usr/lib/kadu/modules/libsingle_window.so
 debian/tmp/usr/lib/kadu/modules/libsms.so

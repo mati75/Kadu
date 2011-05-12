@@ -42,8 +42,6 @@ debian/tmp/usr/share/kadu/modules/configuration/nextinfo.ui
 debian/tmp/usr/share/kadu/modules/configuration/parser_extender.ui
 debian/tmp/usr/share/kadu/modules/configuration/qt4-docking-notify.ui
 debian/tmp/usr/share/kadu/modules/configuration/screenshot.ui
-debian/tmp/usr/share/kadu/modules/configuration/server-monitor.ui
-debian/tmp/usr/share/kadu/modules/configuration/serverslist.txt
 debian/tmp/usr/share/kadu/modules/configuration/simpleview.ui
 debian/tmp/usr/share/kadu/modules/configuration/single_window.ui
 debian/tmp/usr/share/kadu/modules/configuration/sms.ui
@@ -89,7 +87,6 @@ debian/tmp/usr/share/kadu/modules/qt4_docking.desc
 debian/tmp/usr/share/kadu/modules/qt4_docking_notify.desc
 debian/tmp/usr/share/kadu/modules/qt4_sound.desc
 debian/tmp/usr/share/kadu/modules/screenshot.desc
-debian/tmp/usr/share/kadu/modules/server_monitor.desc
 debian/tmp/usr/share/kadu/modules/simpleview.desc
 debian/tmp/usr/share/kadu/modules/single_window.desc
 debian/tmp/usr/share/kadu/modules/sms.desc
@@ -128,7 +125,6 @@ debian/tmp/usr/share/kadu/modules/translations/pcspeaker*
 debian/tmp/usr/share/kadu/modules/translations/profiles_import*
 debian/tmp/usr/share/kadu/modules/translations/qt4_docking_notify*
 debian/tmp/usr/share/kadu/modules/translations/screenshot*
-debian/tmp/usr/share/kadu/modules/translations/server_monitor*
 debian/tmp/usr/share/kadu/modules/translations/simpleview*
 debian/tmp/usr/share/kadu/modules/translations/single_window*
 debian/tmp/usr/share/kadu/modules/translations/sms*
