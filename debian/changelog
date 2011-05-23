@@ -6,7 +6,7 @@ kadu (0.9.2-1) unstable; urgency=low
   * Removed server_monitor module's files from *.install -- module's been
     removed upstream.
 
- -- Patryk Cisek <patryk@debian.org>  Thu, 12 May 2011 13:30:41 +0200
+ -- Patryk Cisek <patryk@debian.org>  Mon, 23 May 2011 14:41:19 +0200
 
 kadu (0.9.1-1) unstable; urgency=low
 
