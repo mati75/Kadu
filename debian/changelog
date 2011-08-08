@@ -1,3 +1,9 @@
+kadu (0.9.2-2) unstable; urgency=low
+
+  * Rebuild for new libgadu3
+
+ -- Patryk Cisek <patryk@debian.org>  Mon, 08 Aug 2011 16:57:38 +0200
+
 kadu (0.9.2-1) unstable; urgency=low
 
   * New upstream release
