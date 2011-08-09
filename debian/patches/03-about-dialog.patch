@@ -1,0 +1,25 @@
+diff --git a/kadu-core/gui/windows/about.cpp b/kadu-core/gui/windows/about.cpp
+index 9fdf6c5..00b8d77 100644
+--- a/kadu-core/gui/windows/about.cpp
++++ b/kadu-core/gui/windows/about.cpp
+@@ -157,7 +157,7 @@ About::About(QWidget *parent) :
+ 	tb_changelog->setOpenLinks(false);
+ 	tb_changelog->setFrameStyle(QFrame::NoFrame);
+ 	tb_changelog->viewport()->setAutoFillBackground(false);
+-	QString changelog = loadFile("ChangeLog");
++	QString changelog = loadFile("about-changes-tab.txt");
+ 	changelog.replace('\n', "<br/>");
+ 	HtmlDocument changelog_html;
+ 	changelog_html.parseHtml(changelog);
+@@ -243,7 +243,10 @@ QString About::loadFile(const QString &name)
+ {
+ 	kdebugf();
+ 
+-	QFile file(dataPath("kadu/" + name));
++	QString fullName = ("COPYING" == name ?
++			"/usr/share/common-licenses/GPL-2" :
++			"/usr/share/doc/kadu/" + name);
++	QFile file(fullName);
+ 	if (!file.open(QIODevice::ReadOnly))
+ 	{
+ 		kdebugm(KDEBUG_ERROR, "About::loadFile(%s) cannot open file\n", qPrintable(name));

@@ -1,0 +1,3 @@
+?package(kadu):needs="X11" section="Applications/Network/Communication"\
+  title="Kadu" command="/usr/bin/kadu"\
+  icon="/usr/share/pixmaps/kadu.xpm"

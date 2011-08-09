@@ -1,0 +1,217 @@
+0.6.6-22 => 0.9.0-23
+* Drobne poprawki w tłumaczeniach.
+* Oznaczenie wersji dla stabilnego wydania Kadu 0.9.0.
+
+
+0.6.6-21 => 0.6.6-22
+* Tymczasowe usunięcie skrótu okna transferu plików.
+
+
+0.6.6-20 => 0.6.6-21
+* Poprawione nadpisywanie pustych skrótów przez ich domyślne wartości.
+
+
+0.6.5-18 => 0.6.6-20
+* Port dla Kadu 0.6.6.
+* Menu kontaktów zamienione na rozbudowane menu znajomych (BuddiesMenu).
+* Skróty kontaktów zamienione na skróty znajomych z możliwością otwarcia
+  menu (BuddiesMenu) dla wyboru kontaktów do rozmowy.
+* Nowe skróty: wyłączenie Kadu, dodanie znajomego, wyszukanie znajomego,
+  zarządzanie ignorowanymi.
+* Dodane skróty do okien: transferu plików, konfiguracji, kont użytkownika,
+  modułów.
+* Użycie klasy QProxyStyle (Qt 4.6) w WideIconsMenu.
+* Bardzo duże porzadki w kodzie.
+
+
+0.6.5-17 => 0.6.5-18
+* Wymuszanie wyświetlania ikon w BuddiesMenu pod Gnome.
+
+
+0.6.5-16 => 0.6.5-17
+* Poprawki dla aktywacji okien w KDE4.
+
+
+0.6.5-15 => 0.6.5-16
+* Poprawiona aktywacja pierwszej pozycji w menu kontaktów po jego wyświetleniu.
+
+
+0.6.5-14 => 0.6.5-15
+* GlobalHotkeys::checkPendingHotkeys(): uaktualniony kod dla TurnSilentModeOn,
+  TurnSilentModeOff i ToggleSilentModew związku ze zmianą w API Kadu 0.6.5.4
+  (Dorregaray).
+* Poprawka centrowania menu/okien na wielu ekranach.
+
+
+0.6.5-13 => 0.6.5-14
+* Dodany skrót wyświetlenia menu zmiany statusu.
+
+
+0.6.5-12 => 0.6.5-13
+* Dodane skróty do przełączania trybu cichego (brak powiadomień) w Kadu.
+* Poprawione wyświetlanie ikon oczekujących wiadomości w menu kontaktów.
+
+
+0.6.5-11 => 0.6.5-12
+* Zastąpienie pętli wyszukującej okno toplevel za pomocą QWidget::parent() przez
+  QWidget::window() z Qt4.
+* CMakeLists.txt: zastąpienie "lib/kadu/modules" przez "${MODULEDIR}".
+
+
+0.6.5-10 => 0.6.5-11
+* Dodany skrót do okna zmiany opisu z zachowaniem aktualnego statusu.
+* Rozwiązany problem z pozostawianiem spacji przy nazwach kontaktów w listach.
+
+
+0.6.5-9 => 0.6.5-10
+* Menu kontaktów: dodana opcja dla wyświetlania kontaktów z nieodebranymi
+  wiadomościami.
+* Menu kontaktów: dodana ikona nieodebranych wiadomości.
+* Menu kontaktów: dodana opcja pomijania wybranych kontaktów w menu.
+* GlobalHotkeys::configurationUpdated(): przeniesienie z
+  GlobalHotkeys::GlobalHotkeys() wywołania funkcji createContactsMenuIcons()
+  tworzącej ikony dla menu kontaktów, dzięki czemu ikony są odtwarzane przy
+  zmianie zestawu ikon.
+* GlobalHotkeys::mainConfigurationWindowCreated(): poprawiony warunek pustego
+  skrótu powodujący błędne zachowanie widgetów w oknie konfiguracji.
+* GlobalHotkeys::checkPendingHotkeys(): zastąpienie przestarzałego
+  QMenu::insertItem() nową metodą QMenu::addAction()
+
+
+0.6.5-8 => 0.6.5-9
+* Zamiana menu ostatnich rozmów na wiele konfigurowalnych menu kontaktów.
+* wideiconsmenu.h: Dodanie ikon statusu kontaktu do menu kontaktów.
+* GlobalHotkeys::checkPendingHotkeys(): sortowanie listy kontaktów przy skrócie
+  do rozmowy z wybranymi kontaktami (konieczne przy porównywaniu dwóch list
+  UserListElements).
+* Wydzielenie klas Hotkey i HotkeyEdit do osobnych plików.
+* Inne drobne poprawki.
+
+
+0.6.5-7 => 0.6.5-8
+* Dodanie możliwości przypisania skrótów dla rozmowy z wybranymi kontaktami.
+* GlobalHotkeys::showAndActivateToplevel(): Poprawiona metoda aktywacji okien.
+
+
+0.6.0-7 => 0.6.5-7
+* Port dla Kadu 0.6.5
+
+
+0.6.0-6 => 0.6.0-7
+* HotkeyEdit::x11Event(), HotkeyEdit::focusOutEvent(): dodana warunkowa
+  inicjalizacja zmiennej lastvalidvalue.
+
+
+0.6.0-5 => 0.6.0-6
+* globalhotkeys_close(): Usunięcie zamykania okna konfiguracji przy
+  wyładowywaniu modułu.
+* mainConfigurationWindowCreated(): Poprawione tworzenie widgetów w oknie
+  konfiguracji.
+* ~GlobalHotkeys(): Dodanie usuwania widgetów z okna konfiguracji.
+
+
+0.6.0-4 => 0.6.0-5
+* GlobalHotkeys::checkPendingHotkeys(): Dodanie ustawiania focusu
+  (XSetInputFocus()) przy wyświetlaniu menu ostatnich rozmów. Usuwa to problem z
+  wyświetleniem menu w KDE bezpośrednio po przełączeniu się (Alt+Tab) na inne
+  zmaksymalizowane okno.
+
+
+0.6.0-3 => 0.6.0-4
+* GlobalHotkeys::recentchatsmenuinactivitytimerTimeout(): Poprawione
+  pokazywanie/ukrywanie menu ostatnich rozmów.
+* GlobalHotkeys::checkPendingHotkeys(): Poprawione zarządzanie pokazywaniem menu
+  i timerem menu ostatnich rozmów.
+* Zwiększony interwał GLOBALHOTKEYS_RECENTCHATSMENUINACTIVITYTIMERINTERVAL z
+  50ms do 100ms.
+
+
+0.6.0-2 => 0.6.0-3
+* GlobalHotkeys::openRecentChat(): Poprawiony błąd powodujący crash Kadu przy
+  wybraniu z menu ostatnich rozmów otwartego okna, które zostało zamknięte od
+  czasu wyświetlenia menu.
+
+
+0.6.0-1 => 0.6.0-2
+* HotkeyEdit(): Zmieniona kolejność argumentów konstruktora ConfigLineEdit() w
+  związku z poprawieniem błędu w Kadu
+  (http://www.kadu.net/forum/viewtopic.php?p=82864#82864).
+* W związku z powyższym ostatnią wersją kompatybilną z Kadu <=0.6.0.1 jest
+  wersja 0.6.0-1, która nie będzie już rozwijana.
+
+
+0.6.0-rc1 => 0.6.0-1
+* Dodanie powiadomienia w menu o braku ostatnich rozmów na liście.
+* Poprawiona obsługa sprawdzania nieaktywności menu ostatnich rozmów (QTimer
+  recentchatsmenuinactivitytimer).
+
+
+0.6.0-beta3 => 0.6.0-rc1
+* Dodany skrót "Ostatnie rozmowy ..." oraz związane z nim menu ostatnich rozmów
+  zawierające zarówno aktualnie otwarte chaty, jak również historię zamkniętych
+  wcześniej okien.
+
+
+0.6.0-beta2 => 0.6.0-beta3
+* Zastąpienie wątku HotkeyThread obsługującego skróty klawiszowe QTimer-em i
+  przeniesienie obsługi z HotkeyThread::run() do
+  GlobalHotkeys::checkPendingHotkeys().
+* GlobalHotkeys::checkPendingHotkeys(): Rozwiązanie problemu pokazywania okna
+  zaraz po jego ukryciu poprzez użycie single-shot QTimer-a i slotu
+  GlobalHotkeys::showAndActivateToplevel().
+* GlobalHotkeys::grabHotkeys(): Zmiana w wywołaniu funkcji XSync().
+* globalhotkeys_close(): Dodanie zamykania okna konfiguracji przy wyładowywaniu
+  modułu.
+
+
+0.6.0-beta1 => 0.6.0-beta2
+* Poprawione zarządzanie wątkiem HotkeyThread i dzięki temu wyeliminowanie
+  problemów z zawieszaniem się Kadu przy wywołaniu funkcji XCloseDisplay().
+* Niewielkie poprawki w obsłudze skrótów "Pokaż główne okno Kadu", "Pokaż/ukryj
+  główne okno Kadu", "Przywróć wszystkie zminimalizowane okna rozmów" i
+  "Zminimalizuj/przywróć wszystkie okna rozmów".
+* Dodany skrót "Zminimalizuj/przywróć wszystkie okna rozmów".
+* GlobalHotkeys::configurationUpdated() i HotkeyThread::run(): Usuwanie obiektów
+  klasy Hotkey z listy hotkeys.
+* HotkeyThread::run(): Usuwanie obiektu hotkey klasy Hotkey.
+
+
+0.6.0-alpha3 => 0.6.0-beta1
+* Dodany widget HotkeyEdit umożliwiający proste wstawianie skrótów w oknie
+  konfiguracji.
+* GlobalHotkeys::grabHotkeys(): Rozwiązanie problemu ostrzeżeń X11 generujących
+  backtrace w Kadu w przypadku, gdy dany skrót globalny jest już używany przez
+  inną aplikację. Jednocześnie w takim przypadku pojawia się okienko ostrzeżenia
+  z odpowiednim komunikatem.
+* HotkeyThread::run(): Zmiana zachowania skrótów "Pokaż/ukryj główne okno Kadu"
+  i "Rozpocznij rozmowę z ...".
+* Drobne zmiany porządkujące kod.
+
+
+0.6.0-alpha2 => 0.6.0-alpha3
+* Dodanie skrótów dla minimalizacji, przywrócenia oraz zamknięcia wszystkich
+  okien rozmów.
+* Dodanie możliwości wywołania okna "Rozpocznij rozmowę z ...".
+* Skróty klawiszowe mogą być teraz zapisywane z użyciem kodów keysym X11 jako
+  kodu klawisza.
+* Plik spec: Dodanie "-L/usr/X11R6/lib" do MODULE_LDFLAGS.
+
+
+0.6.0-alpha1 => 0.6.0-alpha2
+* HotkeyThread::run(): Odbieranie przychodzących wiadomość działa teraz nie
+  tylko dla nowych rozmów, ale także dla nowych wiadomości w już otwartym, ale
+  nieaktywnym oknie.
+* HotkeyThread::run(): Po wyświetleniu okna z nową rozmową jest ono aktywowane.
+* HotkeyThread::run(): Moduł Tabs: Jeżeli oczekująca rozmowa jest już otwarta i
+  znajduje się w nieaktywnej zakładce, to następuje przełączenie na ten tab
+  poprzez ponowne otwarcie danej rozmowy:
+  chat_manager->openChatWidget( gadu, (*chat)->users()->toUserListElements() );
+* HotkeyThread::run(): Usunięcie cyklicznego sprawdzania warunku XPending() i
+  użycie jedynie XNextEvent(), które w przypadku braku zdarzenia w kolejce
+  zatrzyma wykonywanie programu i poczeka na przyjście zdarzenia.
+
+
+0.6.0-alpha1
+* Pierwsze wydanie.
+* Obsługa pokazywania i ukrywania głównego okna Kadu oraz odbierania jednej lub
+  wszystkich przychodzących wiadomości.
