@@ -5,7 +5,6 @@
  * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2008, 2009, 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2007, 2008, 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2011 Piotr Dąbrowski (ultr@ultr.pl)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -25,6 +24,7 @@
 #ifndef PREVIEW_H
 #define PREVIEW_H
 
+#include "configuration/configuration-aware-object.h"
 #include "contacts/contact.h"
 #include "contacts/contact-shared.h"
 #include "contacts/contact-set.h"
@@ -33,7 +33,7 @@
 
 #define PREVIEW_DEFAULT_HEIGHT 250
 
-class Preview : public KaduWebView
+class Preview : public KaduWebView, public ConfigurationAwareObject
 {
 	Q_OBJECT
 
@@ -44,6 +44,7 @@ class Preview : public KaduWebView
 	bool DrawFrame;
 
 protected:
+	virtual void configurationUpdated();
 	void paintEvent(QPaintEvent *event);
 
 public:

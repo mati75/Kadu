@@ -55,7 +55,7 @@ MainWindow * MainWindow::findMainWindow(QWidget *widget)
 }
 
 MainWindow::MainWindow(const QString &windowName, QWidget *parent) :
-		QMainWindow(parent), WindowName(windowName), TransparencyEnabled(false)
+		QMainWindow(parent), DesktopAwareObject(this),  WindowName(windowName), TransparencyEnabled(false)
 {
 	connect(ConfigurationManager::instance()->toolbarConfigurationManager(), SIGNAL(configurationUpdated()),
 			this, SLOT(refreshToolBars()));
@@ -383,7 +383,7 @@ Contact MainWindow::contact()
 {
 	ContactSet contactSet = contacts();
 	return 1 == contactSet.count()
-			? *contactSet.begin()
+			? *contactSet.constBegin()
 			: Contact::null;
 }
 
@@ -391,7 +391,7 @@ Buddy MainWindow::buddy()
 {
 	BuddySet buddySet = buddies();
 	return 1 == buddySet.count()
-			? *buddySet.begin()
+			? *buddySet.constBegin()
 			: Buddy::null;
 }
 

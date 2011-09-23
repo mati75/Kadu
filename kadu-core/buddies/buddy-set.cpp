@@ -36,6 +36,15 @@ BuddySet::BuddySet(Buddy buddy)
 	insert(buddy);
 }
 
+bool BuddySet::isAllAnonymous() const
+{
+	foreach (const Buddy &buddy, *this)
+		if (!buddy.isAnonymous())
+			return false;
+
+	return true;
+}
+
 BuddyList BuddySet::toBuddyList() const
 {
 	return toList();
@@ -44,7 +53,7 @@ BuddyList BuddySet::toBuddyList() const
 QList<Contact> BuddySet::getAllContacts() const
 {
 	QList<Contact> allContacts;
-	foreach (const Buddy &buddy, toList())
+	foreach (const Buddy &buddy, *this)
 		allContacts.append(buddy.contacts());
 
 	return allContacts;

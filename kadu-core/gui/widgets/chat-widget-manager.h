@@ -28,6 +28,7 @@
 #include <QtCore/QTimer>
 
 #include "buddies/buddy-list.h"
+#include "chat/message/message.h"
 #include "configuration/configuration-aware-object.h"
 #include "gui/widgets/chat-widget.h"
 #include "storage/storable-string-list.h"
@@ -55,6 +56,10 @@ class KADUAPI ChatWidgetManager : public QObject, ConfigurationAwareObject, Stor
 	ChatWidgetActions *Actions;
 
 	QHash<Chat , ChatWidget *> Chats;
+
+	bool AutoRaise;
+	bool OpenChatOnMessage;
+	bool OpenChatOnMessageWhenOnline;
 
 	ChatWidgetManager();
 	virtual ~ChatWidgetManager();

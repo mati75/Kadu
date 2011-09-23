@@ -183,7 +183,7 @@ protected:
 	 */
 	virtual void load()
 	{
-		(void) QMutexLocker(&Mutex);
+		QMutexLocker locker(&Mutex);
 
 		if (!isValidStorage())
 			return;
@@ -195,9 +195,8 @@ protected:
 			return;
 
 		QList<QDomElement> itemElements = storage()->storage()->getNodes(itemsNode, storageNodeItemName());
-#if (QT_VERSION >= 0x040700)
 		Items.reserve(itemElements.count());
-#endif
+
 		foreach (const QDomElement &itemElement, itemElements)
 		{
 			QSharedPointer<StoragePoint> storagePoint(new StoragePoint(storage()->storage(), itemElement));
@@ -223,7 +222,7 @@ public:
 	 */
 	virtual void store()
 	{
-		(void) QMutexLocker(&Mutex);
+		QMutexLocker locker(&Mutex);
 
 		ensureLoaded();
 
@@ -243,13 +242,13 @@ public:
 	 *
 	 * When index is out of range Item::null value is returned.
 	 */
-	Item byIndex(unsigned int index)
+	Item byIndex(int index)
 	{
-		(void) QMutexLocker(&Mutex);
+		QMutexLocker locker(&Mutex);
 
 		ensureLoaded();
 
-		if (index >= count())
+		if (index < 0 || index >= count())
 			return Item::null;
 
 		return Items.at(index);
@@ -266,7 +265,7 @@ public:
 	 */
 	Item byUuid(const QUuid &uuid)
 	{
-		(void) QMutexLocker(&Mutex);
+		QMutexLocker locker(&Mutex);
 
 		ensureLoaded();
 
@@ -291,9 +290,9 @@ public:
 	 * or removed. This method returns the same index as
 	 * items().indexOf(item) would return.
 	 */
-	unsigned int indexOf(Item item)
+	int indexOf(Item item)
 	{
-		(void) QMutexLocker(&Mutex);
+		QMutexLocker locker(&Mutex);
 
 		ensureLoaded();
 		return Items.indexOf(item);
@@ -306,9 +305,9 @@ public:
 	 *
 	 * Return number of loaded items.
 	 */
-	unsigned int count()
+	int count()
 	{
-		(void) QMutexLocker(&Mutex);
+		QMutexLocker locker(&Mutex);
 
 		ensureLoaded();
 		return Items.count();
@@ -323,7 +322,7 @@ public:
 	 */
 	const QList<Item> & items()
 	{
-		(void) QMutexLocker(&Mutex);
+		QMutexLocker locker(&Mutex);
 
 		ensureLoaded();
 		return Items;
@@ -340,7 +339,7 @@ public:
 	 */
 	void addItem(Item item)
 	{
-		(void) QMutexLocker(&Mutex);
+		QMutexLocker locker(&Mutex);
 
 		ensureLoaded();
 
@@ -365,7 +364,7 @@ public:
 	 */
 	void removeItem(Item item)
 	{
-		(void) QMutexLocker(&Mutex);
+		QMutexLocker locker(&Mutex);
 
 		ensureLoaded();
 

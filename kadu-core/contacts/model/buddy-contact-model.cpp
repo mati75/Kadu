@@ -24,6 +24,8 @@
 #include "buddies/buddy-shared.h"
 #include "contacts/contact.h"
 #include "contacts/contact-manager.h"
+#include "icons/kadu-icon.h"
+#include "identities/identity.h"
 #include "model/roles.h"
 #include "protocols/protocol.h"
 
@@ -80,7 +82,7 @@ QVariant BuddyContactModel::data(const QModelIndex &index, int role) const
 
 		case Qt::DecorationRole:
 			return data.contactAccount().protocolHandler()
-					? data.contactAccount().protocolHandler()->icon()
+					? data.contactAccount().protocolHandler()->icon().icon()
 					: QIcon();
 
 		case ContactRole:

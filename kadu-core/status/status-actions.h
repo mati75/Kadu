@@ -37,7 +37,7 @@ class StatusActions : public QObject
 	Q_OBJECT
 
 	StatusContainer *MyStatusContainer;
-	bool CommonStatusIcons;
+	bool IncludePrefix;
 
 	QActionGroup *ChangeStatusActionGroup;
 	QAction *ChangeDescription;
@@ -52,11 +52,11 @@ class StatusActions : public QObject
 	void cleanUpActions();
 
 private slots:
-	void statusChanged();
+	void statusUpdated();
 	void iconThemeChanged();
 
 public:
-	StatusActions(StatusContainer *statusContainer, QObject *parent, bool commonStatusIcons = false);
+	StatusActions(StatusContainer *statusContainer, bool includePrefix, QObject *parent);
 	virtual ~StatusActions();
 
 	const QList<QAction *> & actions() const { return Actions; }

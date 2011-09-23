@@ -29,7 +29,7 @@
  * Contructs empty object with given uuid. When uuid is invalid (NULL)
  * new uuid is created and assigned to object.
  */
-Shared::Shared(QUuid uuid) :
+Shared::Shared(const QUuid &uuid) :
 		BlockUpdatedSignalCount(0), Updated(false)
 {
 	setUuid(uuid.isNull() ? QUuid::createUuid() : uuid);
@@ -61,8 +61,12 @@ Shared::~Shared()
  * @author Rafal 'Vogel' Malinowski
  * @short Loads object from storage.
  *
- * Loads obejct from storage. Loads uuid from uuid attribute. Superclass method
+ * Loads the object from storage. Loads uuid from uuid attribute. Superclass method
  * is also called. You must call this method in load methods of derivered class.
+ *
+ * When reimplementing this method, avoid calling any methods or emitting signals.
+ * It could lead to big trouble as the object is in an unstable state where State
+ * is set to StateLoaded while actually it may be not fully loaded yet.
  */
 void Shared::load()
 {

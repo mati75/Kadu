@@ -21,6 +21,7 @@
 
 #include <QtCore/QDir>
 #include <QtCore/QFile>
+#include <QtGui/QImageReader>
 
 #include "avatars/avatar-manager.h"
 #include "misc/misc.h"
@@ -43,8 +44,8 @@ AvatarShared * AvatarShared::loadFromStorage(const QSharedPointer<StoragePoint> 
 	return result;
 }
 
-AvatarShared::AvatarShared(QUuid uuid) :
-		Shared(uuid), AvatarContact(Contact::null)
+AvatarShared::AvatarShared(const QUuid &uuid) :
+		Shared(uuid)
 {
 	AvatarsDir = profilePath("avatars/");
 }
@@ -66,17 +67,20 @@ QString AvatarShared::storageNodeName()
 
 QString AvatarShared::filePath()
 {
-	return FilePath.isEmpty() ? AvatarsDir + uuid() : FilePath;
+	return FilePath.isEmpty() ? AvatarsDir + uuid().toString() : FilePath;
 }
 
-void AvatarShared::setFilePath(const QString& filePath)
+void AvatarShared::setFilePath(const QString &filePath)
 {
 	if (FilePath != filePath)
 	{
 		ensureLoaded();
 
 		FilePath = filePath;
-		Pixmap.load(filePath);
+
+		QImageReader imageReader(filePath);
+		Pixmap = QPixmap::fromImageReader(&imageReader);
+
 		dataUpdated();
 		emit pixmapUpdated();
 	}
@@ -91,7 +95,9 @@ void AvatarShared::load()
 
 	LastUpdated = loadValue<QDateTime>("LastUpdated");
 	NextUpdate = loadValue<QDateTime>("NextUpdate");
-	Pixmap.load(filePath());
+
+	QImageReader imageReader(filePath());
+	Pixmap = QPixmap::fromImageReader(&imageReader);
 }
 
 void AvatarShared::store()
@@ -156,7 +162,7 @@ bool AvatarShared::isEmpty()
 	return Pixmap.isNull();
 }
 
-void AvatarShared::setPixmap(QPixmap pixmap)
+void AvatarShared::setPixmap(const QPixmap &pixmap)
 {
 	ensureLoaded();
 

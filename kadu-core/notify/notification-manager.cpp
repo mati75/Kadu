@@ -57,11 +57,14 @@
 #include "gui/windows/main-window.h"
 #include "gui/windows/message-dialog.h"
 #include "multilogon/multilogon-session.h"
+#include "notify/account-notification.h"
 #include "notify/buddy-notify-data.h"
 #include "notify/multilogon-notification.h"
+#include "notify/notification.h"
 #include "notify/notifier.h"
 #include "notify/notify-configuration-ui-handler.h"
 #include "notify/window-notifier.h"
+#include "protocols/services/chat-service.h"
 #include "protocols/services/multilogon-service.h"
 #include "status/status-container-manager.h"
 
@@ -105,7 +108,10 @@ NotificationManager::NotificationManager()
 
 void NotificationManager::init()
 {
-    	kdebugf();
+	kdebugf();
+
+	Notification::registerParserTags();
+	AccountNotification::registerParserTags();
 
 	UiHandler = new NotifyConfigurationUiHandler(this);
 	MainConfigurationWindow::registerUiHandler(UiHandler);
@@ -124,19 +130,19 @@ void NotificationManager::init()
 	notifyAboutUserActionDescription = new ActionDescription(this,
 		ActionDescription::TypeUser, "notifyAboutUserAction",
 		this, SLOT(notifyAboutUserActionActivated(QAction *, bool)),
-		"kadu_icons/notify-about-buddy", tr("Notify About Buddy"), true,
+		KaduIcon("kadu_icons/notify-about-buddy"), tr("Notify About Buddy"), true,
 		checkNotify
 	);
 
 	SilentModeActionDescription = new ActionDescription(this,
 		ActionDescription::TypeGlobal, "silentModeAction",
 		this, SLOT(silentModeActionActivated(QAction *, bool)),
-		"kadu_icons/enable-notifications", tr("Enable Notifications"), true
+		KaduIcon("kadu_icons/enable-notifications"), tr("Enable Notifications"), true
 	);
 	configurationUpdated();
 	connect(SilentModeActionDescription, SIGNAL(actionCreated(Action *)), this, SLOT(silentModeActionCreated(Action *)));
 
-	connect(StatusContainerManager::instance(), SIGNAL(statusChanged()), this, SLOT(statusChanged()));
+	connect(StatusContainerManager::instance(), SIGNAL(statusUpdated()), this, SLOT(statusUpdated()));
 
 	foreach (const Group &group, GroupManager::instance()->items())
 		groupAdded(group);
@@ -164,6 +170,9 @@ NotificationManager::~NotificationManager()
 		kdebugm(KDEBUG_WARNING, "WARNING: not unregistered notifiers found! (%u)\n", Notifiers.size());
 		unregisterNotifier(Notifiers.at(0));
 	}
+
+	AccountNotification::unregisterParserTags();
+	Notification::unregisterParserTags();
 
 #if defined(Q_WS_X11) && !defined(Q_WS_MAEMO_5)
 	XCloseDisplay(x11display);
@@ -260,7 +269,7 @@ void NotificationManager::silentModeActionActivated(QAction *sender, bool toggle
 	setSilentMode(!toggled);
 }
 
-void NotificationManager::statusChanged()
+void NotificationManager::statusUpdated()
 {
 	if (SilentModeWhenDnD && !silentMode() && StatusContainerManager::instance()->status().type() == "DoNotDisturb")
 	{
@@ -335,7 +344,7 @@ void NotificationManager::accountConnected()
 	if (!account)
 		return;
 
-	if (config_file.readBoolEntry("Notify", "NotifyIgnoreOnConnection"))
+	if (NotifyIgnoreOnConnection)
 	{
 		QDateTime *dateTime = account.data()->moduleData<QDateTime>("notify-account-connected", true);
 		*dateTime = QDateTime::currentDateTime().addSecs(10);
@@ -350,10 +359,10 @@ void NotificationManager::contactStatusChanged(Contact contact, Status oldStatus
 		return;
 
 	Protocol *protocol = contact.contactAccount().protocolHandler();
-	if (!protocol || Protocol::NetworkConnected != protocol->state())
+	if (!protocol || !protocol->isConnected())
 		return;
 
-	if (config_file.readBoolEntry("Notify", "NotifyIgnoreOnConnection"))
+	if (NotifyIgnoreOnConnection)
 	{
 		QDateTime *dateTime = contact.contactAccount().data()->moduleData<QDateTime>("notify-account-connected");
 		if (dateTime && (*dateTime >= QDateTime::currentDateTime()))
@@ -383,17 +392,14 @@ void NotificationManager::contactStatusChanged(Contact contact, Status oldStatus
 	if (oldStatus == status)
 		return;
 
-	if (config_file.readBoolEntry("Notify", "IgnoreOnlineToOnline") &&
+	if (IgnoreOnlineToOnline &&
 			!status.isDisconnected() &&
 			!oldStatus.isDisconnected())
 		return;
 
 	QString changedTo = "/To" + status.type();
 
-	ContactSet contacts(contact);
-
-	StatusChangedNotification *statusChangedNotification;
-	statusChangedNotification = new StatusChangedNotification(changedTo, contact);
+	StatusChangedNotification *statusChangedNotification = new StatusChangedNotification(changedTo, contact);
 
 	notify(statusChangedNotification);
 
@@ -407,7 +413,7 @@ void NotificationManager::messageReceived(const Message &message)
 	ChatWidget *chatWidget = ChatWidgetManager::instance()->byChat(message.messageChat());
 	if (!chatWidget)
 		notify(new MessageNotification(MessageNotification::NewChat, message));
-	else if (!config_file.readBoolEntry("Notify", "NewMessageOnlyIfInactive") || !_isWindowActiveOrFullyVisible(chatWidget))
+	else if (!NewMessageOnlyIfInactive || !_isWindowActiveOrFullyVisible(chatWidget))
 		notify(new MessageNotification(MessageNotification::NewMessage, message));
 
 	kdebugf2();
@@ -542,7 +548,7 @@ void NotificationManager::notify(Notification *notification)
 	notification->release();
 
 	if (!foundNotifierWithCallbackSupported)
-		MessageDialog::show("dialog-warning", tr("Kadu"), tr("Unable to find notifier for %1 event").arg(notification->type()));
+		MessageDialog::show(KaduIcon("dialog-warning"), tr("Kadu"), tr("Unable to find notifier for %1 event").arg(notification->type()));
 
 	kdebugf2();
 }
@@ -585,6 +591,9 @@ void NotificationManager::groupUpdated()
 void NotificationManager::configurationUpdated()
 {
 	NotifyAboutAll = config_file.readBoolEntry("Notify", "NotifyAboutAll");
+	NewMessageOnlyIfInactive = config_file.readBoolEntry("Notify", "NewMessageOnlyIfInactive");
+	NotifyIgnoreOnConnection = config_file.readBoolEntry("Notify", "NotifyIgnoreOnConnection");
+	IgnoreOnlineToOnline = config_file.readBoolEntry("Notify", "IgnoreOnlineToOnline");
 	SilentModeWhenDnD = config_file.readBoolEntry("Notify", "AwaySilentMode", false);
 	SilentModeWhenFullscreen = config_file.readBoolEntry("Notify", "FullscreenSilentMode", false);
 	setSilentMode(config_file.readBoolEntry("Notify", "SilentMode", false));

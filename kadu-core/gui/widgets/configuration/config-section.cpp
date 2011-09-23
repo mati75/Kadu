@@ -32,11 +32,9 @@
 #include "gui/widgets/configuration/config-tab.h"
 #include "gui/widgets/configuration/config-widget.h"
 
-#include "icons-manager.h"
-
 ConfigSection::ConfigSection(const QString &name, ConfigurationWidget *configurationWidget,
-		QListWidgetItem *listWidgetItem, QWidget *parentConfigGroupBoxWidget, const QString &iconPath) :
-		QObject(configurationWidget), Name(name), MyConfigurationWidget(configurationWidget), IconPath(iconPath),
+		QListWidgetItem *listWidgetItem, QWidget *parentConfigGroupBoxWidget, const KaduIcon &icon) :
+		QObject(configurationWidget), Name(name), MyConfigurationWidget(configurationWidget), Icon(icon),
 		ListWidgetItem(listWidgetItem), Activated(false), ParentConfigGroupBoxWidget(parentConfigGroupBoxWidget)
 {
 	TabWidget = new KaduTabWidget(ParentConfigGroupBoxWidget);
@@ -92,20 +90,20 @@ void ConfigSection::activate()
 
 	QString tab = config_file.readEntry("General", "ConfigurationWindow_" + MyConfigurationWidget->name() + '_' + Name);
 	if (ConfigTabs.contains(tab))
-		TabWidget->setCurrentWidget(ConfigTabs[tab]->widget());
+		TabWidget->setCurrentWidget(ConfigTabs.value(tab)->widget());
 	Activated = true;
 }
 
 ConfigTab * ConfigSection::configTab(const QString &name, bool create)
 {
 	if (ConfigTabs.contains(name))
-		return ConfigTabs[name];
+		return ConfigTabs.value(name);
 
 	if (!create)
 		return 0;
 
 	ConfigTab *newConfigTab = new ConfigTab(name, this, TabWidget);
-	ConfigTabs[name] = newConfigTab;
+	ConfigTabs.insert(name, newConfigTab);
 	connect(newConfigTab, SIGNAL(destroyed(QObject *)), this, SLOT(configTabDestroyed(QObject *)));
 
 	TabWidget->addTab(newConfigTab->widget(), newConfigTab->name());
@@ -134,5 +132,5 @@ void ConfigSection::configTabDestroyed(QObject *obj)
 
 void ConfigSection::iconThemeChanged()
 {
-	ListWidgetItem->setIcon(IconsManager::instance()->iconByPath(IconPath).pixmap(32, 32));
+	ListWidgetItem->setIcon(Icon.icon());
 }

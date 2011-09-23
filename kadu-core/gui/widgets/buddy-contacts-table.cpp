@@ -23,6 +23,7 @@
 
 #include <QtGui/QHBoxLayout>
 #include <QtGui/QHeaderView>
+#include <QtGui/QInputDialog>
 #include <QtGui/QPushButton>
 #include <QtGui/QTableView>
 
@@ -30,11 +31,11 @@
 #include "gui/widgets/buddy-contacts-table-item.h"
 #include "gui/widgets/buddy-contacts-table-model.h"
 #include "gui/widgets/buddy-contacts-table-model-proxy.h"
+#include "gui/windows/message-dialog.h"
+#include "identities/identity.h"
 #include "model/roles.h"
 
 #include "buddy-contacts-table.h"
-#include <gui/windows/message-dialog.h>
-#include <QInputDialog>
 
 BuddyContactsTable::BuddyContactsTable(Buddy buddy, QWidget *parent) :
 		QWidget(parent), MyBuddy(buddy)
@@ -211,7 +212,7 @@ void BuddyContactsTable::removeClicked()
 		return;
 	}
 
-	bool sure = MessageDialog::ask("dialog-warning", tr("Kadu"),
+	bool sure = MessageDialog::ask(KaduIcon("dialog-warning"), tr("Kadu"),
 			tr("Are you sure do you want to delete this contact from buddy <b>%1</b>?").arg(MyBuddy.display()));
 
 	if (sure)

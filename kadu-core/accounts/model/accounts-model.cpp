@@ -22,6 +22,8 @@
 
 #include "accounts/account.h"
 #include "accounts/account-manager.h"
+#include "icons/kadu-icon.h"
+#include "identities/identity.h"
 #include "model/roles.h"
 #include "protocols/protocol.h"
 
@@ -81,7 +83,7 @@ QVariant AccountsModel::data(const QModelIndex &index, int role) const
 				return acc.accountIdentity().name();
 		case Qt::DecorationRole:
 			return acc.protocolHandler()
-					? acc.protocolHandler()->icon()
+					? acc.protocolHandler()->icon().icon()
 					: QVariant();
 
 		case AccountRole:

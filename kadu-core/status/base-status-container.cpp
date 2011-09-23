@@ -34,20 +34,20 @@ BaseStatusContainer::~BaseStatusContainer()
 {
 }
 
-void BaseStatusContainer::setStatus(Status status)
+void BaseStatusContainer::setStatus(Status status, bool flush)
 {
 	doSetStatus(status);
 	storeStatus(status);
 
-//	TODO: this cannot be called here, causes accounts to be removed
-// 	ConfigurationManager::instance()->flush();
+	if (flush)
+		ConfigurationManager::instance()->flush();
 }
 
-void BaseStatusContainer::setDescription(const QString &description)
+void BaseStatusContainer::setDescription(const QString &description, bool flush)
 {
 	Status currentStatus = status();
 	currentStatus.setDescription(description);
-	setStatus(currentStatus);
+	setStatus(currentStatus, flush);
 }
 
 void BaseStatusContainer::setDefaultStatus(const QString &startupStatus, bool offlineToInvisible,
@@ -81,7 +81,7 @@ void BaseStatusContainer::setDefaultStatus(const QString &startupStatus, bool of
 	status.setType(name);
 	status.setDescription(description);
 
-	setStatus(status);
+	setStatus(status, false);
 }
 
 void BaseStatusContainer::storeStatus(Status status)

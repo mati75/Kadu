@@ -20,7 +20,9 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "chat/chat.h"
 #include "chat/message/message-shared.h"
+#include "contacts/contact.h"
 
 #include "message.h"
 
@@ -68,12 +70,12 @@ Message::~Message()
 {
 }
 
-KaduSharedBase_PropertyDef(Message, Chat, messageChat, MessageChat, Chat::null)
-KaduSharedBase_PropertyDef(Message, Contact, messageSender, MessageSender, Contact::null)
-KaduSharedBase_PropertyDef(Message, QString, content, Content, QString())
-KaduSharedBase_PropertyDef(Message, QDateTime, receiveDate, ReceiveDate, QDateTime())
-KaduSharedBase_PropertyDef(Message, QDateTime, sendDate, SendDate, QDateTime())
-KaduSharedBase_PropertyDef(Message, Message::Status, status, Status, Message::StatusUnknown)
-KaduSharedBase_PropertyDef(Message, Message::Type, type, Type, Message::TypeUnknown)
+KaduSharedBase_PropertyDefCRW(Message, Chat, messageChat, MessageChat, Chat::null)
+KaduSharedBase_PropertyDefCRW(Message, Contact, messageSender, MessageSender, Contact::null)
+KaduSharedBase_PropertyDefCRW(Message, QString, content, Content, QString())
+KaduSharedBase_PropertyDefCRW(Message, QDateTime, receiveDate, ReceiveDate, QDateTime())
+KaduSharedBase_PropertyDefCRW(Message, QDateTime, sendDate, SendDate, QDateTime())
+KaduSharedBase_PropertyDef(Message, MessageStatus, status, Status, MessageStatusUnknown)
+KaduSharedBase_PropertyDef(Message, MessageType, type, Type, MessageTypeUnknown)
 KaduSharedBase_PropertyBoolDef(Message, Pending, false)
-KaduSharedBase_PropertyDef(Message, int, id, Id, -1)
+KaduSharedBase_PropertyDefCRW(Message, QString, id, Id, QString())

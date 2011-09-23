@@ -53,7 +53,7 @@ BuddyShared * BuddyShared::loadFromStorage(const QSharedPointer<StoragePoint> &b
 	return result;
 }
 
-BuddyShared::BuddyShared(QUuid uuid) :
+BuddyShared::BuddyShared(const QUuid &uuid) :
 		Shared(uuid),
 		BirthYear(0), Gender(GenderUnknown), PreferHigherStatuses(true),
 		Anonymous(true), Blocked(false), OfflineTo(false)
@@ -76,7 +76,7 @@ QString BuddyShared::storageNodeName()
 }
 
 #define ImportProperty(name, old_name) \
-	set##name(CustomData[#old_name]); \
+	set##name(CustomData.value(#old_name)); \
 	CustomData.remove(#old_name);
 
 void BuddyShared::importConfiguration(const QDomElement &parent)
@@ -99,7 +99,7 @@ void BuddyShared::importConfiguration()
 {
 	QStringList groups = CustomData["groups"].split(',', QString::SkipEmptyParts);
 	foreach (const QString &group, groups)
-		Groups << GroupManager::instance()->byName(group);
+		doAddToGroup(GroupManager::instance()->byName(group));
 
 	CustomData.remove("groups");
 
@@ -159,9 +159,7 @@ void BuddyShared::load()
 			QDomElement groupElement = groupsList.at(i).toElement();
 			if (groupElement.isNull())
 				continue;
-			Group group = GroupManager::instance()->byUuid(groupElement.text());
-			if (!group.isNull())
-				Groups << group;
+			doAddToGroup(GroupManager::instance()->byUuid(groupElement.text()));
 		}
 	}
 
@@ -196,7 +194,7 @@ void BuddyShared::store()
 	QDomElement customDataValues = configurationStorage->getNode(parent, "CustomDataValues", XmlConfigFile::ModeCreate);
 
 	foreach (const QString &key, CustomData.keys())
-		configurationStorage->createNamedTextNode(customDataValues, "CustomDataValue", key, CustomData[key]);
+		configurationStorage->createNamedTextNode(customDataValues, "CustomDataValue", key, CustomData.value(key));
 
 	if (BuddyAvatar.uuid().isNull())
 		removeValue("Avatar");
@@ -217,7 +215,7 @@ void BuddyShared::store()
 	storeValue("Gender", (int)Gender);
 	storeValue("PreferHigherStatuses", PreferHigherStatuses);
 
-	if (Groups.count())
+	if (!Groups.isEmpty())
 	{
 		QDomElement groupsNode = configurationStorage->getNode(parent, "ContactGroups", XmlConfigFile::ModeCreate);
 		foreach (const Group &group, Groups)
@@ -245,7 +243,7 @@ void BuddyShared::aboutToBeRemoved()
 
 	setAnonymous(true);
 
-	foreach (Contact contact, Contacts)
+	foreach (const Contact &contact, Contacts)
 		contact.setOwnerBuddy(Buddy::null);
 
 	Contacts.clear();
@@ -255,11 +253,11 @@ void BuddyShared::aboutToBeRemoved()
 	BuddyAvatar = Avatar::null;
 }
 
-void BuddyShared::addContact(Contact contact)
+void BuddyShared::addContact(const Contact &contact)
 {
 	ensureLoaded();
 
-	if (contact.isNull() || Contacts.contains(contact))
+	if (!contact || Contacts.contains(contact))
 		return;
 
 	emit contactAboutToBeAdded(contact);
@@ -284,11 +282,11 @@ void BuddyShared::addContact(Contact contact)
 	dataUpdated();
 }
 
-void BuddyShared::removeContact(Contact contact)
+void BuddyShared::removeContact(const Contact &contact)
 {
 	ensureLoaded();
 
-	if (contact.isNull() || !Contacts.contains(contact))
+	if (!contact || !Contacts.contains(contact))
 		return;
 
 	emit contactAboutToBeRemoved(contact);
@@ -305,7 +303,6 @@ QList<Contact> BuddyShared::contacts(const Account &account)
 	ensureLoaded();
 
 	QList<Contact> contacts;
-
 	foreach (const Contact &contact, Contacts)
 		if (contact.contactAccount() == account)
 			contacts.append(contact);
@@ -313,7 +310,7 @@ QList<Contact> BuddyShared::contacts(const Account &account)
 	return contacts;
 }
 
-QList<Contact> BuddyShared::contacts()
+const QList<Contact> & BuddyShared::contacts()
 {
 	ensureLoaded();
 
@@ -326,7 +323,7 @@ QString BuddyShared::id(const Account &account)
 
 	QList<Contact> contactslist;
 	contactslist = contacts(account);
-	if (contactslist.count() > 0)
+	if (!contactslist.isEmpty())
 		return contactslist.at(0).id();
 
 	return QString();
@@ -345,7 +342,7 @@ void BuddyShared::sortContacts()
 void BuddyShared::normalizePriorities()
 {
 	int priority = 0;
-	foreach (Contact contact, Contacts)
+	foreach (const Contact &contact, Contacts)
 		contact.setPriority(priority++);
 }
 
@@ -354,7 +351,25 @@ void BuddyShared::emitUpdated()
 	emit updated();
 }
 
-// properties
+void BuddyShared::setGroups(const QList<Group> &groups)
+{
+	ensureLoaded();
+
+	if (Groups == groups)
+		return;
+
+	QList<Group> groupsToRemove = Groups;
+
+	foreach (const Group &group, groups)
+		if (groupsToRemove.removeAll(group) <= 0)
+			doAddToGroup(group);
+
+	foreach (const Group &group, groupsToRemove)
+		doRemoveFromGroup(group);
+
+	dataUpdated();
+	markContactsDirty();
+}
 
 bool BuddyShared::isInGroup(const Group &group)
 {
@@ -368,9 +383,28 @@ bool BuddyShared::showInAllGroup()
 	ensureLoaded();
 
 	foreach (const Group &group, Groups)
-		if (!group.isNull() && !group.showInAllGroup())
+		if (group && !group.showInAllGroup())
 			return false;
 
+	return true;
+}
+
+bool BuddyShared::doAddToGroup(const Group &group)
+{
+	if (!group || Groups.contains(group))
+		return false;
+
+	Groups.append(group);
+	connect(group, SIGNAL(nameChanged()), this, SLOT(markContactsDirty()));
+	return true;
+}
+
+bool BuddyShared::doRemoveFromGroup(const Group &group)
+{
+	if (Groups.removeAll(group) <= 0)
+		return false;
+
+	disconnect(group, SIGNAL(nameChanged()), this, SLOT(markContactsDirty()));
 	return true;
 }
 
@@ -378,19 +412,22 @@ void BuddyShared::addToGroup(const Group &group)
 {
 	ensureLoaded();
 
-	if (Groups.contains(group) || group.isNull())
-		return;
-
-	Groups.append(group);
-	dataUpdated();
+	if (doAddToGroup(group))
+	{
+		dataUpdated();
+		markContactsDirty();
+	}
 }
 
 void BuddyShared::removeFromGroup(const Group &group)
 {
 	ensureLoaded();
 
-	Groups.removeAll(group);
-	dataUpdated();
+	if (doRemoveFromGroup(group))
+	{
+		dataUpdated();
+		markContactsDirty();
+	}
 }
 
 bool BuddyShared::isEmpty()
@@ -398,4 +435,12 @@ bool BuddyShared::isEmpty()
 	ensureLoaded();
 
 	return Contacts.isEmpty() && HomePhone.isEmpty() && Mobile.isEmpty() && Website.isEmpty() && Email.isEmpty();
+}
+
+void BuddyShared::markContactsDirty()
+{
+	ensureLoaded();
+
+	foreach (const Contact &contact, Contacts)
+		contact.setDirty(true);
 }

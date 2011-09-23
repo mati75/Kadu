@@ -1,0 +1,48 @@
+/*
+ * %kadu copyright begin%
+ * Copyright 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * %kadu copyright end%
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#ifndef JABBER_AVATAR_VCARD_FETCHER_H
+#define JABBER_AVATAR_VCARD_FETCHER_H
+
+#include "contacts/contact.h"
+
+class JabberAvatarVCardFetcher : public QObject
+{
+	Q_OBJECT
+
+	Contact MyContact;
+
+	void done();
+	void failed();
+
+private slots:
+	void vcardReceived();
+
+public:
+	JabberAvatarVCardFetcher(Contact contact, QObject *parent);
+	virtual ~JabberAvatarVCardFetcher();
+
+	void fetchAvatar();
+
+signals:
+	void avatarFetched(Contact contact, bool ok);
+
+};
+
+#endif // JABBER_AVATAR_VCARD_FETCHER_H

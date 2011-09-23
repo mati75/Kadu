@@ -31,6 +31,7 @@
 #include "contacts/contact-manager.h"
 #include "core/core.h"
 #include "gui/windows/password-window.h"
+#include "identities/identity.h"
 #include "notify/notification-manager.h"
 #include "protocols/connection-error-notification.h"
 #include "protocols/protocol.h"
@@ -42,12 +43,38 @@
 
 AccountManager * AccountManager::Instance = 0;
 
-KADUAPI AccountManager * AccountManager::instance()
+AccountManager * AccountManager::instance()
 {
 	if (0 == Instance)
 		Instance = new AccountManager();
 
 	return Instance;
+}
+
+Account AccountManager::bestAccount(QList<Account> accounts)
+{
+	Account result;
+	if (accounts.isEmpty())
+		return result;
+
+	foreach (const Account &account, accounts)
+		if (account.details() && account.data())
+		{
+			// TODO: hack
+			bool newConnected = account.data()->protocolHandler() && account.data()->protocolHandler()->isConnected();
+			bool oldConnected = false;
+			if (result)
+				oldConnected = result.data()->protocolHandler() && result.data()->protocolHandler()->isConnected();
+
+			if (!result || (newConnected && !oldConnected)  || (account.protocolName() == "gadu" && result.protocolName() != "gadu"))
+			{
+				result = account;
+				if (newConnected && result.protocolName() == "gadu")
+					break;
+			}
+		}
+
+	return result;
 }
 
 AccountManager::AccountManager()
@@ -65,32 +92,23 @@ AccountManager::~AccountManager()
 
 void AccountManager::itemAdded(Account item)
 {
-	QMutexLocker(&mutex());
+	QMutexLocker locker(&mutex());
 
 	if (item.data())
 		item.data()->ensureLoaded();
 	AccountsAwareObject::notifyAccountAdded(item);
 }
 
-void AccountManager::itemAboutToBeRemoved(Account item)
-{
-	QMutexLocker(&mutex());
-
-	Manager<Account>::itemAboutToBeRemoved(item);
-
-	item.setAccountIdentity(Identity::null);
-}
-
 void AccountManager::itemRemoved(Account item)
 {
-	QMutexLocker(&mutex());
+	QMutexLocker locker(&mutex());
 
 	AccountsAwareObject::notifyAccountRemoved(item);
 }
 
 void AccountManager::itemAboutToBeRegistered(Account item)
 {
-	QMutexLocker(&mutex());
+	QMutexLocker locker(&mutex());
 
 	connect(item, SIGNAL(updated()), this, SLOT(accountDataUpdated()));
 	emit accountAboutToBeRegistered(item);
@@ -98,7 +116,7 @@ void AccountManager::itemAboutToBeRegistered(Account item)
 
 void AccountManager::itemRegistered(Account item)
 {
-	QMutexLocker(&mutex());
+	QMutexLocker locker(&mutex());
 
 	AccountsAwareObject::notifyAccountRegistered(item);
 
@@ -110,27 +128,27 @@ void AccountManager::itemRegistered(Account item)
 	connect(item.protocolHandler(), SIGNAL(connectionError(Account, const QString &, const QString &)),
 			this, SLOT(connectionError(Account, const QString &, const QString &)), Qt::QueuedConnection);
 	connect(item.protocolHandler(), SIGNAL(invalidPassword(Account)),
-			this, SLOT(invalidPassword(Account)), Qt::QueuedConnection);
+			this, SLOT(providePassword(Account)), Qt::QueuedConnection);
 
 	emit accountRegistered(item);
 }
 
 void AccountManager::itemAboutToBeUnregisterd(Account item)
 {
-	QMutexLocker(&mutex());
+	QMutexLocker locker(&mutex());
 
 	AccountsAwareObject::notifyAccountUnregistered(item);
 	disconnect(item.protocolHandler(), SIGNAL(connectionError(Account, const QString &, const QString &)),
 			this, SLOT(connectionError(Account, const QString &, const QString &)));
 	disconnect(item.protocolHandler(), SIGNAL(invalidPassword(Account)),
-			this, SLOT(invalidPassword(Account)));
+			this, SLOT(providePassword(Account)));
 
 	emit accountAboutToBeUnregistered(item);
 }
 
 void AccountManager::itemUnregistered(Account item)
 {
-	QMutexLocker(&mutex());
+	QMutexLocker locker(&mutex());
 
 	disconnect(item, SIGNAL(updated()), this, SLOT(accountDataUpdated()));
 	emit accountUnregistered(item);
@@ -138,7 +156,7 @@ void AccountManager::itemUnregistered(Account item)
 
 void AccountManager::detailsLoaded(Account account)
 {
-	QMutexLocker(&mutex());
+	QMutexLocker locker(&mutex());
 
 	if (!account.isNull())
 		registerItem(account);
@@ -146,7 +164,7 @@ void AccountManager::detailsLoaded(Account account)
 
 void AccountManager::detailsUnloaded(Account account)
 {
-	QMutexLocker(&mutex());
+	QMutexLocker locker(&mutex());
 
 	if (!account.isNull())
 		unregisterItem(account);
@@ -154,7 +172,7 @@ void AccountManager::detailsUnloaded(Account account)
 
 Account AccountManager::defaultAccount()
 {
-	QMutexLocker(&mutex());
+	QMutexLocker locker(&mutex());
 
 	ensureLoaded();
 
@@ -166,9 +184,14 @@ Account AccountManager::defaultAccount()
 	return byIndex(0);
 }
 
+Account AccountManager::bestAccount()
+{
+	return bestAccount(items());
+}
+
 const QList<Account> AccountManager::byIdentity(Identity identity)
 {
-	QMutexLocker(&mutex());
+	QMutexLocker locker(&mutex());
 
 	ensureLoaded();
 
@@ -182,7 +205,7 @@ const QList<Account> AccountManager::byIdentity(Identity identity)
 
 Account AccountManager::byId(const QString& protocolName, const QString& id)
 {
-	QMutexLocker(&mutex());
+	QMutexLocker locker(&mutex());
 
 	ensureLoaded();
 
@@ -195,7 +218,7 @@ Account AccountManager::byId(const QString& protocolName, const QString& id)
 
 const QList<Account> AccountManager::byProtocolName(const QString &name)
 {
-	QMutexLocker(&mutex());
+	QMutexLocker locker(&mutex());
 
 	ensureLoaded();
 
@@ -209,7 +232,7 @@ const QList<Account> AccountManager::byProtocolName(const QString &name)
 
 Status AccountManager::status()
 {
-	QMutexLocker(&mutex());
+	QMutexLocker locker(&mutex());
 
 	Account account = defaultAccount();
 	return account.statusContainer()
@@ -219,7 +242,7 @@ Status AccountManager::status()
 
 void AccountManager::accountDataUpdated()
 {
-	QMutexLocker(&mutex());
+	QMutexLocker locker(&mutex());
 
 	Account account(sender());
 	if (account)
@@ -228,7 +251,7 @@ void AccountManager::accountDataUpdated()
 
 void AccountManager::connectionError(Account account, const QString &server, const QString &message)
 {
-	QMutexLocker(&mutex());
+	QMutexLocker locker(&mutex());
 
 	if (!ConnectionErrorNotification::activeError(account, message))
 	{
@@ -236,16 +259,6 @@ void AccountManager::connectionError(Account account, const QString &server, con
 				server, message);
 		NotificationManager::instance()->notify(connectionErrorNotification);
 	}
-}
-
-void AccountManager::invalidPassword(Account account)
-{
-	QMutexLocker(&mutex());
-
-	QString message = tr("Please provide valid password for %1 (%2) account")
-			.arg(account.accountIdentity().name())
-			.arg(account.id());
-	PasswordWindow::getPassword(message, account.protocolHandler(), SLOT(login(const QString &, bool)));
 }
 
 void AccountManager::removeAccountAndBuddies(Account account)
@@ -257,6 +270,32 @@ void AccountManager::removeAccountAndBuddies(Account account)
 		BuddyManager::instance()->clearOwnerAndRemoveEmptyBuddy(contact);
 
 	removeItem(account);
+}
+
+void AccountManager::passwordProvided(const QVariant& data, const QString& password, bool permanent)
+{
+	Account account = data.value<Account>();
+	if (!account)
+		return;
+
+	account.setPassword(password);
+	account.setRememberPassword(permanent);
+	account.setHasPassword(!password.isEmpty());
+
+	// inform protocol that we have password
+	// maybe this should be in other place, but for now it is enough
+	if (account.protocolHandler())
+		account.protocolHandler()->passwordProvided();
+}
+
+void AccountManager::providePassword(Account account)
+{
+	QMutexLocker locker(&mutex());
+
+	QString message = tr("Please provide valid password for %1 (%2) account")
+			.arg(account.accountIdentity().name())
+			.arg(account.id());
+	PasswordWindow::getPassword(message, account, this, SLOT(passwordProvided(const QVariant &, const QString &, bool)));
 }
 
 void AccountManager::loaded()

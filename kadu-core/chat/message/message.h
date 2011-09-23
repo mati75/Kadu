@@ -24,35 +24,19 @@
 #define MESSAGE_H
 
 #include <QtCore/QDateTime>
-#include <QtCore/QObject>
 
-#include "buddies/buddy.h"
-#include "chat/chat.h"
+#include "chat/message/message-common.h"
+#include "storage/shared-base.h"
 
 #include "exports.h"
 
+class Chat;
+class Contact;
 class MessageShared;
 
 class KADUAPI Message : public SharedBase<MessageShared>
 {
 	KaduSharedBaseClass(Message)
-
-public:
-	enum Status
-	{
-		StatusUnknown,
-		StatusReceived,
-		StatusSent,
-		StatusDelivered,
-		StatusWontDeliver
-	};
-	enum Type
-	{
-		TypeUnknown,
-		TypeReceived,
-		TypeSent,
-		TypeSystem
-	};
 
 public:
 	static Message create();
@@ -66,15 +50,15 @@ public:
 	Message(const Message &copy);
 	virtual ~Message();
 
-	KaduSharedBase_Property(Chat, messageChat, MessageChat)
-	KaduSharedBase_Property(Contact, messageSender, MessageSender)
-	KaduSharedBase_Property(QString, content, Content)
-	KaduSharedBase_Property(QDateTime, receiveDate, ReceiveDate)
-	KaduSharedBase_Property(QDateTime, sendDate, SendDate)
-	KaduSharedBase_Property(Message::Status, status, Status)
-	KaduSharedBase_Property(Message::Type, type, Type)
+	KaduSharedBase_PropertyCRW(Chat, messageChat, MessageChat)
+	KaduSharedBase_PropertyCRW(Contact, messageSender, MessageSender)
+	KaduSharedBase_PropertyCRW(QString, content, Content)
+	KaduSharedBase_PropertyCRW(QDateTime, receiveDate, ReceiveDate)
+	KaduSharedBase_PropertyCRW(QDateTime, sendDate, SendDate)
+	KaduSharedBase_Property(MessageStatus, status, Status)
+	KaduSharedBase_Property(MessageType, type, Type)
 	KaduSharedBase_PropertyBool(Pending)
-	KaduSharedBase_Property(int, id, Id)
+	KaduSharedBase_PropertyCRW(QString, id, Id)
 
 };
 

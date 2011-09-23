@@ -1,5 +1,38 @@
+<kadu:top>
+	<script>
+		function messageStatusChanged(messageid, status)
+		\{
+			if (status == StatusDelivered)
+				document.getElementById("confirm_"+messageid).style.opacity = "1.0";
+			if (status == StatusWontDeliver)
+				document.getElementById("confirm_"+messageid).style.opacity = "0.1";
+		\}
+		function contactActivityChanged( state, message, name )
+		\{
+			if( state == StateComposing )
+				document.getElementById("composing").style.display = "block";
+			else
+				document.getElementById("composing").style.display = "none";
+		\}
+	</script>
+	<div id="composing" style="display:none; position:fixed; z-index:1; top:0px; right:0px; cursor:default; -webkit-user-select:none;" onclick="this.style.display='none';">
+		<div style="position:relative; top:2px; right:2px; padding:3px 8px; -webkit-border-radius:10px; background:rgba(255,255,255,0.7);">
+			<img id="composingicon" src="@{kadu_icons/composing:svg}" alt="" style="max-width:32px; max-height:32px; vertical-align:middle;">
+		</div>
+	</div>
+</kadu:top>
+
 #{separator}
+<div[ id="confirm_#{messageId}"]>
 <kadu:header>
 <div style="-webkit-border-radius: 5px; padding-left: 10px; background: #{backgroundColor};  color: #{fontColor} font-weight: bold; position: relative;">%a: <span style=" position: absolute; right: 0; top: 0; font-size: 0.8em; font-weight: normal; padding-right: 10px;"> #{receivedDate}[ / S #{sentDate}]</span></div>
 </kadu:header>
 <div style="margin: 0.5ex 0 1ex 10px;">#{message}</div>
+</div>
+<script>
+	if ("#{messageId}" != "")
+	\{
+		document.getElementById("confirm_#{messageId}").style.opacity = "0.4";
+		messageStatusChanged("#{messageId}", #{messageStatus});
+	\}
+</script>

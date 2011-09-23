@@ -33,6 +33,8 @@
 #include "buddies/buddy-preferred-manager.h"
 #include "buddies/buddy-shared.h"
 #include "chat/message/message-shared.h"
+#include "chat/chat-details.h"
+#include "chat/chat-details-aggregate.h"
 #include "chat/chat-manager.h"
 #include "configuration/xml-configuration-file.h"
 #include "contacts/contact-set.h"
@@ -65,7 +67,7 @@ PendingMessagesManager::~PendingMessagesManager()
 // TODO: optimize
 bool PendingMessagesManager::hasPendingMessagesForContact(const Contact &contact)
 {
-	QMutexLocker(&mutex());
+	QMutexLocker locker(&mutex());
 
 	foreach (const Message &message, items())
 		if (message.isPending() && message.messageSender() == contact)
@@ -76,7 +78,7 @@ bool PendingMessagesManager::hasPendingMessagesForContact(const Contact &contact
 
 bool PendingMessagesManager::hasPendingMessagesForBuddy(const Buddy &buddy)
 {
-	QMutexLocker(&mutex());
+	QMutexLocker locker(&mutex());
 
 	foreach (const Message &message, items())
 		if (message.isPending() && buddy.contacts().contains(message.messageSender()))
@@ -87,7 +89,7 @@ bool PendingMessagesManager::hasPendingMessagesForBuddy(const Buddy &buddy)
 
 bool PendingMessagesManager::hasPendingMessagesForChat(const Chat &chat)
 {
-	QMutexLocker(&mutex());
+	QMutexLocker locker(&mutex());
 
 	foreach (const Message &message, items())
 		if (message.isPending() && message.messageChat() == chat)
@@ -98,7 +100,7 @@ bool PendingMessagesManager::hasPendingMessagesForChat(const Chat &chat)
 
 bool PendingMessagesManager::hasPendingMessages()
 {
-	QMutexLocker(&mutex());
+	QMutexLocker locker(&mutex());
 
 	foreach (const Message &message, items())
 		if (message.isPending())
@@ -109,7 +111,7 @@ bool PendingMessagesManager::hasPendingMessages()
 
 Chat PendingMessagesManager::chatForBuddy(const Buddy &buddy)
 {
-	QMutexLocker(&mutex());
+	QMutexLocker locker(&mutex());
 
 	foreach (const Message &message, items())
 		if (message.isPending() && buddy.contacts().contains(message.messageSender()))
@@ -120,7 +122,7 @@ Chat PendingMessagesManager::chatForBuddy(const Buddy &buddy)
 
 Chat PendingMessagesManager::chatForContact(const Contact &contact)
 {
-	QMutexLocker(&mutex());
+	QMutexLocker locker(&mutex());
 
 	foreach (const Message &message, items())
 		if (message.isPending() && message.messageSender() == contact)
@@ -131,7 +133,7 @@ Chat PendingMessagesManager::chatForContact(const Contact &contact)
 
 QList<Message> PendingMessagesManager::pendingMessagesForContact(const Contact &contact)
 {
-	QMutexLocker(&mutex());
+	QMutexLocker locker(&mutex());
 
 	QList<Message> result;
 
@@ -144,7 +146,7 @@ QList<Message> PendingMessagesManager::pendingMessagesForContact(const Contact &
 
 QList<Message> PendingMessagesManager::pendingMessagesForBuddy(const Buddy &buddy)
 {
-	QMutexLocker(&mutex());
+	QMutexLocker locker(&mutex());
 
 	QList<Message> result;
 	QSet<Contact> contacts = buddy.contacts().toSet();
@@ -158,12 +160,20 @@ QList<Message> PendingMessagesManager::pendingMessagesForBuddy(const Buddy &budd
 
 QList<Message> PendingMessagesManager::pendingMessagesForChat(const Chat &chat)
 {
-	QMutexLocker(&mutex());
+	QMutexLocker locker(&mutex());
 
 	QList<Message> result;
+	QSet<Chat> chats;
+
+	ChatDetails *details = chat.details();
+	ChatDetailsAggregate *aggregateDetails = qobject_cast<ChatDetailsAggregate *>(details);
+	if (aggregateDetails)
+		chats = aggregateDetails->chats().toSet();
+	else
+		chats.insert(chat);
 
 	foreach (const Message &message, items())
-		if (message.isPending() && message.messageChat() == chat)
+		if (message.isPending() && chats.contains(message.messageChat()))
 			result.append(message);
 
 	return result;
@@ -171,7 +181,7 @@ QList<Message> PendingMessagesManager::pendingMessagesForChat(const Chat &chat)
 
 QList<Message> PendingMessagesManager::pendingMessages()
 {
-	QMutexLocker(&mutex());
+	QMutexLocker locker(&mutex());
 
 	QList<Message> result;
 
@@ -184,7 +194,7 @@ QList<Message> PendingMessagesManager::pendingMessages()
 
 Message PendingMessagesManager::firstPendingMessage()
 {
-	QMutexLocker(&mutex());
+	QMutexLocker locker(&mutex());
 
 	foreach (const Message &message, items())
 		if (message.isPending())
@@ -195,6 +205,9 @@ Message PendingMessagesManager::firstPendingMessage()
 
 void PendingMessagesManager::itemAboutToBeAdded(Message message)
 {
+	// just ensure that owner buddy is managed - we need it to be shown on contact list
+	BuddyManager::instance()->byContact(message.messageSender(), ActionCreateAndAdd);
+
 	emit messageAboutToBeAdded(message);
 }
 
@@ -213,4 +226,13 @@ void PendingMessagesManager::itemRemoved(Message message)
 {
 //	BuddyPreferredManager::instance()->updatePreferred(message.messageSender().ownerBuddy());
 	emit messageRemoved(message);
+}
+
+void PendingMessagesManager::loaded()
+{
+	SimpleManager<Message>::loaded();
+
+	// just ensure that all owner buddies are managed - we need them to be shown on contact list
+	foreach (const Message &message, items())
+		BuddyManager::instance()->byContact(message.messageSender(), ActionCreateAndAdd);
 }

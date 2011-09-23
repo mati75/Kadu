@@ -36,7 +36,9 @@
 #include "buddies/buddy-shared.h"
 #include "chat/chat-manager.h"
 #include "configuration/xml-configuration-file.h"
+#include "contacts/contact.h"
 #include "contacts/contact-manager.h"
+#include "contacts/contact-set.h"
 #include "core/core.h"
 #include "gui/widgets/buddies-list-view.h"
 #include "gui/widgets/chat-widget-manager.h"
@@ -63,7 +65,7 @@ OpenChatWith * OpenChatWith::instance()
 }
 
 OpenChatWith::OpenChatWith() :
-	QWidget(0, Qt::Window), IsTyping(false), ListModel(0)
+	QWidget(0, Qt::Window), DesktopAwareObject(this), IsTyping(false), ListModel(0)
 {
 	kdebugf();
 
@@ -74,7 +76,8 @@ OpenChatWith::OpenChatWith() :
 	
 	int width = QDesktopWidget().availableGeometry().width()*0.25;
 	int height = QDesktopWidget().availableGeometry().height()*0.3;
-	setGeometry(QDesktopWidget().availableGeometry().center().x()-width/2, QDesktopWidget().availableGeometry().center().y()-height/2, width, height);
+	QRect rect(QDesktopWidget().availableGeometry().center().x()-width/2, QDesktopWidget().availableGeometry().center().y()-height/2, width, height);
+	setWindowGeometry(this, rect);
 
 	MainLayout = new QVBoxLayout(this);
 	MainLayout->setMargin(0);
@@ -211,8 +214,25 @@ void OpenChatWith::openChat()
 		return;
 	}
 
-	foreach (const Contact &contact, contacts)
-		ContactManager::instance()->addItem(contact);
+	// In case a contact was added to the manager after BuddiesWidget was created,
+	// ensure that we don't add actually duplicate contacts to the manager.
+	ContactSet knownContacts;
+	for (ContactSet::iterator it = contacts.begin(), end = contacts.end(); it != end; )
+	{
+		Contact knownContact = ContactManager::instance()->byId(it->contactAccount(), it->id(), ActionReturnNull);
+		if (knownContact)
+		{
+			it = contacts.erase(it);
+			knownContacts.insert(knownContact);
+		}
+		else
+		{
+			ContactManager::instance()->addItem(knownContact);
+			++it;
+		}
+	}
+
+	contacts.unite(knownContacts);
 
 	BuddySet buddies = contacts.toBuddySet();
 
@@ -224,7 +244,7 @@ void OpenChatWith::openChat()
 		return;
 	}
 
-	Buddy buddy = *buddies.begin();
+	Buddy buddy = *buddies.constBegin();
 	if (buddy.mobile().isEmpty() && !buddy.email().isEmpty())
 		UrlOpener::openEmail(buddy.email().toUtf8());
 

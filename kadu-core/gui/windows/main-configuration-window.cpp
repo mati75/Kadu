@@ -52,6 +52,7 @@
 #include "gui/widgets/configuration/config-combo-box.h"
 #include "gui/widgets/configuration/config-line-edit.h"
 #include "gui/widgets/configuration/config-preview.h"
+#include "gui/widgets/configuration/config-slider.h"
 #include "gui/widgets/configuration/config-syntax-editor.h"
 #include "gui/widgets/configuration/config-path-list-edit.h"
 #include "gui/widgets/configuration/config-check-box.h"
@@ -65,7 +66,7 @@
 #include "themes/emoticon-theme-manager.h"
 
 #include "debug.h"
-#include "icons-manager.h"
+#include "icons/icons-manager.h"
 #include "languages-manager.h"
 
 #include "main-configuration-window.h"
@@ -78,14 +79,14 @@ QList<ConfigurationUiHandler *> MainConfigurationWindow::ConfigurationUiHandlers
 const char *MainConfigurationWindow::SyntaxText = QT_TRANSLATE_NOOP
 (
 	"@default", "Syntax: %s - status, %d - description, %i - ip, %n - nick, %a - altnick, %f - first name\n"
-	"%r - surname, %m - mobile, %u - uin, %g - group, %o - return _space_ if user doesn't have us in userlist\n"
+	"%r - surname, %m - mobile, %u - uin, %g - group\n"
 	"%h - gg version, %v - revDNS, %p - port, %e - email, %x - max image size, %z - gender (0/1/2)\n"
 );
 
 const char *MainConfigurationWindow::SyntaxTextNotify = QT_TRANSLATE_NOOP
 (
 	"@default", "Syntax: %s - status, %d - description, %i - ip, %n - nick, %a - altnick, %f - first name\n"
-	"%r - surname, %m - mobile, %u - uin, %g - group, %o - return _space_ if user doesn't have us in userlist\n"
+	"%r - surname, %m - mobile, %u - uin, %g - group\n"
 	"%h - gg version, %v - revDNS, %p - port, %e - email, %x - max image size, %z - gender (0/1/2),\n"
 	"#{protocol} - protocol that triggered event,\n"
 	"#{event} - name of event,\n"
@@ -170,17 +171,24 @@ MainConfigurationWindow::MainConfigurationWindow() :
 
 	widget()->appendUiFile(dataPath("kadu/configuration/dialog.ui"));
 
-#ifndef DEBUG_ENABLED
-	((QWidget *)(widget()->widgetById("debug")->parent()))->hide();
+#if !defined(DEBUG_ENABLED) || defined(Q_OS_WIN)
+	widget()->widgetById("debug")->parentWidget()->hide();
 #endif
 
 #ifndef Q_OS_WIN
-	((QWidget *)(widget()->widgetById("startup")))->hide();
+	widget()->widgetById("startup")->hide();
 #endif
 
 #ifndef Q_WS_X11
-	((QWidget *)(widget()->widgetById("windowActivationMethodGroup")))->hide();
-	((QWidget *)(widget()->widgetById("notify/fullscreenSilentMode")))->hide();
+	widget()->widgetById("windowActivationMethodGroup")->hide();
+	widget()->widgetById("notify/fullscreenSilentMode")->hide();
+#endif
+
+#if !defined(Q_WS_X11) || defined(Q_WS_MAEMO_5)
+	widget()->widgetById("useTransparency")->hide();
+	widget()->widgetById("userboxTransparency")->hide();
+	// cast is needed to call proper hide() method (QWidget::hide() is not virtual)
+	qobject_cast<ConfigSlider *>(widget()->widgetById("userboxAlpha"))->hide();
 #endif
 
 	onStartupSetLastDescription = static_cast<QCheckBox *>(widget()->widgetById("onStartupSetLastDescription"));
@@ -193,7 +201,6 @@ MainConfigurationWindow::MainConfigurationWindow() :
 		disconnectDescription->setMaxLength(account.data()->maxDescriptionLength());
 		onStartupSetDescription->setMaxLength(account.data()->maxDescriptionLength());
 	}
-//	connect(widget()->widgetById("advancedMode"), SIGNAL(toggled(bool)), widget()->widgetById("contactsWithIcons"), SLOT(setEnabled(bool)));
 	connect(widget()->widgetById("showAvatars"), SIGNAL(toggled(bool)), widget()->widgetById("avatarBorder"), SLOT(setEnabled(bool)));
 	connect(widget()->widgetById("showAvatars"), SIGNAL(toggled(bool)), widget()->widgetById("avatarGreyOut"), SLOT(setEnabled(bool)));
 	connect(widget()->widgetById("disconnectWithCurrentDescription"), SIGNAL(toggled(bool)), disconnectDescription, SLOT(setDisabled(bool)));
@@ -202,6 +209,9 @@ MainConfigurationWindow::MainConfigurationWindow() :
 	connect(widget()->widgetById("chatPrune"), SIGNAL(toggled(bool)), widget()->widgetById("chatPruneLen"), SLOT(setEnabled(bool)));
 	connect(widget()->widgetById("chatCloseTimer"), SIGNAL(toggled(bool)), widget()->widgetById("chatCloseTimerPeriod"), SLOT(setEnabled(bool)));
 	connect(widget()->widgetById("startupStatus"), SIGNAL(activated(int)), this, SLOT(onChangeStartupStatus(int)));
+	connect(widget()->widgetById("chatBgFilled"), SIGNAL(toggled(bool)), widget()->widgetById("chatBgColor"), SLOT(setEnabled(bool)));
+	connect(widget()->widgetById("chatTextCustomColors"), SIGNAL(toggled(bool)), widget()->widgetById("chatTextBgColor"), SLOT(setEnabled(bool)));
+	connect(widget()->widgetById("chatTextCustomColors"), SIGNAL(toggled(bool)), widget()->widgetById("chatTextFontColor"), SLOT(setEnabled(bool)));
 	connect(widget()->widgetById("infoPanelBgFilled"), SIGNAL(toggled(bool)), widget()->widgetById("infoPanelBgColor"), SLOT(setEnabled(bool)));
 	connect(widget()->widgetById("showDescription"), SIGNAL(toggled(bool)), widget()->widgetById("multilineDescription"), SLOT(setEnabled(bool)));
 //	connect(widget()->widgetById("useDefaultServers"), SIGNAL(toggled(bool)), widget()->widgetById("serverList"), SLOT(setDisabled(bool)));
@@ -298,7 +308,7 @@ void MainConfigurationWindow::setLanguages()
 {
 	ConfigComboBox *languages = static_cast<ConfigComboBox *>(widget()->widgetById("languages"));
 
-	languages->setItems(LanguagesManager::languageValues(), LanguagesManager::languageNames());
+	languages->setItems(LanguagesManager::languages().keys(), LanguagesManager::languages().values());
 }
 
 void MainConfigurationWindow::setIconThemes()
@@ -314,7 +324,7 @@ void MainConfigurationWindow::setIconThemes()
 	foreach (const Theme &theme, themes)
 	{
 		values.append(theme.path());
-		captions.append(qApp->translate("@default", theme.name().toAscii().data()));
+		captions.append(qApp->translate("@default", theme.name().toUtf8().constData()));
 	}
 
 	iconThemes->setItems(values, captions);
@@ -334,7 +344,7 @@ void MainConfigurationWindow::setEmoticonThemes()
 	foreach (const Theme &theme, themes)
 	{
 		values.append(theme.path());
-		captions.append(qApp->translate("@default", theme.name().toAscii().data()));
+		captions.append(qApp->translate("@default", theme.name().toUtf8().constData()));
 	}
 
 	emoticonsThemes->setItems(values, captions);
@@ -351,7 +361,7 @@ void MainConfigurationWindow::setToolTipClasses()
 	QStringList toolTipClasses = ToolTipClassManager::instance()->getToolTipClasses();
 	foreach(const QString &toolTipClass, toolTipClasses)
 	{
-		captions << qApp->translate("@default", toolTipClass.toAscii().data());
+		captions << qApp->translate("@default", toolTipClass.toUtf8().constData());
 		values << toolTipClass;
 	}
 
@@ -373,7 +383,7 @@ void MainConfigurationWindow::showLookChatAdvanced()
 {
 	if (!lookChatAdvanced)
 	{
-		lookChatAdvanced = new ConfigurationWindow("LookChatAdvanced", tr("Advenced chat's look configuration"), "General", instanceDataManager());
+		lookChatAdvanced = new ConfigurationWindow("LookChatAdvanced", tr("Advanced chat's look configuration"), "General", instanceDataManager());
 		lookChatAdvanced->widget()->appendUiFile(dataPath("kadu/configuration/dialog-look-chat-advanced.ui"));
 
 		connect(lookChatAdvanced->widget()->widgetById("removeServerTime"), SIGNAL(toggled(bool)), lookChatAdvanced->widget()->widgetById("maxTimeDifference"), SLOT(setEnabled(bool)));

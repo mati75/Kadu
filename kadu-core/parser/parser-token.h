@@ -22,24 +22,28 @@
 
 #include <QtCore/QString>
 
-struct ParserToken
-{
-	enum ParserTokenType
-	{
-		PT_STRING,
-		PT_CHECK_ALL_NOT_NULL,
-		PT_CHECK_ANY_NULL,
-		PT_CHECK_FILE_EXISTS,
-		PT_CHECK_FILE_NOT_EXISTS,
-		PT_EXECUTE,
-		PT_VARIABLE,
-		PT_ICONPATH,
-		PT_EXTERNAL_VARIABLE,
-		PT_EXECUTE2
-	} type;
+#include "parser/parser-token-type.h"
 
-	QString content;
-	ParserToken() : type(PT_STRING), content() {}
+class ParserToken
+{
+	ParserTokenType Type;
+	QString Content;
+	bool IsContentEncoded;
+
+public:
+	ParserToken();
+
+	ParserTokenType type() const { return Type; }
+	void setType(ParserTokenType type);
+
+	QString decodedContent() const;
+	const QString & rawContent() const { return Content; } 
+	void setContent(const QString &content);
+
+	bool isEncoded() const { return IsContentEncoded; }
+
+	void encodeContent(const QByteArray &exclude, const QByteArray &include);
+
 };
 
 #endif // PARSER_TOKEN_H

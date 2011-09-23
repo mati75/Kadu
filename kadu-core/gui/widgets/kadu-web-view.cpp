@@ -49,8 +49,9 @@
 #include <QtGui/QMouseEvent>
 #include <QtGui/QStyle>
 #include <QtGui/QTextDocument>
-#include <QtWebKit/QWebPage>
 #include <QtWebKit/QWebHitTestResult>
+#include <QtWebKit/QWebHistory>
+#include <QtWebKit/QWebPage>
 
 #include "configuration/configuration-file.h"
 #include "gui/windows/message-dialog.h"
@@ -65,6 +66,10 @@ KaduWebView::KaduWebView(QWidget *parent) :
 		QWebView(parent), DraggingPossible(false), IsLoading(false), RefreshTimer(new QTimer(this))
 {
 	kdebugf();
+
+	QWebSettings::setMaximumPagesInCache(0);
+	QWebSettings::setObjectCacheCapacities(0, 0, 0);
+
 
 	setAttribute(Qt::WA_NoBackground);
 	setAcceptDrops(false);
@@ -89,6 +94,8 @@ void KaduWebView::setPage(QWebPage *page)
 {
 	QWebView::setPage(page);
 	page->setLinkDelegationPolicy(QWebPage::DelegateAllLinks);
+
+	page->history()->setMaximumItemCount(0);
 
 	connect(page, SIGNAL(linkClicked(const QUrl &)), this, SLOT(hyperlinkClicked(const QUrl &)));
 	connect(page, SIGNAL(loadStarted()), this, SLOT(loadStarted()));
@@ -152,7 +159,7 @@ void KaduWebView::mouseMoveEvent(QMouseEvent *e)
 	QMimeData *originalData = new QMimeData();
 	foreach (const QString &format, clipboard->mimeData(QClipboard::Clipboard)->formats())
 		originalData->setData(format, clipboard->mimeData(QClipboard::Clipboard)->data(format));
-	page()->triggerAction(QWebPage::Copy);
+	triggerPageAction(QWebPage::Copy);
 	textCopied();
 
 	mimeData->setText(clipboard->mimeData()->text());
@@ -266,7 +273,7 @@ void KaduWebView::saveImage()
 
 		if (!image.load(imageFullPath))
 		{
-			MessageDialog::show("dialog-warning", tr("Kadu"), tr("Cannot save this image"));
+			MessageDialog::show(KaduIcon("dialog-warning"), tr("Kadu"), tr("Cannot save this image"));
 			return;
 		}
 	}
@@ -289,12 +296,12 @@ void KaduWebView::saveImage()
 		QString file = fd.data()->selectedFiles().at(0);
 		if (QFile::exists(file))
 		{
-			if (MessageDialog::ask("dialog-question", tr("Kadu"), tr("File already exists. Overwrite?")))
+			if (MessageDialog::ask(KaduIcon("dialog-question"), tr("Kadu"), tr("File already exists. Overwrite?")))
 			{
 				QFile removeMe(file);
 				if (!removeMe.remove())
 				{
-					MessageDialog::show("dialog-warning", tr("Kadu"), tr("Cannot save image: %1").arg(removeMe.errorString()));
+					MessageDialog::show(KaduIcon("dialog-warning"), tr("Kadu"), tr("Cannot save image: %1").arg(removeMe.errorString()));
 					continue;
 				}
 			}
@@ -310,7 +317,7 @@ void KaduWebView::saveImage()
 		{
 			if (!image.save(dst, "PNG"))
 			{
-				MessageDialog::show("dialog-warning", tr("Kadu"), tr("Cannot save image"));
+				MessageDialog::show(KaduIcon("dialog-warning"), tr("Kadu"), tr("Cannot save image"));
 				continue;
 			}
 		}
@@ -319,7 +326,7 @@ void KaduWebView::saveImage()
 			QFile src(imageFullPath);
 			if (!src.copy(dst))
 			{
-				MessageDialog::show("dialog-warning", tr("Kadu"), tr("Cannot save image: %1").arg(src.errorString()));
+				MessageDialog::show(KaduIcon("dialog-warning"), tr("Kadu"), tr("Cannot save image: %1").arg(src.errorString()));
 				continue;
 			}
 		}
@@ -338,21 +345,72 @@ void KaduWebView::textCopied() const
 // taken from Psi+'s webkit patch, SVN rev. 2638, and slightly modified
 void KaduWebView::convertClipboardHtml(QClipboard::Mode mode)
 {
-	static QRegExp emotsRegExpApos("<img[^>]+title\\s*=\\s*'([^']+)'[^>]*>");
-	static QRegExp emotsRegExpQuot("<img[^>]+title\\s*=\\s*\"([^\"]+)\"[^>]*>");
-	static QRegExp linksRegExpApos("<a[^>]+href\\s*=[^>]+title\\s*=\\s*'([^']+)'[^>]*>[^<]*<[^>]*>");
-	static QRegExp linksRegExpQuot("<a[^>]+href\\s*=[^>]+title\\s*=\\s*\"([^\"]+)\"[^>]*>[^<]*<[^>]*>");
+	// Assume we don't use apostrophes in HTML attributes.
 
-	QClipboard *cb = QApplication::clipboard();
-	QString html = cb->mimeData(mode)->html();
-	html.replace(emotsRegExpApos, QLatin1String("\\1"));
-	html.replace(emotsRegExpQuot, QLatin1String("\\1"));
-	html.replace(linksRegExpApos, QLatin1String("<a href='\\1'>\\1</a>"));
-	html.replace(linksRegExpQuot, QLatin1String("<a href=\"\\1\">\\1</a>"));
+	// Expected string to replace is as follows (capitalics are captured):
+	// <img emoticon="1" title="TITLE"*>
+	// Source string is created in EmoticonsManager::expandEmoticons().
+	static QRegExp emotsRegExp("<img[^>]+emoticon\\s*=\\s*\"1\"[^>]+title\\s*=\\s*\"([^\"]+)\"[^>]*>");
+
+	// Expected string to replace is as follows (capitalics are captured):
+	// <a folded="1" displaystr="DISPLAY" href="HREF"*>DISPLAY</a>
+	// If first display is different than the second, it means that the user selected only part of the link.
+	// Source string is created in StandardUrlHandler::convertUrlsToHtml().
+	// BTW, I know it is totally ugly.
+	static QRegExp foldedLinksRegExp("<a[^>]+folded\\s*=\\s*\"1\"[^>]+displaystr\\s*=\\s*\"([^\"]+)\"[^>]+href\\s*=\\s*\"([^\"]+)\"[^>]*>([^<]*)<[^>]*>");
+
+	QString html = QApplication::clipboard()->mimeData(mode)->html();
+
+	html.replace(emotsRegExp, QLatin1String("\\1"));
+
+	int pos = 0;
+	while (-1 != (pos = foldedLinksRegExp.indexIn(html, pos)))
+	{
+		int matchedLength = foldedLinksRegExp.matchedLength();
+		QString displayStr = foldedLinksRegExp.cap(1);
+		QString realDisplayStr = foldedLinksRegExp.cap(3);
+
+		if (displayStr == realDisplayStr) // i.e., we are copying the entire link, not a part of it
+		{
+			QString hRef = foldedLinksRegExp.cap(2);
+			QString unfoldedLink = QString("<a href=\"%1\">%1</a>").arg(hRef);
+			html.replace(pos, matchedLength, unfoldedLink);
+
+			pos += unfoldedLink.length();
+		}
+		else
+			pos += matchedLength;
+	}
+
 	QTextDocument htmlToPlainTextConverter;
 	htmlToPlainTextConverter.setHtml(html);
 	QMimeData *data = new QMimeData();
 	data->setHtml(html);
 	data->setText(htmlToPlainTextConverter.toPlainText());
-	cb->setMimeData(data, mode);
+	QApplication::clipboard()->setMimeData(data, mode);
+}
+
+void KaduWebView::setUserFont(const QString &fontString, bool force)
+{
+	QString style;
+
+	if (fontString.isEmpty())
+		style = "* { font-family: sans-serif; }";
+	else
+	{
+		QFont font;
+		font.fromString(fontString);
+		style = QString("* { %1 }").arg(userFontStyle(font, force));
+	}
+
+	QString url = QString("data:text/css;charset=utf-8;base64,%1").arg(QString(style.toUtf8().toBase64()));
+	settings()->setUserStyleSheetUrl(url);
+}
+
+QString KaduWebView::userFontStyle(const QFont &font, bool force)
+{
+	QString style = "font-family:" + font.family() + (force ? " !important;" : ";");
+	if (force && font.pointSize() != -1)
+		style += QString(" font-size:%1pt;").arg(font.pointSize());
+	return style;
 }

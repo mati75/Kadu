@@ -26,7 +26,8 @@
 #include "gui/actions/action-data-source.h"
 #include "gui/actions/action-description.h"
 #include "gui/hot-key.h"
-#include "icons-manager.h"
+#include "icons/icons-manager.h"
+#include "icons/kadu-icon.h"
 #include "protocols/services/chat-service.h"
 
 #include "action.h"
@@ -36,10 +37,10 @@ Action::Action(ActionDescription *description, ActionDataSource *dataSource, QOb
 {
 	setText(Description->Text);
 
-	if (!Description->iconPath().isEmpty())
+	if (!Description->icon().isNull())
 	{
 		connect(IconsManager::instance(), SIGNAL(themeChanged()), this, SLOT(updateIcon()));
-		setIcon(IconsManager::instance()->iconByPath(Description->iconPath()));
+		setIcon(Description->icon());
 	}
 
 	setCheckable(Description->Checkable);
@@ -53,6 +54,7 @@ Action::Action(ActionDescription *description, ActionDataSource *dataSource, QOb
 
 Action::~Action()
 {
+	emit aboutToBeDestroyed(this);
 }
 
 Contact Action::contact()
@@ -61,7 +63,7 @@ Contact Action::contact()
 	if (1 != contactSet.count())
 		return Contact::null;
 	else
-		return *contactSet.begin();
+		return *contactSet.constBegin();
 }
 
 ContactSet Action::contacts()
@@ -78,7 +80,7 @@ Buddy Action::buddy()
 	if (1 != buddySet.count())
 		return Buddy::null;
 	else
-		return *buddySet.begin();
+		return *buddySet.constBegin();
 }
 
 BuddySet Action::buddies()
@@ -133,7 +135,12 @@ void Action::checkState()
 
 void Action::updateIcon()
 {
-	setIcon(IconsManager::instance()->iconByPath(Description->iconPath()));
+	setIcon(Description->icon());
+}
+
+void Action::setIcon(const KaduIcon &icon)
+{
+	QAction::setIcon(icon.icon());
 }
 
 void disableEmptyContacts(Action *action)
@@ -143,5 +150,5 @@ void disableEmptyContacts(Action *action)
 
 void disableNoChat(Action *action)
 {
-  action->setEnabled(action->chat());
+	action->setEnabled(action->chat());
 }

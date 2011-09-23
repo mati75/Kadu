@@ -23,13 +23,15 @@
 
 #include "accounts/account-details.h"
 #include "accounts/account-manager.h"
+#include "accounts/account-proxy-settings.h"
 #include "buddies/buddy-manager.h"
 #include "configuration/configuration-file.h"
-#include "configuration/main-configuration.h"
+#include "configuration/main-configuration-holder.h"
 #include "configuration/xml-configuration-file.h"
 #include "contacts/contact.h"
 #include "contacts/contact-details.h"
 #include "contacts/contact-manager.h"
+#include "identities/identity.h"
 #include "protocols/protocol.h"
 #include "protocols/protocol-factory.h"
 #include "protocols/protocols-manager.h"
@@ -93,22 +95,22 @@ void Account::importProxySettings()
 
 StatusContainer * Account::statusContainer()
 {
-	if (MainConfiguration::instance()->simpleMode())
+	if (MainConfigurationHolder::instance()->isSetStatusPerIdentity())
 		return accountIdentity().data();
 	else
 		return data();
 }
 
-KaduSharedBase_PropertyDef(Account, Identity, accountIdentity, AccountIdentity, Identity::null)
+KaduSharedBase_PropertyDefCRW(Account, Identity, accountIdentity, AccountIdentity, Identity::null)
 KaduSharedBase_PropertyReadDef(Account, QSharedPointer<StoragePoint>, storage, Storage, QSharedPointer<StoragePoint>())
-KaduSharedBase_PropertyDef(Account, QString, protocolName, ProtocolName, QString())
+KaduSharedBase_PropertyDefCRW(Account, QString, protocolName, ProtocolName, QString())
 KaduSharedBase_PropertyDef(Account, Protocol *, protocolHandler, ProtocolHandler, 0)
 KaduSharedBase_PropertyReadDef(Account, AccountDetails *, details, Details, 0)
 KaduSharedBase_PropertyReadDef(Account, Contact, accountContact, AccountContact, Contact::null)
-KaduSharedBase_PropertyDef(Account, QString, id, Id, QString())
+KaduSharedBase_PropertyDefCRW(Account, QString, id, Id, QString())
 KaduSharedBase_PropertyDef(Account, bool, rememberPassword, RememberPassword, true)
 KaduSharedBase_PropertyDef(Account, bool, hasPassword, HasPassword, false)
-KaduSharedBase_PropertyDef(Account, QString, password, Password, QString())
-KaduSharedBase_PropertyDef(Account, AccountProxySettings, proxySettings, ProxySettings, AccountProxySettings())
+KaduSharedBase_PropertyDefCRW(Account, QString, password, Password, QString())
+KaduSharedBase_PropertyDefCRW(Account, AccountProxySettings, proxySettings, ProxySettings, AccountProxySettings())
 KaduSharedBase_PropertyDef(Account, bool, privateStatus, PrivateStatus, true)
 KaduSharedBase_PropertyDef(Account, bool, removing, Removing, true)

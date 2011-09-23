@@ -48,10 +48,9 @@ ContactShared * ContactShared::loadFromStorage(const QSharedPointer<StoragePoint
 	return result;
 }
 
-ContactShared::ContactShared(QUuid uuid) :
+ContactShared::ContactShared(const QUuid &uuid) :
 		Shared(uuid),
-		ContactAccount(Account::null), ContactAvatar(Avatar::null), OwnerBuddy(Buddy::null),
-		Priority(-1), MaximumImageSize(0), Blocking(false), Port(0)
+		Priority(-1), MaximumImageSize(0), Blocking(false), Dirty(true), Port(0)
 {
 }
 
@@ -82,14 +81,15 @@ void ContactShared::load()
 	Id = loadValue<QString>("Id");
 
 	Priority = loadValue<int>("Priority", -1);
+	
+	Dirty = loadValue<bool>("Dirty", true);
 
 	ContactAccount = AccountManager::instance()->byUuid(loadValue<QString>("Account"));
 
 	QString buddyUuid = loadValue<QString>("Buddy");
 	if (buddyUuid.isNull())
 		buddyUuid = loadValue<QString>("Contact");
-
-	setOwnerBuddy(BuddyManager::instance()->byUuid(buddyUuid));
+	doSetOwnerBuddy(BuddyManager::instance()->byUuid(buddyUuid), false);
 
 	if (storage()->point().isElement())
 	{
@@ -127,15 +127,15 @@ void ContactShared::store()
 
 	storeValue("Id", Id);
 	storeValue("Priority", Priority);
+	storeValue("Dirty", Dirty);
 	storeValue("Account", ContactAccount.uuid().toString());
+	storeValue("Buddy", !OwnerBuddy.isAnonymous()
+			? OwnerBuddy.uuid().toString()
+			: QString());
 
-	if (OwnerBuddy.isAnonymous())
-		storeValue("Buddy", QString());
-	else
-		storeValue("Buddy", OwnerBuddy.uuid().toString());
-
-	if (!ContactAvatar.isNull())
+	if (ContactAvatar)
 		storeValue("Avatar", ContactAvatar.uuid().toString());
+
 	removeValue("Contact");
 }
 
@@ -151,9 +151,12 @@ void ContactShared::emitUpdated()
 	emit updated();
 }
 
-void ContactShared::detach(const Buddy &buddy, bool emitSignals)
+void ContactShared::detach(bool reattaching, bool emitSignals)
 {
-	if (!details() || !buddy)
+	if (!details())
+		return;
+
+	if (!OwnerBuddy)
 		return;
 
 	/* NOTE: This guard is needed to delay deleting this object when removing
@@ -164,7 +167,7 @@ void ContactShared::detach(const Buddy &buddy, bool emitSignals)
 	Contact guard(this);
 
 	if (emitSignals)
-		emit aboutToBeDetached();
+		emit aboutToBeDetached(reattaching);
 
 	OwnerBuddy.removeContact(this);
 
@@ -172,26 +175,48 @@ void ContactShared::detach(const Buddy &buddy, bool emitSignals)
 		emit detached(OwnerBuddy);
 }
 
-void ContactShared::attach(const Buddy &buddy, bool emitReattached)
+void ContactShared::attach(bool reattaching, bool emitSignals)
 {
 	if (!details())
 		return;
 
-	if (!buddy)
+	if (!OwnerBuddy)
 		return;
 
-	if (!emitReattached)
+	if (emitSignals)
 		emit aboutToBeAttached(OwnerBuddy);
 
 	OwnerBuddy.addContact(this);
 
-	if (!emitReattached)
-		emit attached();
-	else
-		emit reattached();
+	if (emitSignals)
+		emit attached(reattaching);
 }
 
-void ContactShared::setOwnerBuddy(Buddy buddy)
+void ContactShared::doSetOwnerBuddy(const Buddy &buddy, bool emitSignals)
+{
+	/* NOTE: This guard is needed to avoid deleting this object when removing
+	 * Contact from Buddy which may hold last reference to it and thus wants to
+	 * delete it. But we don't want this to happen.
+	 */
+	Contact guard(this);
+
+	bool oldIsNotAnonymous = !OwnerBuddy.isAnonymous();
+	bool newIsNotAnonymous = !buddy.isAnonymous();
+	bool reattaching = oldIsNotAnonymous && newIsNotAnonymous;
+
+	detach(reattaching, emitSignals && oldIsNotAnonymous);
+
+	OwnerBuddy = buddy;
+
+	// TODO: make it pretty
+	// don't allow empty buddy to be set, use at least anonymous one
+	if (!OwnerBuddy)
+		OwnerBuddy = BuddyManager::instance()->byContact(this, ActionCreate);
+
+	attach(reattaching, emitSignals && newIsNotAnonymous);
+}
+
+void ContactShared::setOwnerBuddy(const Buddy &buddy)
 {
 	ensureLoaded();
 
@@ -204,21 +229,13 @@ void ContactShared::setOwnerBuddy(Buddy buddy)
 	 */
 	Contact guard(this);
 
-	bool hadBuddy = !OwnerBuddy.isNull() && !OwnerBuddy.isAnonymous();
-
-	detach(OwnerBuddy, !buddy);
-	OwnerBuddy = buddy;
-	attach(OwnerBuddy, hadBuddy);
-
-	// TODO: make it pretty
-	// don't allow empty buddy to be set, use at least anonymous one
-	if (!OwnerBuddy)
-		OwnerBuddy = BuddyManager::instance()->byContact(Contact(this), ActionCreate);
+	doSetOwnerBuddy(buddy, true);
+	setDirty(true);
 
 	dataUpdated();
 }
 
-void ContactShared::setContactAccount(Account account)
+void ContactShared::setContactAccount(const Account &account)
 {
 	ensureLoaded();
 
@@ -240,10 +257,10 @@ void ContactShared::protocolRegistered(ProtocolFactory *protocolFactory)
 {
 	ensureLoaded();
 
-	if (ContactAccount.protocolName() != protocolFactory->name())
+	if (details())
 		return;
 
-	if (details())
+	if (!ContactAccount || ContactAccount.protocolName() != protocolFactory->name())
 		return;
 
 	setDetails(protocolFactory->createContactDetails(this));
@@ -251,15 +268,8 @@ void ContactShared::protocolRegistered(ProtocolFactory *protocolFactory)
 
 void ContactShared::protocolUnregistered(ProtocolFactory *protocolFactory)
 {
-	ensureLoaded();
-
-	if (Id.isEmpty())
-		return;
-
-	if (ContactAccount.protocolName() != protocolFactory->name())
-		return;
-
-	setDetails(0);
+	Q_UNUSED(protocolFactory)
+// 	protocol unregistered means auto-deleting all contact details, so we cannot set them to zero here
 }
 
 void ContactShared::detailsAdded()
@@ -273,16 +283,16 @@ void ContactShared::detailsAdded()
 
 void ContactShared::afterDetailsAdded()
 {
-	attach(OwnerBuddy, false);
+	attach(false, true);
 }
 
 void ContactShared::detailsAboutToBeRemoved()
 {
 	// do not store contacts that are not in contact manager
-	if (ContactManager::instance()->allItems().contains(uuid().toString()))
+	if (ContactManager::instance()->allItems().contains(uuid()))
 		details()->store();
 
-	detach(OwnerBuddy, true);
+	detach(false, true);
 }
 
 void ContactShared::detailsRemoved()
@@ -302,6 +312,19 @@ void ContactShared::setId(const QString &id)
 	QString oldId = Id;
 	Id = id;
 
+	setDirty(true);
 	dataUpdated();
 	emit idChanged(oldId);
+}
+
+void ContactShared::setDirty(bool dirty)
+{
+	ensureLoaded();
+
+	if (Dirty == dirty)
+		return;
+
+	Dirty = dirty;
+	dataUpdated();
+	emit dirtinessChanged();
 }

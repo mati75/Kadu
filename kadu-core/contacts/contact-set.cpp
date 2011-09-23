@@ -43,7 +43,7 @@ QList<Contact> ContactSet::toContactList() const
 BuddySet ContactSet::toBuddySet() const
 {
 	BuddySet buddies;
-	foreach (const Contact &contact, toList())
+	foreach (const Contact &contact, *this)
 		buddies.insert(contact.ownerBuddy());
 
 	return buddies;
@@ -54,5 +54,5 @@ Contact ContactSet::toContact() const
 	if (count() != 1)
 		return Contact::null;
 
-	return (*begin());
+	return (*constBegin());
 }

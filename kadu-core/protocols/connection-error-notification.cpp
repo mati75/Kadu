@@ -25,7 +25,8 @@
 #include "notify/notify-event.h"
 #include "parser/parser.h"
 #include "debug.h"
-#include "icons-manager.h"
+#include "icons/icons-manager.h"
+#include "identities/identity.h"
 
 #include "connection-error-notification.h"
 
@@ -66,8 +67,8 @@ void ConnectionErrorNotification::unregisterEvent()
 	if (!ConnectionErrorNotifyEvent)
 		return;
 
-	Parser::unregisterObjectTag("errorServer", getErrorServer);
-	Parser::unregisterObjectTag("error", getErrorMessage);
+	Parser::unregisterObjectTag("errorServer");
+	Parser::unregisterObjectTag("error");
 
 	NotificationManager::instance()->unregisterNotifyEvent(ConnectionErrorNotifyEvent);
 	delete ConnectionErrorNotifyEvent;
@@ -80,22 +81,20 @@ bool ConnectionErrorNotification::activeError(Account account, const QString &er
 }
 
 ConnectionErrorNotification::ConnectionErrorNotification(Account account, const QString &errorServer, const QString &errorMessage) :
-		AccountNotification(account, "ConnectionError", "dialog-error"),
+		AccountNotification(account, "ConnectionError", KaduIcon("dialog-error")),
 		ErrorServer(errorServer), ErrorMessage(errorMessage)
 {
 	setTitle(tr("Connection error"));
 
-	QString text = tr("Connection error on account: %1 (%2)").arg(account.id()).arg(account.accountIdentity().name());
+	setText(tr("Connection error on account: %1 (%2)").arg(account.id()).arg(account.accountIdentity().name()));
 
 	if (!ErrorMessage.isEmpty())
 	{
 		if (ErrorServer.isEmpty())
-			text += QString("<br />") + ErrorMessage;
+			setDetails(ErrorMessage);
 		else
-			text += QString("<br />%1 (%2)").arg(ErrorMessage).arg(ErrorServer);
+			setDetails(QString("%1 (%2)").arg(ErrorMessage).arg(ErrorServer));
 	}
-
-	setText(text);
 
 	ActiveErrors[account].append(ErrorMessage);
 }

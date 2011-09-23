@@ -5,18 +5,18 @@ set (SYNTAX_FILES
 	cheester.syntax
 	filozof.syntax
 	fuku.syntax
+	gg.syntax
 	hapi.syntax
 	irc.syntax
 	kadu.syntax
 	skp_by_dam.syntax
 	skype_by_dorr.syntax
+	ultr.syntax
 )
 
 set (ADIUM_STYLES
 	Default
-	Gaia
 	Modern\ Bubbling\ \(Compact\)
-	Pushpin
 	renkooNaked
 	Satin
 	SimpleStuff

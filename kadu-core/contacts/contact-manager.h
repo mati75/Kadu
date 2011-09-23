@@ -40,6 +40,8 @@ class KADUAPI ContactManager : public QObject, public Manager<Contact>
 
 	static ContactManager * Instance;
 
+	QList<Contact> DirtyContacts;
+
 	ContactManager();
 	virtual ~ContactManager();
 
@@ -48,16 +50,20 @@ class KADUAPI ContactManager : public QObject, public Manager<Contact>
 	void detailsUnloaded(Contact item);
 
 private slots:
+	void removeDuplicateContacts();
+
 	void contactDataUpdated();
 	void idChanged(const QString &oldId);
+	void dirtinessChanged();
 
 	void aboutToBeAttached(Buddy nearFutureBuddy);
-	void attached();
-	void aboutToBeDetached();
+	void attached(bool reattached);
+	void aboutToBeDetached(bool reattaching);
 	void detached(Buddy previousBuddy);
-	void reattached();
 
 protected:
+	virtual void loaded();
+
 	virtual void itemAboutToBeRegistered(Contact item);
 	virtual void itemRegistered(Contact item);
 	virtual void itemAboutToBeUnregisterd(Contact item);
@@ -72,19 +78,23 @@ public:
 	Contact byId(Account account, const QString &id, NotFoundAction = ActionCreate);
 	QList<Contact> contacts(Account account);
 
+	const QList<Contact> & dirtyContacts();
+	QList<Contact> dirtyContacts(Account account);
+
 signals:
 	void contactAboutToBeAdded(Contact contact);
 	void contactAdded(Contact contact);
 	void contactAboutToBeRemoved(Contact contact);
 	void contactRemoved(Contact contact);
 
-	void contactAboutToBeDetached(Contact contact);
+	void contactAboutToBeDetached(Contact contact, bool reattaching);
 	void contactDetached(Contact contact, Buddy previousBuddy);
 	void contactAboutToBeAttached(Contact contact, Buddy nearFutureBuddy);
-	void contactAttached(Contact contact);
-	void contactReattached(Contact contact);
+	void contactAttached(Contact contact, bool reattached);
 
 	void contactIdChanged(Contact contact, const QString &oldId);
+
+	void dirtyContactAdded(Contact contact);
 
 	void contactUpdated(Contact &contact);
 

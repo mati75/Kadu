@@ -62,6 +62,9 @@ class KADUAPI NotificationManager : public QObject, AccountsAwareObject, Configu
 	void init();
 
 	bool NotifyAboutAll;
+	bool NewMessageOnlyIfInactive;
+	bool NotifyIgnoreOnConnection;
+	bool IgnoreOnlineToOnline;
 	bool SilentMode;
 	bool SilentModeWhenDnD;
 	bool SilentModeWhenFullscreen;
@@ -94,7 +97,7 @@ private slots:
 	void multilogonSessionConnected(MultilogonSession *session);
 	void multilogonSessionDisconnected(MultilogonSession *session);
 
-	void statusChanged();
+	void statusUpdated();
 	void contactStatusChanged(Contact contact, Status oldStatus);
 
 	void notifyAboutUserActionActivated(QAction *sender, bool toggled);

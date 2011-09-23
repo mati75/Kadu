@@ -27,8 +27,11 @@
 #include <QtGui/QResizeEvent>
 #include <QtXml/QDomElement>
 
+
+#include "accounts/account-details.h"
 #include "buddies/buddy-set.h"
 #include "chat/chat.h"
+#include "configuration/chat-configuration-holder.h"
 #include "configuration/configuration-file.h"
 #include "configuration/xml-configuration-file.h"
 #include "contacts/contact.h"
@@ -40,6 +43,7 @@
 #include "gui/widgets/chat-widget-manager.h"
 #include "gui/widgets/color-selector.h"
 #include "gui/windows/message-dialog.h"
+#include "protocols/protocol.h"
 #include "protocols/services/chat-image-service.h"
 
 #include "chat-widget.h"
@@ -118,7 +122,7 @@ void ChatEditBox::configurationUpdated()
 {
 	setColorFromCurrentText(true);
 
-	InputBox->setAutoSend(config_file.readBoolEntry("Chat", "AutoSend"));
+	InputBox->setAutoSend(ChatConfigurationHolder::instance()->autoSend());
 }
 
 void ChatEditBox::setAutoSend(bool autoSend)
@@ -226,8 +230,33 @@ void ChatEditBox::openInsertImageDialog()
 
 		if (!f.isReadable())
 		{
-			MessageDialog::show("dialog-warning", tr("Kadu"), tr("This file is not readable"), QMessageBox::Ok, this);
+			MessageDialog::show(KaduIcon("dialog-warning"), tr("Kadu"), tr("This file is not readable"), QMessageBox::Ok, this);
 			return;
+		}
+
+		ChatImageService *chatImageService = CurrentChat.chatAccount().protocolHandler()->chatImageService();
+		if (chatImageService)
+		{
+			if (!chatImageService->fitsHardSizeLimit(f.size()))
+			{
+				MessageDialog::show(
+						KaduIcon("dialog-error"), tr("Kadu"),
+						tr("This image has %1 KiB and exceeds the protocol limit of %2 KiB.")
+								.arg((f.size() + 1023) / 1024).arg(chatImageService->hardSizeLimit() / 1024),
+						QMessageBox::Ok, this);
+				return;
+			}
+			if (!chatImageService->fitsSoftSizeLimit(f.size()))
+			{
+				if (chatImageService->showSoftSizeWarning(CurrentChat.chatAccount()))
+				{
+					QString message = tr("This image has %1 KiB and exceeds recommended maximum size of %2 KiB.")
+							+ '\n' + tr("Do you really want to send this image?");
+					message = message.arg((f.size() + 1023) / 1024).arg(chatImageService->softSizeLimit() / 1024);
+					if (!MessageDialog::ask(KaduIcon("dialog-warning"), tr("Kadu"), message, this))
+						return;
+				}
+			}
 		}
 
 		int tooBigCounter = 0;
@@ -244,27 +273,26 @@ void ChatEditBox::openInsertImageDialog()
 		QString message;
 		if (1 == CurrentChat.contacts().count())
 		{
-			Contact contact = *CurrentChat.contacts().begin();
+			Contact contact = *CurrentChat.contacts().constBegin();
 			if (tooBigCounter > 0)
-				message = tr("This file is too big for %1.\nDo you really want to send this image?").arg(contact.ownerBuddy().display());
+				message = tr("This image has %1 KiB and may be too big for %2.")
+						.arg((f.size() + 1023) / 1024).arg(contact.ownerBuddy().display()) + '\n';
 			else if (disconnectedCounter > 0)
-				message = tr("%1 is disconnected and cannot receive images.\nDo you really want to send this image?").arg(contact.ownerBuddy().display());
+				message = tr("%1 appears to be offline and may not receive images.").arg(contact.ownerBuddy().display()) + '\n';
 		}
 		else
 		{
 			if (tooBigCounter > 0)
-				message = tr("This file is too big for %1 of %2 contacts.\n").arg(tooBigCounter).arg(CurrentChat.contacts().count());
+				message = tr("This image has %1 KiB and may be too big for %2 of %3 contacts in this conference.")
+						.arg((f.size() + 1023) / 1024).arg(tooBigCounter).arg(CurrentChat.contacts().count()) + '\n';
 			if (disconnectedCounter > 0)
-				message += tr("%1 of %2 contacts are disconnected and cannot receive images.\n").arg(disconnectedCounter).arg(CurrentChat.contacts().count());
-			if (tooBigCounter > 0 || disconnectedCounter > 0)
-				message += tr("Do you really want to send this image?\nSome of them probably will not get it.");
+				message += tr("%1 of %2 contacts appear to be offline and may not receive images.").arg(disconnectedCounter).arg(CurrentChat.contacts().count()) + '\n';
 		}
+		if (tooBigCounter > 0 || disconnectedCounter > 0)
+			message += tr("Do you really want to send this image?");
 
-		if (!message.isEmpty() && !MessageDialog::ask("dialog-question", tr("Kadu"), message))
+		if (!message.isEmpty() && !MessageDialog::ask(KaduIcon("dialog-question"), tr("Kadu"), message, this))
 			return;
-
-		if (f.size() >= (1 << 18)) // 256kB
-			MessageDialog::show("dialog-warning", tr("Kadu"), tr("This file is too big (%1 >= %2)").arg(f.size()).arg(1<<18), QMessageBox::Ok, this);
 
 		InputBox->insertPlainText(QString("[IMAGE %1]").arg(selectedFile));
 	}
@@ -316,5 +344,5 @@ void ChatEditBox::setColorFromCurrentText(bool force)
 
 	p.fill(CurrentColor);
 
-	action->setIcon(p);
+	action->QAction::setIcon(p);
 }

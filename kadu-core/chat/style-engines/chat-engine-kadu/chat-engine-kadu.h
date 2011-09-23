@@ -1,5 +1,6 @@
 /*
  * %kadu copyright begin%
+ * Copyright 2011 Piotr Dąbrowski (ultr@ultr.pl)
  * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2009, 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
@@ -25,7 +26,9 @@
 #include <QtCore/QObject>
 #include <QtCore/QSharedPointer>
 
-#include "../chat-style-engine.h"
+#include "chat/style-engines/chat-engine-kadu/kadu-chat-syntax.h"
+
+#include "chat/style-engines/chat-style-engine.h"
 
 class Preview;
 class SyntaxList;
@@ -36,13 +39,12 @@ class KaduChatStyleEngine : public QObject, public ChatStyleEngine
 
 	QSharedPointer<SyntaxList> syntaxList;
 
+	KaduChatSyntax CurrentChatSyntax;
 	QString jsCode;
-
-	QString ChatSyntaxWithHeader; /*!< Chat syntax with header */
-	QString ChatSyntaxWithoutHeader; /*!< Chat syntax without header */
 
 	QString formatMessage(MessageRenderInfo *message, MessageRenderInfo *after);
 	void repaintMessages(HtmlMessagesRenderer *page);
+	QString scriptsAtEnd(const QString &html);
 
 private slots:
 	void chatSyntaxFixup(QString &syntax);
@@ -67,7 +69,8 @@ public:
 	virtual void appendMessage(HtmlMessagesRenderer *renderer, MessageRenderInfo *message);
 	virtual void pruneMessage(HtmlMessagesRenderer *renderer);
 	virtual void refreshView(HtmlMessagesRenderer *renderer, bool useTransparency = false);
-	virtual void messageStatusChanged(HtmlMessagesRenderer *renderer, Message message, Message::Status status);
+	virtual void messageStatusChanged(HtmlMessagesRenderer *renderer, Message message, MessageStatus status);
+	virtual void contactActivityChanged(HtmlMessagesRenderer *renderer, ChatStateService::ContactActivity state, const QString &message, const QString &name);
 
 	virtual void prepareStylePreview(Preview *preview, QString styleName, QString variantName);
 

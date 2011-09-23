@@ -27,6 +27,7 @@
 #include "contacts/contact-manager.h"
 #include "contacts/contact.h"
 #include "identities/identity-manager.h"
+#include "icons/kadu-icon.h"
 #include "misc/misc.h"
 #include "protocols/protocol.h"
 #include "protocols/protocols-manager.h"
@@ -50,7 +51,7 @@ AccountShared * AccountShared::loadFromStorage(const QSharedPointer<StoragePoint
 	return result;
 }
 
-AccountShared::AccountShared(QUuid uuid) :
+AccountShared::AccountShared(const QUuid &uuid) :
 		BaseStatusContainer(this), Shared(uuid),
 		ProtocolHandler(0), RememberPassword(false), HasPassword(false), Removing(false)
 {
@@ -62,11 +63,8 @@ AccountShared::~AccountShared()
 
 	triggerAllProtocolsUnregistered();
 
-	if (ProtocolHandler)
-	{
-		delete ProtocolHandler;
-		ProtocolHandler = 0;
-	}
+	delete ProtocolHandler;
+	ProtocolHandler = 0;
 }
 
 StorableObject * AccountShared::storageParent()
@@ -89,11 +87,11 @@ void AccountShared::load()
 	Identity identity = IdentityManager::instance()->byUuid(loadValue<QString>("Identity"));
 	if (identity.isNull() && !IdentityManager::instance()->items().isEmpty())
 		identity = IdentityManager::instance()->items().at(0);
-
-	setAccountIdentity(identity);
+	doSetAccountIdentity(identity);
 
 	ProtocolName = loadValue<QString>("Protocol");
-	setId(loadValue<QString>("Id"));
+
+	doSetId(loadValue<QString>("Id"));
 
 	RememberPassword = loadValue<bool>("RememberPassword", true);
 	HasPassword = RememberPassword;
@@ -151,6 +149,7 @@ bool AccountShared::shouldStore()
 void AccountShared::aboutToBeRemoved()
 {
 	setDetails(0);
+	setAccountIdentity(Identity::null);
 }
 
 void AccountShared::emitUpdated()
@@ -160,7 +159,9 @@ void AccountShared::emitUpdated()
 
 void AccountShared::setDisconnectStatus()
 {
-	if (status().type() == "Offline")
+	if (!ProtocolHandler)
+		return;
+	if (!ProtocolHandler->isConnected())
 		return;
 
 	bool disconnectWithCurrentDescription = config_file.readBoolEntry("General", "DisconnectWithCurrentDescription");
@@ -183,7 +184,7 @@ void AccountShared::useProtocolFactory(ProtocolFactory *factory)
 
 	if (ProtocolHandler)
 	{
-		disconnect(ProtocolHandler, SIGNAL(statusChanged(Account, Status)), this, SIGNAL(statusChanged()));
+		disconnect(ProtocolHandler, SIGNAL(statusChanged(Account, Status)), this, SIGNAL(statusUpdated()));
 		disconnect(ProtocolHandler, SIGNAL(contactStatusChanged(Contact, Status)),
 				   this, SIGNAL(buddyStatusChanged(Contact, Status)));
 		disconnect(ProtocolHandler, SIGNAL(connected(Account)), this, SIGNAL(connected()));
@@ -206,17 +207,19 @@ void AccountShared::useProtocolFactory(ProtocolFactory *factory)
 		emit protocolLoaded();
 	}
 
-	if (oldProtocolHandler)
-		delete oldProtocolHandler;
+	delete oldProtocolHandler;
+	oldProtocolHandler = 0;
 
 	if (ProtocolHandler)
 	{
-		connect(ProtocolHandler, SIGNAL(statusChanged(Account, Status)), this, SIGNAL(statusChanged()));
+		connect(ProtocolHandler, SIGNAL(statusChanged(Account, Status)), this, SIGNAL(statusUpdated()));
 		connect(ProtocolHandler, SIGNAL(contactStatusChanged(Contact, Status)),
 				this, SIGNAL(buddyStatusChanged(Contact, Status)));
 		connect(ProtocolHandler, SIGNAL(connected(Account)), this, SIGNAL(connected()));
 		connect(ProtocolHandler, SIGNAL(disconnected(Account)), this, SIGNAL(disconnected()));
 	}
+
+	emit statusUpdated();
 }
 
 void AccountShared::protocolRegistered(ProtocolFactory *factory)
@@ -262,13 +265,8 @@ void AccountShared::detailsRemoved()
 	AccountManager::instance()->detailsUnloaded(this);
 }
 
-void AccountShared::setAccountIdentity(Identity accountIdentity)
+void AccountShared::doSetAccountIdentity(const Identity &accountIdentity)
 {
-	ensureLoaded();
-
-	if (AccountIdentity == accountIdentity)
-		return;
-
 	/* NOTE: This guard is needed to avoid deleting this object when removing
 	 * Account from Identity which may hold last reference to it and thus wants
 	 * to delete it.
@@ -278,18 +276,37 @@ void AccountShared::setAccountIdentity(Identity accountIdentity)
 	AccountIdentity.removeAccount(this);
 	AccountIdentity = accountIdentity;
 	AccountIdentity.addAccount(this);
+}
+
+void AccountShared::setAccountIdentity(const Identity &accountIdentity)
+{
+	ensureLoaded();
+
+	if (AccountIdentity == accountIdentity)
+		return;
+
+	doSetAccountIdentity(accountIdentity);
 
 	dataUpdated();
 }
 
-void AccountShared::setProtocolName(QString protocolName)
+void AccountShared::setProtocolName(const QString &protocolName)
 {
 	ensureLoaded();
+
+	if (ProtocolName == protocolName)
+		return;
 
 	ProtocolName = protocolName;
 	useProtocolFactory(ProtocolsManager::instance()->byName(protocolName));
 
 	dataUpdated();
+}
+
+void AccountShared::doSetId(const QString &id)
+{
+	Id = id;
+	AccountContact.setId(id);
 }
 
 void AccountShared::setId(const QString &id)
@@ -299,8 +316,7 @@ void AccountShared::setId(const QString &id)
 	if (Id == id)
 		return;
 
-	Id = id;
-	AccountContact.setId(id);
+	doSetId(id);
 
 	dataUpdated();
 }
@@ -309,11 +325,8 @@ Contact AccountShared::accountContact()
 {
 	ensureLoaded();
 
-	if (AccountContact.isNull())
-	{
+	if (!AccountContact)
 		AccountContact = ContactManager::instance()->byId(this, Id, ActionCreateAndAdd);
-		ContactManager::instance()->addItem(AccountContact);
-	}
 
 	return AccountContact;
 }
@@ -323,10 +336,10 @@ QString AccountShared::statusContainerName()
 	return Id;
 }
 
-void AccountShared::doSetStatus(Status status)
+void AccountShared::doSetStatus(Status newStatus)
 {
 	if (ProtocolHandler)
-		ProtocolHandler->setStatus(status);
+		ProtocolHandler->setStatus(newStatus);
 }
 
 Status AccountShared::status()
@@ -335,6 +348,14 @@ Status AccountShared::status()
 		return ProtocolHandler->status();
 	else
 		return Status();
+}
+
+bool AccountShared::isStatusSettingInProgress()
+{
+	if (ProtocolHandler)
+		return ProtocolHandler->isConnecting();
+	else
+		return false;
 }
 
 int AccountShared::maxDescriptionLength()
@@ -350,33 +371,25 @@ QString AccountShared::statusDisplayName()
 	return status().displayName();
 }
 
-QIcon AccountShared::statusIcon()
+KaduIcon AccountShared::statusIcon()
 {
 	return statusIcon(status());
 }
 
-QString AccountShared::statusIconPath(const QString &statusType)
-{
-	if (ProtocolHandler)
-		return ProtocolHandler->statusIconFullPath(statusType);
-	else
-		return QString();
-}
-
-QIcon AccountShared::statusIcon(const QString &statusType)
-{
-	if (ProtocolHandler)
-		return ProtocolHandler->statusIcon(statusType);
-	else
-		return QIcon();
-}
-
-QIcon AccountShared::statusIcon(Status status)
+KaduIcon AccountShared::statusIcon(const Status &status)
 {
 	if (ProtocolHandler)
 		return ProtocolHandler->statusIcon(status);
 	else
-		return QIcon();
+		return KaduIcon();
+}
+
+KaduIcon AccountShared::statusIcon(const QString &statusType)
+{
+	if (ProtocolHandler)
+		return ProtocolHandler->statusIcon(statusType);
+	else
+		return KaduIcon();
 }
 
 void AccountShared::setPrivateStatus(bool isPrivate)

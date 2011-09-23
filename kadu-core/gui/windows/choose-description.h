@@ -25,6 +25,7 @@
 
 #include <QtGui/QDialog>
 
+#include "os/generic/desktop-aware-object.h"
 #include "status/status.h"
 
 class QComboBox;
@@ -32,7 +33,7 @@ class QLabel;
 
 class StatusContainer;
 
-class ChooseDescription : public QDialog
+class ChooseDescription : public QDialog, DesktopAwareObject
 {
 	Q_OBJECT
 
@@ -50,7 +51,7 @@ class ChooseDescription : public QDialog
 	virtual ~ChooseDescription();
 
 private slots:
-	void statusChanged();
+	void statusUpdated();
 	void setDescription();
 	void activated(int);
 	void currentDescriptionChanged(const QString &);

@@ -44,20 +44,19 @@
 #include "chat/chat-manager.h"
 #include "chat/message/pending-messages-manager.h"
 #include "configuration/configuration-file.h"
-#include "configuration/main-configuration.h"
+#include "configuration/main-configuration-holder.h"
 #include "contacts/filter/contact-no-unloaded-account-filter.h"
 #include "gui/actions/action.h"
 #include "gui/actions/action-description.h"
 #include "gui/widgets/chat-widget-manager.h"
 #include "gui/windows/kadu-window-actions.h"
 #include "gui/hot-key.h"
+#include "icons/kadu-icon.h"
 #include "model/roles.h"
 #include "protocols/protocol.h"
 #include "protocols/protocol-factory.h"
 #include "protocols/protocol-menu-manager.h"
 #include "protocols/protocols-manager.h"
-
-#include "icons-manager.h"
 
 #include "buddies-list-view-delegate.h"
 #include "buddies-list-view-menu-manager.h"
@@ -66,20 +65,18 @@
 #include "tool-tip-class-manager.h"
 
 BuddiesListView::BuddiesListView(QWidget *parent) :
-		QTreeView(parent), Delegate(0), Model(0),
-		ProxyModel(new BuddiesModelProxy(this)), BackgroundTemporaryFile(0),
-		ContextMenuEnabled(false)
+		QTreeView(parent), Delegate(0), ProxyModel(new BuddiesModelProxy(this)),
+		BackgroundImageMode(BackgroundNone), BackgroundTemporaryFile(0), ContextMenuEnabled(false)
 {
 	setAnimated(BackgroundImageMode == BackgroundNone);
 #ifndef Q_WS_MAEMO_5
 	/* Disable as we use kinetic scrolling by default */
 	setDragEnabled(true);
 #endif
+	setItemsExpandable(true);
 	setExpandsOnDoubleClick(false);
 	setHeaderHidden(true);
-	setItemsExpandable(true);
 	setMouseTracking(true);
-	setRootIsDecorated(true);
 	setSelectionMode(QAbstractItemView::ExtendedSelection);
 #ifndef Q_WS_MAEMO_5
 	setUniformRowHeights(false);
@@ -90,29 +87,27 @@ BuddiesListView::BuddiesListView(QWidget *parent) :
 	setItemDelegate(Delegate);
 
 	HideUnloadedFilter = new ContactNoUnloadedAccountFilter(this);
+	HideUnloadedFilter->setEnabled(true);
 
 	ToolTipTimeoutTimer.setSingleShot(true);
 
-	connect(MainConfiguration::instance(), SIGNAL(simpleModeChanged()), this, SLOT(simpleModeChanged()));
 	connect(&ToolTipTimeoutTimer, SIGNAL(timeout()), this, SLOT(toolTipTimeout()));
 	connect(this, SIGNAL(doubleClicked(const QModelIndex &)), this, SLOT(doubleClickedSlot(const QModelIndex &)));
-	connect(PendingMessagesManager::instance(), SIGNAL(messageAdded(Message)), this, SLOT(update()));
-	connect(PendingMessagesManager::instance(), SIGNAL(messageRemoved(Message)), this, SLOT(update()));
 
-	simpleModeChanged();
+	configurationUpdated();
 }
 
 BuddiesListView::~BuddiesListView()
 {
-	disconnect(PendingMessagesManager::instance(), SIGNAL(messageAdded(Message)), this, SLOT(update()));
-	disconnect(PendingMessagesManager::instance(), SIGNAL(messageRemoved(Message)), this, SLOT(update()));
 }
 
-void BuddiesListView::setModel(AbstractBuddiesModel *model)
+void BuddiesListView::setModel(QAbstractItemModel *model)
 {
-	Model = model;
+	AbstractBuddiesModel *buddiesModel = dynamic_cast<AbstractBuddiesModel *>(model);
+	if (!buddiesModel)
+		return;
 
-	ProxyModel->setSourceModel(dynamic_cast<QAbstractItemModel *>(model));
+	ProxyModel->setSourceModel(model);
 
 	Delegate->setModel(ProxyModel);
 	QTreeView::setModel(ProxyModel);
@@ -147,10 +142,7 @@ BuddiesListViewDelegateConfiguration & BuddiesListView::delegateConfiguration()
 
 void BuddiesListView::selectBuddy(Buddy buddy)
 {
-	QModelIndex index = Model->indexForValue(buddy);
-	index = ProxyModel->mapFromSource(index);
-
-	setCurrentIndex(index);
+	setCurrentIndex(ProxyModel->indexForValue(buddy));
 }
 
 Contact BuddiesListView::currentContact() const
@@ -335,6 +327,11 @@ void BuddiesListView::setContextMenuEnabled(bool enabled)
 	ContextMenuEnabled = enabled;
 }
 
+void BuddiesListView::configurationUpdated()
+{
+	setRootIsDecorated(config_file.readBoolEntry("Look", "ShowExpandingControl", false));
+}
+
 void BuddiesListView::contextMenuEvent(QContextMenuEvent *event)
 {
 	if (!ContextMenuEnabled)
@@ -447,21 +444,6 @@ void BuddiesListView::selectionChanged(const QItemSelection &selected, const QIt
 	emit buddySelectionChanged();
 }
 
-void BuddiesListView::simpleModeChanged()
-{
-	if (MainConfiguration::instance()->simpleMode() && !config_file.readBoolEntry("General", "ExpandingInSimpleMode", false))
-	{
-		collapseAll();
-		setItemsExpandable(false);
-		setRootIsDecorated(false);
-	}
-	else
-	{
-		setItemsExpandable(true);
-		setRootIsDecorated(true);
-	}
-}
-
 void BuddiesListView::doubleClickedSlot(const QModelIndex &index)
 {
 	if (index.isValid())
@@ -488,16 +470,16 @@ void BuddiesListView::updateBackground()
 	if (config_file.readBoolEntry("Look", "AlignUserboxIconsTop"))
 	{
 		style.append("QTreeView::branch:has-children:!has-siblings:closed, QTreeView::branch:closed:has-children:has-siblings "
-		     "{ border-image: none; image: url(" + IconsManager::instance()->iconPath("kadu_icons/stylesheet-branch-closed", "16x16") + "); margin-top: 4px; image-position: top }");
+		     "{ border-image: none; image: url(" + KaduIcon("kadu_icons/stylesheet-branch-closed", "16x16").fullPath() + "); margin-top: 4px; image-position: top }");
 		style.append("QTreeView::branch:open:has-children:!has-siblings, QTreeView::branch:open:has-children:has-siblings "
-			"{ border-image: none; image: url(" + IconsManager::instance()->iconPath("kadu_icons/stylesheet-branch-open", "16x16") + "); image-position: top; margin-top: 8px }");
+			"{ border-image: none; image: url(" + KaduIcon("kadu_icons/stylesheet-branch-open", "16x16").fullPath() + "); image-position: top; margin-top: 8px }");
 	}
 	else
 	{
  		style.append("QTreeView::branch:has-children:!has-siblings:closed, QTreeView::branch:closed:has-children:has-siblings "
-		     "{ border-image: none; image: url(" + IconsManager::instance()->iconPath("kadu_icons/stylesheet-branch-closed", "16x16") + ") }");
+		     "{ border-image: none; image: url(" + KaduIcon("kadu_icons/stylesheet-branch-closed", "16x16").fullPath() + ") }");
 		style.append("QTreeView::branch:open:has-children:!has-siblings, QTreeView::branch:open:has-children:has-siblings "
-			"{ border-image: none; image: url(" + IconsManager::instance()->iconPath("kadu_icons/stylesheet-branch-open", "16x16") + ") }");
+			"{ border-image: none; image: url(" + KaduIcon("kadu_icons/stylesheet-branch-open", "16x16").fullPath() + ") }");
 	}
 
 	style.append("QTreeView { background-color: transparent;");

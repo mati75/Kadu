@@ -5,7 +5,6 @@
  * Copyright 2008, 2009, 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2007, 2008, 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
- * Copyright 2011 Piotr Dąbrowski (ultr@ultr.pl)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -27,7 +26,8 @@
 #include <QtNetwork/QHostAddress>
 
 #include "accounts/account-manager.h"
-#include "configuration/configuration-file.h"
+#include "chat/style-engines/chat-engine-kadu/kadu-chat-syntax.h"
+#include "configuration/chat-configuration-holder.h"
 #include "parser/parser.h"
 #include "status/status.h"
 #include "status/status-type-manager.h"
@@ -46,6 +46,8 @@ Preview::Preview(QWidget *parent)
 	p.setBrush(QPalette::Base, Qt::transparent);
 	page()->setPalette(p);
 	setAttribute(Qt::WA_OpaquePaintEvent, false);
+	
+	configurationUpdated();
 }
 
 Preview::~Preview()
@@ -55,19 +57,25 @@ Preview::~Preview()
 
 void Preview::syntaxChanged(const QString &content)
 {
+	// this method is used only with Kadu styles
+
 	QString syntax = content;
 	emit needSyntaxFixup(syntax);
 
 	QString text;
 
 // 	setHtml("<body bgcolor=\"" + resetBackgroundColor + "\"></body>");
-	int count = objectsToParse.count();
 
+	int count = objectsToParse.count();
 	if (count)
 	{
+		KaduChatSyntax syntax(content);
+
+		text = Parser::parse(syntax.top(), BuddyOrContact(contact), true);
+
 		Contact contact = *contacts.constBegin();
 		for (int i = 0; i < count; i++)
-			text += Parser::parse(syntax, BuddyOrContact(contact), objectsToParse.at(i));
+			text += Parser::parse(syntax.withHeader(), BuddyOrContact(contact), objectsToParse.at(i));
 	}
 	else
 		text = Parser::parse(syntax, BuddyOrContact(Buddy::dummy()));
@@ -97,4 +105,9 @@ void Preview::setDrawFrame(bool drawFrame)
 		return;
 	DrawFrame = drawFrame;
 	repaint();
+}
+
+void Preview::configurationUpdated()
+{
+	setUserFont(ChatConfigurationHolder::instance()->chatFont().toString(), ChatConfigurationHolder::instance()->forceCustomChatFont());
 }

@@ -21,11 +21,14 @@
 #define AVATAR_JOB_MANAGER_H
 
 #include <QtCore/QObject>
+#include <QtCore/QSet>
 
 #include "accounts/accounts-aware-object.h"
 #include "avatars/avatar.h"
 #include "storage/simple-manager.h"
 #include "exports.h"
+
+class Contact;
 
 class KADUAPI AvatarJobManager : public QObject
 {
@@ -51,7 +54,7 @@ private slots:
 	void jobFinished();
 
 public:
-	static KADUAPI AvatarJobManager * instance();
+	static AvatarJobManager * instance();
 
 	void addJob(const Contact &contact);
 

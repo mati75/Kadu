@@ -49,6 +49,7 @@ class KADUAPI ContactShared : public QObject, public Shared, public DetailsHolde
 
 	Status CurrentStatus;
 	bool Blocking;
+	bool Dirty;
 
 	QString ProtocolVersion;
 
@@ -56,8 +57,10 @@ class KADUAPI ContactShared : public QObject, public Shared, public DetailsHolde
 	unsigned int Port;
 	QString DnsName;
 
-	void detach(const Buddy &buddy, bool emitSignals);
-	void attach(const Buddy &buddy, bool emitReattached);
+	void detach(bool reattaching, bool emitSignals);
+	void attach(bool reattaching, bool emitSignals);
+
+	void doSetOwnerBuddy(const Buddy &buddy, bool emitSignals);
 
 protected:
 	virtual void load();
@@ -76,7 +79,7 @@ public:
 	static ContactShared * loadStubFromStorage(const QSharedPointer<StoragePoint> &contactStoragePoint);
 	static ContactShared * loadFromStorage(const QSharedPointer<StoragePoint> &contactStoragePoint);
 
-	explicit ContactShared(QUuid uuid = QUuid());
+	explicit ContactShared(const QUuid &uuid = QUuid());
 	virtual ~ContactShared();
 
 	virtual StorableObject * storageParent();
@@ -86,34 +89,37 @@ public:
 	virtual bool shouldStore();
 	virtual void aboutToBeRemoved();
 
-	KaduShared_PropertyRead(Account, contactAccount, ContactAccount)
-	void setContactAccount(Account account);
+	KaduShared_PropertyRead(const Account &, contactAccount, ContactAccount)
+	void setContactAccount(const Account &account);
 
-	KaduShared_Property(Avatar, contactAvatar, ContactAvatar)
-	KaduShared_PropertyRead(Buddy, ownerBuddy, OwnerBuddy)
-	void setOwnerBuddy(Buddy buddy);
+	KaduShared_Property(const Avatar &, contactAvatar, ContactAvatar)
+	KaduShared_PropertyRead(const Buddy &, ownerBuddy, OwnerBuddy)
+	void setOwnerBuddy(const Buddy &buddy);
 
-	KaduShared_PropertyRead(QString, id, Id)
+	KaduShared_PropertyRead(const QString &, id, Id)
 	void setId(const QString &id);
 
+	KaduShared_PropertyBoolRead(Dirty)
+	void setDirty(bool dirty);
+
 	KaduShared_Property(int, priority, Priority)
-	KaduShared_Property(Status, currentStatus, CurrentStatus)
+	KaduShared_Property(const Status &, currentStatus, CurrentStatus)
 	KaduShared_PropertyBool(Blocking)
-	KaduShared_Property(QString, protocolVersion, ProtocolVersion)
-	KaduShared_Property(QHostAddress, address, Address)
+	KaduShared_Property(const QString &, protocolVersion, ProtocolVersion)
+	KaduShared_Property(const QHostAddress &, address, Address)
 	KaduShared_Property(unsigned int, port, Port)
-	KaduShared_Property(QString, dnsName, DnsName)
+	KaduShared_Property(const QString &, dnsName, DnsName)
 	KaduShared_Property(short int, maximumImageSize, MaximumImageSize)
 
 signals:
-	void aboutToBeDetached();
-	void detached(Buddy previousBuddy);
-	void aboutToBeAttached(Buddy nearFutureBuddy);
-	void attached();
-	void reattached();
+	void aboutToBeDetached(bool reattaching);
+	void detached(const Buddy &previousBuddy);
+	void aboutToBeAttached(const Buddy &nearFutureBuddy);
+	void attached(bool reattached);
 
 	void updated();
 	void idChanged(const QString &oldId);
+	void dirtinessChanged();
 
 };
 

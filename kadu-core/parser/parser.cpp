@@ -1,6 +1,7 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Piotr Dąbrowski (ultr@ultr.pl)
+ * Copyright 2011 Sławomir Stępień (s.stepien@interia.pl)
+ * Copyright 2010, 2011 Piotr Dąbrowski (ultr@ultr.pl)
  * Copyright 2007, 2009 Dawid Stawiarski (neeo@kadu.net)
  * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
@@ -27,6 +28,7 @@
 
 #include <QtCore/QFile>
 #include <QtCore/QProcess>
+#include <QtCore/QStack>
 #include <QtCore/QVariant>
 #include <QtGui/QApplication>
 #include <QtNetwork/QHostAddress>
@@ -35,86 +37,99 @@
 #include "configuration/configuration-file.h"
 #include "contacts/contact.h"
 #include "parser/parser-token.h"
+#include "icons/kadu-icon.h"
 #include "misc/misc.h"
 #include "status/status-type.h"
 #include "status/status-type-manager.h"
 
 #include "debug.h"
 #include "html_document.h"
-#include "icons-manager.h"
+#include "icons/icons-manager.h"
 
 #include "parser.h"
 
-QMap<QString, QString> Parser::globalVariables;
-QMap<QString, Parser::BuddyOrContactTagCallback> Parser::registeredTags;
-QMap<QString, Parser::ObjectTagCallback> Parser::registeredObjectTags;
+// PT_CHECK_FILE_EXISTS and PT_CHECK_FILE_NOT_EXISTS checks need space to be encoded,
+// and encoding searchChars shouldn't hurt also
+#define ENCODE_INCLUDE_CHARS " %[{\\$@#}]`\'"
+
+QMap<QString, QString> Parser::GlobalVariables;
+QMap<QString, Parser::BuddyOrContactTagCallback> Parser::RegisteredBuddyOrContactTags;
+QMap<QString, Parser::ObjectTagCallback> Parser::RegisteredObjectTags;
 
 bool Parser::registerTag(const QString &name, BuddyOrContactTagCallback func)
 {
 	kdebugf();
-	if (registeredTags.contains(name))
+
+	if (RegisteredBuddyOrContactTags.contains(name))
 	{
 		kdebugmf(KDEBUG_ERROR | KDEBUG_FUNCTION_END, "tag %s already registered!\n", qPrintable(name));
 		return false;
 	}
-	else
-	{
-		registeredTags.insert(name, func);
-		kdebugf2();
-		return true;
-	}
-}
 
-bool Parser::unregisterTag(const QString &name, BuddyOrContactTagCallback func)
-{
-	Q_UNUSED(func)
-
-	kdebugf();
-	if (!registeredTags.contains(name))
+	if (RegisteredObjectTags.contains(name))
 	{
-		kdebugmf(KDEBUG_ERROR | KDEBUG_FUNCTION_END, "tag %s not registered!\n", qPrintable(name));
+		kdebugmf(KDEBUG_ERROR | KDEBUG_FUNCTION_END, "tag %s already registered (as object tag)!\n", qPrintable(name));
 		return false;
 	}
-	else
+
+	RegisteredBuddyOrContactTags.insert(name, func);
+
+	kdebugf2();
+	return true;
+}
+
+bool Parser::unregisterTag(const QString &name)
+{
+	kdebugf();
+
+	if (!RegisteredBuddyOrContactTags.contains(name))
 	{
-		registeredTags.remove(name);
-		kdebugf2();
-		return true;
+		kdebugmf(KDEBUG_ERROR | KDEBUG_FUNCTION_END, "BuddyOrContact tag %s not registered!\n", qPrintable(name));
+		return false;
 	}
+
+	RegisteredBuddyOrContactTags.remove(name);
+
+	kdebugf2();
+	return true;
 }
 
 bool Parser::registerObjectTag(const QString &name, ObjectTagCallback func)
 {
 	kdebugf();
-	if (registeredObjectTags.contains(name))
+
+	if (RegisteredObjectTags.contains(name))
 	{
 		kdebugmf(KDEBUG_ERROR | KDEBUG_FUNCTION_END, "tag %s already registered!\n", qPrintable(name));
 		return false;
 	}
-	else
-	{
-		registeredObjectTags.insert(name, func);
-		kdebugf2();
-		return true;
-	}
-}
 
-bool Parser::unregisterObjectTag(const QString &name, ObjectTagCallback func)
-{
-	Q_UNUSED(func)
-
-	kdebugf();
-	if (!registeredObjectTags.contains(name))
+	if (RegisteredBuddyOrContactTags.contains(name))
 	{
-		kdebugmf(KDEBUG_ERROR | KDEBUG_FUNCTION_END, "tag %s not registered!\n", qPrintable(name));
+		kdebugmf(KDEBUG_ERROR | KDEBUG_FUNCTION_END, "tag %s already registered (as BuddyOrContact tag)!\n", qPrintable(name));
 		return false;
 	}
-	else
+
+	RegisteredObjectTags.insert(name, func);
+
+	kdebugf2();
+	return true;
+}
+
+bool Parser::unregisterObjectTag(const QString &name)
+{
+	kdebugf();
+
+	if (!RegisteredObjectTags.contains(name))
 	{
-		registeredObjectTags.remove(name);
-		kdebugf2();
-		return true;
+		kdebugmf(KDEBUG_ERROR | KDEBUG_FUNCTION_END, "object tag %s not registered!\n", qPrintable(name));
+		return false;
 	}
+
+	RegisteredObjectTags.remove(name);
+
+	kdebugf2();
+	return true;
 }
 
 QString Parser::executeCmd(const QString &cmd)
@@ -122,35 +137,301 @@ QString Parser::executeCmd(const QString &cmd)
 	kdebugf();
 
 	QString s(cmd);
-	// TODO 0.10.0: check if Qt escapes these
+	// TODO: check if Qt escapes these
 	s.remove(QRegExp("`|>|<"));
 
 	QProcess executor;
 	executor.start(s);
 	executor.closeWriteChannel();
+	
+	QString ret;
+	if (executor.waitForFinished())
+		ret = executor.readAll();
 
 	kdebugf2();
-	return executor.waitForFinished() ? executor.readAll() : QString();
+	return ret;
 }
 
-QString Parser::parse(const QString &s, const QObject * const object, bool escape)
+bool Parser::isActionParserTokenAtTop(const QStack<ParserToken> &parseStack, const QVector<ParserTokenType> &acceptedTokens)
 {
-	return parse(s, BuddyOrContact(), object, escape);
+	bool found = false;
+	QStack<ParserToken>::const_iterator begin = parseStack.constBegin();
+	QStack<ParserToken>::const_iterator it = parseStack.constEnd();
+
+	while (it != begin)
+	{
+		--it;
+		ParserTokenType t = it->type();
+
+		if (acceptedTokens.contains(t))
+		{
+			found = true;
+			break;
+		}
+
+		if (PT_STRING == t)
+			continue;
+
+		break;
+	}
+
+	return found;
 }
 
-QString Parser::parse(const QString &s, BuddyOrContact buddyOrContact, bool escape)
+ParserToken Parser::parsePercentSyntax(const QString &s, int &idx, const BuddyOrContact &buddyOrContact, bool escape)
 {
-	return parse(s, buddyOrContact, 0, escape);
+	ParserToken pe;
+	pe.setType(PT_STRING);
+
+	Buddy buddy = buddyOrContact.buddy();
+	Contact contact = buddyOrContact.contact();
+
+	switch (s.at(idx).toAscii())
+	{
+		// 'o' does not work so we should just ignore it
+		// see: http://kadu.net/mantis/view.php?id=2199
+		case 'o':
+		// 't' was removed in commit 48d3cd65 during 0.9 (aka 0.6.6) release cycle
+		case 't':
+			++idx;
+			break;
+		case 's':
+			++idx;
+
+			if (buddy && buddy.isBlocked())
+				pe.setContent(qApp->translate("@default", "Blocked"));
+			else if (contact)
+			{
+				if (contact.isBlocking())
+					pe.setContent(qApp->translate("@default", "Blocking"));
+				else
+				{
+					StatusType *type = StatusTypeManager::instance()->statusType(contact.currentStatus().type());
+					if (type)
+						pe.setContent(type->displayName());
+				}
+			}
+
+			break;
+		case 'q':
+			++idx;
+
+			if (contact)
+			{
+				StatusContainer *container = contact.contactAccount().statusContainer();
+				if (container)
+					pe.setContent(container->statusIcon(contact.currentStatus().type()).path());
+			}
+
+			break;
+		case 'd':
+			++idx;
+
+			if (contact)
+			{
+				QString description = contact.currentStatus().description();
+				if (escape)
+					HtmlDocument::escapeText(description);
+
+				pe.setContent(description);
+
+				if (config_file.readBoolEntry("Look", "ShowMultilineDesc"))
+				{
+					QString content = pe.decodedContent();
+					content.replace('\n', QLatin1String("<br/>"));
+					content.replace(QRegExp("\\s\\s"), QString(" &nbsp;"));
+					pe.setContent(content);
+				}
+			}
+
+			break;
+		case 'i':
+			++idx;
+
+			if (contact)
+				pe.setContent(contact.address().toString());
+
+			break;
+		case 'v':
+			++idx;
+
+			if (contact)
+				pe.setContent(contact.dnsName());
+
+			break;
+		case 'p':
+			++idx;
+
+			if (contact && contact.port())
+				pe.setContent(QString::number(contact.port()));
+
+			break;
+		case 'u':
+			++idx;
+
+			if (contact)
+				pe.setContent(contact.id());
+			else if (buddy)
+				pe.setContent(buddy.mobile().isEmpty() ? buddy.email() : buddy.mobile());
+
+			break;
+		case 'h':
+			++idx;
+
+			if (contact && !contact.currentStatus().isDisconnected())
+				pe.setContent(contact.protocolVersion());
+
+			break;
+		case 'n':
+		{
+			++idx;
+
+			QString nickName = buddy.nickName();
+			if (escape)
+				HtmlDocument::escapeText(nickName);
+
+			pe.setContent(nickName);
+
+			break;
+		}
+		case 'a':
+		{
+			++idx;
+
+			QString display = buddy.display();
+			if (escape)
+				HtmlDocument::escapeText(display);
+
+			pe.setContent(display);
+
+			break;
+		}
+		case 'f':
+		{
+			++idx;
+
+			QString firstName = buddy.firstName();
+			if (escape)
+				HtmlDocument::escapeText(firstName);
+
+			pe.setContent(firstName);
+
+			break;
+		}
+		case 'r':
+		{
+			++idx;
+
+			QString lastName = buddy.lastName();
+			if (escape)
+				HtmlDocument::escapeText(lastName);
+
+			pe.setContent(lastName);
+
+			break;
+		}
+		case 'm':
+			++idx;
+
+			pe.setContent(buddy.mobile());
+
+			break;
+		case 'g':
+		{
+			++idx;
+
+			QStringList groups;
+			foreach (const Group &group, buddy.groups())
+				groups << group.name();
+
+			pe.setContent(groups.join(","));
+
+			break;
+		}
+		case 'e':
+			++idx;
+
+			pe.setContent(buddy.email());
+
+			break;
+		case 'x':
+			++idx;
+
+			if (contact)
+				pe.setContent(QString::number(contact.maximumImageSize()));
+
+			break;
+		case 'z':
+			++idx;
+
+			if (buddy)
+				pe.setContent(QString::number(buddy.gender()));
+
+			break;
+		case '%':
+			++idx;
+			// fall through
+		default:
+			pe.setContent("%");
+
+			break;
+	}
+
+	return pe;
+}
+
+template<typename ContainerClass>
+QString Parser::joinParserTokens(const ContainerClass &parseStack)
+{
+	QString joined;
+	foreach(const ParserToken &elem, parseStack)
+	{
+		if (elem.type() != PT_STRING)
+		{
+			kdebugm(KDEBUG_WARNING, "Incorrect parse string! %d\n", elem.type());
+		}
+
+		switch (elem.type())
+		{
+			case PT_STRING:
+				joined += elem.decodedContent();
+				break;
+			case PT_EXTERNAL_VARIABLE:
+				joined += "#{";
+				break;
+			case PT_ICONPATH:
+				joined += "@{";
+				break;
+			case PT_VARIABLE:
+				joined += "${";
+				break;
+			case PT_CHECK_FILE_EXISTS:
+				joined += '{';
+				break;
+			case PT_CHECK_FILE_NOT_EXISTS:
+				joined += "{!";
+				break;
+			case PT_CHECK_ALL_NOT_NULL:
+				joined += '[';
+				break;
+			case PT_CHECK_ANY_NULL:
+				joined += "[!";
+				break;
+			case PT_EXECUTE:
+				joined += '`';
+				break;
+			case PT_EXECUTE2:
+				joined += "`{";
+				break;
+		}
+	}
+
+	return joined;
 }
 
 QString Parser::parse(const QString &s, BuddyOrContact buddyOrContact, const QObject * const object, bool escape)
 {
-	Buddy buddy = buddyOrContact.buddy();
-	Contact contact = buddyOrContact.contact();
-
 	kdebugmf(KDEBUG_DUMP, "%s escape=%i\n", qPrintable(s), escape);
-	int index = 0, i, len = s.length();
-	QList<ParserToken> parseStack;
 
 	static QHash<QChar, bool> searchChars;
 
@@ -171,520 +452,419 @@ QString Parser::parse(const QString &s, BuddyOrContact buddyOrContact, const QOb
 	searchChars['`'] = allowExec;
 	searchChars['\''] = allowExec;
 
-	while (index < len)
+	QStack<ParserToken> parseStack;
+	int idx = 0, len = s.length();
+	while (idx < len)
 	{
 		ParserToken pe1, pe;
 
-		for(i = index; i < len; ++i)
-			if (searchChars.value(s.at(i), false))
+		int prevIdx = idx;
+		for (; idx < len; ++idx)
+			if (searchChars.value(s.at(idx), false))
 				break;
 
-//		this is the same, but code above is muuuuch faster
-//		i=s.find(QRegExp("%|`|\\{|\\[|'|\\}|\\]"), index);
-
-		if (i != index)
+		if (idx != prevIdx)
 		{
-			pe1.type = ParserToken::PT_STRING;
-			pe1.content = s.mid(index, i - index);
-			parseStack.push_back(pe1);
+			pe1.setType(PT_STRING);
+			pe1.setContent(s.mid(prevIdx, idx - prevIdx));
+			parseStack.push(pe1);
 
-			if (i == len)
+			if (idx == len)
 				break;
 		}
 
-		char c = s.at(i).toAscii();
+		const QChar c(s.at(idx));
 		if (c == '%')
 		{
-			++i;
-			if (i == len)
+			++idx;
+			if (idx == len)
 				break;
-			pe.type = ParserToken::PT_STRING;
 
-			switch (s.at(i).toAscii())
-			{
-				case 's':
-					++i;
-					if (contact)
-					{
-						StatusType *type = StatusTypeManager::instance()->statusType(contact.currentStatus().type());
-						if (type)
-							pe.content = type->displayName();
-					}
-					break; // TODO: 't' removed
-				case 'q':
-					++i;
-					if (contact)
-					{
-						StatusContainer *container = contact.contactAccount().statusContainer();
-						if (container)
-							pe.content = container->statusIconPath(contact.currentStatus().type());
-					}
-					break;
-				case 'd':
-					++i;
-					if (contact)
-						pe.content = contact.currentStatus().description();
+			pe = parsePercentSyntax(s, idx, buddyOrContact, escape);
+			pe.encodeContent(QByteArray(), ENCODE_INCLUDE_CHARS);
 
-				 	if (escape)
-			 			HtmlDocument::escapeText(pe.content);
-					if (config_file.readBoolEntry("Look", "ShowMultilineDesc"))
-					{
-						pe.content.replace('\n', QLatin1String("<br/>"));
-						pe.content.replace(QRegExp("\\s\\s"), QString(" &nbsp;"));
-					}
-					break;
-				case 'i':
-					++i;
-					if (contact)
-						if (!contact.address().isNull() && contact.address() != QHostAddress::Any && contact.address() != QHostAddress::AnyIPv6)
-							pe.content = contact.address().toString();
-					break;
-				case 'v':
-					++i;
-					if (contact)
-						pe.content = contact.dnsName();
-					break;
-				case 'o':
-					++i;
-					if (contact && contact.port() == 2)
-						pe.content = ' ';
-					break;
-				case 'p':
-					++i;
-					if (contact && contact.port())
-						pe.content = QString::number(contact.port());
-					break;
-				case 'u':
-					++i;
-					if (contact)
-						pe.content = contact.id();
-					else if (buddy)
-						pe.content = buddy.mobile().isEmpty() ? buddy.email() : buddy.mobile();
-					break;
-				case 'h':
-					++i;
-					if (contact && !contact.currentStatus().isDisconnected())
-						pe.content = contact.protocolVersion();
-					break;
-				case 'n':
-					++i;
-					pe.content = buddy.nickName();
-					if (escape)
-						HtmlDocument::escapeText(pe.content);
-					break;
-				case 'a':
-					++i;
-					pe.content = buddy.display();
-					if (escape)
-						HtmlDocument::escapeText(pe.content);
-					break;
-				case 'f':
-					++i;
-					pe.content = buddy.firstName();
-					if (escape)
-						HtmlDocument::escapeText(pe.content);
-					break;
-				case 'r':
-					++i;
-					pe.content = buddy.lastName();
-					if (escape)
-						HtmlDocument::escapeText(pe.content);
-					break;
-				case 'm':
-					++i;
-					pe.content = buddy.mobile();
-					break;
-				case 'g':
-					{
-						++i;
-						QStringList groups;
-						foreach (const Group &group, buddy.groups())
-							groups << group.name();
-						pe.content = groups.join(",");
-						break;
-					}
-				case 'e':
-					++i;
-					pe.content = buddy.email();
-					break;
-				case 'x':
-					++i;
-					if (contact)
-						pe.content = QString::number(contact.maximumImageSize());
-					break;
-				case 'z':
-					++i;
-					if (buddy)
-						pe.content = QString::number(buddy.gender());
-					break;
-				case '%':
-					++i;
-				default:
-					pe.content = '%';
-			}
-			parseStack.push_back(pe);
+			parseStack.push(pe);
 		}
 		else if (c == '[')
 		{
-			++i;
-			if (i == len)
+			++idx;
+			if (idx == len)
 				break;
-			if (s.at(i) == '!')
+
+			if (s.at(idx) == '!')
 			{
-				pe.type = ParserToken::PT_CHECK_ANY_NULL;
-				++i;
+				pe.setType(PT_CHECK_ANY_NULL);
+				++idx;
 			}
 			else
-				pe.type = ParserToken::PT_CHECK_ALL_NOT_NULL;
-			parseStack.push_back(pe);
+				pe.setType(PT_CHECK_ALL_NOT_NULL);
+
+			parseStack.push(pe);
 		}
 		else if (c == ']')
 		{
-			++i;
-			bool anyNull = false;
-			bool found = false;
-			if (!parseStack.isEmpty())
+			++idx;
+
+			QVector<ParserTokenType> acceptedTokens;
+			acceptedTokens
+					<< PT_CHECK_ALL_NOT_NULL
+					<< PT_CHECK_ANY_NULL;
+
+			if (!isActionParserTokenAtTop(parseStack, acceptedTokens))
 			{
-				QList<ParserToken>::const_iterator begin = parseStack.constBegin();
-				QList<ParserToken>::const_iterator it = parseStack.constEnd();
-				while (!found && it != begin)
-				{
-					--it;
-					ParserToken::ParserTokenType t = (*it).type;
-					if (t == ParserToken::PT_STRING)
-						continue;
-					else if (t == ParserToken::PT_CHECK_ALL_NOT_NULL || t == ParserToken::PT_CHECK_ANY_NULL)
-						found = true;
-					else
-						break;
-				}
-			}
-			if (!found)
-			{
-				pe.content = ']';
-				pe.type = ParserToken::PT_STRING;
-				parseStack.push_back(pe);
+				pe.setContent("]");
+				pe.setType(PT_STRING);
+
+				parseStack.push(pe);
 			}
 			else
+			{
+				bool anyNull = false;
 				while (!parseStack.empty())
 				{
-					const ParserToken &pe2 = parseStack.last();
-					if (pe2.type == ParserToken::PT_STRING)
+					ParserToken pe2 = parseStack.pop();
+
+					if (pe2.type() == PT_CHECK_ALL_NOT_NULL)
 					{
-						anyNull = anyNull || pe2.content.isEmpty();
-						pe.content.prepend(pe2.content);
-						parseStack.pop_back();
-					}
-					else if (pe2.type == ParserToken::PT_CHECK_ALL_NOT_NULL)
-					{
-						parseStack.pop_back();
 						if (!anyNull)
 						{
-							pe.type = ParserToken::PT_STRING;
-							parseStack.push_back(pe);
+							pe.setType(PT_STRING);
+
+							parseStack.push(pe);
 						}
+
 						break;
 					}
-					else if (pe2.type == ParserToken::PT_CHECK_ANY_NULL)
+
+					if (pe2.type() == PT_CHECK_ANY_NULL)
 					{
-						parseStack.pop_back();
 						if (anyNull)
 						{
-							pe.type = ParserToken::PT_STRING;
-							parseStack.push_back(pe);
+							pe.setType(PT_STRING);
+
+							parseStack.push(pe);
 						}
+
 						break;
 					}
+
+					// here we know for sure that pe2.type() == PT_STRING,
+					// as it is guaranteed by isActionParserTokenAtTop() call
+					anyNull = anyNull || pe2.decodedContent().isEmpty();
+					QString content = pe.decodedContent();
+					content.prepend(pe2.decodedContent());
+					pe.setContent(content);
 				}
+			}
 		}
 		else if (c == '{')
 		{
-			++i;
-			if (i == len)
+			++idx;
+			if (idx == len)
 				break;
-			if (s.at(i) == '!' || s.at(i) == '~')
+
+			if (s.at(idx) == '!' || s.at(idx) == '~')
 			{
-				pe.type = ParserToken::PT_CHECK_FILE_NOT_EXISTS;
-				++i;
+				++idx;
+				pe.setType(PT_CHECK_FILE_NOT_EXISTS);
 			}
 			else
-				pe.type = ParserToken::PT_CHECK_FILE_EXISTS;
-			parseStack.push_back(pe);
+				pe.setType(PT_CHECK_FILE_EXISTS);
+
+			parseStack.push(pe);
 		}
 		else if (c == '}')
 		{
-			++i;
-			bool found = false;
+			++idx;
 
-			if (!parseStack.isEmpty())
-			{
-				QList<ParserToken>::const_iterator begin = parseStack.constBegin();
-				QList<ParserToken>::const_iterator it = parseStack.constEnd();
-				while (!found && it != begin)
-				{
-					--it;
-					ParserToken::ParserTokenType t = (*it).type;
-					if (t == ParserToken::PT_STRING)
-						continue;
-					else if (t == ParserToken::PT_EXECUTE ||
-								t == ParserToken::PT_CHECK_FILE_EXISTS ||
-								t == ParserToken::PT_CHECK_FILE_NOT_EXISTS ||
-								t == ParserToken::PT_VARIABLE ||
-								t == ParserToken::PT_ICONPATH ||
-								t == ParserToken::PT_EXTERNAL_VARIABLE ||
-								t == ParserToken::PT_EXECUTE2)
-						found = true;
-					else
-						break;
-				}
-			}
+			QVector<ParserTokenType> acceptedTokens;
+			acceptedTokens
+					<< PT_CHECK_FILE_EXISTS
+					<< PT_CHECK_FILE_NOT_EXISTS
+					<< PT_VARIABLE
+					<< PT_ICONPATH
+					<< PT_EXTERNAL_VARIABLE
+					<< PT_EXECUTE2;
 
-			if (!found)
+			if (!isActionParserTokenAtTop(parseStack, acceptedTokens))
 			{
-				pe.content = '}';
-				pe.type = ParserToken::PT_STRING;
-				parseStack.push_back(pe);
+				pe.setContent("}");
+				pe.setType(PT_STRING);
+
+				parseStack.push(pe);
 			}
 			else
+			{
+				QList<ParserToken> tokens;
+
 				while (!parseStack.empty())
 				{
-					const ParserToken &pe2 = parseStack.last();
-					if (pe2.type == ParserToken::PT_STRING)
-					{
-						pe.content.prepend(pe2.content);
-						parseStack.pop_back();
-					}
-					else if (pe2.type == ParserToken::PT_CHECK_FILE_EXISTS || pe2.type == ParserToken::PT_CHECK_FILE_NOT_EXISTS)
-					{
-						// zmienna potrzebna, bo pop_back() zniszczy nam zmienn� pe2, kt�r� pobrali�my przez referencj�
-						bool check_file_exists = pe2.type == ParserToken::PT_CHECK_FILE_EXISTS;
+					ParserToken pe2 = parseStack.pop();
 
-						int spacePos = pe.content.indexOf(' ', 0);
-						parseStack.pop_back();
-						QString file;
-//						kdebugm(KDEBUG_INFO, "spacePos: %d\n", spacePos);
+					if (pe2.type() == PT_CHECK_FILE_EXISTS || pe2.type() == PT_CHECK_FILE_NOT_EXISTS)
+					{
+						int firstSpaceTokenIdx = 0, spacePos = -1;
+						foreach (const ParserToken &token, tokens)
+						{
+							// encoded cannot contain space
+							if (!token.isEncoded())
+							{
+								spacePos = token.rawContent().indexOf(' ');
+								if (spacePos != -1)
+									break;
+							}
+
+							++firstSpaceTokenIdx;
+						}
+
+						QString filePath;
 						if (spacePos == -1)
-							file = pe.content;
+							filePath = joinParserTokens(tokens);
 						else
-							file = pe.content.left(spacePos);
+							filePath = joinParserTokens(tokens.mid(0, firstSpaceTokenIdx)) +
+									tokens.at(firstSpaceTokenIdx).rawContent().left(spacePos);
 
-						if (file.startsWith(QLatin1String("file://")))
-							file = file.mid(strlen("file://"));
-//						kdebugm(KDEBUG_INFO, "file: %s\n", qPrintable(file));
-						if (QFile::exists(file) == check_file_exists)
+						if (filePath.startsWith(QLatin1String("file://")))
+							filePath = filePath.mid(7 /*strlen("file://")*/);
+
+						bool checkFileExists = (pe2.type() == PT_CHECK_FILE_EXISTS);
+						if (QFile::exists(filePath) == checkFileExists)
 						{
-							pe.content = pe.content.mid(spacePos + 1);
-							pe.type = ParserToken::PT_STRING;
-							parseStack.push_back(pe);
+							pe.setType(PT_STRING);
+
+							if (spacePos == -1)
+								pe.setContent(filePath);
+							else
+							{
+								QString content = tokens.at(firstSpaceTokenIdx).rawContent().mid(spacePos + 1) +
+										joinParserTokens(tokens.mid(firstSpaceTokenIdx + 1));
+
+								pe.setContent(content);
+							}
+
+							parseStack.push(pe);
 						}
+
 						break;
 					}
-					else if (pe2.type == ParserToken::PT_VARIABLE)
+
+					if (pe2.type() == PT_VARIABLE)
 					{
-						parseStack.pop_back();
-						pe.type = ParserToken::PT_STRING;
-						if (Parser::globalVariables.contains(pe.content))
+						QString content = joinParserTokens(tokens);
+
+						pe.setType(PT_STRING);
+
+						if (GlobalVariables.contains(content))
 						{
-							kdebugm(KDEBUG_INFO, "name: %s, value: %s\n", qPrintable(pe.content), qPrintable(Parser::globalVariables[pe.content]));
-							pe.content = Parser::globalVariables[pe.content];
+							kdebugm(KDEBUG_INFO, "name: %s, value: %s\n", qPrintable(pe.decodedContent()), qPrintable(GlobalVariables[pe.decodedContent()]));
+							pe.setContent(GlobalVariables[content]);
+							pe.encodeContent(QByteArray(), ENCODE_INCLUDE_CHARS);
 						}
 						else
 						{
-							kdebugm(KDEBUG_WARNING, "variable %s undefined\n", qPrintable(pe.content));
-							pe.content.clear();
+							kdebugm(KDEBUG_WARNING, "variable %s undefined\n", qPrintable(pe.decodedContent()));
+							pe.setContent(QString());
 						}
-						parseStack.push_back(pe);
+
+						parseStack.push(pe);
+
 						break;
 					}
-					else if (pe2.type == ParserToken::PT_ICONPATH)
+
+					if (pe2.type() == PT_ICONPATH)
 					{
-						parseStack.pop_back();
-						pe.type = ParserToken::PT_STRING;
-						if (pe.content.contains(':'))
+						QString content = joinParserTokens(tokens);
+
+						pe.setType(PT_STRING);
+						if (content.contains(':'))
 						{
-							QStringList parts = pe.content.split(':');
-							pe.content = webKitPath(IconsManager::instance()->iconPath(parts[0], parts[1]));
+							QStringList parts = content.split(':');
+							pe.setContent(KaduIcon(parts.at(0), parts.at(1)).webKitPath());
 						}
 						else
-							pe.content = webKitPath(IconsManager::instance()->iconPath(pe.content));
-						parseStack.push_back(pe);
+							pe.setContent(KaduIcon(content).webKitPath());
+
+						parseStack.push(pe);
+
 						break;
 					}
-					else if (pe2.type == ParserToken::PT_EXTERNAL_VARIABLE)
+
+					if (pe2.type() == PT_EXTERNAL_VARIABLE)
 					{
-						parseStack.pop_back();
-						pe.type = ParserToken::PT_STRING;
-						if (registeredTags.contains(pe.content))
-							pe.content = registeredTags[pe.content](buddyOrContact);
-						else if (object && registeredObjectTags.contains(pe.content))
-							pe.content = registeredObjectTags[pe.content](object);
+						QString content = joinParserTokens(tokens);
+
+						pe.setType(PT_STRING);
+
+						if (RegisteredBuddyOrContactTags.contains(content))
+							pe.setContent(RegisteredBuddyOrContactTags[content](buddyOrContact));
+						else if (object && RegisteredObjectTags.contains(content))
+							pe.setContent(RegisteredObjectTags[content](object));
 						else
 						{
-							kdebugm(KDEBUG_WARNING, "tag %s not registered\n", qPrintable(pe.content));
-							pe.content.clear();;
+							kdebugm(KDEBUG_WARNING, "tag %s not registered\n", qPrintable(pe.decodedContent()));
+							pe.setContent(QString());
 						}
-						parseStack.push_back(pe);
+
+						pe.encodeContent(QByteArray(), ENCODE_INCLUDE_CHARS);
+						parseStack.push(pe);
+
 						break;
 					}
-					else if (pe2.type == ParserToken::PT_EXECUTE2)
+
+					if (pe2.type() == PT_EXECUTE2)
 					{
-						parseStack.pop_back();
-						pe.type = ParserToken::PT_STRING;
-						pe.content = executeCmd(pe.content);
-						parseStack.push_back(pe);
+						pe.setType(PT_STRING);
+						pe.setContent(executeCmd(joinParserTokens(tokens)));
+
+						parseStack.push(pe);
+
 						break;
 					}
+
+					// here we know for sure that pe2.type() == PT_STRING,
+					// as it is guaranteed by isActionParserTokenAtTop() call
+					tokens.prepend(pe2);
 				}
+			}
 		}
 		else if (c == '`')
 		{
-			++i;
-			if (i == len || s.at(i) != '{')
+			++idx;
+
+			if (idx == len || s.at(idx) != '{')
 			{
-				pe.type = ParserToken::PT_EXECUTE;
-				parseStack.push_back(pe);
+				pe.setType(PT_EXECUTE);
+
+				parseStack.push(pe);
 			}
 			else
 			{
-				++i;
-				pe.type = ParserToken::PT_EXECUTE2;
-				parseStack.push_back(pe);
+				++idx;
+
+				pe.setType(PT_EXECUTE2);
+
+				parseStack.push(pe);
 			}
 		}
 		else if (c == '\'')
 		{
-			++i;
-			pe.content.clear();
-			bool found = false;
-			if (!parseStack.isEmpty())
+			++idx;
+
+			pe.setContent(QString());
+
+			QVector<ParserTokenType> acceptedTokens(PT_EXECUTE);
+
+			if (!isActionParserTokenAtTop(parseStack, acceptedTokens))
 			{
-				QList<ParserToken>::const_iterator begin = parseStack.constBegin();
-				QList<ParserToken>::const_iterator it = parseStack.constEnd();
-				while (!found && it != begin)
-				{
-					--it;
-					ParserToken::ParserTokenType t = (*it).type;
-					if (t == ParserToken::PT_STRING)
-						continue;
-					else if (t == ParserToken::PT_EXECUTE)
-						found = true;
-					else
-						break;
-				}
-			}
-			if (!found)
-			{
-				pe.content = '\'';
-				pe.type = ParserToken::PT_STRING;
-				parseStack.push_back(pe);
+				pe.setContent("\'");
+				pe.setType(PT_STRING);
+
+				parseStack.push(pe);
 			}
 			else
 				while (!parseStack.empty())
 				{
-					const ParserToken &pe2 = parseStack.last();
-					if (pe2.type == ParserToken::PT_STRING)
+					ParserToken pe2 = parseStack.pop();
+
+					if (pe2.type() == PT_EXECUTE)
 					{
-						pe.content.prepend(pe2.content);
-						parseStack.pop_back();
-					}
-					else if (pe2.type == ParserToken::PT_EXECUTE)
-					{
-						parseStack.pop_back();
-						pe.type = ParserToken::PT_STRING;
-						pe.content = executeCmd(pe.content);
-						parseStack.push_back(pe);
+						pe.setType(PT_STRING);
+						pe.setContent(executeCmd(pe.decodedContent()));
+
+						parseStack.push(pe);
+
 						break;
 					}
+
+					// here we know for sure that pe2.type() == PT_STRING,
+					// as it is guaranteed by isActionParserTokenAtTop() call
+					QString content = pe.decodedContent();
+					content.prepend(pe2.decodedContent());
+					pe.setContent(content);
 				}
 		}
 		else if (c == '\\')
 		{
-			++i;
-			if (i == len)
+			++idx;
+			if (idx == len)
 				break;
-			pe.type = ParserToken::PT_STRING;
-			pe.content = s.at(i);
-			++i;
-			parseStack.push_back(pe);
+
+			pe.setType(PT_STRING);
+			pe.setContent(s.at(idx));
+
+			++idx;
+
+			parseStack.push(pe);
 		}
 		else if (c == '$')
 		{
-			++i;
-			if (i == len || s.at(i) != '{')
+			++idx;
+
+			if (idx == len || s.at(idx) != '{')
 			{
-				pe.type = ParserToken::PT_STRING;
-				pe.content = '$';
-				parseStack.push_back(pe);
+				pe.setType(PT_STRING);
+				pe.setContent("$");
+
+				parseStack.push(pe);
 			}
 			else
 			{
-				++i;
-				pe.type = ParserToken::PT_VARIABLE;
-				parseStack.push_back(pe);
+				++idx;
+
+				pe.setType(PT_VARIABLE);
+
+				parseStack.push(pe);
 			}
 		}
 		else if (c == '@')
 		{
-			++i;
-			if (i == len || s.at(i) != '{')
+			++idx;
+
+			if (idx == len || s.at(idx) != '{')
 			{
-				pe.type = ParserToken::PT_STRING;
-				pe.content = '@';
-				parseStack.push_back(pe);
+				pe.setType(PT_STRING);
+				pe.setContent("@");
+
+				parseStack.push(pe);
 			}
 			else
 			{
-				++i;
-				pe.type = ParserToken::PT_ICONPATH;
-				parseStack.push_back(pe);
+				++idx;
+
+				pe.setType(PT_ICONPATH);
+
+				parseStack.push(pe);
 			}
 		}
 		else if (c == '#')
 		{
-			++i;
-			if (i == len || s.at(i) != '{')
+			++idx;
+
+			if (idx == len || s.at(idx) != '{')
 			{
-				pe.type = ParserToken::PT_STRING;
-				pe.content = '#';
-				parseStack.push_back(pe);
+				pe.setType(PT_STRING);
+				pe.setContent("#");
+
+				parseStack.push(pe);
 			}
 			else
 			{
-				++i;
-				pe.type = ParserToken::PT_EXTERNAL_VARIABLE;
-				parseStack.push_back(pe);
+				++idx;
+
+				pe.setType(PT_EXTERNAL_VARIABLE);
+
+				parseStack.push(pe);
 			}
 		}
 		else
 		{
-			kdebugm(KDEBUG_ERROR, "shit happens? %d %c %d\n", i, (char)c, (char)c);
+			kdebugm(KDEBUG_ERROR, "shit happens? %d %c (ascii %d, unicode 0x%hx)\n", idx, c.toAscii(), (int)c.toAscii(), c.unicode());
 		}
-		index = i;
 	}
-	QString ret;
-	QString p;
-	foreach(const ParserToken &elem, parseStack)
-	{
-		if (elem.type != ParserToken::PT_STRING)
-		{
-			kdebugm(KDEBUG_WARNING, "Incorrect parse string! %d\n", elem.type);
-		}
 
-		switch (elem.type)
-		{
-			case ParserToken::PT_STRING:                p = elem.content; break;
-			case ParserToken::PT_EXTERNAL_VARIABLE:     p = "#{";         break;
-			case ParserToken::PT_ICONPATH:              p = "@{";         break;
-			case ParserToken::PT_VARIABLE:              p = "${";         break;
-			case ParserToken::PT_CHECK_FILE_EXISTS:     p = '{';          break;
-			case ParserToken::PT_CHECK_FILE_NOT_EXISTS: p = "{!";         break;
-			case ParserToken::PT_CHECK_ALL_NOT_NULL:    p = '[';          break;
-			case ParserToken::PT_CHECK_ANY_NULL:        p = "[!";         break;
-			case ParserToken::PT_EXECUTE:               p = '`';          break;
-			case ParserToken::PT_EXECUTE2:              p = "`{";         break;
-		}
-		ret += p;
-	}
+	QString ret = joinParserTokens(parseStack);
+
 	kdebugm(KDEBUG_DUMP, "%s\n", qPrintable(ret));
+
 	return ret;
 }

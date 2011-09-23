@@ -59,7 +59,7 @@ GroupManager::~GroupManager()
 
 void GroupManager::importConfiguration()
 {
-	QMutexLocker(&mutex());
+	QMutexLocker locker(&mutex());
 
 	QSharedPointer<StoragePoint> sp(storage());
 	if (!sp || !sp->storage())
@@ -83,7 +83,7 @@ void GroupManager::importConfiguration()
 
 void GroupManager::load()
 {
-	QMutexLocker(&mutex());
+	QMutexLocker locker(&mutex());
 
 	QDomElement groupsNode = xml_config_file->getNode("Groups", XmlConfigFile::ModeFind);
 	if (groupsNode.isNull())
@@ -98,7 +98,7 @@ void GroupManager::load()
 
 void GroupManager::store()
 {
-	QMutexLocker(&mutex());
+	QMutexLocker locker(&mutex());
 
 	emit saveGroupData();
 
@@ -107,7 +107,7 @@ void GroupManager::store()
 
 Group GroupManager::byName(const QString &name, bool create)
 {
-	QMutexLocker(&mutex());
+	QMutexLocker locker(&mutex());
 
 	if (name.isEmpty())
 		return Group::null;
@@ -140,14 +140,14 @@ bool GroupManager::acceptableGroupName(const QString &groupName, bool acceptExis
 
 	if (groupName.contains(","))
 	{
-		MessageDialog::show("dialog-warning", tr("Kadu"), tr("'%1' is prohibited").arg(','));
+		MessageDialog::show(KaduIcon("dialog-warning"), tr("Kadu"), tr("'%1' is prohibited").arg(','));
 		kdebugf2();
 		return false;
 	}
 
 	if (groupName.contains(";"))
 	{
-		MessageDialog::show("dialog-warning", tr("Kadu"), tr("'%1' is prohibited").arg(';'));
+		MessageDialog::show(KaduIcon("dialog-warning"), tr("Kadu"), tr("'%1' is prohibited").arg(';'));
 		kdebugf2();
 		return false;
 	}
@@ -157,7 +157,7 @@ bool GroupManager::acceptableGroupName(const QString &groupName, bool acceptExis
 	if (number)
 	{
 		// because of gadu-gadu contact list format...
-		MessageDialog::show("dialog-warning", tr("Kadu"), tr("Numbers are prohibited"));
+		MessageDialog::show(KaduIcon("dialog-warning"), tr("Kadu"), tr("Numbers are prohibited"));
 		kdebugf2();
 		return false;
 	}
@@ -165,14 +165,14 @@ bool GroupManager::acceptableGroupName(const QString &groupName, bool acceptExis
 	// TODO All translations
  	if (groupName == tr("All"))
 	{
-		MessageDialog::show("dialog-warning", tr("Kadu"), tr("Group name %1 is prohibited").arg(groupName));
+		MessageDialog::show(KaduIcon("dialog-warning"), tr("Kadu"), tr("Group name %1 is prohibited").arg(groupName));
  		kdebugf2();
  		return false;
 	}
 
 	if (!acceptExistingGroupName && byName(groupName, false))
  	{
-		MessageDialog::show("dialog-warning", tr("Kadu"), tr("Group of that name already exists!"));
+		MessageDialog::show(KaduIcon("dialog-warning"), tr("Kadu"), tr("Group of that name already exists!"));
  		kdebugf2();
  		return false;
  	}
@@ -181,8 +181,16 @@ bool GroupManager::acceptableGroupName(const QString &groupName, bool acceptExis
 	return true;
 }
 
+void GroupManager::groupDataUpdated()
+{
+	Group group(sender());
+	if (!group.isNull())
+		emit groupUpdated(group);
+}
+
 void GroupManager::itemAboutToBeAdded(Group item)
 {
+	connect(item, SIGNAL(updated()), this, SLOT(groupDataUpdated()));
 	emit groupAboutToBeAdded(item);
 }
 
@@ -198,5 +206,6 @@ void GroupManager::itemAboutToBeRemoved(Group item)
 
 void GroupManager::itemRemoved(Group item)
 {
+	disconnect(item, SIGNAL(updated()), this, SLOT(groupDataUpdated()));
 	emit groupRemoved(item);
 }

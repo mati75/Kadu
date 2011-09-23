@@ -74,7 +74,7 @@ public:
 	static ChatShared * loadStubFromStorage(const QSharedPointer<StoragePoint> &storagePoint);
 	static ChatShared * loadFromStorage(const QSharedPointer<StoragePoint> &storagePoint);
 
-	explicit ChatShared(QUuid uuid = QUuid::createUuid());
+	explicit ChatShared(const QUuid &uuid = QUuid::createUuid());
 	virtual ~ChatShared();
 
 	virtual StorableObject * storageParent();
@@ -94,7 +94,7 @@ public:
 	 * Every chat is assigned to account. All contacts in every chat must
 	 * belong to the same account as chat.
 	 */
-	KaduShared_Property(Account, chatAccount, ChatAccount);
+	KaduShared_Property(const Account &, chatAccount, ChatAccount);
 
 	/**
 	 * @author Rafal 'Vogel' Malinowski
@@ -106,7 +106,7 @@ public:
 	 * and 'conference' (for on-to-many chats). Other what types could be: 'irc-room' (for irc room
 	 * chats).
 	 */
-	KaduShared_Property(QString, type, Type);
+	KaduShared_Property(const QString &, type, Type);
 
 	// temporary, not stored, lost after program close
 	KaduShared_PropertyBool(IgnoreAllMessages)
@@ -119,7 +119,5 @@ signals:
 /**
  * @}
  */
-
-#include "chat/chat.h" // for MOC
 
 #endif // CHAT_SHARED_H

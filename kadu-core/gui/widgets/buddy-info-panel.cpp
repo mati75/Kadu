@@ -1,6 +1,6 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Piotr Dąbrowski (ultr@ultr.pl)
+ * Copyright 2010, 2011 Piotr Dąbrowski (ultr@ultr.pl)
  * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2009, 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
@@ -24,9 +24,11 @@
 #include <QtWebKit/QWebFrame>
 
 #include "accounts/account.h"
+#include "avatars/avatar.h"
 #include "buddies/buddy.h"
 #include "buddies/buddy-shared.h"
 #include "buddies/buddy-preferred-manager.h"
+#include "core/core.h"
 #include "configuration/configuration-file.h"
 #include "contacts/contact-manager.h"
 #include "emoticons/emoticons-manager.h"
@@ -41,9 +43,6 @@
 
 BuddyInfoPanel::BuddyInfoPanel(QWidget *parent) : KaduWebView(parent)
 {
-	QWebSettings::setMaximumPagesInCache(0);
-	QWebSettings::setObjectCacheCapacities(0, 0, 0);
-
 	configurationUpdated();
 
 	QPalette p = palette();
@@ -61,6 +60,8 @@ BuddyInfoPanel::~BuddyInfoPanel()
 
 void BuddyInfoPanel::configurationUpdated()
 {
+	setUserFont(config_file.readFontEntry("Look", "PanelFont").toString(), true);
+
 	EmoticonsManager::instance()->configurationUpdated();
 
 	update();
@@ -74,6 +75,9 @@ void BuddyInfoPanel::buddyUpdated(Buddy &buddy)
 
 void BuddyInfoPanel::update()
 {
+	if (Core::instance()->isClosing())
+		return;
+
 	QFont font = config_file.readFontEntry("Look", "PanelFont");
 	QString fontFamily = font.family();
 	QString fontSize;
@@ -191,7 +195,7 @@ void BuddyInfoPanel::displayItem(BuddyOrContact item)
 
 	HtmlDocument doc;
 	doc.parseHtml(Parser::parse(Syntax, item));
-	UrlHandlerManager::instance()->convertAllUrls(doc);
+	UrlHandlerManager::instance()->convertAllUrls(doc, false);
 
 	if (EmoticonsStyleNone != (EmoticonsStyle)config_file.readNumEntry("Chat", "EmoticonsStyle") &&
 			config_file.readBoolEntry("General", "ShowEmotPanel"))

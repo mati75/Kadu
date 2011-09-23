@@ -24,10 +24,10 @@
 #define NOTIFICATION_H
 
 #include <QtCore/QPair>
-#include <QtGui/QIcon>
 
 #include "buddies/buddy-set.h"
 #include "exports.h"
+#include "icons/kadu-icon.h"
 
 class QTimer;
 
@@ -116,8 +116,7 @@ private:
 	QString Title;
 	QString Text;
 	QString Details;
-	QString IconPath;
-	QIcon Icon;
+	KaduIcon Icon;
 
 	QList<Callback> Callbacks;
 	QTimer *DefaultCallbackTimer;
@@ -126,6 +125,8 @@ private:
 	bool Closing;
 
 public:
+	static void registerParserTags();
+	static void unregisterParserTags();
 
 	/**
 		Tworzy now� notfikacj� o zadanym typie, ikonie i zadanej asocjacji z kontaktami.
@@ -135,7 +136,7 @@ public:
 		@arg type typ zdarzenia
 		@arg icon nazwa ikony zdarzenia
 	 **/
-	Notification(const QString &type, const QString &iconPath);
+	Notification(const QString &type, const KaduIcon &icon);
 	virtual ~Notification();
 
 	/**
@@ -182,7 +183,7 @@ public:
 
 		@return typ zdarzenia
 	 **/
-	QString type() const;
+	const QString & type() const { return Type; }
 
 	QString key() const;
 
@@ -195,7 +196,7 @@ public:
 
 		@return tytu� zdarzenia
 	 **/
-	QString title() const;
+	const QString & title() const { return Title; }
 
 	/**
 		Ustawia tre�� zdarzenia.
@@ -206,7 +207,7 @@ public:
 
 		@return tre�� zdarzenia
 	 **/
-	QString text() const;
+	const QString & text() const { return Text; }
 
 	/**
 		Ustawia szczeg��y zdarzenia (jak na przyk�ad tekst wiadomo�ci).
@@ -215,27 +216,25 @@ public:
 	/**
 		Szczeg��y zdarzenia
 	 **/
-	QString details() const;
+	const QString & details() const { return Details; }
 
 	/**
 		Ustawia ikon� zdarzenia.
 	 **/
-	void setIcon(const QString &iconPath);
+	void setIcon(const KaduIcon &icon);
 	/**
 		Ikona zdarzenia.
 
 		@return ikona zdarzenia
 	 **/
-	QIcon icon() const;
-
-	QString iconPath() const;
+	const KaduIcon & icon() const { return Icon; }
 	
 	/**
 		Lista akcji.
 
 		@return lista akcji
 	 **/
-	const QList<Callback> & getCallbacks();
+	const QList<Callback> & getCallbacks() { return Callbacks; }
 
 public slots:
 	/**

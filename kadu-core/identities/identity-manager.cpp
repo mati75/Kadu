@@ -19,6 +19,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "accounts/account.h"
 #include "core/core.h"
 #include "configuration/configuration-manager.h"
 #include "identities/identities-aware-object.h"
@@ -28,7 +29,7 @@
 
 IdentityManager * IdentityManager::Instance = 0;
 
-KADUAPI IdentityManager * IdentityManager::instance()
+IdentityManager * IdentityManager::instance()
 {
 	if (0 == Instance)
 		Instance = new IdentityManager();
@@ -46,7 +47,7 @@ IdentityManager::~IdentityManager()
 
 Identity IdentityManager::byName(const QString &name, bool create)
 {
-	QMutexLocker(&mutex());
+	QMutexLocker locker(&mutex());
 
 	if (name.isEmpty())
 		return Identity::null;
@@ -69,7 +70,7 @@ Identity IdentityManager::byName(const QString &name, bool create)
 
 Identity IdentityManager::identityForAcccount(Account account)
 {
-	QMutexLocker(&mutex());
+	QMutexLocker locker(&mutex());
 
 	foreach (const Identity &identity, items())
 		if (identity.hasAccount(account))
@@ -116,7 +117,7 @@ void IdentityManager::itemRemoved(Identity item)
 
 void IdentityManager::addDefaultIdentities()
 {
-	QMutexLocker(&mutex());
+	QMutexLocker locker(&mutex());
 
 	Identity friendsIdentity = Identity::create();
 	friendsIdentity.data()->setState(StateNew);
@@ -139,7 +140,7 @@ void IdentityManager::addDefaultIdentities()
 
 void IdentityManager::load()
 {
-	QMutexLocker(&mutex());
+	QMutexLocker locker(&mutex());
 
 	SimpleManager<Identity>::load();
 

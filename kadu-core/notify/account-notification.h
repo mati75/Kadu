@@ -23,7 +23,6 @@
 #define ACCOUNT_NOTIFICATION_H
 
 #include "accounts/account.h"
-#include "parser/parser.h"
 #include "notification.h"
 #include "exports.h"
 
@@ -36,7 +35,10 @@ class KADUAPI AccountNotification : public Notification
 	Account CurrentAccount;
 
 public:
-	AccountNotification(Account account, const QString& type, const QString& iconPath);
+	static void registerParserTags();
+	static void unregisterParserTags();
+
+	AccountNotification(Account account, const QString &type, const KaduIcon &icon);
 	virtual ~AccountNotification();
 
 	Account account() const { return CurrentAccount; }

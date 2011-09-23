@@ -34,16 +34,15 @@
 
 #include "status-menu.h"
 
-StatusMenu::StatusMenu(StatusContainer *statusContainer, QMenu *menu, bool commonStatusIcons) :
+StatusMenu::StatusMenu(StatusContainer *statusContainer, bool includePrefix, QMenu *menu) :
 		QObject(menu), Menu(menu), MyStatusContainer(statusContainer)
 {
-	Actions = new StatusActions(MyStatusContainer, this, commonStatusIcons);
+	Actions = new StatusActions(MyStatusContainer, includePrefix, this);
 
 	connect(Actions, SIGNAL(statusActionsRecreated()), this, SLOT(addStatusActions()));
+	connect(Actions, SIGNAL(statusActionsRecreated()), this, SIGNAL(menuRecreated()));
 	connect(Actions, SIGNAL(statusActionTriggered(QAction *)), this, SLOT(changeStatus(QAction *)));
 	connect(Actions, SIGNAL(changeDescriptionActionTriggered(bool)), this, SLOT(changeDescription()));
-
-// 	connect(MyStatusContainer, SIGNAL(updated()), this, SLOT(statusContainerUpdated()));
 
 	connect(Menu, SIGNAL(aboutToHide()), this, SLOT(aboutToHide()));
 
@@ -73,7 +72,7 @@ void StatusMenu::changeStatus(QAction *action)
 
 	Status status(MyStatusContainer->status());
 	status.setType(statusType->name());
-	MyStatusContainer->setStatus(status);
+	MyStatusContainer->setStatus(status, true);
 }
 
 void StatusMenu::changeDescription()

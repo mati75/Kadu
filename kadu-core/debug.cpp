@@ -33,6 +33,7 @@ int debug_mask;
 
 #include <QtCore/QDebug>
 #include <QtCore/QMutex>
+#include <QtCore/QMutexLocker>
 
 #ifdef Q_OS_WIN
 #define WIN32_LEAN_AND_MEAN
@@ -54,7 +55,7 @@ void _kdebug_with_mask(int mask, const char* file, const int line, const char* f
 {
 	if (debug_mask & mask)
 	{
-		debug_mutex.lock();
+		QMutexLocker locker(&debug_mutex);
 
 		if (showTimesInDebug)
 		{
@@ -111,7 +112,6 @@ void _kdebug_with_mask(int mask, const char* file, const int line, const char* f
 			OutputDebugString(msg);
 		}
 #endif
-		debug_mutex.unlock();
 	}
 }
 
@@ -135,4 +135,4 @@ void ktDebugCheckPoint(const QString& message, QTime& time)
 	printf("%s", qPrintable(QString("[timer checkpoint: %1] %2\n").arg(QTime::currentTime().msecsTo(time)).arg(message)));
 }
 
-}; // namespace Debug
+} // namespace Debug

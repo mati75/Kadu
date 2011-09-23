@@ -50,7 +50,7 @@
 #include "debug.h"
 
 NotifyConfigurationUiHandler::NotifyConfigurationUiHandler(QObject *parent) :
-		QObject(parent), notificationsGroupBox(0)
+		ConfigurationUiHandler(parent), notificationsGroupBox(0)
 {
 	connect(NotificationManager::instance(), SIGNAL(notiferRegistered(Notifier *)),
 			this, SLOT(notifierRegistered(Notifier *)));
@@ -71,7 +71,7 @@ NotifyConfigurationUiHandler::~NotifyConfigurationUiHandler()
 void NotifyConfigurationUiHandler::addConfigurationWidget(Notifier *notifier)
 {
 	NotifyGroupBox *configurationGroupBox = new NotifyGroupBox(notifier,
-			qApp->translate("@default", notifier->description().toAscii().data()), notificationsGroupBox->widget());
+			qApp->translate("@default", notifier->description().toUtf8().constData()), notificationsGroupBox->widget());
 	connect(configurationGroupBox, SIGNAL(toggled(Notifier *, bool)), this, SLOT(notifierToggled(Notifier *, bool)));
 	if (!NotifierGui.contains(notifier))
 		NotifierGui.insert(notifier, NotifierConfigurationGuiItem());
@@ -132,7 +132,7 @@ void NotifyConfigurationUiHandler::mainConfigurationWindowCreated(MainConfigurat
 		NotifyEvents[eventName] = item;
 	}
 
-	ConfigGroupBox *statusGroupBox = mainConfigurationWindow->widget()->configGroupBox("Notifications", "Options", "Status change");
+	ConfigGroupBox *statusGroupBox = mainConfigurationWindow->widget()->configGroupBox("Notifications", "Options", "Status Change");
 
 	QWidget *notifyUsers = new QWidget(statusGroupBox->widget());
 	QGridLayout *notifyUsersLayout = new QGridLayout(notifyUsers);

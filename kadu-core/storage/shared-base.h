@@ -124,6 +124,21 @@ private:
 	KaduSharedBase_PropertyWrite(type, name, capitalized_name)
 
 /**
+ * @author Bartosz 'beevvy' Brachaczek
+ * @short Declares getter and setter for given property of SharedBase's Shared class.
+ * @param type type of property
+ * @param name name of getter
+ * @param capitalized_name name of property
+ *
+ * Declares getter and setter for a delegated property of @link Shared @endlink class stored in
+ * @link SharedBase @endlink. Getter is named 'name'. Setter is named 'set##capitalized_name'.
+ * Argument of the setter wil be a const reference to 'type'.
+ */
+#define KaduSharedBase_PropertyCRW(type, name, capitalized_name) \
+	KaduSharedBase_PropertyRead(type, name, capitalized_name) \
+	KaduSharedBase_PropertyWrite(const type &, name, capitalized_name)
+
+/**
  * @author Rafal 'Vogel' Malinowski
  * @short Declares getter for given boolean property of SharedBase's Shared class.
  * @param capitalized_name name of property
@@ -208,6 +223,22 @@ private:
 #define KaduSharedBase_PropertyDef(class_name, type, name, capitalized_name, default) \
 	KaduSharedBase_PropertyReadDef(class_name, type, name, capitalized_name, default) \
 	KaduSharedBase_PropertyWriteDef(class_name, type, name, capitalized_name)
+
+/**
+ * @author Bartosz 'beevvy' Brachaczek
+ * @short Defines getter and setter for given property of SharedBase's Shared class.
+ * @param type type of property
+ * @param name name of getter
+ * @param capitalized_name name of property
+ * @param default default value
+ *
+ * Defines getter (@link KaduSharedBase_PropertyReadDef @endlink) and setter
+ * (@link KaduSharedBase_PropertyWriteDef @endlink) got given delegated property.
+ * Argument of the setter will be a const reference to 'type'.
+ */
+#define KaduSharedBase_PropertyDefCRW(class_name, type, name, capitalized_name, default) \
+	KaduSharedBase_PropertyReadDef(class_name, type, name, capitalized_name, default) \
+	KaduSharedBase_PropertyWriteDef(class_name, const type &, name, capitalized_name)
 
 /**
  * @author Rafal 'Vogel' Malinowski
@@ -311,8 +342,7 @@ public:
 	 *
 	 * Contructs empty (null) object. It contains no data.
 	 */
-	SharedBase() :
-			Data(0)
+	SharedBase()
 	{
 	}
 
@@ -334,8 +364,7 @@ public:
 	 * @param copy object that will be copied
 	 *
 	 * Copies copy object. Source and resulting object will have the same data. Udpate
-	 * in one will result in update with second. Only way to break this dependence
-	 * is to use assignment operator.
+	 * in one will result in update with second.
 	 */
 	SharedBase(const SharedBase &copy) :
 			Data(copy.Data)
@@ -418,33 +447,6 @@ public:
 
 	/**
 	 * @author Rafal 'Vogel' Malinowski
-	 * @short Check if two objects are not equal.
-	 * @param compare object to compare with
-	 * @return true, if two objects are different
-	 *
-	 * Returns true if two objects contains different data objects (or one of them is null).
-	 */
-	bool operator != (const SharedBase<T> &compare) const
-	{
-		return Data != compare.Data;
-	}
-
-	/**
-	 * @author Rafal 'Vogel' Malinowski
-	 * @short Check if one objects is smaller than second.
-	 * @param compare object to compare with
-	 * @return true, if this object is smaller than compare
-	 *
-	 * Objects are compared by pointers to their data objects. Object with smaller pointer value
-	 * is considered as smaller. Methos is used mainly in QMap.
-	 */
-	int operator < (const SharedBase<T> &compare) const
-	{
-		return Data < compare.Data;
-	}
-
-	/**
-	 * @author Rafal 'Vogel' Malinowski
 	 * @short Delegates blockUpdatedSignal method to Shared object.
 	 *
 	 * @see Shared::blockUpdatedSignal
@@ -513,22 +515,25 @@ public:
 };
 
 template<class T>
-KaduSharedBase_PropertyReadDef(SharedBase<T>, QUuid, uuid, Uuid, QUuid());
+KaduSharedBase_PropertyReadDef(SharedBase<T>, QUuid, uuid, Uuid, QUuid())
 template<class T>
-KaduSharedBase_PropertyWriteDef(SharedBase<T>, QUuid, uuid, Uuid);
+KaduSharedBase_PropertyWriteDef(SharedBase<T>, QUuid, uuid, Uuid)
 
 /**
  * @author Rafal 'Vogel' Malinowski
  * @short Computes hash for given SharedBase object.
  * @return hash for given SharedBase object
  *
- * Hash is computed by uuid field of data object. All null objects have the same hash.
+ * Hash is computed by the pointer for data object.
  * Used for QHash objects.
  */
 template<class T>
 uint qHash(const SharedBase<T> &sharedBase)
 {
-	return qHash(sharedBase.uuid().toString());
+	if (sharedBase.isNull())
+		return 0;
+
+	return qHash(sharedBase.data());
 }
 
 /**

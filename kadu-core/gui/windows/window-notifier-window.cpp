@@ -25,13 +25,13 @@
 
 #include "notify/notification.h"
 #include "debug.h"
-#include "icons-manager.h"
+#include "icons/icons-manager.h"
 
 #include "window-notifier-window.h"
 
 WindowNotifierWindow::WindowNotifierWindow(Notification *notification, QWidget *parent) :
 		QDialog(parent, Qt::Window | Qt::MSWindowsFixedSizeDialogHint | Qt::WindowTitleHint | Qt::WindowSystemMenuHint),
-		CurrentNotification(notification)
+		DesktopAwareObject(this), CurrentNotification(notification)
 {
 	kdebugf();
 
@@ -60,15 +60,18 @@ void WindowNotifierWindow::createGui()
 	QHBoxLayout* labelsLayout = new QHBoxLayout(labels);
 	labelsLayout->setSpacing(10);
 
-	if (!CurrentNotification->icon().isNull())
+	if (!CurrentNotification->icon().icon().isNull())
 	{
 		QLabel *iconLabel = new QLabel;
-		iconLabel->setPixmap(CurrentNotification->icon().pixmap(64, 64));
+		iconLabel->setPixmap(CurrentNotification->icon().icon().pixmap(64, 64));
 		labelsLayout->addWidget(iconLabel);
 	}
 
 	QLabel *textLabel = new QLabel;
-	textLabel->setText(CurrentNotification->text());
+	QString text = CurrentNotification->text();
+	if (!CurrentNotification->details().isEmpty())
+		text += "<br/> <small>" + CurrentNotification->details() + "</small>";
+	textLabel->setText(text);
 
 	labelsLayout->addWidget(textLabel);
 

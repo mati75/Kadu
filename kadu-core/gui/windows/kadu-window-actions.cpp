@@ -38,12 +38,16 @@
 #include "buddies/buddy-shared.h"
 #include "buddies/group-manager.h"
 #include "buddies/filter/blocked-buddy-filter.h"
-#include "configuration/configuration-file.h"
-#include "contacts/contact.h"
 #include "buddies/filter/has-description-buddy-filter.h"
 #include "buddies/filter/offline-buddy-filter.h"
 #include "buddies/filter/online-and-description-buddy-filter.h"
+#include "buddies/model/buddies-model.h"
+#include "buddies/model/buddies-model-proxy.h"
+#include "configuration/configuration-file.h"
+#include "contacts/contact.h"
 #include "core/core.h"
+#include "icons/kadu-icon.h"
+#include "gui/status-icon.h"
 #include "gui/actions/action.h"
 #include "gui/actions/actions.h"
 #include "gui/widgets/buddies-list-view.h"
@@ -66,15 +70,29 @@
 #include "misc/misc.h"
 #include "os/generic/url-opener.h"
 #include "parser/parser.h"
+#include "plugins/plugins-manager.h"
+#include "protocols/protocol.h"
 #include "status/status-changer-manager.h"
 #include "status/status-container-manager.h"
 #include "url-handlers/url-handler-manager.h"
 
 #include "about.h"
 #include "debug.h"
-#include "modules.h"
 
 #include "kadu-window-actions.h"
+
+void hideNoMultilogonAccounts(Action *action)
+{
+	bool hasMultilogonAccount = false;
+	foreach (const Account &account, AccountManager::instance()->items())
+		if (account.protocolHandler() && account.protocolHandler()->multilogonService())
+		{
+			hasMultilogonAccount = true;
+			break;
+		}
+
+	action->setVisible(hasMultilogonAccount);
+}
 
 void disableContainsSelfUles(Action *action)
 {
@@ -97,16 +115,22 @@ void checkBuddyProperties(Action *action)
 		return;
 	}
 
+	if (action->buddies().contains(Core::instance()->myself()))
+	{
+		action->setEnabled(false);
+		return;
+	}
+
 	action->setEnabled(true);
 
 	if (action->buddy().isAnonymous())
 	{
-		action->setIcon(IconsManager::instance()->iconByPath("contact-new"));
+		action->setIcon(KaduIcon("contact-new"));
 		action->setText(qApp->translate("KaduWindowActions", "Add Buddy..."));
 	}
 	else
 	{
-		action->setIcon(IconsManager::instance()->iconByPath("x-office-address-book"));
+		action->setIcon(KaduIcon("x-office-address-book"));
 		action->setText(qApp->translate("KaduWindowActions", "View Buddy Properties"));
 	}
 
@@ -140,116 +164,138 @@ void disableIfContactSelected(Action *action)
 {
 	if (action && action->dataSource())
 		action->setEnabled(!action->dataSource()->hasContactSelected() && action->dataSource()->buddies().count());
+
+	if (action->buddies().contains(Core::instance()->myself()))
+		action->setEnabled(false);
+}
+
+void disableMerge(Action *action)
+{
+	disableIfContactSelected(action);
+
+	if (1 != action->buddies().size())
+		action->setEnabled(false);
 }
 
 KaduWindowActions::KaduWindowActions(QObject *parent) : QObject(parent)
 {
+	Actions::instance()->blockSignals();
+
 	Configuration = new ActionDescription(this,
 		ActionDescription::TypeGlobal, "configurationAction",
 		this, SLOT(configurationActionActivated(QAction *, bool)),
-		"preferences-other", tr("Preferences...")
+		KaduIcon("preferences-other"), tr("Preferences...")
 	);
 	Configuration->setShortcut("kadu_configure", Qt::ApplicationShortcut);
 
 	ShowYourAccounts = new ActionDescription(this,
 		ActionDescription::TypeMainMenu, "yourAccountsAction",
 		this, SLOT(yourAccountsActionActivated(QAction *, bool)),
-		"x-office-address-book", tr("Your Accounts...")
+		KaduIcon("x-office-address-book"), tr("Your Accounts...")
 	);
 
 	ShowMultilogons = new ActionDescription(this,
 		ActionDescription::TypeMainMenu, "showMultilogonsAction",
 		this, SLOT(showMultilogonsActionActivated(QAction *, bool)),
-		"kadu_icons/multilogon", tr("Multilogons...")
+		KaduIcon("kadu_icons/multilogon"), tr("Multilogons..."), false,
+		hideNoMultilogonAccounts
 	);
+	connect(ShowMultilogons, SIGNAL(actionCreated(Action *)), this, SLOT(showMultilogonsActionCreated(Action *)));
 
 	ManageModules = new ActionDescription(this,
 		ActionDescription::TypeMainMenu, "manageModulesAction",
-		ModulesManager::instance(), SLOT(showWindow(QAction *, bool)),
-		"kadu_icons/plugins", tr("Plugins...")
+		PluginsManager::instance(), SLOT(showWindow(QAction *, bool)),
+		KaduIcon("kadu_icons/plugins"), tr("Plugins...")
 	);
 	ManageModules->setShortcut("kadu_modulesmanager", Qt::ApplicationShortcut);
 
 	ExitKadu = new ActionDescription(this,
 		ActionDescription::TypeMainMenu, "exitKaduAction",
 		this, SLOT(exitKaduActionActivated(QAction *, bool)),
-		"application-exit", tr("&Quit")
+		KaduIcon("application-exit"), tr("&Quit")
 	);
 	ExitKadu->setShortcut("kadu_exit", Qt::ApplicationShortcut);
 
 	AddUser = new ActionDescription(this,
 		ActionDescription::TypeGlobal, "addUserAction",
 		this, SLOT(addUserActionActivated(QAction *, bool)),
-		"contact-new", tr("Add Buddy...")
+		KaduIcon("contact-new"), tr("Add Buddy...")
 	);
 	AddUser->setShortcut("kadu_adduser", Qt::ApplicationShortcut);
 
 	AddGroup= new ActionDescription(this,
 		ActionDescription::TypeGlobal, "addGroupAction",
 		this, SLOT(addGroupActionActivated(QAction *, bool)),
-		"group-new", tr("Add Group...")
+		KaduIcon("group-new"), tr("Add Group...")
 	);
 
 	OpenSearch = new ActionDescription(this,
 		ActionDescription::TypeGlobal, "openSearchAction",
 		this, SLOT(openSearchActionActivated(QAction *, bool)),
-		"edit-find", tr("Search for Buddy...")
+		KaduIcon("edit-find"), tr("Search for Buddy...")
 	);
 
 	Help = new ActionDescription(this,
 		ActionDescription::TypeMainMenu, "helpAction",
 		this, SLOT(helpActionActivated(QAction *, bool)),
-		"help-contents", tr("Getting H&elp...")
+		KaduIcon("help-contents"), tr("Getting H&elp...")
 	);
 
 	Bugs = new ActionDescription(this,
 		ActionDescription::TypeMainMenu, "bugsAction",
 		this, SLOT(bugsActionActivated(QAction *, bool)),
-		"kadu_icons/report-a-bug", tr("Report a Bug...")
+		KaduIcon("kadu_icons/report-a-bug"), tr("Report a Bug...")
 	);
 
 	Support = new ActionDescription(this,
 		ActionDescription::TypeMainMenu, "supportAction",
 		this, SLOT(supportActionActivated(QAction *, bool)),
-		"kadu_icons/support-us", tr("Support Us...")
+		KaduIcon("kadu_icons/support-us"), tr("Support Us...")
 	);
 
 	GetInvolved = new ActionDescription(this,
 		ActionDescription::TypeMainMenu, "getInvolvedAction",
 		this, SLOT(getInvolvedActionActivated(QAction *, bool)),
-		"kadu_icons/get-involved", tr("Get Involved...")
+		KaduIcon("kadu_icons/get-involved"), tr("Get Involved...")
 	);
 
 	Translate = new ActionDescription(this,
 		ActionDescription::TypeMainMenu, "translateAction",
 		this, SLOT(translateActionActivated(QAction *, bool)),
-		"kadu_icons/translate-kadu", tr("Translate Kadu...")
+		KaduIcon("kadu_icons/translate-kadu"), tr("Translate Kadu...")
 	);
 
 	About = new ActionDescription(this,
 		ActionDescription::TypeMainMenu, "aboutAction",
 		this, SLOT(aboutActionActivated(QAction *, bool)),
-		"kadu_icons/about-kadu", tr("A&bout Kadu")
+		KaduIcon("kadu_icons/about-kadu"), tr("A&bout Kadu")
 	);
 
 	ShowInfoPanel = new ActionDescription(this,
 		ActionDescription::TypeMainMenu, "showInfoPanelAction",
 		this, SLOT(showInfoPanelActionActivated(QAction *, bool)),
-		"kadu_icons/show-information-panel", tr("Show Information Panel"), true
+		KaduIcon("kadu_icons/show-information-panel"), tr("Show Information Panel"), true
 	);
 	connect(ShowInfoPanel, SIGNAL(actionCreated(Action *)), this, SLOT(showInfoPanelActionCreated(Action *)));
 
 	ShowBlockedBuddies = new ActionDescription(this,
 		ActionDescription::TypeMainMenu, "showIgnoredAction",
 		this, SLOT(showBlockedActionActivated(QAction *, bool)),
-		"kadu_icons/show-blocked-buddies", tr("Show Blocked Buddies"), true
+		KaduIcon("kadu_icons/show-blocked-buddies"), tr("Show Blocked Buddies"), true
 	);
 	connect(ShowBlockedBuddies, SIGNAL(actionCreated(Action *)), this, SLOT(showBlockedActionCreated(Action *)));
+
+	ShowMyself = new ActionDescription(this,
+		ActionDescription::TypeMainMenu, "showMyselfAction",
+		this, SLOT(showMyselfActionActivated(QAction *, bool)),
+		KaduIcon(), tr("Show Myself Buddy"), true
+	);
+	connect(ShowMyself, SIGNAL(actionCreated(Action *)), this, SLOT(showMyselfActionCreated(Action *)));
 
 	CopyDescription = new ActionDescription(this,
 		ActionDescription::TypeUser, "copyDescriptionAction",
 		this, SLOT(copyDescriptionActionActivated(QAction *, bool)),
-		"edit-copy", tr("Copy Description"), false,
+		KaduIcon("edit-copy"), tr("Copy Description"), false,
 		disableNoDescription
 	);
 	BuddiesListViewMenuManager::instance()->addListActionDescription(CopyDescription, BuddiesListViewMenuItem::MenuCategoryActions, 10);
@@ -257,14 +303,14 @@ KaduWindowActions::KaduWindowActions(QObject *parent) : QObject(parent)
 	CopyPersonalInfo = new ActionDescription(this,
 		ActionDescription::TypeUser, "copyPersonalInfoAction",
 		this, SLOT(copyPersonalInfoActionActivated(QAction *, bool)),
-		"kadu_icons/copy-personal-info", tr("Copy Personal Info")
+		KaduIcon("kadu_icons/copy-personal-info"), tr("Copy Personal Info")
 	);
 	BuddiesListViewMenuManager::instance()->addListActionDescription(CopyPersonalInfo, BuddiesListViewMenuItem::MenuCategoryActions, 20);
 
 	OpenDescriptionLink = new ActionDescription(this,
 		ActionDescription::TypeUser, "openDescriptionLinkAction",
 		this, SLOT(openDescriptionLinkActionActivated(QAction *, bool)),
-		"go-jump", tr("Open Description Link in Browser..."), false,
+		KaduIcon("go-jump"), tr("Open Description Link in Browser..."), false,
 		disableNoDescriptionUrl
 	);
 	BuddiesListViewMenuManager::instance()->addListActionDescription(OpenDescriptionLink, BuddiesListViewMenuItem::MenuCategoryActions, 30);
@@ -272,22 +318,23 @@ KaduWindowActions::KaduWindowActions(QObject *parent) : QObject(parent)
 	WriteEmail = new ActionDescription(this,
 		ActionDescription::TypeUser, "writeEmailAction",
 		this, SLOT(writeEmailActionActivated(QAction *, bool)),
-		"mail-message-new", tr("Send E-Mail"), false,
+		KaduIcon("mail-message-new"), tr("Send E-Mail"), false,
 		disableNoEMail
 	);
 	BuddiesListViewMenuManager::instance()->addActionDescription(WriteEmail, BuddiesListViewMenuItem::MenuCategoryActions, 200);
+	connect(WriteEmail, SIGNAL(actionCreated(Action *)), this, SLOT(writeEmailActionCreated(Action *)));
 
 	LookupUserInfo = new ActionDescription(this,
 		ActionDescription::TypeUser, "lookupUserInfoAction",
 		this, SLOT(lookupInDirectoryActionActivated(QAction *, bool)),
-		"edit-find", tr("Search in Directory"), false,
+		KaduIcon("edit-find"), tr("Search in Directory"), false,
 		disableNoContact
 	);
 
 	InactiveUsers = new ActionDescription(this,
 		ActionDescription::TypeUserList, "inactiveUsersAction",
 		this, SLOT(inactiveUsersActionActivated(QAction *, bool)),
-		"kadu_icons/show-offline-buddies", tr("Show Offline Buddies"),
+		KaduIcon("kadu_icons/show-offline-buddies"), tr("Show Offline Buddies"),
 		true
 	);
 	connect(InactiveUsers, SIGNAL(actionCreated(Action *)), this, SLOT(inactiveUsersActionCreated(Action *)));
@@ -296,7 +343,7 @@ KaduWindowActions::KaduWindowActions(QObject *parent) : QObject(parent)
 	DescriptionUsers = new ActionDescription(this,
 		ActionDescription::TypeUserList, "descriptionUsersAction",
 		this, SLOT(descriptionUsersActionActivated(QAction *, bool)),
-		"kadu_icons/only-show-with-description", tr("Only Show Buddies with Description"),
+		KaduIcon("kadu_icons/only-show-with-description"), tr("Only Show Buddies with Description"),
 		true
 	);
 	connect(DescriptionUsers, SIGNAL(actionCreated(Action *)), this, SLOT(descriptionUsersActionCreated(Action *)));
@@ -305,7 +352,7 @@ KaduWindowActions::KaduWindowActions(QObject *parent) : QObject(parent)
 	ShowDescriptions = new ActionDescription(this,
 		ActionDescription::TypeUserList, "descriptionsAction",
 		this, SLOT(showDescriptionsActionActivated(QAction *, bool)),
-		"kadu_icons/show-descriptions", tr("Show Descriptions"),
+		KaduIcon("kadu_icons/show-descriptions"), tr("Show Descriptions"),
 		true
 	);
 	connect(ShowDescriptions, SIGNAL(actionCreated(Action *)), this, SLOT(showDescriptionsActionCreated(Action *)));
@@ -313,7 +360,7 @@ KaduWindowActions::KaduWindowActions(QObject *parent) : QObject(parent)
 	OnlineAndDescriptionUsers = new ActionDescription(this,
 		ActionDescription::TypeUserList, "onlineAndDescriptionUsersAction",
 		this, SLOT(onlineAndDescUsersActionActivated(QAction *, bool)),
-		"kadu_icons/only-show-online-and-with-description", tr("Only Show Online Buddies and Buddies with Description"),
+		KaduIcon("kadu_icons/only-show-online-and-with-description"), tr("Only Show Online Buddies and Buddies with Description"),
 		true
 	);
 	connect(OnlineAndDescriptionUsers, SIGNAL(actionCreated(Action *)), this, SLOT(onlineAndDescUsersActionCreated(Action *)));
@@ -321,7 +368,7 @@ KaduWindowActions::KaduWindowActions(QObject *parent) : QObject(parent)
 	EditUser = new ActionDescription(this,
 		ActionDescription::TypeUser, "editUserAction",
 		this, SLOT(editUserActionActivated(QAction *, bool)),
-		"x-office-address-book", tr("View Buddy Properties"), false,
+		KaduIcon("x-office-address-book"), tr("View Buddy Properties"), false,
 		checkBuddyProperties
 	);
 	connect(EditUser, SIGNAL(actionCreated(Action *)), this, SLOT(editUserActionCreated(Action *)));
@@ -330,8 +377,8 @@ KaduWindowActions::KaduWindowActions(QObject *parent) : QObject(parent)
 	MergeContact = new ActionDescription(this,
 		ActionDescription::TypeUser, "mergeContactAction",
 		this, SLOT(mergeContactActionActivated(QAction *, bool)),
-		"kadu_icons/merge-buddies", tr("Merge Buddies..."), false,
-		disableIfContactSelected
+		KaduIcon("kadu_icons/merge-buddies"), tr("Merge Buddies..."), false,
+		disableMerge
 	);
 	BuddiesListViewMenuManager::instance()->addActionDescription(MergeContact, BuddiesListViewMenuItem::MenuCategoryManagement, 100);
 
@@ -340,16 +387,19 @@ KaduWindowActions::KaduWindowActions(QObject *parent) : QObject(parent)
 	DeleteUsers = new ActionDescription(this,
 		ActionDescription::TypeUser, "deleteUsersAction",
 		this, SLOT(deleteUsersActionActivated(QAction *, bool)),
-		"edit-delete", tr("Delete Buddy..."), false,
+		KaduIcon("edit-delete"), tr("Delete Buddy..."), false,
 		disableIfContactSelected
 	);
 	DeleteUsers->setShortcut("kadu_deleteuser");
 	BuddiesListViewMenuManager::instance()->addActionDescription(DeleteUsers, BuddiesListViewMenuItem::MenuCategoryManagement, 1000);
 
+	// The last ActionDescription will send ActionAdded signal
+	Actions::instance()->unblockSignals();
+
 	ChangeStatus = new ActionDescription(this,
 		ActionDescription::TypeGlobal, "openStatusAction",
 		this, SLOT(changeStatusActionActivated(QAction *, bool)),
-		"kadu_icons/change-status", tr("Change Status")
+		KaduIcon("kadu_icons/change-status"), tr("Change Status")
 	);
 	connect(ChangeStatus, SIGNAL(actionCreated(Action *)), this, SLOT(changeStatusActionCreated(Action *)));
 
@@ -367,13 +417,19 @@ void KaduWindowActions::statusChanged(StatusContainer *container, Status status)
 	if (!container)
 		return;
 
-	QIcon icon = container->statusIcon(status).pixmap(16, 16);
+	KaduIcon icon = container->statusIcon(status);
 	foreach (Action *action, ChangeStatus->actions())
 		if (action->statusContainer() == container)
 			action->setIcon(icon);
 
 	if (container == StatusContainerManager::instance()->defaultStatusContainer() && container != StatusContainerManager::instance())
 		statusChanged(StatusContainerManager::instance(), status);
+}
+
+void KaduWindowActions::showMultilogonsActionCreated(Action *action)
+{
+	connect(AccountManager::instance(), SIGNAL(accountRegistered(Account)), action, SLOT(checkState()));
+	connect(AccountManager::instance(), SIGNAL(accountUnregistered(Account)), action, SLOT(checkState()));
 }
 
 void KaduWindowActions::inactiveUsersActionCreated(Action *action)
@@ -443,7 +499,7 @@ void KaduWindowActions::editUserActionCreated(Action *action)
 
 	if (buddy && buddy.isAnonymous())
 	{
-		action->setIcon(IconsManager::instance()->iconByPath("contact-new"));
+		action->setIcon(KaduIcon("contact-new"));
 		action->setText(tr("Add Buddy..."));
 	}
 }
@@ -453,8 +509,9 @@ void KaduWindowActions::changeStatusActionCreated(Action *action)
 	StatusContainer *statusContainer = action->statusContainer();
 	if (statusContainer)
 	{
-		Status status = StatusChangerManager::instance()->realStatus(statusContainer);
-		action->setIcon(statusContainer->statusIcon(status).pixmap(16,16));
+		StatusIcon *icon = new StatusIcon(statusContainer, action);
+		connect(icon, SIGNAL(iconUpdated(KaduIcon)), action, SLOT(setIcon(KaduIcon)));
+		action->setIcon(icon->icon());
 	}
 }
 
@@ -479,6 +536,33 @@ void KaduWindowActions::showBlockedActionCreated(Action *action)
 	action->setChecked(enabled);
 
 	window->buddiesListView()->addFilter(ibf);
+}
+
+void KaduWindowActions::showMyselfActionCreated(Action *action)
+{
+	MainWindow *window = qobject_cast<MainWindow *>(action->parentWidget());
+	if (!window)
+		return;
+	if (!window->buddiesListView())
+		return;
+
+	BuddiesModelProxy *proxyModel = qobject_cast<BuddiesModelProxy *>(window->buddiesListView()->model());
+	if (!proxyModel)
+		return;
+
+	bool enabled = config_file.readBoolEntry("General", "ShowMyself", false);
+	BuddiesModel *model = qobject_cast<BuddiesModel *>(proxyModel->sourceModel());
+	if (model)
+	{
+		model->setIncludeMyself(enabled);
+		action->setChecked(enabled);
+	}
+}
+
+void KaduWindowActions::writeEmailActionCreated(Action *action)
+{
+	if (action->buddy())
+		connect(action->buddy(), SIGNAL(updated()), action, SLOT(checkState()));
 }
 
 void KaduWindowActions::configurationActionActivated(QAction *sender, bool toggled)
@@ -653,6 +737,25 @@ void KaduWindowActions::showBlockedActionActivated(QAction *sender, bool toggled
 		BlockedBuddyFilter *bbf = v.value<BlockedBuddyFilter *>();
 		bbf->setEnabled(!toggled);
 		config_file.writeEntry("General", "ShowBlocked", toggled);
+	}
+}
+
+void KaduWindowActions::showMyselfActionActivated(QAction *sender, bool toggled)
+{
+	MainWindow *window = qobject_cast<MainWindow *>(sender->parentWidget());
+	if (!window)
+		return;
+	if (!window->buddiesListView())
+		return;
+
+	BuddiesModelProxy *proxyModel = qobject_cast<BuddiesModelProxy *>(window->buddiesListView()->model());
+	if (!proxyModel)
+		return;
+	BuddiesModel *model = qobject_cast<BuddiesModel *>(proxyModel->sourceModel());
+	if (model)
+	{
+		model->setIncludeMyself(toggled);
+		config_file.writeEntry("General", "ShowMyself", toggled);
 	}
 }
 
@@ -872,7 +975,7 @@ void KaduWindowActions::editUserActionActivated(ActionDataSource *source)
 	if (1 != buddySet.count())
 		return;
 
-	Buddy buddy = *buddySet.begin();
+	Buddy buddy = *buddySet.constBegin();
 
 	if (buddy.isAnonymous())
 		(new AddBuddyWindow(Core::instance()->kaduWindow(), buddy, true))->show();
@@ -895,7 +998,7 @@ void KaduWindowActions::changeStatusActionActivated(QAction *sender, bool toggle
 		return;
 
 	QScopedPointer<QMenu> menu(new QMenu());
-	new StatusMenu(container, menu.data());
+	new StatusMenu(container, false, menu.data());
 	menu->exec(QCursor::pos());
 }
 
@@ -910,4 +1013,6 @@ void KaduWindowActions::configurationUpdated()
 	if (ShowBlockedBuddies->action(Core::instance()->kaduWindow())->isChecked() != config_file.readBoolEntry("General", "ShowBlocked"))
 		ShowBlockedBuddies->action(Core::instance()->kaduWindow())->trigger();
 
+	if (ShowMyself->action(Core::instance()->kaduWindow())->isChecked() != config_file.readBoolEntry("General", "ShowMyself"))
+		ShowMyself->action(Core::instance()->kaduWindow())->trigger();
 }

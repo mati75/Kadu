@@ -1,9 +1,0 @@
-[Module]
-Description=Provides Single Window Mode
-Description[pl]=Dodaje Tryb pojedynczego okna
-Author=Kadu Team
-Dependencies=
-Provides=tabs
-Conflicts=tabs
-LoadByDefault=false
-Version=core

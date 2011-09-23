@@ -23,6 +23,8 @@
 #include "buddies/buddy-manager.h"
 #include "contacts/contact-manager.h"
 #include "gui/widgets/buddy-contacts-table-item.h"
+#include "icons/kadu-icon.h"
+#include "identities/identity.h"
 #include "model/roles.h"
 #include "protocols/services/roster-service.h"
 #include "protocols/protocol.h"
@@ -135,6 +137,14 @@ void BuddyContactsTableModel::performItemActionEdit(BuddyContactsTableItem *item
 
 	contact.setPriority(item->itemContactPriority());
 
+	if (contact.contactAccount() == item->itemAccount() && contact.id() == item->id())
+		return;
+
+	// First we need to remove existing contact from the manager to avoid duplicates.
+	Contact existingContact = ContactManager::instance()->byId(item->itemAccount(), item->id(), ActionReturnNull);
+	if (existingContact)
+		ContactManager::instance()->removeItem(existingContact);
+
 	if (contact.contactAccount() != item->itemAccount())
 	{
 		// allow protocol handlers to handle that
@@ -146,7 +156,8 @@ void BuddyContactsTableModel::performItemActionEdit(BuddyContactsTableItem *item
 		ContactManager::instance()->addItem(contact);
 		sendAuthorization(contact);
 	}
-	else if (contact.id() != item->id())
+	// else means that contact.id() != item->id()
+	else
 	{
 		contact.setId(item->id());
 		sendAuthorization(contact);
@@ -320,7 +331,7 @@ QVariant BuddyContactsTableModel::data(const QModelIndex &index, int role) const
 					return item->itemAccount().accountIdentity().name();
 				case Qt::DecorationRole:
 					return item->itemAccount().protocolHandler()
-							? item->itemAccount().protocolHandler()->icon()
+							? item->itemAccount().protocolHandler()->icon().icon()
 							: QIcon();
 				case AccountRole:
 					return QVariant::fromValue<Account>(item->itemAccount());

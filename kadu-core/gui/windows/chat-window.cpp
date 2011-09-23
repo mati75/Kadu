@@ -37,6 +37,7 @@
 #include "chat/chat-geometry-data.h"
 #include "configuration/configuration-file.h"
 #include "contacts/contact-set.h"
+#include "gui/widgets/chat-widget.h"
 #include "gui/widgets/chat-widget-manager.h"
 #include "gui/widgets/custom-input.h"
 #include "gui/windows/message-dialog.h"
@@ -48,7 +49,8 @@
 #include "chat-window.h"
 
 ChatWindow::ChatWindow(ChatWidget *chatWidget, QWidget *parent) :
-		QWidget(parent), currentChatWidget(chatWidget), title_timer(new QTimer(this))
+		QWidget(parent), DesktopAwareObject(this), currentChatWidget(chatWidget),
+		title_timer(new QTimer(this)), showNewMessagesNum(false), blinkChatTitle(true)
 {
 	kdebugf();
 
@@ -155,7 +157,7 @@ void ChatWindow::kaduRestoreGeometry()
 	{
 		QRect geom = cgd->windowGeometry();
 
-		setGeometry(geom);
+		setWindowGeometry(this, geom);
 		currentChatWidget->setGeometry(geom);
 
 		currentChatWidget->kaduRestoreGeometry();
@@ -185,7 +187,7 @@ void ChatWindow::closeEvent(QCloseEvent *e)
 
 		if (QDateTime::currentDateTime() < currentChatWidget->lastMessageTime().addSecs(period))
 		{
-			if (!MessageDialog::ask("dialog-question", tr("Kadu"), tr("New message received, close window anyway?")))
+			if (!MessageDialog::ask(KaduIcon("dialog-question"), tr("Kadu"), tr("New message received, close window anyway?")))
 			{
 				e->ignore();
 				return;

@@ -28,6 +28,7 @@
 
 #include "gui/widgets/configuration/configuration-widget.h"
 #include "gui/widgets/configuration/kadu-tab-widget.h"
+#include "icons/kadu-icon.h"
 
 class ConfigGroupBox;
 class ConfigTab;
@@ -44,7 +45,7 @@ class ConfigSection : public QObject
 
 	QString Name;
 	ConfigurationWidget *MyConfigurationWidget;
-	QString IconPath;
+	KaduIcon Icon;
 
 	QListWidgetItem *ListWidgetItem;
 	bool Activated;
@@ -53,7 +54,7 @@ class ConfigSection : public QObject
 	QWidget *ParentConfigGroupBoxWidget;
 	KaduTabWidget *TabWidget;
 
-	ConfigTab * configTab(const QString &name, bool create = true);
+	ConfigTab * configTab(const QString &name, bool create);
 
 private slots:
 	void configTabDestroyed(QObject *obj);
@@ -61,7 +62,7 @@ private slots:
 
 public:
 	ConfigSection(const QString &name, ConfigurationWidget *configurationWidget, QListWidgetItem *listWidgetItem, QWidget *parentConfigGroupBoxWidget,
-		const QString &iconPath);
+		const KaduIcon &icon);
 	virtual ~ConfigSection();
 
 	const QString & name() const { return Name; }
@@ -71,7 +72,7 @@ public:
 	void show() { TabWidget->show(); }
 	void hide() { TabWidget->hide(); }
 
-	ConfigGroupBox * configGroupBox(const QString &tab, const QString &groupBox, bool create = true);
+	ConfigGroupBox * configGroupBox(const QString &tab, const QString &groupBox, bool create);
 
 };
 

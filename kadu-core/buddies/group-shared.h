@@ -22,10 +22,7 @@
 #define GROUP_SHARED_H
 
 #include <QtCore/QObject>
-#include <QtCore/QSharedData>
-#include <QtCore/QUuid>
-
-#include "status/status.h"
+#include <QtCore/QString>
 
 #include "storage/shared.h"
 
@@ -54,7 +51,7 @@ public:
 	static GroupShared * loadStubFromStorage(const QSharedPointer<StoragePoint> &groupStoragePoint);
 	static GroupShared * loadFromStorage(const QSharedPointer<StoragePoint> &groupStoragePoint);
 
-	explicit GroupShared(QUuid uuid = QUuid());
+	explicit GroupShared(const QUuid &uuid = QUuid());
 	virtual ~GroupShared();
 
 	virtual StorableObject * storageParent();
@@ -62,8 +59,10 @@ public:
 
 	virtual void store();
 
-	KaduShared_Property(QString, name, Name)
-	KaduShared_Property(QString, icon, Icon)
+	KaduShared_PropertyRead(const QString &, name, Name)
+	void setName(const QString &name);
+
+	KaduShared_Property(const QString &, icon, Icon)
 	KaduShared_Property(bool, notifyAboutStatusChanges, NotifyAboutStatusChanges)
 	KaduShared_Property(bool, showInAllGroup, ShowInAllGroup)
 	KaduShared_Property(bool, offlineToGroup, OfflineToGroup)
@@ -73,6 +72,7 @@ public:
 
 signals:
 	void updated();
+	void nameChanged();
 
 };
 

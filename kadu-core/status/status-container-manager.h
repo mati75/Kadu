@@ -28,6 +28,8 @@
 #include "identities/identities-aware-object.h"
 #include "status/status-container.h"
 
+class AllAccountsStatusContainer;
+
 class KADUAPI StatusContainerManager : public StatusContainer,
 		public ConfigurationAwareObject, private AccountsAwareObject, private IdentitiesAwareObject
 {
@@ -45,14 +47,12 @@ class KADUAPI StatusContainerManager : public StatusContainer,
 
 	QList<StatusContainer *> StatusContainers;
 	StatusContainer *DefaultStatusContainer;
+	AllAccountsStatusContainer *AllAccountsContainer;
 
 	QString StartupStatus;
 	QString StartupDescription;
 	bool StartupLastDescription;
 	bool OfflineToInvisible;
-
-	bool DisconnectWithCurrentDescription;
-	QString DisconnectDescription;
 
 	void cleanStatusContainers();
 	void addAllAccounts();
@@ -65,7 +65,7 @@ class KADUAPI StatusContainerManager : public StatusContainer,
 
 private slots:
 	void updateIdentities();
-	void simpleModeChanged();
+	void setStatusModeChanged();
 
 protected:
 	virtual void accountRegistered(Account account);
@@ -87,16 +87,18 @@ public:
 	// TODO: rethink it, it is needed by status-change action in main window
 	StatusContainer * defaultStatusContainer() const { return DefaultStatusContainer; }
 
-	virtual void setStatus(Status newStatus);
-    virtual void setDescription(const QString &description);
+	virtual void setStatus(Status newStatus, bool flush = true);
+	virtual void setDescription(const QString &description, bool flush = true);
 	virtual Status status();
+	virtual bool isStatusSettingInProgress();
+
 	bool allStatusEqual(StatusType *type);
 
 	virtual QString statusDisplayName();
-	virtual QIcon statusIcon();
-	virtual QIcon statusIcon(Status status);
-	virtual QString statusIconPath(const QString &statusType);
-	virtual QIcon statusIcon(const QString &statusType);
+
+	virtual KaduIcon statusIcon();
+	virtual KaduIcon statusIcon(const Status &status);
+	virtual KaduIcon statusIcon(const QString &statusType);
 
 	virtual QList<StatusType *> supportedStatusTypes();
 

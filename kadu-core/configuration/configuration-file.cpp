@@ -30,6 +30,7 @@
 #include <QtCore/QDir>
 #include <QtCore/QFile>
 #include <QtCore/QMutex>
+#include <QtCore/QMutexLocker>
 #include <QtCore/QTextStream>
 #include <QtGui/QApplication>
 
@@ -42,7 +43,7 @@
 
 #include "configuration-file.h"
 
-QMutex GlobalMutex;
+static QMutex GlobalMutex;
 
 PlainConfigFile::PlainConfigFile(const QString &filename) : filename(filename), groups(), activeGroupName()
 {
@@ -64,10 +65,10 @@ PlainConfigFile &PlainConfigFile::operator=(const PlainConfigFile &c)
 void PlainConfigFile::changeActiveGroup(const QString& newGroup)
 {
 	if (!activeGroupName.isEmpty())
-		groups[activeGroupName] = activeGroup;
+		groups.insert(activeGroupName, activeGroup);
 	activeGroupName = newGroup;
 	if (!activeGroupName.isEmpty())
-		activeGroup = groups[activeGroupName];
+		activeGroup = groups.value(activeGroupName);
 }
 
 void PlainConfigFile::read()
@@ -96,10 +97,10 @@ void PlainConfigFile::read()
 				name = name.trimmed();
 
 				if (line.contains('=') && !name.isEmpty() && !value.isEmpty())
-					activeGroup[name] = value;
+					activeGroup.insert(name, value);
 			}
 		}
-		groups[activeGroupName] = activeGroup;
+		groups.insert(activeGroupName, activeGroup);
 		file.close();
 	}
 	kdebugf2();
@@ -161,12 +162,12 @@ QStringList PlainConfigFile::getGroupList() const
 void PlainConfigFile::sync()
 {
 	if (!activeGroupName.isEmpty())
-		groups[activeGroupName] = activeGroup;
+		groups.insert(activeGroupName, activeGroup);
 
 	write();
 }
 
-QMap<QString, QString>& PlainConfigFile::getGroupSection(const QString& name)
+QMap<QString, QString> & PlainConfigFile::getGroupSection(const QString& name)
 {
 	kdebugf();
 	return groups[name];
@@ -179,7 +180,7 @@ bool PlainConfigFile::changeEntry(const QString &group, const QString &name, con
 		changeActiveGroup(group);
 
 	bool ret=activeGroup.contains(name);
-	activeGroup[name]=value;
+	activeGroup.insert(name, value);
 	//
 	return ret;
 }
@@ -201,7 +202,7 @@ QString PlainConfigFile::getEntry(const QString &group, const QString &name, boo
 	if (ok)
 		*ok=activeGroup.contains(name);
 	if (activeGroup.contains(name))
-		return activeGroup[name];
+		return activeGroup.value(name);
 	else
 		return QString();
 }
@@ -359,32 +360,11 @@ QSize PlainConfigFile::readSizeEntry(const QString &group,const QString &name, c
 
 QColor PlainConfigFile::readColorEntry(const QString &group,const QString &name, const QColor *def)
 {
-	QColor col(0,0,0);
 	QString str = getEntry(group, name);
 	if (str.isNull())
-		return def ? *def : col;
+		return def ? *def : QColor(0, 0, 0);
 	else
-	{
-		if (!str.contains(','))
-			return QColor(str);
-
-		//stary zapis kolor�w, w 0.5.0 mo�na b�dzie wywali�
-		bool ok;
-		QStringList stringlist = str.split(',', QString::SkipEmptyParts);
-		if (stringlist.count() != 3)
-			return def ? *def : col;
-		int r = stringlist.at(0).toInt(&ok);
-		if (!ok)
-			return def ? *def : col;
-		int g = stringlist.at(1).toInt(&ok);
-		if (!ok)
-			return def ? *def : col;
-		int b = stringlist.at(2).toInt(&ok);
-		if (!ok)
-			return def ? *def : col;
-		col.setRgb(r, g, b);
-		return col;
-	}
+		return QColor(str);
 }
 
 
@@ -505,7 +485,7 @@ void ConfigFile::sync()
 
 bool ConfigFile::changeEntry(const QString &group, const QString &name, const QString &value)
 {
-	GlobalMutex.lock();
+	QMutexLocker locker(&GlobalMutex);
 
 //	kdebugm(KDEBUG_FUNCTION_START, "ConfigFile::changeEntry(%s, %s, %s) %p\n", qPrintable(group), qPrintable(name), qPrintable(value), this);
 	QDomElement root_elem = xml_config_file->rootElement();
@@ -518,14 +498,12 @@ bool ConfigFile::changeEntry(const QString &group, const QString &name, const QS
 		group_elem, "Entry", "name", name);
 	entry_elem.setAttribute("value", value);
 
-	GlobalMutex.unlock();
-
 	return true;
 }
 
 QString ConfigFile::getEntry(const QString &group, const QString &name, bool *ok) const
 {
-	GlobalMutex.lock();
+	QMutexLocker locker(&GlobalMutex);
 
 	bool resOk;
 	QString result;
@@ -561,7 +539,6 @@ QString ConfigFile::getEntry(const QString &group, const QString &name, bool *ok
 	if (ok)
 		*ok = resOk;
 
-	GlobalMutex.unlock();
 	return result;
 }
 
@@ -722,10 +699,9 @@ QSize ConfigFile::readSizeEntry(const QString &group,const QString &name, const 
 
 QColor ConfigFile::readColorEntry(const QString &group,const QString &name, const QColor *def) const
 {
-	QColor col(0,0,0);
 	QString str = getEntry(group, name);
 	if (str.isNull())
-		return def ? *def : col;
+		return def ? *def : QColor(0, 0, 0);
 	else
 		return QColor(str);
 }
@@ -768,7 +744,7 @@ QPoint ConfigFile::readPointEntry(const QString &group,const QString &name, cons
 
 void ConfigFile::removeVariable(const QString &group, const QString &name)
 {
-	GlobalMutex.lock();
+	QMutexLocker locker(&GlobalMutex);
 
 	QDomElement root_elem = xml_config_file->rootElement();
 	QDomElement deprecated_elem = xml_config_file->accessElement(root_elem, "Deprecated");
@@ -779,8 +755,6 @@ void ConfigFile::removeVariable(const QString &group, const QString &name)
 	QDomElement entry_elem = xml_config_file->accessElementByProperty(
 		group_elem, "Entry", "name", name);
 	group_elem.removeChild(entry_elem);
-
-	GlobalMutex.unlock();
 }
 
 void ConfigFile::addVariable(const QString &group, const QString &name, const QString &defvalue)

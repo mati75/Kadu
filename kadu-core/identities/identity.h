@@ -23,9 +23,6 @@
 #ifndef IDENTITY_H
 #define IDENTITY_H
 
-#include <QtCore/QUuid>
-#include <QtCore/QStringList>
-
 #include "identities/identity-shared.h"
 #include "exports.h"
 
@@ -56,7 +53,7 @@ public:
 	bool isEmpty() const;
 
 	KaduSharedBase_PropertyBool(Permanent)
-	KaduSharedBase_Property(QString, name, Name)
+	KaduSharedBase_PropertyCRW(QString, name, Name)
 
 };
 

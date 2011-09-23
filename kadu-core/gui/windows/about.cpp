@@ -48,8 +48,8 @@
 
 #include "core/core.h"
 #include "debug.h"
-#include "icons-manager.h"
 #include "html_document.h"
+#include "icons/kadu-icon.h"
 #include "misc/misc.h"
 #include "os/generic/url-opener.h"
 #include "url-handlers/mail-url-handler.h"
@@ -57,7 +57,7 @@
 #include "about.h"
 
 About::About(QWidget *parent) :
-		QWidget(parent, Qt::Window)
+		QWidget(parent, Qt::Window), DesktopAwareObject(this)
 {
 	kdebugf();
 
@@ -71,15 +71,15 @@ About::About(QWidget *parent) :
 	QWidget *texts = new QWidget(center);
 
 	QLabel *l_icon = new QLabel(texts);
-	l_icon->setPixmap(IconsManager::instance()->iconByPath("kadu_icons/kadu").pixmap(64, 64));
+	l_icon->setPixmap(KaduIcon("kadu_icons/kadu").icon().pixmap(64, 64));
 
 	QLabel *l_info = new QLabel(texts);
 	l_info->setBackgroundRole(texts->backgroundRole());
 
 	l_info->setText("<font size=\"5\">Kadu</font><br /><b>"
 		+ tr("Version %1").arg(Core::version())
-		+ "</b><br />"
-		+ QString("Qt %2 (compiled with Qt %3)").arg(qVersion()).arg(QT_VERSION_STR));
+		+ "</b><br/>"
+		+ tr("Qt %2 (compiled with Qt %3)").arg(qVersion()).arg(QT_VERSION_STR));
 
 	l_info->setWordWrap(true);
 	l_info->setSizePolicy(QSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum));
@@ -126,7 +126,7 @@ About::About(QWidget *parent) :
 	HtmlDocument authors_html;
 	authors_html.parseHtml(authors);
 	MailUrlHandler *handler = new MailUrlHandler;
-	handler->convertUrlsToHtml(authors_html);
+	handler->convertUrlsToHtml(authors_html, true);
 	delete handler;
 	tb_authors->setHtml(authors_html.generateHtml());
 

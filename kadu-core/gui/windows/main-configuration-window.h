@@ -24,8 +24,7 @@ class MainConfigurationWindow;
 	konfiguracyjnego co da jej mo�liwo�� podpi�cia si� pod sygna�y odpowiednich
 	kontrolek i odpowiedniej reakcji na nie.
  **/
-// TODO: zamiast slota zwyk�a metoda wirtualna?
-class KADUAPI ConfigurationUiHandler : public virtual QObject
+class KADUAPI ConfigurationUiHandler : public QObject
 {
 	Q_OBJECT
 
@@ -33,11 +32,8 @@ public:
 	explicit ConfigurationUiHandler(QObject *parent = 0) : QObject(parent) {}
 	virtual ~ConfigurationUiHandler() {}
 
-public slots:
-	/**
-		Slot wywo�ywany, gdy g��wne okno konfiguracyjne zostanie stworzone.
-	 **/
 	virtual void mainConfigurationWindowCreated(MainConfigurationWindow *mainConfigurationWindow) = 0;
+
 };
 
 class ConfigFileDataManager;
@@ -103,14 +99,26 @@ public:
 		Plik uiFile zostanie wczytany wraz z otwarciem g��wnego okna konfiguracyjnego.
 		Obiekt uiHandle zostanie poinformowany o stworzeniu okna i b�dzie m�g� doda�
 		do niego w�asne interakcje.
+		@note Należy pamiętać, aby wywołać tę metodę zawsze przed korespondującym
+		      wywołaniem metody \c registerUiHandler() (o ile takie istnieje).
 	 **/
 	static void registerUiFile(const QString &uiFile);
 	/**
 		Wyrejestrowanie pliku *.ui i klasy obs�uguj�cej okno konfiguracyjne.
+		@note Należy pamiętać, aby wywołać tę metodę zawsze po korespondującym
+		      wywołaniu metody \c unregisterUiHandler() (o ile takie istnieje).
 	 **/
 	static void unregisterUiFile(const QString &uiFile);
 
+	/**
+	 * @note Always remember to call this method after correspoding
+	 *       \c registerUiHandler() method call (if such exists).
+	 */
 	static void registerUiHandler(ConfigurationUiHandler *uiHandler);
+	/**
+	 * @note Always remember to call this method before correspoding
+	 *       \c unregisterUiFile() method call (if such exists).
+	 */
 	static void unregisterUiHandler(ConfigurationUiHandler *uiHandler);
 
 	static const char *SyntaxText;

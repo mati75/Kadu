@@ -43,6 +43,7 @@
 #include "chat/chat-manager.h"
 #include "chat/message/message-render-info.h"
 #include "chat/type/chat-type-manager.h"
+#include "configuration/chat-configuration-holder.h"
 #include "configuration/configuration-file.h"
 #include "contacts/contact.h"
 #include "contacts/contact-set.h"
@@ -55,6 +56,7 @@
 #include "gui/widgets/buddies-list-view.h"
 #include "gui/widgets/buddies-list-widget.h"
 #include "gui/widgets/chat-edit-box-size-manager.h"
+#include "gui/widgets/chat-messages-view.h"
 #include "gui/widgets/chat-widget-actions.h"
 #include "gui/widgets/chat-widget-manager.h"
 #include "gui/widgets/color-selector.h"
@@ -67,7 +69,8 @@
 #include "chat-edit-box.h"
 #include "custom-input.h"
 #include "debug.h"
-#include "icons-manager.h"
+#include "icons/icons-manager.h"
+#include "icons/kadu-icon.h"
 #include "misc/misc.h"
 
 #include "chat-widget.h"
@@ -113,6 +116,7 @@ ChatWidget::ChatWidget(const Chat &chat, QWidget *parent) :
 			connect(currentProtocol()->chatStateService(), SIGNAL(contactActivityChanged(ChatStateService::ContactActivity, const Contact &)),
 					this, SLOT(contactActivityChanged(ChatStateService::ContactActivity, const Contact &)));
 	}
+
 	connect(IconsManager::instance(), SIGNAL(themeChanged()), this, SIGNAL(iconChanged()));
 
 	kdebugf2();
@@ -125,12 +129,8 @@ ChatWidget::~ChatWidget()
 
 	ChatWidgetManager::instance()->unregisterChatWidget(this);
 
-	if (!currentProtocol() || !currentProtocol()->chatStateService())
-		return;
-
-	currentProtocol()->chatStateService()->chatWidgetClosed(CurrentChat);
-
-//	disconnectAcknowledgeSlots();
+	if (currentProtocol() && currentProtocol()->chatStateService())
+		currentProtocol()->chatStateService()->chatWidgetClosed(chat());
 
 	kdebugmf(KDEBUG_FUNCTION_END, "chat destroyed\n");
 }
@@ -217,17 +217,27 @@ void ChatWidget::createContactsList()
 
 void ChatWidget::configurationUpdated()
 {
-	InputBox->inputBox()->setFont(config_file.readFontEntry("Look","ChatFont"));
-	InputBox->inputBox()->viewport()->setStyleSheet(QString("background-color: %1").arg(config_file.readColorEntry("Look", "ChatTextBgColor").name()));
+	InputBox->inputBox()->setFont(ChatConfigurationHolder::instance()->chatFont());
+	QString style;
+	QColor color = qApp->palette().text().color();
+	if (ChatConfigurationHolder::instance()->chatTextCustomColors())
+	{
+		style = QString("background-color:%1;").arg(ChatConfigurationHolder::instance()->chatTextBgColor().name());
+		color = ChatConfigurationHolder::instance()->chatTextFontColor();
+	}
+	InputBox->inputBox()->viewport()->setStyleSheet(style);
+	QPalette palette = InputBox->inputBox()->palette();
+	palette.setBrush(QPalette::Text, color);
+	InputBox->inputBox()->setPalette(palette);
 
 	refreshTitle();
 }
 
 bool ChatWidget::keyPressEventHandled(QKeyEvent *e)
 {
-	if (e->matches(QKeySequence::Copy))
+	if (e->matches(QKeySequence::Copy) && !MessagesView->selectedText().isEmpty())
 	{
-		MessagesView->page()->action(QWebPage::Copy)->trigger();
+		MessagesView->triggerPageAction(QWebPage::Copy);
 		return true;
 	}
 
@@ -285,11 +295,11 @@ void ChatWidget::refreshTitle()
 	kdebugmf(KDEBUG_FUNCTION_START, "chat().contacts().size() = %d\n", contactsCount);
 	if (contactsCount > 1)
 	{
-		title = config_file.readEntry("Look", "ConferencePrefix");
+		title = ChatConfigurationHolder::instance()->conferencePrefix();
 		if (title.isEmpty())
 			title = tr("Conference with ");
 
-		QString conferenceContents = config_file.readEntry("Look", "ConferenceContents");
+		QString conferenceContents = ChatConfigurationHolder::instance()->conferenceContents();
 		QStringList contactslist;
 		foreach (Contact contact, chat().contacts())
 			contactslist.append(Parser::parse(conferenceContents.isEmpty() ? "%a" : conferenceContents, BuddyOrContact(contact), false));
@@ -300,7 +310,7 @@ void ChatWidget::refreshTitle()
 	{
 		Contact contact = chat().contacts().toContact();
 
-		if (config_file.readEntry("Look", "ChatContents").isEmpty())
+		if (ChatConfigurationHolder::instance()->chatContents().isEmpty())
 		{
 			if (contact.ownerBuddy().isAnonymous())
 				title = Parser::parse(tr("Chat with ") + "%a", BuddyOrContact(contact), false);
@@ -308,12 +318,22 @@ void ChatWidget::refreshTitle()
 				title = Parser::parse(tr("Chat with ") + "%a (%s[: %d])", BuddyOrContact(contact), false);
 		}
 		else
-			title = Parser::parse(config_file.readEntry("Look", "ChatContents"), BuddyOrContact(contact), false);
+			title = Parser::parse(ChatConfigurationHolder::instance()->chatContents(), BuddyOrContact(contact), false);
 
-		if (CurrentContactActivity == ChatStateService::StateComposing)
-			title = tr("%1 (Composing...)").arg(title);
-		else if (CurrentContactActivity == ChatStateService::StateInactive)
-			title = tr("%1 (Inactive)").arg(title);
+		if (ChatConfigurationHolder::instance()->contactStateWindowTitle())
+		{
+			QString message;
+			if (CurrentContactActivity == ChatStateService::StateComposing)
+			{
+				if (ChatConfigurationHolder::instance()->contactStateWindowTitleComposingSyntax().isEmpty())
+					message = tr("(Composing...)");
+				else
+					message = ChatConfigurationHolder::instance()->contactStateWindowTitleComposingSyntax();
+			}
+			else if (CurrentContactActivity == ChatStateService::StateInactive)
+				message = tr("(Inactive)");
+			title = ChatConfigurationHolder::instance()->contactStateWindowTitlePosition() == 0 ? message + " " + title : title + " "  + message;
+		}
 	}
 
 	title.replace("<br/>", " ");
@@ -343,9 +363,9 @@ QIcon ChatWidget::icon()
 			return ContactDataExtractor::data(contact, Qt::DecorationRole, false).value<QIcon>();
 	}
 	else if (contactsCount > 1)
-		return ChatTypeManager::instance()->chatType("Conference")->icon();
+		return ChatTypeManager::instance()->chatType("Conference")->icon().icon();
 
-	return IconsManager::instance()->iconByPath("internet-group-chat");
+	return KaduIcon("internet-group-chat").icon();
 }
 
 void ChatWidget::appendMessages(const QList<MessageRenderInfo *> &messages, bool pending)
@@ -368,7 +388,7 @@ void ChatWidget::appendSystemMessage(const QString &rawContent, const QString &b
 {
 	Message message = Message::create();
 	message.setMessageChat(CurrentChat);
-	message.setType(Message::TypeSystem);
+	message.setType(MessageTypeSystem);
 	message.setContent(rawContent);
 	message.setSendDate(QDateTime::currentDateTime());
 	MessageRenderInfo *messageRenderInfo = new MessageRenderInfo(message);
@@ -411,61 +431,12 @@ void ChatWidget::resetEditBox()
 void ChatWidget::clearChatWindow()
 {
 	kdebugf();
-	if (!config_file.readBoolEntry("Chat", "ConfirmChatClear") || MessageDialog::ask("dialog-question", tr("Kadu"), tr("Chat window will be cleared. Continue?")))
+	if (!config_file.readBoolEntry("Chat", "ConfirmChatClear") || MessageDialog::ask(KaduIcon("dialog-question"), tr("Kadu"), tr("Chat window will be cleared. Continue?")))
 	{
 		MessagesView->clearMessages();
 		activateWindow();
 	}
 	kdebugf2();
-}
-
-/*
-void ChatWidget::messageStatusChanged(int messageId, ChatService::MessageStatus status)
-{
-	if (messageId != myLastMessage.id())
-		return;
-
-	switch (status)
-	{
-		case ChatService::StatusAcceptedDelivered:
-		case ChatService::StatusAcceptedQueued:
-			writeMyMessage();
-			emit messageSentAndConfirmed(CurrentChat, myLastMessage.toHtml());
-			disconnectAcknowledgeSlots();
-			changeCancelSendToSend();
-			return;
-
-		case ChatService::StatusRejectedBlocked:
-			MessageDialog::msg("Message blocked", true, "dialog-warning", this);
-		case ChatService::StatusRejectedBoxFull:
-			MessageDialog::msg("Message box if full", true, "dialog-warning", this);
-		case ChatService::StatusRejectedUnknown:
-			MessageDialog::msg("Message not delivered", true, "dialog-warning", this);
-	}
-
-	cancelMessage();
-}*/
-
-void ChatWidget::connectAcknowledgeSlots()
-{
-	if (!currentProtocol() || !currentProtocol()->chatService())
-		return;
-
-	ChatService *chatService = currentProtocol()->chatService();
-	if (chatService)
-		connect(chatService, SIGNAL(messageStatusChanged(int, ChatService::MessageStatus)),
-				this, SLOT(messageStatusChanged(int, ChatService::MessageStatus)));
-}
-
-void ChatWidget::disconnectAcknowledgeSlots()
-{
-	if (!currentProtocol() || !currentProtocol()->chatService())
-		return;
-
-	ChatService *chatService = currentProtocol()->chatService();
-	if (chatService)
-		disconnect(chatService, SIGNAL(messageStatusChanged(int, ChatService::MessageStatus)),
-				this, SLOT(messageStatusChanged(int, ChatService::MessageStatus)));
 }
 
 /* sends the message typed */
@@ -485,33 +456,26 @@ void ChatWidget::sendMessage()
 
 	if (!currentProtocol()->isConnected())
 	{
-		MessageDialog::show("dialog-error", tr("Kadu"), tr("Cannot send message while being offline.") + tr("Account:") + chat().chatAccount().id(),
+		MessageDialog::show(KaduIcon("dialog-error"), tr("Kadu"), tr("Cannot send message while being offline.") + tr("Account:") + chat().chatAccount().id(),
 				QMessageBox::Ok, this);
 		kdebugmf(KDEBUG_FUNCTION_END, "not connected!\n");
 		return;
 	}
-/*
-	if (config_file.readBoolEntry("Chat","MessageAcks"))
-	{
-		InputBox->inputBox()->setReadOnly(true);
-		InputBox->inputBox()->setEnabled(false);
-		WaitingForACK = true;
-
-		changeSendToCancelSend();
-	}*/
 
 	FormattedMessage message = FormattedMessage::parse(InputBox->inputBox()->document());
 	ChatService *chatService = currentProtocol()->chatService();
 	if (!chatService || !chatService->sendMessage(CurrentChat, message))
 		return;
-/*
-	if (config_file.readBoolEntry("Chat", "MessageAcks"))
-		connectAcknowledgeSlots();
-	else
-	{*/
+
 	resetEditBox();
+
+	// We sent the message and reseted the edit box, so composing of that message is done.
+	// Note that if ComposingTimer is not active, it means that we already reported
+	// composing had stopped.
+	if (ComposingTimer.isActive())
+		composingStopped();
+
 	emit messageSentAndConfirmed(CurrentChat, message.toHtml());
-// 	}
 
 	emit messageSent(this);
 	kdebugf2();
@@ -525,7 +489,17 @@ void ChatWidget::colorSelectorAboutToClose()
 
 CustomInput * ChatWidget::edit() const
 {
-	return InputBox->inputBox();
+	return InputBox ? InputBox->inputBox() : 0;
+}
+
+BuddiesListView * ChatWidget::contactsListWidget() const
+{
+	return BuddiesWidget ? BuddiesWidget->view() : 0;
+}
+
+unsigned int ChatWidget::countMessages() const
+{
+	return MessagesView ? MessagesView->countMessages() : 0;
 }
 
 bool ChatWidget::decodeLocalFiles(QDropEvent *event, QStringList &files)
@@ -575,8 +549,8 @@ void ChatWidget::dropEvent(QDropEvent *e)
 	{
 		e->acceptProposedAction();
 
-		QStringList::iterator i = files.begin();
-		QStringList::iterator end = files.end();
+		QStringList::const_iterator i = files.constBegin();
+		QStringList::const_iterator end = files.constEnd();
 
 		for (; i != end; ++i)
 			emit fileDropped(CurrentChat, *i);
@@ -696,28 +670,32 @@ void ChatWidget::commonHeightChanged(int commonHeight)
 	VerticalSplitter->setSizes(sizes);
 }
 
+void ChatWidget::composingStopped()
+{
+	ComposingTimer.stop();
+	IsComposing = false;
+
+	if (currentProtocol() && currentProtocol()->chatStateService())
+		currentProtocol()->chatStateService()->composingStopped(chat());
+}
+
 void ChatWidget::checkComposing()
 {
 	if (!IsComposing)
-	{
-		ComposingTimer.stop();
-
-		if (!currentProtocol() || !currentProtocol()->chatStateService())
-			return;
-
-		currentProtocol()->chatStateService()->composingStopped(chat());
-	}
-
-	IsComposing = false;
+		composingStopped();
+	else
+		// Reset IsComposing to false, so if updateComposing() method doesn't set it to true
+		// before ComposingTimer hits this method again, we will call composingStopped().
+		IsComposing = false;
 }
 
 void ChatWidget::updateComposing()
 {
+	if (!currentProtocol() || !currentProtocol()->chatStateService())
+		return;
+
 	if (!ComposingTimer.isActive())
 	{
-		if (!currentProtocol() || !currentProtocol()->chatStateService())
-			return;
-
 		// If the text was deleted either by sending a message or explicitly by the user,
 		// let's not report it as composing.
 		if (edit()->toPlainText().isEmpty())
@@ -732,22 +710,26 @@ void ChatWidget::updateComposing()
 
 void ChatWidget::contactActivityChanged(ChatStateService::ContactActivity state, const Contact &contact)
 {
-	if (!CurrentChat.contacts().contains(contact))
+	if (CurrentContactActivity == state)
 		return;
 
-	if (CurrentContactActivity == state)
+	if (!CurrentChat.contacts().contains(contact))
 		return;
 
 	CurrentContactActivity = state;
 
-	if (CurrentContactActivity != ChatStateService::StateGone)
+	if (ChatConfigurationHolder::instance()->contactStateChats())
+		MessagesView->contactActivityChanged(state, contact);
+
+	if (ChatConfigurationHolder::instance()->contactStateWindowTitle())
 		refreshTitle();
-	else
+
+	if (CurrentContactActivity == ChatStateService::StateGone)
 	{
 		QString msg = "[ " + tr("%1 ended the conversation").arg(contact.ownerBuddy().display()) + " ]";
 		Message message = Message::create();
 		message.setMessageChat(CurrentChat);
-		message.setType(Message::TypeSystem);
+		message.setType(MessageTypeSystem);
 		message.setMessageSender(contact);
 		message.setContent(msg);
 		message.setSendDate(QDateTime::currentDateTime());
@@ -759,7 +741,7 @@ void ChatWidget::contactActivityChanged(ChatStateService::ContactActivity state,
 
 void ChatWidget::leaveConference()
 {
-	if (!MessageDialog::ask("dialog-warning", tr("Kadu"), tr("All messages received in this conference will be ignored\nfrom now on. Are you sure you want to leave this conference?"), this))
+	if (!MessageDialog::ask(KaduIcon("dialog-warning"), tr("Kadu"), tr("All messages received in this conference will be ignored\nfrom now on. Are you sure you want to leave this conference?"), this))
 		return;
 
 	if (CurrentChat)

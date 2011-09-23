@@ -37,8 +37,6 @@ class KADUAPI IdentityShared : public BaseStatusContainer, public Shared
 	QString Name;
 	QList<Account> Accounts;
 
-	Account bestAccount();
-
 protected:
 	virtual void load();
 
@@ -57,13 +55,13 @@ public:
 	virtual void store();
 	virtual void aboutToBeRemoved();
 
-	void addAccount(Account account);
-	void removeAccount(Account account);
-	bool hasAccount(Account account);
+	void addAccount(const Account &account);
+	void removeAccount(const Account &account);
+	bool hasAccount(const Account &account);
 	bool hasAnyAccountWithDetails();
 	bool isEmpty();
 
-	KaduShared_Property(QString, name, Name)
+	KaduShared_Property(const QString &, name, Name)
 	KaduShared_PropertyBool(Permanent)
 
 	// StatusContainer implementation
@@ -71,16 +69,17 @@ public:
 	virtual QString statusContainerName()  { return name(); }
 
 	virtual Status status();
+	virtual bool isStatusSettingInProgress();
 	virtual int maxDescriptionLength();
 
 	virtual QString statusDisplayName();
-	virtual QIcon statusIcon();
-    virtual QString statusIconPath(const QString &statusType);
-	virtual QIcon statusIcon(const QString &statusType);
+
+	virtual KaduIcon statusIcon();
+	virtual KaduIcon statusIcon(const Status &status);
+	virtual KaduIcon statusIcon(const QString &statusType);
 
 	virtual QList<StatusType *> supportedStatusTypes();
 
-	QIcon statusIcon(Status status);
 };
 
 #endif // IDENTITY_SHARED_H

@@ -26,9 +26,10 @@
 #include <QtCore/QRegExp>
 
 #include "chat/message/formatted-message-part.h"
+#include "configuration/chat-configuration-holder.h"
 #include "configuration/configuration-file.h"
 #include "emoticons/emoticons-manager.h"
-#include "icons-manager.h"
+#include "icons/kadu-icon.h"
 #include "misc/misc.h"
 #include "parser/parser.h"
 #include "protocols/services/chat-image-service.h"
@@ -40,8 +41,8 @@ QString formatMessage(const QString& text)
 {
 	HtmlDocument htmlDocument;
 	htmlDocument.parseHtml(text);
-	UrlHandlerManager::instance()->convertAllUrls(htmlDocument);
-	EmoticonsManager::instance()->expandEmoticons(htmlDocument, (EmoticonsStyle)config_file.readNumEntry("Chat", "EmoticonsStyle"));
+	UrlHandlerManager::instance()->convertAllUrls(htmlDocument, false);
+	EmoticonsManager::instance()->expandEmoticons(htmlDocument, (EmoticonsStyle)ChatConfigurationHolder::instance()->emoticonsStyle());
 
 	return htmlDocument.generateHtml();
 }
@@ -53,6 +54,22 @@ static QString getMessage(const QObject * const object)
 		return formatMessage(messageRenderInfo->htmlMessageContent());
 	else
 		return QString();
+}
+
+static QString getMessageId(const QObject * const object)
+{
+	const MessageRenderInfo * const messageRenderInfo = qobject_cast<const MessageRenderInfo * const>(object);
+	if (messageRenderInfo)
+		return messageRenderInfo->message().id();
+	return QString();
+}
+
+static QString getMessageStatus(const QObject * const object)
+{
+	const MessageRenderInfo * const messageRenderInfo = qobject_cast<const MessageRenderInfo * const>(object);
+	if (messageRenderInfo)
+		return QString::number(messageRenderInfo->message().status());
+	return QString();
 }
 
 static QString getBackgroundColor(const QObject * const object)
@@ -116,13 +133,15 @@ static QString getSeparator(const QObject * const object)
 static QString loadingImageHtml(const QString &imageId)
 {
 	return QString("<img src=\"file:///%1\" id=\"%2\" />")
-			.arg(IconsManager::instance()->iconPath("kadu_icons/16x16/please-wait.gif"))
+			.arg(KaduIcon("kadu_icons/16x16/please-wait.gif").fullPath())
 			.arg(imageId);
 }
 
 void MessageRenderInfo::registerParserTags()
 {
 	Parser::registerObjectTag("message", getMessage);
+	Parser::registerObjectTag("messageId", getMessageId);
+	Parser::registerObjectTag("messageStatus", getMessageStatus);
 	Parser::registerObjectTag("backgroundColor", getBackgroundColor);
 	Parser::registerObjectTag("fontColor", getFontColor);
 	Parser::registerObjectTag("nickColor", getNickColor);
@@ -133,13 +152,15 @@ void MessageRenderInfo::registerParserTags()
 
 void MessageRenderInfo::unregisterParserTags()
 {
-	Parser::unregisterObjectTag("message", getMessage);
-	Parser::unregisterObjectTag("backgroundColor", getBackgroundColor);
-	Parser::unregisterObjectTag("fontColor", getFontColor);
-	Parser::unregisterObjectTag("nickColor", getNickColor);
-	Parser::unregisterObjectTag("sentDate", getSentDate);
-	Parser::unregisterObjectTag("receivedDate", getReceivedDate);
-	Parser::unregisterObjectTag("separator", getSeparator);
+	Parser::unregisterObjectTag("message");
+	Parser::unregisterObjectTag("messageId");
+	Parser::unregisterObjectTag("messageStatus");
+	Parser::unregisterObjectTag("backgroundColor");
+	Parser::unregisterObjectTag("fontColor");
+	Parser::unregisterObjectTag("nickColor");
+	Parser::unregisterObjectTag("sentDate");
+	Parser::unregisterObjectTag("receivedDate");
+	Parser::unregisterObjectTag("separator");
 }
 
 MessageRenderInfo::MessageRenderInfo(const Message &msg) :
@@ -147,16 +168,16 @@ MessageRenderInfo::MessageRenderInfo(const Message &msg) :
 {
 	switch (msg.type())
 	{
-		case Message::TypeSent:
-			BackgroundColor = config_file.readEntry("Look", "ChatMyBgColor");
-			FontColor = config_file.readEntry("Look", "ChatMyFontColor");
-			NickColor = config_file.readEntry("Look", "ChatMyNickColor");
+		case MessageTypeSent:
+			BackgroundColor = ChatConfigurationHolder::instance()->myBackgroundColor();
+			NickColor = ChatConfigurationHolder::instance()->myNickColor();
+			FontColor = ChatConfigurationHolder::instance()->myFontColor();
 			break;
 
-		case Message::TypeReceived:
-			BackgroundColor = config_file.readEntry("Look", "ChatUsrBgColor");
-			FontColor = config_file.readEntry("Look", "ChatUsrFontColor");
-			NickColor = config_file.readEntry("Look", "ChatUsrNickColor");
+		case MessageTypeReceived:
+			BackgroundColor = ChatConfigurationHolder::instance()->usrBackgroundColor();
+			NickColor = ChatConfigurationHolder::instance()->usrNickColor();
+			FontColor = ChatConfigurationHolder::instance()->usrFontColor();
 			break;
 
 		default:
@@ -178,9 +199,6 @@ MessageRenderInfo::MessageRenderInfo(const Message &msg) :
 		else
 			pos += kaduimgRegExp.matchedLength();
 	}
-
-// 	convertCharacters(unformattedMessage, backgroundColor,
-// 		(EmoticonsStyle)config_file.readNumEntry("Chat", "EmoticonsStyle"));
 }
 
 MessageRenderInfo::~MessageRenderInfo()
@@ -196,7 +214,7 @@ void MessageRenderInfo::replaceLoadingImages(const QString &imageId, const QStri
 MessageRenderInfo & MessageRenderInfo::setShowServerTime(bool noServerTime, int noServerTimeDiff)
 {
 	ShowServerTime = (MyMessage.sendDate().isValid()
-			&& (!noServerTime || (abs(MyMessage.receiveDate().toTime_t() - MyMessage.sendDate().toTime_t())) > noServerTimeDiff));
+			&& (!noServerTime || (abs((qint64)MyMessage.receiveDate().toTime_t() - (qint64)MyMessage.sendDate().toTime_t())) > noServerTimeDiff));
 	return *this;
 }
 

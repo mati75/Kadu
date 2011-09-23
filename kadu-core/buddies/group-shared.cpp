@@ -39,7 +39,7 @@ GroupShared * GroupShared::loadFromStorage(const QSharedPointer<StoragePoint> &s
 	return result;
 }
 
-GroupShared::GroupShared(QUuid uuid) :
+GroupShared::GroupShared(const QUuid &uuid) :
 		Shared(uuid),
 		NotifyAboutStatusChanges(false), ShowInAllGroup(false),
 		OfflineToGroup(false), ShowIcon(false), ShowName(false),
@@ -108,6 +108,18 @@ void GroupShared::store()
 	storeValue("ShowIcon", ShowIcon);
 	storeValue("ShowName", ShowName);
 	storeValue("TabPosition", TabPosition);
+}
+
+void GroupShared::setName(const QString &name)
+{
+	ensureLoaded();
+
+	if (Name != name)
+	{
+		Name = name;
+		dataUpdated();
+		emit nameChanged();
+	}
 }
 
 void GroupShared::emitUpdated()

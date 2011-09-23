@@ -46,13 +46,13 @@ class KADUAPI UrlHandlerManager
 	StandardUrlHandler *standardUrlHandler;
 
 public:
-	static KADUAPI UrlHandlerManager * instance();
+	static UrlHandlerManager * instance();
 	~UrlHandlerManager();
 
 	void registerUrlHandler(const QString &name, UrlHandler *handler);
 	void unregisterUrlHandler(const QString &name);
 
-	void convertAllUrls(HtmlDocument &document);
+	void convertAllUrls(HtmlDocument &document, bool generateOnlyHrefAttr);
 
 	void openUrl(const QByteArray &url, bool disableMenu = false);
 

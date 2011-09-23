@@ -30,7 +30,7 @@
 
 #include "accounts/account.h"
 #include "accounts/account-manager.h"
-#include "configuration/configuration-file.h"
+#include "configuration/chat-configuration-holder.h"
 #include "chat/style-engines/chat-style-engine.h"
 #include "chat/message/message-render-info.h"
 #include "chat/message/message-shared.h"
@@ -62,9 +62,19 @@ ChatMessagesView::ChatMessagesView(const Chat &chat, bool supportTransparency, Q
 	settings()->setAttribute(QWebSettings::JavascriptEnabled, true);
 	settings()->setAttribute(QWebSettings::PluginsEnabled, true);
 
+	QPalette p = palette();
+	p.setBrush(QPalette::Base, Qt::transparent);
+	page()->setPalette(p);
+	setAttribute(Qt::WA_OpaquePaintEvent, false);
+
+	configurationUpdated();
+
 	connectChat();
 
 	connect(this->page()->mainFrame(), SIGNAL(contentsSizeChanged(const QSize &)), this, SLOT(scrollToBottom()));
+
+	if (chat.chatAccount().protocolHandler() && chat.chatAccount().protocolHandler()->chatService())
+		connect(chat.chatAccount().protocolHandler()->chatService(), SIGNAL(messageStatusChanged(const Message &, ChatService::MessageStatus)), this, SLOT(messageStatusChanged(const Message &, ChatService::MessageStatus)));
 
 	ChatStylesManager::instance()->chatViewCreated(this);
 }
@@ -170,10 +180,6 @@ void ChatMessagesView::appendMessage(MessageRenderInfo *message)
 {
 	kdebugf();
 
-// TODO 0.10.0: currently we do not support showing messages state,
-//	so disable this for now
-//	connect(message->message(), SIGNAL(statusChanged(Message::Status)),
-//				this, SLOT(messageStatusChanged(Message::Status)));
 //	rememberScrollBarPosition();
 
 	Renderer->appendMessage(message);
@@ -186,10 +192,8 @@ void ChatMessagesView::appendMessages(const QList<Message> &messages)
 	kdebugf2();
 
 	QList<MessageRenderInfo *> rendererMessages;
-
-#if (QT_VERSION >= 0x040700)
 	rendererMessages.reserve(messages.size());
-#endif
+
 	foreach (const Message &message, messages)
 	{
 		MessageRenderInfo *messageRenderInfo = new MessageRenderInfo(message);
@@ -203,11 +207,6 @@ void ChatMessagesView::appendMessages(const QList<MessageRenderInfo *> &messages
 {
 	kdebugf2();
 
-// TODO 0.10.0: currently we do not support showing messages state,
-//	so disable this for now
-//	foreach (MessageRenderInfo *message, messages)
-//		connect(message->message(), SIGNAL(statusChanged(Message::Status)),
-//				this, SLOT(messageStatusChanged(Message::Status)));
 //	rememberScrollBarPosition();
 
 	Renderer->appendMessages(messages);
@@ -226,15 +225,26 @@ unsigned int ChatMessagesView::countMessages()
 	return Renderer->messages().count();
 }
 
-void ChatMessagesView::messageStatusChanged(Message::Status status)
+void ChatMessagesView::messageStatusChanged(const Message &message, ChatService::MessageStatus status)
 {
-	if (!sender())
+	Q_UNUSED(status);
+	if (CurrentChat != message.messageChat())
 		return;
-	Renderer->messageStatusChanged(Message(sender()), status);
+	Renderer->messageStatusChanged(message, message.status());
+}
+
+void ChatMessagesView::contactActivityChanged(ChatStateService::ContactActivity state, const Contact &contact)
+{
+	Renderer->contactActivityChanged(state, contact);
 }
 
 void ChatMessagesView::scrollToBottom()
 {
 	if (AtBottom)
 		page()->mainFrame()->setScrollBarValue(Qt::Vertical, page()->mainFrame()->scrollBarMaximum(Qt::Vertical));
+}
+
+void ChatMessagesView::configurationUpdated()
+{
+	setUserFont(ChatConfigurationHolder::instance()->chatFont().toString(), ChatConfigurationHolder::instance()->forceCustomChatFont());
 }

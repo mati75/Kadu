@@ -46,16 +46,17 @@
 #include <stdlib.h>
 #endif
 
-#ifdef HAVE_EXECINFO
+#if HAVE_EXECINFO
 #include <execinfo.h>
 #endif
+
 void printBacktrace(const QString &header)
 {
 	if (header.isEmpty())
 		fprintf(stderr, "\nbacktrace:\n");
 	else
 		fprintf(stderr, "\nbacktrace: ('%s')\n", qPrintable(header));
-#ifdef HAVE_EXECINFO
+#if HAVE_EXECINFO
 	void *bt_array[100];
 	char **bt_strings;
 	int num_entries;
@@ -78,6 +79,11 @@ void printBacktrace(const QString &header)
 	fflush(stderr);
 }
 
+QString desktopFilePath()
+{
+	return QLatin1String(KADU_DESKTOP_FILE_PATH);
+}
+
 QString homePath()
 {
 	static QString path;
@@ -91,7 +97,7 @@ QString homePath()
 		if (QFile::exists(dataPath("usbinst", "")))
 		{
 			path = dataPath("config/");
-			Parser::globalVariables["KADU_CONFIG"] = path;
+			Parser::GlobalVariables["KADU_CONFIG"] = path;
 			return (path);
 		}
 		WCHAR *homepath = new WCHAR[MAX_PATH + 1];
@@ -127,7 +133,7 @@ QString profilePath(const QString &subpath)
 		if (QFile::exists(dataPath("usbinst", "")))
 		{
 			path = dataPath("config/");
-			Parser::globalVariables["KADU_CONFIG"] = path;
+			Parser::GlobalVariables["KADU_CONFIG"] = path;
 			return (path+subpath);
 		}
 		WCHAR *homepath = new WCHAR[MAX_PATH + 1];
@@ -144,7 +150,9 @@ QString profilePath(const QString &subpath)
 			home = QString::fromLocal8Bit(getenv("HOME"));
 #endif
 
-		Parser::globalVariables["HOME"] = home;
+		Parser::GlobalVariables["HOME"] = home;
+
+		QString pwd = QDir::currentPath();
 
 #ifndef Q_OS_WIN
 		QString config_dir = QString::fromLocal8Bit(getenv("CONFIG_DIR"));
@@ -158,6 +166,14 @@ QString profilePath(const QString &subpath)
 #ifdef Q_OS_MAC
 		if (config_dir.isNull())
 			path = QString("%1/Library/Kadu/").arg(home);
+		else if (config_dir.startsWith("./"))
+		{
+			config_dir = config_dir.right(config_dir.length() - 2);
+			if (QDir(QString("%1/%2/Kadu").arg(pwd).arg(config_dir)).exists())
+				path = QString("%1/%2/Kadu/").arg(pwd).arg(config_dir); // compatibility with earlier versions
+			else
+				path = QString("%1/%2/").arg(pwd).arg(config_dir);
+		}
 		else if (QDir(config_dir).isAbsolute())
 		{
 			if (QDir(QString("%1/Kadu").arg(config_dir)).exists())
@@ -175,6 +191,14 @@ QString profilePath(const QString &subpath)
 #elif defined(Q_OS_WIN)
 		if (config_dir.isNull())
 			path = QString("%1/Kadu/").arg(home);
+		else if (config_dir.startsWith("./") || config_dir.startsWith(".\\"))
+		{
+			config_dir = config_dir.right(config_dir.length() - 2);
+			if (QDir(QString("%1/%2/Kadu").arg(pwd).arg(config_dir)).exists())
+				path = QString("%1/%2/Kadu/").arg(pwd).arg(config_dir); // compatibility with earlier versions
+			else
+				path = QString("%1/%2/").arg(pwd).arg(config_dir);
+		}
 		else if (QDir(config_dir).isAbsolute())
 		{
 			if (QDir(QString("%1/Kadu").arg(config_dir)).exists())
@@ -192,6 +216,14 @@ QString profilePath(const QString &subpath)
 #else
 		if (config_dir.isNull())
 			path = QString("%1/.kadu/").arg(home);
+		else if (config_dir.startsWith("./"))
+		{
+			config_dir = config_dir.right(config_dir.length() - 2);
+			if (QDir(QString("%1/%2/kadu").arg(pwd).arg(config_dir)).exists())
+				path = QString("%1/%2/kadu/").arg(pwd).arg(config_dir); // compatibility with earlier versions
+			else
+				path = QString("%1/%2/").arg(pwd).arg(config_dir);
+		}
 		else if (QDir(config_dir).isAbsolute())
 		{
 			if (QDir(QString("%1/kadu").arg(config_dir)).exists())
@@ -208,7 +240,7 @@ QString profilePath(const QString &subpath)
 		}
 #endif
 
-		Parser::globalVariables["KADU_CONFIG"] = path;
+		Parser::GlobalVariables["KADU_CONFIG"] = path;
 	}
 
 	return (path + subpath);
@@ -290,8 +322,8 @@ QString dataPath(const QString &p, const char *argv0)
 		data_path = dataDir.canonicalPath() + '/';
 		lib_path = libDir.canonicalPath() + '/';
 
-		Parser::globalVariables["DATA_PATH"] = data_path;
-		Parser::globalVariables["LIB_PATH"] = lib_path;
+		Parser::GlobalVariables["DATA_PATH"] = data_path;
+		Parser::GlobalVariables["LIB_PATH"] = lib_path;
 	}
 	if (data_path.isEmpty())
 	{

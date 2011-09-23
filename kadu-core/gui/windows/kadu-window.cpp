@@ -7,7 +7,6 @@
  * Copyright 2010 Przemysław Rudy (prudy1@o2.pl)
  * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2010 Tomasz Rostański (rozteck@interia.pl)
- * Copyright 2010 Tomasz Rostanski (rozteck@interia.pl)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
  * %kadu copyright end%
  *
@@ -66,9 +65,10 @@
 #include "url-handlers/url-handler-manager.h"
 #include "activate.h"
 
+#include "icons/kadu-icon.h"
 #include "misc/misc.h"
 #include "debug.h"
-#include "icons-manager.h"
+#include "icons/icons-manager.h"
 
 #include "kadu-window.h"
 
@@ -188,7 +188,7 @@ void KaduWindow::createKaduMenu()
 	KaduMenu->setTitle("&Kadu");
 #endif
 	RecentChatsMenu = new QMenu(this);
-	RecentChatsMenu->setIcon(IconsManager::instance()->iconByPath("internet-group-chat"));
+	RecentChatsMenu->setIcon(KaduIcon("internet-group-chat").icon());
 	RecentChatsMenu->setTitle(tr("Recent chats"));
 	RecentChatsMenuNeedsUpdate = true;
 	connect(IconsManager::instance(), SIGNAL(themeChanged()), this, SLOT(iconThemeChanged()));
@@ -230,6 +230,7 @@ void KaduWindow::createContactsMenu()
 	ContactsMenu->addSeparator();
 	insertMenuActionDescription(Actions->InactiveUsers, MenuContacts);
 	insertMenuActionDescription(Actions->ShowBlockedBuddies, MenuContacts);
+	insertMenuActionDescription(Actions->ShowMyself, MenuContacts);
 	insertMenuActionDescription(Actions->ShowInfoPanel, MenuContacts);
 
 	menuBar()->addMenu(ContactsMenu);
@@ -353,7 +354,7 @@ void KaduWindow::updateRecentChatsMenu()
 		if (!ChatWidgetManager::instance()->byChat(chat))
 		{
 			ChatType *type = ChatTypeManager::instance()->chatType(chat.type());
-			QAction *action = new QAction(type ? type->icon() : QIcon(), chat.name(), RecentChatsMenu);
+			QAction *action = new QAction(type ? type->icon().icon() : QIcon(), chat.name(), RecentChatsMenu);
 			action->setData(QVariant::fromValue<Chat>(chat));
 			RecentChatsMenu->addAction(action);
 		}
@@ -373,7 +374,7 @@ void KaduWindow::openRecentChats(QAction *action)
 
 void KaduWindow::iconThemeChanged()
 {
-	RecentChatsMenu->setIcon(IconsManager::instance()->iconByPath("internet-group-chat"));
+	RecentChatsMenu->setIcon(KaduIcon("internet-group-chat").icon());
 }
 
 void KaduWindow::storeConfiguration()
@@ -427,8 +428,8 @@ void KaduWindow::keyPressEvent(QKeyEvent *e)
 			return;
 		}
 	}
-	else if (e->matches(QKeySequence::Copy))
-		InfoPanel->pageAction(QWebPage::Copy)->trigger();
+	else if (e->matches(QKeySequence::Copy) && !InfoPanel->selectedText().isEmpty())
+		InfoPanel->triggerPageAction(QWebPage::Copy);
 
 	emit keyPressed(e);
 

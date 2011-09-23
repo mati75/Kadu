@@ -25,6 +25,7 @@
 #include "buddies/model/buddies-model-proxy.h"
 #include "gui/widgets/buddies-list-view.h"
 #include "gui/widgets/select-buddy-popup.h"
+#include "misc/misc.h"
 #include "model/roles.h"
 
 #include "select-buddy-combo-box.h"
@@ -40,6 +41,7 @@ SelectBuddyComboBox::SelectBuddyComboBox(QWidget *parent) :
 	static_cast<BuddiesModelProxy *>(SourceProxyModel)->setSortByStatus(false);
 
 	AnonymousBuddyFilter *anonymousFilter = new AnonymousBuddyFilter(this);
+	anonymousFilter->setEnabled(true);
 	addFilter(anonymousFilter);
 
 	connect(Popup, SIGNAL(buddySelected(Buddy)), this, SLOT(setCurrentBuddy(Buddy)));
@@ -94,9 +96,9 @@ QString SelectBuddyComboBox::selectString() const
 
 void SelectBuddyComboBox::showPopup()
 {
-	Popup->setGeometry(QRect(
-			mapToGlobal(rect().bottomLeft()),
-			QSize(geometry().width(), Popup->geometry().height())));
+	QRect geom(mapToGlobal(rect().bottomLeft()), QSize(geometry().width(), Popup->height()));
+	setWindowGeometry(Popup, geom);
+
 	Popup->show(CurrentValue);
 }
 

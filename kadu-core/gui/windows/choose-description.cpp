@@ -34,13 +34,14 @@
 #include "configuration/configuration-file.h"
 #include "core/core.h"
 #include "gui/windows/kadu-window.h"
+#include "icons/kadu-icon.h"
 #include "parser/parser.h"
 #include "status/description-manager.h"
 #include "status/description-model.h"
 
 #include "activate.h"
 #include "debug.h"
-#include "icons-manager.h"
+#include "icons/icons-manager.h"
 
 #include "choose-description.h"
 
@@ -70,7 +71,7 @@ ChooseDescription * ChooseDescription::showDialog(StatusContainer *statusContain
 }
 
 ChooseDescription::ChooseDescription(StatusContainer *statusContainer, QWidget *parent) :
-		QDialog(parent), MyStatusContainer(statusContainer)
+		QDialog(parent), DesktopAwareObject(this), MyStatusContainer(statusContainer)
 {
 	kdebugf();
 
@@ -89,7 +90,7 @@ ChooseDescription::ChooseDescription(StatusContainer *statusContainer, QWidget *
 	connect(Description, SIGNAL(activated(int)), this, SLOT(activated(int)));
 
 	OkButton = new QPushButton(tr("&OK"), this);
-	OkButton->setIcon(MyStatusContainer->statusIcon());
+	OkButton->setIcon(MyStatusContainer->statusIcon().icon());
 	OkButton->setDefault(true);
 	connect(OkButton, SIGNAL(clicked(bool)), this, SLOT(accept()));
 
@@ -120,7 +121,7 @@ ChooseDescription::ChooseDescription(StatusContainer *statusContainer, QWidget *
 	setMinimumSize(QDialog::sizeHint().expandedTo(QSize(250, 80)));
 
 	connect(this, SIGNAL(accepted()), this, SLOT(setDescription()));
-	connect(MyStatusContainer, SIGNAL(statusChanged()), this, SLOT(statusChanged()));
+	connect(MyStatusContainer, SIGNAL(statusUpdated()), this, SLOT(statusUpdated()));
 
 	kdebugf2();
 }
@@ -159,7 +160,7 @@ void ChooseDescription::setDescription()
 	if (config_file.readBoolEntry("General", "ParseStatus", false))
 		description = Parser::parse(description, BuddyOrContact(Core::instance()->myself()), false);
 
-	MyStatusContainer->setDescription(description);
+	MyStatusContainer->setDescription(description, true);
 }
 
 void ChooseDescription::activated(int index)
@@ -175,7 +176,7 @@ void ChooseDescription::currentDescriptionChanged(const QString &text)
 	AvailableChars->setText(' ' + QString::number(MyStatusContainer->maxDescriptionLength() - length));
 }
 
-void ChooseDescription::statusChanged()
+void ChooseDescription::statusUpdated()
 {
-	OkButton->setIcon(MyStatusContainer->statusIcon());
+	OkButton->setIcon(MyStatusContainer->statusIcon().icon());
 }

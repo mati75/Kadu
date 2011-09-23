@@ -38,7 +38,6 @@
 #include "storage/shared.h"
 
 class AccountDetails;
-class Buddy;
 class FileTransferService;
 class Protocol;
 class ProtocolFactory;
@@ -73,6 +72,9 @@ private:
 	void setDisconnectStatus();
 	void useProtocolFactory(ProtocolFactory *factory);
 
+	void doSetAccountIdentity(const Identity &accountIdentity);
+	void doSetId(const QString &id);
+
 protected:
 	virtual void load();
 
@@ -94,31 +96,35 @@ public:
 	static AccountShared * loadStubFromStorage(const QSharedPointer<StoragePoint> &storagePoint);
 	static AccountShared * loadFromStorage(const QSharedPointer<StoragePoint> &storagePoint);
 
-	explicit AccountShared(QUuid uuid = QUuid());
+	explicit AccountShared(const QUuid &uuid = QUuid());
 	virtual ~AccountShared();
 
 	virtual StorableObject * storageParent();
 	virtual QString storageNodeName();
 
 	virtual void store();
-    virtual bool shouldStore();
+	virtual bool shouldStore();
 	virtual void aboutToBeRemoved();
-
-	void setAccountIdentity(Identity accountIdentity);
-	void setProtocolName(QString protocolName);
-	void setId(const QString &id);
 
 	Contact accountContact();
 
-	KaduShared_PropertyRead(Identity, accountIdentity, AccountIdentity)
-	KaduShared_PropertyRead(QString, protocolName, ProtocolName)
+	void setAccountIdentity(const Identity &accountIdentity);
+	KaduShared_PropertyRead(const Identity &, accountIdentity, AccountIdentity)
+
+	void setProtocolName(const QString &protocolName);
+	KaduShared_PropertyRead(const QString &, protocolName, ProtocolName)
+
+	void setId(const QString &id);
+	KaduShared_PropertyRead(const QString &, id, Id)
+
+	void setPrivateStatus(bool isPrivate);
+	KaduShared_PropertyRead(bool, privateStatus, PrivateStatus)
+
 	KaduShared_Property(Protocol *, protocolHandler, ProtocolHandler)
-	KaduShared_PropertyRead(QString, id, Id)
 	KaduShared_Property(bool, rememberPassword, RememberPassword)
 	KaduShared_Property(bool, hasPassword, HasPassword)
-	KaduShared_Property(QString, password, Password)
-	KaduShared_Property(AccountProxySettings, proxySettings, ProxySettings)
-	KaduShared_PropertyRead(bool, privateStatus, PrivateStatus)
+	KaduShared_Property(const QString &, password, Password)
+	KaduShared_Property(const AccountProxySettings &, proxySettings, ProxySettings)
 	KaduShared_Property(bool, removing, Removing)
 
 	// StatusContainer implementation
@@ -126,25 +132,23 @@ public:
 	virtual QString statusContainerName();
 
 	virtual Status status();
+	virtual bool isStatusSettingInProgress();
 	virtual int maxDescriptionLength();
 
 	virtual QString statusDisplayName();
-	virtual QIcon statusIcon();
-	virtual QString statusIconPath(const QString &statusType);
-	virtual QIcon statusIcon(const QString &statusType);
+
+	virtual KaduIcon statusIcon();
+	virtual KaduIcon statusIcon(const Status &status);
+	virtual KaduIcon statusIcon(const QString &statusType);
 
 	virtual QList<StatusType *> supportedStatusTypes();
 
-	QIcon statusIcon(Status status);
-
-	virtual void setPrivateStatus(bool isPrivate);
-
 	// TODO: 0.11, find better API
 	// this is only for GG now
-    void fileTransferServiceChanged(FileTransferService *service);
+	void fileTransferServiceChanged(FileTransferService *service);
 
 signals:
-	void buddyStatusChanged(Contact contact, Status oldStatus);
+	void buddyStatusChanged(const Contact &contact, const Status &oldStatus);
 	void protocolLoaded();
 	void protocolUnloaded();
 
@@ -160,6 +164,7 @@ signals:
 
 };
 
-#include "buddies/buddy.h" // for MOC
+// for MOC
+#include "status/status.h"
 
 #endif // ACCOUNT_SHARED_H

@@ -28,6 +28,9 @@
 #include <QtCore/QList>
 
 #include "chat/message/message.h"
+#include "configuration/configuration-aware-object.h"
+#include "protocols/services/chat-service.h"
+#include "protocols/services/chat-state-service.h"
 #include "protocols/protocol.h"
 
 #include "kadu-web-view.h"
@@ -41,7 +44,7 @@ class ChatWidget;
 class HtmlMessagesRenderer;
 class MessageRenderInfo;
 
-class KADUAPI ChatMessagesView : public KaduWebView
+class KADUAPI ChatMessagesView : public KaduWebView, public ConfigurationAwareObject
 {
 	Q_OBJECT
 
@@ -66,11 +69,12 @@ private slots:
 
 	void imageReceived(const QString &imageId, const QString &imageFileName);
 
-	void messageStatusChanged(Message::Status);
+	void messageStatusChanged(const Message &message, ChatService::MessageStatus status);
 
 	void scrollToBottom();
 
 protected:
+	virtual void configurationUpdated();
 	virtual void mouseReleaseEvent(QMouseEvent *e);
 	virtual void resizeEvent(QResizeEvent *e);
 	virtual void wheelEvent(QWheelEvent *e);
@@ -100,6 +104,7 @@ public:
 
 public slots:
 	void clearMessages();
+	void contactActivityChanged(ChatStateService::ContactActivity state, const Contact &contact);
 
 signals:
 	void messagesUpdated();

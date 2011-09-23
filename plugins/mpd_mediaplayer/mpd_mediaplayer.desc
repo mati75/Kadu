@@ -1,0 +1,7 @@
+[Module]
+Description=Allows control of MPD playback
+Description[pl]=Umo¿liwia sterowanie odtwarzaniem MPD
+Author=badboy
+Dependencies=mediaplayer
+Version=0.1
+Plugin=true

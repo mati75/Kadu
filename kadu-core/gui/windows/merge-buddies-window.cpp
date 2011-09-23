@@ -31,12 +31,12 @@
 #include "buddies/filter/non-buddy-filter.h"
 #include "buddies/buddy-manager.h"
 #include "gui/widgets/select-buddy-combo-box.h"
-#include "icons-manager.h"
+#include "icons/icons-manager.h"
 
 #include "merge-buddies-window.h"
 
 MergeBuddiesWindow::MergeBuddiesWindow(Buddy buddy, QWidget *parent) :
-		QDialog(parent), MyBuddy(buddy)
+		QDialog(parent), DesktopAwareObject(this), MyBuddy(buddy)
 {
 	setAttribute(Qt::WA_DeleteOnClose);
 

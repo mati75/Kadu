@@ -70,7 +70,7 @@ class KADUAPI Manager : public StorableObject
 {
 	QMutex Mutex;
 
-	QHash<QString, Item> Items;
+	QMap<QUuid, Item> Items;
 	QList<Item> ItemsWithDetails;
 
 protected:
@@ -236,11 +236,11 @@ protected:
 	 */
 	void registerItem(Item item)
 	{
-		(void) QMutexLocker(&Mutex);
+		QMutexLocker locker(&Mutex);
 
 		if (ItemsWithDetails.contains(item))
 			return;
-		if (!Items.contains(item.uuid().toString()))
+		if (!Items.contains(item.uuid()))
 			return;
 
 		itemAboutToBeRegistered(item);
@@ -260,11 +260,11 @@ protected:
 	 */
 	void unregisterItem(Item item)
 	{
-		(void) QMutexLocker(&Mutex);
+		QMutexLocker locker(&Mutex);
 
 		if (!ItemsWithDetails.contains(item))
 			return;
-		if (!Items.contains(item.uuid().toString()))
+		if (!Items.contains(item.uuid()))
 			return;
 
 		itemAboutToBeUnregisterd(item);
@@ -283,7 +283,7 @@ protected:
 	 */
 	virtual void load()
 	{
-		(void) QMutexLocker(&Mutex);
+		QMutexLocker locker(&Mutex);
 
 		if (!isValidStorage())
 			return;
@@ -295,9 +295,7 @@ protected:
 			return;
 
 		QList<QDomElement> itemElements = storage()->storage()->getNodes(itemsNode, storageNodeItemName());
-#if (QT_VERSION >= 0x040700)
-		Items.reserve(itemElements.count());
-#endif
+
 		foreach (const QDomElement &itemElement, itemElements)
 		{
 			QSharedPointer<StoragePoint> storagePoint(new StoragePoint(storage()->storage(), itemElement));
@@ -324,7 +322,7 @@ public:
 	 */
 	virtual void store()
 	{
-		(void) QMutexLocker(&Mutex);
+		QMutexLocker locker(&Mutex);
 
 		ensureLoaded();
 
@@ -346,13 +344,13 @@ public:
 	 *
 	 * This methods works on registered items.
 	 */
-	Item byIndex(unsigned int index)
+	Item byIndex(int index)
 	{
-		(void) QMutexLocker(&Mutex);
+		QMutexLocker locker(&Mutex);
 
 		ensureLoaded();
 
-		if (index >= count())
+		if (index < 0 || index >= count())
 			return Item::null;
 
 		return ItemsWithDetails.at(index);
@@ -369,15 +367,15 @@ public:
 	 */
 	Item byUuid(const QUuid &uuid)
 	{
-		(void) QMutexLocker(&Mutex);
+		QMutexLocker locker(&Mutex);
 
 		ensureLoaded();
 
 		if (uuid.isNull())
 			return Item::null;
 
-		if (Items.contains(uuid.toString()))
-			return Items.value(uuid.toString());
+		if (Items.contains(uuid))
+			return Items.value(uuid);
 
 		return Item::null;
 	}
@@ -395,9 +393,9 @@ public:
 	 *
 	 * This methods works on registered items.
 	 */
-	unsigned int indexOf(Item item)
+	int indexOf(Item item)
 	{
-		(void) QMutexLocker(&Mutex);
+		QMutexLocker locker(&Mutex);
 
 		ensureLoaded();
 		return ItemsWithDetails.indexOf(item);
@@ -412,9 +410,9 @@ public:
 	 *
 	 * This methods works on registered items.
 	 */
-	unsigned int count()
+	int count()
 	{
-		(void) QMutexLocker(&Mutex);
+		QMutexLocker locker(&Mutex);
 
 		ensureLoaded();
 		return ItemsWithDetails.count();
@@ -427,9 +425,9 @@ public:
 	 *
 	 * Return list of all items.
 	 */
-	const QHash<QString, Item> & allItems()
+	const QMap<QUuid, Item> & allItems()
 	{
-		(void) QMutexLocker(&Mutex);
+		QMutexLocker locker(&Mutex);
 
 		ensureLoaded();
 		return Items;
@@ -444,7 +442,7 @@ public:
 	 */
 	const QList<Item> & items()
 	{
-		(void) QMutexLocker(&Mutex);
+		QMutexLocker locker(&Mutex);
 
 		ensureLoaded();
 		return ItemsWithDetails;
@@ -461,16 +459,16 @@ public:
 	 */
 	void addItem(Item item)
 	{
-		(void) QMutexLocker(&Mutex);
+		QMutexLocker locker(&Mutex);
 
 		ensureLoaded();
 
-		if (Items.contains(item.uuid().toString()))
+		if (Items.contains(item.uuid()))
 			return;
 
 		itemAboutToBeAdded(item);
 
-		Items.insert(item.uuid().toString(), item);
+		Items.insert(item.uuid(), item);
 
 		itemAdded(item);
 
@@ -491,18 +489,18 @@ public:
 	 */
 	void removeItem(Item item)
 	{
-		(void) QMutexLocker(&Mutex);
+		QMutexLocker locker(&Mutex);
 
 		ensureLoaded();
 
-		if (!Items.contains(item.uuid().toString()))
+		if (!Items.contains(item.uuid()))
 			return;
 
 		itemAboutToBeRemoved(item);
 
 		if (item.details())
 			unregisterItem(item);
-		Items.remove(item.uuid().toString());
+		Items.remove(item.uuid());
 
 		item.remove();
 

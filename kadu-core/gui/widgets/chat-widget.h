@@ -32,25 +32,23 @@
 #include <QtGui/QIcon>
 #include <QtGui/QWidget>
 
-#include "buddies/buddy-list.h"
 #include "chat/chat.h"
-#include "chat/message/formatted-message.h"
 #include "configuration/configuration-aware-object.h"
-#include "gui/widgets/buddies-list-widget.h"
-#include "gui/widgets/chat-messages-view.h"
-#include "protocols/services/chat-service.h"
 #include "protocols/services/chat-state-service.h"
 #include "exports.h"
 
 class QSplitter;
 
+class BuddiesListView;
+class BuddiesListWidget;
 class ChatEditBox;
+class ChatMessagesView;
 class ChatWidget;
 class CustomInput;
 class MessageRenderInfo;
 class Protocol;
 
-class KADUAPI ChatWidget : public QWidget, ConfigurationAwareObject
+class KADUAPI ChatWidget : public QWidget, public ConfigurationAwareObject
 {
 	Q_OBJECT
 
@@ -76,7 +74,6 @@ class KADUAPI ChatWidget : public QWidget, ConfigurationAwareObject
 	QDateTime LastMessageTime;
 
 	unsigned int NewMessagesCount;
-	bool SelectionFromMessagesView;
 
 	void createGui();
 	void createContactsList();
@@ -85,9 +82,10 @@ class KADUAPI ChatWidget : public QWidget, ConfigurationAwareObject
 
 	bool decodeLocalFiles(QDropEvent *event, QStringList &files);
 
+	void composingStopped();
+
 private slots:
-	void connectAcknowledgeSlots();
-	void disconnectAcknowledgeSlots();
+	void configurationUpdated();
 
 	void setUpVerticalSizes();
 	void commonHeightChanged(int height);
@@ -104,8 +102,6 @@ protected:
 	virtual void resizeEvent(QResizeEvent *e);
  	virtual void showEvent(QShowEvent *e);
 	bool keyPressEventHandled(QKeyEvent *);
-
-	virtual void configurationUpdated();
 
 public:
 	explicit ChatWidget(const Chat &chat, QWidget *parent = 0);
@@ -143,7 +139,7 @@ public:
 	void repaintMessages();
 
 	CustomInput * edit() const;
-	BuddiesListView * contactsListWidget() const { return BuddiesWidget ? BuddiesWidget->view() : 0; }
+	BuddiesListView * contactsListWidget() const;
 	ChatEditBox * getChatEditBox() const { return InputBox; }
 	ChatMessagesView * chatMessagesView() const { return MessagesView; }
 
@@ -172,10 +168,9 @@ public:
 	void kaduStoreGeometry();
 	void kaduRestoreGeometry();
 
-	unsigned int countMessages() const { return MessagesView->countMessages(); }
+	unsigned int countMessages() const;
 
 public slots:
-// 	void messageStatusChanged(int messageId, ChatService::MessageStatus status);
 
 	/**
 		\fn void appendMessages(const QValueList<MessageRenderInfo *> &)
@@ -265,28 +260,7 @@ signals:
 	void iconChanged();
 	void titleChanged(ChatWidget *chatWidget, const QString &newTitle);
 	void closed();
-};
 
-/**
-	@class ChatContainer
-	@brief Klasa abstrakcyjna opisuj�ca rodzica klasy ChatWidget.
-
-	Klasa abstrakcyjna z kt�rej powinny dziedziczy� klasy b�d�ce rodzicami obiekt�w
-	klasy ChatWidget.
-
-	Informuje kt�ry chat powinien zosta� zamkni�ty w przypadku np. ignorowania kontaktu
-	z kt�rym prowadzona jest rozmowa
-**/
-class ChatContainer
-{
-public:
-	ChatContainer() {}
-	virtual ~ChatContainer() {}
-
-	/**
-		Metoda informuj�ca, kt�ry chat powinien zosta� zamkni�ty
-	 **/
-	virtual void closeChatWidget(ChatWidget *chat) = 0;
 };
 
 #endif // CHAT_WIDGET_H

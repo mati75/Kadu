@@ -1,5 +1,6 @@
 /*
  * %kadu copyright begin%
+ * Copyright 2011 Piotr Dąbrowski (ultr@ultr.pl)
  * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2009, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
@@ -44,14 +45,14 @@ public:
 		StatusAcceptedQueued,
 		StatusRejectedBlocked,
 		StatusRejectedBoxFull,
+		StatusRejectedTimeout,
 		StatusRejectedUnknown
 	};
 
-	ChatService(QObject *parent = 0)
-		: QObject(parent) {}
+	explicit ChatService(QObject *parent) : QObject(parent) {}
 
 public slots:
-	virtual bool sendMessage(const Chat &chat, const QString &messageContent, bool silent = false);
+	bool sendMessage(const Chat &chat, const QString &messageContent, bool silent = false);
 	virtual bool sendMessage(const Chat &chat, FormattedMessage &message, bool silent = false) = 0;
 
 signals:
@@ -61,7 +62,7 @@ signals:
 	void filterRawIncomingMessage(Chat chat, Contact sender, QByteArray &message, bool &ignore);
 	void filterIncomingMessage(Chat chat, Contact sender, QString &message, time_t time, bool &ignore);
 
-	void messageStatusChanged(int messsageId, ChatService::MessageStatus status);
+	void messageStatusChanged(const Message &message, ChatService::MessageStatus status);
 	void messageSent(const Message &message);
 	void messageReceived(const Message &message);
 

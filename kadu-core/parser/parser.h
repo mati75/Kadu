@@ -27,29 +27,48 @@
 #include <QtCore/QMap>
 
 #include "buddies/buddy-or-contact.h"
+#include "parser/parser-token-type.h"
 
 #include "exports.h"
+
+template<typename T> class QStack;
+
+class ParserToken;
 
 class KADUAPI Parser
 {
 	typedef QString (*ObjectTagCallback)(const QObject * const);
 	typedef QString (*BuddyOrContactTagCallback)(BuddyOrContact);
 
-	static QMap<QString, BuddyOrContactTagCallback> registeredTags;
-	static QMap<QString, ObjectTagCallback> registeredObjectTags;
+	static QMap<QString, BuddyOrContactTagCallback> RegisteredBuddyOrContactTags;
+	static QMap<QString, ObjectTagCallback> RegisteredObjectTags;
 
 	static QString executeCmd(const QString &cmd);
 
+	static bool isActionParserTokenAtTop(const QStack<ParserToken> &parseStack, const QVector<ParserTokenType> &acceptedTokens);
+	static ParserToken parsePercentSyntax(const QString &s, int &idx, const BuddyOrContact &buddyOrContact, bool escape);
+
+	template<typename ContainerClass>
+	static QString joinParserTokens(const ContainerClass &parseStack);
+
 public:
-	static QMap<QString, QString> globalVariables;
-	static QString parse(const QString &s, const QObject * const object, bool escape = true);
-	static QString parse(const QString &s, BuddyOrContact buddyOrContact, bool escape = true);
+	static QMap<QString, QString> GlobalVariables;
+
+	static QString parse(const QString &s, const QObject * const object, bool escape = true)
+	{
+		return parse(s, BuddyOrContact(), object, escape);
+	}
+	static QString parse(const QString &s, BuddyOrContact buddyOrContact, bool escape = true)
+	{
+		return parse(s, buddyOrContact, 0, escape);
+	}
 	static QString parse(const QString &s, BuddyOrContact buddyOrContact, const QObject * const object, bool escape = true);
+
 	static bool registerTag(const QString &name, BuddyOrContactTagCallback);
-	static bool unregisterTag(const QString &name, BuddyOrContactTagCallback);
+	static bool unregisterTag(const QString &name);
 
 	static bool registerObjectTag(const QString &name, ObjectTagCallback);
-	static bool unregisterObjectTag(const QString &name, ObjectTagCallback);
+	static bool unregisterObjectTag(const QString &name);
 
 };
 

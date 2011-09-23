@@ -52,21 +52,23 @@
 #include "gui/widgets/accounts-combo-box.h"
 #include "gui/widgets/groups-combo-box.h"
 #include "gui/widgets/select-buddy-combo-box.h"
+#include "icons/kadu-icon.h"
+#include "identities/identity.h"
 #include "misc/misc.h"
 #include "model/roles.h"
 #include "protocols/services/roster-service.h"
 #include "protocols/protocol.h"
 #include "protocols/protocol-factory.h"
 #include "url-handlers/url-handler-manager.h"
-#include "icons-manager.h"
 
 #include "add-buddy-window.h"
 
 AddBuddyWindow::AddBuddyWindow(QWidget *parent, const Buddy &buddy, bool forceBuddyAccount) :
-		QDialog(parent, Qt::Window), UserNameLabel(0), UserNameEdit(0), MobileAccountAction(0), EmailAccountAction(0),
-		AccountCombo(0), AccountComboIdFilter(0), GroupCombo(0), DisplayNameEdit(0), MergeBuddy(0),
-		SelectBuddy(0), AskForAuthorization(0), AllowToSeeMeCheck(0), ErrorLabel(0), AddContactButton(0),
-		MyBuddy(buddy), ForceBuddyAccount(forceBuddyAccount)
+		QDialog(parent, Qt::Window), DesktopAwareObject(this), UserNameLabel(0), UserNameEdit(0),
+		MobileAccountAction(0), EmailAccountAction(0), AccountCombo(0), AccountComboIdFilter(0),
+		GroupCombo(0), DisplayNameEdit(0), MergeBuddy(0), SelectBuddy(0), AskForAuthorization(0),
+		AllowToSeeMeCheck(0), ErrorLabel(0), AddContactButton(0), MyBuddy(buddy),
+		ForceBuddyAccount(forceBuddyAccount)
 {
 	setWindowRole("kadu-add-buddy");
 
@@ -266,10 +268,10 @@ void AddBuddyWindow::addFakeAccountsToComboBox()
 {
 	ActionsProxyModel *actionsModel = AccountCombo->actionsModel();
 
-	MobileAccountAction = new QAction(IconsManager::instance()->iconByPath("phone"), tr("Mobile"), AccountCombo);
+	MobileAccountAction = new QAction(KaduIcon("phone").icon(), tr("Mobile"), AccountCombo);
 	actionsModel->addAfterAction(MobileAccountAction);
 
-	EmailAccountAction = new QAction(IconsManager::instance()->iconByPath("mail-message-new"), tr("E-mail"), AccountCombo);
+	EmailAccountAction = new QAction(KaduIcon("mail-message-new").icon(), tr("E-mail"), AccountCombo);
 	actionsModel->addAfterAction(EmailAccountAction);
 }
 
@@ -507,8 +509,11 @@ bool AddBuddyWindow::addContact()
 	}
 
 	Contact contact = ContactManager::instance()->byId(account, UserNameEdit->text(), ActionCreateAndAdd);
+
 	// force reattach for gadu protocol, even if buddy == contact.ownerBuddy()
+	// TODO: this is probably unneeded, please review
 	contact.setOwnerBuddy(Buddy::null);
+
 	contact.setOwnerBuddy(buddy);
 
 	buddy.addToGroup(GroupCombo->currentGroup());

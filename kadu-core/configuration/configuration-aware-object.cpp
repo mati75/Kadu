@@ -1,5 +1,6 @@
 /*
  * %kadu copyright begin%
+ * Copyright 2011 Piotr Dąbrowski (ultr@ultr.pl)
  * Copyright 2008 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2007, 2008, 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
@@ -18,6 +19,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "configuration-holder.h"
 #include "misc/misc.h"
 
 #include "configuration-aware-object.h"
@@ -26,6 +28,8 @@ KADU_AWARE_CLASS(ConfigurationAwareObject)
 
 void ConfigurationAwareObject::notifyAll()
 {
+	foreach (ConfigurationHolder *configurationHolder, ConfigurationHolder::instances())
+		configurationHolder->configurationUpdated();
 	foreach (ConfigurationAwareObject *object, Objects)
 		object->configurationUpdated();
 }

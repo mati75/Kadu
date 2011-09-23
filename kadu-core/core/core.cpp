@@ -33,6 +33,8 @@
 #include <QtCore/QTimer>
 #include <QtGui/QApplication>
 
+#include <QtCrypto>
+
 #include "accounts/account-manager.h"
 #include "avatars/avatar-manager.h"
 #include "buddies/buddy-manager.h"
@@ -40,15 +42,19 @@
 #include "chat/message/pending-messages-manager.h"
 #include "configuration/configuration-file.h"
 #include "configuration/configuration-manager.h"
-#include "configuration/main-configuration.h"
+#include "configuration/main-configuration-holder.h"
 #include "contacts/contact-manager.h"
 #include "emoticons/emoticons.h"
+#include "file-transfer/file-transfer-manager.h"
 #include "gui/widgets/chat-edit-box.h"
 #include "gui/widgets/chat-widget-manager.h"
 #include "gui/windows/kadu-window.h"
 #include "gui/windows/search-window.h"
+#include "icons/kadu-icon.h"
+#include "misc/date-time-parser-tags.h"
 #include "misc/misc.h"
 #include "notify/notification-manager.h"
+#include "plugins/plugins-manager.h"
 #include "protocols/protocol.h"
 #include "protocols/protocol-factory.h"
 #include "protocols/services/chat-service.h"
@@ -57,12 +63,10 @@
 #include "status/status-type.h"
 #include "status/status-type-manager.h"
 #include "url-handlers/url-handler-manager.h"
-
 #include "activate.h"
 #include "debug.h"
-#include "icons-manager.h"
+#include "icons/icons-manager.h"
 #include "kadu-config.h"
-#include "modules.h"
 #include "updates.h"
 
 #include "core.h"
@@ -80,13 +84,23 @@ Core * Core::instance()
 	return Instance;
 }
 
+QString Core::name()
+{
+	return QLatin1String("Kadu");
+}
+
 QString Core::version()
 {
-	return QString(VERSION);
+	return QLatin1String(VERSION);
+}
+
+QString Core::nameWithVersion()
+{
+	return name() + QLatin1String(" ")  + version();
 }
 
 Core::Core() :
-		Myself(Buddy::create()), Window(0), IsClosing(false), ShowMainWindowOnStart(true)
+		Myself(Buddy::create()), Window(0), IsClosing(false), ShowMainWindowOnStart(true), QcaInit(new QCA::Initializer())
 {
 	connect(qApp, SIGNAL(aboutToQuit()), this, SLOT(quit()));
 
@@ -94,7 +108,9 @@ Core::Core() :
 	createDefaultConfiguration();
 	configurationUpdated();
 
-	MainConfiguration::createInstance();
+	MainConfigurationHolder::createInstance();
+
+	DateTimeParserTags::registerParserTags();
 }
 
 Core::~Core()
@@ -110,13 +126,13 @@ Core::~Core()
 
 	storeConfiguration();
 
-	ModulesManager::instance()->unloadAllModules();
+	PluginsManager::instance()->deactivatePlugins();
 
 #ifdef Q_OS_MAC
-	setIcon(IconsManager::instance()->iconByPath("kadu_icons/kadu"));
+	setIcon(KaduIcon("kadu_icons/kadu").icon());
 #endif // Q_OS_MAC
 
-	MainConfiguration::destroyInstance();
+	MainConfigurationHolder::destroyInstance();
 
 	delete Window;
 	Window = 0;
@@ -124,6 +140,12 @@ Core::~Core()
 	triggerAllAccountsUnregistered();
 
 	xml_config_file->sync();
+
+	// Sometimes it causes crash which I don't understand. For me 100% reproducible
+	// if Kadu was compiled with Clang and we logged in to a jabber account. --beevvy
+	// TODO: fix it
+	// delete QcaInit;
+	// QcaInit = 0;
 
 	delete xml_config_file;
 	delete config_file_ptr;
@@ -166,7 +188,6 @@ void Core::createDefaultConfiguration()
 	config_file.addVariable("Chat", "IgnoreAnonymousUsers", false);
 	config_file.addVariable("Chat", "IgnoreAnonymousUsersInConferences", false);
 	config_file.addVariable("Chat", "LastImagePath", QString(getenv("HOME")) + '/');
-	config_file.addVariable("Chat", "MessageAcks", false);
 	config_file.addVariable("Chat", "NewMessagesInChatTitle", false);
 	config_file.addVariable("Chat", "OpenChatOnMessage", false);
 	config_file.addVariable("Chat", "OpenChatOnMessageWhenOnline", false);
@@ -184,21 +205,34 @@ void Core::createDefaultConfiguration()
 	config_file.addVariable("General", "DescriptionHeight", 60);
 	config_file.addVariable("General", "DisconnectWithCurrentDescription", true);
 	config_file.addVariable("General", "HideBaseModules", true);
-	config_file.addVariable("General", "Language",  QLocale::system().name());
+	config_file.addVariable("General", "Language",  QLocale::system().name().left(2));
 	config_file.addVariable("General", "Nick", tr("Me"));
 	config_file.addVariable("General", "NumberOfDescriptions", 20);
 	config_file.addVariable("General", "ParseStatus", false);
 	config_file.addVariable("General", "SaveStdErr", false);
 	config_file.addVariable("General", "ShowBlocked", true);
 	config_file.addVariable("General", "ShowBlocking", true);
+	config_file.addVariable("General", "ShowMyself", false);
 	config_file.addVariable("General", "ShowEmotPanel", true);
 	config_file.addVariable("General", "ShowOffline", true);
 	config_file.addVariable("General", "ShowOnlineAndDescription", false);
 	config_file.addVariable("General", "ShowWithoutDescription", true);
 	config_file.addVariable("General", "StartDelay", 0);
+
+	if (config_file.readBoolEntry("General", "AdvancedMode", false))
+	{
+		config_file.addVariable("General", "StatusContainerType", "Account");
+		config_file.addVariable("Look", "ShowExpandingControl", true);
+	}
+	else
+	{
+		config_file.addVariable("General", "StatusContainerType", "Identity");
+		config_file.addVariable("Look", "ShowExpandingControl", false);
+	}
+
 	config_file.addVariable("General", "StartupLastDescription", true);
 	config_file.addVariable("General", "StartupStatus", "LastStatus");
-	config_file.addVariable("General", "StartupStatusInvisibleWhenLastWasOffline", true);
+	config_file.addVariable("General", "StartupStatusInvisibleWhenLastWasOffline", false);
 	config_file.addVariable("General", "UserBoxHeight", 300);
 	config_file.addVariable("General", "WindowActivationMethod", 0);
 	config_file.addVariable("General", "MainConfiguration_Geometry", "50, 50, 790, 580");
@@ -208,15 +242,23 @@ void Core::createDefaultConfiguration()
 	config_file.addVariable("Look", "AvatarBorder", false);
 	config_file.addVariable("Look", "AvatarGreyOut", true);
 	config_file.addVariable("Look", "ChatContents", QString());
+	config_file.addVariable("Look", "ForceCustomChatFont", false);
 	config_file.addVariable("Look", "ChatFont", qApp->font());
+	config_file.addVariable("Look", "ChatBgFilled", // depends on configuration imported from older version
+		config_file.readColorEntry("Look", "ChatBgColor").isValid() &&
+		config_file.readColorEntry("Look", "ChatBgColor") != QColor("#ffffff"));
 	config_file.addVariable("Look", "ChatBgColor", QColor("#ffffff"));
 	config_file.addVariable("Look", "ChatMyBgColor", QColor("#E0E0E0"));
 	config_file.addVariable("Look", "ChatMyFontColor", QColor("#000000"));
 	config_file.addVariable("Look", "ChatMyNickColor", QColor("#000000"));
-	config_file.addVariable("Look", "ChatTextBgColor", QColor("#ffffff"));
 	config_file.addVariable("Look", "ChatUsrBgColor", QColor("#F0F0F0"));
 	config_file.addVariable("Look", "ChatUsrFontColor", QColor("#000000"));
 	config_file.addVariable("Look", "ChatUsrNickColor", QColor("#000000"));
+	config_file.addVariable("Look", "ChatTextCustomColors", // depends on configuration imported from older version
+		config_file.readColorEntry("Look", "ChatTextBgColor").isValid() &&
+		config_file.readColorEntry("Look", "ChatTextBgColor") != QColor("#ffffff"));
+	config_file.addVariable("Look", "ChatTextBgColor", QColor("#ffffff"));
+	config_file.addVariable("Look", "ChatTextFontColor", QColor("#000000"));
 	config_file.addVariable("Look", "ConferenceContents", QString());
 	config_file.addVariable("Look", "ConferencePrefix", QString());
 	config_file.addVariable("Look", "DescriptionColor", w.palette().text().color());
@@ -301,9 +343,10 @@ void Core::createDefaultConfiguration()
 
 	config_file.addVariable("Chat", "UseDefaultWebBrowser", config_file.readEntry("Chat", "WebBrowser").isEmpty());
 	config_file.addVariable("Chat", "UseDefaultEMailClient", config_file.readEntry("Chat", "MailClient").isEmpty());
-
-	if (!config_file.readBoolEntry("General", "AdvancedMode", false))
-		config_file.addVariable("General", "SimpleMode", true);
+	config_file.addVariable("Chat", "ContactStateChats", true);
+	config_file.addVariable("Chat", "ContactStateWindowTitle", true);
+	config_file.addVariable("Chat", "ContactStateWindowTitleSyntax", QString());
+	config_file.addVariable("Chat", "ContactStateWindowTitlePosition", 1);
 
 	createAllDefaultToolbars();
 }
@@ -329,17 +372,17 @@ void Core::init()
 {
 	// protocol modules should be loaded before gui
 	// it fixes crash on loading pending messages from config, contacts import from 0.6.5, and maybe other issues
-	ModulesManager::instance()->loadProtocolModules();
+	PluginsManager::instance()->activateProtocolPlugins();
 
 	Myself.setAnonymous(false);
 	Myself.setDisplay(config_file.readEntry("General", "Nick", tr("Me")));
 
-	connect(StatusContainerManager::instance(), SIGNAL(statusChanged()), this, SLOT(statusChanged()));
+	connect(StatusContainerManager::instance(), SIGNAL(statusUpdated()), this, SLOT(statusUpdated()));
 
 	new Updates(this);
 
-	setIcon(IconsManager::instance()->iconByPath(QLatin1String("protocols/common/offline")));
-	connect(IconsManager::instance(), SIGNAL(themeChanged()), this, SLOT(statusChanged()));
+	setIcon(KaduIcon(QLatin1String("protocols/common/offline")));
+	connect(IconsManager::instance(), SIGNAL(themeChanged()), this, SLOT(statusUpdated()));
 	QTimer::singleShot(15000, this, SLOT(deleteOldConfigurationFiles()));
 
 	// TODO: add some life-cycle management
@@ -348,6 +391,10 @@ void Core::init()
 	AccountManager::instance()->ensureLoaded();
 	BuddyManager::instance()->ensureLoaded();
 	ContactManager::instance()->ensureLoaded();
+	// Without that PendingMessagesManager is loaded while filtering buddies list for the first time.
+	// It has to happen earlier because PendingMessagesManager::loaded() might add buddies to the BuddyManager
+	// which (the buddies) otherwise will not be taken into account by buddies list before its next update.
+	PendingMessagesManager::instance()->ensureLoaded();
 	AvatarManager::instance(); // initialize that
 }
 
@@ -393,15 +440,12 @@ void Core::deleteOldConfigurationFiles()
 	kdebugf2();
 }
 
-void Core::statusChanged()
+void Core::statusUpdated()
 {
-	kdebugf();
+	if (isClosing())
+		return;
 
-	Account account = AccountManager::instance()->defaultAccount();
-	if (account.isNull() || !account.protocolHandler())
-		setIcon(StatusContainerManager::instance()->statusIcon());
-	else
-		setIcon(StatusContainerManager::instance()->statusIcon(account.protocolHandler()->status()));
+	setIcon(StatusContainerManager::instance()->statusIcon());
 }
 
 void Core::kaduWindowDestroyed()
@@ -463,6 +507,8 @@ void Core::configurationUpdated()
 #endif
 
 	debug_mask = config_file.readNumEntry("General", "DEBUG_MASK");
+
+	Myself.setDisplay(config_file.readEntry("General", "Nick", tr("Me")));
 }
 
 void Core::createGui()
@@ -470,6 +516,9 @@ void Core::createGui()
 	Window = new KaduWindow(0);
 	Window->setWindowIcon(QApplication::windowIcon());
 	connect(Window, SIGNAL(destroyed()), this, SLOT(kaduWindowDestroyed()));
+
+	// initialize file transfers
+	FileTransferManager::instance();
 }
 
 void Core::showMainWindow()
@@ -491,7 +540,7 @@ KaduWindow * Core::kaduWindow()
 	return Window;
 }
 
-void Core::setIcon(const QIcon &icon)
+void Core::setIcon(const KaduIcon &icon)
 {
 	bool blocked = false;
 	emit settingMainIconBlocked(blocked);
@@ -499,8 +548,8 @@ void Core::setIcon(const QIcon &icon)
 	if (!blocked)
 	{
 		if (Window)
-			Window->setWindowIcon(icon);
-		QApplication::setWindowIcon(icon);
+			Window->setWindowIcon(icon.icon());
+		QApplication::setWindowIcon(icon.icon());
 		emit mainIconChanged(icon);
 	}
 }

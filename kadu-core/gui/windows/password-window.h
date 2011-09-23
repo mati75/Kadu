@@ -22,15 +22,20 @@
 #ifndef PASSWORD_WINDOW_H
 #define PASSWORD_WINDOW_H
 
+#include <QtCore/QVariant>
 #include <QtGui/QDialog>
+
+#include "os/generic/desktop-aware-object.h"
 #include "exports.h"
 
 class QCheckBox;
 class QLineEdit;
 
-class KADUAPI PasswordWindow : public QDialog
+class KADUAPI PasswordWindow : public QDialog, DesktopAwareObject
 {
 	Q_OBJECT
+
+	QVariant Data;
 
 	QLineEdit *Password;
 	QCheckBox *Store;
@@ -40,13 +45,13 @@ private slots:
 	void canceled();
 
 public:
-	static void getPassword(const QString &message, QObject *receiver, const char *slot);
+	static void getPassword(const QString &message, QVariant data, QObject *receiver, const char *slot);
 
-	explicit PasswordWindow(const QString &message, QWidget* parent);
+	explicit PasswordWindow(const QString &message, QVariant data, QWidget* parent);
 	virtual ~PasswordWindow();
 
 signals:
-	void passwordEntered(const QString &password, bool permament);
+	void passwordEntered(const QVariant &data, const QString &password, bool permanent);
 
 };
 

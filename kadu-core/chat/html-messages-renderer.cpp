@@ -25,6 +25,7 @@
 #include "chat/chat-styles-manager.h"
 #include "chat/style-engines/chat-style-engine.h"
 #include "chat/message/message-render-info.h"
+#include "configuration/chat-configuration-holder.h"
 #include "configuration/configuration-file.h"
 
 #include "html-messages-renderer.h"
@@ -145,27 +146,20 @@ void HtmlMessagesRenderer::replaceLoadingImages(const QString &imageId, const QS
 
 void HtmlMessagesRenderer::updateBackgroundsAndColors()
 {
-	QString myBackgroundColor = config_file.readEntry("Look", "ChatMyBgColor");
-	QString myFontColor = config_file.readEntry("Look", "ChatMyFontColor");
-	QString myNickColor = config_file.readEntry("Look", "ChatMyNickColor");
-	QString usrBackgroundColor = config_file.readEntry("Look", "ChatUsrBgColor");
-	QString usrFontColor = config_file.readEntry("Look", "ChatUsrFontColor");
-	QString usrNickColor = config_file.readEntry("Look", "ChatUsrNickColor");
-
 	foreach (MessageRenderInfo *message, MyChatMessages)
 	{
 		switch (message->message().type())
 		{
-			case Message::TypeSent:
-				message->setBackgroundColor(myBackgroundColor)
-					.setNickColor(myNickColor)
-					.setFontColor(myFontColor);
+			case MessageTypeSent:
+				message->setBackgroundColor(ChatConfigurationHolder::instance()->myBackgroundColor())
+					.setNickColor(ChatConfigurationHolder::instance()->myNickColor())
+					.setFontColor(ChatConfigurationHolder::instance()->myFontColor());
 				break;
 
-			case Message::TypeReceived:
-				message->setBackgroundColor(usrBackgroundColor)
-					.setNickColor(usrNickColor)
-					.setFontColor(usrFontColor);
+			case MessageTypeReceived:
+				message->setBackgroundColor(ChatConfigurationHolder::instance()->usrBackgroundColor())
+					.setNickColor(ChatConfigurationHolder::instance()->usrNickColor())
+					.setFontColor(ChatConfigurationHolder::instance()->usrFontColor());
 				break;
 
 			default:
@@ -176,7 +170,34 @@ void HtmlMessagesRenderer::updateBackgroundsAndColors()
 	}
 }
 
-void HtmlMessagesRenderer::messageStatusChanged(Message message, Message::Status status)
+void HtmlMessagesRenderer::messageStatusChanged(Message message, MessageStatus status)
 {
     	ChatStylesManager::instance()->currentEngine()->messageStatusChanged(this, message, status);
+}
+
+void HtmlMessagesRenderer::contactActivityChanged(ChatStateService::ContactActivity state, const Contact &contact)
+{
+	QString display = contact.ownerBuddy().display();
+	QString message;
+	switch (state)
+	{
+		case ChatStateService::StateActive:
+			message = tr("%1 is active").arg(display);
+			break;
+		case ChatStateService::StateComposing:
+			message = tr("%1 is composing...").arg(display);
+			break;
+		case ChatStateService::StateGone:
+			message = tr("%1 is gone").arg(display);
+			break;
+		case ChatStateService::StateInactive:
+			message = tr("%1 is inactive").arg(display);
+			break;
+		case ChatStateService::StateNone:
+			break;
+		case ChatStateService::StatePaused:
+			message = tr("%1 has paused composing").arg(display);
+			break;
+	}
+	ChatStylesManager::instance()->currentEngine()->contactActivityChanged(this, state, message, display);
 }

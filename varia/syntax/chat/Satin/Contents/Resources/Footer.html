@@ -76,5 +76,22 @@
 			}
 			return true;
 		}
+
+		function messageStatusChanged(messageid, status)
+		{
+			if (status == StatusDelivered)
+				document.getElementById("msg_"+messageid).innerHTML = "&#10004;";
+			if (status == StatusWontDeliver)
+				document.getElementById("msg_"+messageid).innerHTML = "&times;";
+		}
+
+		function contactActivityChanged(state, message, name)
+		{
+			if (state == StateComposing)
+				document.getElementById("composing").style.display = "block";
+			else
+				document.getElementById("composing").style.display = "none";
+		}
+
 		//]]>
 	</script>

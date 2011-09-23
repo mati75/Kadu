@@ -35,14 +35,14 @@
 #include "protocols/protocol.h"
 #include "protocols/services/multilogon-service.h"
 #include "activate.h"
-#include "icons-manager.h"
+#include "icons/icons-manager.h"
 
 #include "multilogon-window.h"
 
 MultilogonWindow *MultilogonWindow::Instance = 0;
 
 MultilogonWindow::MultilogonWindow(QWidget *parent) :
-		QWidget(parent)
+		QWidget(parent), DesktopAwareObject(this)
 {
 	setWindowRole("kadu-multilogon");
 

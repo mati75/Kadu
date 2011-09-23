@@ -38,6 +38,7 @@
 #include "chat/style-engines/chat-engine-adium/chat-engine-adium.h"
 #include "chat/style-engines/chat-engine-kadu/chat-engine-kadu.h"
 #include "chat/message/message-render-info.h"
+#include "configuration/chat-configuration-holder.h"
 #include "configuration/configuration-file.h"
 #include "core/core.h"
 #include "emoticons/emoticons-manager.h"
@@ -85,14 +86,14 @@ ChatStylesManager::~ChatStylesManager()
 void ChatStylesManager::registerChatStyleEngine(const QString &name, ChatStyleEngine *engine)
 {
 	if (0 != engine && !RegisteredEngines.contains(name))
-		RegisteredEngines[name] = engine;
+		RegisteredEngines.insert(name, engine);
 }
 
 void ChatStylesManager::unregisterChatStyleEngine(const QString &name)
 {
 	if (RegisteredEngines.contains(name))
 	{
-		delete RegisteredEngines[name];
+		delete RegisteredEngines.value(name);
 		RegisteredEngines.remove(name);
 	}
 }
@@ -103,13 +104,7 @@ void ChatStylesManager::chatViewCreated(ChatMessagesView *view)
 	{
 		ChatViews.append(view);
 
-		bool useTransparency = view->supportTransparency() && CompositingEnabled && config_file.readBoolEntry("Chat", "UseTransparency", false);
-		if (useTransparency)
-		{
-			QPalette palette = view->renderer()->webPage()->palette();
-			palette.setBrush(QPalette::Base, Qt::transparent);
-			view->renderer()->webPage()->setPalette(palette);
-		}
+		bool useTransparency = view->supportTransparency() & ChatConfigurationHolder::instance()->useTransparency();
 		CurrentEngine->refreshView(view->renderer(), useTransparency);
 	}
 }
@@ -149,7 +144,9 @@ void ChatStylesManager::configurationUpdated()
 	QString fontStyle = font.italic() ? "italic" : "normal";
 	QString fontWeight = font.bold() ? "bold" : "normal";
 	QString textDecoration = font.underline() ? "underline" : "none";
-	QString backgroundColor = config_file.readColorEntry("Look", "ChatBgColor").name();
+	QString backgroundColor = "transparent";
+	if (ChatConfigurationHolder::instance()->chatBgFilled())
+		backgroundColor = ChatConfigurationHolder::instance()->chatBgColor().name();
 
 	MainStyle = QString(
 		"html {"
@@ -193,7 +190,7 @@ void ChatStylesManager::configurationUpdated()
 	if (!CurrentEngine || CurrentEngine->currentStyleName() != newStyleName || CurrentEngine->currentStyleVariant() != newVariantName)
 	{
 		newStyleName = fixedStyleName(newStyleName);
-		CurrentEngine = AvailableStyles[newStyleName].engine;
+		CurrentEngine = AvailableStyles.value(newStyleName).engine;
 		newVariantName = fixedVariantName(newStyleName, newVariantName);
 
 		CurrentEngine->loadStyle(newStyleName, newVariantName);
@@ -235,22 +232,7 @@ void ChatStylesManager::compositingEnabled()
 	{
 		view->updateBackgroundsAndColors();
 
-		if (!view->supportTransparency())
-		{
-			CurrentEngine->refreshView(view->renderer());
-			continue;
-		}
-
-		QPalette palette = view->renderer()->webPage()->palette();
-
-		bool useTransparency = config_file.readBoolEntry("Chat", "UseTransparency", false);
-		if (useTransparency)
-			palette.setBrush(QPalette::Base, Qt::transparent);
-		else
-			palette.setBrush(QPalette::Base, config_file.readColorEntry("Look", "ChatBgColor"));
-
-		view->renderer()->webPage()->setPalette(palette);
-
+		bool useTransparency = view->supportTransparency() & ChatConfigurationHolder::instance()->useTransparency();
 		CurrentEngine->refreshView(view->renderer(), useTransparency);
 	}
 
@@ -265,14 +247,8 @@ void ChatStylesManager::compositingDisabled()
 	{
 		view->updateBackgroundsAndColors();
 
-		if (!view->supportTransparency())
-			continue;
-
-		QPalette palette = view->renderer()->webPage()->palette();
-		palette.setBrush(QPalette::Base, config_file.readColorEntry("Look", "ChatBgColor"));
-
-		view->renderer()->webPage()->setPalette(palette);
-		CurrentEngine->refreshView(view->renderer());
+		bool useTransparency = view->supportTransparency() & ChatConfigurationHolder::instance()->useTransparency();
+		CurrentEngine->refreshView(view->renderer(), useTransparency);
 	}
 
 	if (TurnOnTransparency)
@@ -364,7 +340,7 @@ void ChatStylesManager::mainConfigurationWindowCreated(MainConfigurationWindow *
 	EditButton->setEnabled(CurrentEngine->supportEditing());
 
 	DeleteButton = new QPushButton(tr("Delete"), editor);
-	DeleteButton->setEnabled(!AvailableStyles[CurrentEngine->currentStyleName()].global);
+	DeleteButton->setEnabled(!AvailableStyles.value(CurrentEngine->currentStyleName()).global);
 	connect(EditButton, SIGNAL(clicked()), this, SLOT(editStyleClicked()));
 	connect(DeleteButton, SIGNAL(clicked()), this, SLOT(deleteStyleClicked()));
 
@@ -421,7 +397,7 @@ void ChatStylesManager::preparePreview(Preview *preview)
 
 	Message messageSent = Message::create();
 	messageSent.setMessageChat(chat);
-	messageSent.setType(Message::TypeSent);
+	messageSent.setType(MessageTypeSent);
 	messageSent.setMessageSender(chat.chatAccount().accountContact());
 	messageSent.setContent(tr("Your message"));
 	messageSent.setReceiveDate(QDateTime::currentDateTime());
@@ -433,7 +409,7 @@ void ChatStylesManager::preparePreview(Preview *preview)
 
 	Message messageReceived = Message::create();
 	messageReceived.setMessageChat(chat);
-	messageReceived.setType(Message::TypeReceived);
+	messageReceived.setType(MessageTypeReceived);
 	messageReceived.setMessageSender(BuddyPreferredManager::instance()->preferredContact(example));
 	messageReceived.setContent(tr("Message from Your friend"));
 	messageReceived.setReceiveDate(QDateTime::currentDateTime());
@@ -446,13 +422,13 @@ void ChatStylesManager::preparePreview(Preview *preview)
 
 void ChatStylesManager::styleChangedSlot(const QString &styleName)
 {
-	ChatStyleEngine *engine = AvailableStyles[styleName].engine;
+	ChatStyleEngine *engine = AvailableStyles.value(styleName).engine;
 	EditButton->setEnabled(engine->supportEditing());
-	DeleteButton->setEnabled(!AvailableStyles[styleName].global);
+	DeleteButton->setEnabled(!AvailableStyles.value(styleName).global);
 	VariantListCombo->clear();
 	VariantListCombo->addItems(engine->styleVariants(styleName));
 
-	QString currentVariant = AvailableStyles[SyntaxListCombo->currentText()].engine->defaultVariant(styleName);
+	QString currentVariant = AvailableStyles.value(SyntaxListCombo->currentText()).engine->defaultVariant(styleName);
 	if (!currentVariant.isEmpty() && VariantListCombo->findText(currentVariant) == -1)
 		VariantListCombo->insertItem(0, currentVariant);
 
@@ -467,25 +443,25 @@ void ChatStylesManager::styleChangedSlot(const QString &styleName)
 
 void ChatStylesManager::variantChangedSlot(const QString &variantName)
 {
-	AvailableStyles[SyntaxListCombo->currentText()].engine->prepareStylePreview(EnginePreview, SyntaxListCombo->currentText(), variantName);
+	AvailableStyles.value(SyntaxListCombo->currentText()).engine->prepareStylePreview(EnginePreview, SyntaxListCombo->currentText(), variantName);
 }
 
 void ChatStylesManager::editStyleClicked()
 {
-	AvailableStyles[SyntaxListCombo->currentText()].engine->styleEditionRequested(SyntaxListCombo->currentText());
+	AvailableStyles.value(SyntaxListCombo->currentText()).engine->styleEditionRequested(SyntaxListCombo->currentText());
 }
 
 void ChatStylesManager::deleteStyleClicked()
 {
 	QString styleName = SyntaxListCombo->currentText();
-	if (AvailableStyles[styleName].engine->removeStyle(styleName))
+	if (AvailableStyles.value(styleName).engine->removeStyle(styleName))
 	{
 		AvailableStyles.remove(styleName);
 		SyntaxListCombo->removeItem(SyntaxListCombo->currentIndex());
 		styleChangedSlot(*AvailableStyles.keys().constBegin());
 	}
 	else
-		MessageDialog::show("dialog-error", tr("Kadu"), tr("Unable to remove style: %1").arg(styleName));
+		MessageDialog::show(KaduIcon("dialog-error"), tr("Kadu"), tr("Unable to remove style: %1").arg(styleName));
 }
 
 void ChatStylesManager::syntaxUpdated(const QString &syntaxName)

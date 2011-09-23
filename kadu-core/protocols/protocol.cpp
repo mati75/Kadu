@@ -23,19 +23,21 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <QtGui/QIcon>
 #include <QtGui/QTextDocument>
 
 #include "accounts/account-manager.h"
+#include "buddies/buddy-manager.h"
 #include "chat/chat-details-conference.h"
 #include "chat/chat-details-simple.h"
 #include "chat/chat-manager.h"
-#include "buddies/buddy-manager.h"
 #include "contacts/contact.h"
 #include "contacts/contact-manager.h"
 #include "contacts/contact-set.h"
-#include "icons-manager.h"
+#include "core/core.h"
+#include "icons/icons-manager.h"
+#include "icons/kadu-icon.h"
 #include "protocols/protocol-factory.h"
+#include "protocols/protocol-state-machine.h"
 #include "status/status-changer-manager.h"
 #include "status/status-type-manager.h"
 #include "status/status.h"
@@ -44,8 +46,26 @@
 #include "protocol.h"
 
 Protocol::Protocol(Account account, ProtocolFactory *factory) :
-		Factory(factory), CurrentAccount(account), State(NetworkDisconnected)
+		Factory(factory), CurrentAccount(account)
 {
+	Machine = new ProtocolStateMachine(this);
+	/*
+	 * after machine is started we need to re-call changeStatus
+	 * so proper transition can be called
+	 *
+	 * changeStatus was probably called before machine was started by some StatusContainer
+	 * that just restored status from configuration file
+	 */
+	connect(Machine, SIGNAL(started()), this, SLOT(prepareStateMachine()), Qt::QueuedConnection);
+
+	connect(Machine, SIGNAL(loggingInStateEntered()), this, SLOT(loggingInStateEntered()));
+	connect(Machine, SIGNAL(loggedInStateEntered()), this, SLOT(loggedInStateEntered()));
+	connect(Machine, SIGNAL(loggingOutStateEntered()), this, SLOT(loggingOutStateEntered()));
+	connect(Machine, SIGNAL(loggedOutOnlineStateEntered()), this, SLOT(loggedOutAnyStateEntered()));
+	connect(Machine, SIGNAL(loggedOutOfflineStateEntered()), this, SLOT(loggedOutAnyStateEntered()));
+	connect(Machine, SIGNAL(wantToLogInStateEntered()), this, SLOT(wantToLogInStateEntered()));
+	connect(Machine, SIGNAL(passwordRequiredStateEntered()), this, SLOT(passwordRequiredStateEntered()));
+
 	connect(StatusChangerManager::instance(), SIGNAL(statusChanged(StatusContainer*,Status)),
 			this, SLOT(statusChanged(StatusContainer*,Status)));
 }
@@ -54,13 +74,30 @@ Protocol::~Protocol()
 {
 }
 
-QIcon Protocol::icon()
+KaduIcon Protocol::icon()
 {
 	return Factory->icon();
 }
 
+void Protocol::prepareStateMachine()
+{
+	if (!CurrentStatus.isDisconnected())
+		emit stateMachineChangeStatus();
+}
+
+void Protocol::passwordProvided()
+{
+	if (CurrentAccount.hasPassword())
+		emit stateMachinePasswordAvailable();
+	else
+		emit stateMachinePasswordNotAvailable();
+}
+
 void Protocol::setAllOffline()
 {
+	if (Core::instance()->isClosing())
+		return;
+
 	Status status;
 	Status oldStatus;
 
@@ -76,9 +113,19 @@ void Protocol::setAllOffline()
 	}
 }
 
+void Protocol::disconnectedCleanup()
+{
+	setAllOffline();
+}
+
 void Protocol::setStatus(Status status)
 {
 	StatusChangerManager::instance()->setStatus(account().statusContainer(), status);
+}
+
+Status Protocol::loginStatus() const
+{
+	return StatusChangerManager::instance()->realStatus(account().statusContainer());
 }
 
 Status Protocol::status() const
@@ -86,15 +133,57 @@ Status Protocol::status() const
 	return CurrentStatus;
 }
 
-Status Protocol::nextStatus() const
-{
-	return StatusChangerManager::instance()->realStatus(account().statusContainer());
-}
-
 void Protocol::statusChanged(StatusContainer *container, Status status)
 {
-	if (container && container == account().statusContainer() && (CurrentStatus != status || isConnecting()))
-		changeStatus();
+	if (!container || container != account().statusContainer())
+		return;
+
+	// If we are in logging-in state and user requested stopping connecting,
+	// CurrentStatus and status are both offline but we still have to emit
+	// stateMachineLogout() signal to actually stop connecting.
+	if (!status.isDisconnected() && CurrentStatus == status)
+		return;
+
+	CurrentStatus = status;
+	if (!CurrentStatus.isDisconnected())
+	{
+		emit statusChanged(CurrentAccount, CurrentStatus);
+		sendStatusToServer();
+
+		emit stateMachineChangeStatus();
+	}
+	else
+		emit stateMachineLogout();
+}
+
+void Protocol::loggedIn()
+{
+	emit stateMachineLoggedIn();
+}
+
+void Protocol::loggedOut()
+{
+	emit stateMachineLoggedOut();
+}
+
+void Protocol::passwordRequired()
+{
+	emit stateMachinePasswordRequired();
+}
+
+void Protocol::connectionError()
+{
+	statusChanged(Status());
+
+	emit stateMachineConnectionError();
+}
+
+void Protocol::connectionClosed()
+{
+	setStatus(Status());
+	statusChanged(Status());
+
+	emit stateMachineConnectionClosed();
 }
 
 void Protocol::statusChanged(Status status)
@@ -103,46 +192,85 @@ void Protocol::statusChanged(Status status)
 	emit statusChanged(CurrentAccount, CurrentStatus);
 }
 
-void Protocol::networkStateChanged(NetworkState state)
+KaduIcon Protocol::statusIcon()
 {
-	if (State == state)
-		return;
-
-	State = state;
-	switch (State)
-	{
-		case NetworkConnecting:
-			emit connecting(CurrentAccount);
-			break;
-		case NetworkConnected:
-			emit connected(CurrentAccount);
-			break;
-		case NetworkDisconnecting:
-			emit disconnecting(CurrentAccount);
-			break;
-		case NetworkDisconnected:
-			emit disconnected(CurrentAccount);
-			break;
-	}
+	return statusIcon(CurrentStatus);
 }
 
-QIcon Protocol::statusIcon(Status status)
+KaduIcon Protocol::statusIcon(const Status &status)
 {
-	return StatusTypeManager::instance()->statusIcon(statusPixmapPath(), status.type(),
-			!status.description().isEmpty(), false);
+	return StatusTypeManager::instance()->statusIcon(statusPixmapPath(), status.type(), !status.description().isEmpty(), false);
 }
 
-QString Protocol::statusIconPath(const QString& statusType)
-{
-	return StatusTypeManager::instance()->statusIconPath(statusPixmapPath(), statusType, false, false);
-}
-
-QString Protocol::statusIconFullPath(const QString& statusType)
-{
-	return StatusTypeManager::instance()->statusIconFullPath(statusPixmapPath(), statusType, false, false);
-}
-
-QIcon Protocol::statusIcon(const QString &statusType)
+KaduIcon Protocol::statusIcon(const QString &statusType)
 {
 	return StatusTypeManager::instance()->statusIcon(statusPixmapPath(), statusType, false, false);
+}
+
+void Protocol::loggingInStateEntered()
+{
+	if (!CurrentAccount.details() || account().id().isEmpty())
+	{
+		emit stateMachineConnectionClosed();
+		return;
+	}
+
+	if (!account().hasPassword())
+	{
+		emit stateMachinePasswordRequired();
+		return;
+	}
+
+	// just for status icon now, this signal need to be better
+	emit statusChanged(CurrentAccount, CurrentStatus);
+
+	// call protocol implementation
+	login();
+}
+
+void Protocol::loggedInStateEntered()
+{
+	afterLoggedIn();
+
+	statusChanged(loginStatus());
+	sendStatusToServer();
+
+	emit connected(CurrentAccount);
+}
+
+void Protocol::loggingOutStateEntered()
+{
+	// call protocol implementation
+	logout();
+}
+
+void Protocol::loggedOutAnyStateEntered()
+{
+	disconnectedCleanup();
+	statusChanged(loginStatus());
+
+	emit disconnected(CurrentAccount);
+}
+
+void Protocol::wantToLogInStateEntered()
+{
+	disconnectedCleanup();
+	statusChanged(Status());
+
+	emit statusChanged(CurrentAccount, Status());
+}
+
+void Protocol::passwordRequiredStateEntered()
+{
+	emit invalidPassword(CurrentAccount);
+}
+
+bool Protocol::isConnected()
+{
+	return Machine->isLoggedIn();
+}
+
+bool Protocol::isConnecting()
+{
+	return Machine->isLoggingIn();
 }

@@ -19,11 +19,14 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <QtCore/QTimer>
 #include <QtGui/QMenu>
 
 #include "accounts/account.h"
 #include "accounts/account-manager.h"
-#include "configuration/main-configuration.h"
+#include "configuration/main-configuration-holder.h"
+#include "icons/kadu-icon.h"
+#include "gui/status-icon.h"
 #include "gui/widgets/status-menu.h"
 #include "protocols/protocol.h"
 #include "status/status-container.h"
@@ -31,12 +34,16 @@
 #include "status-button.h"
 
 StatusButton::StatusButton(StatusContainer *statusContainer, QWidget *parent) :
-		QPushButton(parent), MyStatusContainer(statusContainer), DisplayStatusName(false)
+		QToolButton(parent), MyStatusContainer(statusContainer), DisplayStatusName(false)
 {
-	createGui();
+	Icon = new StatusIcon(MyStatusContainer, this);
 
-	statusChanged();
-	connect(MyStatusContainer, SIGNAL(statusChanged()), this, SLOT(statusChanged()));
+	createGui();
+	setPopupMode(InstantPopup);
+
+	statusUpdated();
+	connect(MyStatusContainer, SIGNAL(statusUpdated()), this, SLOT(statusUpdated()));
+	connect(Icon, SIGNAL(iconUpdated(KaduIcon)), this, SLOT(iconUpdated(KaduIcon)));
 }
 
 StatusButton::~StatusButton()
@@ -46,34 +53,45 @@ StatusButton::~StatusButton()
 void StatusButton::createGui()
 {
 	QMenu *menu = new QMenu(this);
-	new StatusMenu(MyStatusContainer, menu);
+	new StatusMenu(MyStatusContainer, false, menu);
 
 	setMenu(menu);
+	setIcon(Icon->icon().icon());
 }
 
-void StatusButton::update()
+void StatusButton::updateStatus()
 {
-	setIcon(MyStatusContainer->statusIcon());
-
 	if (DisplayStatusName)
+	{
+		setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
 		setText(MyStatusContainer->statusDisplayName());
+		setToolTip(QString());
+	}
 	else
 	{
-		if (MainConfiguration::instance()->simpleMode())
+		if (MainConfigurationHolder::instance()->isSetStatusPerIdentity())
+		{
+			setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
 			setText(MyStatusContainer->statusContainerName());
+			setToolTip(QString());
+		}
 		else
+		{
+			setToolButtonStyle(Qt::ToolButtonIconOnly);
+			setText(QString());
 			setToolTip(MyStatusContainer->statusContainerName());
+		}
 	}
 }
 
-void StatusButton::statusChanged()
+void StatusButton::statusUpdated()
 {
-	update();
+	updateStatus();
 }
 
 void StatusButton::configurationUpdated()
 {
-	update();
+	updateStatus();
 }
 
 void StatusButton::setDisplayStatusName(bool displayStatusName)
@@ -81,6 +99,11 @@ void StatusButton::setDisplayStatusName(bool displayStatusName)
 	if (DisplayStatusName != displayStatusName)
 	{
 		DisplayStatusName = displayStatusName;
-		update();
+		updateStatus();
 	}
+}
+
+void StatusButton::iconUpdated(const KaduIcon &icon)
+{
+	setIcon(icon.icon());
 }

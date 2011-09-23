@@ -27,6 +27,7 @@
 #include "accounts/account-manager.h"
 #include "buddies/buddy-manager.h"
 #include "buddies/buddy-preferred-manager.h"
+#include "chat/aggregate-chat-manager.h"
 #include "chat/message/message.h"
 #include "chat/message/message-render-info.h"
 #include "chat/message/message-shared.h"
@@ -44,6 +45,7 @@
 #include "gui/actions/actions.h"
 #include "gui/widgets/chat-edit-box.h"
 #include "gui/widgets/chat-widget-actions.h"
+#include "gui/widgets/chat-widget-container.h"
 #include "gui/widgets/buddies-list-view-menu-manager.h"
 #include "gui/widgets/custom-input.h"
 #include "gui/windows/chat-window.h"
@@ -56,7 +58,7 @@
 
 #include "activate.h"
 #include "debug.h"
-#include "icons-manager.h"
+#include "icons/icons-manager.h"
 #include "misc/misc.h"
 #include "search.h"
 
@@ -249,7 +251,7 @@ ChatWidget * ChatWidgetManager::byChat(const Chat &chat, bool create) const
 	Q_UNUSED(create)
 
 	return Chats.contains(chat)
-		? Chats[chat]
+		? Chats.value(chat)
 		: 0;
 }
 
@@ -269,6 +271,9 @@ void ChatWidgetManager::activateChatWidget(ChatWidget *chatwidget, bool forceAct
 ChatWidget * ChatWidgetManager::openChatWidget(const Chat &chat, bool forceActivate)
 {
 	kdebugf();
+
+	if (!chat)
+		return 0;
 
 	ChatWidget *chatWidget = byChat(chat);
 	if (chatWidget)
@@ -335,7 +340,9 @@ void ChatWidgetManager::openPendingMessages(const Chat &chat, bool forceActivate
 	if (!chatWidget)
 		return;
 
-	QList<Message> pendingMessages = PendingMessagesManager::instance()->pendingMessagesForChat(chat);
+	Chat aggregateChat = AggregateChatManager::instance()->aggregateChat(chat);
+	QList<Message> pendingMessages = PendingMessagesManager::instance()->pendingMessagesForChat(aggregateChat ? aggregateChat : chat);
+
 	foreach (Message message, pendingMessages)
 	{
 		messages.append(new MessageRenderInfo(message));
@@ -385,7 +392,7 @@ void ChatWidgetManager::closeChat(const Chat &chat)
 	ChatWidget *chatWidget = byChat(chat);
 	if (chatWidget)
 	{
-		ChatContainer *container = dynamic_cast<ChatContainer *>(chatWidget->window());
+		ChatWidgetContainer *container = dynamic_cast<ChatWidgetContainer *>(chatWidget->window());
 		if (container)
 			container->closeChatWidget(chatWidget);
 	}
@@ -404,6 +411,10 @@ void ChatWidgetManager::closeAllChats(const Buddy &buddy)
 void ChatWidgetManager::configurationUpdated()
 {
 	kdebugf();
+
+	OpenChatOnMessage = config_file.readBoolEntry("Chat", "OpenChatOnMessage");
+	AutoRaise = config_file.readBoolEntry("General","AutoRaise");
+	OpenChatOnMessageWhenOnline = config_file.readBoolEntry("Chat", "OpenChatOnMessageWhenOnline");
 
 	insertEmoticonActionEnabled();
 
@@ -424,17 +435,15 @@ void ChatWidgetManager::messageReceived(const Message &message)
 	}
 	else
 	{
-		if (config_file.readBoolEntry("General","AutoRaise"))
-		{
-			Core::instance()->kaduWindow()->showNormal();
-			Core::instance()->kaduWindow()->setFocus();
-		}
+		if (AutoRaise)
+			_activateWindow(Core::instance()->kaduWindow());
 
-		if (config_file.readBoolEntry("Chat", "OpenChatOnMessage"))
+		if (OpenChatOnMessage)
 		{
 			Protocol *handler = message.messageChat().chatAccount().protocolHandler();
-			if (config_file.readBoolEntry("Chat", "OpenChatOnMessageWhenOnline") && (!handler || (handler->status().group() != "Online")))
+			if (OpenChatOnMessageWhenOnline && (!handler || (handler->status().group() != "Online")))
 			{
+				qApp->alert(Core::instance()->kaduWindow());
 				message.setPending(true);
 				PendingMessagesManager::instance()->addItem(message);
 				return;
@@ -449,6 +458,7 @@ void ChatWidgetManager::messageReceived(const Message &message)
 		}
 		else
 		{
+			qApp->alert(Core::instance()->kaduWindow());
 			message.setPending(true);
 			PendingMessagesManager::instance()->addItem(message);
 		}

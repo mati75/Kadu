@@ -28,6 +28,7 @@
 #include "buddies/buddy-list.h"
 #include "exports.h"
 
+class Contact;
 class Protocol;
 
 class KADUAPI ContactListService : public QObject
@@ -36,28 +37,36 @@ class KADUAPI ContactListService : public QObject
 
 	Protocol *CurrentProtocol;
 
-	// TODO: rename
-	Buddy mergeBuddy(Buddy buddy);
+	bool askForAddingContacts(const QMap<Buddy, Contact> &contactsToAdd, const QMap<Buddy, Contact> &contactsToRename);
+	QVector<Contact> performAddsAndRenames(const QMap<Buddy, Contact> &contactsToAdd, const QMap<Buddy, Contact> &contactsToRename);
+	QVector<Contact> registerBuddies(const BuddyList &buddies);
 
 public:
-	explicit ContactListService(Protocol *protocol = 0);
+	explicit ContactListService(Protocol *protocol);
 	virtual ~ContactListService();
 
-	virtual void importContactList(bool automaticallySetBuddiesList = true);
+	Protocol * protocol() const { return CurrentProtocol; }
+
+	// it is useful when migrating from 0.9.x to a newer version
+	// TODO 0.14: remove
+	virtual bool haveToAskForAddingContacts() const = 0;
+
+	virtual void importContactList();
 	virtual void exportContactList() = 0;
 	virtual void exportContactList(const BuddyList &buddies) = 0;
+
+	virtual void copySupportedBuddyInformation(const Buddy &destination, const Buddy &source) = 0;
 
 	virtual QList<Buddy> loadBuddyList(QTextStream &dataStream) = 0;
 	virtual QByteArray storeBuddyList(const BuddyList &buddies) = 0;
 
-	void setBuddiesList(const BuddyList &buddies, bool removeOld = true);
+	void setBuddiesList(const BuddyList &buddies, bool removeOldAutomatically);
 
 public slots:
 	virtual void contactListImportedSlot(bool ok, const BuddyList &buddies);
 
 signals:
 	void contactListImported(bool ok, const BuddyList &buddies);
-	void contactListExported(bool ok);
 
 };
 

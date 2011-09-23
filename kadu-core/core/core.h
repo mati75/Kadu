@@ -29,14 +29,21 @@
 #include <QtCore/QObject>
 
 #include "accounts/accounts-aware-object.h"
-#include "chat/chat.h"
-#include "configuration/configuration-aware-object.h"
 #include "buddies/buddy.h"
 #include "buddies/buddy-list.h"
+#include "chat/chat.h"
+#include "configuration/configuration-aware-object.h"
+#include "icons/kadu-icon.h"
 #include "status/status.h"
 
 #include "exports.h"
 
+namespace QCA
+{
+	class Initializer;
+}
+
+class KaduIcon;
 class KaduWindow;
 class Message;
 
@@ -52,6 +59,11 @@ class KADUAPI Core : public QObject, private AccountsAwareObject, public Configu
 	bool IsClosing;
 	bool ShowMainWindowOnStart; // TODO: 0.11.0, it is a hack
 
+	// NOTE: Kadu core itself doesn't use QCA, but important plugins do. And QCA lib
+	// isn't very well suited to be unloaded, so we just link to it in core and initialize
+	// here.
+	QCA::Initializer *QcaInit;
+
 	Core();
 	virtual ~Core();
 
@@ -65,7 +77,7 @@ class KADUAPI Core : public QObject, private AccountsAwareObject, public Configu
 	void storeConfiguration();
 
 private slots:
-	void statusChanged();
+	void statusUpdated();
 
 	void deleteOldConfigurationFiles();
 	void kaduWindowDestroyed();
@@ -78,7 +90,10 @@ protected:
 public:
 	static Core * instance();
 
+	static QString name();
 	static QString version();
+	static QString nameWithVersion();
+
 	bool isClosing() { return IsClosing; }
 	Buddy myself() { return Myself; }
 
@@ -88,7 +103,7 @@ public:
 	KaduWindow * kaduWindow();
 
 	void initialized();
-	void setIcon(const QIcon &icon);
+	void setIcon(const KaduIcon &icon);
 
 public slots:
 	void receivedSignal(const QString &signal);
@@ -109,7 +124,7 @@ signals:
 	//TODO:
 	void searchingForTrayPosition(QPoint &);
 
-	void mainIconChanged(const QIcon &);
+	void mainIconChanged(const KaduIcon &);
 
 };
 

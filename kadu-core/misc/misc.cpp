@@ -1,5 +1,6 @@
 /*
  * %kadu copyright begin%
+ * Copyright 2011 Piotr Dąbrowski (ultr@ultr.pl)
  * Copyright 2009 Dawid Stawiarski (neeo@kadu.net)
  * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
@@ -56,37 +57,69 @@ QString replacedNewLine(const QString &text, const QString &newLineText)
 	return QString(text).replace(newLineRegExp, newLineText);
 }
 
+QRect properGeometry(const QRect &rect)
+{
+	QRect geometry(rect.normalized());
+	QRect availableGeometry = QApplication::desktop()->availableGeometry(geometry.center());
+
+	// correct size
+	if (geometry.width() > availableGeometry.width())
+		geometry.setWidth(availableGeometry.width());
+	if (geometry.height() > availableGeometry.height())
+		geometry.setHeight(availableGeometry.height());
+
+	// switch screen
+	if (geometry.center().x() < availableGeometry.x())
+		geometry.moveLeft(availableGeometry.x());
+	else if (geometry.center().x() >= availableGeometry.x() + availableGeometry.width())
+		geometry.moveLeft(availableGeometry.x() + availableGeometry.width() - geometry.width());
+	if (geometry.center().y() < availableGeometry.y())
+		geometry.moveTop(availableGeometry.y());
+	else if (geometry.center().y() >= availableGeometry.y() + availableGeometry.height())
+		geometry.moveTop(availableGeometry.y() + availableGeometry.height() - geometry.height());
+
+	// move
+	if (geometry.bottomRight().x() >= availableGeometry.x() + availableGeometry.width())
+		geometry.moveLeft(availableGeometry.x() + availableGeometry.width() - geometry.width());
+	if (geometry.bottomRight().y() >= availableGeometry.y() + availableGeometry.height())
+		geometry.moveTop(availableGeometry.y() + availableGeometry.height() - geometry.height());
+	if (geometry.topLeft().x() < availableGeometry.x())
+		geometry.moveLeft(availableGeometry.x());
+	if (geometry.topLeft().y() < availableGeometry.y())
+		geometry.moveTop(availableGeometry.x());
+
+	// done
+	return geometry;
+}
+
+QRect windowGeometry(const QWidget *w)
+{
+	// it has to be symmetric to what setWindowGeometry() does
+	return QRect(w->pos(), w->size());
+}
+
+void setWindowGeometry(QWidget *w, const QRect &geometry)
+{
+	QRect rect = properGeometry(geometry);
+
+	// setGeometry() will do no good here, refer to Qt docs and Kadu bug #2262
+	// note it has to be symmetric to what windowGeometry() does
+	w->resize(rect.size());
+	w->move(rect.topLeft());
+}
+
 void saveWindowGeometry(const QWidget *w, const QString &section, const QString &name)
 {
-#if defined(Q_OS_MAC) || defined(Q_WS_MAEMO_5)
-	/* Dorr: on Mac OS X make sure the window will not be greater than desktop what
-	 * sometimes happends during widget resizing (because of bug in Qt?),
-	 * on Maemo prevent from widgets greater than screen.
-	 */
-	QRect screen = QApplication::desktop()->availableGeometry(w);
-	QRect geometry(w->geometry());
-	if (geometry.height() > screen.height())
-		geometry.setHeight(screen.height());
-	if (geometry.width() > screen.width())
-		geometry.setWidth(screen.width());
-	config_file.writeEntry(section, name, geometry);
-#else
-	config_file.writeEntry(section, name, w->geometry());
-#endif
+	config_file.writeEntry(section, name, windowGeometry(w));
 }
 
 void loadWindowGeometry(QWidget *w, const QString &section, const QString &name, int defaultX, int defaultY, int defaultWidth, int defaultHeight)
 {
 	QRect rect = config_file.readRectEntry(section, name);
-	if ((rect.height() == 0) || (rect.width() == 0))
-	{
+	if (!rect.isValid() || rect.height() == 0 || rect.width() == 0)
 		rect.setRect(defaultX, defaultY, defaultWidth, defaultHeight);
-	}
-#ifdef Q_OS_MAC
-	if (rect.y() < 20)
-		rect.setY(20);
-#endif
-	w->setGeometry(rect);
+
+	setWindowGeometry(w, rect);
 }
 
 QString pwHash(const QString &text)
@@ -95,42 +128,6 @@ QString pwHash(const QString &text)
 	for (unsigned int i = 0, textLength = text.length(); i < textLength; ++i)
 		newText[i] = QChar(text.at(i).unicode() ^ i ^ 1);
 	return newText;
-}
-
-QString translateLanguage(const QApplication *application, const QString &locale, const bool l2n)
-{
-	static const int langSize = 6;
-	static const char local[][3] = {"en",
-		"de",
-		"fr",
-		"it",
-		"pl",
-		"cs"
-	};
-
-	static const char name[][sizeof("English") /*length of the longest*/] = {
-		QT_TR_NOOP("English"),
-		QT_TR_NOOP("German"),
-		QT_TR_NOOP("French"),
-		QT_TR_NOOP("Italian"),
-		QT_TR_NOOP("Polish"),
-		QT_TR_NOOP("Czech")};
-
-	for (int i = 0; i < langSize; ++i)
-	{
-		if (l2n)
-		{
-			if (locale.leftRef(2) == local[i])
-				return application->translate("@default", name[i]);
-		}
-		else
-			if (locale == application->translate("@default", name[i]))
-				return local[i];
-	}
-	if (l2n)
-		return application->translate("@default", QT_TR_NOOP("English"));
-	else
-		return "en";
 }
 
 QList<int> stringToIntList(const QString &in)

@@ -64,8 +64,8 @@ public:
 
 	virtual ~Chat();
 
-	ContactSet contacts() const;
-	QString name() const;
+	KaduSharedBase_PropertyRead(ContactSet, contacts, Contacts)
+	KaduSharedBase_PropertyRead(QString, name, Name)
 
 	/**
 	* @author Rafal 'Vogel' Malinowski
@@ -75,7 +75,7 @@ public:
 	* this field contains ChatDetails object that holds detailed information
 	* about this chat.
 	*/
-	KaduSharedBase_Property(ChatDetails *, details, Details);
+	KaduSharedBase_Property(ChatDetails *, details, Details)
 
 	/**
 	* @author Rafal 'Vogel' Malinowski
@@ -84,7 +84,7 @@ public:
 	* Every chat is assigned to account. All contacts in every chat must
 	* belong to the same account as chat.
 	*/
-	KaduSharedBase_Property(Account, chatAccount, ChatAccount);
+	KaduSharedBase_PropertyCRW(Account, chatAccount, ChatAccount)
 
 	/**
 	 * @author Rafal 'Vogel' Malinowski
@@ -96,9 +96,9 @@ public:
 	 * and 'conference' (for on-to-many chats). Other what types could be: 'irc-room' (for irc room
 	 * chats).
 	 */
-	KaduSharedBase_Property(QString, type, Type);
+	KaduSharedBase_PropertyCRW(QString, type, Type)
 
-	KaduSharedBase_PropertyBool(IgnoreAllMessages);
+	KaduSharedBase_PropertyBool(IgnoreAllMessages)
 
 };
 

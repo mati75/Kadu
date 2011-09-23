@@ -7,15 +7,6 @@
 				<line-edit caption="Nickname" config-section="General" config-item="Nick" />
 				<label caption="Enter a nickname for your account." />
 			</group-box>
-			<group-box name="Buddy List Mode">
-				<radio-button caption="Hide messaging networks for each buddy (Simple Mode)" config-section="General" config-item="SimpleMode"
-					id="simpleMode" tool-tip="If enabled, buddies networks will be hidden in buddy list and status buttons" />
-				<label caption="With this setting, each of your buddy's messaging networks will be removed from view on your buddy list." />
-				<radio-button caption="Differentiate the messaging networks for each buddy (Advanced Mode)" config-section="General"
-					config-item="AdvancedMode" id="advancedMode" />
-				<label caption="With this setting, your buddy list will display the associated messaging networks for each of your buddies (e.g. 'Anna uses Gadu-Gadu and Google Talk') ." />
-				<!-- <check-box caption="Show network icons with each buddy" config-section="General" config-item="ShowContactsWithIcons" id="contactsWithIcons" /> -->
-			</group-box>
 			<group-box name="Default Language">
 				<combo-box caption="Language" config-section="General" config-item="Language" id="languages" tool-tip="Choose your language" />
 				<label caption="Kadu needs to be restarted before changes to the language settings will take effect." />
@@ -48,8 +39,8 @@
 			</group-box>
 			<group-box name="Window Activation Method" id="windowActivationMethodGroup">
 				<combo-box caption="Select method" config-section="General" config-item="WindowActivationMethod" id="windowActivationMethod" >
-					<item value="0" caption="Move the window to an active desktop" />
-					<item value="1" caption="Switch desktop to make the window visible" />
+					<item value="0" caption="Move the Window to the Active Desktop" />
+					<item value="1" caption="Switch Desktop Making the Window Visible" />
 				</combo-box>
 			</group-box>
 			<group-box name="Debugging" id="debug">
@@ -78,14 +69,21 @@
 
 	<section name="Status" icon="kadu_icons/section-status">
 		<tab name="General">
+			<group-box name="Status">
+				<combo-box caption="Set status" config-section="General" config-item="StatusContainerType">
+					<item value="Account" caption="Per Account" />
+					<item value="Identity" caption="Per Identity" />
+					<item value="All" caption="For All Accounts" />
+				</combo-box>
+			</group-box>
 			<group-box name="Description">
 				<combo-box caption="On startup, set" config-section="General" config-item="StartupStatus" id="startupStatus"
 					tool-tip="Choose status which will be set on startup">
-					<item value="LastStatus" caption="Last status" />
-					<item value="FreeForChat" caption="Free for chat" />
+					<item value="LastStatus" caption="Last Status" />
+					<item value="FreeForChat" caption="Free for Chat" />
 					<item value="Online" caption="Online" />
 					<item value="Busy" caption="Away" />
-					<item value="DoNotDisturb" caption="Do not disturb" />
+					<item value="DoNotDisturb" caption="Do Not Disturb" />
 					<item value="Invisible" caption="Invisible" />
 					<item value="Offline" caption="Offline" />
 				</combo-box>
@@ -121,14 +119,17 @@
 
 		<tab name="Colors">
 			<group-box name="Chat Window">
-				<color-button caption="Chat window" config-section="Look" config-item="ChatBgColor" />
-				<color-button caption="Text edit" config-section="Look" config-item="ChatTextBgColor" />
-				<color-button caption="My messages" config-section="Look" config-item="ChatMyBgColor" />
-				<color-button caption="Buddy's messages" config-section="Look" config-item="ChatUsrBgColor" />
-				<color-button caption="My font" config-section="Look" config-item="ChatMyFontColor" />
-				<color-button caption="Buddy's font" config-section="Look" config-item="ChatUsrFontColor" />
-				<color-button caption="My nick" config-section="Look" config-item="ChatMyNickColor" />
-				<color-button caption="Buddy's nick" config-section="Look" config-item="ChatUsrNickColor" />
+				<color-button caption="My font color" config-section="Look" config-item="ChatMyFontColor" />
+				<color-button caption="Buddy's font color" config-section="Look" config-item="ChatUsrFontColor" />
+				<color-button caption="My nick color" config-section="Look" config-item="ChatMyNickColor" />
+				<color-button caption="Buddy's nick color" config-section="Look" config-item="ChatUsrNickColor" />
+				<color-button caption="My messages' background" config-section="Look" config-item="ChatMyBgColor" />
+				<color-button caption="Buddy's messages' background" config-section="Look" config-item="ChatUsrBgColor" />
+				<check-box caption="Use custom chat background color" config-section="Look" config-item="ChatBgFilled" id="chatBgFilled" />
+				<color-button caption="Chat background" config-section="Look" config-item="ChatBgColor" id="chatBgColor" />
+				<check-box caption="Use custom text edit colors" config-section="Look" config-item="ChatTextCustomColors" id="chatTextCustomColors" />
+				<color-button caption="Text edit background" config-section="Look" config-item="ChatTextBgColor" id="chatTextBgColor" />
+				<color-button caption="Text edit font" config-section="Look" config-item="ChatTextFontColor" id="chatTextFontColor" />
 			</group-box>
 			<group-box name="Buddy List">
 				<color-button caption="Font" config-section="Look" config-item="UserboxFgColor" />
@@ -143,9 +144,11 @@
 
 		<tab name="Fonts">
 			<group-box name="Fonts">
+				<check-box caption="Force custom font in chat window" config-section="Look" config-item="ForceCustomChatFont"
+					tool-tip="Force custom font even for chat styles which define their own fonts (most Adium styles do that)" />
 				<select-font caption="Chat window" config-section="Look" config-item="ChatFont" />
 				<select-font caption="Buddy list" config-section="Look" config-item="UserboxFont" />
-				<select-font caption="Font in panel" config-section="Look" config-item="PanelFont" />
+				<select-font caption="Information panel" config-section="Look" config-item="PanelFont" />
 			</group-box>
 		</tab>
 
@@ -175,9 +178,9 @@
 				</combo-box>
 				<combo-box caption="Selector behavior" config-section="Chat" config-item="EmoticonsScaling" id="emoticonsScaling"
 					tool-tip="Choose the way emoticons are scaled in the selector" >
-					<item value="3" caption="Scale all emoticons" />
-					<item value="1" caption="Scale only static emoticons" />
-					<item value="0" caption="Don't scale emoticons" />
+					<item value="3" caption="Scale All Emoticons" />
+					<item value="1" caption="Scale Only Static Emoticons" />
+					<item value="0" caption="Do Not Scale Emoticons" />
 				</combo-box>
 				<path-list-edit caption="Emoticons paths" config-section="Chat" config-item="EmoticonsPaths" id="emoticonsPaths"
 					tool-tip="Define emoticons paths" />
@@ -189,6 +192,7 @@
 				<check-box caption="Display group tabs" config-section="Look" config-item="DisplayGroupTabs" id="displayGroupTabs"
 					tool-tip="Displays group tabs on the buddy list" />
 				<check-box caption="Show group All" config-section="Look" config-item="ShowGroupAll" id="showGroupAll"/>
+				<check-box caption="Show expanding control" config-section="Look" config-item="ShowExpandingControl" id="showExpandingControl" />
 				<check-box caption="Show connected buddies in bold" config-section="Look" config-item="ShowBold"
 					tool-tip="Displays buddies that are not offline using a bold font" />
 				<combo-box caption="Align buddy icon to" config-section="Look" config-item="AlignUserboxIconsTop"
@@ -196,8 +200,6 @@
 					<item value="true" caption="Top" />
 					<item value="false" caption="Center" />
 				</combo-box>
-				<!-- <spin-box caption="Column count" config-section="Look" config-item="UserBoxColumnCount" min-value="1" max-value="10"
-					tool-tip="Number of columns displays in the buddy list" /> -->
 				<combo-box caption="Tool tip style" config-section="Look" config-item="UserboxToolTipStyle" id="toolTipClasses"
 					tool-tip="Choose buddy list tool-tip style" />
 			</group-box>
@@ -223,7 +225,7 @@
 				<combo-box caption="Display style" config-section="Look" config-item="UserboxBackgroundDisplayStyle"
 					tool-tip="Choose buddy list background style" id="userboxBackgroundDisplayStyle" >
 					<item value="Tiled" caption="Tiled" />
-					<item value="TiledAndCentered" caption="Tiled and centered" />
+					<item value="TiledAndCentered" caption="Tiled and Centered" />
 					<item value="Centered" caption="Centered" />
 					<item value="Stretched" caption="Stretched" />
 				</combo-box>
@@ -286,10 +288,8 @@
 				<check-box caption="Remember chat windows positions" config-section="Chat" config-item="RememberPosition" />
 				<check-box caption="Open chat window on new message" config-section="Chat" config-item="OpenChatOnMessage" id="openChatOnMessage"
 					tool-tip="Open chat window when a new message arrives" />
-				<check-box caption="Open chat window only when I'm online" config-section="Chat" config-item="OpenChatOnMessageWhenOnline"
+				<check-box caption="Open chat window only when I am online" config-section="Chat" config-item="OpenChatOnMessageWhenOnline"
 					id="openChatOnMessageWhenOnline" tool-tip="Open chat window on new message only when online" />
-				<check-box caption="Wait for message delivery" config-section="Chat" config-item="MessageAcks"
-					tool-tip="Wait for confirmation from server during send messages" />
 				<check-box caption="'Enter' in chat send message" config-section="Chat" config-item="AutoSend"
 					tool-tip="'Enter' in chat send message" />
 				<check-box caption="Confirm clearing chat window" config-section="Chat" config-item="ConfirmChatClear"
@@ -297,7 +297,7 @@
 				<check-box caption="Save opened windows on exit" config-section="Chat" config-item="SaveOpenedWindows"
 					tool-tip="Save opened chat windows when exiting" />
 				<spin-box caption="Remember recent chats for" config-section="Chat" config-item="RecentChatsTimeout" min-value="0"
-					max-value="1000000" suffix="[for] %n minute(s)" special-value="never remove recent chats" id="recentChatsTimeout" tool-tip="" />
+					max-value="1000000" suffix="[for] %n minute(s)" special-value="Never Remove Recent Chats" id="recentChatsTimeout" tool-tip="" />
 				<check-box caption="Clear recent chats list on exit" config-section="Chat" config-item="RecentChatsClear" id="recentChatsClear"
 					tool-tip="" />
 			</group-box>
@@ -306,6 +306,10 @@
 					tool-tip="Block chat window when a new message arrives" />
 				<spin-box caption="Max time to block window close" config-section="Chat" config-item="ChatCloseTimerPeriod" min-value="1"
 					max-value="30" suffix="%n second(s)" id="chatCloseTimerPeriod" tool-tip="Max time to block window close" />
+			</group-box>
+			<group-box name="Contacts' states">
+				<check-box caption="Show state notifications in chats" config-section="Chat" config-item="ContactStateChats" id="contactStateChats" />
+				<check-box caption="Show state notifications in windows' titles" config-section="Chat" config-item="ContactStateWindowTitle" id="contactStateWindowTitle" />
 			</group-box>
 		</tab>
 

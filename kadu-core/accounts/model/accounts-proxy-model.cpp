@@ -20,6 +20,7 @@
 
 #include "accounts/account.h"
 #include "accounts/filter/abstract-account-filter.h"
+#include "identities/identity.h"
 #include "model/roles.h"
 
 #include "accounts-proxy-model.h"
@@ -37,14 +38,6 @@ AccountsProxyModel::AccountsProxyModel(QObject *parent) :
 
 AccountsProxyModel::~AccountsProxyModel()
 {
-}
-
-void AccountsProxyModel::setSourceModel(QAbstractItemModel *sourceModel)
-{
-	QSortFilterProxyModel::setSourceModel(sourceModel);
-
-	setDynamicSortFilter(true);
-	sort(0);
 }
 
 int AccountsProxyModel::compareNames(QString n1, QString n2) const

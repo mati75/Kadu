@@ -19,6 +19,8 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "identities/identity.h"
+#include "parser/parser.h"
 #include "protocols/protocol.h"
 #include "protocols/protocol-factory.h"
 
@@ -43,15 +45,23 @@ static QString getProtocolName(const QObject * const object)
 		: QString();
 }
 
-AccountNotification::AccountNotification(Account account, const QString &type, const QString &iconPath) :
-		Notification(type, iconPath), CurrentAccount(account)
+void AccountNotification::registerParserTags()
 {
 	Parser::registerObjectTag("protocol", getProtocolName);
 	Parser::registerObjectTag("account", getAccountName);
 }
 
+void AccountNotification::unregisterParserTags()
+{
+	Parser::unregisterObjectTag("protocol");
+	Parser::unregisterObjectTag("account");
+}
+
+AccountNotification::AccountNotification(Account account, const QString &type, const KaduIcon &icon) :
+		Notification(type, icon), CurrentAccount(account)
+{
+}
+
 AccountNotification::~AccountNotification()
 {
-	Parser::unregisterObjectTag("protocol", getProtocolName);
-	Parser::unregisterObjectTag("account", getAccountName);
 }

@@ -36,9 +36,10 @@
 #include "contacts/contact.h"
 #include "contacts/contact-shared.h"
 #include "core/core.h"
+#include "icons/kadu-icon.h"
+#include "identities/identity.h"
 #include "protocols/protocol.h"
 #include "protocols/protocols-manager.h"
-#include "icons-manager.h"
 
 #include "buddy.h"
 
@@ -222,9 +223,10 @@ QString Buddy::display() const
 			Contact contact = data()->contacts().at(0);
 			if (contact)
 			{
+				result = contact.id();
 				Account account = contact.contactAccount();
-				if (account)
-					result = account.accountIdentity().name() + ':' + contact.id();
+				if (!account.accountIdentity().name().isEmpty())
+					result += QString(" (%1)").arg(account.accountIdentity().name());
 			}
 		}
 	}
@@ -271,7 +273,7 @@ Buddy Buddy::dummy()
 		Avatar avatar = AvatarManager::instance()->byContact(contact, ActionCreate);
 
 		avatar.setLastUpdated(QDateTime::currentDateTime());
-		avatar.setFilePath(IconsManager::instance()->iconPath("kadu_icons/buddy0", "96x96"));
+		avatar.setFilePath(KaduIcon("kadu_icons/buddy0", "96x96").fullPath());
 
 		example.addContact(contact);
 		example.setAnonymous(false);
@@ -282,21 +284,21 @@ Buddy Buddy::dummy()
 	return null;
 }
 
-KaduSharedBase_PropertyDef(Buddy, Avatar, buddyAvatar, BuddyAvatar, Avatar::null)
-KaduSharedBase_PropertyWriteDef(Buddy, QString, display, Display)
-KaduSharedBase_PropertyDef(Buddy, QString, firstName, FirstName, QString())
-KaduSharedBase_PropertyDef(Buddy, QString, lastName, LastName, QString())
-KaduSharedBase_PropertyDef(Buddy, QString, familyName, FamilyName, QString())
-KaduSharedBase_PropertyDef(Buddy, QString, city, City, QString())
-KaduSharedBase_PropertyDef(Buddy, QString, familyCity, FamilyCity, QString())
-KaduSharedBase_PropertyDef(Buddy, QString, nickName, NickName, QString())
-KaduSharedBase_PropertyDef(Buddy, QString, homePhone, HomePhone, QString())
-KaduSharedBase_PropertyDef(Buddy, QString, mobile, Mobile, QString())
-KaduSharedBase_PropertyDef(Buddy, QString, email, Email, QString())
-KaduSharedBase_PropertyDef(Buddy, QString, website, Website, QString())
+KaduSharedBase_PropertyDefCRW(Buddy, Avatar, buddyAvatar, BuddyAvatar, Avatar::null)
+KaduSharedBase_PropertyWriteDef(Buddy, const QString &, display, Display)
+KaduSharedBase_PropertyDefCRW(Buddy, QString, firstName, FirstName, QString())
+KaduSharedBase_PropertyDefCRW(Buddy, QString, lastName, LastName, QString())
+KaduSharedBase_PropertyDefCRW(Buddy, QString, familyName, FamilyName, QString())
+KaduSharedBase_PropertyDefCRW(Buddy, QString, city, City, QString())
+KaduSharedBase_PropertyDefCRW(Buddy, QString, familyCity, FamilyCity, QString())
+KaduSharedBase_PropertyDefCRW(Buddy, QString, nickName, NickName, QString())
+KaduSharedBase_PropertyDefCRW(Buddy, QString, homePhone, HomePhone, QString())
+KaduSharedBase_PropertyDefCRW(Buddy, QString, mobile, Mobile, QString())
+KaduSharedBase_PropertyDefCRW(Buddy, QString, email, Email, QString())
+KaduSharedBase_PropertyDefCRW(Buddy, QString, website, Website, QString())
 KaduSharedBase_PropertyDef(Buddy, unsigned short, birthYear, BirthYear, 0)
 KaduSharedBase_PropertyDef(Buddy, BuddyGender, gender, Gender, GenderUnknown)
-KaduSharedBase_PropertyDef(Buddy, QList<Group>, groups, Groups, QList<Group>())
+KaduSharedBase_PropertyDefCRW(Buddy, QList<Group>, groups, Groups, QList<Group>())
 KaduSharedBase_PropertyDef(Buddy, bool, preferHigherStatuses, PreferHigherStatuses, true)
 KaduSharedBase_PropertyBoolDef(Buddy, Anonymous, true)
 KaduSharedBase_PropertyBoolDef(Buddy, Blocked, false)

@@ -26,6 +26,7 @@
 #include "status/status.h"
 #include "exports.h"
 
+class KaduIcon;
 class StatusType;
 
 class KADUAPI StatusContainer : public QObject
@@ -35,25 +36,23 @@ class KADUAPI StatusContainer : public QObject
 	// all status changes must be performed by Core
 	friend class Core;
 
-protected:
-	void emitStatusContainerUpdated() { emit updated(); }
-
 public:
 	explicit StatusContainer(QObject *parent = 0) : QObject(parent) {}
 	virtual ~StatusContainer() {}
 
 	virtual QString statusContainerName() = 0;
-	
-	virtual void setStatus(Status newStatus) = 0;
-	virtual Status status() = 0;
 
-	virtual void setDescription(const QString &description) = 0;
+	virtual void setStatus(Status newStatus, bool flush = true) = 0;
+	virtual Status status() = 0;
+	virtual bool isStatusSettingInProgress() = 0;
+
+	virtual void setDescription(const QString &description, bool flush = true) = 0;
 
 	virtual QString statusDisplayName() = 0;
-	virtual QIcon statusIcon() = 0;
-	virtual QIcon statusIcon(Status status) = 0;
-	virtual QString statusIconPath(const QString &statusType) = 0;
-	virtual QIcon statusIcon(const QString &statusType) = 0;
+
+	virtual KaduIcon statusIcon() = 0;
+	virtual KaduIcon statusIcon(const Status &status) = 0;
+	virtual KaduIcon statusIcon(const QString &statusType) = 0;
 
 	virtual QList<StatusType *> supportedStatusTypes() = 0;
 
@@ -66,8 +65,12 @@ public:
 	virtual void storeStatus(Status status) = 0;
 
 signals:
-	void statusChanged();
-	void updated();
+	/**
+	 * This signal is emitted when the status was explicitly changed or something in this
+	 * StatusContainer was changed that might have caused implicit status change (but did not
+	 * need to, so do not assume real status change after this signal).
+	 */
+	void statusUpdated();
 
 };
 

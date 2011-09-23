@@ -96,9 +96,9 @@ void SyntaxEditor::deleteClicked()
 		return;
 
 	if (syntaxList->deleteSyntax(currentSyntax()))
-		setCurrentSyntax(*(syntaxList->keys().begin()));
+		setCurrentSyntax(*(syntaxList->keys().constBegin()));
 	else
-		MessageDialog::show("dialog-warning", tr("Kadu"), tr("Unable to remove syntax: %1").arg(currentSyntax()));
+		MessageDialog::show(KaduIcon("dialog-warning"), tr("Kadu"), tr("Unable to remove syntax: %1").arg(currentSyntax()));
 }
 
 void SyntaxEditor::syntaxChangedSlot(const QString &newSyntax)
@@ -127,8 +127,6 @@ void SyntaxEditor::syntaxChangedSlot(const QString &newSyntax)
 	stream.setCodec("UTF-8");
 	content = stream.readAll();
 	file.close();
-
-	content.replace(QRegExp("%o"),  " ");
 
 	deleteButton->setEnabled(!info.global);
 	emit syntaxChanged(content);

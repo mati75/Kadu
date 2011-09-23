@@ -51,7 +51,7 @@ public:
 	static AvatarShared * loadStubFromStorage(const QSharedPointer<StoragePoint> &avatarStoragePoint);
 	static AvatarShared * loadFromStorage(const QSharedPointer<StoragePoint> &avatarStoragePoint);
 
-	explicit AvatarShared(QUuid uuid = QUuid());
+	explicit AvatarShared(const QUuid &uuid = QUuid());
 	virtual ~AvatarShared();
 
 	virtual StorableObject * storageParent();
@@ -67,13 +67,13 @@ public:
 
 	bool isEmpty();
 
-	void setPixmap(QPixmap pixmap);
+	void setPixmap(const QPixmap &pixmap);
+	KaduShared_PropertyRead(const QPixmap &, pixmap, Pixmap)
 
-	KaduShared_Property(Buddy, avatarBuddy, AvatarBuddy)
-	KaduShared_Property(Contact, avatarContact, AvatarContact)
-	KaduShared_Property(QDateTime, lastUpdated, LastUpdated)
-	KaduShared_Property(QDateTime, nextUpdate, NextUpdate)
-	KaduShared_PropertyRead(QPixmap, pixmap, Pixmap)
+	KaduShared_Property(const Buddy &, avatarBuddy, AvatarBuddy)
+	KaduShared_Property(const Contact &, avatarContact, AvatarContact)
+	KaduShared_Property(const QDateTime &, lastUpdated, LastUpdated)
+	KaduShared_Property(const QDateTime &, nextUpdate, NextUpdate)
 
 signals:
 	void updated();

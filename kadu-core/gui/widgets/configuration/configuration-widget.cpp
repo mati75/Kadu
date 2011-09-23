@@ -35,6 +35,7 @@
 #include <QtGui/QDialogButtonBox>
 
 #include "configuration/configuration-file.h"
+#include "icons/kadu-icon.h"
 #include "gui/widgets/configuration/configuration-widget.h"
 #include "gui/widgets/configuration/config-group-box.h"
 #include "gui/widgets/configuration/config-widget.h"
@@ -109,14 +110,14 @@ void ConfigurationWidget::init()
 {
 	QString lastSection = config_file.readEntry("General", "ConfigurationWindow_" + Name);
 	if (ConfigSections.contains(lastSection))
-		ConfigSections[lastSection]->activate();
+		ConfigSections.value(lastSection)->activate();
 	else if (SectionsListWidget->count() > 0)
-		ConfigSections[SectionsListWidget->item(0)->text()]->activate();
+		ConfigSections.value(SectionsListWidget->item(0)->text())->activate();
 }
 
 QList<ConfigWidget *> ConfigurationWidget::appendUiFile(const QString &fileName, bool load)
 {
-	QList<ConfigWidget *> widgets = processUiFile(fileName);
+	QList<ConfigWidget *> widgets = processUiFile(fileName, true);
 
 	if (load)
 		foreach (ConfigWidget *widget, widgets)
@@ -184,8 +185,6 @@ QList<ConfigWidget *> ConfigurationWidget::processUiSectionFromDom(QDomNode sect
 		return result;
 	}
 
-	const QString &iconPath = sectionElement.attribute("icon");
-
 	const QString &sectionName = sectionElement.attribute("name");
 	if (sectionName.isEmpty())
 	{
@@ -193,22 +192,20 @@ QList<ConfigWidget *> ConfigurationWidget::processUiSectionFromDom(QDomNode sect
 		return result;
 	}
 
-	configSection(iconPath, qApp->translate("@default", sectionName.toAscii().data()), true);
+	configSection(KaduIcon(sectionElement.attribute("icon")), qApp->translate("@default", sectionName.toUtf8().constData()), true);
 
 	const QDomNodeList children = sectionElement.childNodes();
 	int length = children.length();
 	for (int i = 0; i < length; i++)
-		result += processUiTabFromDom(children.item(i), iconPath, sectionName, append);
+		result += processUiTabFromDom(children.item(i), sectionName, append);
 
 	kdebugf2();
 	return result;
 }
 
-QList<ConfigWidget *> ConfigurationWidget::processUiTabFromDom(QDomNode tabNode, const QString &iconName,
-	const QString &sectionName, bool append)
+QList<ConfigWidget *> ConfigurationWidget::processUiTabFromDom(QDomNode tabNode,
+		const QString &sectionName, bool append)
 {
-	Q_UNUSED(iconName)
-
 	kdebugf();
 
 	QList<ConfigWidget *> result;
@@ -275,8 +272,11 @@ QList<ConfigWidget *> ConfigurationWidget::processUiGroupBoxFromDom(QDomNode gro
 		return result;
 	}
 
+	if (append)
+		configGroupBoxWidget->ref();
+
 	if (!groupBoxId.isEmpty())
-		Widgets[groupBoxId] = configGroupBoxWidget->widget();
+		Widgets.insert(groupBoxId, configGroupBoxWidget->widget());
 
 	const QDomNodeList &children = groupBoxElement.childNodes();
 	int length = children.length();
@@ -285,6 +285,11 @@ QList<ConfigWidget *> ConfigurationWidget::processUiGroupBoxFromDom(QDomNode gro
 			result.append(appendUiElementFromDom(children.item(i), configGroupBoxWidget));
 		else
 			removeUiElementFromDom(children.item(i), configGroupBoxWidget);
+
+	// delete unused even if length == 0
+	if (!append)
+		if (!configGroupBoxWidget->deref())
+			delete configGroupBoxWidget;
 
 	kdebugf2();
 	return result;
@@ -355,7 +360,7 @@ ConfigWidget * ConfigurationWidget::appendUiElementFromDom(QDomNode uiElementNod
 
 	QString id = uiElement.attribute("id");
 	if (!id.isEmpty())
-		Widgets[id] = dynamic_cast<QWidget *>(widget);
+		Widgets.insert(id, dynamic_cast<QWidget *>(widget));
 
 	widget->show();
 
@@ -389,50 +394,47 @@ void ConfigurationWidget::removeUiElementFromDom(QDomNode uiElementNode, ConfigG
 		}
 	}
 
-	if (configGroupBox->empty())
-		delete configGroupBox;
-
 	kdebugf2();
 }
 
 QWidget * ConfigurationWidget::widgetById(const QString &id)
 {
 	if (Widgets.contains(id))
-		return Widgets[id];
+		return Widgets.value(id);
 
 	return 0;
 }
 
 ConfigGroupBox * ConfigurationWidget::configGroupBox(const QString &section, const QString &tab, const QString &groupBox, bool create)
 {
-	ConfigSection *s = configSection(qApp->translate("@default", section.toAscii().data()));
+	ConfigSection *s = configSection(qApp->translate("@default", section.toUtf8().constData()));
 	if (!s)
 		return 0;
 
-	return s->configGroupBox(qApp->translate("@default", tab.toAscii().data()), qApp->translate("@default", groupBox.toAscii().data()), create);
+	return s->configGroupBox(qApp->translate("@default", tab.toUtf8().constData()), qApp->translate("@default", groupBox.toUtf8().constData()), create);
 }
 
 ConfigSection * ConfigurationWidget::configSection(const QString &name)
 {
-	return ConfigSections[name];
+	return ConfigSections.value(name);
 }
 
-ConfigSection * ConfigurationWidget::configSection(const QString &iconPath, const QString &name, bool create)
+ConfigSection * ConfigurationWidget::configSection(const KaduIcon &icon, const QString &name, bool create)
 {
 	if (ConfigSections.contains(name))
-		return ConfigSections[name];
+		return ConfigSections.value(name);
 
 	if (!create)
 		return 0;
 
-	QListWidgetItem *newConfigSectionListWidgetItem = new QListWidgetItem(IconsManager::instance()->iconByPath(iconPath).pixmap(32, 32), name, SectionsListWidget);
+	QListWidgetItem *newConfigSectionListWidgetItem = new QListWidgetItem(icon.icon(), name, SectionsListWidget);
 
 	QFontMetrics fontMetrics = SectionsListWidget->fontMetrics();
 	// TODO: 48 = margins + scrollbar - get real scrollbar width
 	int width = fontMetrics.width(name) + 80;
 
-	ConfigSection *newConfigSection = new ConfigSection(name, this, newConfigSectionListWidgetItem, ContainerWidget, iconPath);
-	ConfigSections[name] = newConfigSection;
+	ConfigSection *newConfigSection = new ConfigSection(name, this, newConfigSectionListWidgetItem, ContainerWidget, icon);
+	ConfigSections.insert(name, newConfigSection);
 	connect(newConfigSection, SIGNAL(destroyed(QObject *)), this, SLOT(configSectionDestroyed(QObject *)));
 
 	if (ConfigSections.count() == 1)
@@ -495,7 +497,7 @@ void ConfigurationWidget::changeSection(const QString &newSectionName)
 	if (!ConfigSections.contains(newSectionName))
 		return;
 
-	ConfigSection *newSection = ConfigSections[newSectionName];
+	ConfigSection *newSection = ConfigSections.value(newSectionName);
 	if (newSection == CurrentSection)
 		return;
 
@@ -510,7 +512,7 @@ void ConfigurationWidget::changeSection(const QString &newSectionName)
 void ConfigurationWidget::configSectionDestroyed(QObject *obj)
 {
 	// see ConfigSection::~ConfigSection()
-	disconnect(obj, SIGNAL(destroyed(QObject *)), this, SLOT(configGroupBoxDestroyed(QObject *)));
+	disconnect(obj, SIGNAL(destroyed(QObject *)), this, SLOT(configSectionDestroyed(QObject *)));
 
 	ConfigSections.remove(static_cast<ConfigSection *>(obj)->name());
 

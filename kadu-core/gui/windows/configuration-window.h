@@ -28,7 +28,8 @@
 #include <QtGui/QDialog>
 
 #include "configuration/configuration-window-data-manager.h"
-#include "icons-manager.h"
+#include "icons/icons-manager.h"
+#include "os/generic/desktop-aware-object.h"
 
 class QWidget;
 class ConfigSection;
@@ -89,7 +90,7 @@ class QDialogButtonBox;
 	klas Config* (np.: ConfigComboBox).
  **/
 
-class KADUAPI ConfigurationWindow : public QDialog
+class KADUAPI ConfigurationWindow : public QDialog, DesktopAwareObject
 {
 	Q_OBJECT
 
