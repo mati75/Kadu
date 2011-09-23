@@ -1,3 +1,10 @@
+Description: Selects all usable external themes
+ Kadu has a nice set of external (submitted by 3rd parties) themes and
+ plugins.
+ .
+ This patch makes all usable external themes to be installed
+Author: Patryk Cisek <patryk@debian.org>
+---
 diff --git a/varia/themes/emoticons/CMakeLists.txt b/varia/themes/emoticons/CMakeLists.txt
 index d472623..20c3187 100644
 --- a/varia/themes/emoticons/CMakeLists.txt

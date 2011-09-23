@@ -1,3 +1,18 @@
+Description: Fixes contents of "About" dialog's tabs.
+ In Kadu, "About" dialog displays, among others, a license (GPLv2) and
+ ChangeLog's contents. Originally these two files are installed into
+ $(CMAKE_INSTALL_PREFIX)/share subdir. To achieve that, ChangeLog must not be
+ compressed (gzipped). To avoid Lintian's complaints, we change ChangeLog's
+ name to about-changes-tab.txt and (in this patch) change "About" dialog's
+ behavior to read this file instead of ChangeLog.
+ .
+ It's discouraged to ship license file if it is one of most commonly used
+ licenses (like GPL) and reference to /usr/share/common-licenses/. Originally
+ Kadu ships COPYING file containing GPLv2 license text. It's not installed in
+ Debian package, so we have to (and we do in this patch) instruct "About"
+ dialog to read /usr/share/common-licenses/GPL-2 instead of COPYING.
+Author: Patryk Cisek <patryk@debian.org>
+---
 diff --git a/kadu-core/gui/windows/about.cpp b/kadu-core/gui/windows/about.cpp
 index 1c8b203..385de60 100644
 --- a/kadu-core/gui/windows/about.cpp
