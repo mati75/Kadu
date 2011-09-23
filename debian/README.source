@@ -10,7 +10,7 @@ It unpacks source package to kadu-<version> directory. Inside it you have the
 the following:
 debian - directory containing all data files used by Debian building system
 to produce .deb files
-externalmodules - all additional Kadu plug-ins that are in
+externalplugins - all additional Kadu plug-ins that are in
                   kadu_<version>.orig-externalmodules.tar,bz2
 externalthemes  - all additional themes that are in
                   kadu_<version>.orig-externalthemes.tar,bz2

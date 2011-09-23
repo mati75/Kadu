@@ -1,21 +1,21 @@
 Kadu for Debian
 ---------------
 
-When compiling Kadu from sources we are able to select which modules we want
+When compiling Kadu from sources we are able to select which plugins we want
 to compile by editing .config file located in Kadu's source tree. This file is
-than parsed during cmake run. Some of these modules are located in Kadu's
+than parsed during cmake run. Some of these plugins are located in Kadu's
 source tree, and some (the ones not officially included, or developed by
 external developers) are not.
 
-These external modules are downloaded during cmake run, than compiled (when
+These external plugins are downloaded during cmake run, than compiled (when
 executing make) and finally installed (when executing make install). In Debian
-these modules are in kadu-external-modules package.
+these plugins are in kadu-external-plugins package.
 
-Currently we have following external modules modules:
+Currently we have following external plugins plugins:
 * AnonymousCheck:
   Adds ability to automatically search for a contact in public directory in
   case the interlocutor is not on our contact list.
-  Previously part of PowerKadu. Now it's separate module.
+  Previously part of PowerKadu. Now it's separate plugin.
 
 * GlobalHotKeys:
   Adds global hotkeys support to Kadu.
