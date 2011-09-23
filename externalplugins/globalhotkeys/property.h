@@ -1,6 +1,6 @@
 #define PROPERTY_RO( TYPE, NAME, GETTER ) \
   public:                                 \
-    TYPE GETTER() { return NAME; }        \
+    TYPE GETTER() const { return NAME; }  \
   protected:                              \
     TYPE NAME;
 

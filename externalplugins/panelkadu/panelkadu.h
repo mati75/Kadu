@@ -1,6 +1,6 @@
 /****************************************************************************
 *                                                                           *
-*   PanelKadu module for Kadu                                               *
+*   PanelKadu plugin for Kadu                                               *
 *   Copyright (C) 2008-2011  Piotr Dąbrowski ultr@ultr.pl                   *
 *                                                                           *
 *   This program is free software: you can redistribute it and/or modify    *
@@ -28,6 +28,7 @@
 
 #include "configuration/configuration-aware-object.h"
 #include "gui/windows/main-configuration-window.h"
+#include "plugins/generic-plugin.h"
 
 #include "panelkadu.h"
 
@@ -54,10 +55,13 @@ class EventFilter : public QObject
 };
 
 
-class PanelKadu : public ConfigurationUiHandler, ConfigurationAwareObject
+class PanelKadu : public ConfigurationUiHandler, public ConfigurationAwareObject, public GenericPlugin
 {
 	Q_OBJECT
+	Q_INTERFACES( GenericPlugin )
 	public:
+		virtual int init( bool firstLoad );
+		virtual void done();
 		PanelKadu();
 		~PanelKadu();
 		void mainConfigurationWindowCreated( MainConfigurationWindow *mainConfigurationWindow );
@@ -93,6 +97,7 @@ class PanelKadu : public ConfigurationUiHandler, ConfigurationAwareObject
 		void hideKadu();
 		void kaduParentChanged( QWidget *oldParent );
 };
+
 
 extern PanelKadu *panelkadu;
 

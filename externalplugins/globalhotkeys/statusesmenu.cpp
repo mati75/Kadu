@@ -1,6 +1,6 @@
 /****************************************************************************
 *                                                                           *
-*   GlobalHotkeys module for Kadu                                           *
+*   GlobalHotkeys plugin for Kadu                                           *
 *   Copyright (C) 2008-2011  Piotr Dąbrowski ultr@ultr.pl                   *
 *                                                                           *
 *   This program is free software: you can redistribute it and/or modify    *
@@ -25,6 +25,7 @@
 
 #include "activate.h"
 #include "gui/widgets/status-menu.h"
+#include "icons/kadu-icon.h"
 #include "status/status-container-manager.h"
 
 #include "statusesmenu.h"
@@ -72,13 +73,13 @@ void StatusesMenu::createMenu()
 	}
 	else if( StatusContainerManager::instance()->statusContainers().count() == 1 )
 	{
-		new StatusMenu( StatusContainerManager::instance()->statusContainers()[0], this );
+		new StatusMenu( StatusContainerManager::instance()->statusContainers()[0], false, this );
 	}
 	else
 	{
 		foreach( StatusContainer *statuscontainer, StatusContainerManager::instance()->statusContainers() )
 		{
-			QAction *action = new QAction( statuscontainer->statusIcon(), statuscontainer->statusContainerName(), this );
+			QAction *action = new QAction( statuscontainer->statusIcon().icon(), statuscontainer->statusContainerName(), this );
 			QVariant variant;
 			variant.setValue( StatusesMenuActionData( statuscontainer ) );
 			action->setData( variant );
@@ -86,7 +87,7 @@ void StatusesMenu::createMenu()
 			addAction( action );
 		}
 		addSeparator();
-		new StatusMenu( StatusContainerManager::instance(), this );
+		new StatusMenu( StatusContainerManager::instance(), false, this );
 	}
 }
 
@@ -177,7 +178,7 @@ void StatusesMenu::openSubmenu( QAction *action )
 	GlobalMenu *submenu = new GlobalMenu();
 	SUBMENU = submenu;
 	submenu->setParentMenu( this );
-	new StatusMenu( data.statusContainer(), submenu );
+	new StatusMenu( data.statusContainer(), false, submenu );
 	// set active item
 	QList<QAction*> actions = submenu->actions();
 	actions.removeLast();

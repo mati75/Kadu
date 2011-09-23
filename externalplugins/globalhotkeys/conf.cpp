@@ -1,6 +1,6 @@
 /****************************************************************************
 *                                                                           *
-*   GlobalHotkeys module for Kadu                                           *
+*   GlobalHotkeys plugin for Kadu                                           *
 *   Copyright (C) 2008-2011  Piotr Dąbrowski ultr@ultr.pl                   *
 *                                                                           *
 *   This program is free software: you can redistribute it and/or modify    *
@@ -71,7 +71,8 @@ void ConfGroups::createGroups()
 		MainConfigurationWindow::instance()->widget()->configGroupBox(
 			QT_TRANSLATE_NOOP( "@default", "Shortcuts" ),
 			QT_TRANSLATE_NOOP( "@default", "Global hotkeys" ),
-			group
+			group,
+			true
 		);
 	}
 }
@@ -190,7 +191,8 @@ void ConfHotKey::mainConfigurationWindowCreated( MainConfigurationWindow *mainCo
 	ConfigGroupBox *configgroupbox = mainConfigurationWindow->widget()->configGroupBox(
 		QT_TRANSLATE_NOOP( "@default", "Shortcuts" ),
 		QT_TRANSLATE_NOOP( "@default", "Global hotkeys" ),
-		GROUP
+		GROUP,
+		true
 	);
 	HOTKEYEDIT = new HotkeyEdit( "GlobalHotkeys", NAME, CAPTION, "", configgroupbox, (ConfigurationWindowDataManager*)MainConfigurationWindow::instanceDataManager() );
 	HOTKEYEDIT->setText( HOTKEY.string() );
@@ -337,8 +339,8 @@ void ConfBuddiesShortcut::deserialize( QString serializedstring )
 {
 	SerializableQStringList list;
 	list.deserialize( serializedstring );
-	if( list.count() != 3 )
-		return;
+	while( list.count() < 3 )
+		list.append( "" );
 	HOTKEY   = HotKey( list[0] );
 	BUDDIES  =       ( list[1].split( QRegExp( GLOBALHOTKEYS_COMMAREGEXP ), QString::SkipEmptyParts ) );
 	SHOWMENU =       ( list[2] == "1" );
@@ -396,7 +398,8 @@ void ConfBuddiesShortcut::mainConfigurationWindowCreated( MainConfigurationWindo
 		ConfigGroupBox *configgroupbox = mainConfigurationWindow->widget()->configGroupBox(
 			QT_TRANSLATE_NOOP( "@default", "Shortcuts"),
 			QT_TRANSLATE_NOOP( "@default", "Global hotkeys" ),
-			GROUP
+			GROUP,
+			true
 		);
 		LINESEPARATOR    = new ConfigLineSeparator(                                                                                               configgroupbox, NULL );
 		HOTKEYEDIT       = new HotkeyEdit(          "", "", QT_TRANSLATE_NOOP( "@default", "Shortcut"                                      ), "", configgroupbox, NULL );
@@ -437,6 +440,9 @@ ConfBuddiesMenu::ConfBuddiesMenu( QObject *parent, QString group, bool forcecrea
 	RECENTCHATS                  = false;
 	ONLINEBUDDIES                = false;
 	ONLINEBUDDIESINCLUDEBLOCKING = false;
+	ONEITEMPERBUDDY              = true;
+	SORTSTATELESSBUDDIES         = true;
+	SORTSTATELESSBUDDIESBYSTATUS = true;
 	if( ! ConfGroups::GROUPS.contains( GROUP ) )
 		ConfGroups::GROUPS.append( GROUP );
 	connect( GlobalHotkeys::instance(), SIGNAL(mainConfigurationWindowCreatedSignal(MainConfigurationWindow*)), this, SLOT(mainConfigurationWindowCreated(MainConfigurationWindow*)) );
@@ -459,6 +465,9 @@ ConfBuddiesMenu::~ConfBuddiesMenu()
 	if( ! BUDDIESEDIT.isNull()                          ) delete BUDDIESEDIT;
 	if( ! GROUPSEDIT.isNull()                           ) delete GROUPSEDIT;
 	if( ! EXCLUDEBUDDIESEDIT.isNull()                   ) delete EXCLUDEBUDDIESEDIT;
+	if( ! ONEITEMPERBUDDYCHECKBOX.isNull()              ) delete ONEITEMPERBUDDYCHECKBOX;
+	if( ! SORTSTATELESSBUDDIESCHECKBOX.isNull()         ) delete SORTSTATELESSBUDDIESCHECKBOX;
+	if( ! SORTSTATELESSBUDDIESBYSTATUSCHECKBOX.isNull() ) delete SORTSTATELESSBUDDIESBYSTATUSCHECKBOX;
 	if( ! DELETEBUTTON.isNull()                         ) delete DELETEBUTTON;
 }
 
@@ -489,6 +498,9 @@ void ConfBuddiesMenu::commitUIData()
 	BUDDIES                      = BUDDIESEDIT->text().split( QRegExp( GLOBALHOTKEYS_COMMAREGEXP ), QString::SkipEmptyParts );
 	GROUPS                       = GROUPSEDIT->text().split( QRegExp( GLOBALHOTKEYS_COMMAREGEXP ), QString::SkipEmptyParts );
 	EXCLUDEBUDDIES               = EXCLUDEBUDDIESEDIT->text().split( QRegExp( GLOBALHOTKEYS_COMMAREGEXP ), QString::SkipEmptyParts );
+	ONEITEMPERBUDDY              = ONEITEMPERBUDDYCHECKBOX->isChecked();
+	SORTSTATELESSBUDDIES         = SORTSTATELESSBUDDIESCHECKBOX->isChecked();
+	SORTSTATELESSBUDDIESBYSTATUS = SORTSTATELESSBUDDIESBYSTATUSCHECKBOX->isChecked();
 }
 
 
@@ -504,8 +516,12 @@ void ConfBuddiesMenu::fillUIData()
 	BUDDIESEDIT->setText(                             BUDDIES.join( ", " )             );
 	GROUPSEDIT->setText(                              GROUPS.join( ", " )              );
 	EXCLUDEBUDDIESEDIT->setText(                      EXCLUDEBUDDIES.join( ", " )      );
+	ONEITEMPERBUDDYCHECKBOX->setChecked(              ONEITEMPERBUDDY                  );
+	SORTSTATELESSBUDDIESCHECKBOX->setChecked(         SORTSTATELESSBUDDIES             );
+	SORTSTATELESSBUDDIESBYSTATUSCHECKBOX->setChecked( SORTSTATELESSBUDDIESBYSTATUS     );
 	ONLINEBUDDIESGROUPSEDIT->setEnabled( ONLINEBUDDIESCHECKBOX->isChecked() );
 	ONLINEBUDDIESINCLUDEBLOCKINGCHECKBOX->setEnabled( ONLINEBUDDIESCHECKBOX->isChecked() );
+	SORTSTATELESSBUDDIESBYSTATUSCHECKBOX->setEnabled( SORTSTATELESSBUDDIESCHECKBOX->isChecked() );
 }
 
 
@@ -522,6 +538,9 @@ QString ConfBuddiesMenu::serialized()
 	list.append( BUDDIES.join( ", " )                     );
 	list.append( GROUPS.join( ", " )                      );
 	list.append( EXCLUDEBUDDIES.join( ", " )              );
+	list.append( ONEITEMPERBUDDY              ? "1" : "0" );
+	list.append( SORTSTATELESSBUDDIES         ? "1" : "0" );
+	list.append( SORTSTATELESSBUDDIESBYSTATUS ? "1" : "0" );
 	return list.serialized();
 }
 
@@ -530,18 +549,21 @@ void ConfBuddiesMenu::deserialize( QString serializedstring )
 {
 	SerializableQStringList list;
 	list.deserialize( serializedstring );
-	if( list.count() != 10 )
-		return;
-	HOTKEY                       = HotKey( list[0] );
-	CURRENTCHATS                 =       ( list[1] == "1" );
-	PENDINGCHATS                 =       ( list[2] == "1" );
-	RECENTCHATS                  =       ( list[3] == "1" );
-	ONLINEBUDDIES                =       ( list[4] == "1" );
-	ONLINEBUDDIESGROUPS          =       ( list[5].split( QRegExp( GLOBALHOTKEYS_COMMAREGEXP ), QString::SkipEmptyParts ) );
-	ONLINEBUDDIESINCLUDEBLOCKING =       ( list[6] == "1" );
-	BUDDIES                      =       ( list[7].split( QRegExp( GLOBALHOTKEYS_COMMAREGEXP ), QString::SkipEmptyParts ) );
-	GROUPS                       =       ( list[8].split( QRegExp( GLOBALHOTKEYS_COMMAREGEXP ), QString::SkipEmptyParts ) );
-	EXCLUDEBUDDIES               =       ( list[9].split( QRegExp( GLOBALHOTKEYS_COMMAREGEXP ), QString::SkipEmptyParts ) );
+	while( list.count() < 13 )
+		list.append( "" );
+	HOTKEY                       = HotKey( list[ 0] );
+	CURRENTCHATS                 =       ( list[ 1] == "1" );
+	PENDINGCHATS                 =       ( list[ 2] == "1" );
+	RECENTCHATS                  =       ( list[ 3] == "1" );
+	ONLINEBUDDIES                =       ( list[ 4] == "1" );
+	ONLINEBUDDIESGROUPS          =       ( list[ 5].split( QRegExp( GLOBALHOTKEYS_COMMAREGEXP ), QString::SkipEmptyParts ) );
+	ONLINEBUDDIESINCLUDEBLOCKING =       ( list[ 6] == "1" );
+	BUDDIES                      =       ( list[ 7].split( QRegExp( GLOBALHOTKEYS_COMMAREGEXP ), QString::SkipEmptyParts ) );
+	GROUPS                       =       ( list[ 8].split( QRegExp( GLOBALHOTKEYS_COMMAREGEXP ), QString::SkipEmptyParts ) );
+	EXCLUDEBUDDIES               =       ( list[ 9].split( QRegExp( GLOBALHOTKEYS_COMMAREGEXP ), QString::SkipEmptyParts ) );
+	ONEITEMPERBUDDY              =       ( list[10] == "1" );
+	SORTSTATELESSBUDDIES         =       ( list[11] == "1" );
+	SORTSTATELESSBUDDIESBYSTATUS =       ( list[12] == "1" );
 	// fill UI data if widgets exist
 	if( ! HOTKEYEDIT.isNull() )
 		fillUIData();
@@ -587,7 +609,8 @@ void ConfBuddiesMenu::mainConfigurationWindowCreated( MainConfigurationWindow *m
 		ConfigGroupBox *configgroupbox = mainConfigurationWindow->widget()->configGroupBox(
 			QT_TRANSLATE_NOOP( "@default", "Shortcuts" ),
 			QT_TRANSLATE_NOOP( "@default", "Global hotkeys" ),
-			GROUP
+			GROUP,
+			true
 		);
 		LINESEPARATOR                        = new ConfigLineSeparator(                                                                                                                                       configgroupbox, NULL );
 		HOTKEYEDIT                           = new HotkeyEdit(          "", "", QT_TRANSLATE_NOOP( "@default", "Shortcut"                                            ), ""                                  , configgroupbox, NULL );
@@ -598,12 +621,16 @@ void ConfBuddiesMenu::mainConfigurationWindowCreated( MainConfigurationWindow *m
 		ONLINEBUDDIESGROUPSEDIT              = new ConfigLineEdit(      "", "", QT_TRANSLATE_NOOP( "@default", "only from these groups (comma separated)"            ), "leave empty to disable this filter", configgroupbox, NULL );
 		ONLINEBUDDIESINCLUDEBLOCKINGCHECKBOX = new ConfigCheckBox(      "", "", QT_TRANSLATE_NOOP( "@default", "Treat buddies blocking me as online"                 ), ""                                  , configgroupbox, NULL );
 		BUDDIESEDIT                          = new ConfigLineEdit(      "", "", QT_TRANSLATE_NOOP( "@default", "Include these buddies (comma separated)"             ), ""                                  , configgroupbox, NULL );
-		GROUPSEDIT                           = new ConfigLineEdit(      "", "", QT_TRANSLATE_NOOP( "@default", "Include buddies from these gropus (comma separated)" ), ""                                  , configgroupbox, NULL );
+		GROUPSEDIT                           = new ConfigLineEdit(      "", "", QT_TRANSLATE_NOOP( "@default", "Include buddies from these groups (comma separated)" ), ""                                  , configgroupbox, NULL );
 		EXCLUDEBUDDIESEDIT                   = new ConfigLineEdit(      "", "", QT_TRANSLATE_NOOP( "@default", "Exclude these buddies (comma separated)"             ), ""                                  , configgroupbox, NULL );
+		ONEITEMPERBUDDYCHECKBOX              = new ConfigCheckBox(      "", "", QT_TRANSLATE_NOOP( "@default", "Show at most one item per buddy"                     ), ""                                  , configgroupbox, NULL );
+		SORTSTATELESSBUDDIESCHECKBOX         = new ConfigCheckBox(      "", "", QT_TRANSLATE_NOOP( "@default", "Sort stateless buddies"                              ), ""                                  , configgroupbox, NULL );
+		SORTSTATELESSBUDDIESBYSTATUSCHECKBOX = new ConfigCheckBox(      "", "", QT_TRANSLATE_NOOP( "@default", "Sort by status"                                      ), ""                                  , configgroupbox, NULL );
 		DELETEBUTTON                         = new ConfigActionButton(          QT_TRANSLATE_NOOP( "@default", "Delete this menu"                                    ), ""                                  , configgroupbox, NULL );
 		connect( DELETEBUTTON, SIGNAL(clicked()), this, SLOT(deletebuttonClicked()) );
-		connect( ONLINEBUDDIESCHECKBOX, SIGNAL(toggled(bool)), ONLINEBUDDIESGROUPSEDIT             , SLOT(setEnabled(bool)) );
-		connect( ONLINEBUDDIESCHECKBOX, SIGNAL(toggled(bool)), ONLINEBUDDIESINCLUDEBLOCKINGCHECKBOX, SLOT(setEnabled(bool)) );
+		connect( ONLINEBUDDIESCHECKBOX       , SIGNAL(toggled(bool)), ONLINEBUDDIESGROUPSEDIT             , SLOT(setEnabled(bool)) );
+		connect( ONLINEBUDDIESCHECKBOX       , SIGNAL(toggled(bool)), ONLINEBUDDIESINCLUDEBLOCKINGCHECKBOX, SLOT(setEnabled(bool)) );
+		connect( SORTSTATELESSBUDDIESCHECKBOX, SIGNAL(toggled(bool)), SORTSTATELESSBUDDIESBYSTATUSCHECKBOX, SLOT(setEnabled(bool)) );
 		fillUIData();
 	}
 	LINESEPARATOR->show();
@@ -617,6 +644,9 @@ void ConfBuddiesMenu::mainConfigurationWindowCreated( MainConfigurationWindow *m
 	BUDDIESEDIT->show();
 	GROUPSEDIT->show();
 	EXCLUDEBUDDIESEDIT->show();
+	ONEITEMPERBUDDYCHECKBOX->show();
+	SORTSTATELESSBUDDIESCHECKBOX->show();
+	SORTSTATELESSBUDDIESBYSTATUSCHECKBOX->show();
 	DELETEBUTTON->show();
 }
 
@@ -635,5 +665,8 @@ void ConfBuddiesMenu::deletebuttonClicked()
 	BUDDIESEDIT->hide();
 	GROUPSEDIT->hide();
 	EXCLUDEBUDDIESEDIT->hide();
+	ONEITEMPERBUDDYCHECKBOX->hide();
+	SORTSTATELESSBUDDIESCHECKBOX->hide();
+	SORTSTATELESSBUDDIESBYSTATUSCHECKBOX->hide();
 	DELETEBUTTON->hide();
 }

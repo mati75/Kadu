@@ -24,6 +24,7 @@
 #include "debug.h"
 #include "buddies/buddy-search-criteria.h"
 #include "chat/message/message-render-info.h"
+#include "chat/message/message-common.h"
 #include "gui/widgets/chat-widget-manager.h"
 #include "contacts/contact-set.h"
 #include "protocols/services/contact-personal-info-service.h"
@@ -126,7 +127,7 @@ void AnonCheck::AnonymousCheck::onNewResults(Buddy buddy) {
                 Chat chat = (*checkQueueIt).chatWidget()->chat();
                 if(!chat.isNull()) {
                     msg.setMessageChat(chat);
-                    msg.setType(Message::TypeSystem);
+					msg.setType(MessageTypeSystem);
                     msg.setMessageSender(*(chat.contacts().begin()));
                     msg.setContent(messageStr);
                     msg.setReceiveDate(QDateTime::currentDateTime());

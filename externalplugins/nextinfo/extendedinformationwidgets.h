@@ -1,6 +1,6 @@
 /****************************************************************************
 *                                                                           *
-*   NExtInfo module for Kadu                                                *
+*   NExtInfo plugin for Kadu                                                *
 *   Copyright (C) 2008-2011  Piotr Dąbrowski ultr@ultr.pl                   *
 *                                                                           *
 *   This program is free software: you can redistribute it and/or modify    *

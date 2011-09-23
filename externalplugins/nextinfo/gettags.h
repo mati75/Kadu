@@ -1,6 +1,6 @@
 /****************************************************************************
 *                                                                           *
-*   NExtInfo module for Kadu                                                *
+*   NExtInfo plugin for Kadu                                                *
 *   Copyright (C) 2008-2011  Piotr Dąbrowski ultr@ultr.pl                   *
 *                                                                           *
 *   This program is free software: you can redistribute it and/or modify    *
@@ -25,25 +25,17 @@
 
 #include <buddies/buddy.h>
 #include <buddies/buddy-or-contact.h>
+#include <buddies/buddy-shared.h>
 
 #include "buddynextinfodata.h"
+#include "nextinfo.h"
 
 #include "defines.h"
 
 
-static BuddyNExtInfoData *bData( BuddyOrContact buddyorcontact )
-{
-	Buddy buddy = buddyorcontact.buddy();
-	BuddyNExtInfoData *bdata = 0;
-	if( buddy.data() )
-		bdata = buddy.data()->moduleStorableData<BuddyNExtInfoData>( "nextinfo", nextinfo, true );
-	return bdata;
-}
-
-
 static QString getTag_address( BuddyOrContact buddyorcontact )
 {
-	BuddyNExtInfoData *bdata = bData( buddyorcontact );
+	BuddyNExtInfoData *bdata = NExtInfo::bData( buddyorcontact.buddy() );
 	if( ! bdata )
 		return QString();
 	return bdata->address();
@@ -52,7 +44,7 @@ static QString getTag_address( BuddyOrContact buddyorcontact )
 
 static QString getTag_city( BuddyOrContact buddyorcontact )
 {
-	BuddyNExtInfoData *bdata = bData( buddyorcontact );
+	BuddyNExtInfoData *bdata = NExtInfo::bData( buddyorcontact.buddy() );
 	if( ! bdata )
 		return QString();
 	return bdata->city();
@@ -61,7 +53,7 @@ static QString getTag_city( BuddyOrContact buddyorcontact )
 
 static QString getTag_email2( BuddyOrContact buddyorcontact )
 {
-	BuddyNExtInfoData *bdata = bData( buddyorcontact );
+	BuddyNExtInfoData *bdata = NExtInfo::bData( buddyorcontact.buddy() );
 	if( ! bdata )
 		return QString();
 	return bdata->email2();
@@ -70,7 +62,7 @@ static QString getTag_email2( BuddyOrContact buddyorcontact )
 
 static QString getTag_birthday( BuddyOrContact buddyorcontact )
 {
-	BuddyNExtInfoData *bdata = bData( buddyorcontact );
+	BuddyNExtInfoData *bdata = NExtInfo::bData( buddyorcontact.buddy() );
 	if( ! bdata )
 		return QString();
 	return bdata->birthday();
@@ -79,7 +71,7 @@ static QString getTag_birthday( BuddyOrContact buddyorcontact )
 
 static QString getTag_nameday( BuddyOrContact buddyorcontact )
 {
-	BuddyNExtInfoData *bdata = bData( buddyorcontact );
+	BuddyNExtInfoData *bdata = NExtInfo::bData( buddyorcontact.buddy() );
 	if( ! bdata )
 		return QString();
 	return bdata->nameday();
@@ -88,7 +80,7 @@ static QString getTag_nameday( BuddyOrContact buddyorcontact )
 
 static QString getTag_interests( BuddyOrContact buddyorcontact )
 {
-	BuddyNExtInfoData *bdata = bData( buddyorcontact );
+	BuddyNExtInfoData *bdata = NExtInfo::bData( buddyorcontact.buddy() );
 	if( ! bdata )
 		return QString();
 	return bdata->interests().replace( "\n", "<br/>" );
@@ -97,7 +89,7 @@ static QString getTag_interests( BuddyOrContact buddyorcontact )
 
 static QString getTag_notes( BuddyOrContact buddyorcontact )
 {
-	BuddyNExtInfoData *bdata = bData( buddyorcontact );
+	BuddyNExtInfoData *bdata = NExtInfo::bData( buddyorcontact.buddy() );
 	if( ! bdata )
 		return QString();
 	return bdata->notes().replace( "\n", "<br/>" );

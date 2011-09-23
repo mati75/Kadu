@@ -3,6 +3,8 @@
 
 #include <QStringList>
 
+#include "plugins/generic-plugin.h"
+
 class UserGroup;
 class QWidget;
 class QAction;
@@ -10,9 +12,11 @@ class ActionDescription;
 
 namespace MimeTeX {
 	//! This class provides "TeX formula" action
-	class MimeTeX : public QObject
+	class MimeTeX : public QObject, public GenericPlugin
 	{
 		Q_OBJECT
+		Q_INTERFACES(GenericPlugin)
+
 		public:
 			/*!
 			 * \brief Default constructor
@@ -21,7 +25,10 @@ namespace MimeTeX {
 			MimeTeX(QObject *parent = 0);
 
 			//! Default destructor
-			~MimeTeX();
+			virtual ~MimeTeX();
+
+			virtual int init(bool firstLoad);
+			virtual void done();
 
 			//! Default font size used by MimeTeX (see MimeTeX tab in config dialog for details).
 			static int defaultFontSize();

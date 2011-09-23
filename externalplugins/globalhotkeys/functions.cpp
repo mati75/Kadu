@@ -1,6 +1,6 @@
 /****************************************************************************
 *                                                                           *
-*   GlobalHotkeys module for Kadu                                           *
+*   GlobalHotkeys plugin for Kadu                                           *
 *   Copyright (C) 2008-2011  Piotr Dąbrowski ultr@ultr.pl                   *
 *                                                                           *
 *   This program is free software: you can redistribute it and/or modify    *
@@ -38,9 +38,11 @@
 #include "gui/widgets/status-menu.h"
 #include "gui/windows/add-buddy-window.h"
 #include "gui/windows/kadu-window.h"
+#include "gui/windows/modules-window.h"
 #include "gui/windows/search-window.h"
 #include "gui/windows/your-accounts.h"
-///#include "file-transfer/file-transfer-manager.h"
+#include "file-transfer/file-transfer-manager.h"
+#include "icons/icons-manager.h"
 #include "misc/path-conversion.h"
 #include "notify/notification-manager.h"
 #include "status/status-container-manager.h"
@@ -48,8 +50,6 @@
 #include "status/status-type-manager.h"
 #include "activate.h"
 #include "debug.h"
-#include "icons-manager.h"
-#include "modules.h"
 
 #include "globalhotkeys.h"
 #include "globalwidgetmanager.h"
@@ -268,8 +268,8 @@ void Functions::functionOpenChatWith( ConfHotKey *confhotkey )
 	// open the window
 	OpenChatWith *window = OpenChatWith::instance();
 	window->move(
-			( qApp->desktop()->screenGeometry().width()  - window->sizeHint().width()  ) / 2,
-			( qApp->desktop()->screenGeometry().height() - window->sizeHint().height() ) / 2
+			( qApp->desktop()->screenGeometry().width()  - window->width()  ) / 2,
+			( qApp->desktop()->screenGeometry().height() - window->height() ) / 2
 		);
 	window->show();
 	new GlobalWidgetManager( window ); // popup in the center of the screen
@@ -374,11 +374,11 @@ void Functions::functionSearchForBuddy( ConfHotKey *confhotkey )
 }
 
 
-///void Functions::functionFileTransfersWindow( ConfHotKey *confhotkey )
-///{
-///	Q_UNUSED( confhotkey );
-///	FileTransferManager::instance()->showFileTransferWindow();
-///}
+void Functions::functionFileTransfersWindow( ConfHotKey *confhotkey )
+{
+	Q_UNUSED( confhotkey );
+	FileTransferManager::instance()->showFileTransferWindow();
+}
 
 
 void Functions::functionConfigurationWindow( ConfHotKey *confhotkey )
@@ -400,5 +400,5 @@ void Functions::functionAccountManagerWindow( ConfHotKey *confhotkey )
 void Functions::functionPluginsWindow( ConfHotKey *confhotkey )
 {
 	Q_UNUSED( confhotkey );
-	ModulesManager::instance()->showWindow( NULL, false );
+	ModulesWindow::show();
 }

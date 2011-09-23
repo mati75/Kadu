@@ -43,28 +43,25 @@ LedNotify *lednotify;
 
 
 
-extern "C" KADU_EXPORT int lednotify_init( bool firstLoad )
+int LedNotify::init( bool firstLoad )
 {
 	Q_UNUSED( firstLoad );
-	lednotify = new LedNotify();
 	return 0;
 }
 
 
-extern "C" KADU_EXPORT void lednotify_close()
+void LedNotify::done()
 {
-	delete lednotify;
-	lednotify = NULL;
 }
 
 
-LedNotify::LedNotify( QObject *parent ) : QObject( parent ),
-	Notifier( "lednotify", QT_TRANSLATE_NOOP( "@default", "Scroll Lock LED" ), "kadu_icons/notify-led" ),
+LedNotify::LedNotify() :
+	Notifier( "lednotify", QT_TRANSLATE_NOOP( "@default", "Scroll Lock LED" ), KaduIcon( "kadu_icons/notify-led" ) ),
 	chatBlinking_( false ), msgBlinking_( false )
 {
 	config_file.addVariable( "LedNotify", "LEDdelay", 500 );
 	config_file.addVariable( "LedNotify", "LEDcount",   3 );
-	MainConfigurationWindow::registerUiFile( dataPath( "kadu/modules/configuration/lednotify.ui" ) );
+	MainConfigurationWindow::registerUiFile( dataPath( "kadu/plugins/configuration/lednotify.ui" ) );
 	NotificationManager::instance()->registerNotifier( this );
 	connect( PendingMessagesManager::instance(), SIGNAL(messageRemoved(Message))          , this, SLOT(messageReceived(Message))         );
 	connect( ChatWidgetManager::instance()     , SIGNAL(chatWidgetActivated(ChatWidget*)) , this, SLOT(chatWidgetActivated(ChatWidget*)) );
@@ -78,7 +75,7 @@ LedNotify::~LedNotify()
 	disconnect( ChatWidgetManager::instance()     , SIGNAL(chatWidgetDestroying(ChatWidget*)), this, SLOT(chatWidgetActivated(ChatWidget*)) );
 	disconnect( PendingMessagesManager::instance(), SIGNAL(messageRemoved(Message))          , this, SLOT(messageReceived(Message))         );
 	NotificationManager::instance()->unregisterNotifier( this );
-	MainConfigurationWindow::unregisterUiFile( dataPath( "kadu/modules/configuration/lednotify.ui" ) );
+	MainConfigurationWindow::unregisterUiFile( dataPath( "kadu/plugins/configuration/lednotify.ui" ) );
 }
 
 
@@ -164,14 +161,6 @@ void LedNotify::chatWidgetActivated( ChatWidget *chatwidget )
 }
 
 
-void LedNotify::copyConfiguration( const QString &fromEvent, const QString &toEvent )
-{
-	Q_UNUSED( fromEvent );
-	Q_UNUSED( toEvent );
-}
 
 
-void LedNotify::mainConfigurationWindowCreated(MainConfigurationWindow* mainconfigurationwindow)
-{
-	Q_UNUSED( mainconfigurationwindow );
-}
+Q_EXPORT_PLUGIN2( lednotify, LedNotify )

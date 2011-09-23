@@ -19,32 +19,26 @@
 #include "kadu-core/chat/chat-manager.h"
 #include "kadu-core/contacts/contact-set.h"
 #include "kadu-core/configuration/configuration-file.h"
-#include "kadu-core/icons-manager.cpp"
+#include "kadu-core/icons/icons-manager.h"
 #include "kadu-core/gui/widgets/chat-widget-manager.h"
 #include "kadu-core/gui/windows/main-window.h"
 #include "kadu-core/misc/misc.h"
-#include "kadu-core/modules.h"
 #include "kadu-core/debug.h"
 
 MimeTeX::MimeTeX *mimeTeX = 0;
 //static MimeTeX::UIHandler uiHandler;
 
-extern "C" int mime_tex_init(bool)
+int MimeTeX::MimeTeX::init(bool firstLoad)
 {
-	kdebugf();
-	mimeTeX = new MimeTeX::MimeTeX();
-	kdebugf2();
-	if(NULL == mimeTeX)
-		return 1;
+	Q_UNUSED(firstLoad)
+
 	return 0;
 }
 
-extern "C" void mime_tex_close()
+void MimeTeX::MimeTeX::done()
 {
-	kdebugf();
-	delete mimeTeX;
-	kdebugf2();
 }
+
 
 MimeTeX::MimeTeX::MimeTeX(QObject *parent)
 : QObject(parent)
@@ -52,7 +46,7 @@ MimeTeX::MimeTeX::MimeTeX(QObject *parent)
 	kdebugf();
 	
 	config_file.addVariable("MimeTeX", "mimetex_font_size", MimeTeX::MimeTeX::defaultFontSize());
-	MainConfigurationWindow::registerUiFile(dataPath("kadu/modules/configuration/mime_tex.ui"));
+	MainConfigurationWindow::registerUiFile(dataPath("kadu/plugins/configuration/mime_tex.ui"));
 	
 	TeXActionDescription = new ActionDescription(
 			this,
@@ -60,7 +54,7 @@ MimeTeX::MimeTeX::MimeTeX(QObject *parent)
 			"TeXformulaAction",
 			this,
 			SLOT(TeXActionActivated(QAction *, bool)),
-			dataPath("kadu/modules/data/mime_tex/mime_tex_icons/tex_icon.png"),
+			KaduIcon(dataPath("kadu/plugins/data/mime_tex/mime_tex_icons/tex_icon.png")),
 			tr("Insert TeX formula"));
 	
 	kdebugf2();
@@ -70,7 +64,7 @@ MimeTeX::MimeTeX::~MimeTeX()
 {
 	kdebugf();
 	emit deleting();
-	MainConfigurationWindow::unregisterUiFile(dataPath("kadu/modules/configuration/mime_tex.ui"));
+	MainConfigurationWindow::unregisterUiFile(dataPath("kadu/plugins/configuration/mime_tex.ui"));
 
 	if(config_file.readBoolEntry("MimeTeX", "mimetex_remove_tmp_files", false))
 	{
@@ -107,3 +101,5 @@ int MimeTeX::MimeTeX::defaultFontSize()
 	kdebugf();
 	return 4; // \Large
 }
+
+Q_EXPORT_PLUGIN2(mime_tex, MimeTeX::MimeTeX)

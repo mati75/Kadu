@@ -26,22 +26,25 @@
 
 #include <QSet>
 
+#include "chat/message/message.h"
 #include "gui/widgets/chat-widget.h"
 #include "gui/windows/main-configuration-window.h"
 #include "notify/notification.h"
 #include "notify/notifier.h"
+#include "plugins/generic-plugin.h"
 
 #include "ledblinker.h"
 
 
-class LedNotify : public Notifier, ConfigurationUiHandler
+class LedNotify : public Notifier, public GenericPlugin
 {
 	Q_OBJECT
+	Q_INTERFACES( GenericPlugin )
 	public:
-		LedNotify( QObject *parent = 0 );
+		virtual int init( bool firstLoad );
+		virtual void done();
+		LedNotify();
 		~LedNotify();
-		virtual void copyConfiguration( const QString &fromEvent, const QString &toEvent );
-		virtual void mainConfigurationWindowCreated( MainConfigurationWindow *mainconfigurationwindow );
 		virtual NotifierConfigurationWidget *createConfigurationWidget( QWidget *widget );
 		virtual void notify( Notification *notification );
 	private:

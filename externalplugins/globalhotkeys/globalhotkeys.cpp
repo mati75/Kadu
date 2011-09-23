@@ -1,6 +1,6 @@
 /****************************************************************************
 *                                                                           *
-*   GlobalHotkeys module for Kadu                                           *
+*   GlobalHotkeys plugin for Kadu                                           *
 *   Copyright (C) 2008-2011  Piotr Dąbrowski ultr@ultr.pl                   *
 *                                                                           *
 *   This program is free software: you can redistribute it and/or modify    *
@@ -42,7 +42,7 @@
 #include "chat/recent-chat-manager.h"
 #include "core/core.h"
 #include "configuration/configuration-file.h"
-#include "configuration/main-configuration.h"
+#include "configuration/main-configuration-holder.h"
 #include "contacts/contact.h"
 #include "contacts/contact-shared.h"
 #include "gui/widgets/configuration/configuration-widget.h"
@@ -51,7 +51,8 @@
 #include "gui/windows/add-buddy-window.h"
 #include "gui/windows/kadu-window.h"
 #include "gui/windows/your-accounts.h"
-///#include "file-transfer/file-transfer-manager.h"
+#include "file-transfer/file-transfer-manager.h"
+#include "icons/icons-manager.h"
 #include "misc/path-conversion.h"
 #include "notify/notification-manager.h"
 #include "status/status-container-manager.h"
@@ -59,8 +60,6 @@
 #include "status/status-type-manager.h"
 #include "activate.h"
 #include "debug.h"
-#include "icons-manager.h"
-#include "modules.h"
 
 #include "globalhotkeys.h"
 
@@ -80,47 +79,27 @@ GlobalHotkeys *globalhotkeys;
 
 
 
-extern "C" KADU_EXPORT int globalhotkeys_init( bool firstload )
+int GlobalHotkeys::init( bool firstload )
 {
 	Q_UNUSED( firstload );
 	kdebugf();
-	// create new globalhotkeys object
-	globalhotkeys = new GlobalHotkeys();
-	// register UI file and handler
-	MainConfigurationWindow::registerUiFile( dataPath("kadu/modules/configuration/globalhotkeys.ui") );
-	MainConfigurationWindow::registerUiHandler( globalhotkeys );
-	// done
+	MainConfigurationWindow::registerUiFile( dataPath("kadu/plugins/configuration/globalhotkeys.ui") );
+	MainConfigurationWindow::registerUiHandler( this );
 	kdebugf2();
 	return 0;
 }
 
 
-extern "C" KADU_EXPORT void globalhotkeys_close()
+void GlobalHotkeys::done()
 {
 	kdebugf();
-	// unregister UI file and handler
-	MainConfigurationWindow::unregisterUiFile( dataPath("kadu/modules/configuration/globalhotkeys.ui") );
-	MainConfigurationWindow::unregisterUiHandler( globalhotkeys );
-	// delete globalhotkeys object
-	delete globalhotkeys;
-	globalhotkeys = NULL;
+	MainConfigurationWindow::unregisterUiHandler( this );
+	MainConfigurationWindow::unregisterUiFile( dataPath("kadu/plugins/configuration/globalhotkeys.ui") );
 	kdebugf2();
 }
 
 
-
-
-void EmptyMsgHandler( QtMsgType type, const char *msg )
-{
-	Q_UNUSED( type );
-	Q_UNUSED( msg );
-	GlobalHotkeys::messageshandled = 1;
-}
-
-
-
-
-GlobalHotkeys::GlobalHotkeys() : QObject( 0 )
+GlobalHotkeys::GlobalHotkeys()
 {
 	INSTANCE = this;
 	// create Functions
@@ -144,7 +123,7 @@ GlobalHotkeys::GlobalHotkeys() : QObject( 0 )
 	new ConfHotKey( this, QT_TRANSLATE_NOOP( "@default", "Status"            ), QT_TRANSLATE_NOOP( "@default", "Change description"                 ), "ChangeDescription"          , "functionChangeDescription"          , "Alt+D" );
 	new ConfHotKey( this, QT_TRANSLATE_NOOP( "@default", "Buddies"           ), QT_TRANSLATE_NOOP( "@default", "Add a new buddy"                    ), "AddANewBuddy"               , "functionAddANewBuddy"                         );
 	new ConfHotKey( this, QT_TRANSLATE_NOOP( "@default", "Buddies"           ), QT_TRANSLATE_NOOP( "@default", "Search for buddy"                   ), "SearchForBuddy"             , "functionSearchForBuddy"                       );
-	///new ConfHotKey( this, QT_TRANSLATE_NOOP( "@default", "Windows shortcuts" ), QT_TRANSLATE_NOOP( "@default", "File transfers window"              ), "FileTransfersWindow"        , "functionFileTransfersWindow"                  );
+	new ConfHotKey( this, QT_TRANSLATE_NOOP( "@default", "Windows shortcuts" ), QT_TRANSLATE_NOOP( "@default", "File transfers window"              ), "FileTransfersWindow"        , "functionFileTransfersWindow"                  );
 	new ConfHotKey( this, QT_TRANSLATE_NOOP( "@default", "Windows shortcuts" ), QT_TRANSLATE_NOOP( "@default", "Configuration window"               ), "ConfigurationWindow"        , "functionConfigurationWindow"                  );
 	new ConfHotKey( this, QT_TRANSLATE_NOOP( "@default", "Windows shortcuts" ), QT_TRANSLATE_NOOP( "@default", "Account manager window"             ), "AccountManagerWindow"       , "functionAccountManagerWindow"                 );
 	new ConfHotKey( this, QT_TRANSLATE_NOOP( "@default", "Windows shortcuts" ), QT_TRANSLATE_NOOP( "@default", "Plugins window"                     ), "PluginsWindow"              , "functionPluginsWindow"                        );
@@ -216,9 +195,6 @@ GlobalHotkeys::~GlobalHotkeys()
 }
 
 
-int GlobalHotkeys::messageshandled = 0;
-
-
 GlobalHotkeys *GlobalHotkeys::INSTANCE = NULL;
 
 
@@ -240,10 +216,13 @@ void GlobalHotkeys::mainConfigurationWindowCreated( MainConfigurationWindow *mai
 			QT_TRANSLATE_NOOP( "@default", "Global hotkeys" ),
 			QT_TRANSLATE_NOOP( "@default", "Buddies shortcuts" )
 		);
-		BUDDIESSHORTCUTSADDNEWBUTTON = new ConfigActionButton( QT_TRANSLATE_NOOP( "@default", "Add new shortcut ..." ), "", groupBuddiesShortcuts, NULL );
-		groupBuddiesShortcuts->widget()->layout()->removeWidget( BUDDIESSHORTCUTSADDNEWBUTTON );
-		groupBuddiesShortcuts->addWidget( BUDDIESSHORTCUTSADDNEWBUTTON, true );  // re-insert the button so that it takes full available horizontal space
-		connect( BUDDIESSHORTCUTSADDNEWBUTTON, SIGNAL(clicked()), this, SLOT(buddiesShortcutsAddNewButtonPressed()));
+		if( groupBuddiesShortcuts )
+		{
+			BUDDIESSHORTCUTSADDNEWBUTTON = new ConfigActionButton( QT_TRANSLATE_NOOP( "@default", "Add new shortcut ..." ), "", groupBuddiesShortcuts, NULL );
+			groupBuddiesShortcuts->widget()->layout()->removeWidget( BUDDIESSHORTCUTSADDNEWBUTTON );
+			groupBuddiesShortcuts->addWidget( BUDDIESSHORTCUTSADDNEWBUTTON, true );  // re-insert the button so that it takes full available horizontal space
+			connect( BUDDIESSHORTCUTSADDNEWBUTTON, SIGNAL(clicked()), this, SLOT(buddiesShortcutsAddNewButtonPressed()));
+		}
 	}
 	// add BUDDIESMENUSADDNEWBUTTON button
 	if( BUDDIESMENUSADDNEWBUTTON == NULL )
@@ -253,10 +232,13 @@ void GlobalHotkeys::mainConfigurationWindowCreated( MainConfigurationWindow *mai
 			QT_TRANSLATE_NOOP( "@default", "Global hotkeys" ),
 			QT_TRANSLATE_NOOP( "@default", "Buddies menus" )
 		);
-		BUDDIESMENUSADDNEWBUTTON = new ConfigActionButton( QT_TRANSLATE_NOOP( "@default", "Add new menu ..." ), "", groupBuddiesMenus, NULL );
-		groupBuddiesMenus->widget()->layout()->removeWidget( BUDDIESMENUSADDNEWBUTTON );
+		if( groupBuddiesMenus )
+		{
+			BUDDIESMENUSADDNEWBUTTON = new ConfigActionButton( QT_TRANSLATE_NOOP( "@default", "Add new menu ..." ), "", groupBuddiesMenus, NULL );
+			groupBuddiesMenus->widget()->layout()->removeWidget( BUDDIESMENUSADDNEWBUTTON );
 			groupBuddiesMenus->addWidget( BUDDIESMENUSADDNEWBUTTON, true );  // re-insert the button so that it takes full available horizontal space
-		connect( BUDDIESMENUSADDNEWBUTTON, SIGNAL(clicked()), this, SLOT(buddiesMenusAddNewButtonPressed()) );
+			connect( BUDDIESMENUSADDNEWBUTTON, SIGNAL(clicked()), this, SLOT(buddiesMenusAddNewButtonPressed()) );
+		}
 	}
 	// emit signal
 	emit( mainConfigurationWindowCreatedSignal( mainConfigurationWindow ) );
@@ -306,6 +288,20 @@ void GlobalHotkeys::configurationUpdated()
 }
 
 
+unsigned char xerrorcode;
+
+
+int (*oldXErrorHandler)(Display*, XErrorEvent*);
+
+
+int xErrorHandler( Display *display, XErrorEvent *ee ) 
+{
+	Q_UNUSED(display);
+	xerrorcode = ee->error_code;
+	return 0;
+}
+
+
 int GlobalHotkeys::grabHotKey( HotKey hotkey )
 {
 	uint modifiers;
@@ -313,45 +309,48 @@ int GlobalHotkeys::grabHotKey( HotKey hotkey )
 	if( ! hotkey.isNull() )
 	{
 		result = 0;
+		// modifiers
 		modifiers = 0;
 		modifiers |= ( hotkey.shift()   ? GLOBALHOTKEYS_X11SHIFTMASK   : 0 );
 		modifiers |= ( hotkey.control() ? GLOBALHOTKEYS_X11CONTROLMASK : 0 );
 		modifiers |= ( hotkey.alt()     ? GLOBALHOTKEYS_X11ALTMASK     : 0 );
 		modifiers |= ( hotkey.altGr()   ? GLOBALHOTKEYS_X11ALTGRMASK   : 0 );
 		modifiers |= ( hotkey.super()   ? GLOBALHOTKEYS_X11SUPERMASK   : 0 );
-		// install empty messages handler to avoid warning being printed to the output
-		messageshandled = 0;
-		QtMsgHandler previousmsghandler = qInstallMsgHandler( EmptyMsgHandler );
+		// install own X11 errors handler
+		oldXErrorHandler = XSetErrorHandler( xErrorHandler );
 		// pure hotkey
+		xerrorcode = Success;
 		XGrabKey(
 			DISPLAY, hotkey.keyCode(), modifiers,
 			DefaultRootWindow( DISPLAY ), False, GrabModeAsync, GrabModeAsync
 			);
-		// hotkey with CapsLock
-		XGrabKey(
-			DISPLAY, hotkey.keyCode(), modifiers | GLOBALHOTKEYS_X11CAPSLOCKMASK,
-			DefaultRootWindow( DISPLAY ), False, GrabModeAsync, GrabModeAsync
-			);
-		// hotkey with NumLock
-		XGrabKey(
-			DISPLAY, hotkey.keyCode(), modifiers | GLOBALHOTKEYS_X11NUMLOCKMASK,
-			DefaultRootWindow( DISPLAY ), False, GrabModeAsync, GrabModeAsync
-			);
-		// hotkey with CapsLock and NumLock
-		XGrabKey(
-			DISPLAY, hotkey.keyCode(), modifiers | GLOBALHOTKEYS_X11CAPSLOCKMASK | GLOBALHOTKEYS_X11NUMLOCKMASK,
-			DefaultRootWindow( DISPLAY ), False, GrabModeAsync, GrabModeAsync
-			);
-		// sync the X11 connection, so that we are sure the X11 errors will be handled now
 		XSync( DISPLAY, False );
-		// install the previous messages handler
-		qInstallMsgHandler( previousmsghandler );
-		// check for X11 errors
-		if( messageshandled > 0 )
+		if( xerrorcode == Success )
+		{
+			// hotkey with NumLock
+			XGrabKey(
+				DISPLAY, hotkey.keyCode(), modifiers | GLOBALHOTKEYS_X11NUMLOCKMASK,
+				DefaultRootWindow( DISPLAY ), True, GrabModeAsync, GrabModeAsync
+				);
+			// hotkey with CapsLock
+			XGrabKey(
+				DISPLAY, hotkey.keyCode(), modifiers | GLOBALHOTKEYS_X11CAPSLOCKMASK,
+				DefaultRootWindow( DISPLAY ), True, GrabModeAsync, GrabModeAsync
+				);
+			// hotkey with CapsLock and NumLock
+			XGrabKey(
+				DISPLAY, hotkey.keyCode(), modifiers | GLOBALHOTKEYS_X11CAPSLOCKMASK | GLOBALHOTKEYS_X11NUMLOCKMASK,
+				DefaultRootWindow( DISPLAY ), True, GrabModeAsync, GrabModeAsync
+				);
+			// catch errors
+			XSync( DISPLAY, False );
+		}
+		else if( xerrorcode == BadAccess )
 		{
 			result = 1;
-			messageshandled = 0;
 		}
+		// install previous X11 errors handler
+		XSetErrorHandler( oldXErrorHandler );
 	}
 	return result;
 }
@@ -514,7 +513,7 @@ void GlobalHotkeys::processConfBuddiesMenu( ConfBuddiesMenu *confbuddiesmenu )
 	}
 	// create menu
 	BuddiesMenu *menu = new BuddiesMenu();
-	menu->setContactsSubmenu( ! MainConfiguration::instance()->simpleMode() );
+	menu->setContactsSubmenu( true );
 	// add currently open chats to the menu
 	if( confbuddiesmenu->currentChats() && ( ! ChatWidgetManager::instance()->chats().isEmpty() ) )
 	{
@@ -607,9 +606,19 @@ void GlobalHotkeys::processConfBuddiesMenu( ConfBuddiesMenu *confbuddiesmenu )
 	// remove given buddies from the menu
 	foreach( QString buddydisplay, confbuddiesmenu->excludeBuddies() )
 		menu->remove( buddydisplay );
+	// set one item per buddy
+	menu->setOneItemPerBuddy( confbuddiesmenu->oneItemPerBuddy() );
+	// set stateless sorting
+	menu->setSortStatelessBuddies(         confbuddiesmenu->sortStatelessBuddies()         );
+	menu->setSortStatelessBuddiesByStatus( confbuddiesmenu->sortStatelessBuddiesByStatus() );
 	// popup in the center of the screen
 	menu->popup();
 	// global data
 	SHOWNGLOBALWIDGET = menu;
 	SHOWNGLOBALWIDGETHOTKEY = confbuddiesmenu->hotKey();
 }
+
+
+
+
+Q_EXPORT_PLUGIN2( globalhotkeys, GlobalHotkeys )

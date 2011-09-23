@@ -1,6 +1,6 @@
 /****************************************************************************
 *                                                                           *
-*   GlobalHotkeys module for Kadu                                           *
+*   GlobalHotkeys plugin for Kadu                                           *
 *   Copyright (C) 2008-2011  Piotr Dąbrowski ultr@ultr.pl                   *
 *                                                                           *
 *   This program is free software: you can redistribute it and/or modify    *
@@ -32,6 +32,7 @@
 #include "gui/windows/choose-description.h"
 #include "gui/windows/main-configuration-window.h"
 #include "gui/windows/open-chat-with/open-chat-with.h"
+#include "plugins/generic-plugin.h"
 
 #include "buddiesmenu.h"
 #include "conf.h"
@@ -46,16 +47,18 @@
 void EmptyMsgHandler( QtMsgType type, const char *msg );
 
 
-class GlobalHotkeys : public ConfigurationUiHandler, ConfigurationAwareObject
+class GlobalHotkeys : public ConfigurationUiHandler, public ConfigurationAwareObject, public GenericPlugin
 {
 	friend class Functions;
 	Q_OBJECT
+	Q_INTERFACES( GenericPlugin )
 	public:
+		virtual int init( bool firstLoad );
+		virtual void done();
 		GlobalHotkeys();
 		~GlobalHotkeys();
 		static GlobalHotkeys *instance();
-		static int messageshandled;
-		void mainConfigurationWindowCreated( MainConfigurationWindow *mainConfigurationWindow );
+		virtual void mainConfigurationWindowCreated( MainConfigurationWindow *mainConfigurationWindow );
 	signals:
 		void mainConfigurationWindowCreatedSignal( MainConfigurationWindow* );
 	protected:

@@ -1,6 +1,6 @@
 /****************************************************************************
 *                                                                           *
-*   GlobalHotkeys module for Kadu                                           *
+*   GlobalHotkeys plugin for Kadu                                           *
 *   Copyright (C) 2008-2011  Piotr Dąbrowski ultr@ultr.pl                   *
 *                                                                           *
 *   This program is free software: you can redistribute it and/or modify    *
@@ -37,9 +37,10 @@
 #include "contacts/contact-set.h"
 #include "contacts/contact-shared.h"
 #include "gui/widgets/chat-widget-manager.h"
+#include "icons/icons-manager.h"
+#include "icons/kadu-icon.h"
 #include "status/status-container-manager.h"
 #include "activate.h"
-#include "icons-manager.h"
 
 #include "buddiesmenu.h"
 
@@ -50,21 +51,17 @@
 
 BuddiesMenuActionData::BuddiesMenuActionData()
 {
+	SORTSTATELESS         = false;
+	SORTSTATELESSBYSTATUS = false;
 	CHATSTATE    = ChatStateNone;
 	INITIALORDER = INT_MAX;
 }
 
 
-BuddiesMenuActionData::BuddiesMenuActionData( ContactSet contactset, ChatState chatstate, int initialorder )
-{
-	CONTACTSET   = contactset;
-	CHATSTATE    = chatstate;
-	INITIALORDER = initialorder;
-}
-
-
 BuddiesMenuActionData::BuddiesMenuActionData( const BuddiesMenuActionData &other )
 {
+	SORTSTATELESS         = other.SORTSTATELESS;
+	SORTSTATELESSBYSTATUS = other.SORTSTATELESSBYSTATUS;
 	CONTACTSET   = other.CONTACTSET;
 	CHATSTATE    = other.CHATSTATE;
 	INITIALORDER = other.INITIALORDER;
@@ -91,6 +88,13 @@ bool BuddiesMenuActionData::operator<( const BuddiesMenuActionData &other ) cons
 			if( oc.ownerBuddy().isBlocked() ) os += 0x2;
 			if( cs != os )
 				return ( cs > os );
+			if( ( CHATSTATE == ChatStateNone ) && SORTSTATELESS ) // stateless sorting
+			{
+				if( SORTSTATELESSBYSTATUS )
+					if( cc.currentStatus() != oc.currentStatus() )
+						return oc.currentStatus() < cc.currentStatus();
+				return cc.ownerBuddy().display().toLower() > oc.ownerBuddy().display().toLower();
+			}
 		}
 		return ( INITIALORDER > other.INITIALORDER );
 	}
@@ -116,6 +120,9 @@ BuddiesMenu::BuddiesMenu() : GlobalMenu()
 {
 	MENUTYPE = BuddiesMenuTypeBuddies;
 	CONTACTSSUBMENU = true;
+	ONEITEMPERBUDDY              = false;
+	SORTSTATELESSBUDDIES         = false;
+	SORTSTATELESSBUDDIESBYSTATUS = false;
 	opensubmenuaction = NULL;
 	int wideiconwidth =
 		GLOBALHOTKEYS_BUDDIESMENUICONMARGINLEFT +
@@ -356,7 +363,7 @@ QIcon BuddiesMenu::createIcon( ContactSet contactset, ChatState chatstate )
 	}
 	else
 	{
-		statusicon = ChatTypeManager::instance()->chatType( "Conference" )->icon();
+		statusicon = ChatTypeManager::instance()->chatType( "Conference" )->icon().icon();
 	}
 	int wideiconwidth =
 		GLOBALHOTKEYS_BUDDIESMENUICONMARGINLEFT +
@@ -398,11 +405,40 @@ void BuddiesMenu::openChat()
 
 void BuddiesMenu::prepareActions()
 {
-	// sort buddiesmenuactiondatalist
-	for( int k1 = 0; k1 < BUDDIESMENUACTIONDATALIST.size(); ++k1 )
-		BUDDIESMENUACTIONDATALIST[k1].setInitialOrder( k1 );
-	qSort( BUDDIESMENUACTIONDATALIST.begin(), BUDDIESMENUACTIONDATALIST.end(), qGreater<BuddiesMenuActionData>() );
-	// search contactsets for contacts with repeated ownerBuddies and mark and mark differences in contacts
+	// sort buddiesmenuactiondatalist (only if it's not a contacts menu)
+	if( MENUTYPE != BuddiesMenuTypeContacts )
+	{
+		for( int k1 = 0; k1 < BUDDIESMENUACTIONDATALIST.size(); ++k1 )
+		{
+			BUDDIESMENUACTIONDATALIST[k1].setSortStateless( SORTSTATELESSBUDDIES );
+			BUDDIESMENUACTIONDATALIST[k1].setSortStatelessByStatus( SORTSTATELESSBUDDIESBYSTATUS );
+			BUDDIESMENUACTIONDATALIST[k1].setInitialOrder( k1 );
+		}
+		qSort( BUDDIESMENUACTIONDATALIST.begin(), BUDDIESMENUACTIONDATALIST.end(), qGreater<BuddiesMenuActionData>() );
+	}
+	// remove duplicated buddies if requested
+	if( ONEITEMPERBUDDY )
+	{
+		for( int k1 = 0; k1 < BUDDIESMENUACTIONDATALIST.size(); ++k1 )
+		{
+			ContactSet contactset1 = BUDDIESMENUACTIONDATALIST[k1].contactSet();
+			BuddySet buddyset1 = contactset1.toBuddySet();
+			for( int k2 = 0; k2 < BUDDIESMENUACTIONDATALIST.size(); ++k2 )
+			{
+				if( k2 == k1 )
+					continue;
+				ContactSet contactset2 = BUDDIESMENUACTIONDATALIST[k2].contactSet();
+				BuddySet buddyset2 = contactset2.toBuddySet();
+				if( buddyset1 == buddyset2 )
+				{
+					BUDDIESMENUACTIONDATALIST.removeAt( k2 );
+					--k1;
+					break;
+				}
+			}
+		}
+	}
+	// search contactsets for contacts with repeated ownerBuddies and mark differences in contacts
 	QList<ContactSet> unique_contacts_of_repeated_buddies_list;
 	for( int k1 = 0; k1 < BUDDIESMENUACTIONDATALIST.size(); ++k1 )
 	{

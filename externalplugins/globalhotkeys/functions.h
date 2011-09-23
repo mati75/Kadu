@@ -1,6 +1,6 @@
 /****************************************************************************
 *                                                                           *
-*   GlobalHotkeys module for Kadu                                           *
+*   GlobalHotkeys plugin for Kadu                                           *
 *   Copyright (C) 2008-2011  Piotr Dąbrowski ultr@ultr.pl                   *
 *                                                                           *
 *   This program is free software: you can redistribute it and/or modify    *
@@ -54,7 +54,7 @@ class Functions : public QObject
 		void functionChangeDescription(           ConfHotKey *confhotkey );
 		void functionAddANewBuddy(                ConfHotKey *confhotkey );
 		void functionSearchForBuddy(              ConfHotKey *confhotkey );
-		///void functionFileTransfersWindow(         ConfHotKey *confhotkey );
+		void functionFileTransfersWindow(         ConfHotKey *confhotkey );
 		void functionConfigurationWindow(         ConfHotKey *confhotkey );
 		void functionAccountManagerWindow(        ConfHotKey *confhotkey );
 		void functionPluginsWindow(               ConfHotKey *confhotkey );

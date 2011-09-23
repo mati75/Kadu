@@ -1,6 +1,6 @@
 /****************************************************************************
 *                                                                           *
-*   NExtInfo module for Kadu                                                *
+*   NExtInfo plugin for Kadu                                                *
 *   Copyright (C) 2008-2011  Piotr Dąbrowski ultr@ultr.pl                   *
 *                                                                           *
 *   This program is free software: you can redistribute it and/or modify    *
@@ -31,7 +31,7 @@
 
 PhotoWidget::PhotoWidget( QWidget *parent ) : QScrollArea( parent )
 {
-	setWindowRole( "nextinfo-photo" );
+	setWindowRole( "kadu-nextinfo-photo" );
 	setFrameStyle( QFrame::NoFrame );
 	setLineWidth( 0 );
 	setAlignment( Qt::AlignCenter );

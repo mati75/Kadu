@@ -5,4 +5,5 @@ Author=Patryk Cisek
 LoadByDefault=true
 Provides=
 Conflicts=
-Version=0.6.6.1
+Plugin=true
+Version=0.10.1

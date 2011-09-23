@@ -1,6 +1,6 @@
 /****************************************************************************
 *                                                                           *
-*   SentHistory module for Kadu                                             *
+*   SentHistory plugin for Kadu                                             *
 *   Copyright (C) 2008-2011  Piotr Dąbrowski ultr@ultr.pl                   *
 *                                                                           *
 *   This program is free software: you can redistribute it and/or modify    *
@@ -24,13 +24,12 @@
 
 
 #include <QList>
-#include <QObject>
 
-#include <chat/chat.h>
-#include <gui/widgets/chat-widget.h>
-#include <gui/widgets/custom-input.h>
-#include "gui/windows/main-configuration-window.h"
+#include "chat/chat.h"
 #include "configuration/configuration-aware-object.h"
+#include "gui/widgets/chat-widget.h"
+#include "gui/widgets/custom-input.h"
+#include "plugins/generic-plugin.h"
 
 
 #define  SENTHISTORY_DEFAULTSHORTCUT_PREVIOUSMESSAGE              "Ctrl+Up"
@@ -39,13 +38,15 @@
 #define  SENTHISTORY_DEFAULTSHORTCUT_NEXTMESSAGEFROMALLCHATS      "Ctrl+Alt+Down"
 
 
-class SentHistory : public ConfigurationUiHandler, ConfigurationAwareObject
+class SentHistory : public QObject, public ConfigurationAwareObject, public GenericPlugin
 {
 	Q_OBJECT
+	Q_INTERFACES( GenericPlugin )
 	public:
+		virtual int init( bool firstLoad );
+		virtual void done();
 		SentHistory();
 		~SentHistory();
-		void mainConfigurationWindowCreated( MainConfigurationWindow *mainConfigurationWindow );
 	protected:
 		void configurationUpdated();
 	private slots:

@@ -1,6 +1,6 @@
 /****************************************************************************
 *                                                                           *
-*   NExtInfo module for Kadu                                                *
+*   NExtInfo plugin for Kadu                                                *
 *   Copyright (C) 2008-2011  Piotr Dąbrowski ultr@ultr.pl                   *
 *                                                                           *
 *   This program is free software: you can redistribute it and/or modify    *
@@ -34,12 +34,21 @@
 #include <QTextStream>
 
 
+#include "accounts/account-manager.h"
 #include "avatars/avatar-manager.h"
+#include "buddies/buddy.h"
 #include "buddies/buddy-gender.h"
+#include "buddies/buddy-manager.h"
 #include "configuration/configuration-file.h"
+#include "contacts/contact-manager.h"
+#include "core/core.h"
+#include "gui/actions/action.h"
 #include "gui/widgets/configuration/configuration-widget.h"
+#include "gui/widgets/buddies-list-view-menu-manager.h"
 #include "gui/windows/kadu-window.h"
-#include "notify/notification-manager.cpp"
+#include "misc/path-conversion.h"
+#include "notify/notification.h"
+#include "notify/notification-manager.h"
 #include "parser/parser.h"
 #include "activate.h"
 #include "debug.h"
@@ -53,41 +62,33 @@
 
 
 
-NExtInfo *nextinfo;
-
-
-
-
-extern "C" int nextinfo_init( bool firstLoad )
+int NExtInfo::init( bool firstLoad )
 {
+	Q_UNUSED( firstLoad );
 	kdebugf();
-	nextinfo = NULL;
-	new NExtInfo( firstLoad );
-	MainConfigurationWindow::registerUiFile( dataPath( "kadu/modules/configuration/nextinfo.ui" ) );
-	MainConfigurationWindow::registerUiHandler( nextinfo );
+	MainConfigurationWindow::registerUiFile( dataPath( "kadu/plugins/configuration/nextinfo.ui" ) );
+	MainConfigurationWindow::registerUiHandler( this );
 	kdebugf2();
 	return 0;
 }
 
 
-extern "C" void nextinfo_close()
+void NExtInfo::done()
 {
 	kdebugf();
-	MainConfigurationWindow::unregisterUiFile( dataPath( "kadu/modules/configuration/nextinfo.ui" ) );
-	MainConfigurationWindow::unregisterUiHandler( nextinfo );
-	delete nextinfo;
-	nextinfo = NULL;
+	MainConfigurationWindow::unregisterUiHandler( this );
+	MainConfigurationWindow::unregisterUiFile( dataPath( "kadu/plugins/configuration/nextinfo.ui" ) );
 	kdebugf2();
 }
 
 
+QObject *NExtInfo::guard = 0;
 
 
-NExtInfo::NExtInfo( bool firstLoad ) : QObject( 0 )
+NExtInfo::NExtInfo()
 {
-	Q_UNUSED( firstLoad );
-	// instance
-	nextinfo = this;
+	// guard
+	guard = new QObject();
 	// data format and update
 	int dataformatversion = config_file.readNumEntry( "NExtInfo", "DataFormatVersion", 0 );
 	if( dataformatversion < NEXTINFO_DATAFORMATVERSION )
@@ -105,14 +106,14 @@ NExtInfo::NExtInfo( bool firstLoad ) : QObject( 0 )
 	// add NExtInfo actions to BuddiesListView's context menu
 	actionbirthday = new ActionDescription(
 		this, ActionDescription::TypeUser, "nextinfo_birthdayinform", this, SLOT(actionBirthdayTriggered(QAction*,bool)),
-		"external_modules/nextinfo-birthday", qApp->translate( "@nextinfo", "Birthday notifications" ),
+		KaduIcon( "external_modules/nextinfo-birthday" ), qApp->translate( "@nextinfo", "Birthday notifications" ),
 		true, NExtInfo::updateActionBirthday
 	);
 	BuddiesListViewMenuManager::instance()->addListActionDescription( actionbirthday, BuddiesListViewMenuItem::MenuCategoryManagement, 200 );
 	connect( actionbirthday, SIGNAL(actionCreated(Action*)), this, SLOT(actionBirthdayCreated(Action*)) );
 	actionnameday = new ActionDescription(
 		this, ActionDescription::TypeUser, "nextinfo_namedayinform", this, SLOT(actionNamedayTriggered(QAction*,bool)),
-		"external_modules/nextinfo-nameday", qApp->translate( "@nextinfo", "Name-day notifications" ),
+		KaduIcon( "external_modules/nextinfo-nameday" ), qApp->translate( "@nextinfo", "Name-day notifications" ),
 		true, NExtInfo::updateActionNameday
 	);
 	BuddiesListViewMenuManager::instance()->addListActionDescription( actionnameday, BuddiesListViewMenuItem::MenuCategoryManagement, 200 );
@@ -133,7 +134,7 @@ NExtInfo::NExtInfo( bool firstLoad ) : QObject( 0 )
 	// check birthdays and name-days at startup
 	QTimer::singleShot( NEXTINFO_INITIALNOTIFYBIRTHDAYNAMEDAYINTERVAL, this, SLOT(notifyBirthdayNameday()) );
 	// start the birthdaynamedaytimer timer
-	birthdaynamedaytimer->start( notifyInterval * 1000 );
+	birthdaynamedaytimer->start( config_file.readNumEntry( "NExtInfo", "DelayBetweenNotifications" ) * 1000 );
 }
 
 
@@ -155,13 +156,15 @@ NExtInfo::~NExtInfo()
 	actionbirthday->deleteLater();
 	actionnameday->deleteLater();
 	// unregister parser tags
-	Parser::unregisterTag( "nextinfo_address"   , getTag_address   );
-	Parser::unregisterTag( "nextinfo_city"      , getTag_city      );
-	Parser::unregisterTag( "nextinfo_email2"    , getTag_email2    );
-	Parser::unregisterTag( "nextinfo_birthday"  , getTag_birthday  );
-	Parser::unregisterTag( "nextinfo_nameday"   , getTag_nameday   );
-	Parser::unregisterTag( "nextinfo_interests" , getTag_interests );
-	Parser::unregisterTag( "nextinfo_notes"     , getTag_notes     );
+	Parser::unregisterTag( "nextinfo_address"   );
+	Parser::unregisterTag( "nextinfo_city"      );
+	Parser::unregisterTag( "nextinfo_email2"    );
+	Parser::unregisterTag( "nextinfo_birthday"  );
+	Parser::unregisterTag( "nextinfo_nameday"   );
+	Parser::unregisterTag( "nextinfo_interests" );
+	Parser::unregisterTag( "nextinfo_notes"     );
+	// guard
+	delete guard;
 }
 
 
@@ -188,17 +191,11 @@ void NExtInfo::createDefaultConfiguration()
 
 void NExtInfo::configurationUpdated()
 {
-	// update configuration data
-	notify               = config_file.readBoolEntry( "NExtInfo", "EnableNotifications"       );
-	notifyAboutBirthdays = config_file.readBoolEntry( "NExtInfo", "NotifyAboutBirthdays"      );
-	notifyAboutNamedays  = config_file.readBoolEntry( "NExtInfo", "NotifyAboutNamedays"       );
-	notifyAdvance        = config_file.readNumEntry(  "NExtInfo", "NotificationAdvance"       );
-	notifyInterval       = config_file.readNumEntry(  "NExtInfo", "DelayBetweenNotifications" );
 	// restart the birthdaynamedaytimer timer if it is running
 	if( birthdaynamedaytimer->isActive() )
 	{
 		birthdaynamedaytimer->stop();
-		birthdaynamedaytimer->start( notifyInterval * 1000 );
+		birthdaynamedaytimer->start( config_file.readNumEntry(  "NExtInfo", "DelayBetweenNotifications" ) * 1000 );
 	}
 }
 
@@ -207,7 +204,7 @@ BuddyNExtInfoData *NExtInfo::bData( Buddy buddy )
 {
 	if( ! buddy.data() )
 		return NULL;
-	return buddy.data()->moduleStorableData<BuddyNExtInfoData>( "nextinfo", nextinfo, true );
+	return buddy.data()->moduleStorableData<BuddyNExtInfoData>( "nextinfo", guard, true );
 }
 
 
@@ -215,16 +212,22 @@ QPair< bool, QPair<int,int> > NExtInfo::checkBirthdayNotify( BuddyNExtInfoData *
 {
 	QPair< bool, QPair<int,int> > result( false, QPair<int,int>( 0, 0 ) );
 	if( ! bdata )
+	{
 		return result;
-	if( ( ! notify ) || ( ! notifyAboutBirthdays ) )
+	}
+	if( ( ! config_file.readBoolEntry( "NExtInfo", "EnableNotifications" ) ) || ( ! config_file.readBoolEntry( "NExtInfo", "NotifyAboutBirthdays" ) ) )
+	{
 		return result;
+	}
 	QDate nextbirthdaydate = bdata->nextBirthdayDate();
 	if( ! nextbirthdaydate.isValid() )
+	{
 		return result;
+	}
 	int remainingdays = QDate::currentDate().daysTo( nextbirthdaydate );
 	result.second.first = remainingdays;
 	result.second.second = bdata->nextBirthdayAge();
-	result.first = ( remainingdays <= notifyAdvance );
+	result.first = ( remainingdays <= config_file.readNumEntry( "NExtInfo", "NotificationAdvance" ) );
 	return result;
 }
 
@@ -234,7 +237,7 @@ QPair< bool, QPair<int,int> > NExtInfo::checkNamedayNotify( BuddyNExtInfoData *b
 	QPair< bool, QPair<int,int> > result( false, QPair<int,int>( 0, 0 ) );
 	if( ! bdata )
 		return result;
-	if( ( ! notify ) || ( ! notifyAboutNamedays ) )
+	if( ( ! config_file.readBoolEntry( "NExtInfo", "EnableNotifications" ) ) || ( ! config_file.readBoolEntry( "NExtInfo", "NotifyAboutNamedays" ) ) )
 		return result;
 	QDate nextnamedaydate = bdata->nextNamedayDate();
 	if( ! nextnamedaydate.isValid() )
@@ -242,7 +245,7 @@ QPair< bool, QPair<int,int> > NExtInfo::checkNamedayNotify( BuddyNExtInfoData *b
 	int remainingdays = QDate::currentDate().daysTo( nextnamedaydate );
 	result.second.first = remainingdays;
 	result.second.second = bdata->age();
-	result.first = ( remainingdays <= notifyAdvance );
+	result.first = ( remainingdays <= config_file.readNumEntry( "NExtInfo", "NotificationAdvance" ) );
 	return result;
 }
 
@@ -402,15 +405,15 @@ void NExtInfo::updateActionBirthday( Action *action )
 	if( ! buddy )
 		return;
 	// module data
-	BuddyNExtInfoData *bdata = nextinfo->bData( buddy );
+	BuddyNExtInfoData *bdata = NExtInfo::bData( buddy );
 	if( ! bdata )
 		return;
 	// check
 	QPair< bool, QPair<int,int> > checkdata;
-	checkdata = nextinfo->checkBirthdayNotify( bdata );
+	checkdata = NExtInfo::checkBirthdayNotify( bdata );
 	if( checkdata.first )
 	{
-		action->setChecked( nextinfo->checkBirthdayRemind( bdata ) );
+		action->setChecked( NExtInfo::checkBirthdayRemind( bdata ) );
 		action->setEnabled( true );
 		updateActionBirthdayMenu( action );
 	}
@@ -428,16 +431,16 @@ void NExtInfo::updateActionNameday( Action *action )
 	if( ! buddy )
 		return;
 	// module data
-	BuddyNExtInfoData *bdata = nextinfo->bData( buddy );
+	BuddyNExtInfoData *bdata = NExtInfo::bData( buddy );
 	if( ! bdata )
 		return;
 	// check
 	QPair< bool, QPair<int,int> > checkdata;
-	checkdata = nextinfo->checkNamedayNotify( bdata );
+	checkdata = NExtInfo::checkNamedayNotify( bdata );
 	if( checkdata.first )
 	{
 		action->setEnabled( true );
-		action->setChecked( nextinfo->checkNamedayRemind( bdata ) );
+		action->setChecked( NExtInfo::checkNamedayRemind( bdata ) );
 		updateActionNamedayMenu( action );
 	}
 }
@@ -452,7 +455,7 @@ void NExtInfo::updateActionBirthdayMenu( Action *action )
 	if( ! buddy )
 		return;
 	// module data
-	BuddyNExtInfoData *bdata = nextinfo->bData( buddy );
+	BuddyNExtInfoData *bdata = NExtInfo::bData( buddy );
 	if( ! bdata )
 		return;
 	// check
@@ -476,7 +479,7 @@ void NExtInfo::updateActionNamedayMenu( Action *action )
 	if( ! buddy )
 		return;
 	// module data
-	BuddyNExtInfoData *bdata = nextinfo->bData( buddy );
+	BuddyNExtInfoData *bdata = NExtInfo::bData( buddy );
 	if( ! bdata )
 		return;
 	// check
@@ -704,7 +707,7 @@ void NExtInfo::notifyBirthdayNameday()
 			if( checkBirthdayRemind( bdata ) )
 			{
 				// notify
-				Notification *notification = new Notification( "NExtInfo", "external_modules/nextinfo-birthday" );
+				Notification *notification = new Notification( "NExtInfo", KaduIcon( "external_modules/nextinfo-birthday" ) );
 				notification->setTitle( qApp->translate( "@nextinfo", "Birthday notification" ) );
 				QString string; // 9 formats: %1 has {their|her|his} %2 birthday {today|tomorrow|in %3 days}
 				string += "<b>%1</b> has ";
@@ -737,7 +740,7 @@ void NExtInfo::notifyBirthdayNameday()
 			if( checkNamedayRemind( bdata ) )
 			{
 				// notify
-				Notification *notification = new Notification( "NExtInfo", "external_modules/nextinfo-nameday" );
+				Notification *notification = new Notification( "NExtInfo", KaduIcon( "external_modules/nextinfo-nameday" ) );
 				notification->setTitle( qApp->translate( "@nextinfo", "Name-day notification" ) );
 				QString string; // 9 formats: %1 has {their|her|his} name-day {today|tomorrow|in %2 days}
 				string += "<b>%1</b> has ";
@@ -1168,3 +1171,8 @@ QString NExtInfo::ordinal( QString code, int n )
 		return QString::number( n ) + ".";
 	return result.toString();
 }
+
+
+
+
+Q_EXPORT_PLUGIN2( nextinfo, NExtInfo )

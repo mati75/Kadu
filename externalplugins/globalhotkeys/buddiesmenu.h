@@ -1,6 +1,6 @@
 /****************************************************************************
 *                                                                           *
-*   GlobalHotkeys module for Kadu                                           *
+*   GlobalHotkeys plugin for Kadu                                           *
 *   Copyright (C) 2008-2011  Piotr Dąbrowski ultr@ultr.pl                   *
 *                                                                           *
 *   This program is free software: you can redistribute it and/or modify    *
@@ -53,12 +53,13 @@ class BuddiesMenuActionData
 {
 	public:
 		BuddiesMenuActionData();
-		BuddiesMenuActionData( ContactSet contactset, ChatState chatstate, int initialorder = INT_MAX );
 		BuddiesMenuActionData( const BuddiesMenuActionData &other );
 		~BuddiesMenuActionData();
 		bool operator<( const BuddiesMenuActionData &other ) const;
 		Contact contact();
 		bool    isConference();
+		PROPERTY_RW( bool, SORTSTATELESS        , sortStateless        , setSortStateless         );
+		PROPERTY_RW( bool, SORTSTATELESSBYSTATUS, sortStatelessByStatus, setSortStatelessByStatus );
 		PROPERTY_RW( ContactSet, CONTACTSET  , contactSet  , setContactSet   );
 		PROPERTY_RW( ChatState , CHATSTATE   , chatState   , setChatState    );
 		PROPERTY_RW( int       , INITIALORDER, initialOrder, setInitialOrder );
@@ -88,9 +89,12 @@ class BuddiesMenu : public GlobalMenu
 		int count();
 		void popup( QPoint p = QPoint() );
 		void setContactToActivate( Contact contact );
-		PROPERTY_RW( BuddiesMenuType, MENUTYPE            , menuType            , setMenuType             );
-		PROPERTY_RW( bool           , CONTACTSSUBMENU     , contactsSubmenu     , setContactsSubmenu      );
-		PROPERTY_RW( ContactSet     , CONTACTSETTOACTIVATE, contactSetToActivate, setContactSetToActivate );
+		PROPERTY_RW( BuddiesMenuType, MENUTYPE                    , menuType                    , setMenuType                     );
+		PROPERTY_RW( bool           , CONTACTSSUBMENU             , contactsSubmenu             , setContactsSubmenu              );
+		PROPERTY_RW( ContactSet     , CONTACTSETTOACTIVATE        , contactSetToActivate        , setContactSetToActivate         );
+		PROPERTY_RW( bool           , ONEITEMPERBUDDY             , oneItemPerBuddy             , setOneItemPerBuddy              );
+		PROPERTY_RW( bool           , SORTSTATELESSBUDDIES        , sortStatelessBuddies        , setSortStatelessBuddies         );
+		PROPERTY_RW( bool           , SORTSTATELESSBUDDIESBYSTATUS, sortStatelessBuddiesByStatus, setSortStatelessBuddiesByStatus );
 	protected:
 		virtual void keyPressEvent( QKeyEvent *event );
 		virtual void mousePressEvent( QMouseEvent *event );

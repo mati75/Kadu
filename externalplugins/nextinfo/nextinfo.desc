@@ -1,7 +1,8 @@
 [Module]
+Plugin=true
 Description=New ext_info module providing extended buddies information support
 Description[pl]=Nowy modu³ ext_info wprowadzaj±cy obs³ugê dodatkowych informacji o znajomych
 Author=Piotr "ultr" D±browski
 LoadByDefault=false
-Version=0.9.0-5
+Version=0.10-7-git
 Base=false

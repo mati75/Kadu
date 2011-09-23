@@ -1,6 +1,6 @@
 /****************************************************************************
 *                                                                           *
-*   GlobalHotkeys module for Kadu                                           *
+*   GlobalHotkeys plugin for Kadu                                           *
 *   Copyright (C) 2008-2011  Piotr Dąbrowski ultr@ultr.pl                   *
 *                                                                           *
 *   This program is free software: you can redistribute it and/or modify    *
@@ -158,6 +158,9 @@ class ConfBuddiesMenu : public QObject
 		PROPERTY_RO( QStringList, BUDDIES                     , buddies                      );
 		PROPERTY_RO( QStringList, GROUPS                      , groups                       );
 		PROPERTY_RO( QStringList, EXCLUDEBUDDIES              , excludeBuddies               );
+		PROPERTY_RO( bool       , ONEITEMPERBUDDY             , oneItemPerBuddy              );
+		PROPERTY_RO( bool       , SORTSTATELESSBUDDIES        , sortStatelessBuddies         );
+		PROPERTY_RO( bool       , SORTSTATELESSBUDDIESBYSTATUS, sortStatelessBuddiesByStatus );
 	public slots:
 		void mainConfigurationWindowCreated( MainConfigurationWindow *mainConfigurationWindow );
 		void deletebuttonClicked();
@@ -174,6 +177,9 @@ class ConfBuddiesMenu : public QObject
 		QPointer<ConfigLineEdit>      BUDDIESEDIT;
 		QPointer<ConfigLineEdit>      GROUPSEDIT;
 		QPointer<ConfigLineEdit>      EXCLUDEBUDDIESEDIT;
+		QPointer<ConfigCheckBox>      ONEITEMPERBUDDYCHECKBOX;
+		QPointer<ConfigCheckBox>      SORTSTATELESSBUDDIESCHECKBOX;
+		QPointer<ConfigCheckBox>      SORTSTATELESSBUDDIESBYSTATUSCHECKBOX;
 		QPointer<ConfigActionButton>  DELETEBUTTON;
 };
 

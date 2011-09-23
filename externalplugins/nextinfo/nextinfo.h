@@ -1,6 +1,6 @@
 /****************************************************************************
 *                                                                           *
-*   NExtInfo module for Kadu                                                *
+*   NExtInfo plugin for Kadu                                                *
 *   Copyright (C) 2008-2011  Piotr Dąbrowski ultr@ultr.pl                   *
 *                                                                           *
 *   This program is free software: you can redistribute it and/or modify    *
@@ -34,6 +34,7 @@
 #include "gui/windows/buddy-data-window-aware-object.h"
 #include "gui/windows/main-configuration-window.h"
 #include "notify/notify-event.h"
+#include "plugins/generic-plugin.h"
 
 #include "buddynextinfodata.h"
 
@@ -49,25 +50,31 @@ enum RemindTime
 };
 
 
-class NExtInfo : public ConfigurationUiHandler, ConfigurationAwareObject, BuddyDataWindowAwareObject
+class NExtInfo : public ConfigurationUiHandler, public ConfigurationAwareObject, public BuddyDataWindowAwareObject, public GenericPlugin
 {
 	Q_OBJECT
+	Q_INTERFACES( GenericPlugin )
 	public:
-		NExtInfo( bool firstLoad );
+		virtual int init( bool firstLoad );
+		virtual void done();
+		NExtInfo();
 		~NExtInfo();
+	public:
+		static BuddyNExtInfoData *bData( Buddy buddy );
 	public:
 		static void updateActionBirthday( Action *action );
 		static void updateActionNameday( Action *action );
 		static void updateActionBirthdayMenu( Action *action );
 		static void updateActionNamedayMenu( Action *action);
 	public:
-		void mainConfigurationWindowCreated( MainConfigurationWindow *mainConfigurationWindow );
+		static QPair< bool, QPair<int,int> > checkBirthdayNotify( BuddyNExtInfoData *bdata );
+		static QPair< bool, QPair<int,int> > checkNamedayNotify(  BuddyNExtInfoData *bdata );
+		static bool checkBirthdayRemind( BuddyNExtInfoData *bdata );
+		static bool checkNamedayRemind(  BuddyNExtInfoData *bdata );
+	public:
+		virtual void mainConfigurationWindowCreated( MainConfigurationWindow *mainConfigurationWindow );
 		void updateActionsBirthday();
 		void updateActionsNameday();
-		QPair< bool, QPair<int,int> > checkBirthdayNotify( BuddyNExtInfoData *bdata );
-		QPair< bool, QPair<int,int> > checkNamedayNotify(  BuddyNExtInfoData *bdata );
-		bool checkBirthdayRemind( BuddyNExtInfoData *bdata );
-		bool checkNamedayRemind(  BuddyNExtInfoData *bdata );
 	public slots:
 		void actionBirthdayCreated( Action *action );
 		void actionNamedayCreated(  Action *action );
@@ -90,8 +97,9 @@ class NExtInfo : public ConfigurationUiHandler, ConfigurationAwareObject, BuddyD
 	private slots:
 		void notifyBirthdayNameday();
 	private:
+		static QObject *guard;
+	private:
 		void createDefaultConfiguration();
-		BuddyNExtInfoData *bData( Buddy buddy );
 		void setBirthdayRemind( Buddy buddy, RemindTime time );
 		void setNamedayRemind( Buddy buddy, RemindTime time );
 		void importOldData( int olddataformatversion );
@@ -100,15 +108,7 @@ class NExtInfo : public ConfigurationUiHandler, ConfigurationAwareObject, BuddyD
 		QTimer *birthdaynamedaytimer;
 		ActionDescription *nextinfoaction;
 		NotifyEvent *notifyevent;
-		bool notify;                // configuration value
-		bool notifyAboutBirthdays;  // configuration value
-		bool notifyAboutNamedays;   // configuration value
-		int  notifyAdvance;         // configuration value
-		int  notifyInterval;        // configuration value
 };
-
-
-extern NExtInfo *nextinfo;
 
 
 #endif

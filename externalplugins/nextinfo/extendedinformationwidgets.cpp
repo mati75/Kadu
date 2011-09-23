@@ -1,6 +1,6 @@
 /****************************************************************************
 *                                                                           *
-*   NExtInfo module for Kadu                                                *
+*   NExtInfo plugin for Kadu                                                *
 *   Copyright (C) 2008-2011  Piotr Dąbrowski ultr@ultr.pl                   *
 *                                                                           *
 *   This program is free software: you can redistribute it and/or modify    *
@@ -45,12 +45,13 @@
 #include "buddies/buddy-shared.h"
 #include "gui/widgets/buddy-avatar-widget.h"
 #include "gui/widgets/buddy-general-configuration-widget.h"
-#include "icons-manager.h"
-
-#include "extendedinformationwidgets.h"
-#include "photowidget.h"
+#include "icons/icons-manager.h"
 
 #include "buddynextinfodata.h"
+#include "nextinfo.h"
+#include "photowidget.h"
+
+#include "extendedinformationwidgets.h"
 
 
 
@@ -421,9 +422,7 @@ void ExtendedInformationWidgets::languageChange()
 void ExtendedInformationWidgets::loadBuddy()
 {
 	// module data
-	BuddyNExtInfoData *bdata = 0;
-	if( buddy.data() )
-		bdata = buddy.data()->moduleStorableData<BuddyNExtInfoData>( "nextinfo", 0, true );
+	BuddyNExtInfoData *bdata = NExtInfo::bData( buddy );
 	if( ! bdata )
 		return;
 	// load standard information
@@ -451,9 +450,7 @@ void ExtendedInformationWidgets::loadBuddy()
 void ExtendedInformationWidgets::saveBuddy()
 {
 	// module data
-	BuddyNExtInfoData *bdata = 0;
-	if( buddy.data() )
-		bdata = buddy.data()->moduleStorableData<BuddyNExtInfoData>( "nextinfo", 0, true );
+	BuddyNExtInfoData *bdata = NExtInfo::bData( buddy );
 	if( ! bdata )
 		return;
 	// check birthday format

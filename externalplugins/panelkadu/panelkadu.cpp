@@ -1,6 +1,6 @@
 /****************************************************************************
 *                                                                           *
-*   PanelKadu module for Kadu                                               *
+*   PanelKadu plugin for Kadu                                               *
 *   Copyright (C) 2008-2011  Piotr Dąbrowski ultr@ultr.pl                   *
 *                                                                           *
 *   This program is free software: you can redistribute it and/or modify    *
@@ -52,27 +52,25 @@ PanelKadu *panelkadu;
 
 
 
-extern "C" int panelkadu_init()
+int PanelKadu::init( bool firstLoad )
 {
+	Q_UNUSED( firstLoad );
 	kdebugf();
-	panelkadu = new PanelKadu();
-	MainConfigurationWindow::registerUiFile( dataPath("kadu/modules/configuration/panelkadu.ui") );
+	MainConfigurationWindow::registerUiFile( dataPath("kadu/plugins/configuration/panelkadu.ui") );
 	kdebugf2();
 	return 0;
 }
 
 
-extern "C" void panelkadu_close()
+void PanelKadu::done()
 {
 	kdebugf();
-	MainConfigurationWindow::unregisterUiFile( dataPath("kadu/modules/configuration/panelkadu.ui") );
-	delete panelkadu;
-	panelkadu = NULL;
+	MainConfigurationWindow::unregisterUiFile( dataPath("kadu/plugins/configuration/panelkadu.ui") );
 	kdebugf2();
 }
 
 
-PanelKadu::PanelKadu() : QObject()
+PanelKadu::PanelKadu()
 {
 	// reparenting handling
 	connect( Core::instance()->kaduWindow(), SIGNAL(parentChanged(QWidget*)), this, SLOT(kaduParentChanged(QWidget*)) );
@@ -251,12 +249,6 @@ void PanelKadu::checkMouse()
 	// obtain desktop dimensions
 	int dW = QApplication::desktop()->width();
 	int dH = QApplication::desktop()->height();
-	// side width
-	int sidewidth = 0;
-	if( ( side == PANELKADU_SIDE_RIGHT ) || ( side == PANELKADU_SIDE_LEFT ) )
-		sidewidth = dH;
-	else
-		sidewidth = dW;
 	// cursor distance from given side
 	int sidecursordist = 0;
 	switch( side )
@@ -507,7 +499,7 @@ void PanelKadu::panelize( QWidget *window )
 	mouseTimer->start( PANELKADU_MOUSEITMERINTERVAL );
 	// update panel configuration
 	configurationUpdated();
-	// hide panel at module startup
+	// hide panel at plugin startup
 	QTimer::singleShot( 0, this, SLOT(hideKadu()) );
 }
 
@@ -533,7 +525,7 @@ void PanelKadu::depanelize( QWidget *window )
 	window->setMaximumSize( QWIDGETSIZE_MAX, QWIDGETSIZE_MAX );
 	// restore old window's geometry
 	window->setGeometry( oldGeometry );
-	if( ! Core::instance()->isClosing() )  // if the module is being unloaded
+	if( ! Core::instance()->isClosing() )  // if the plugin is being unloaded
 	{
 		// show Kadu normally
 		window->show();
@@ -558,3 +550,8 @@ bool EventFilter::eventFilter( QObject *o, QEvent *e )
 	// forward the event
 	return false;
 }
+
+
+
+
+Q_EXPORT_PLUGIN2( panelkadu, PanelKadu )
