@@ -1,5 +1,5 @@
 diff --git a/kadu-core/gui/windows/about.cpp b/kadu-core/gui/windows/about.cpp
-index 9fdf6c5..00b8d77 100644
+index 1c8b203..385de60 100644
 --- a/kadu-core/gui/windows/about.cpp
 +++ b/kadu-core/gui/windows/about.cpp
 @@ -157,7 +157,7 @@ About::About(QWidget *parent) :
@@ -16,9 +16,9 @@ index 9fdf6c5..00b8d77 100644
  	kdebugf();
  
 -	QFile file(dataPath("kadu/" + name));
-+	QString fullName = ("COPYING" == name ?
-+			"/usr/share/common-licenses/GPL-2" :
-+			"/usr/share/doc/kadu/" + name);
++	QString fullName = (QString("COPYING") == name ?
++			QString("/usr/share/common-licenses/GPL-2") :
++			QString("/usr/share/doc/kadu/" + name));
 +	QFile file(fullName);
  	if (!file.open(QIODevice::ReadOnly))
  	{
