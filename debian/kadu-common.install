@@ -9,6 +9,7 @@ debian/tmp/usr/share/kadu/plugins/autoaway.desc
 debian/tmp/usr/share/kadu/plugins/autoresponder.desc
 debian/tmp/usr/share/kadu/plugins/autostatus.desc
 debian/tmp/usr/share/kadu/plugins/cenzor.desc
+debian/tmp/usr/share/kadu/plugins/chat_notify.desc
 debian/tmp/usr/share/kadu/plugins/config_wizard.desc
 debian/tmp/usr/share/kadu/plugins/configuration/antistring.ui
 debian/tmp/usr/share/kadu/plugins/configuration/auto_hide.ui
@@ -52,7 +53,6 @@ debian/tmp/usr/share/kadu/plugins/data/mediaplayer
 debian/tmp/usr/share/kadu/plugins/data/mprisplayer_mediaplayer
 debian/tmp/usr/share/kadu/plugins/data/sms
 debian/tmp/usr/share/kadu/plugins/data/word_fix
-debian/tmp/usr/share/kadu/plugins/chat_notify.desc
 debian/tmp/usr/share/kadu/plugins/desktop_docking.desc
 debian/tmp/usr/share/kadu/plugins/docking.desc
 debian/tmp/usr/share/kadu/plugins/encryption_ng.desc
