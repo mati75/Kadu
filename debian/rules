@@ -102,11 +102,6 @@ binary-arch: build-arch install-arch
 binary: binary-arch binary-indep
 
 debian/alsa-stamp:
-ifeq ($(DEB_BUILD_ARCH_OS),linux)
-	sed -i s/module_alsa_sound=n/module_alsa_sound=m/ $(PKG_DIR)/.config
-else
-	sed -i s/module_alsa_sound=m/module_alsa_sound=n/ $(PKG_DIR)/.config
-endif
 	touch $@
 
 .PHONY: build clean binary-indep binary-arch binary install install-indep install-arch configure
