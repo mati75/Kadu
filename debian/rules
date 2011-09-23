@@ -48,9 +48,6 @@ install-indep:
 	find $(INSTALL_DIR) -name '[lL][iI][cC][eE][nN][sS][eE].txt' -delete
 	# Remove all thumbnails files
 	find $(INSTALL_DIR) -name Thumbs.db -delete
-	# Remove embedded JavaScript. Use the one that is in libjs-mootools
-	rm -f $(INSTALL_DIR)/usr/share/kadu/syntax/chat/Gaia/Contents/Resources/Javascript/mootools.js
-	ln -s /usr/share/javascript/mootools/mootools.js $(INSTALL_DIR)/usr/share/kadu/syntax/chat/Gaia/Contents/Resources/Javascript/mootools.js
 	rm -f $(INSTALL_DIR)/usr/share/kadu/themes/sounds/bns/sound.conf~
 	chmod 755 $(INSTALL_DIR)/usr/share/kadu/themes/icons/oxygen/src/rebuild-statuses.sh
 	dh_install -i

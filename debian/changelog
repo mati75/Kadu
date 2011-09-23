@@ -3,8 +3,10 @@ kadu (0.10.0-1) unstable; urgency=low
   * New upstream release
   * Added libsqlite3-dev to Build-Depends
   * Added kadu-dev package
+  * Removed libjs-mootools from kadu-common Depends and libao-dev from
+    Build-Depends
 
- -- Patryk Cisek <patryk@debian.org>  Fri, 23 Sep 2011 15:34:47 +0200
+ -- Patryk Cisek <patryk@debian.org>  Fri, 23 Sep 2011 15:57:37 +0200
 
 kadu (0.9.2-2) unstable; urgency=low
 
