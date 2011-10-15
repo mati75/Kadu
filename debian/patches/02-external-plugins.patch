@@ -6,10 +6,10 @@ Description: Selects all usable external themes
 Author: Patryk Cisek <patryk@debian.org>
 ---
 diff --git a/Plugins.cmake b/Plugins.cmake
-index c6906ce..38d4e03 100644
+index c6906ce..de1e629 100644
 --- a/Plugins.cmake
 +++ b/Plugins.cmake
-@@ -151,5 +151,45 @@ if (WIN32)
+@@ -151,5 +151,49 @@ if (WIN32)
  	)
  endif (WIN32)
  
@@ -19,6 +19,10 @@ index c6906ce..38d4e03 100644
 +    # anonymous_check
 +        # Automatically search contacts in public directory
 +        anonymous_check
++
++    # globalhotkeys
++        # Adds global hotkeys support to Kadu
++        globalhotkeys
 +
 +    # importhistory
 +        # Imports history from original Gadu-Gadu client
