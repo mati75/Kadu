@@ -1,0 +1,179 @@
+diff --git a/externalplugins/globalhotkeys/changelog b/externalplugins/globalhotkeys/changelog
+index 148bbbf..1d519e6 100644
+--- a/externalplugins/globalhotkeys/changelog
++++ b/externalplugins/globalhotkeys/changelog
+@@ -1,5 +1,5 @@
+-0.10-25 => 0.11-26
+-* Dostosowanie pluginu do zmiany API w PluginsManager i ModulesWindow.
++0.10-25 => 0.10-26
++* Naprawiony crash Kadu przy odwoływaniu się do obiektu klasy GlobalHotkeys.
+ 
+ 
+ 0.9.x-24 => 0.10-25
+diff --git a/externalplugins/globalhotkeys/functions.cpp b/externalplugins/globalhotkeys/functions.cpp
+index 27c8805..41f6e7d 100644
+--- a/externalplugins/globalhotkeys/functions.cpp
++++ b/externalplugins/globalhotkeys/functions.cpp
+@@ -38,13 +38,13 @@
+ #include "gui/widgets/status-menu.h"
+ #include "gui/windows/add-buddy-window.h"
+ #include "gui/windows/kadu-window.h"
+-#include "gui/windows/modules-window.h"
+ #include "gui/windows/search-window.h"
+ #include "gui/windows/your-accounts.h"
+ #include "file-transfer/file-transfer-manager.h"
+ #include "icons/icons-manager.h"
+ #include "misc/path-conversion.h"
+ #include "notify/notification-manager.h"
++#include "plugins/plugins-manager.h"
+ #include "status/status-container-manager.h"
+ #include "status/status-type.h"
+ #include "status/status-type-manager.h"
+@@ -254,14 +254,14 @@ void Functions::functionCloseAllChatWindows( ConfHotKey *confhotkey )
+ void Functions::functionOpenChatWith( ConfHotKey *confhotkey )
+ {
+ 	// close previous global widget, if any
+-	if( ! globalhotkeys->SHOWNGLOBALWIDGET.isNull() )
++	if( ! GlobalHotkeys::instance()->SHOWNGLOBALWIDGET.isNull() )
+ 	{
+-		globalhotkeys->SHOWNGLOBALWIDGET->close();
+-		if( confhotkey->hotKey() == globalhotkeys->SHOWNGLOBALWIDGETHOTKEY )
++		GlobalHotkeys::instance()->SHOWNGLOBALWIDGET->close();
++		if( confhotkey->hotKey() == GlobalHotkeys::instance()->SHOWNGLOBALWIDGETHOTKEY )
+ 		{
+ 			// last widget was this one - don't show it again
+-			globalhotkeys->SHOWNGLOBALWIDGET = NULL;
+-			globalhotkeys->SHOWNGLOBALWIDGETHOTKEY = HotKey();
++			GlobalHotkeys::instance()->SHOWNGLOBALWIDGET = NULL;
++			GlobalHotkeys::instance()->SHOWNGLOBALWIDGETHOTKEY = HotKey();
+ 			return;
+ 		}
+ 	}
+@@ -274,8 +274,8 @@ void Functions::functionOpenChatWith( ConfHotKey *confhotkey )
+ 	window->show();
+ 	new GlobalWidgetManager( window ); // popup in the center of the screen
+ 	// global data
+-	globalhotkeys->SHOWNGLOBALWIDGET = window;
+-	globalhotkeys->SHOWNGLOBALWIDGETHOTKEY = confhotkey->hotKey();
++	GlobalHotkeys::instance()->SHOWNGLOBALWIDGET = window;
++	GlobalHotkeys::instance()->SHOWNGLOBALWIDGETHOTKEY = confhotkey->hotKey();
+ }
+ 
+ 
+@@ -310,14 +310,14 @@ void Functions::functionQuitKadu( ConfHotKey *confhotkey )
+ void Functions::functionChangeStatus( ConfHotKey *confhotkey )
+ {
+ 	// close previous global widget, if any
+-	if( ! globalhotkeys->SHOWNGLOBALWIDGET.isNull() )
++	if( ! GlobalHotkeys::instance()->SHOWNGLOBALWIDGET.isNull() )
+ 	{
+-		globalhotkeys->SHOWNGLOBALWIDGET->close();
+-		if( confhotkey->hotKey() == globalhotkeys->SHOWNGLOBALWIDGETHOTKEY )
++		GlobalHotkeys::instance()->SHOWNGLOBALWIDGET->close();
++		if( confhotkey->hotKey() == GlobalHotkeys::instance()->SHOWNGLOBALWIDGETHOTKEY )
+ 		{
+ 			// last widget was this one - don't show it again
+-			globalhotkeys->SHOWNGLOBALWIDGET = NULL;
+-			globalhotkeys->SHOWNGLOBALWIDGETHOTKEY = HotKey();
++			GlobalHotkeys::instance()->SHOWNGLOBALWIDGET = NULL;
++			GlobalHotkeys::instance()->SHOWNGLOBALWIDGETHOTKEY = HotKey();
+ 			return;
+ 		}
+ 	}
+@@ -326,22 +326,22 @@ void Functions::functionChangeStatus( ConfHotKey *confhotkey )
+ 	// popup in the center of the screen
+ 	statusesmenu->popup();
+ 	// global data
+-	globalhotkeys->SHOWNGLOBALWIDGET = statusesmenu;
+-	globalhotkeys->SHOWNGLOBALWIDGETHOTKEY = confhotkey->hotKey();
++	GlobalHotkeys::instance()->SHOWNGLOBALWIDGET = statusesmenu;
++	GlobalHotkeys::instance()->SHOWNGLOBALWIDGETHOTKEY = confhotkey->hotKey();
+ }
+ 
+ 
+ void Functions::functionChangeDescription( ConfHotKey *confhotkey )
+ {
+ 	// close previous global widget, if any
+-	if( ! globalhotkeys->SHOWNGLOBALWIDGET.isNull() )
++	if( ! GlobalHotkeys::instance()->SHOWNGLOBALWIDGET.isNull() )
+ 	{
+-		globalhotkeys->SHOWNGLOBALWIDGET->close();
+-		if( confhotkey->hotKey() == globalhotkeys->SHOWNGLOBALWIDGETHOTKEY )
++		GlobalHotkeys::instance()->SHOWNGLOBALWIDGET->close();
++		if( confhotkey->hotKey() == GlobalHotkeys::instance()->SHOWNGLOBALWIDGETHOTKEY )
+ 		{
+ 			// last widget was this one - don't show it again
+-			globalhotkeys->SHOWNGLOBALWIDGET = NULL;
+-			globalhotkeys->SHOWNGLOBALWIDGETHOTKEY = HotKey();
++			GlobalHotkeys::instance()->SHOWNGLOBALWIDGET = NULL;
++			GlobalHotkeys::instance()->SHOWNGLOBALWIDGETHOTKEY = HotKey();
+ 			return;
+ 		}
+ 	}
+@@ -351,8 +351,8 @@ void Functions::functionChangeDescription( ConfHotKey *confhotkey )
+ 	ChooseDescription *dialog = ChooseDescription::showDialog( statuscontainer );
+ 	new GlobalWidgetManager( dialog );
+ 	// global data
+-	globalhotkeys->SHOWNGLOBALWIDGET = dialog;
+-	globalhotkeys->SHOWNGLOBALWIDGETHOTKEY = confhotkey->hotKey();
++	GlobalHotkeys::instance()->SHOWNGLOBALWIDGET = dialog;
++	GlobalHotkeys::instance()->SHOWNGLOBALWIDGETHOTKEY = confhotkey->hotKey();
+ }
+ 
+ 
+@@ -400,5 +400,5 @@ void Functions::functionAccountManagerWindow( ConfHotKey *confhotkey )
+ void Functions::functionPluginsWindow( ConfHotKey *confhotkey )
+ {
+ 	Q_UNUSED( confhotkey );
+-	ModulesWindow::show();
++	PluginsManager::instance()->showWindow( NULL, false );
+ }
+diff --git a/externalplugins/globalhotkeys/globalhotkeys.cpp b/externalplugins/globalhotkeys/globalhotkeys.cpp
+index 38b2b55..75b7b60 100644
+--- a/externalplugins/globalhotkeys/globalhotkeys.cpp
++++ b/externalplugins/globalhotkeys/globalhotkeys.cpp
+@@ -74,11 +74,6 @@
+ 
+ 
+ 
+-GlobalHotkeys *globalhotkeys;
+-
+-
+-
+-
+ int GlobalHotkeys::init( bool firstload )
+ {
+ 	Q_UNUSED( firstload );
+diff --git a/externalplugins/globalhotkeys/globalhotkeys.desc b/externalplugins/globalhotkeys/globalhotkeys.desc
+index e25a322..b97f520 100644
+--- a/externalplugins/globalhotkeys/globalhotkeys.desc
++++ b/externalplugins/globalhotkeys/globalhotkeys.desc
+@@ -5,5 +5,5 @@ Description[pl]=Dodaje do Kadu obs
+ Author=Piotr "ultr" D�browski
+ LoadByDefault=true
+ Dependencies=history
+-Version=0.11-26-git
++Version=0.10-26
+ Base=false
+diff --git a/externalplugins/globalhotkeys/globalhotkeys.h b/externalplugins/globalhotkeys/globalhotkeys.h
+index 33ac734..3eb81da 100644
+--- a/externalplugins/globalhotkeys/globalhotkeys.h
++++ b/externalplugins/globalhotkeys/globalhotkeys.h
+@@ -44,9 +44,6 @@
+ #include "defines.h"
+ 
+ 
+-void EmptyMsgHandler( QtMsgType type, const char *msg );
+-
+-
+ class GlobalHotkeys : public ConfigurationUiHandler, public ConfigurationAwareObject, public GenericPlugin
+ {
+ 	friend class Functions;
+@@ -82,7 +79,4 @@ class GlobalHotkeys : public ConfigurationUiHandler, public ConfigurationAwareOb
+ };
+ 
+ 
+-extern GlobalHotkeys *globalhotkeys;
+-
+-
+ #endif
