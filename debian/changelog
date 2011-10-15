@@ -1,3 +1,10 @@
+kadu (0.10.0-2) unstable; urgency=low
+
+  * Moved import_history, messagessplitter, networkping and nextinfo
+    plugins from kadu to kadu-external-modules
+
+ -- Patryk Cisek <patryk@debian.org>  Sat, 15 Oct 2011 13:35:47 +0200
+
 kadu (0.10.0-1) unstable; urgency=low
 
   * New upstream release
