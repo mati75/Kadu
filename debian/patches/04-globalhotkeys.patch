@@ -1,3 +1,8 @@
+Description: Backports globalhotkeys to version appropriate for 0.10.1
+ Accidentally newest version of globalhotkeys plugins has been added to kadu.
+ This patch reverts to older version, appropriate for kadu-0.10.0.
+Author: Patryk Cisek <patryk@debian.org>
+---
 diff --git a/externalplugins/globalhotkeys/changelog b/externalplugins/globalhotkeys/changelog
 index 148bbbf..1d519e6 100644
 --- a/externalplugins/globalhotkeys/changelog
