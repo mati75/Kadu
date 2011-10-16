@@ -64,6 +64,7 @@ debian/tmp/usr/share/kadu/plugins/gadu_protocol.desc
 debian/tmp/usr/share/kadu/plugins/hints.desc
 debian/tmp/usr/share/kadu/plugins/history.desc
 debian/tmp/usr/share/kadu/plugins/history_migration.desc
+debian/tmp/usr/share/kadu/plugins/idle.desc
 debian/tmp/usr/share/kadu/plugins/imagelink.desc
 debian/tmp/usr/share/kadu/plugins/jabber_protocol.desc
 debian/tmp/usr/share/kadu/plugins/last_seen.desc
@@ -85,6 +86,7 @@ debian/tmp/usr/share/kadu/plugins/spellchecker.desc
 debian/tmp/usr/share/kadu/plugins/sql_history.desc
 debian/tmp/usr/share/kadu/plugins/tabs.desc
 debian/tmp/usr/share/kadu/plugins/translations/antistring*
+debian/tmp/usr/share/kadu/plugins/translations/auto_hide*
 debian/tmp/usr/share/kadu/plugins/translations/autoaway*
 debian/tmp/usr/share/kadu/plugins/translations/autoresponder*
 debian/tmp/usr/share/kadu/plugins/translations/autostatus*

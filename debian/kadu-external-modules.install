@@ -19,8 +19,8 @@ debian/tmp/usr/share/kadu/plugins/configuration/nextinfo.ui
 debian/tmp/usr/share/kadu/plugins/configuration/panelkadu.ui
 debian/tmp/usr/share/kadu/plugins/configuration/senthistory.ui
 debian/tmp/usr/share/kadu/plugins/data/mime_tex
-debian/tmp/usr/share/kadu/plugins/idle.desc
 debian/tmp/usr/share/kadu/plugins/import_history.desc
+debian/tmp/usr/share/kadu/plugins/idle.desc
 debian/tmp/usr/share/kadu/plugins/lednotify.desc
 debian/tmp/usr/share/kadu/plugins/messagessplitter.desc
 debian/tmp/usr/share/kadu/plugins/mime_tex.desc
@@ -29,7 +29,6 @@ debian/tmp/usr/share/kadu/plugins/nextinfo.desc
 debian/tmp/usr/share/kadu/plugins/panelkadu.desc
 debian/tmp/usr/share/kadu/plugins/senthistory.desc
 debian/tmp/usr/share/kadu/plugins/translations/anonymous_check*
-debian/tmp/usr/share/kadu/plugins/translations/auto_hide*
 debian/tmp/usr/share/kadu/plugins/translations/globalhotkeys*
 debian/tmp/usr/share/kadu/plugins/translations/import_history*
 debian/tmp/usr/share/kadu/plugins/translations/lednotify*
