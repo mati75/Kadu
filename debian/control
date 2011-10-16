@@ -37,8 +37,9 @@ Depends: kadu-common (= ${source:Version}),
          libqt4-sql-sqlite,
          ${misc:Depends},
          ${shlibs:Depends}
-Recommends: kadu-external-modules
-Conflicts: kadu-external-modules (<= 0.6.5.4.ds1-3)
+Recommends: kadu-external-modules (>= 0.10.0-2)
+Breaks: kadu-external-modules (<< 0.10.0-2)
+Replaces: kadu-external-modules (<< 0.10.0-2)
 Suggests: kadu-themes
 Description: Gadu-Gadu/XMPP client for X11
  Gadu-Gadu is a Windows instant messenger, very popular in Poland.
@@ -49,8 +50,9 @@ Description: Gadu-Gadu/XMPP client for X11
 Package: kadu-common
 Architecture: all
 Depends: ${misc:Depends}, ${shlibs:Depends}
-Recommends: kadu-external-modules
-Conflicts: kadu-external-modules (<= 0.6.5.4.ds1-3)
+Recommends: kadu-external-modules (>= 0.10.0-2)
+Breaks: kadu-external-modules (<< 0.10.0-2)
+Replaces: kadu-external-modules (<< 0.10.0-2)
 Suggests: kadu-themes
 Description: Gadu-Gadu/XMPP client for X11
  Gadu-Gadu is a Windows instant messenger, very popular in Poland.
@@ -69,7 +71,9 @@ Description: Development files needed to compile plugins for kadu
 
 Package: kadu-external-modules
 Architecture: any
-Depends: kadu (= ${binary:Version}), ${misc:Depends}, ${shlibs:Depends}
+Depends: kadu (>= 0.10.0-2), ${misc:Depends}, ${shlibs:Depends}
+Breaks: kadu (<< 0.10.0-2), kadu-common (<< 0.10.0-2)
+Replaces: kadu (<< 0.10.0-2), kadu-common (<< 0.10.0-2)
 Description: Additional plugins for Kadu
  Gadu-Gadu is a Windows instant messenger, very popular in Poland.
  Kadu is a Qt4 client of Gadu-Gadu and XMPP for *nix systems.
@@ -80,7 +84,7 @@ Description: Additional plugins for Kadu
 Package: kadu-themes
 Architecture: all
 Depends: ${misc:Depends}
-Recommends: kadu (>= 0.5.0-1)
+Recommends: kadu
 Description: Additional icons and emoticons for Kadu
  Gadu-Gadu is a Windows instant messenger, very popular in Poland.
  Kadu is a Qt4 client of Gadu-Gadu and XMPP for *nix systems.
