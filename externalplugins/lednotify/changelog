@@ -1,0 +1,85 @@
+0.10-29
+* Moduł przerobiony na plugin.
+
+
+0.9.0-28
+* Poprawione wygaszanie diody po zakończeniu migania.
+* Poprawiona konfiguracja modułu.
+* Poprawki kompilacji na microsoft windows (Dorregaray).
+
+
+0.9.0-27
+* Drobne poprawki w tłumaczeniach.
+* Oznaczenie wersji dla stabilnego wydania Kadu 0.9.0.
+
+
+0.6.6-26
+* Poprawki wykrywania aktywnego okna.
+* Zakańczanie mrugania diodą od razu po odebraniu wiadomości.
+
+
+0.6.6-25
+* Port dla Kadu 0.6.6
+* Zmiana nazwy z "led_notify" na "LedNotify".
+
+
+0.24
+* Poprawiona obsługa diody w nowych wersjach serwera X.
+
+
+0.21
+* Poprawiono wsparcie dla Windows (eksport funkcjii led_notify_init() i
+  led_notify_close()).
+
+
+0.20
+* Poprawiony blad #1099.
+
+
+0.18
+* Poprawiony blad przy zalaczonej opcji Chat->OpenChatOnMessage.
+
+
+0.17
+* Poprawione blad wylaczania diody przy wielokrotnych wiadomosciach od tej samej
+  osoby.
+
+
+0.16
+* Poprawiona wspolpraca z tabami, dodanie podpowiedzi w konfiguracji.
+
+
+0.15
+* Dioda w reakcji na zdarzenie "NewMessage" mruga dopoki nie zostanie aktywowane
+  okno rozmowy.
+
+
+0.14
+* Dostosowanie do Kadu 0.6.0, dioda reaguje na wszystkie zdarzenia.
+
+
+0.9
+* Drobne zmiany usuwajace ewentualne problemy przy kompilacji z uzyciem flagi:
+  -DQT_NO_ASCII_CAST (brak domyslnego rzutowania z QString na const char*).
+
+
+0.8
+* Poprawka: Dodanie zapomnianej flagi KBLed do wywołania funkcji
+  XChangeKeyboardControl.
+
+
+0.7
+* Poprawka: kiedy zamykamy Kadu w trakcie migania diody, zawsze jest gaszona.
+
+
+0.3
+* W specu do zmiennej MODULE_LIBS_PATH dodano nową ścieżkę, aby moduł kompilował
+  się na amd64.
+
+
+0.2
+* Drobne poprawki.
+
+
+0.1
+* Pierwsza oficjalna wersja.

@@ -1,0 +1,20 @@
+<configuration-ui>
+	<section name="Buddies">
+		<tab name="Extended information">
+			<group-box name="Notifications">
+				<check-box caption="Enable notifications"        config-section="NExtInfo" config-item="EnableNotifications"  id="nextinfo/enableNotifications"  />
+				<spin-box  caption="Notification advance"        config-section="NExtInfo" config-item="NotificationAdvance"       min-value="0" max-value="355"   step="1" suffix="%n day(s)"    id="nextinfo/notificationAdvance"       />
+				<spin-box  caption="Delay between notifications" config-section="NExtInfo" config-item="DelayBetweenNotifications" min-value="1" max-value="18000" step="1" suffix="%n second(s)" id="nextinfo/delayBetweenNotifications" />
+				<check-box caption="Notify about birthdays"      config-section="NExtInfo" config-item="NotifyAboutBirthdays" id="nextinfo/notifyAboutBirthdays" />
+				<check-box caption="Notify about name-days"      config-section="NExtInfo" config-item="NotifyAboutNamedays"  id="nextinfo/notifyAboutNamedays"  />
+			</group-box>
+			<group-box name="Help">
+				<action-button caption="Show help" id="nextinfo/showHelp" />
+			</group-box>
+			<group-box name="Data">
+				<action-button caption="Import data from ext_info module" id="nextinfo/importDataFromExtInfo" />
+			</group-box>
+
+		</tab>
+	</section>
+</configuration-ui>
