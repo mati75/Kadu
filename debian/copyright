@@ -6,164 +6,157 @@ It was downloaded from http://kadu.net
 Note that there are far more contributors in Kadu that the ones listed here.
 
 Kadu:
-Copyright © 2001-2010 Kadu Team
+Copyright © 2001-2011 Kadu Team
 
-agent module:
-Copyright © 2007-2010 Michał Żarłok
+anonymous_check plugin:
+Copyright © 2008-2011 PK Team, Patryk Cisek
 
-anonymous_check module:
-Copyright © 2008-2010 PK Team, Patryk Cisek
+antistring, auto_hide, cenzor plugins:
+Copyright © 2007-2011 PK Team
+Copyright © 2008-2011 Dorregaray
 
-antistring, auto_hide, cenzor modules:
-Copyright © 2007-2010 PK Team
-Copyright © 2008-2010 Dorregaray
+autoaway plugin:
+Copyright © 2007-2011 PK Team
 
-ao_sound, exec_notify, xosd_notify modules:
-Copyright © 2004-2010 Marcin Slusarz
+autoresponder plugin:
+Copyright © 2007-2011 PK Team
 
-audacious_mediaplayer module:
-Copyright © 2008-2010 Googie, Rafał 'Vogel' Malinowski
+exec_notify plugin:
+Copyright © 2004-2011 Marcin Slusarz
 
-autostatus module:
-Copyright © 2007-2010 PK Team
-Copyright © 2008-2010 Dorregaray
+autostatus plugin:
+Copyright © 2007-2011 PK Team
+Copyright © 2008-2011 Dorregaray
 
-dbus module:
-Copyright © 2010 Bartłomiej Zimoń
+falf_mediaplayer plugin:
+Copyright © 2004-2011 Googie
+Copyright © 2004-2011 amdfanatyk
 
-dcc module:
-Copyright © 2004-2010 Kadu Team
-Copyright © 2004-2010 Rafał 'Vogel' Malinowski
+filedesc, screenshot plugins:
+Copyright © 2004-2011 Googie
 
-amarok_mediaplayer, falf_mediaplayer, filedesc, mediaplayer, screenshot
-modules:
-Copyright © 2004-2010 Googie
+gadu_protocol, growl_notify, hints, history, history_migration, idle,
+jabber_protocol, phonon_sound, profiles_import, single_window, sms, sound,
+speech plugins:
+Copyright © 2004-2011 Kadu Team
 
-dcopexport,filtering modules:
-Copyright © 2004-2010 pinkworm
+imagelink plugin:
+Copyright © 2010-2011 NeoX
 
-encryption module:
-Copyright © 2008-2010 Tomasz Kazmierczak
+freedesktop_notify plugin:
+Copyright © 2009-2011 Jacek Jabłoński
+Copyright © 2009-2011 Kadu Team
 
-ext_info module:
-Copyright © 2004-2010 Dzwiedziu
+mpd_mediaplayer plugin:
+Copyright © 2009-2011 badboy
 
-firewall module:
-Copyright © 2005-2010 Wojtek Sulewski
-Copyright © 2005-2010 Attis
+mprisplayer_mediaplayer plugin:
+Copyright © 2009-2011 dianet
 
-globalhotkeys module:
-Copyright © 2008-2010 ultr
+mediaplayer plugin:
+Copyright © 2004-2011 Googie
+Copyright © 2004-2011 amdfanatyk
+Copyright © 2004-2011 Dorregaray
 
-iwait4u, osdhints_notify modules:
-Copyright © 2005-2010 Wojtek Sulewski
+encryption_ng, encryption_ng_simlite  plugins:
+Copyright © 2009-2011 Kadu Team
 
-last_seen module:
-Copyright © 2007-2010 PK Team
-Copyright © 2008-2010 Dorregaray
+ext_sound plugin:
+Copyright © 2004-2011 Kadu Team
 
-led_notify, weather modules:
-Copyright © 2004-2010 Blysk
+next_info plugin:
+Copyright © 2004-2011 Piotr "ultr" Dąbrowski
 
-mail module:
-Copyright © 2004-2010 Michal Podsiadlik
+firewall plugin:
+Copyright © 2005-2011 Wojtek Sulewski
+Copyright © 2005-2011 Attis
+Copyright © 2005-2011 Kadu Team
 
-pajacyk module:
-Copyright © 2010 Dorregaray
+globalhotkeys plugin:
+Copyright © 2008-2011 Piotr "ultr" Dąbrowski
 
-plus_pl_sms module:
-Copyright © 2007-2010 Patryk Cisek
+last_seen plugin:
+Copyright © 2007-2011 PK Team
+Copyright © 2008-2011 Dorregaray
 
-mx610_notify module:
-Copyright © 2007-2010 Korneliusz Jarzębski
+led_notify plugin:
+Copyright © 2004-2011 Blysk
+Copyright © 2004-2011 Piotr "ultr" Dąbrowski
 
-config_wizard, desktop_docking, pcspeaker modules:
-Copyright © 2004-2010 Tomasz Rostanski
+config_wizard, desktop_docking, plugins:
+Copyright © 2004-2011 Tomasz Rostanski
 
-mimeTeX (used by mime_tex module):
-Copyright © 2002-2010 John Forkosh Associates, Inc.
+messagessplitter plugin:
+Copyright © 2007-2011 PT Team
+Copyright © 2008-2011 Dorregaray
+Copyright © 2008-2011 Piotr "ultr" Dąbrowski
 
-mime_tex module:
-Copyright © 2008-2010 Agnieszka Cicha
-Copyright © 2007-2010 Patryk Cisek
+mimeTeX (used by mime_tex plugin):
+Copyright © 2002-2011 John Forkosh Associates, Inc.
 
-osdhinst_notify module:
-Copyright © 2006-2010 Wojtek Sulewski (Pan Wojtas)
-Copyright © 2008-2010 Dorregaray
+mime_tex plugin:
+Copyright © 2008-2011 Agnieszka Cicha
+Copyright © 2007-2011 Patryk Cisek
 
-panelkadu module:
-Copyright © 2008-2010 ultr
+panelkadu plugin:
+Copyright © 2008-2011 Piotr "ultr" Dąbrowski
 
-parser_extender module:
-Copyright © 2008-2010 Dorregaray
+pcspeaker plugin:
+Copyright © 2004-2011 Tomasz Rostanski
+Copyright © 2004-2011 Kadu Team
 
-powerkadu module:
-powerkadu © 2007-2010 PT Team
-powerkadu © 2008-2010 Dorregaray
+qt4_docking, qt4_docking_notify, qt4_sound plugin:
+Copyright © 2007-2011 Kadu Team
 
-profiles module:
-Copyright © 2006-2010 Tomasz Rostanski
+simpleview plugin:
+Copyright © 2007-2011 prudy
 
-qt4_docking_notify module:
-Copyright © 2007-2010 Kadu Team
+spellchecker plugin:
+Copyright © 2004-2011 nazgul
+Copyright © 2005-2011 Googie
+Copyright © 2005-2011 Kadu Team
 
-senthistory module:
-Copyright © 2008-2010 ultr
+sql_history plugin:
+Copyright © 2006-2011 Kadu Team
+Copyright © 2006-2011 Juzef
 
-spellchecker module:
-Copyright © 2004-2010 nazgul
-Copyright © 2005-2010 Googie
+tabs plugin:
+Copyright © 2005-2011 Michal Podsiadlik
+Copyright © 2005-2011 Kadu Team
 
-split_messages module:
-Copyright © 2007-2010 PT Team
-Copyright © 2008-2010 Dorregaray
+word_fix plugin:
+Copyright © 2007-2011 PT Team
+Copyright © 2008-2011 Dorregaray
 
-tabs module:
-Copyright © 2005-2010 Michal Podsiadlik
-
-water_notify module:
-Copyright © 2008-2010 Korneliusz Jarzębski
-
-word_fix module:
-Copyright © 2007-2010 PT Team
-Copyright © 2008-2010 Dorregaray
-
-crystal16, crystal22 icon themes:
-Copyright © 2004-2010 Dariusz Arciszewski
-Copyright © 2004-2010 Everaldo
-
-nuvola16, nuvola22 icon themes:
-Copyright © 2004-2010 Kadu Team
-Copyright © 2004-2010 David Vignoni
-
-glass16, glass22 icon themes:
-Copyright © 2006-2010 Mariusz Waluga
+glass16, glass icon themes:
+Copyright © 2006-2011 Mariusz Waluga
 
 penguins emoticons theme:
-Copyright © 2006-2010 Kamil Dziedzic
-Copyright © 2006-2010 Lukasz Florczak
-Copyright © 2006-2010 Mariusz Waluga
-Copyright © 2006-2010 Karolina Weiss
-Copyright © 2006-2010 Hubert Wrzesinki
+Copyright © 2006-2011 Kamil Dziedzic
+Copyright © 2006-2011 Lukasz Florczak
+Copyright © 2006-2011 Mariusz Waluga
+Copyright © 2006-2011 Karolina Weiss
+Copyright © 2006-2011 Hubert Wrzesinki
 
 Active members of Kadu Team (in an alphabetical order) are:
 Bartosz Brachaczek
-Tomasz Chilinski
 Piotr Galiszewski
 Rafal Malinowski
-Michal Podsiadlik
 Tomasz Rostański
-Adrian Smarzewski
-Dawid Stawiarski
 Wojciech Treter
-Bartłomiej Zimoń
 
 Not anymore active members of Kadu Team (in an alphabetical order) are:
+Tomasz Chilinski
 Dariusz Jagodzik
 Tomasz Jarzynka
 Roman Krzystyniak
+Piotr Pełzowski
+Michal Podsiadlik
 Pawel Płuciennik
+Adrian Smarzewski
+Dawid Stawiarski
 Marcin Ślusarz
+Bartłomiej Zimoń
 
 Members of PK Team (in an alphabetical order) are:
 Patryk Cisek
@@ -172,8 +165,8 @@ Graffi
 Marek Kubicki
 Maverick
 
-The Debian packaging is © 2007, Patryk Cisek <patryk@debian.org> and is
-licensed under the GPL.
+The Debian packaging is © 2007, 2008, 2009, 2010, 2011 Patryk Cisek
+<patryk@debian.org> and is licensed under the GPL version 3 or any later.
 
 License:
 
@@ -188,4 +181,4 @@ License:
    GNU General Public License for more details.
 
 On Debian GNU/Linux system, the complete text of the GNU General
-Public License can be found in `/usr/share/common-licenses/GPL'.
+Public License can be found in `/usr/share/common-licenses/GPL-3'.

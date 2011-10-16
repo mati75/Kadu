@@ -4,8 +4,9 @@ kadu (0.10.0-2) unstable; urgency=low
     plugins from kadu to kadu-external-modules
   * Added globalhotkeys plugin
   * Moved idle and auto_hide plugin files in appropriate packages
+  * Refreshed information in debian/copyright
 
- -- Patryk Cisek <patryk@debian.org>  Sun, 16 Oct 2011 11:10:22 +0200
+ -- Patryk Cisek <patryk@debian.org>  Sun, 16 Oct 2011 12:05:59 +0200
 
 kadu (0.10.0-1) unstable; urgency=low
 
