@@ -1,3 +1,9 @@
+kadu (0.10.0-3) unstable; urgency=low
+
+  * Added globalhotkeys.desc to kadu-external-modules.install
+
+ -- Patryk Cisek <patryk@debian.org>  Mon, 17 Oct 2011 15:28:43 +0200
+
 kadu (0.10.0-2) unstable; urgency=low
 
   * Moved import_history, messagessplitter, networkping and nextinfo

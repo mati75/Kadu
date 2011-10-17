@@ -19,6 +19,7 @@ debian/tmp/usr/share/kadu/plugins/configuration/nextinfo.ui
 debian/tmp/usr/share/kadu/plugins/configuration/panelkadu.ui
 debian/tmp/usr/share/kadu/plugins/configuration/senthistory.ui
 debian/tmp/usr/share/kadu/plugins/data/mime_tex
+debian/tmp/usr/share/kadu/plugins/globalhotkeys.desc
 debian/tmp/usr/share/kadu/plugins/import_history.desc
 debian/tmp/usr/share/kadu/plugins/lednotify.desc
 debian/tmp/usr/share/kadu/plugins/messagessplitter.desc
