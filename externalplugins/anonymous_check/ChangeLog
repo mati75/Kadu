@@ -1,0 +1,19 @@
+2011-08-23  Piotr Galiszewski <whe@kadu.im>
+
+	* Module updated to Kadu 0.10 API
+
+2010-12-07  Patryk Cisek  <patryk@debian.org>
+
+	* Rewritten module from scratch because of major API changes
+	  between 0.6.6 and older 0.6.5.x versions of Kadu
+
+2008-02-24  Patryk Cisek  <patryk@prezu.one.pl>
+
+	* Added Polish translation
+	* Added background and font color buttons to the config dialog
+	* Version 0.2
+
+
+2008-02-23  Patryk Cisek  <patryk@prezu.one.pl>
+
+	* Initial release (version 0.1)
