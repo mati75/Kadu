@@ -1,8 +1,9 @@
 kadu (0.10.1-1) unstable; urgency=low
 
   * New upstream release
+  * Removed debian/patches/04-globalhotkeys.patch -- no longer needed.
 
- -- Patryk Cisek <patryk@debian.org>  Mon, 24 Oct 2011 17:43:44 +0200
+ -- Patryk Cisek <patryk@debian.org>  Mon, 24 Oct 2011 18:15:11 +0200
 
 kadu (0.10.0-3) unstable; urgency=low
 
