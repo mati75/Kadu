@@ -50,7 +50,7 @@ class LedDriver::Impl
 	public:
 		Impl();
 		~Impl();
-		void set( bool ledState );
+		void set( LedDriver::Diode diode, bool ledState );
 	private:
 		HANDLE device_;
 		KEYBOARD_INDICATOR_PARAMETERS inputBuffer_;
@@ -75,7 +75,7 @@ LedDriver::Impl::~Impl()
 }
 
 
-void LedDriver::Impl::set( bool ledState )
+void LedDriver::Impl::set( LedDriver::Diode diode, bool ledState )
 {
 	if( device_ != INVALID_HANDLE_VALUE )
 	{
@@ -86,10 +86,23 @@ void LedDriver::Impl::set( bool ledState )
 			&outputBuffer_, sizeof(KEYBOARD_INDICATOR_PARAMETERS),
 			&ReturnedLength, NULL );
 		// Set bits
+		USHORT diodeFlag;
+		switch( diode )
+		{
+			case DiodeScrollLock:
+				diodeFlag = KEYBOARD_SCROLL_LOCK_ON;
+				break;
+			case DiodeNumLock:
+				diodeFlag = KEYBOARD_NUM_LOCK_ON;
+				break;
+			case DiodeCapsLock:
+				diodeFlag = KEYBOARD_CAPS_LOCK_ON;
+				break;
+		}
 		if( ledState )
-			inputBuffer_.LedFlags = outputBuffer_.LedFlags | KEYBOARD_SCROLL_LOCK_ON;
+			inputBuffer_.LedFlags = outputBuffer_.LedFlags | diodeFlag;
 		else
-			inputBuffer_.LedFlags = outputBuffer_.LedFlags & (~KEYBOARD_SCROLL_LOCK_ON);
+			inputBuffer_.LedFlags = outputBuffer_.LedFlags & (~diodeFlag);
 		//
 		::DeviceIoControl( device_, IOCTL_KEYBOARD_SET_INDICATORS,
 			&inputBuffer_, sizeof(KEYBOARD_INDICATOR_PARAMETERS),

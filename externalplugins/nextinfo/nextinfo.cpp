@@ -1047,12 +1047,14 @@ void NExtInfo::importOldData( int fromversion )
 					ContactManager::instance()->addItem( contact );
 				}
 			}
+			buddy.removeCustomData( "nextinfo_gg2" );
 			// nextinfo_sex -> ::gender
 			if( ! buddy.customData( "nextinfo_sex" ).isEmpty() )
 			{
 				if( buddy.gender() == GenderUnknown )
 					buddy.setGender( (BuddyGender)buddy.customData( "nextinfo_sex" ).toInt() );
 			}
+			buddy.removeCustomData( "nextinfo_sex" );
 			// nextinfo_phone2 -> ::phone
 			if( ! buddy.customData( "nextinfo_phone2" ).isEmpty() )
 			{
@@ -1061,6 +1063,7 @@ void NExtInfo::importOldData( int fromversion )
 				else
 					notes += qApp->translate( "@nextinfo", "Phone" ) + QString( ": %1\n" ).arg( buddy.customData( "nextinfo_phone2" ) );
 			}
+			buddy.removeCustomData( "nextinfo_phone2" );
 			// nextinfo_www -> ::website
 			if( ! buddy.customData( "nextinfo_www" ).isEmpty() )
 			{
@@ -1069,53 +1072,65 @@ void NExtInfo::importOldData( int fromversion )
 				else
 					notes += qApp->translate( "@nextinfo", "Website" ) + QString( ": %1\n" ).arg( buddy.customData( "nextinfo_www" ) );
 			}
+			buddy.removeCustomData( "nextinfo_www" );
 			// nextinfo_address -> data::address
 			if( ! buddy.customData( "nextinfo_address" ).isEmpty() )
 			{
 				bdata->setAddress( buddy.customData( "nextinfo_address" ) );
 			}
+			buddy.removeCustomData( "nextinfo_address" );
 			// nextinfo_city -> data::city
 			if( ! buddy.customData( "nextinfo_city" ).isEmpty() )
 			{
 				bdata->setCity( buddy.customData( "nextinfo_city" ) );
 			}
+			buddy.removeCustomData( "nextinfo_city" );
 			// nextinfo_email2 -> data::email2
 			if( ! buddy.customData( "nextinfo_email2" ).isEmpty() )
 			{
 				bdata->setEmail2( buddy.customData( "nextinfo_email2" ) );
 			}
+			buddy.removeCustomData( "nextinfo_email2" );
 			// nextinfo_birthday -> data::birthday
 			if( ! buddy.customData( "nextinfo_birthday" ).isEmpty() )
 			{
 				bdata->setBirthday( buddy.customData( "nextinfo_birthday" ) );
 			}
+			buddy.removeCustomData( "nextinfo_birthday" );
 			// nextinfo_nameday -> data::nameday
 			if( ! buddy.customData( "nextinfo_nameday" ).isEmpty() )
 			{
 				bdata->setNameday( buddy.customData( "nextinfo_nameday" ) );
 			}
+			buddy.removeCustomData( "nextinfo_nameday" );
 			// nextinfo_interests -> data::interests
 			if( ! buddy.customData( "nextinfo_interests" ).isEmpty() )
 			{
 				bdata->setInterests( buddy.customData( "nextinfo_interests" ).replace( "\\n", "\n" ).replace( "\\\\", "\\" ) );
 			}
+			buddy.removeCustomData( "nextinfo_interests" );
 			// nextinfo_notes -> data::notes
 			if( ! buddy.customData( "nextinfo_notes" ).isEmpty() )
 			{
 				bdata->setNotes( buddy.customData( "nextinfo_notes" ).replace( "\\n", "\n" ).replace( "\\\\", "\\" ) );
 			}
+			buddy.removeCustomData( "nextinfo_notes" );
 			// nextinfo_irc >> data::notes
 			if( ! buddy.customData( "nextinfo_irc" ).isEmpty() )
 				notes += qApp->translate( "@nextinfo", "IRC" ) + QString( ": %1\n" ).arg( buddy.customData( "nextinfo_irc" ) );
+			buddy.removeCustomData( "nextinfo_irc" );
 			// nextinfo_tlen >> data::notes
 			if( ! buddy.customData( "nextinfo_tlen" ).isEmpty() )
 				notes += qApp->translate( "@nextinfo", "Tlen" ) + QString( ": %1\n" ).arg( buddy.customData( "nextinfo_tlen" ) );
+			buddy.removeCustomData( "nextinfo_tlen" );
 			// nextinfo_wp >> data::notes
 			if( ! buddy.customData( "nextinfo_wp" ).isEmpty() )
 				notes += qApp->translate( "@nextinfo", "WP" ) + QString( ": %1\n" ).arg( buddy.customData( "nextinfo_wp" ) );
+			buddy.removeCustomData( "nextinfo_wp" );
 			// nextinfo_icq >> data::notes
 			if( ! buddy.customData( "nextinfo_icq" ).isEmpty() )
 				notes += qApp->translate( "@nextinfo", "ICQ" ) + QString( ": %1\n" ).arg( buddy.customData( "nextinfo_icq" ) );
+			buddy.removeCustomData( "nextinfo_icq" );
 			// nextinfo_photo -> ::avatar
 			if( ! buddy.customData( "nextinfo_photo" ).isEmpty() )
 				if( ! buddy.buddyAvatar() )
@@ -1129,6 +1144,7 @@ void NExtInfo::importOldData( int fromversion )
 						buddy.setBuddyAvatar( avatar );
 					}
 				}
+			buddy.removeCustomData( "nextinfo_photo" );
 			// insert notes
 			bdata->setNotes( bdata->notes() + "\n\n" + notes );
 			// store data

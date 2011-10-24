@@ -1,5 +1,5 @@
-0.10-25 => 0.11-26
-* Dostosowanie pluginu do zmiany API w PluginsManager i ModulesWindow.
+0.10-25 => 0.10-26
+* Naprawiony crash Kadu przy odwoływaniu się do obiektu klasy GlobalHotkeys.
 
 
 0.9.x-24 => 0.10-25

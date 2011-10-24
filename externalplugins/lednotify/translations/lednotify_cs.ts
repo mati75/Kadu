@@ -43,5 +43,21 @@
         <source>Scroll Lock LED</source>
         <translation>Zamknutí LED</translation>
     </message>
+    <message>
+        <source>Diode</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>ScrollLock</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>NumLock</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>CapsLock</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 </TS>

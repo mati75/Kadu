@@ -4,6 +4,6 @@ Description=Automatically splits too long messages
 Description[pl]=Automatycznie dzieli za d³ugie wiadomo¶ci
 Author=Piotr "ultr" D±browski
 LoadByDefault=false
-Version=0.10-3-git
+Version=0.10-2
 Base=false
 Dependencies=gadu_protocol encryption_ng

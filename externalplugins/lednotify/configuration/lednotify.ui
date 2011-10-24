@@ -4,6 +4,11 @@
 
 		<tab name="LED">
 			<group-box name="General">
+				<combo-box caption="Diode" config-section="LedNotify" config-item="LEDdiode">
+					<item value="0" caption="ScrollLock" />
+					<item value="1" caption="NumLock" />
+					<item value="2" caption="CapsLock" />
+				</combo-box>
 				<spin-box caption="Blinking count" config-section="LedNotify" config-item="LEDcount" min-value="1" max-value="10000" step="1" tool-tip="This option doesn't affect events 'new chat' and 'new message'" />
 				<spin-box caption="Blinking delay" config-section="LedNotify" config-item="LEDdelay" min-value="50" max-value="10000" step="100" suffix="%n millisecond(s)" tool-tip="Defines blinking frequency of the LED (half of the period)" />
 			</group-box>

@@ -41,7 +41,7 @@ LedBlinker::~LedBlinker()
 {
 	disconnect( &timer_, SIGNAL(timeout()), this, SLOT(blink()) );
 	if( value_ )
-		led_.set( false );
+		led_.set( diode_, false );
 }
 
 
@@ -74,12 +74,13 @@ void LedBlinker::stop()
 	enabled_ = false;
 	countdown_ = false;
 	value_ = false;
-	led_.set( false );
+	led_.set( diode_, false );
 }
 
 
 void LedBlinker::configurationUpdated()
 {
+	diode_ = (LedDriver::Diode) config_file.readNumEntry("LedNotify", "LEDdiode");
 	delay_ = config_file.readNumEntry("LedNotify", "LEDdelay");
 	blinkCount_ = config_file.readNumEntry("LedNotify", "LEDcount");
 }
@@ -88,7 +89,7 @@ void LedBlinker::configurationUpdated()
 void LedBlinker::blink(void)
 {
 	value_ = !value_;
-	led_.set( value_ );
+	led_.set( diode_, value_ );
 	// Count all "on" states
 	if( countdown_ && value_ )
 	{

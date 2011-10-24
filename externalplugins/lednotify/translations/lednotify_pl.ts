@@ -43,5 +43,21 @@
             <numerusform>%n milisekund</numerusform>
         </translation>
     </message>
+    <message>
+        <source>Diode</source>
+        <translation type="unfinished">Dioda</translation>
+    </message>
+    <message>
+        <source>ScrollLock</source>
+        <translation type="unfinished">ScrollLock</translation>
+    </message>
+    <message>
+        <source>NumLock</source>
+        <translation type="unfinished">NumLock</translation>
+    </message>
+    <message>
+        <source>CapsLock</source>
+        <translation type="unfinished">CapsLock</translation>
+    </message>
 </context>
 </TS>

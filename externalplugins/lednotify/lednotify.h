@@ -65,7 +65,4 @@ class LedNotify : public Notifier, public GenericPlugin
 };
 
 
-extern LedNotify *lednotify;
-
-
 #endif

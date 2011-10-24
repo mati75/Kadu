@@ -44,9 +44,6 @@
 #include "defines.h"
 
 
-void EmptyMsgHandler( QtMsgType type, const char *msg );
-
-
 class GlobalHotkeys : public ConfigurationUiHandler, public ConfigurationAwareObject, public GenericPlugin
 {
 	friend class Functions;
@@ -80,9 +77,6 @@ class GlobalHotkeys : public ConfigurationUiHandler, public ConfigurationAwareOb
 		QPointer<QWidget> SHOWNGLOBALWIDGET;
 		HotKey SHOWNGLOBALWIDGETHOTKEY;
 };
-
-
-extern GlobalHotkeys *globalhotkeys;
 
 
 #endif

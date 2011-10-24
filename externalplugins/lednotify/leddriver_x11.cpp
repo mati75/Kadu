@@ -46,7 +46,7 @@ class LedDriver::Impl
 {
 	public:
 		Impl();
-		void set( bool ledState );
+		void set( LedDriver::Diode diode, bool ledState );
 	private:
 		Display* display_;
 		XKeyboardControl values_;
@@ -56,13 +56,24 @@ class LedDriver::Impl
 LedDriver::Impl::Impl()
 {
 	display_ = QX11Info::display();
-	values_.led = SCROLLLOCK_LED;
 }
 
 
-void LedDriver::Impl::set( bool ledState )
+void LedDriver::Impl::set( LedDriver::Diode diode, bool ledState )
 {
 	// old X
+	switch( diode )
+	{
+		case DiodeScrollLock:
+			values_.led = SCROLLLOCK_LED;
+			break;
+		case DiodeNumLock:
+			values_.led = NUMLOCK_LED;
+			break;
+		case DiodeCapsLock:
+			values_.led = CAPSLOCK_LED;
+			break;
+	}
 	values_.led_mode = ( ledState ? LedModeOn : LedModeOff );
 	XChangeKeyboardControl( display_, KBLed | KBLedMode, &values_ );
 	// new X
@@ -71,7 +82,18 @@ void LedDriver::Impl::set( bool ledState )
 	Atom ledatom;
 	if( XkbQueryExtension( display_, &xkbopcode, &xkbevent, &xkberror, &xkbmajor, &xkbminor ) )
 	{
-		ledatom = XInternAtom( display_, "Scroll Lock", True );
+		switch( diode )
+		{
+			case DiodeScrollLock:
+				ledatom = XInternAtom( display_, "Scroll Lock", True );
+				break;
+			case DiodeNumLock:
+				ledatom = XInternAtom( display_, "Num Lock", True );
+				break;
+			case DiodeCapsLock:
+				ledatom = XInternAtom( display_, "Caps Lock", True );
+				break;
+		}
 		if( ( ledatom != None ) && XkbGetNamedIndicator( display_, ledatom, NULL, NULL, NULL, NULL ) )
 		{
 			XkbSetNamedIndicator( display_, ledatom, True, ledState, False, NULL );
@@ -90,7 +112,7 @@ LedDriver::~LedDriver()
 }
 
 
-void LedDriver::set( bool ledState )
+void LedDriver::set( Diode diode, bool ledState )
 {
-	impl_->set( ledState );
+	impl_->set( diode, ledState );
 }

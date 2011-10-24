@@ -30,9 +30,15 @@
 class LedDriver
 {
 	public:
+		enum Diode
+		{
+			DiodeScrollLock = 0,
+			DiodeNumLock    = 1,
+			DiodeCapsLock   = 2
+		};
 		LedDriver();
 		~LedDriver();
-		void set( bool ledState );
+		void set( Diode diode, bool ledState );
 	private:
 		class Impl;
 		std::auto_ptr<Impl> impl_;

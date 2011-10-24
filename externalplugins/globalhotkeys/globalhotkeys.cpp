@@ -74,11 +74,6 @@
 
 
 
-GlobalHotkeys *globalhotkeys;
-
-
-
-
 int GlobalHotkeys::init( bool firstload )
 {
 	Q_UNUSED( firstload );

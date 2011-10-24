@@ -33,12 +33,9 @@
 #include "debug.h"
 #include "exports.h"
 
+#include "leddriver.h"
+
 #include "lednotify.h"
-
-
-
-
-LedNotify *lednotify;
 
 
 
@@ -59,8 +56,9 @@ LedNotify::LedNotify() :
 	Notifier( "lednotify", QT_TRANSLATE_NOOP( "@default", "Scroll Lock LED" ), KaduIcon( "kadu_icons/notify-led" ) ),
 	chatBlinking_( false ), msgBlinking_( false )
 {
-	config_file.addVariable( "LedNotify", "LEDdelay", 500 );
-	config_file.addVariable( "LedNotify", "LEDcount",   3 );
+	config_file.addVariable( "LedNotify", "LEDdiode", LedDriver::DiodeScrollLock );
+	config_file.addVariable( "LedNotify", "LEDdelay",                        500 );
+	config_file.addVariable( "LedNotify", "LEDcount",                          3 );
 	MainConfigurationWindow::registerUiFile( dataPath( "kadu/plugins/configuration/lednotify.ui" ) );
 	NotificationManager::instance()->registerNotifier( this );
 	connect( PendingMessagesManager::instance(), SIGNAL(messageRemoved(Message))          , this, SLOT(messageReceived(Message))         );

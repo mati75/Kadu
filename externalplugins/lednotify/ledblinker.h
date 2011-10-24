@@ -61,6 +61,7 @@ class LedBlinker : public QObject, ConfigurationAwareObject
 	private:
 		LedDriver led_;
 		QTimer timer_;
+		LedDriver::Diode diode_;
 		bool value_;
 		bool enabled_;
 		bool countdown_;

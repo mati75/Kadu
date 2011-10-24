@@ -42,5 +42,21 @@
         <source>Scroll Lock LED</source>
         <translation>Scroll Lock LED</translation>
     </message>
+    <message>
+        <source>Diode</source>
+        <translation>Diode</translation>
+    </message>
+    <message>
+        <source>ScrollLock</source>
+        <translation>ScrollLock</translation>
+    </message>
+    <message>
+        <source>NumLock</source>
+        <translation>NumLock</translation>
+    </message>
+    <message>
+        <source>CapsLock</source>
+        <translation>CapsLock</translation>
+    </message>
 </context>
 </TS>
