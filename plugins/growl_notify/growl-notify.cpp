@@ -32,6 +32,7 @@
 #include "growl-notify-configuration-widget.h"
 
 #include <QtGui/QTextDocument>
+#include <QtGui/QMessageBox>
 
 #include "avatars/avatar.h"
 #include "configuration/configuration-file.h"
@@ -44,12 +45,13 @@
 #include "icons/icons-manager.h"
 #include "debug.h"
 
+GrowlNotify *GrowlNotify::Instance = NULL;
+
 GrowlNotify::GrowlNotify(QObject *parent) : Notifier("Growl", "Growl", KaduIcon("kadu_icons/notify-hints"), parent)
 {
 	kdebugf();
 
-	createDefaultConfiguration();
-	NotificationManager::instance()->registerNotifier(this);
+	Instance = this;
 
 	// Initialize GrowlNotifier
 	QStringList notifications;
@@ -62,10 +64,31 @@ GrowlNotify::GrowlNotify(QObject *parent) : Notifier("Growl", "Growl", KaduIcon(
 GrowlNotify::~GrowlNotify()
 {
 	kdebugf();
-	NotificationManager::instance()->unregisterNotifier(this);
 	growlNotifier->cleanupAfterGrowl();
 	kdebugf2();
 }
+
+int GrowlNotify::init(bool firstLoad)
+{
+	Q_UNUSED(firstLoad)
+
+	if (!grow_is_installed())
+	{
+		QMessageBox::information(NULL, tr("Error"), tr("Growl is not installed in your system"));
+		return 1;
+	}
+
+	NotificationManager::instance()->registerNotifier(this);
+	createDefaultConfiguration();
+
+	return 0;
+}
+
+void GrowlNotify::done()
+{
+	NotificationManager::instance()->unregisterNotifier(this);
+}
+
 
 QString GrowlNotify::toPlainText(const QString &text)
 {
@@ -89,7 +112,6 @@ QString GrowlNotify::parseText(const QString &text, Notification *notification, 
 
 	return toPlainText(ret);
 }
-
 
 void GrowlNotify::notify(Notification *notification)
 {
@@ -129,6 +151,11 @@ void GrowlNotify::notify(Notification *notification)
 	kdebugf2();
 }
 
+void GrowlNotify::mainConfigurationWindowCreated(MainConfigurationWindow *mainConfigurationWindow)
+{
+	Q_UNUSED(mainConfigurationWindow);
+}
+
 void GrowlNotify::createDefaultConfiguration()
 {
 	config_file.addVariable("GrowlNotify", "Event_ConnectionError_syntax", "%&m");
@@ -164,3 +191,5 @@ NotifierConfigurationWidget *GrowlNotify::createConfigurationWidget(QWidget *par
 	configurationWidget = new GrowlNotifyConfigurationWidget(parent);
 	return configurationWidget;
 }
+
+Q_EXPORT_PLUGIN2(growl_notify, GrowlNotify)

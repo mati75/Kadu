@@ -49,7 +49,7 @@
 
 #include "parser.h"
 
-#include <QTextCodec>
+#include <qtextcodec.h>
 #include <string.h>
 
 using namespace XMPP;

@@ -21,7 +21,7 @@
 #ifndef XMPP_IM_H
 #define XMPP_IM_H
 
-#include <QDateTime>
+#include <qdatetime.h>
 //Added by qt3to4:
 #include <QList>
 

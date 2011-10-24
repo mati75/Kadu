@@ -21,8 +21,8 @@
 #ifndef JABBER_TASKS_H
 #define JABBER_TASKS_H
 
-#include <QString>
-#include <QDomImplementation>
+#include <qstring.h>
+#include <qdom.h>
 //Added by qt3to4:
 #include <QList>
 

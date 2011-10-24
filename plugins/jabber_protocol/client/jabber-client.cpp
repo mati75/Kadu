@@ -88,7 +88,6 @@ JabberClient::JabberClient(JabberProtocol *protocol, QObject *parent) :
 
 	Client->setCapsVersion(capsVersion());
 	Client->setFeatures(Features(features));
-	Client->setTimeZone(timeZoneName(), timeZoneOffset());
 
 	serverInfoManager = new ServerInfoManager(Client, Client);
 	QObject::connect(serverInfoManager, SIGNAL(featuresChanged()),
@@ -193,8 +192,6 @@ void JabberClient::cleanUp()
 	setClientVersion(QString());
 	setOSName(QString());
 
-	setTimeZone("UTC", 0);
-
 	setIgnoreTLSWarnings(false);
 }
 
@@ -213,12 +210,6 @@ void JabberClient::setOverrideHost(bool flag, const QString &server, int port)
 	OverrideHost = flag;
 	Server = server;
 	Port = port;
-}
-
-void JabberClient::setTimeZone(const QString &timeZoneName, int timeZoneOffset)
-{
-	TimeZoneName = timeZoneName;
-	TimeZoneOffset = timeZoneOffset;
 }
 
 int JabberClient::getPenaltyTime()
@@ -339,16 +330,9 @@ void JabberClient::disconnect()
 
 void JabberClient::disconnect(XMPP::Status &reason)
 {
-	if (JabberClientStream && JabberClientStream->isActive())
-	{
-		XMPP::JT_Presence *pres = new JT_Presence(rootTask());
-		reason.setIsAvailable( false);
-		pres->pres( reason);
-		pres->go();
-
-		JabberClientStream->close();
-	}
-	cleanUp();
+	Client->setPresence(reason);
+	//HACK Following PSI solution, server needs some delay to store status properly before we close the connection.
+	QTimer::singleShot(100, this, SLOT(cleanUp()));
 }
 
 bool JabberClient::isConnected() const
@@ -621,6 +605,7 @@ void JabberClient::setPresence(const XMPP::Status &status)
 	newStatus.setCapsVersion(capsVersion());
 	newStatus.setCapsHashAlgorithm(QLatin1String("sha-1"));
 	newStatus.setCapsExt(capsExt());
+	newStatus.setStatus(status.status());
 
 	JabberAccountDetails *jabberAccountDetails = dynamic_cast<JabberAccountDetails *>(Protocol->account().details());
 	if (jabberAccountDetails)
@@ -648,9 +633,7 @@ void JabberClient::setPresence(const XMPP::Status &status)
 		{
 			kdebug("Sending new presence to the server.\n");
 
-			XMPP::JT_Presence * task = new XMPP::JT_Presence(rootTask());
-			task->pres(newStatus);
-			task->go(true);
+			client()->setPresence(newStatus);
 		}
 		else
 		{

@@ -1,3 +1,18 @@
++++ version 0.10.1
+* gadu: clearer contact list synchronization message when updating from <0.10.0 (beevvy)
+* jabber: #2320 fixed: removing buddies owning Facebook contacts from of all their groups (beevvy)
+* gadu, jabber: #2321 fixed: do not allow to add two identical accounts (beevvy)
+* gui: #2308 fixed: collapse items on buddies list when disabling expanding control (beevvy)
+* gui: #2313 fixed: use bigger z-index for compositing icon in adium chat styles (Vogel)
+* gui: #2077 fixed: untoggle disabled actions (Vogel)
+* jabber: #2305 fixed: setting XMPP offline status with status message works now (Juzef)
+* docking: #2347 fixed: added "Restore" and "Minimize" actions to tray context menu (beevvy)
+* gui: #2345 fixed: fixed Ctrl+C text copying with emoticons (beevvy)
+* jabber: #2328 fixed: wrong timezone offset calculation on Windows (mziab)
+* jabber: #2329 fixed: XEP-0091 and other timestamps not decoded as UTC (mziab, beevvy)
+* gadu: fixed possibility to remove contacts from list both locally and on server in some cases when importing new contacts from server (beevvy)
+* core: #2292 fixed: incorrect application abort when trying to save file with default extension under KDE and possibly more issues (beevvy)
+
 +++ version 0.10.0
 * sms: small changes that will ease updating gateway scripts (beevvy)
 * config_wizard: #2264 fixed: if creating new account failed, do not go to next config wizard page (beevvy)

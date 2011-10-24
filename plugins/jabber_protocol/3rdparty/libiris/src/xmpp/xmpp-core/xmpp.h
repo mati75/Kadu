@@ -24,9 +24,10 @@
 #include <QPair>
 #include <qobject.h>
 #include <qstring.h>
-#include <QHostAddress>
+#include <qhostaddress.h>
 #include <qstring.h>
-#include <QDomImplementation>
+#include <qxml.h>
+#include <qdom.h>
 
 #include "addressresolver.h"
 #include "xmpp/jid/jid.h"

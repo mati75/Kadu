@@ -21,8 +21,8 @@
 #include "httppoll.h"
 
 #include <QUrl>
-#include <QTextStream>
-#include <QTimer>
+#include <qstringlist.h>
+#include <qtimer.h>
 #include <qpointer.h>
 #include <QtCrypto>
 #include <QByteArray>

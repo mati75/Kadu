@@ -20,11 +20,11 @@
 
 #include "socks.h"
 
-#include <QHostAddress>
-#include <QStringList>
-#include <QTimer>
+#include <qhostaddress.h>
+#include <qstringlist.h>
+#include <qtimer.h>
 #include <qpointer.h>
-#include <QSocketNotifier>
+#include <qsocketnotifier.h>
 #include <QByteArray>
 
 #ifdef Q_OS_UNIX

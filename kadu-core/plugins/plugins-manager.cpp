@@ -66,23 +66,6 @@
 
 #include "plugins-manager.h"
 
-#ifdef Q_OS_MAC
-	#define SO_EXT "so"
-	#define SO_EXT_LEN 2
-	#define SO_PREFIX "lib"
-	#define SO_PREFIX_LEN 3
-#elif defined(Q_OS_WIN)
-	#define SO_EXT "dll"
-	#define SO_EXT_LEN 3
-	#define SO_PREFIX ""
-	#define SO_PREFIX_LEN 0
-#else
-	#define SO_EXT "so"
-	#define SO_EXT_LEN 2
-	#define SO_PREFIX "lib"
-	#define SO_PREFIX_LEN 3
-#endif
-
 PluginsManager * PluginsManager::Instance = 0;
 
 PluginsManager * PluginsManager::instance()
@@ -474,7 +457,8 @@ bool PluginsManager::activateDependencies(Plugin *plugin)
 
 	foreach (const QString &dependencyName, plugin->info()->dependencies())
 	{
-		if (!Plugins.contains(dependencyName))
+		Plugin *dependencyPlugin = Plugins.value(dependencyName);
+		if (!dependencyPlugin || !dependencyPlugin->isValid())
 		{
 			MessageDialog::show(KaduIcon("dialog-warning"), tr("Kadu"), tr("Required plugin %1 was not found").arg(dependencyName));
 			return false;

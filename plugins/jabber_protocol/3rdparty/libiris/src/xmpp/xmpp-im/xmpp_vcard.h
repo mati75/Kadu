@@ -21,11 +21,11 @@
 #ifndef JABBER_VCARD_H
 #define JABBER_VCARD_H
 
-#include <QString>
-#include <QStringList>
+#include <qstring.h>
+#include <qstringlist.h>
 
 #include <QList>
-#include <QDomImplementation>
+#include <qdom.h>
 
 class QDate;
 

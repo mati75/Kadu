@@ -121,20 +121,11 @@ namespace XMPP
 		// client information
 		QString ClientName, ClientVersion, OsName;
 
-		// timezone information
-		QString TimeZoneName;
-		int TimeZoneOffset;
-
 		// Caps(JEP-0115: Entity Capabilities) information
 		QString CapsNode, CapsVersion;
 		DiscoItem::Identity DiscoIdentity;
 
 		bool PepAvailable;
-
-		/**
-		* Delete all member classes and reset the class to a predefined state.
-		*/
-		void cleanUp();
 
 		void setPEPAvailable(bool b);
 
@@ -142,6 +133,11 @@ namespace XMPP
 		QString calculateCapsVersion(const DiscoItem::Identity &identity, const QStringList &features);
 
 	private slots:
+                /**
+                 * Delete all member classes and reset the class to a predefined state.
+                 */
+                void cleanUp();
+
 		/* update the penalty timer */
 		void slotUpdatePenaltyTime();
 
@@ -422,21 +418,6 @@ namespace XMPP
 		 * @return the DiscoItem::Identity for this client.
 		 */
 		const DiscoItem::Identity & discoIdentity() const { return DiscoIdentity; }
-
-		/**
-		 * Set timezone information. Default is UTC.
-		 */
-		void setTimeZone(const QString &timeZoneName, int timeZoneOffset);
-
-		/**
-		 * Return timezone name.
-		 */
-		const QString & timeZoneName() const { return TimeZoneName; }
-
-		/**
-		 * Return timezone offset.
-		 */
-		int timeZoneOffset() const { return TimeZoneOffset; }
 
 		/**
 		 * This method can be used to implement a penalty

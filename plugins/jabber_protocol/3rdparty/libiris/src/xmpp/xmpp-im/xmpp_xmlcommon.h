@@ -21,8 +21,8 @@
 #ifndef JABBER_XMLCOMMON_H
 #define JABBER_XMLCOMMON_H
 
-#include <QDomImplementation>
-#include <QList>
+#include <qdom.h>
+#include <qlist.h>
 
 class QDateTime;
 class QRect;

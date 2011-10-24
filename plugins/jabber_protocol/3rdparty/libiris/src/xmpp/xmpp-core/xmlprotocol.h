@@ -21,7 +21,7 @@
 #ifndef XMLPROTOCOL_H
 #define XMLPROTOCOL_H
 
-#include <QDomImplementation>
+#include <qdom.h>
 #include <QList>
 #include <QObject>
 #include "parser.h"

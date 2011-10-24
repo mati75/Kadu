@@ -21,8 +21,8 @@
 #ifndef PARSER_H
 #define PARSER_H
 
-#include <QDomImplementation>
-#include <QXmlAttributes>
+#include <qdom.h>
+#include <qxml.h>
 
 namespace XMPP
 {

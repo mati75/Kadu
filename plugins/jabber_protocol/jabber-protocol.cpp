@@ -184,13 +184,12 @@ void JabberProtocol::disconnectFromServer(const XMPP::Status &s)
 {
 	kdebugf();
 
-	if (isConnected())
+	if (JabberClient->client())
 	{
-		kdebug("Still connected, closing connection...\n");
-		JabberClient->setPresence(s);
+		XMPP::Status status = s;
+		/* Tell backend class to disconnect. */
+		JabberClient->disconnect(status);
 	}
-	/* Tell backend class to disconnect. */
-	JabberClient->disconnect();
 
 	kdebug("Disconnected.\n");
 
@@ -223,7 +222,6 @@ void JabberProtocol::login()
 	}
 
 	JabberClient->setOSName(SystemInfo::instance()->osFullName());
-	JabberClient->setTimeZone(SystemInfo::instance()->timezone(), SystemInfo::instance()->timezoneOffset());
 	JabberClient->setClientName("Kadu");
 	JabberClient->setClientVersion(Core::instance()->version());
 
@@ -265,7 +263,6 @@ void JabberProtocol::disconnectedFromServer()
 {
 	kdebugf();
 
-	JabberClient->disconnect();
 	loggedOut();
 
 	kdebugf2();
@@ -304,6 +301,8 @@ void JabberProtocol::clientAvailableResourceReceived(const XMPP::Jid &jid, const
 
 void JabberProtocol::clientUnavailableResourceReceived(const XMPP::Jid &jid, const XMPP::Resource &resource)
 {
+  	kdebug("New resource unavailable for %s\n", jid.full().toUtf8().constData());
+	
 	XMPP::Resource bestResource = resourcePool()->bestResource(jid);
 
 	bool notify = bestResource.name() == resource.name();

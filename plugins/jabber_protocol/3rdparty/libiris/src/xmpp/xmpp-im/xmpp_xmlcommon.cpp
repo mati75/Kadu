@@ -21,12 +21,13 @@
 #include "xmpp_xmlcommon.h"
 #include "xmpp_stanza.h"
 
-#include <QString>
-#include <QDateTime>
-#include <QSize>
-#include <QRect>
-#include <QStringList>
-#include <QColor>
+#include <qstring.h>
+#include <qdom.h>
+#include <qdatetime.h>
+#include <qsize.h>
+#include <qrect.h>
+#include <qstringlist.h>
+#include <qcolor.h>
 
 //----------------------------------------------------------------------------
 // XDomNodeList

@@ -30,7 +30,7 @@
 
 #include <qpointer.h>
 #include <QList>
-#include <QTimer>
+#include <qtimer.h>
 
 #ifdef USE_TLSHANDLER
 #include "xmpp.h"
