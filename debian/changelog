@@ -3,8 +3,12 @@ kadu (0.10.1-1) unstable; urgency=low
   * New upstream release
   * Removed debian/patches/04-globalhotkeys.patch -- no longer needed.
   * Updated debian/patches/03-about-dialog.patch for Kadu 0.10.1
+  * Moved FindKadu.cmake from /usr/share/cmake/Modules to
+    /usr/share/cmake-2.8/Modules
+  * Updated external plugins to their newest upstream versions
+  * Build error against dpkg-1.16.1 fixed upstream (Closes: #646278)
 
- -- Patryk Cisek <patryk@debian.org>  Mon, 24 Oct 2011 18:20:01 +0200
+ -- Patryk Cisek <patryk@debian.org>  Tue, 25 Oct 2011 17:45:32 +0200
 
 kadu (0.10.0-3) unstable; urgency=low
 
