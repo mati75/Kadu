@@ -32,6 +32,7 @@ debian/tmp/usr/share/kadu/plugins/configuration/history.ui
 debian/tmp/usr/share/kadu/plugins/configuration/image-link.ui
 debian/tmp/usr/share/kadu/plugins/configuration/jabber_protocol.ui
 debian/tmp/usr/share/kadu/plugins/configuration/mediaplayer.ui
+debian/tmp/usr/share/kadu/plugins/configuration/mpd_config.ui
 debian/tmp/usr/share/kadu/plugins/configuration/mprisplayer_mediaplayer.ui
 debian/tmp/usr/share/kadu/plugins/configuration/qt4-docking-notify.ui
 debian/tmp/usr/share/kadu/plugins/configuration/screenshot.ui
@@ -69,6 +70,7 @@ debian/tmp/usr/share/kadu/plugins/imagelink.desc
 debian/tmp/usr/share/kadu/plugins/jabber_protocol.desc
 debian/tmp/usr/share/kadu/plugins/last_seen.desc
 debian/tmp/usr/share/kadu/plugins/mediaplayer.desc
+debian/tmp/usr/share/kadu/plugins/mpd_mediaplayer.desc
 debian/tmp/usr/share/kadu/plugins/mprisplayer_mediaplayer.desc
 debian/tmp/usr/share/kadu/plugins/pcspeaker.desc
 debian/tmp/usr/share/kadu/plugins/phonon_sound.desc
