@@ -1,3 +1,7 @@
+2011-10-25  Patryk Cisek <patryk@debian.org>
+
+	* Fixed compilation problem with new dpkg on Debian and Ubuntu
+
 2011-08-24  Piotr Galiszewski <whe@kadu.im>
 
 	* Dostosowano do API Kadu 0.10
