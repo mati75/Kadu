@@ -1,0 +1,61 @@
+Description: Selects all usable external themes
+ Kadu has a nice set of external (submitted by 3rd parties) themes and
+ plugins.
+ .
+ This patch makes all usable plugins being compiled and installed
+Author: Patryk Cisek <patryk@debian.org>
+---
+diff --git a/Plugins.cmake b/Plugins.cmake
+index c6906ce..de1e629 100644
+--- a/Plugins.cmake
++++ b/Plugins.cmake
+@@ -151,5 +151,49 @@ if (WIN32)
+ 	)
+ endif (WIN32)
+ 
++# External plugins
++list (APPEND COMPILE_PLUGINS
++
++    # anonymous_check
++        # Automatically search contacts in public directory
++        anonymous_check
++
++    # globalhotkeys
++        # Adds global hotkeys support to Kadu
++        globalhotkeys
++
++    # importhistory
++        # Imports history from original Gadu-Gadu client
++        importhistory
++
++    # lednotify
++        # Notifying using Scroll Loch LED
++        lednotify
++
++    # messagessplitter
++        # Automatically splits too long messages
++        messagessplitter
++
++    # mime_tex
++        # Mathematical formulas using MimeTeX
++        mime_tex
++
++    # networkping
++        # Periodically checks network health
++        networkping
++
++    # nextinfo
++        # New ext_info plugin -- adds more information about the contacts
++        nextinfo
++
++    # panelkadu
++        # Makes Kadu look and behave like a panel
++        panelkadu
++
++    # senthistory
++        # Adds history of sent messages to a chat window
++        senthistory
++)
++
+ # Sort the list so plugins will be built in alphabetical order
+ list (SORT COMPILE_PLUGINS)

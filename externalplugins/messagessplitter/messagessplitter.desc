@@ -1,0 +1,9 @@
+[Module]
+Plugin=true
+Description=Automatically splits too long messages
+Description[pl]=Automatycznie dzieli za d³ugie wiadomo¶ci
+Author=Piotr "ultr" D±browski
+LoadByDefault=false
+Version=0.10-2
+Base=false
+Dependencies=gadu_protocol encryption_ng

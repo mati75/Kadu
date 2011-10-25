@@ -1,0 +1,494 @@
+kadu (0.10.1-1) unstable; urgency=low
+
+  * New upstream release
+  * Removed debian/patches/04-globalhotkeys.patch -- no longer needed.
+  * Updated debian/patches/03-about-dialog.patch for Kadu 0.10.1
+  * Moved FindKadu.cmake from /usr/share/cmake/Modules to
+    /usr/share/cmake-2.8/Modules
+  * Updated external plugins to their newest upstream versions
+  * Build error against dpkg-1.16.1 fixed upstream (Closes: #646278)
+
+ -- Patryk Cisek <patryk@debian.org>  Tue, 25 Oct 2011 17:45:32 +0200
+
+kadu (0.10.0-3) unstable; urgency=low
+
+  * Added globalhotkeys.desc to kadu-external-modules.install
+
+ -- Patryk Cisek <patryk@debian.org>  Mon, 17 Oct 2011 15:28:43 +0200
+
+kadu (0.10.0-2) unstable; urgency=low
+
+  * Moved import_history, messagessplitter, networkping and nextinfo
+    plugins from kadu to kadu-external-modules
+  * Added globalhotkeys plugin
+  * Moved idle and auto_hide plugin files in appropriate packages
+  * Refreshed information in debian/copyright
+
+ -- Patryk Cisek <patryk@debian.org>  Sun, 16 Oct 2011 12:05:59 +0200
+
+kadu (0.10.0-1) unstable; urgency=low
+
+  * New upstream release
+  * Added libsqlite3-dev to Build-Depends
+  * Added kadu-dev package
+  * Removed libjs-mootools from kadu-common Depends and libao-dev from
+    Build-Depends
+  * Got rid of kadu.install.(no)alsa -- no alsa_sound plugin anymore
+  * Updated external plugins to their newest upstream versions
+
+ -- Patryk Cisek <patryk@debian.org>  Fri, 23 Sep 2011 17:31:22 +0200
+
+kadu (0.9.2-2) unstable; urgency=low
+
+  * Rebuild to link against libgadu3 version 1.11.0-2 or newer needed
+    (Closes: #637172)
+  * Upstream fixed build error when using gcc 4.6.1 (Closes: #634396)
+  * Changed build dependency from libasound-dev to libasound2-dev
+    (Closes: #637138, #635305)
+
+ -- Patryk Cisek <patryk@debian.org>  Tue, 09 Aug 2011 09:53:46 +0200
+
+kadu (0.9.2-1) unstable; urgency=low
+
+  * New upstream release
+  * Updated debian/patches/02-.config.patch to make it fit 0.9.2
+  * Updated debian/patches/01-no_autodownload.patch to make it fit 0.9.2
+  * Removed server_monitor module's files from *.install -- module's been
+    removed upstream.
+
+ -- Patryk Cisek <patryk@debian.org>  Fri, 01 Jul 2011 15:55:45 +0200
+
+kadu (0.9.1-1) unstable; urgency=low
+
+  * New upstream release
+  * debian/kadu.desktop: Kadu now supports XMPP as well as Gadu-Gadu
+
+ -- Patryk Cisek <patryk@debian.org>  Mon, 11 Apr 2011 13:16:43 +0200
+
+kadu (0.9.0-1) unstable; urgency=low
+
+  * New upstream release
+
+ -- Patryk Cisek <patryk@debian.org>  Sun, 20 Mar 2011 09:12:01 +0100
+
+kadu (0.6.6~rc3-1) unstable; urgency=low
+
+  * New upstream release
+  * Added libqtwebkit-dev to Build-Depends. (Closes: #618214)
+
+ -- Patryk Cisek <patryk@debian.org>  Mon, 14 Mar 2011 09:25:25 +0100
+
+kadu (0.6.6~rc2-1) unstable; urgency=low
+
+  * New upstream release
+  * Included information about XMPP protocol support in package descriptions
+  * Changed "module(s)" to "plugin(s)" in package descriptions
+  * Updated debian/patches/02-.config.patch to make it fit 0.6.6~rc2
+  * Updated debian/patches/03-about-dialog.patch to make it fit 0.6.6~rc2
+  * Removed debian/patches/04-gcc4.4-build-fix.patch, since it's no
+    longer needed
+
+ -- Patryk Cisek <patryk@debian.org>  Mon, 07 Mar 2011 15:16:01 +0100
+
+kadu (0.6.6~rc1-1) unstable; urgency=low
+
+  * New upstream release
+
+ -- Patryk Cisek <patryk@debian.org>  Wed, 23 Feb 2011 16:28:39 +0100
+
+kadu (0.6.6~beta17-2) unstable; urgency=low
+
+  * Used wrap-and-sort from ubuntu-dev-tools to sort .install files, sort
+    dependency fields in debian/control and wrap fields longer than 80
+    characters
+  * Added Vcs-Git and Vcs-Browser to debian/control
+  * Added debian/build_kadu.sh script, which may be used to build Kadu
+    packages when in Git checkout of Vcs-Git repository
+  * Updated debian/README.source; added info about Vcs-* in
+    debian/control, deleted CDBS info -- it's no longer used in Kadu
+    packaging
+  * Refreshed external modules list in debian/README.Debian
+
+ -- Patryk Cisek <patryk@debian.org>  Mon, 21 Feb 2011 11:18:13 +0100
+
+kadu (0.6.6~beta17-1) unstable; urgency=low
+
+  * New upstream release
+  * Added nextinfo external module
+
+ -- Patryk Cisek <patryk@debian.org>  Sat, 19 Feb 2011 09:36:07 +0000
+
+kadu (0.6.6~beta16-1) unstable; urgency=low
+
+  * New upstream release
+  * Added code.google.com to debian/watch
+  * Refreshed debian/patches/02-.config.patch
+  * Removed 05-panelkadu_no-strict-aliasing.patch, since panelkadu's
+    been fixed upstream
+  * Removed libcurl4-gnutls-dev from Build-Depends, since it's no longer
+    needed
+  * Added zlib1g-dev to Build-Depends
+  * debian/handle_external.sh: externalthemes/icons is no longer
+    taken care of.
+  * Added libidn11-dev to Build-Depends
+  * Added debian/patches/05-panelkadu_lednotify-build-fix.patch, that
+    fixes panelkadu and lednotify build errors
+  * Removed kadu05 icon theme from being installed
+
+ -- Patryk Cisek <patryk@debian.org>  Thu, 17 Feb 2011 10:12:37 +0100
+
+kadu (0.6.6~beta15-1) unstable; urgency=low
+
+  * New upstream release
+  * Bumped Standards-Version
+  * Added dependency on libqt4-sql-sqlite for kadu package to make history
+    module work properly
+  * Updated Kadu Team members list in debian/copyright
+  * Update of clean target in debian/rules: debian/alsa-stamp gets
+    removed as well
+  * Added metadata to debian/patches to make them comply DEP3
+    http://dep.debian.net/deps/dep3
+  * Updated debian/patches/* make them fit to new upstream version
+  * Minor updates to debian/patches/* to make them fit new source
+  * Setting 755 on /usr/share/kadu/themes/icons/oxygen/src/rebuild-
+    statuses.sh
+  * Updated external modules to their newest upstream versions
+  * Added debian/patches/05-panelkadu_no-strict-aliasing.patch to get
+    rid of compilation warning, which results in an error thanks to
+    "-Werror" compilation flag
+
+ -- Patryk Cisek <patryk@debian.org>  Fri, 11 Feb 2011 11:18:52 +0100
+
+kadu (0.6.5.4.ds1-1) unstable; urgency=low
+
+  * Added missing copyright notices about dbus and pajacyk modules to
+    debian/copyright
+  * Updated year ranges in debian/copyright from ...-2009 to ...-2010
+  * Standards-Version to 3.8.4
+  * Migrated to 3.0 (quilt) format
+  * Set fake 0.6.5.4.ds1 version to simulate new upstream release.
+
+ -- Patryk Cisek <patryk@debian.org>  Sun, 20 Jun 2010 12:00:02 +0000
+
+kadu (0.6.5.4-1) unstable; urgency=low
+
+  * New upstream release
+  * Refreshed patches in debian/patches to code changes since last stable
+    release of Kadu
+  * Added debian/patches/06-mail.patch -- updates external mail module
+    to new API in kadu-0.6.5.4. Patch maintained by Kadu Team.
+  * Updated external modules to their newest versions
+  * Added dbus module to kadu package
+  * Added pajacyk, single_window and mpris_mediaplayer to
+    kadu-external-modules
+  * Added kadu-pajacyk external module
+
+ -- Patryk Cisek <patryk@debian.org>  Mon, 08 Feb 2010 08:34:11 +0000
+
+kadu (0.6.5.4~rc1-2) experimental; urgency=low
+
+  * Backported upstream image sending fix
+
+ -- Patryk Cisek <patryk@debian.org>  Fri, 18 Dec 2009 08:41:24 +0000
+
+kadu (0.6.5.4~rc1-1) experimental; urgency=low
+
+  * New upstream release
+  * Updated external modules to their newest upstream versions
+  * Updated external themes to their newest upstream versions
+
+ -- Patryk Cisek <patryk@debian.org>  Tue, 08 Dec 2009 17:17:11 +0000
+
+kadu (0.6.5.3-2) unstable; urgency=low
+
+  * Added debian/patches/05-lib64-suffix-fix.patch to fix FTBFS on 64-bit
+    architectures
+
+ -- Patryk Cisek <patryk@debian.org>  Tue, 15 Sep 2009 12:51:15 +0200
+
+kadu (0.6.5.3-1) unstable; urgency=low
+
+  * New upstream release
+  * Bumped Standards-Version to 3.8.3 (no changed needed)
+  * Added -DLIB_SUFFIX_64=0 to cmake invocation to force kadu's modules
+    being installed in /usr/lib on 64-bit architectures
+
+ -- Patryk Cisek <patryk@debian.org>  Thu, 10 Sep 2009 09:53:38 +0200
+
+kadu (0.6.5.2-4) unstable; urgency=low
+
+  * Fixed regressive bug: AUTHORS, THANKS, LICENSE, about-changes-tab.txt are
+    again (after abandoning CDBS) prevented from being compressed, since
+    their contents are listed in About dialog box
+
+ -- Patryk Cisek <patryk@debian.org>  Mon, 27 Jul 2009 13:01:21 +0200
+
+kadu (0.6.5.2-3) unstable; urgency=low
+
+  * CDBS is no longer used for building
+  * Removed build dependency on autotools-dev -- Kadu is cmake-based now
+  * Backported upstream patch
+    (debian/patches/05-backported-plus_pl_sms-AJAX-fix.patch) for plus_pl_sms
+    to make it work with new AJAX SMS gateway
+
+ -- Patryk Cisek <patryk@debian.org>  Sun, 26 Jul 2009 13:37:43 +0200
+
+kadu (0.6.5.2-2) unstable; urgency=low
+
+  * Added debian/patches/04-gcc4.4-build-fix.patch, which fixes compilation
+    errors, when using gcc-4.4 (Closes: #525892)
+
+ -- Patryk Cisek <patryk@prezu.one.pl>  Tue, 12 May 2009 17:38:34 +0200
+
+kadu (0.6.5.2-1) unstable; urgency=low
+
+  * New upstream release
+  * debian/extract.sh: Added "-k" to tar invocations to avoid overwriting
+    potentially patched (by debian/patches) external modules/themes
+  * Added encryption module -- new version gets rid of GPL vs. OpenSSL
+    license issue
+  * Updated debian/patches/02-.config.patch to include new modules
+  * Added new Build-Depends to compile newly added modules
+  * Bumped Standards-Version to 3.8.1
+
+ -- Patryk Cisek <patryk@prezu.one.pl>  Sat, 02 May 2009 10:13:44 +0200
+
+kadu (0.6.5.1-5) unstable; urgency=low
+
+  * Removed debian/patches/05-default_sms-fix.patch and
+    debian/patches/06-saveWindowsGeometry-fix.patch -- they've alreadt been
+    applied upstream
+  * qt4_docking is now linked dynamically (Closes: #515045)
+  * Removed "libvlc0-dev | libvlc-dev, and xmms2-dev" from Build-Depends --
+    *_mediaplayer modules in their current versions use D-Bus to communicate
+    players
+
+ -- Patryk Cisek <patryk@prezu.one.pl>  Fri, 13 Feb 2009 15:34:33 +0100
+
+kadu (0.6.5.1-4) unstable; urgency=low
+
+  * Added debian/patches/04-config_wizard_no_data_content.patch -- content of
+    /usr/share/kadu/modules/data/config_wizard/ should not be empty. It should
+    contain some .png files needed by config_wizard module. This patch fixes
+    the bug.
+
+ -- Patryk Cisek <patryk@prezu.one.pl>  Tue, 10 Feb 2009 09:53:19 +0100
+
+kadu (0.6.5.1-3) unstable; urgency=low
+
+  * Changed the order of libvlc-dev and libvlc0-dev in Build-Depends -- sbuild
+    failed to build the package when $check_depends_algorithm = "first-only";
+    in sbuild.conf was set
+
+ -- Patryk Cisek <patryk@prezu.one.pl>  Sun, 08 Feb 2009 15:14:36 +0100
+
+kadu (0.6.5.1-2) unstable; urgency=low
+
+  * Moving 0.6.5.1 from experimental to unstable
+
+ -- Patryk Cisek <patryk@prezu.one.pl>  Mon, 02 Feb 2009 21:30:29 +0100
+
+kadu (0.6.5.1-1) experimental; urgency=low
+
+  * New upstream release
+  * Added some external modules: mx610_notify, qt4_docking_notify,
+    water_notify, weather
+  * Added libvlc-dev (vlc_mediaplayer module), libxmms2-dev
+    (xmms2_mediaplayer module) and libdbus-1-dev to Build-Depends
+  * Removed debian/patches/04-sound-themes-fix.patch (already applied
+    upstream)
+
+ -- Patryk Cisek <patryk@prezu.one.pl>  Mon, 26 Jan 2009 16:09:31 +0100
+
+kadu (0.6.5-1) experimental; urgency=low
+
+  * New upstream release
+  * kadu-kde-modules and kadu-gtk-modules have been removed, since we no
+    longer have any kdelibs/GTK+ dependent modules
+  * Removed kadu-mozilla man page, moved sounds to kadu-themes, updated
+    Kadu Team members list in debian/copyright -- Thanks to Piotr Galiszewski
+    (Kadu Team member) for submitting a patch
+  * Updated Kadu Team members list in debian/copyright
+  * Updated debian/README.source -- Kadu is now cmake based, not autotools
+  * Removed Tango icon theme -- its license (CC-SA 2.5) is not DFSG-compliant
+  * Channged (C) to © in debian/copyright
+
+ -- Patryk Cisek <patryk@prezu.one.pl>  Mon, 19 Jan 2009 13:18:49 +0100
+
+kadu (0.6.0.2-3) unstable; urgency=high
+
+  * Now Kadu is linked against libgadu provided by libgadu3 package, instead
+    of the one shipped in Kadu's tarball. This fixes CVE-2008-4776
+    (Closes: #504429, #504430)
+
+ -- Patryk Cisek <patryk@prezu.one.pl>  Tue, 04 Nov 2008 15:37:05 +0100
+
+kadu (0.6.0.2-2) unstable; urgency=low
+
+  [ Patryk Cisek ]
+  * Added copyright notices to manual pages
+  * Backported upstream patch for miastoplusa_sms module, that makes it
+    work again with libcurl liked against libgnutls
+
+  [ Piotr Ożarowski ]
+  * debian/watch detects all upstream releases now
+
+ -- Patryk Cisek <patryk@prezu.one.pl>  Sat, 13 Sep 2008 11:25:27 +0200
+
+kadu (0.6.0.2-1) unstable; urgency=low
+
+  * New upstream release
+  * Added debian/watch file for current stable branch (0.6.0.x)
+  * Added senthistory module to debian/kadu-external-modules.install
+  * Fixed compilation error for non-Linux ports. Since ALSA is Linux-specific,
+    now alsa-sound is compiled only on linux. Used dpkg-architecture in
+    debian/rules for that.
+  * Bumped Standards-Version to 3.8.0
+  * Added debian/README.source
+
+ -- Patryk Cisek <patryk@prezu.one.pl>  Wed, 23 Jul 2008 09:54:47 +0200
+
+kadu (0.6.0.1-1) unstable; urgency=low
+
+  * New upstream release
+  * With this release came 3 additional external modules: autostatus,
+    globalhotkeys and last_seen
+  * Corrected names of the modules in REAME.Debian
+  * Added kadu-gtk-modules package. It holds modules (currently only one:
+    xosd_notify) dependent on libgtk
+  * Added kadu-common package for holding /usr/share data in architecture all
+    package
+
+ -- Patryk Cisek <patryk@prezu.one.pl>  Fri, 09 May 2008 12:10:43 +0000
+
+kadu (0.6.0-1) unstable; urgency=low
+
+  * New upstream release
+  * New external modules: anonymous_check, antistring, audacious_mediaplayer,
+    auto_hide, cenzor, osdhints_notify, panelkadu, parser_extender,
+    powerkadu, split_messages, word_fix
+  * Added debian/patches/05-audacious_mediaplayer-spec.patch to fix
+    compilation error in Debian
+
+ -- Patryk Cisek <patryk@prezu.one.pl>  Sat, 08 Mar 2008 18:59:58 +0100
+
+kadu (0.6.0~rc3.1-1) unstable; urgency=low
+
+  * Updated Glass and Tango icon themes. This is a fake upstream version
+    because these themes are in external/themes directory, so .orig.tar.gz
+    had to be changed. (Closes: #465869)
+  * Added copyright notices about newly added modules in debian/copyright
+  * Changed Architecture from any to all for kadu-dev
+  * Moved pcspeaker.ui from kadu.install to kadu-external-modules.install
+    and xosd_notify.desc from kadu-external-modules.install to kadu.install
+  * Removed libgadu-dev from Build-Depends
+  * Added debian/patches/04-icedove_email_client.patch to add a support for
+    IceDove mail client. (Closes: #465920)
+
+ -- Patryk Cisek <patryk@prezu.one.pl>  Sun, 17 Feb 2008 13:52:27 +0000
+
+kadu (0.6.0~rc3-1) unstable; urgency=medium
+
+  * New upstream release (Closes: #461677)
+  * Updated following external modules: mime_tex
+  * debian/control:
+    - moved Homepage: from long description to a header
+    - Modified Build-Depends
+    - Removed kadu-xmms module due to xmms removal (Closes: #461741)
+    - kadu conflicts with kadu-external-modules (<< 0.6.0~) (new internal
+      modules, see below)
+    - Bumped Standards-Version to 3.7.3
+  * debian/extract.sh:
+    - Modified due to fit new external modules and themes lists
+  * debian/kadu-external-modules.install:
+    Added following modules:
+    - mime_tex
+    - agent
+    - Mediaplayer
+    - falf_mediaplayer
+    - mx610_notify
+    - water_notify.so
+    removed followinf modules:
+    - advanced_userlist (moved to kadu.install, since it's now an internal
+      module)
+    - ext_info
+    - iwait4u
+    - osdhints_notify (probably only temporally, should be back in 0.6.0)
+    - powerkadu
+    - xmms
+    - xosd_notify (moved to kadu.install, since it's now an internal module)
+  * debian/patches:
+    - Removed 01-libgadu_Makefile.patch - not needed any more
+    - 02-.config.patch updated to fit new .config file and it's list of
+      modules and themes.
+    - 03-about-dialog.patch modified to fit 0.6.0 version of Kadu.
+    - 04-configure_nostrip.patch modified to fit 0.6.0 version of Kadu. Also
+      patch file's name changed to 01-configure-nostrip.patch
+  * debian/rules:
+    - Linking statically against libgadu from Kadu sources -- version of
+      libgadu currently in Debian is too old -- doesn't support dcc7 needed
+      for dcc module.
+    - Removing .o files after unpacking (see mediaplayer tarball).
+  * external:
+    - updated modules and themes to their newest versions.
+
+ -- Patryk Cisek <patryk@prezu.one.pl>  Thu, 14 Feb 2008 08:08:00 +0000
+
+kadu (0.5.0-4) unstable; urgency=low
+
+  * debian/control
+    - Fixed packages dependencies to make kadu be binNMU-safe
+  * debian/patches/04-configure_nostrip.patch
+    - Added this patch to prevent from stripping binaries during linkage
+      time (Closes: #437250)
+  * debian/kadu.menu
+    - Section changed to Applications/Network/Communication
+
+ -- Patryk Cisek <patryk@prezu.one.pl>  Sun, 12 Aug 2007 19:18:48 +0200
+
+kadu (0.5.0-3) unstable; urgency=low
+
+  * kadu-dcopexport and kadu-amarok modules moved to a separate package
+    kadu-kde-modules due to their dependency on kdelibs.
+  * In copyright notices changed: "Vogel" to "Rafał 'Vogel' Malinowski" (on
+    Rafał's request)
+
+ -- Patryk Cisek <patryk@prezu.one.pl>  Thu, 07 Jun 2007 10:09:18 +0200
+
+kadu (0.5.0-2) unstable; urgency=low
+
+  * Just a rebuild against libcurl4-gnutls
+
+ -- Patryk Cisek <patryk@prezu.one.pl>  Mon, 14 May 2007 20:50:16 +0200
+
+kadu (0.5.0-1) unstable; urgency=low
+
+  * Initial release
+  * debian/patches:
+    - 01-libgadu_Makefile.patch - make distclean breaks the libgadu sources.
+      This patch avoids deleting libgadu/config.h.in, libgadu/configure and
+      libgadu/aclocal.m4
+    - 02-.config.patch - This patch selects all modules and all additional
+      icons and emoticons themes (exceptions are encryption and mail modules,
+      which are not selected due to OpenSSL's license vs. GPL incompatibility)
+    - 03-about-dialog.patch - Originally "About..." dialog reads contents of
+      AUTHORS, THANKS, LICENSE and ChangeLog files from the /usr/share/kadu/
+      directory. These files are moved to /usr/share/doc/kadu/ and this patch
+      makes "About..." dialog read from proper directory. Also ChangeLog is
+      installed as about-changes-tab.txt.
+  * debian/extract.sh:
+    Kadu has a mechanism called "autodownload". It's purpose is to fetch
+    external modules and themes (selected in .config file) by a configure
+    script. This is unacceptable for Debian source package, because such data
+    wouldn't be verifiable. external directory holds all these modules and
+    themes and debian/extract.sh unpacks the tarballs, overriding autodownload
+    mechanism.
+  * Voice module has to be linked against patched version of libgsm to work
+    properly, that's why libgsm is shipped with the module and linked
+    statically.
+  * Contents of all tabs in an "About..." dialog are read directly from
+    AUTHORS, THANKS, LICENSE and (after applying 03-about-dialog.patch)
+    about-changes-tab.txt. That's why these files cannot be gzipped.
+
+ -- Patryk Cisek <patryk@prezu.one.pl>  Thu, 03 May 2007 15:18:04 +0200
+

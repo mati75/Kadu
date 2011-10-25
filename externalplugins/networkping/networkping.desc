@@ -1,0 +1,8 @@
+[Module]
+Plugin=true
+Description=Periodically checks the network state
+Description[pl]=Sprawdza okresowo stan sieci
+Author=Piotr "ultr" D±browski
+LoadByDefault=false
+Version=0.10-1
+Base=false
