@@ -47,11 +47,6 @@
 
 
 
-PanelKadu *panelkadu;
-
-
-
-
 int PanelKadu::init( bool firstLoad )
 {
 	Q_UNUSED( firstLoad );

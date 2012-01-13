@@ -99,7 +99,4 @@ class PanelKadu : public ConfigurationUiHandler, public ConfigurationAwareObject
 };
 
 
-extern PanelKadu *panelkadu;
-
-
 #endif
