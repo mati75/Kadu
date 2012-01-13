@@ -31,11 +31,6 @@
 
 
 
-NetworkPing *networkping;
-
-
-
-
 int NetworkPing::init( bool firstLoad )
 {
 	Q_UNUSED( firstLoad );
@@ -139,10 +134,15 @@ void NetworkPing::configurationUpdated()
 }
 
 
+
+
 void NetworkPing::networkOffline()
 {
 	if( isonline )
+	{
+		lastip.clear();
 		emit signalOffline();
+	}
 }
 
 
@@ -255,13 +255,16 @@ void NetworkPing::processCheckIP()
 			}
 		}
 	}
-	resetCheckIP();
 	if( ! ip.isEmpty() )
 	{
-		if( ( ! lastip.isEmpty() ) && ( ip != lastip ) )
-			networkReset();
+		if( ! lastip.isEmpty() )
+		{
+			if( ( ! lastip.isEmpty() ) && ( ip != lastip ) )
+				networkReset();
+		}
 		lastip = ip;
 	}
+	resetCheckIP();
 }
 
 

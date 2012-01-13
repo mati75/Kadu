@@ -84,7 +84,4 @@ class NetworkPing : public QObject, public ConfigurationAwareObject, public Gene
 };
 
 
-extern NetworkPing *networkping;
-
-
 #endif
