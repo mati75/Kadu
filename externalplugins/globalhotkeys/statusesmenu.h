@@ -28,6 +28,7 @@
 
 #include "contacts/contact.h"
 #include "gui/widgets/chat-widget.h"
+#include "status/status-container.h"
 
 #include "globalmenu.h"
 #include "property.h"

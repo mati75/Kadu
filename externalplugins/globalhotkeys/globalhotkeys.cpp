@@ -31,13 +31,13 @@
 #include <QString>
 #include <QStringList>
 #include <QTimer>
+#include <QVector>
 #include <QX11Info>
 
 #include "buddies/buddy.h"
 #include "buddies/buddy-manager.h"
 #include "buddies/buddy-preferred-manager.h"
 #include "buddies/group-manager.h"
-#include "chat/message/pending-messages-manager.h"
 #include "chat/chat-manager.h"
 #include "chat/recent-chat-manager.h"
 #include "core/core.h"
@@ -52,6 +52,7 @@
 #include "gui/windows/kadu-window.h"
 #include "gui/windows/your-accounts.h"
 #include "icons/icons-manager.h"
+#include "message/message-manager.h"
 #include "misc/path-conversion.h"
 #include "notify/notification-manager.h"
 #include "status/status-container-manager.h"
@@ -447,7 +448,7 @@ void GlobalHotkeys::processConfBuddiesShortcut( ConfBuddiesShortcut *confbuddies
 			contactset.insert( BuddyPreferredManager::instance()->preferredContact( buddy, accounts.first() ) );
 		}
 		Chat chat = ChatManager::instance()->findChat( contactset, true );
-		ChatWidgetManager::instance()->openPendingMessages( chat, true );
+		ChatWidgetManager::instance()->byChat( chat, true );
 	}
 	else
 	{
@@ -515,19 +516,19 @@ void GlobalHotkeys::processConfBuddiesMenu( ConfBuddiesMenu *confbuddiesmenu )
 		// for each currently open chat
 		foreach( ChatWidget *chatwidget, ChatWidgetManager::instance()->chats() )
 		{
-			QList<Contact> contacts = chatwidget->chat().contacts().toContactList();
+			QVector<Contact> contacts = chatwidget->chat().contacts().toContactVector();
 			menu->add( contacts );
 		}
 	}
 	// add chats with pending messages to the menu
-	if( confbuddiesmenu->pendingChats() && ( PendingMessagesManager::instance()->hasPendingMessages() ) )
+	if( confbuddiesmenu->pendingChats() && ( MessageManager::instance()->hasUnreadMessages() ) )
 	{
 		QList<ContactSet> contactsetlist;
-		// for each pending message
-		foreach( Message message, PendingMessagesManager::instance()->pendingMessages() )
+		// for each unread message
+		foreach( Message message, MessageManager::instance()->allUnreadMessages() )
 		{
 			ContactSet contactset = message.messageChat().contacts();
-			menu->add( contactset.toContactList() );
+			menu->add( contactset.toContactVector() );
 		}
 	}
 	// add recently closed chats to the menu
@@ -536,14 +537,14 @@ void GlobalHotkeys::processConfBuddiesMenu( ConfBuddiesMenu *confbuddiesmenu )
 		// for each recently closed chat
 		foreach( Chat chat, RecentChatManager::instance()->recentChats() )
 		{
-			menu->add( chat.contacts().toContactList() );
+			menu->add( chat.contacts().toContactVector() );
 		}
 	}
 	// add online contatcts to the menu
 	if( confbuddiesmenu->onlineBuddies() )
 	{
-		QStringList onlinestatusgroups;
-		onlinestatusgroups << "Online" << "Away" << "Invisible";
+		QList<StatusTypeGroup> onlinestatusgroups;
+		onlinestatusgroups << StatusTypeGroupOnline << StatusTypeGroupAway << StatusTypeGroupInvisible;
 		foreach( Buddy buddy, BuddyManager::instance()->items() )
 		{
 			Contact contact = BuddyPreferredManager::instance()->preferredContact( buddy );

@@ -29,7 +29,6 @@
 #include "buddies/buddy-preferred-manager.h"
 #include "buddies/buddy-set.h"
 #include "buddies/buddy-shared.h"
-#include "chat/message/pending-messages-manager.h"
 #include "chat/type/chat-type-manager.h"
 #include "chat/chat-manager.h"
 #include "chat/recent-chat-manager.h"
@@ -150,13 +149,13 @@ void BuddiesMenu::add( ContactSet contactset )
 	{
 		if( RecentChatManager::instance()->recentChats().contains( chat ) )
 			chatstate |= ChatStateRecent;
-		if( PendingMessagesManager::instance()->hasPendingMessagesForChat( chat ) )
+		if( chat.unreadMessagesCount() > 0 )
 			chatstate |= ChatStatePending;
 		ChatWidget *chatwidget = ChatWidgetManager::instance()->byChat( chat, false );
 		if( chatwidget != NULL )
 		{
 			chatstate |= ChatStateCurrent;
-			if( chatwidget->newMessagesCount() > 0 )
+			if( chat.unreadMessagesCount() > 0 )
 				chatstate |= ChatStatePending;
 			if( _isActiveWindow( chatwidget ) )
 				chatstate |= ChatStateActive;
@@ -177,10 +176,10 @@ void BuddiesMenu::add( Contact contact )
 }
 
 
-void BuddiesMenu::add( QList<Contact> contacts )
+void BuddiesMenu::add( QVector<Contact> contacts )
 {
 	ContactSet contactset;
-	contactset.unite( contacts.toSet() );
+	contactset.unite( contacts.toList().toSet() );
 	add( contactset );
 }
 
@@ -202,10 +201,10 @@ bool BuddiesMenu::contains( Contact contact )
 }
 
 
-bool BuddiesMenu::contains( QList<Contact> contacts )
+bool BuddiesMenu::contains( QVector<Contact> contacts )
 {
 	ContactSet contactset;
-	contactset.unite( contacts.toSet() );
+	contactset.unite( contacts.toList().toSet() );
 	return contains( contactset );
 }
 
@@ -259,10 +258,10 @@ void BuddiesMenu::remove( Contact contact )
 }
 
 
-void BuddiesMenu::remove( QList<Contact> contacts )
+void BuddiesMenu::remove( QVector<Contact> contacts )
 {
 	ContactSet contactset;
-	contactset.unite( contacts.toSet() );
+	contactset.unite( contacts.toList().toSet() );
 	remove( contactset );
 }
 
@@ -399,7 +398,7 @@ void BuddiesMenu::openChat()
 	closeTopMostMenu();
 	// (re)open the chat with selected user(s)
 	Chat chat = ChatManager::instance()->findChat( data.contactSet(), true );
-	ChatWidgetManager::instance()->openPendingMessages( chat, true );
+	ChatWidgetManager::instance()->byChat( chat, true );
 }
 
 

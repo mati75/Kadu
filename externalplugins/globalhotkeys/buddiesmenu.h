@@ -74,15 +74,15 @@ class BuddiesMenu : public GlobalMenu
 		BuddiesMenu();
 		void add( ContactSet contactset );
 		void add( Contact contact );
-		void add( QList<Contact> contacts );
+		void add( QVector<Contact> contacts );
 		bool contains( ContactSet contactset );
 		bool contains( Contact contact );
-		bool contains( QList<Contact> contacts );
+		bool contains( QVector<Contact> contacts );
 		bool contains( Buddy buddy );
 		bool contains( QString buddydisplay );
 		void remove( ContactSet contactset );
 		void remove( Contact contact );
-		void remove( QList<Contact> contacts );
+		void remove( QVector<Contact> contacts );
 		void remove( Buddy buddy );
 		void remove( QString buddydisplay );
 		void clear();

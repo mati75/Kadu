@@ -28,7 +28,6 @@
 
 #include "buddies/buddy-manager.h"
 #include "buddies/group-manager.h"
-#include "chat/message/pending-messages-manager.h"
 #include "chat/chat-manager.h"
 #include "chat/recent-chat-manager.h"
 #include "core/core.h"
@@ -38,14 +37,15 @@
 #include "gui/widgets/status-menu.h"
 #include "gui/windows/add-buddy-window.h"
 #include "gui/windows/kadu-window.h"
+#include "gui/windows/modules-window.h"
 #include "gui/windows/multilogon-window.h"
 #include "gui/windows/search-window.h"
 #include "gui/windows/your-accounts.h"
 #include "file-transfer/file-transfer-manager.h"
 #include "icons/icons-manager.h"
+#include "message/message-manager.h"
 #include "misc/path-conversion.h"
 #include "notify/notification-manager.h"
-#include "plugins/plugins-manager.h"
 #include "status/status-container-manager.h"
 #include "status/status-type.h"
 #include "status/status-type-manager.h"
@@ -126,10 +126,10 @@ void Functions::functionShowHideKadusMainWindow( ConfHotKey *confhotkey )
 void Functions::functionOpenIncomingChatWindow( ConfHotKey *confhotkey )
 {
 	Q_UNUSED( confhotkey );
-	if( PendingMessagesManager::instance()->hasPendingMessages() )
+	if( MessageManager::instance()->hasUnreadMessages() )
 	{
-		// open window for pending message(s)
-		ChatWidgetManager::instance()->openPendingMessages( true );
+		// open window for unread message(s)
+		ChatWidgetManager::instance()->byChat( MessageManager::instance()->unreadMessage().messageChat(), true );
 		// activate it
 		QWidget *win = ChatWidgetManager::instance()->chats().values().last();  // last created chat widget
 		win = win->window();
@@ -140,7 +140,7 @@ void Functions::functionOpenIncomingChatWindow( ConfHotKey *confhotkey )
 		// show window with new unread message(s)
 		foreach( ChatWidget *chatwidget, ChatWidgetManager::instance()->chats() )
 		{
-			if( chatwidget->newMessagesCount() > 0 )
+			if( chatwidget->chat().unreadMessagesCount() > 0 )
 			{
 				chatwidget->show();
 				_activateWindow( chatwidget->window() );
@@ -155,11 +155,11 @@ void Functions::functionOpenIncomingChatWindow( ConfHotKey *confhotkey )
 void Functions::functionOpenAllIncomingChatWindows( ConfHotKey *confhotkey )
 {
 	Q_UNUSED( confhotkey );
-	// open all windows for pending message(s)
-	while( PendingMessagesManager::instance()->hasPendingMessages() )
+	// open all windows for unread message(s)
+	while( MessageManager::instance()->hasUnreadMessages() )
 	{
 		// open the window
-		ChatWidgetManager::instance()->openPendingMessages( true );
+		ChatWidgetManager::instance()->byChat( MessageManager::instance()->unreadMessage().messageChat(), true );
 		// activate it
 		QWidget *win = ChatWidgetManager::instance()->chats().values().last();  // last created chat widget
 		win = win->window();
@@ -168,7 +168,7 @@ void Functions::functionOpenAllIncomingChatWindows( ConfHotKey *confhotkey )
 	// show all windows with new unread message(s)
 	foreach( ChatWidget *chatwidget, ChatWidgetManager::instance()->chats() )
 	{
-		if( chatwidget->newMessagesCount() > 0 )
+		if( chatwidget->chat().unreadMessagesCount() > 0 )
 		{
 			chatwidget->show();
 			_activateWindow( chatwidget->window() );
@@ -346,10 +346,11 @@ void Functions::functionChangeDescription( ConfHotKey *confhotkey )
 			return;
 		}
 	}
-	StatusContainer *statuscontainer =
-		( StatusContainerManager::instance()->statusContainers().count() == 1 ) ?
-		StatusContainerManager::instance()->statusContainers()[0] : StatusContainerManager::instance();
-	ChooseDescription *dialog = ChooseDescription::showDialog( statuscontainer );
+	QList<StatusContainer*> statuscontainers =
+		( StatusContainerManager::instance()->statusContainers().count() == 1 )
+			? ( QList<StatusContainer*>() << StatusContainerManager::instance()->statusContainers()[0] )
+			: StatusContainerManager::instance()->subStatusContainers();
+	ChooseDescription *dialog = ChooseDescription::showDialog( statuscontainers );
 	new GlobalWidgetManager( dialog );
 	// global data
 	GlobalHotkeys::instance()->SHOWNGLOBALWIDGET = dialog;
@@ -408,5 +409,5 @@ void Functions::functionAccountManagerWindow( ConfHotKey *confhotkey )
 void Functions::functionPluginsWindow( ConfHotKey *confhotkey )
 {
 	Q_UNUSED( confhotkey );
-	PluginsManager::instance()->showWindow( NULL, false );
+	ModulesWindow::show();
 }
