@@ -1,9 +1,8 @@
 #ifndef MIME_TEX_H
 #define MIME_TEX_H
 
+#include <QObject>
 #include <QStringList>
-
-#include "plugins/generic-plugin.h"
 
 class UserGroup;
 class QWidget;
@@ -12,23 +11,14 @@ class ActionDescription;
 
 namespace MimeTeX {
 	//! This class provides "TeX formula" action
-	class MimeTeX : public QObject, public GenericPlugin
+	class MimeTeX : public QObject
 	{
 		Q_OBJECT
-		Q_INTERFACES(GenericPlugin)
 
 		public:
-			/*!
-			 * \brief Default constructor
-			 * \param *parent parent object
-			 */
-			MimeTeX(QObject *parent = 0);
-
-			//! Default destructor
-			virtual ~MimeTeX();
-
-			virtual int init(bool firstLoad);
-			virtual void done();
+			static void createInstance();
+			static void destroyInstance();
+			static MimeTeX * instance();
 
 			//! Default font size used by MimeTeX (see MimeTeX tab in config dialog for details).
 			static int defaultFontSize();
@@ -48,6 +38,17 @@ namespace MimeTeX {
 				void TeXActionActivated(QAction *action, bool toggled);
 
 		private:
+			static MimeTeX *Instance;
+
+			/*!
+			 * \brief Default constructor
+			 * \param *parent parent object
+			 */
+			MimeTeX(QObject *parent = 0);
+
+			//! Default destructor
+			virtual ~MimeTeX();
+
 			//! temp files names to be deleted in the destructor
 			QStringList tmpFiles;
 
@@ -55,8 +56,6 @@ namespace MimeTeX {
 			ActionDescription *TeXActionDescription;
 	};
 }
-
-extern MimeTeX::MimeTeX *mimeTeX;
 
 #endif
 

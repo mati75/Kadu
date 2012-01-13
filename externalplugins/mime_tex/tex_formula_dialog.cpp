@@ -571,7 +571,7 @@ MimeTeX::TeXFormulaDialog::TeXFormulaDialog(ChatWidget *parent, Qt::WindowFlags 
 	connect(&mimeTeXProcess, SIGNAL(finished(int, QProcess::ExitStatus)),formulaView, SLOT(fillView()));
 	connect(&mimeTeXProcess, SIGNAL(error(QProcess::ProcessError)), this, SLOT(errorMessage(QProcess::ProcessError)));
 	connect(formulaTextEdit, SIGNAL(textChanged()), this, SLOT(updateButtons()));
-	connect(mimeTeX, SIGNAL(deleting()), this, SLOT(deleteLater()));
+	connect(MimeTeX::instance(), SIGNAL(deleting()), this, SLOT(deleteLater()));
 
 	undoButton->setEnabled(false);
 	redoButton->setEnabled(false);

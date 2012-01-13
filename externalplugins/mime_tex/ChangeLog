@@ -1,3 +1,8 @@
+2011-12-29  Bartosz Brachaczek <b.brachaczek@gmail.com>
+
+	* Plugin made compatible with Kadu 0.11.
+	* Some minor cleanup.
+
 2011-10-25  Patryk Cisek <patryk@debian.org>
 
 	* Fixed compilation problem with new dpkg on Debian and Ubuntu

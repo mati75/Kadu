@@ -13,6 +13,7 @@ set (SOURCES
 	formula_view.cpp
 	formula_widget.cpp
 	mime_tex.cpp
+	mime_tex_plugin.cpp
 	tex_formula_dialog.cpp
 )
 
@@ -20,6 +21,7 @@ set (MOC_SOURCES
 	formula_view.h
 	formula_widget.h
 	mime_tex.h
+	mime_tex_plugin.h
 	tex_formula_dialog.h
 )
 

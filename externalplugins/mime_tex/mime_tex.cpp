@@ -13,32 +13,37 @@
 
 #include "mime_tex.h"
 #include "tex_formula_dialog.h"
-#include "mime_tex_ui_handler.h"
 
 #include "gui/actions/action.h"
+#include "gui/actions/action-context.h"
 #include "kadu-core/chat/chat-manager.h"
 #include "kadu-core/contacts/contact-set.h"
 #include "kadu-core/configuration/configuration-file.h"
 #include "kadu-core/icons/icons-manager.h"
 #include "kadu-core/gui/widgets/chat-widget-manager.h"
+#include "kadu-core/gui/widgets/chat-widget.h"
 #include "kadu-core/gui/windows/main-window.h"
 #include "kadu-core/misc/misc.h"
 #include "kadu-core/debug.h"
 
-MimeTeX::MimeTeX *mimeTeX = 0;
-//static MimeTeX::UIHandler uiHandler;
+MimeTeX::MimeTeX * MimeTeX::MimeTeX::Instance = 0;
 
-int MimeTeX::MimeTeX::init(bool firstLoad)
+void MimeTeX::MimeTeX::createInstance()
 {
-	Q_UNUSED(firstLoad)
-
-	return 0;
+	if (!Instance)
+		Instance = new MimeTeX();
 }
 
-void MimeTeX::MimeTeX::done()
+void MimeTeX::MimeTeX::destroyInstance()
 {
+	delete Instance;
+	Instance = 0;
 }
 
+MimeTeX::MimeTeX * MimeTeX::MimeTeX::instance()
+{
+	return Instance;
+}
 
 MimeTeX::MimeTeX::MimeTeX(QObject *parent)
 : QObject(parent)
@@ -46,7 +51,6 @@ MimeTeX::MimeTeX::MimeTeX(QObject *parent)
 	kdebugf();
 	
 	config_file.addVariable("MimeTeX", "mimetex_font_size", MimeTeX::MimeTeX::defaultFontSize());
-	MainConfigurationWindow::registerUiFile(dataPath("kadu/plugins/configuration/mime_tex.ui"));
 	
 	TeXActionDescription = new ActionDescription(
 			this,
@@ -64,7 +68,6 @@ MimeTeX::MimeTeX::~MimeTeX()
 {
 	kdebugf();
 	emit deleting();
-	MainConfigurationWindow::unregisterUiFile(dataPath("kadu/plugins/configuration/mime_tex.ui"));
 
 	if(config_file.readBoolEntry("MimeTeX", "mimetex_remove_tmp_files", false))
 	{
@@ -85,9 +88,9 @@ void MimeTeX::MimeTeX::TeXActionActivated(QAction *action, bool)
 {
 	kdebugf();
 
-	ContactSet contacts = dynamic_cast<Action *>(action)->contacts();
+	ContactSet contacts = qobject_cast<Action *>(action)->context()->contacts();
 
-	ChatWidget *chatWidget = ChatWidgetManager::instance()->byChat(ChatManager::instance()->findChat(contacts));
+	ChatWidget *chatWidget = ChatWidgetManager::instance()->byChat(ChatManager::instance()->findChat(contacts), false);
 	if (!chatWidget)
 		return;
 	TeXFormulaDialog *formulaDialog = new TeXFormulaDialog(chatWidget);
@@ -101,5 +104,3 @@ int MimeTeX::MimeTeX::defaultFontSize()
 	kdebugf();
 	return 4; // \Large
 }
-
-Q_EXPORT_PLUGIN2(mime_tex, MimeTeX::MimeTeX)

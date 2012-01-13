@@ -7,23 +7,31 @@
  *                                                                         *
  ***************************************************************************/
 
-#include "configuration_window_widgets.h"
-#include "debug.h"
+#include "gui/windows/main-configuration-window.h"
+#include "misc/misc.h"
 
-#include "mime_tex_ui_handler.h"
+#include "mime_tex.h"
 
-MimeTeX::UIHandler::UIHandler()
+#include "mime_tex_plugin.h"
+
+MimeTeX::MimeTeXPlugin::~MimeTeXPlugin()
 {
-	kdebugf();
 }
 
-MimeTeX::UIHandler::~UIHandler()
+int MimeTeX::MimeTeXPlugin::init(bool firstLoad)
 {
-	kdebugf();
+	Q_UNUSED(firstLoad)
+
+	MainConfigurationWindow::registerUiFile(dataPath("kadu/plugins/configuration/mime_tex.ui"));
+	MimeTeX::createInstance();
+
+	return 0;
 }
 
-void MimeTeX::UIHandler::mainConfigurationWindowCreated(MainConfigurationWindow *mainConfigurationWindow)
+void MimeTeX::MimeTeXPlugin::done()
 {
-	kdebugf();
+	MimeTeX::destroyInstance();
+	MainConfigurationWindow::unregisterUiFile(dataPath("kadu/plugins/configuration/mime_tex.ui"));
 }
 
+Q_EXPORT_PLUGIN2(mime_tex, MimeTeX::MimeTeXPlugin)
