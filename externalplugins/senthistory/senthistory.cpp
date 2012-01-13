@@ -37,11 +37,6 @@
 
 
 
-SentHistory *senthistory;
-
-
-
-
 int SentHistory::init( bool firstLoad )
 {
 	Q_UNUSED( firstLoad );

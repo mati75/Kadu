@@ -4,5 +4,5 @@ Description=Adds history of sent messages to chat windows
 Description[pl]=Dodaje historiê wys³anych wiadomo¶ci do okien rozmowy
 Author=Piotr "ultr" D±browski
 LoadByDefault=false
-Version=0.10-9
+Version=0.10-10-git
 Base=false

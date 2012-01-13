@@ -64,7 +64,4 @@ class SentHistory : public QObject, public ConfigurationAwareObject, public Gene
 };
 
 
-extern SentHistory *senthistory;
-
-
 #endif
