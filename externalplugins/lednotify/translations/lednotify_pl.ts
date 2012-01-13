@@ -20,10 +20,6 @@
         <translation>Opóźnienie mrugania</translation>
     </message>
     <message>
-        <source>Scroll Lock LED</source>
-        <translation>Dioda Scroll Lock</translation>
-    </message>
-    <message>
         <source>LED</source>
         <translation>Dioda LED</translation>
     </message>
@@ -45,19 +41,19 @@
     </message>
     <message>
         <source>Diode</source>
-        <translation type="unfinished">Dioda</translation>
+        <translation>Dioda</translation>
     </message>
     <message>
         <source>ScrollLock</source>
-        <translation type="unfinished">ScrollLock</translation>
+        <translation>ScrollLock</translation>
     </message>
     <message>
         <source>NumLock</source>
-        <translation type="unfinished">NumLock</translation>
+        <translation>NumLock</translation>
     </message>
     <message>
         <source>CapsLock</source>
-        <translation type="unfinished">CapsLock</translation>
+        <translation>CapsLock</translation>
     </message>
 </context>
 </TS>

@@ -39,10 +39,6 @@
         </translation>
     </message>
     <message>
-        <source>Scroll Lock LED</source>
-        <translation>Scroll Lock LED</translation>
-    </message>
-    <message>
         <source>Diode</source>
         <translation>Diode</translation>
     </message>

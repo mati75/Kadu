@@ -1,6 +1,7 @@
 /***************************************************************************
- *   Copyright (C) 2008                                                    *
+ *   Copyright (C) 2008-2011                                               *
  *     Michał Małek  michalm@jabster.pl                                    *
+ *     Piotr Dąbrowski  ultr@ultr.pl                                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -98,6 +99,8 @@ void LedDriver::Impl::set( LedDriver::Diode diode, bool ledState )
 			case DiodeCapsLock:
 				diodeFlag = KEYBOARD_CAPS_LOCK_ON;
 				break;
+			default:
+				return;
 		}
 		if( ledState )
 			inputBuffer_.LedFlags = outputBuffer_.LedFlags | diodeFlag;
@@ -121,7 +124,7 @@ LedDriver::~LedDriver()
 }
 
 
-void LedDriver::set( bool ledState )
+void LedDriver::set( LedDriver::Diode diode, bool ledState )
 {
-	impl_->set( ledState );
+	impl_->set( diode, ledState );
 }

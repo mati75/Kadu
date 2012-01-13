@@ -40,24 +40,20 @@
         </translation>
     </message>
     <message>
-        <source>Scroll Lock LED</source>
-        <translation>Zamknutí LED</translation>
-    </message>
-    <message>
         <source>Diode</source>
-        <translation type="unfinished"></translation>
+        <translation>Dioda</translation>
     </message>
     <message>
         <source>ScrollLock</source>
-        <translation type="unfinished"></translation>
+        <translation>ScrollLock</translation>
     </message>
     <message>
         <source>NumLock</source>
-        <translation type="unfinished"></translation>
+        <translation>NumLock</translation>
     </message>
     <message>
         <source>CapsLock</source>
-        <translation type="unfinished"></translation>
+        <translation>CapsLock</translation>
     </message>
 </context>
 </TS>

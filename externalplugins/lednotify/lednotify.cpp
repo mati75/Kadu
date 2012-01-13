@@ -53,7 +53,7 @@ void LedNotify::done()
 
 
 LedNotify::LedNotify() :
-	Notifier( "lednotify", QT_TRANSLATE_NOOP( "@default", "Scroll Lock LED" ), KaduIcon( "kadu_icons/notify-led" ) ),
+	Notifier( "lednotify", QT_TRANSLATE_NOOP( "@default", "LED" ), KaduIcon( "kadu_icons/notify-led" ) ),
 	chatBlinking_( false ), msgBlinking_( false )
 {
 	config_file.addVariable( "LedNotify", "LEDdiode", LedDriver::DiodeScrollLock );
