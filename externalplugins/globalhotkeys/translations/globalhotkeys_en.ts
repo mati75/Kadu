@@ -224,5 +224,9 @@ are in use by another application.</numerusform>
         <source>Sort by status</source>
         <translation>Sort by status</translation>
     </message>
+    <message>
+        <source>Multilogon window</source>
+        <translation>Multilogon window</translation>
+    </message>
 </context>
 </TS>

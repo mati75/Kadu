@@ -38,6 +38,7 @@
 #include "gui/widgets/status-menu.h"
 #include "gui/windows/add-buddy-window.h"
 #include "gui/windows/kadu-window.h"
+#include "gui/windows/multilogon-window.h"
 #include "gui/windows/search-window.h"
 #include "gui/windows/your-accounts.h"
 #include "file-transfer/file-transfer-manager.h"
@@ -378,6 +379,13 @@ void Functions::functionFileTransfersWindow( ConfHotKey *confhotkey )
 {
 	Q_UNUSED( confhotkey );
 	FileTransferManager::instance()->showFileTransferWindow();
+}
+
+
+void Functions::functionMultilogonWindow( ConfHotKey *confhotkey )
+{
+	Q_UNUSED( confhotkey );
+	MultilogonWindow::instance()->show();
 }
 
 

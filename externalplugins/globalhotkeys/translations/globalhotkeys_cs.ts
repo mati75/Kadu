@@ -206,7 +206,7 @@ používané jinými programy.</numerusform>
     </message>
     <message>
         <source>no buddies to display</source>
-        <translation type="unfinished"></translation>
+        <translation>žádní kamarádi k zobrazení</translation>
     </message>
     <message>
         <source>no accounts defined</source>
@@ -214,19 +214,23 @@ používané jinými programy.</numerusform>
     </message>
     <message>
         <source>File transfers window</source>
-        <translation type="unfinished"></translation>
+        <translation>Okno pro přenosy souborů</translation>
     </message>
     <message>
         <source>Show at most one item per buddy</source>
-        <translation type="unfinished"></translation>
+        <translation>zat alespoň jednu položku na kamaráda</translation>
     </message>
     <message>
         <source>Sort stateless buddies</source>
-        <translation type="unfinished"></translation>
+        <translation>Třídit kamarády bez stavu</translation>
     </message>
     <message>
         <source>Sort by status</source>
-        <translation type="unfinished"></translation>
+        <translation>Třídit podle stavu</translation>
+    </message>
+    <message>
+        <source>Multilogon window</source>
+        <translation>Okno s více přihlášeními</translation>
     </message>
 </context>
 </TS>

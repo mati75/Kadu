@@ -1,3 +1,7 @@
+0.10-26 => 0.10-27
+* Dodanie skrótu do okna multilogowania.
+
+
 0.10-25 => 0.10-26
 * Naprawiony crash Kadu przy odwoływaniu się do obiektu klasy GlobalHotkeys.
 

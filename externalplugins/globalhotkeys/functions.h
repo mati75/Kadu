@@ -55,6 +55,7 @@ class Functions : public QObject
 		void functionAddANewBuddy(                ConfHotKey *confhotkey );
 		void functionSearchForBuddy(              ConfHotKey *confhotkey );
 		void functionFileTransfersWindow(         ConfHotKey *confhotkey );
+		void functionMultilogonWindow(            ConfHotKey *confhotkey );
 		void functionConfigurationWindow(         ConfHotKey *confhotkey );
 		void functionAccountManagerWindow(        ConfHotKey *confhotkey );
 		void functionPluginsWindow(               ConfHotKey *confhotkey );

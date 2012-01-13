@@ -5,5 +5,5 @@ Description[pl]=Dodaje do Kadu obs³ugê skrótów globalnych.
 Author=Piotr "ultr" D±browski
 LoadByDefault=true
 Dependencies=history
-Version=0.10-26
+Version=0.10-27
 Base=false

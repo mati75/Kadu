@@ -51,7 +51,6 @@
 #include "gui/windows/add-buddy-window.h"
 #include "gui/windows/kadu-window.h"
 #include "gui/windows/your-accounts.h"
-#include "file-transfer/file-transfer-manager.h"
 #include "icons/icons-manager.h"
 #include "misc/path-conversion.h"
 #include "notify/notification-manager.h"
@@ -119,6 +118,7 @@ GlobalHotkeys::GlobalHotkeys()
 	new ConfHotKey( this, QT_TRANSLATE_NOOP( "@default", "Buddies"           ), QT_TRANSLATE_NOOP( "@default", "Add a new buddy"                    ), "AddANewBuddy"               , "functionAddANewBuddy"                         );
 	new ConfHotKey( this, QT_TRANSLATE_NOOP( "@default", "Buddies"           ), QT_TRANSLATE_NOOP( "@default", "Search for buddy"                   ), "SearchForBuddy"             , "functionSearchForBuddy"                       );
 	new ConfHotKey( this, QT_TRANSLATE_NOOP( "@default", "Windows shortcuts" ), QT_TRANSLATE_NOOP( "@default", "File transfers window"              ), "FileTransfersWindow"        , "functionFileTransfersWindow"                  );
+	new ConfHotKey( this, QT_TRANSLATE_NOOP( "@default", "Windows shortcuts" ), QT_TRANSLATE_NOOP( "@default", "Multilogon window"                  ), "MultilogonWindow"           , "functionMultilogonWindow"                     );
 	new ConfHotKey( this, QT_TRANSLATE_NOOP( "@default", "Windows shortcuts" ), QT_TRANSLATE_NOOP( "@default", "Configuration window"               ), "ConfigurationWindow"        , "functionConfigurationWindow"                  );
 	new ConfHotKey( this, QT_TRANSLATE_NOOP( "@default", "Windows shortcuts" ), QT_TRANSLATE_NOOP( "@default", "Account manager window"             ), "AccountManagerWindow"       , "functionAccountManagerWindow"                 );
 	new ConfHotKey( this, QT_TRANSLATE_NOOP( "@default", "Windows shortcuts" ), QT_TRANSLATE_NOOP( "@default", "Plugins window"                     ), "PluginsWindow"              , "functionPluginsWindow"                        );

@@ -185,7 +185,7 @@
     </message>
     <message>
         <source>Add new menu ...</source>
-        <translation>Aggiungi nuovo menù</translation>
+        <translation>Aggiungi nuovo menù ...</translation>
     </message>
     <message numerus="yes">
         <source>%n hotkey(s):
@@ -222,6 +222,10 @@ sono in uso da un&amp;apos;altra applicazione.</numerusform>
     </message>
     <message>
         <source>Sort by status</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Multilogon window</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

@@ -227,5 +227,9 @@ jest używanch przez inną aplikację.</numerusform>
         <source>Sort by status</source>
         <translation>Uwzględniaj status przy sortowaniu</translation>
     </message>
+    <message>
+        <source>Multilogon window</source>
+        <translation>Okno multilogowania</translation>
+    </message>
 </context>
 </TS>
