@@ -24,8 +24,8 @@
 
 
 #include <buddies/buddy.h>
-#include <buddies/buddy-or-contact.h>
 #include <buddies/buddy-shared.h>
+#include <talkable/talkable.h>
 
 #include "buddynextinfodata.h"
 #include "nextinfo.h"
@@ -33,63 +33,63 @@
 #include "defines.h"
 
 
-static QString getTag_address( BuddyOrContact buddyorcontact )
+static QString getTag_address( Talkable talkable )
 {
-	BuddyNExtInfoData *bdata = NExtInfo::bData( buddyorcontact.buddy() );
+	BuddyNExtInfoData *bdata = NExtInfo::bData( talkable.toBuddy() );
 	if( ! bdata )
 		return QString();
 	return bdata->address();
 }
 
 
-static QString getTag_city( BuddyOrContact buddyorcontact )
+static QString getTag_city( Talkable talkable )
 {
-	BuddyNExtInfoData *bdata = NExtInfo::bData( buddyorcontact.buddy() );
+	BuddyNExtInfoData *bdata = NExtInfo::bData( talkable.toBuddy() );
 	if( ! bdata )
 		return QString();
 	return bdata->city();
 }
 
 
-static QString getTag_email2( BuddyOrContact buddyorcontact )
+static QString getTag_email2( Talkable talkable )
 {
-	BuddyNExtInfoData *bdata = NExtInfo::bData( buddyorcontact.buddy() );
+	BuddyNExtInfoData *bdata = NExtInfo::bData( talkable.toBuddy() );
 	if( ! bdata )
 		return QString();
 	return bdata->email2();
 }
 
 
-static QString getTag_birthday( BuddyOrContact buddyorcontact )
+static QString getTag_birthday( Talkable talkable )
 {
-	BuddyNExtInfoData *bdata = NExtInfo::bData( buddyorcontact.buddy() );
+	BuddyNExtInfoData *bdata = NExtInfo::bData( talkable.toBuddy() );
 	if( ! bdata )
 		return QString();
 	return bdata->birthday();
 }
 
 
-static QString getTag_nameday( BuddyOrContact buddyorcontact )
+static QString getTag_nameday( Talkable talkable )
 {
-	BuddyNExtInfoData *bdata = NExtInfo::bData( buddyorcontact.buddy() );
+	BuddyNExtInfoData *bdata = NExtInfo::bData( talkable.toBuddy() );
 	if( ! bdata )
 		return QString();
 	return bdata->nameday();
 }
 
 
-static QString getTag_interests( BuddyOrContact buddyorcontact )
+static QString getTag_interests( Talkable talkable )
 {
-	BuddyNExtInfoData *bdata = NExtInfo::bData( buddyorcontact.buddy() );
+	BuddyNExtInfoData *bdata = NExtInfo::bData( talkable.toBuddy() );
 	if( ! bdata )
 		return QString();
 	return bdata->interests().replace( "\n", "<br/>" );
 }
 
 
-static QString getTag_notes( BuddyOrContact buddyorcontact )
+static QString getTag_notes( Talkable talkable )
 {
-	BuddyNExtInfoData *bdata = NExtInfo::bData( buddyorcontact.buddy() );
+	BuddyNExtInfoData *bdata = NExtInfo::bData( talkable.toBuddy() );
 	if( ! bdata )
 		return QString();
 	return bdata->notes().replace( "\n", "<br/>" );

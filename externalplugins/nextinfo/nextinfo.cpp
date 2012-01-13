@@ -44,8 +44,8 @@
 #include "core/core.h"
 #include "gui/actions/action.h"
 #include "gui/widgets/configuration/configuration-widget.h"
-#include "gui/widgets/buddies-list-view-menu-manager.h"
 #include "gui/windows/kadu-window.h"
+#include "gui/widgets/talkable-menu-manager.h"
 #include "misc/path-conversion.h"
 #include "notify/notification.h"
 #include "notify/notification-manager.h"
@@ -103,20 +103,20 @@ NExtInfo::NExtInfo()
 	connect( birthdaynamedaytimer, SIGNAL(timeout()), this, SLOT(notifyBirthdayNameday()) );
 	// read the configuration and force its usage
 	configurationUpdated();
-	// add NExtInfo actions to BuddiesListView's context menu
+	// add NExtInfo actions to Talkable's context menu
 	actionbirthday = new ActionDescription(
 		this, ActionDescription::TypeUser, "nextinfo_birthdayinform", this, SLOT(actionBirthdayTriggered(QAction*,bool)),
 		KaduIcon( "external_modules/nextinfo-birthday" ), qApp->translate( "@nextinfo", "Birthday notifications" ),
 		true, NExtInfo::updateActionBirthday
 	);
-	BuddiesListViewMenuManager::instance()->addListActionDescription( actionbirthday, BuddiesListViewMenuItem::MenuCategoryManagement, 200 );
+	TalkableMenuManager::instance()->addListActionDescription( actionbirthday, TalkableMenuItem::CategoryManagement, 200 );
 	connect( actionbirthday, SIGNAL(actionCreated(Action*)), this, SLOT(actionBirthdayCreated(Action*)) );
 	actionnameday = new ActionDescription(
 		this, ActionDescription::TypeUser, "nextinfo_namedayinform", this, SLOT(actionNamedayTriggered(QAction*,bool)),
 		KaduIcon( "external_modules/nextinfo-nameday" ), qApp->translate( "@nextinfo", "Name-day notifications" ),
 		true, NExtInfo::updateActionNameday
 	);
-	BuddiesListViewMenuManager::instance()->addListActionDescription( actionnameday, BuddiesListViewMenuItem::MenuCategoryManagement, 200 );
+	TalkableMenuManager::instance()->addListActionDescription( actionnameday, TalkableMenuItem::CategoryManagement, 200 );
 	connect( actionnameday, SIGNAL(actionCreated(Action*)), this, SLOT(actionNamedayCreated(Action*)) );
 	// register parser tags
 	Parser::registerTag( "nextinfo_address"   , getTag_address   );
@@ -148,11 +148,11 @@ NExtInfo::~NExtInfo()
 	// unregister the notification
 	NotificationManager::instance()->unregisterNotifyEvent( notifyevent );
 	delete notifyevent;
-	// remove NExtInfo actions from BuddiesListView's context menu
+	// remove NExtInfo actions from Talkable's context menu
 	disconnect( actionbirthday );
 	disconnect( actionnameday );
-	BuddiesListViewMenuManager::instance()->removeListActionDescription( actionbirthday );
-	BuddiesListViewMenuManager::instance()->removeListActionDescription( actionnameday  );
+	TalkableMenuManager::instance()->removeListActionDescription( actionbirthday );
+	TalkableMenuManager::instance()->removeListActionDescription( actionnameday  );
 	actionbirthday->deleteLater();
 	actionnameday->deleteLater();
 	// unregister parser tags
@@ -401,7 +401,7 @@ void NExtInfo::updateActionBirthday( Action *action )
 	action->setChecked( false );
 	action->setEnabled( false );
 	// buddy
-	Buddy buddy = action->buddy();
+	Buddy buddy = action->context()->buddies().toBuddy();
 	if( ! buddy )
 		return;
 	// module data
@@ -427,7 +427,7 @@ void NExtInfo::updateActionNameday( Action *action )
 	action->setChecked( false );
 	action->setEnabled( false );
 	// buddy
-	Buddy buddy = action->buddy();
+	Buddy buddy = action->context()->buddies().toBuddy();
 	if( ! buddy )
 		return;
 	// module data
@@ -451,7 +451,7 @@ void NExtInfo::updateActionBirthdayMenu( Action *action )
 	if( action->menu() == NULL )
 		return ;
 	// buddy
-	Buddy buddy = action->buddy();
+	Buddy buddy = action->context()->buddies().toBuddy();
 	if( ! buddy )
 		return;
 	// module data
@@ -475,7 +475,7 @@ void NExtInfo::updateActionNamedayMenu( Action *action )
 	if( action->menu() == NULL )
 		return ;
 	// buddy
-	Buddy buddy = action->buddy();
+	Buddy buddy = action->context()->buddies().toBuddy();
 	if( ! buddy )
 		return;
 	// module data
@@ -501,7 +501,7 @@ void NExtInfo::actionBirthdayTriggered( QAction *sender, bool checked )
 	if( ! action )
 		return;
 	// buddy
-	Buddy buddy = action->buddy();
+	Buddy buddy = action->context()->buddies().toBuddy();
 	if( ! buddy )
 		return;
 	// set
@@ -518,7 +518,7 @@ void NExtInfo::actionNamedayTriggered( QAction *sender, bool checked )
 	if( ! action )
 		return;
 	// buddy
-	Buddy buddy = action->buddy();
+	Buddy buddy = action->context()->buddies().toBuddy();
 	if( ! buddy )
 		return;
 	// set
@@ -538,7 +538,7 @@ void NExtInfo::actionBirthdayNowTriggered()
 	if( ! action )
 		return;
 	// buddy
-	Buddy buddy = action->buddy();
+	Buddy buddy = action->context()->buddies().toBuddy();
 	if( ! buddy )
 		return;
 	// set
@@ -558,7 +558,7 @@ void NExtInfo::actionBirthdayTomorrowTriggered()
 	if( ! action )
 		return;
 	// buddy
-	Buddy buddy = action->buddy();
+	Buddy buddy = action->context()->buddies().toBuddy();
 	if( ! buddy )
 		return;
 	// set
@@ -578,7 +578,7 @@ void NExtInfo::actionBirthdayTheDayTriggered()
 	if( ! action )
 		return;
 	// buddy
-	Buddy buddy = action->buddy();
+	Buddy buddy = action->context()->buddies().toBuddy();
 	if( ! buddy )
 		return;
 	// set
@@ -598,7 +598,7 @@ void NExtInfo::actionBirthdayNextYearTriggered()
 	if( ! action )
 		return;
 	// buddy
-	Buddy buddy = action->buddy();
+	Buddy buddy = action->context()->buddies().toBuddy();
 	if( ! buddy )
 		return;
 	// set
@@ -618,7 +618,7 @@ void NExtInfo::actionNamedayNowTriggered()
 	if( ! action )
 		return;
 	// buddy
-	Buddy buddy = action->buddy();
+	Buddy buddy = action->context()->buddies().toBuddy();
 	if( ! buddy )
 		return;
 	// set
@@ -638,7 +638,7 @@ void NExtInfo::actionNamedayTomorrowTriggered()
 	if( ! action )
 		return;
 	// buddy
-	Buddy buddy = action->buddy();
+	Buddy buddy = action->context()->buddies().toBuddy();
 	if( ! buddy )
 		return;
 	// set
@@ -658,7 +658,7 @@ void NExtInfo::actionNamedayTheDayTriggered()
 	if( ! action )
 		return;
 	// buddy
-	Buddy buddy = action->buddy();
+	Buddy buddy = action->context()->buddies().toBuddy();
 	if( ! buddy )
 		return;
 	// set
@@ -678,7 +678,7 @@ void NExtInfo::actionNamedayNextYearTriggered()
 	if( ! action )
 		return;
 	// buddy
-	Buddy buddy = action->buddy();
+	Buddy buddy = action->context()->buddies().toBuddy();
 	if( ! buddy )
 		return;
 	// set
@@ -856,7 +856,7 @@ void NExtInfo::importDataFromExtInfo()
 									QString notes = "";
 									if( field == "DrugGG" )
 									{
-										QList<Account> gaduaccounts = AccountManager::instance()->byProtocolName( "gadu" );
+										QVector<Account> gaduaccounts = AccountManager::instance()->byProtocolName( "gadu" );
 										if( gaduaccounts.count() > 0 )
 										{
 											Account account = gaduaccounts.first();
@@ -1037,7 +1037,7 @@ void NExtInfo::importOldData( int fromversion )
 			// nextinfo_gg2 -> Contact()
 			if( ! buddy.customData( "nextinfo_gg2" ).isEmpty() )
 			{
-				QList<Account> gaduaccounts = AccountManager::instance()->byProtocolName( "gadu" );
+				QVector<Account> gaduaccounts = AccountManager::instance()->byProtocolName( "gadu" );
 				if( gaduaccounts.count() > 0 )
 				{
 					Account account = gaduaccounts.first();
@@ -1149,7 +1149,6 @@ void NExtInfo::importOldData( int fromversion )
 			bdata->setNotes( bdata->notes() + "\n\n" + notes );
 			// store data
 			bdata->store();
-			buddy.store();
 		}
 	}
 }
