@@ -23,8 +23,8 @@
 
 #include "debug.h"
 #include "buddies/buddy-search-criteria.h"
-#include "chat/message/message-render-info.h"
-#include "chat/message/message-common.h"
+#include "message/message-render-info.h"
+#include "message/message-common.h"
 #include "gui/widgets/chat-widget-manager.h"
 #include "contacts/contact-set.h"
 #include "protocols/services/contact-personal-info-service.h"
@@ -122,19 +122,10 @@ void AnonCheck::AnonymousCheck::onNewResults(Buddy buddy) {
                           tr("Birth Year"), false);
             }
 
-            Message msg = Message::create();
             if(0 != (*checkQueueIt).chatWidget()) {
                 Chat chat = (*checkQueueIt).chatWidget()->chat();
-                if(!chat.isNull()) {
-                    msg.setMessageChat(chat);
-					msg.setType(MessageTypeSystem);
-                    msg.setMessageSender(*(chat.contacts().begin()));
-                    msg.setContent(messageStr);
-                    msg.setReceiveDate(QDateTime::currentDateTime());
-                    msg.setSendDate(QDateTime::currentDateTime());
-                    MessageRenderInfo *renderInfo = new MessageRenderInfo(msg);
-                    (*checkQueueIt).chatWidget()->appendMessage(renderInfo);
-                }
+                if(!chat.isNull())
+                    (*checkQueueIt).chatWidget()->appendSystemMessage(messageStr);
             }
 
             m_checkQueue.removeOne(*checkQueueIt);

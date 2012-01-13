@@ -1,6 +1,7 @@
 #ifndef ANONYMOUS_INFO_H
 #define ANONYMOUS_INFO_H
 
+#include "accounts/account.h"
 #include "contacts/contact.h"
 #include "chat/chat.h"
 #include "gui/widgets/chat-widget.h"
@@ -11,7 +12,7 @@ public:
 
     const Contact &contact() const { return m_contact; }
     const Account &account() const { return m_account; }
-    ChatWidget *chatWidget() { return m_chatWidget; }
+    ChatWidget *chatWidget() const { return m_chatWidget; }
     bool operator ==(const AnonymousInfo &rhs) const;
 
 private:

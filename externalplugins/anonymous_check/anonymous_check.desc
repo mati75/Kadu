@@ -6,4 +6,4 @@ LoadByDefault=true
 Provides=
 Conflicts=
 Plugin=true
-Version=0.10.1
+Version=0.11.0-1
