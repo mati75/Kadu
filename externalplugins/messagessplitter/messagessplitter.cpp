@@ -24,6 +24,7 @@
 #include <QApplication>
 #include <QTextDocumentFragment>
 
+#include "accounts/account.h"
 #include "configuration/configuration-file.h"
 #include "gui/widgets/chat-edit-box.h"
 #include "gui/widgets/chat-widget-manager.h"
@@ -36,11 +37,6 @@
 #include "messagessplitter.h"
 
 #include "defines.h"
-
-
-
-
-MessagesSplitter *messagessplitter;
 
 
 

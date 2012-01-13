@@ -54,7 +54,4 @@ class MessagesSplitter : public ConfigurationUiHandler, public ConfigurationAwar
 };
 
 
-extern MessagesSplitter *messagessplitter;
-
-
 #endif
