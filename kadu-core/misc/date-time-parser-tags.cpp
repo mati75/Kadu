@@ -1,10 +1,10 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2009, 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2010 Tomasz Rostański (rozteck@interia.pl)
+ * Copyright 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  * Copyright 2008 Tomasz Rostański (rozteck@interia.pl)
  *
@@ -115,81 +115,81 @@ static QString getUptime(bool formatted)
 }
 
 /** Returns current time (without secs) */
-static QString parseTime(BuddyOrContact buddyOrContact)
+static QString parseTime(Talkable talkable)
 {
-	Q_UNUSED(buddyOrContact)
+	Q_UNUSED(talkable)
 
 	return QDateTime::currentDateTime().toString("h:mm");
 }
 
 /** Returns current time (with secs) */
-static QString parseLongTime(BuddyOrContact buddyOrContact)
+static QString parseLongTime(Talkable talkable)
 {
-	Q_UNUSED(buddyOrContact)
+	Q_UNUSED(talkable)
 
 	return QDateTime::currentDateTime().toString("hh:mm:ss");
 }
 
 /** Returns current date (without year) */
-static QString parseDate(BuddyOrContact buddyOrContact)
+static QString parseDate(Talkable talkable)
 {
-	Q_UNUSED(buddyOrContact)
+	Q_UNUSED(talkable)
 
 	return QDateTime::currentDateTime().toString("dd-MM");
 }
 
 /** Returns current date (with year) */
-static QString parseLongDate(BuddyOrContact buddyOrContact)
+static QString parseLongDate(Talkable talkable)
 {
-	Q_UNUSED(buddyOrContact)
+	Q_UNUSED(talkable)
 
 	return QDateTime::currentDateTime().toString("dd-MM-yyyy");
 }
 
 /** Returns time of Kadu start (without seconds) */
-static QString parseStartTime(BuddyOrContact buddyOrContact)
+static QString parseStartTime(Talkable talkable)
 {
-	Q_UNUSED(buddyOrContact)
+	Q_UNUSED(talkable)
 
 	return started.toString("hh:mm");
 }
 
 /** Returns time of Kadu start (with seconds) */
-static QString parseLongStartTime(BuddyOrContact buddyOrContact)
+static QString parseLongStartTime(Talkable talkable)
 {
-	Q_UNUSED(buddyOrContact)
+	Q_UNUSED(talkable)
 
 	return started.toString("dd-MM-yy hh:mm:ss");
 }
 
 /** Returns system uptime (seconds) */
-static QString parseUptime(BuddyOrContact buddyOrContact)
+static QString parseUptime(Talkable talkable)
 {
-	Q_UNUSED(buddyOrContact)
+	Q_UNUSED(talkable)
 
 	return getUptime(false);
 }
 
 /** Returns system uptime (formatted) */
-static QString parseLongUptime(BuddyOrContact buddyOrContact)
+static QString parseLongUptime(Talkable talkable)
 {
-	Q_UNUSED(buddyOrContact)
+	Q_UNUSED(talkable)
 
 	return getUptime(true);
 }
 
 /** Returns Kadu uptime */
-static QString parseKaduUptime(BuddyOrContact buddyOrContact)
+static QString parseKaduUptime(Talkable talkable)
 {
-	Q_UNUSED(buddyOrContact)
+	Q_UNUSED(talkable)
 
 	return getKaduUptime(false);
 }
 
 /** Returns Kadu uptime (formatted) */
-static QString parseLongKaduUptime(BuddyOrContact buddyOrContact)
+static QString parseLongKaduUptime(Talkable talkable)
 {
-	Q_UNUSED(buddyOrContact)
+	Q_UNUSED(talkable)
 
 	return getKaduUptime(true);
 }
@@ -209,18 +209,4 @@ void DateTimeParserTags::registerParserTags()
 	Parser::registerTag("uptime-long", parseLongUptime);
 	Parser::registerTag("kuptime", parseKaduUptime);
 	Parser::registerTag("kuptime-long", parseLongKaduUptime);
-}
-
-void DateTimeParserTags::unregisterParserTags()
-{
-	Parser::unregisterTag("time");
-	Parser::unregisterTag("time-long");
-	Parser::unregisterTag("date");
-	Parser::unregisterTag("date-long");
-	Parser::unregisterTag("start");
-	Parser::unregisterTag("start-long");
-	Parser::unregisterTag("uptime");
-	Parser::unregisterTag("uptime-long");
-	Parser::unregisterTag("kuptime");
-	Parser::unregisterTag("kuptime-long");
 }

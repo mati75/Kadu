@@ -1,8 +1,8 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -23,18 +23,38 @@
 
 #include "contact-list-model.h"
 
-ContactListModel::ContactListModel(const QList<Contact> &list, QObject *parent) :
+ContactListModel::ContactListModel(const QVector<Contact> &list, QObject *parent) :
 		QAbstractItemModel(parent), List(list)
 {
+	foreach (const Contact &contact, List)
+		connect(contact, SIGNAL(updated()), this, SLOT(contactUpdated()));
 }
 
 ContactListModel::~ContactListModel()
 {
+	foreach (const Contact &contact, List)
+		connect(contact, SIGNAL(updated()), this, SLOT(contactUpdated()));
+}
+
+void ContactListModel::contactUpdated()
+{
+	ContactShared *contactShared = qobject_cast<ContactShared *>(sender());
+	if (!contactShared)
+		return;
+
+	int row = List.indexOf(Contact(contactShared));
+	if (row < 0)
+		return;
+
+	const QModelIndex &contactIndex = index(row, 0);
+	emit dataChanged(contactIndex, contactIndex);
 }
 
 QModelIndex ContactListModel::index(int row, int column, const QModelIndex &parent) const
 {
-	return hasIndex(row, column, parent) ? createIndex(row, column, parent.isValid() ? parent.row() : -1) : QModelIndex();
+	return hasIndex(row, column, parent)
+	        ? createIndex(row, column, parent.isValid() ? parent.row() : -1)
+	        : QModelIndex();
 }
 
 int ContactListModel::columnCount(const QModelIndex &parent) const
@@ -56,27 +76,27 @@ QModelIndex ContactListModel::parent(const QModelIndex &child) const
 
 QVariant ContactListModel::data(const QModelIndex &index, int role) const
 {
-	return ContactDataExtractor::data(contactAt(index), role, true);
+	int row = index.row();
+	const Contact &contact = (row < 0 || row >= List.size())
+			? Contact::null
+			: List.at(row);
+
+	return ContactDataExtractor::data(contact, role, true);
 }
 
-Contact ContactListModel::contactAt(const QModelIndex &index) const
+QModelIndexList ContactListModel::indexListForValue(const QVariant &value) const
 {
-    int row = index.row();
-	if (row < 0 || row >= List.size())
-		return Contact::null;
+	QModelIndexList result;
 
-	return List.at(row);
-}
+	const Buddy &buddy = value.value<Buddy>();
 
-QModelIndex ContactListModel::indexForValue(const QVariant &value) const
-{
-	int i = 0;
-	foreach (const Contact &contact, List)
+	const int size = List.size();
+	for (int i = 0; i < size; i++)
 	{
-		if (contact.ownerBuddy() == value.value<Buddy>())
-			return createIndex(i, 0, 0);
-		i++;
+		const Contact &contact = List.at(i);
+		if (contact.ownerBuddy() == buddy)
+			result.append(index(i, 0));
 	}
 
-	return QModelIndex();
+	return result;
 }

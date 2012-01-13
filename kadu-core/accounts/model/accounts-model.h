@@ -1,7 +1,8 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -48,11 +49,10 @@ public:
 	virtual int rowCount(const QModelIndex &parent = QModelIndex()) const;
 
 	virtual QVariant data(const QModelIndex &index, int role) const;
-	virtual QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const;
 
 	Account account(const QModelIndex &index) const;
 	int accountIndex(Account account) const;
-	virtual QModelIndex indexForValue(const QVariant &value) const;
+	virtual QModelIndexList indexListForValue(const QVariant &value) const;
 
 	void setIncludeIdInDisplay(bool includeIdInDisplay);
 

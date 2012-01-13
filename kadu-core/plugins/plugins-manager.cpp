@@ -1,18 +1,19 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Piotr Dąbrowski (ultr@ultr.pl)
- * Copyright 2007, 2008 Dawid Stawiarski (neeo@kadu.net)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2011 Tomasz Rostanski (rozteck@interia.pl)
+ * Copyright 2008, 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2008, 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2004, 2005, 2006, 2007 Marcin Ślusarz (joi@kadu.net)
- * Copyright 2003, 2004, 2005 Adrian Smarzewski (adrian@kadu.net)
- * Copyright 2007, 2008, 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2004 Roman Krzystyniak (Ron_K@tlen.pl)
- * Copyright 2004, 2008, 2009 Michał Podsiadlik (michal@kadu.net)
  * Copyright 2008, 2009, 2010 Tomasz Rostański (rozteck@interia.pl)
- * Copyright 2010 Radosław Szymczyszyn (lavrin@gmail.com)
+ * Copyright 2010 Piotr Dąbrowski (ultr@ultr.pl)
+ * Copyright 2004, 2008, 2009 Michał Podsiadlik (michal@kadu.net)
+ * Copyright 2004 Roman Krzystyniak (Ron_K@tlen.pl)
+ * Copyright 2003, 2004, 2005 Adrian Smarzewski (adrian@kadu.net)
  * Copyright 2004, 2005 Paweł Płuciennik (pawel_p@kadu.net)
+ * Copyright 2010 Radosław Szymczyszyn (lavrin@gmail.com)
+ * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2007, 2008 Dawid Stawiarski (neeo@kadu.net)
+ * Copyright 2004, 2005, 2006, 2007 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -51,18 +52,16 @@
 
 #include "configuration/configuration-file.h"
 #include "configuration/configuration-manager.h"
-#include "core/core.h"
 #include "gui/hot-key.h"
-#include "gui/windows/kadu-window.h"
-#include "gui/windows/modules-window.h"
 #include "gui/windows/message-dialog.h"
+#include "gui/windows/modules-window.h"
+#include "icons/icons-manager.h"
 #include "misc/path-conversion.h"
 #include "plugins/generic-plugin.h"
-#include "plugins/plugin.h"
 #include "plugins/plugin-info.h"
+#include "plugins/plugin.h"
 #include "activate.h"
 #include "debug.h"
-#include "icons/icons-manager.h"
 
 #include "plugins-manager.h"
 
@@ -88,8 +87,7 @@ PluginsManager * PluginsManager::instance()
  * Creates new PluginsManager, registers it in ConfigurationManager singleton.
  * Storage status is set to Storage::StateNotLoaded.
  */
-PluginsManager::PluginsManager() :
-		Plugins(), Window(0)
+PluginsManager::PluginsManager()
 {
 	ConfigurationManager::instance()->registerStorableObject(this);
 
@@ -129,7 +127,7 @@ void PluginsManager::load()
 	QDomElement itemsNode = storage()->point();
 	if (!itemsNode.isNull())
 	{
-		QList<QDomElement> pluginElements = storage()->storage()->getNodes(itemsNode, QLatin1String("Plugin"));
+		QVector<QDomElement> pluginElements = storage()->storage()->getNodes(itemsNode, QLatin1String("Plugin"));
 
 		foreach (const QDomElement &pluginElement, pluginElements)
 		{
@@ -174,7 +172,7 @@ void PluginsManager::store()
 	StorableObject::store();
 
 	foreach (Plugin *plugin, Plugins)
-		plugin->store();
+		plugin->ensureStored();
 }
 
 /**
@@ -244,10 +242,12 @@ void PluginsManager::activateProtocolPlugins()
 
 		if (plugin->shouldBeActivated())
 		{
-			if (!activatePlugin(plugin))
+			PluginActivationReason activationReason = (plugin->state() == Plugin::PluginStateNew)
+					? PluginActivationReasonNewDefault
+					: PluginActivationReasonKnownDefault;
+
+			if (!activatePlugin(plugin, activationReason))
 				saveList = true;
-			else if (plugin->info()->loadByDefault())
-				plugin->setState(Plugin::PluginStateEnabled);
 		}
 	}
 
@@ -272,10 +272,12 @@ void PluginsManager::activatePlugins()
 	foreach (Plugin *plugin, Plugins)
 		if (plugin->shouldBeActivated())
 		{
-			if (!activatePlugin(plugin))
+			PluginActivationReason activationReason = (plugin->state() == Plugin::PluginStateNew)
+					? PluginActivationReasonNewDefault
+					: PluginActivationReasonKnownDefault;
+
+			if (!activatePlugin(plugin, activationReason))
 				saveList = true;
-			else if (plugin->info()->loadByDefault())
-				plugin->setState(Plugin::PluginStateEnabled);
 		}
 
 	foreach (Plugin *pluginToReplace, Plugins)
@@ -285,11 +287,8 @@ void PluginsManager::activatePlugins()
 
 		foreach (Plugin *replacementPlugin, Plugins)
 			if (replacementPlugin->state() == Plugin::PluginStateNew && replacementPlugin->isValid() && replacementPlugin->info()->replaces().contains(pluginToReplace->name()))
-				if (activatePlugin(replacementPlugin))
-				{
-					replacementPlugin->setState(Plugin::PluginStateEnabled);
+				if (activatePlugin(replacementPlugin, PluginActivationReasonNewDefault))
 					saveList = true; // list has changed
-				}
 	}
 
 	// if not all plugins were loaded properly or new plugin was added
@@ -325,7 +324,7 @@ void PluginsManager::deactivatePlugins()
 		deactivated = false;
 		foreach (Plugin *plugin, active)
 			if (plugin->usageCounter() == 0)
-				if (deactivatePlugin(plugin, false))
+				if (deactivatePlugin(plugin, PluginDeactivationReasonExiting))
 					deactivated = true;
 	}
 	while (deactivated);
@@ -336,7 +335,7 @@ void PluginsManager::deactivatePlugins()
 	foreach (Plugin *plugin, active)
 	{
 		kdebugm(KDEBUG_PANIC, "WARNING! Could not deactivate plugin %s, killing\n", qPrintable(plugin->name()));
-		deactivatePlugin(plugin, true);
+		deactivatePlugin(plugin, PluginDeactivationReasonExitingForce);
 	}
 
 }
@@ -445,7 +444,6 @@ QString PluginsManager::findActiveConflict(Plugin *plugin) const
  * @short Activates (recursively) all dependencies.
  * @param plugin plugin for which dependencies will be activated
  * @return true if all dependencies were activated
- * @todo remove MessageDialog from this methods, this is not a GUI class
  *
  * Activates all dependencies of plugin and dependencies of these dependencies. If any dependency
  * is not found a message will be displayed to the user and false will be returned. * 
@@ -460,16 +458,20 @@ bool PluginsManager::activateDependencies(Plugin *plugin)
 		Plugin *dependencyPlugin = Plugins.value(dependencyName);
 		if (!dependencyPlugin || !dependencyPlugin->isValid())
 		{
-			MessageDialog::show(KaduIcon("dialog-warning"), tr("Kadu"), tr("Required plugin %1 was not found").arg(dependencyName));
+			plugin->activationError(tr("Required plugin %1 was not found").arg(dependencyName), PluginActivationReasonDependency);
 			return false;
 		}
 
-		Plugin *plugin = Plugins.value(dependencyName);
-		if (!activatePlugin(plugin))
-			return false;
+		PluginActivationReason activationReason;
+		if (Plugin::PluginStateEnabled == dependencyPlugin->state())
+			activationReason = PluginActivationReasonKnownDefault;
+		else if (Plugin::PluginStateNew == dependencyPlugin->state() && dependencyPlugin->info()->loadByDefault())
+			activationReason = PluginActivationReasonNewDefault;
+		else
+			activationReason = PluginActivationReasonDependency;
 
-		if (plugin->info()->loadByDefault())
-			plugin->setState(Plugin::PluginStateEnabled);
+		if (!activatePlugin(dependencyPlugin, activationReason))
+			return false;
 	}
 
 	return true;
@@ -501,18 +503,20 @@ QString PluginsManager::activeDependentPluginNames(const QString &pluginName) co
  * @author Rafał 'Vogel' Malinowski
  * @short Activates given plugin and all its dependencies.
  * @param plugin plugin to activate
+ * @param reason plugin activation reason
  * @return true, if plugin was successfully activated
- * @todo remove message box
  *
  * This method activates given plugin and all its dependencies. Plugin can be activated only when no conflict
  * is found and all dependencies can be activated. In other case false is returned and plugin will not be activated.
  * Please note that no dependency plugin activated in this method will be automatically deactivated if
  * this method fails, so list of active plugins can be changed even if plugin could not be activated.
  *
+ * \p reason will be passed to Plugin::activate() method.
+ *
  * After successfull activation all dependencies are locked using incDependenciesUsageCount() and cannot be
  * deactivated without deactivating plugin. Plugin::usageCounter() of dependencies is increased.
  */
-bool PluginsManager::activatePlugin(Plugin *plugin)
+bool PluginsManager::activatePlugin(Plugin *plugin, PluginActivationReason reason)
 {
 	if (plugin->isActive())
 		return true;
@@ -522,16 +526,14 @@ bool PluginsManager::activatePlugin(Plugin *plugin)
 	QString conflict = findActiveConflict(plugin);
 	if (!conflict.isEmpty())
 	{
-		MessageDialog::show(KaduIcon("dialog-warning"), tr("Kadu"), tr("Plugin %1 conflicts with: %2").arg(plugin->name(), conflict));
+		plugin->activationError(tr("Plugin %1 conflicts with: %2").arg(plugin->name(), conflict), reason);
 		result = false;
 	}
 	else
-		result = activateDependencies(plugin) && plugin->activate();
+		result = activateDependencies(plugin) && plugin->activate(reason);
 
 	if (result)
 		incDependenciesUsageCount(plugin);
-	else
-		plugin->setState(Plugin::PluginStateDisabled);
 
 	return result;
 }
@@ -540,22 +542,23 @@ bool PluginsManager::activatePlugin(Plugin *plugin)
  * @author Rafał 'Vogel' Malinowski
  * @short Deactivates given plugin.
  * @param plugin plugin to deactivate
- * @param force if true, no check for usage will be performed
+ * @param reason plugin deactivation reason
  * @return true, if plugin was successfully deactivated
  * @todo remove message box
  *
  * This method deactivates given plugin. Deactivation can be performed only when plugin is no longed in use (its
- * Plugin::usageCounter() returns 0) or when force parameter is set to true.
+ * Plugin::usageCounter() returns 0) or \p reason is PluginDeactivationReasonExitingForce.
  *
  * After successfull deactivation all dependenecies are released - their Plugin::usageCounter() is decreaced.
  */
-bool PluginsManager::deactivatePlugin(Plugin *plugin, bool force)
+bool PluginsManager::deactivatePlugin(Plugin* plugin, PluginDeactivationReason reason)
 {
-	kdebugmf(KDEBUG_FUNCTION_START, "name:'%s' force:%d usage: %d\n", qPrintable(plugin->name()), force, plugin->usageCounter());
+	kdebugmf(KDEBUG_FUNCTION_START, "name:'%s' reason:%d usage: %d\n", qPrintable(plugin->name()), (int)reason, plugin->usageCounter());
 
-	if (plugin->usageCounter() > 0 && !force)
+	if (plugin->usageCounter() > 0 && PluginDeactivationReasonExitingForce != reason)
 	{
-		MessageDialog::show(KaduIcon("dialog-warning"), tr("Kadu"), tr("Plugin %1 cannot be deactivated because it is being used by the following plugins:%2").arg(plugin->name()).arg(activeDependentPluginNames(plugin->name())));
+		MessageDialog::show(KaduIcon("dialog-error"), tr("Kadu"), tr("Plugin %1 cannot be deactivated because it is being used by the following plugins:%2").arg(plugin->name()).arg(activeDependentPluginNames(plugin->name())),
+				QMessageBox::Ok, ModulesWindow::instance());
 		kdebugf2();
 		return false;
 	}
@@ -563,7 +566,7 @@ bool PluginsManager::deactivatePlugin(Plugin *plugin, bool force)
 	foreach (const QString &i, plugin->info()->dependencies())
 		releasePlugin(i);
 
-	plugin->deactivate();
+	plugin->deactivate(reason);
 	return true;
 }
 
@@ -600,40 +603,4 @@ void PluginsManager::releasePlugin(const QString &pluginName)
 {
 	if (Plugins.contains(pluginName))
 		Plugins.value(pluginName)->decUsage();
-}
-
-/**
- * @author Rafał 'Vogel' Malinowski
- * @short Shows plugins manager window
- * @todo remove
- */
-void PluginsManager::showWindow(QAction *sender, bool toggled)
-{
-	Q_UNUSED(sender)
-	Q_UNUSED(toggled)
-
-	kdebugf();
-
-	if (!Window)
-	{
-		Window = new ModulesWindow();
-		connect(Window, SIGNAL(destroyed()), this, SLOT(dialogDestroyed()));
-		Window->show();
-	}
-
-	_activateWindow(Window);
-
-	kdebugf2();
-}
-
-/**
- * @author Rafał 'Vogel' Malinowski
- * @short Called after plugins manager window got closed
- * @todo remove
- */
-void PluginsManager::dialogDestroyed()
-{
-	kdebugf();
-	Window = 0;
-	kdebugf2();
 }

@@ -1,8 +1,10 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2009 Michał Podsiadlik (michal@kadu.net)
+ * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
+ * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -33,18 +35,18 @@
  * @class Details
  * @author Rafal 'Vogel' Malinowski
  * @param T class type, derivered from @link<StorableObject> StorableObject @endlink
- * @short Object that can extend any DetailsHolder by protocol data.
+ * @short Object that can extend any other object by protocol data.
  *
  * Some object (@link<Account> Account @endlink, @link<Contact> Contact @endlink and others)
  * have common data that should be always available and protocol data that can only be loaded
  * when protocol plugin is loaded. Common data is stored in normal @link<StorableObject>
- * StorableObject @endlink that can be extended by @link<DetailsHolder> DetailsHolder @endlink
- * class that holds object of Details type.
+ * StorableObject @endlink that can hold object of Details type.
  *
  * Object of Details type is always attached to @link<StorableObject> StorableObject @endlink
  * and uses exactly the same @link<StoragePoint> StoragePoint @endlink (so these two object
- * share XML node for storing data). All other data (like State) is not shared between these
- * objects.
+ * share XML node for storing data). It has various implications, including the fact that if
+ * any of these two objects' shouldStore() method would return false, both will be deleted.
+ * All other data (like State) is not shared between these objects.
  */
 template<typename T>
 class Details : public StorableObject
@@ -74,8 +76,6 @@ public:
 	 */
 	virtual ~Details()
 	{
-		if (MainData)
-			MainData->detailsDestroyed();
 	}
 
 	/**

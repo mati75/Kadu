@@ -1,8 +1,10 @@
 /*
  * %kadu copyright begin%
+ * Copyright 2008, 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2008 Michał Podsiadlik (michal@kadu.net)
+ * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2009, 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2007, 2008 Dawid Stawiarski (neeo@kadu.net)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -24,20 +26,19 @@
 
 #include <QtGui/QTabBar>
 
-#include "configuration/configuration-aware-object.h"
 #include "buddies/buddy-list.h"
 #include "buddies/group.h"
+#include "configuration/configuration-aware-object.h"
 
-class GroupBuddyFilter;
+class Chat;
 
 class KADUAPI GroupTabBar : public QTabBar, ConfigurationAwareObject
 {
 	Q_OBJECT
 
-	GroupBuddyFilter *Filter;
 	// for dnd support
-	Group currentGroup;
-	BuddyList currentBuddies;
+	BuddyList DNDBuddies;
+	QList<Chat> DNDChats;
 
 	bool ShowAllGroup;
 	bool HadAnyUngrouppedBuddy;
@@ -72,6 +73,7 @@ protected:
 	virtual void contextMenuEvent(QContextMenuEvent *event);
 
 	virtual void dragEnterEvent(QDragEnterEvent *event);
+	virtual void dragMoveEvent(QDragMoveEvent *event);
 	virtual void dropEvent(QDropEvent *event);
 
 	virtual void configurationUpdated();
@@ -82,7 +84,10 @@ public:
 
 	void addGroup(const Group &group);
 
-	GroupBuddyFilter * filter() { return Filter; }
+	Group group() const;
+
+signals:
+	void currentGroupChanged(const Group &group);
 
 };
 

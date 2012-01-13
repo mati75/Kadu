@@ -1,17 +1,20 @@
 /*
  * %kadu copyright begin%
- * Copyright 2007 Dawid Stawiarski (neeo@kadu.net)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2008, 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2008, 2009, 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2004, 2005, 2006 Marcin Ślusarz (joi@kadu.net)
- * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
- * Copyright 2010 badboy (badboy@gen2.org)
- * Copyright 2007, 2008, 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2004, 2008, 2009 Michał Podsiadlik (michal@kadu.net)
  * Copyright 2008 Tomasz Rostański (rozteck@interia.pl)
+ * Copyright 2002 Tomasz Jarzynka (tomee@cpi.pl)
+ * Copyright 2004, 2008, 2009 Michał Podsiadlik (michal@kadu.net)
  * Copyright 2010 Bartłomiej Zimoń (uzi18@o2.pl)
- * Copyright 2005 Paweł Płuciennik (pawel_p@kadu.net)
+ * Copyright 2002, 2003, 2004 Adrian Smarzewski (adrian@kadu.net)
+ * Copyright 2003, 2004, 2005 Paweł Płuciennik (pawel_p@kadu.net)
+ * Copyright 2002, 2003 Tomasz Chiliński (chilek@chilan.com)
+ * Copyright 2010 badboy (badboy@gen2.org)
+ * Copyright 2007, 2008, 2009, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2007 Dawid Stawiarski (neeo@kadu.net)
+ * Copyright 2004, 2005, 2006 Marcin Ślusarz (joi@kadu.net)
+ * Copyright 2002, 2003 Dariusz Jagodzik (mast3r@kadu.net)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -31,16 +34,16 @@
 #include <QtGui/QApplication>
 #include <QtGui/QCheckBox>
 #include <QtGui/QLineEdit>
-#include <QtGui/QSpinBox>
 #include <QtGui/QLineEdit>
+#include <QtGui/QSpinBox>
 
 #include "accounts/account.h"
 #include "configuration/configuration-file.h"
 #include "core/core.h"
 #include "gui/widgets/configuration/configuration-widget.h"
 #include "gui/windows/main-configuration-window.h"
-#include "parser/parser.h"
 #include "misc/path-conversion.h"
+#include "parser/parser.h"
 #include "status/status-changer-manager.h"
 #include "debug.h"
 
@@ -256,7 +259,7 @@ void AutoAway::descriptionChangeChanged(int index)
 QString AutoAway::parseDescription(const QString &parseDescription)
 {
 	if (parseAutoStatus)
-		return (Parser::parse(parseDescription, BuddyOrContact(Core::instance()->myself()), true));
+		return (Parser::parse(parseDescription, Talkable(Core::instance()->myself()), true));
 	else
 		return parseDescription;
 }

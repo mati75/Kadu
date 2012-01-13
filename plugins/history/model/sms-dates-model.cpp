@@ -1,8 +1,8 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -30,7 +30,7 @@
 
 #include "sms-dates-model.h"
 
-SmsDatesModel::SmsDatesModel(const QString &recipient, const QList<DatesModelItem> &dates, QObject *parent) :
+SmsDatesModel::SmsDatesModel(const QString &recipient, const QVector<DatesModelItem> &dates, QObject *parent) :
 		QAbstractListModel(parent), Recipient(recipient), Dates(dates)
 {
 }
@@ -41,7 +41,7 @@ SmsDatesModel::~SmsDatesModel()
 
 int SmsDatesModel::columnCount(const QModelIndex &parent) const
 {
-    return parent.isValid() ? 0 : 2;
+	return parent.isValid() ? 0 : 2;
 }
 
 int SmsDatesModel::rowCount(const QModelIndex &parent) const
@@ -51,7 +51,7 @@ int SmsDatesModel::rowCount(const QModelIndex &parent) const
 
 QVariant SmsDatesModel::headerData(int section, Qt::Orientation orientation, int role) const
 {
-    if (role != Qt::DisplayRole)
+	if (role != Qt::DisplayRole)
 		return QVariant();
 
 	if (orientation != Qt::Horizontal)
@@ -102,7 +102,7 @@ void SmsDatesModel::setRecipient(const QString &recipient)
 	Recipient = recipient;
 }
 
-void SmsDatesModel::setDates(const QList<DatesModelItem> &dates)
+void SmsDatesModel::setDates(const QVector<DatesModelItem> &dates)
 {
 	if (!Dates.isEmpty())
 	{

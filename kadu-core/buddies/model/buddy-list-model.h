@@ -1,8 +1,8 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -26,12 +26,14 @@
 
 #include "accounts/accounts-aware-object.h"
 
-#include "buddies/buddy.h"
 #include "buddies/buddy-list.h"
+#include "buddies/buddy.h"
 
 #include "status/status.h"
 
 #include "buddies-model-base.h"
+
+class Buddy;
 
 class BuddyListModel : public BuddiesModelBase
 {
@@ -39,15 +41,15 @@ class BuddyListModel : public BuddiesModelBase
 
 	BuddyList List;
 
+protected:
+	virtual int buddyIndex(const Buddy &buddy) const;
+	virtual Buddy buddyAt(int index) const;
+
 public:
 	explicit BuddyListModel(const BuddyList &list, QObject *parent = 0);
 	virtual ~BuddyListModel();
 
 	virtual int rowCount(const QModelIndex &parent = QModelIndex()) const;
-
-	// AbstractContactsModel implementation
-	virtual Buddy buddyAt(const QModelIndex& index) const;
-	virtual QModelIndex indexForValue(const QVariant &value) const;
 
 };
 

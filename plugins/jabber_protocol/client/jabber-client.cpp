@@ -1,11 +1,11 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2010 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2009, 2009, 2009, 2010, 2010, 2011 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2009 Michał Podsiadlik (michal@kadu.net)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -25,6 +25,7 @@
 #include <QtCore/QCryptographicHash>
 #include <QtCore/QRegExp>
 #include <QtCore/QTimer>
+#include <QtCore/QUrl>
 #include <QtCrypto>
 
 #include <bsocket.h>
@@ -32,9 +33,11 @@
 
 #include "accounts/account.h"
 #include "identities/identity.h"
+#include "network/proxy/network-proxy-manager.h"
 #include "debug.h"
 
 #include "certificates/certificate-helpers.h"
+#include "client/pong-server.h"
 #include "resource/jabber-resource-pool.h"
 #include "utils/pep-manager.h"
 #include "utils/server-info-manager.h"
@@ -54,9 +57,8 @@ JabberClient::JabberClient(JabberProtocol *protocol, QObject *parent) :
 	cleanUp();
 
 	Client = new XMPP::Client(this);
-	Client->setClientName(clientName());
-	Client->setClientVersion(clientVersion());
-	Client->setOSName(osName());
+
+	updateClientInfo();
 
 	// Set caps information
 	Client->setCapsNode(capsNode());
@@ -82,7 +84,8 @@ JabberClient::JabberClient(JabberProtocol *protocol, QObject *parent) :
 			<< "jabber:x:data"
 			<< "urn:xmpp:avatar:data"
 			<< "urn:xmpp:avatar:metadata"
-			<< "urn:xmpp:avatar:metadata+notify";
+			<< "urn:xmpp:avatar:metadata+notify"
+			<< "urn:xmpp:ping";
 
 	setCapsVersion(calculateCapsVersion(identity, features));
 
@@ -99,6 +102,8 @@ JabberClient::JabberClient(JabberProtocol *protocol, QObject *parent) :
 	QObject::connect(PepManager, SIGNAL(publish_error(const QString&, const XMPP::PubSubItem&)),
 		this, SIGNAL(publishError(const QString&,const XMPP::PubSubItem&)));
 	PepAvailable = false;
+
+	new PongServer(Client->rootTask());
 
 	/* This should only be done here to connect the signals, otherwise it is a
 	 * bad idea.
@@ -221,10 +226,19 @@ int JabberClient::getPenaltyTime()
 	return currentTime;
 }
 
+void JabberClient::updateClientInfo()
+{
+	Client->setClientName(clientName());
+	Client->setClientVersion(clientVersion());
+	Client->setOSName(osName());
+}
+
 void JabberClient::connect(const XMPP::Jid &jid, const QString &password, bool auth)
 {
 	MyJid = jid;
 	Password = password;
+
+	updateClientInfo();
 
 	/*
 	 * Return an error if we should force TLS but it's not available.
@@ -252,13 +266,36 @@ void JabberClient::connect(const XMPP::Jid &jid, const QString &password, bool a
 	if (useXMPP09())
 		JabberClientConnector->setOptProbe(probeSSL());
 
-	AccountProxySettings proxy = Protocol->account().proxySettings();
-	if (proxy.enabled())
+	NetworkProxy proxy = Protocol->account().useDefaultProxy()
+			? NetworkProxyManager::instance()->defaultProxy()
+			: Protocol->account().proxy();
+
+	if (proxy && !proxy.address().isEmpty())
 	{
 		XMPP::AdvancedConnector::Proxy proxySettings;
 
-		proxySettings.setHttpConnect(proxy.address(), proxy.port());
-		if (proxy.requiresAuthentication())
+		if (proxy.type() == "http") // HTTP Connect
+			proxySettings.setHttpConnect(proxy.address(), proxy.port());
+		else if (proxy.type() == "socks") // SOCKS
+			proxySettings.setSocks(proxy.address(), proxy.port());
+		else if (proxy.type() == "poll") // HTTP Poll
+		{
+			QUrl pollingUrl = proxy.pollingUrl();
+			if (pollingUrl.queryItems().isEmpty())
+			{
+				if (overrideHost())
+				{
+					QString host = Server.isEmpty() ? MyJid.domain() : Server;
+					pollingUrl.addQueryItem("server", host + ':' + QString::number(Port));
+				}
+				else
+					pollingUrl.addQueryItem("server", MyJid.domain());
+			}
+			proxySettings.setHttpPoll(proxy.address(), proxy.port(), pollingUrl.toString());
+			proxySettings.setPollInterval(2);
+		}
+
+		if (!proxy.user().isEmpty())
 			proxySettings.setUserPass(proxy.user(), proxy.password());
 
 		JabberClientConnector->setProxy(proxySettings);
@@ -273,7 +310,7 @@ void JabberClient::connect(const XMPP::Jid &jid, const QString &password, bool a
 		JabberTLS->setTrustedCertificates(CertificateHelpers::allCertificates(CertificateHelpers::getCertificateStoreDirs()));
 		JabberTLSHandler = new QCATLSHandler(JabberTLS);
 		JabberTLSHandler->setXMPPCertCheck(true);
-		
+
 		JabberAccountDetails *jabberAccountDetails = dynamic_cast<JabberAccountDetails *>(Protocol->account().details());
 		if (jabberAccountDetails)
 		{
@@ -426,7 +463,7 @@ void JabberClient::slotTLSHandshaken()
 	QString domain = jabberAccountDetails->tlsOverrideDomain();
 	QString host = jabberAccountDetails->useCustomHostPort() ? jabberAccountDetails->customHost() : XMPP::Jid(Protocol->account().id()).domain();
 	QByteArray cert = jabberAccountDetails->tlsOverrideCert();
-	
+
 	if (CertificateHelpers::checkCertificate(JabberTLS, JabberTLSHandler, domain,
 		QString("%1: ").arg(Protocol->account().accountIdentity().name()) + tr("Server Authentication"), host, Protocol))
 		JabberTLSHandler->continueAfterHandshake();

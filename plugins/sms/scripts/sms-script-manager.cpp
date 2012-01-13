@@ -1,9 +1,11 @@
 /*
  * %kadu copyright begin%
- * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2011 Tomasz Rostanski (rozteck@interia.pl)
+ * Copyright 2008, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2011 Maciej Płaza (plaza.maciej@gmail.com)
+ * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -20,18 +22,20 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#define SMS_USE_DEBUGGER 0
+
 #include <QtCore/QDir>
 #include <QtCore/QFile>
 #include <QtCore/QFileInfo>
 #include <QtCore/QTextStream>
 #include <QtGui/QMainWindow>
 #include <QtScript/QScriptEngine>
-#ifndef Q_OS_MAC
+#if SMS_USE_DEBUGGER
 #include <QtScriptTools/QScriptEngineDebugger>
 #endif
-#include "misc/path-conversion.h"
 
 #include "gui/windows/sms-token-reader.h"
+#include "misc/path-conversion.h"
 #include "scripts/network-access-manager-wrapper.h"
 
 #include "sms-script-manager.h"
@@ -74,9 +78,11 @@ SmsScriptsManager::~SmsScriptsManager()
 
 void SmsScriptsManager::init()
 {
-// 	QScriptEngineDebugger* debuger = new QScriptEngineDebugger(this);
-// 	debuger->attachTo(Engine);
-// 	debuger->standardWindow()->show();
+#if SMS_USE_DEBUGGER
+ 	QScriptEngineDebugger *debugger = new QScriptEngineDebugger(this);
+ 	debugger->attachTo(Engine);
+ 	debugger->standardWindow()->show();
+#endif
 
 	QString scriptPath = profilePath("plugins/data/sms/scripts/gateway.js");
 	if (QFile::exists(scriptPath))

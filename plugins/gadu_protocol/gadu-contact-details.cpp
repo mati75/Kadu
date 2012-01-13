@@ -1,7 +1,10 @@
 /*
  * %kadu copyright begin%
  * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2008, 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
+ * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -18,12 +21,10 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "contacts/contact-shared.h"
-
 #include "gadu-contact-details.h"
 
-GaduContactDetails::GaduContactDetails(ContactShared *contactShared, QObject *parent) :
-		ContactDetails(contactShared, parent), GaduFlags(0)
+GaduContactDetails::GaduContactDetails(ContactShared *contactShared) :
+		ContactDetails(contactShared), GaduFlags(0), IgnoreNextStatusChange(false)
 {
 }
 
@@ -36,12 +37,22 @@ unsigned int GaduContactDetails::uin()
 	return mainData()->id().toUInt();
 }
 
-
-void GaduContactDetails::store()
-{
-}
-
 void GaduContactDetails::setGaduFlags(int gaduFlags)
 {
 	GaduFlags = gaduFlags;
+}
+
+int GaduContactDetails::gaduFlags() const
+{
+	return GaduFlags;
+}
+
+void GaduContactDetails::setIgnoreNextStatusChange(bool ignoreNextStatusChange)
+{
+	IgnoreNextStatusChange = ignoreNextStatusChange;
+}
+
+bool GaduContactDetails::ignoreNextStatusChange() const
+{
+	return IgnoreNextStatusChange;
 }

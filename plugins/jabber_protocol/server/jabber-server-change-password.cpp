@@ -1,6 +1,8 @@
 /*
  * %kadu copyright begin%
+ * Copyright 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2010 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
@@ -27,13 +29,13 @@
 #include "jabber-server-change-password.h"
 
 JabberServerChangePassword::JabberServerChangePassword(Account account, const QString &password, const QString &newPassword) :
-	QObject(), Result(false), MyAccount(account), Password(password), NewPassword(newPassword)
+		QObject(), Result(false), MyAccount(account), Password(password), NewPassword(newPassword)
 {
 }
 
 void JabberServerChangePassword::performAction()
 {
-  	JabberProtocol *jabberProtocol = qobject_cast<JabberProtocol *>(MyAccount.protocolHandler());
+	JabberProtocol *jabberProtocol = qobject_cast<JabberProtocol *>(MyAccount.protocolHandler());
 	if (!jabberProtocol || !jabberProtocol->isConnected())
 		emit finished(this);
 

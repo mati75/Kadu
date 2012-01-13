@@ -1,9 +1,10 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2010 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -64,15 +65,14 @@ private:
 	PROPERTY_DEC(QString, DataTransferProxy)
 	PROPERTY_DEC(bool, SendTypingNotification)
 	PROPERTY_DEC(bool, SendGoneNotification)
-
+	PROPERTY_DEC(bool, PublishSystemInfo)
 protected:
 	virtual void load();
+	virtual void store();
 
 public:
 	explicit JabberAccountDetails(AccountShared *data);
 	virtual ~JabberAccountDetails();
-
-	virtual void store();
 
 	PROPERTY_DEF(QString, resource, setResource, Resource)
 	PROPERTY_DEF(bool, autoResource, setAutoResource, AutoResource)
@@ -88,6 +88,7 @@ public:
 	PROPERTY_DEF(QString, dataTransferProxy, setDataTransferProxy, DataTransferProxy)
 	PROPERTY_DEF(bool, sendTypingNotification, setSendTypingNotification, SendTypingNotification)
 	PROPERTY_DEF(bool, sendGoneNotification, setSendGoneNotification, SendGoneNotification)
+	PROPERTY_DEF(bool, publishSystemInfo, setPublishSystemInfo, PublishSystemInfo)
 
 };
 

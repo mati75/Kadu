@@ -1,7 +1,8 @@
 /*
  * %kadu copyright begin%
- * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -24,13 +25,14 @@
 #include <QtXmlPatterns/QAbstractXmlReceiver>
 #include <QtXmlPatterns/QXmlNamePool>
 
+#include "buddies/buddy-list.h"
 #include "buddies/buddy.h"
 
 class GaduImportedContactXmlReceiver : public QAbstractXmlReceiver
 {
 	const QXmlNamePool &XmlNamePool;
 
-	QList<Buddy> ImportedBuddies;
+	BuddyList ImportedBuddies;
 	Buddy CurrentBuddy;
 
 protected:
@@ -51,7 +53,7 @@ public:
 	GaduImportedContactXmlReceiver(const QXmlNamePool &xmlNamePool);
 	~GaduImportedContactXmlReceiver();
 
-	const QList<Buddy> & importedBuddies() { return ImportedBuddies; }
+	const BuddyList & importedBuddies() { return ImportedBuddies; }
 
 };
 

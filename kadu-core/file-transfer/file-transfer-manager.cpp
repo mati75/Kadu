@@ -1,9 +1,11 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2009, 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2009, 2010 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
  * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -26,12 +28,16 @@
 
 #include "accounts/account.h"
 #include "chat/chat-manager.h"
+#include "chat/chat.h"
 #include "configuration/configuration-file.h"
+#include "contacts/contact-set.h"
 #include "core/core.h"
-#include "file-transfer/file-transfer.h"
 #include "file-transfer/file-transfer-actions.h"
 #include "file-transfer/file-transfer-handler.h"
 #include "file-transfer/file-transfer-notifications.h"
+#include "file-transfer/file-transfer.h"
+#include "gui/widgets/chat-widget-manager.h"
+#include "gui/widgets/chat-widget.h"
 #include "gui/windows/file-transfer-window.h"
 #include "gui/windows/kadu-window.h"
 #include "gui/windows/message-dialog.h"
@@ -184,10 +190,14 @@ void FileTransferManager::acceptFileTransfer(FileTransfer transfer)
 
 		if (!haveFileName && fi.exists())
 		{
+			QWidget *parent = 0;
+			Chat chat = ChatManager::instance()->findChat(ContactSet(transfer.peer()), false);
+			if (chat)
+				parent = ChatWidgetManager::instance()->byChat(chat, false);
+
 			QString question;
 			question = tr("File %1 already exists.").arg(fileName);
-
-			switch (QMessageBox::question(0, tr("Save file"), question, tr("Overwrite"), tr("Resume"),
+			switch (QMessageBox::question(parent, tr("Save file"), question, tr("Overwrite"), tr("Resume"),
 			                                 tr("Select another file"), 0, 2))
 			{
 				case 0:
@@ -322,14 +332,14 @@ void FileTransferManager::incomingFileTransfer(FileTransfer fileTransfer)
 	// \n are changed into <br />
 	if (fileTransfer.localFileName().isEmpty())
 		notification->setText(tr("User <b>%1</b> wants to send you a file <b>%2</b>\nof size <b>%3</b> using account <b>%4</b>.\nAccept transfer?")
-				.arg(chat.name())
+				.arg(fileTransfer.peer().display(true))
 				.arg(fileTransfer.remoteFileName())
 				.arg(textFileSize.arg(size, 0, 'f', 2))
 				.arg(chat.chatAccount().accountIdentity().name()));
 	else
 		notification->setText(tr("User <b>%1</b> wants to send you a file <b/>%2</b>\nof size <b>%3</b> using account <b>%4</b>.\n"
 				"This is probably a next part of <b>%5</b>\n What should I do?")
-				.arg(chat.name())
+				.arg(fileTransfer.peer().display(true))
 				.arg(fileTransfer.remoteFileName())
 				.arg(textFileSize.arg(size, 0, 'f', 2))
 				.arg(chat.chatAccount().accountIdentity().name())

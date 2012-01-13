@@ -1,9 +1,9 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Piotr Dąbrowski (ultr@ultr.pl)
  * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2010, 2011 Piotr Dąbrowski (ultr@ultr.pl)
+ * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -20,10 +20,12 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <QtCore/QVector>
+
 #include "chat/chat-manager.h"
-#include "chat/message/message.h"
 #include "configuration/configuration-file.h"
-#include "core/core.h"
+#include "message/message-manager.h"
+#include "message/message.h"
 
 #include "recent-chat-manager.h"
 
@@ -39,12 +41,24 @@ RecentChatManager * RecentChatManager::Instance = 0;
 RecentChatManager * RecentChatManager::instance()
 {
 	if (0 == Instance)
+	{
 		Instance = new RecentChatManager();
+		Instance->init();
+	}
 
 	return Instance;
 }
 
 RecentChatManager::RecentChatManager()
+{
+}
+
+RecentChatManager::~RecentChatManager()
+{
+	ConfigurationManager::instance()->unregisterStorableObject(this);
+}
+
+void RecentChatManager::init()
 {
 	setState(StateNotLoaded);
 	ConfigurationManager::instance()->registerStorableObject(this);
@@ -54,15 +68,10 @@ RecentChatManager::RecentChatManager()
 
 	configurationUpdated();
 
-	connect(Core::instance(), SIGNAL(messageReceived(Message)),
+	connect(MessageManager::instance(), SIGNAL(messageReceived(Message)),
 			this, SLOT(onNewMessage(Message)));
-	connect(Core::instance(), SIGNAL(messageSent(Message)),
+	connect(MessageManager::instance(), SIGNAL(messageSent(Message)),
 			this, SLOT(onNewMessage(Message)));
-}
-
-RecentChatManager::~RecentChatManager()
-{
-	ConfigurationManager::instance()->unregisterStorableObject(this);
 }
 
 /**
@@ -160,7 +169,7 @@ const QList<Chat> & RecentChatManager::recentChats()
 
 /**
  * @author Rafal 'Vogel' Malinowski
- * @short Adds new chat to list (or moves it on first position).
+ * @short Adds new chat to list (or moves it to the first position).
  *
  * Adds new chat to list. If chat is already on list it is just moved to the first place.
  * Else, it is added at first place and all chats after 20th are removed. Time of add is
@@ -168,6 +177,7 @@ const QList<Chat> & RecentChatManager::recentChats()
  * of time.
  *
  * Signals recentChatAboutToBeAdded and recentChatAdded are emitted.
+ * If the chat was on the list on the first position already, signals are NOT emitted.
  */
 void RecentChatManager::addRecentChat(Chat chat, QDateTime datetime)
 {
@@ -175,6 +185,9 @@ void RecentChatManager::addRecentChat(Chat chat, QDateTime datetime)
 		return;
 
 	ensureLoaded();
+
+	QDateTime *recentChatData = chat.data()->moduleData<QDateTime>("recent-chat", true);
+	*recentChatData = datetime;
 
 	if (!RecentChats.isEmpty() && RecentChats.at(0) == chat)
 		return;
@@ -184,9 +197,6 @@ void RecentChatManager::addRecentChat(Chat chat, QDateTime datetime)
 	// limit
 	while (RecentChats.count() >= MAX_RECENT_CHAT_COUNT)
 		removeRecentChat(RecentChats.last());
-
-	QDateTime *recentChatData = chat.data()->moduleData<QDateTime>("recent-chat", true);
-	*recentChatData = datetime;
 
 	emit recentChatAboutToBeAdded(chat);
 	RecentChats.prepend(chat);

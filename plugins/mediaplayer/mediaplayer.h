@@ -27,15 +27,16 @@ class MEDIAPLAYERAPI MediaPlayer : public ConfigurationUiHandler, ConfigurationA
 
 	static MediaPlayer *Instance;
 
-	MediaPlayerStatusChanger *mediaPlayerStatusChanger;
+	MediaPlayerStatusChanger *Changer;
 	PlayerInfo *playerInfo;
 	PlayerCommands *playerCommands;
 
 	ActionDescription *enableMediaPlayerStatuses;
 	ActionDescription *mediaPlayerMenu;
 	ActionDescription *playAction, *stopAction, *prevAction, *nextAction, *volUpAction, *volDownAction;
-	QAction *mediaplayerStatus;
-	
+
+	QAction *DockedMediaplayerStatus;
+
 	NotifyEvent *mediaPlayerEvent;
 
 	QTimer *timer;
@@ -87,18 +88,18 @@ private slots:
 	void playPause();
 	QString getPlayerName();
 	QString getPlayerVersion();
-	QString getTitle(int position = -1);
-	QString getAlbum(int position = -1);
-	QString getArtist(int position = -1);
+	QString getTitle();
+	QString getAlbum();
+	QString getArtist();
 	/*
 		Returns song's filename
 	*/
-	QString getFile(int position = -1);
+	QString getFile();
 
 	/*
 	    Returns song's length in milliseconds
 	 */
-	int getLength(int position = -1);
+	int getLength();
 
 	/*
 	    Returns song's current position in milliseconds from the beginning
@@ -109,11 +110,6 @@ private slots:
 	bool isActive();
 	QStringList getPlayListTitles();
 	QStringList getPlayListFiles();
-
-	/*
-	    Returns the number of tracks in playlist
-	*/
-	uint getPlayListLength();
 
 	/*
 		Applies all needed functions to newly created Chat window.

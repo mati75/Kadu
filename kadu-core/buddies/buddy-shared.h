@@ -1,12 +1,13 @@
 /*
  * %kadu copyright begin%
+ * Copyright 2008, 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2009, 2009 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2010 Piotr Dąbrowski (ultr@ultr.pl)
+ * Copyright 2008, 2009 Michał Podsiadlik (michal@kadu.net)
+ * Copyright 2009, 2009 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2007, 2008, 2009, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2009 Michał Podsiadlik (michal@kadu.net)
- * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2007, 2008 Dawid Stawiarski (neeo@kadu.net)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -26,17 +27,15 @@
 #ifndef BUDDY_SHARED_DATA
 #define BUDDY_SHARED_DATA
 
-#include <QtCore/QMap>
 #include <QtCore/QList>
+#include <QtCore/QMap>
 #include <QtCore/QSharedData>
 #include <QtCore/QString>
 #include <QtCore/QStringList>
 #include <QtCore/QUuid>
 #include <QtXml/QDomElement>
 
-#include "avatars/avatar.h"
 #include "buddies/buddy-gender.h"
-#include "buddies/group.h"
 #include "storage/shared.h"
 
 #include "exports.h"
@@ -66,7 +65,9 @@
 	BuddyShared_PropertySubscriptionDirtyWrite(capitalized_name)
 
 class Account;
+class Avatar;
 class Contact;
+class Group;
 class XmlConfigFile;
 
 class KADUAPI BuddyShared : public QObject, public Shared
@@ -74,10 +75,12 @@ class KADUAPI BuddyShared : public QObject, public Shared
 	Q_OBJECT
 	Q_DISABLE_COPY(BuddyShared)
 
+	bool CollectingGarbage;
+
 	QMap<QString, QString> CustomData;
 	QList<Contact> Contacts;
 
-	Avatar BuddyAvatar;
+	Avatar *BuddyAvatar;
 	QString Display;
 	QString FirstName;
 	QString LastName;
@@ -102,10 +105,16 @@ class KADUAPI BuddyShared : public QObject, public Shared
 	bool doRemoveFromGroup(const Group &group);
 
 private slots:
+	void avatarUpdated();
+	void groupAboutToBeRemoved();
 	void markContactsDirty();
 
 protected:
+	virtual QSharedPointer<StoragePoint> createStoragePoint();
+
 	virtual void load();
+	virtual void store();
+	virtual bool shouldStore();
 	virtual void emitUpdated();
 
 public:
@@ -115,14 +124,14 @@ public:
 	explicit BuddyShared(const QUuid &uuid = QUuid());
 	virtual ~BuddyShared();
 
+	void collectGarbage();
+
 	virtual StorableObject * storageParent();
 	virtual QString storageNodeName();
 
 	void importConfiguration(const QDomElement &parent);
 	void importConfiguration(); // imports configuration from custom data values
 
-	virtual void store();
-	virtual bool shouldStore();
 	virtual void aboutToBeRemoved();
 
 	QString id(const Account &account);
@@ -131,13 +140,13 @@ public:
 
 	void addContact(const Contact &contact);
 	void removeContact(const Contact &contact);
-	QList<Contact> contacts(const Account &account);
+	QVector<Contact> contacts(const Account &account);
 	const QList<Contact> & contacts();
 
 	void sortContacts();
 	void normalizePriorities();
 
-	bool isEmpty();
+	bool isEmpty(bool checkOnlyForContacts);
 
 	KaduShared_PropertyRead(const QList<Group> &, groups, Groups)
 	void setGroups(const QList<Group> &groups);
@@ -146,8 +155,12 @@ public:
 	void addToGroup(const Group &group);
 	void removeFromGroup(const Group &group);
 
-	KaduShared_Property(const Avatar &, buddyAvatar, BuddyAvatar)
-	BuddyShared_PropertyDirty(const QString &, display, Display)
+	KaduShared_PropertyReadDecl(Avatar, buddyAvatar)
+	void setBuddyAvatar(const Avatar &buddyAvatar);
+
+	KaduShared_PropertyRead(const QString &, display, Display)
+	void setDisplay(const QString &display);
+
 	BuddyShared_PropertyDirty(const QString &, firstName, FirstName)
 	BuddyShared_PropertyDirty(const QString &, lastName, LastName)
 	BuddyShared_PropertyDirty(const QString &, familyName, FamilyName)
@@ -165,6 +178,8 @@ public:
 	BuddyShared_PropertySubscriptionDirty(Blocked)
 	BuddyShared_PropertySubscriptionDirty(OfflineTo)
 
+	quint16 unreadMessagesCount();
+
 signals:
 	void contactAboutToBeAdded(const Contact &contact);
 	void contactAdded(const Contact &contact);
@@ -172,6 +187,7 @@ signals:
 	void contactRemoved(const Contact &contact);
 
 	void updated();
+	void displayUpdated();
 	void buddySubscriptionChanged();
 
 };

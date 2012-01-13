@@ -1,8 +1,10 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2008, 2009, 2010, 2011, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
+ * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -19,37 +21,36 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "buddies/filter/anonymous-buddy-filter.h"
-#include "buddies/filter/buddy-name-filter.h"
+#include <QtGui/QAction>
+
 #include "buddies/model/buddies-model.h"
-#include "buddies/model/buddies-model-proxy.h"
-#include "gui/widgets/buddies-list-view.h"
 #include "gui/widgets/select-buddy-popup.h"
+#include "gui/widgets/talkable-tree-view.h"
 #include "misc/misc.h"
+#include "model/model-chain.h"
 #include "model/roles.h"
+#include "talkable/filter/hide-anonymous-talkable-filter.h"
+#include "talkable/model/talkable-proxy-model.h"
 
 #include "select-buddy-combo-box.h"
 
 SelectBuddyComboBox::SelectBuddyComboBox(QWidget *parent) :
-		KaduComboBox<Buddy>(parent)
+		ActionsComboBox(parent)
 {
-	setUpModel(new BuddiesModel(this), new BuddiesModelProxy(this));
+	addBeforeAction(new QAction(tr(" - Select buddy - "), this));
+
+	ModelChain *chain = new ModelChain(new BuddiesModel(this), this);
+	ProxyModel = new TalkableProxyModel(chain);
+	ProxyModel->setSortByStatusAndUnreadMessages(false);
+	chain->addProxyModel(ProxyModel);
+	setUpModel(BuddyRole, chain);
 
 	Popup = new SelectBuddyPopup();
-	Popup->view()->proxyModel()->setSortByStatus(false);
 
-	static_cast<BuddiesModelProxy *>(SourceProxyModel)->setSortByStatus(false);
-
-	AnonymousBuddyFilter *anonymousFilter = new AnonymousBuddyFilter(this);
-	anonymousFilter->setEnabled(true);
-	addFilter(anonymousFilter);
+	HideAnonymousTalkableFilter *hideAnonymousFilter = new HideAnonymousTalkableFilter(ProxyModel);
+	addFilter(hideAnonymousFilter);
 
 	connect(Popup, SIGNAL(buddySelected(Buddy)), this, SLOT(setCurrentBuddy(Buddy)));
-	connect(model(), SIGNAL(rowsAboutToBeRemoved(const QModelIndex &, int, int)),
-			this, SLOT(updateValueBeforeChange()));
-	connect(model(), SIGNAL(rowsRemoved(const QModelIndex &, int, int)),
-			this, SLOT(rowsRemoved(const QModelIndex &, int, int)));
-	connect(this, SIGNAL(currentIndexChanged(int)), this, SLOT(currentIndexChangedSlot(int)));
 }
 
 SelectBuddyComboBox::~SelectBuddyComboBox()
@@ -65,33 +66,7 @@ void SelectBuddyComboBox::setCurrentBuddy(Buddy buddy)
 
 Buddy SelectBuddyComboBox::currentBuddy()
 {
-	return currentValue();
-}
-
-void SelectBuddyComboBox::currentIndexChangedSlot(int index)
-{
-	if (KaduComboBox<Buddy>::currentIndexChangedSlot(index))
-		emit buddyChanged(CurrentValue);
-}
-
-void SelectBuddyComboBox::updateValueBeforeChange()
-{
-	KaduComboBox<Buddy>::updateValueBeforeChange();
-}
-
-void SelectBuddyComboBox::rowsRemoved(const QModelIndex &parent, int start, int end)
-{
-	KaduComboBox<Buddy>::rowsRemoved(parent, start, end);
-}
-
-int SelectBuddyComboBox::preferredDataRole() const
-{
-	return BuddyRole;
-}
-
-QString SelectBuddyComboBox::selectString() const
-{
-	return tr(" - Select buddy - ");
+	return currentValue().value<Buddy>();
 }
 
 void SelectBuddyComboBox::showPopup()
@@ -99,7 +74,7 @@ void SelectBuddyComboBox::showPopup()
 	QRect geom(mapToGlobal(rect().bottomLeft()), QSize(geometry().width(), Popup->height()));
 	setWindowGeometry(Popup, geom);
 
-	Popup->show(CurrentValue);
+	Popup->show(currentBuddy());
 }
 
 void SelectBuddyComboBox::hidePopup()
@@ -107,14 +82,14 @@ void SelectBuddyComboBox::hidePopup()
 	Popup->hide();
 }
 
-void SelectBuddyComboBox::addFilter(AbstractBuddyFilter *filter)
+void SelectBuddyComboBox::addFilter(TalkableFilter *filter)
 {
-	static_cast<BuddiesModelProxy *>(SourceProxyModel)->addFilter(filter);
-	Popup->view()->addFilter(filter);
+	ProxyModel->addFilter(filter);
+	Popup->addFilter(filter);
 }
 
-void SelectBuddyComboBox::removeFilter(AbstractBuddyFilter *filter)
+void SelectBuddyComboBox::removeFilter(TalkableFilter *filter)
 {
-	static_cast<BuddiesModelProxy *>(SourceProxyModel)->removeFilter(filter);
-	Popup->view()->removeFilter(filter);
+	ProxyModel->removeFilter(filter);
+	Popup->removeFilter(filter);
 }

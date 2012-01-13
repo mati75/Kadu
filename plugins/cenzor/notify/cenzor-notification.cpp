@@ -1,7 +1,8 @@
 /*
  * %kadu copyright begin%
  * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -18,9 +19,9 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "icons/icons-manager.h"
 #include "notify/notification-manager.h"
 #include "notify/notify-event.h"
-#include "icons/icons-manager.h"
 
 #include "cenzor-notification.h"
 
@@ -48,7 +49,7 @@ void CenzorNotification::unregisterNotifiactions()
 void CenzorNotification::notifyCenzored(const Chat &chat)
 {
 	CenzorNotification *notification = new CenzorNotification(chat);
-	notification->setTitle("Cenzor");
+	notification->setTitle(tr("Cenzor"));
 	notification->setText(tr("Message was cenzored"));
 	notification->setDetails(tr("Your interlocutor used obscene word and became admonished"));
 	NotificationManager::instance()->notify(notification);

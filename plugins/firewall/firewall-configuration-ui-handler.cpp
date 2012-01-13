@@ -1,7 +1,8 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -236,14 +237,9 @@ void FirewallConfigurationUiHandler::configurationApplied()
 		if (buddy.isNull() || buddy.isAnonymous())
 			continue;
 
-		BuddyFirewallData *bfd = 0;
-		if (buddy.data())
-			bfd = buddy.data()->moduleStorableData<BuddyFirewallData>("firewall-secured-sending", Firewall::instance(), true);
-		if (!bfd)
-			continue;
-
+		BuddyFirewallData *bfd = buddy.data()->moduleStorableData<BuddyFirewallData>("firewall-secured-sending", Firewall::instance(), true);
 		bfd->setSecuredSending(true);
-		bfd->store();
+		bfd->ensureStored();
 	}
 
 	count = AllList->count();
@@ -253,14 +249,9 @@ void FirewallConfigurationUiHandler::configurationApplied()
 		if (buddy.isNull() || buddy.isAnonymous())
 			continue;
 
-		BuddyFirewallData *bfd = 0;
-		if (buddy.data())
-			bfd = buddy.data()->moduleStorableData<BuddyFirewallData>("firewall-secured-sending", Firewall::instance(), true);
-		if (!bfd)
-			continue;
-
+		BuddyFirewallData *bfd = buddy.data()->moduleStorableData<BuddyFirewallData>("firewall-secured-sending", Firewall::instance(), true);
 		bfd->setSecuredSending(false);
-		bfd->store();
+		bfd->ensureStored();
 	}
 
 	config_file.writeEntry("Firewall", "question", QuestionEdit->toPlainText());

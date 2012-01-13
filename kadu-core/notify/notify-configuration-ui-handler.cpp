@@ -1,8 +1,8 @@
 /*
  * %kadu copyright begin%
+ * Copyright 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2009, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2009, 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -22,22 +22,21 @@
 #include <QtGui/QApplication>
 #include <QtGui/QCheckBox>
 #include <QtGui/QGridLayout>
-#include <QtGui/QPushButton>
 #include <QtGui/QHBoxLayout>
-#include <QtGui/QListWidget>
 #include <QtGui/QLabel>
+#include <QtGui/QListWidget>
+#include <QtGui/QPushButton>
 
-#include "configuration/configuration-file.h"
 #include "buddies/buddy-list.h"
 #include "buddies/buddy-manager.h"
-#include "buddies/buddy-shared.h"
+#include "configuration/configuration-file.h"
 #include "contacts/contact.h"
 #include "gui/widgets/chat-widget.h"
-#include "gui/widgets/configuration/configuration-widget.h"
 #include "gui/widgets/configuration/config-combo-box.h"
 #include "gui/widgets/configuration/config-group-box.h"
-#include "gui/widgets/configuration/notify-group-box.h"
+#include "gui/widgets/configuration/configuration-widget.h"
 #include "gui/widgets/configuration/notifier-configuration-widget.h"
+#include "gui/widgets/configuration/notify-group-box.h"
 #include "gui/widgets/configuration/notify-tree-widget.h"
 #include "gui/windows/configuration-window.h"
 
@@ -161,10 +160,7 @@ void NotifyConfigurationUiHandler::mainConfigurationWindowCreated(MainConfigurat
 	foreach (const Buddy &buddy, BuddyManager::instance()->items())
 		if (!buddy.isAnonymous())
 		{
-			BuddyNotifyData *bnd = 0;
-			if (buddy.data())
-				bnd = buddy.data()->moduleStorableData<BuddyNotifyData>("notify", NotificationManager::instance(), false);
-
+			BuddyNotifyData *bnd = buddy.data()->moduleStorableData<BuddyNotifyData>("notify", NotificationManager::instance(), false);
 			if (!bnd || !bnd->notify())
 				allUsers->addItem(buddy.display());
 			else
@@ -256,14 +252,9 @@ void NotifyConfigurationUiHandler::configurationWindowApplied()
 		if (buddy.isNull() || buddy.isAnonymous())
 			continue;
 
-		BuddyNotifyData *bnd = 0;
-		if (buddy.data())
-			bnd = buddy.data()->moduleStorableData<BuddyNotifyData>("notify", NotificationManager::instance(), true);
-		if (!bnd)
-			continue;
-
+		BuddyNotifyData *bnd = buddy.data()->moduleStorableData<BuddyNotifyData>("notify", NotificationManager::instance(), true);
 		bnd->setNotify(true);
-		bnd->store();
+		bnd->ensureStored();
 	}
 
 	count = allUsers->count();
@@ -273,14 +264,9 @@ void NotifyConfigurationUiHandler::configurationWindowApplied()
 		if (buddy.isNull() || buddy.isAnonymous())
 			continue;
 
-		BuddyNotifyData *bnd = 0;
-		if (buddy.data())
-			bnd = buddy.data()->moduleStorableData<BuddyNotifyData>("notify", NotificationManager::instance(), true);
-		if (!bnd)
-			continue;
-
+		BuddyNotifyData *bnd = buddy.data()->moduleStorableData<BuddyNotifyData>("notify", NotificationManager::instance(), true);
 		bnd->setNotify(false);
-		bnd->store();
+		bnd->ensureStored();
 	}
 
 	foreach (NotifyEvent *notifyEvent, NotificationManager::instance()->notifyEvents())
@@ -300,8 +286,8 @@ void NotifyConfigurationUiHandler::configurationWindowApplied()
 		if (gui.ConfigurationWidget)
 			gui.ConfigurationWidget->saveNotifyConfigurations();
 
-		foreach (const QString &eventKey, gui.Events.keys())
-			config_file.writeEntry("Notify", eventKey + '_' + notifier->name(), gui.Events[eventKey]);
+		for (QMap<QString, bool>::const_iterator it = gui.Events.constBegin(), end = gui.Events.constEnd(); it != end; ++it)
+			config_file.writeEntry("Notify", it.key() + '_' + notifier->name(), it.value());
 	}
 }
 

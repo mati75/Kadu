@@ -1,11 +1,14 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2009, 2010 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2009, 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2008, 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2009, 2010, 2010 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2010 Tomasz Rostański (rozteck@interia.pl)
- * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2008 Michał Podsiadlik (michal@kadu.net)
+ * Copyright 2009, 2009 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
+ * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -41,8 +44,7 @@ class QLineEdit;
 class QTabWidget;
 class QVBoxLayout;
 
-class ChooseIdentityWidget;
-class ProxyGroupBox;
+class ProxyComboBox;
 
 class JabberEditAccountWidget : public AccountEditWidget
 {
@@ -67,7 +69,6 @@ class JabberEditAccountWidget : public AccountEditWidget
 	QComboBox *PlainTextAuth;
 
 	IdentitiesComboBox *Identities;
-	ProxyGroupBox *Proxy;
 
 	QCheckBox *AutoResource;
 	QLabel *ResourceLabel;
@@ -75,11 +76,14 @@ class JabberEditAccountWidget : public AccountEditWidget
 	QLabel *PriorityLabel;
 	QLineEdit *Priority;
 
-	QLabel *DataTransferProxyLabel;
 	QLineEdit *DataTransferProxy;
 
 	QCheckBox *SendTypingNotification;
 	QCheckBox *SendGoneNotification;
+
+	QCheckBox *PublishSystemInfo;
+		
+	ProxyComboBox *ProxyCombo;
 
 	QPushButton *ApplyButton;
 	QPushButton *CancelButton;

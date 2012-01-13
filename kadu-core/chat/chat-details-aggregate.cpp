@@ -1,8 +1,8 @@
 /*
  * %kadu copyright begin%
- * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -93,7 +93,7 @@ QString ChatDetailsAggregate::name() const
  *
  * Assigns aggregate chats to this chat.
  */
-void ChatDetailsAggregate::setChats(const QList<Chat> &chats)
+void ChatDetailsAggregate::setChats(const QVector<Chat> &chats)
 {
 	Chats = chats;
 }
@@ -104,7 +104,7 @@ void ChatDetailsAggregate::setChats(const QList<Chat> &chats)
  *
  * Returns assigned aggregate chats to this chat.
  */
-const QList<Chat> & ChatDetailsAggregate::chats() const
+const QVector<Chat> & ChatDetailsAggregate::chats() const
 {
 	return Chats;
 }

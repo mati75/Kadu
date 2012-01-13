@@ -1,13 +1,13 @@
 /*
  * %kadu copyright begin%
- * Copyright 2007 Dawid Stawiarski (neeo@kadu.net)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2009, 2010 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2008, 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2005, 2006, 2007 Marcin Ślusarz (joi@kadu.net)
- * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2008, 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2009, 2009, 2010, 2010 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2008, 2009 Michał Podsiadlik (michal@kadu.net)
- * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2009, 2009 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2007, 2008, 2009, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2007 Dawid Stawiarski (neeo@kadu.net)
+ * Copyright 2005, 2006, 2007 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -69,13 +69,15 @@ class KADUAPI Protocol : public QObject
 
 	Account CurrentAccount;
 
+	// real status, can be offline after connection error
 	Status CurrentStatus;
+	// status used by user to login, after connection error its value does not change
+	// it can only by changed by user or status changer
+	Status LoginStatus;
 
 	void setAllOffline();
 
 private slots:
-	void statusChanged(StatusContainer *container, Status status);
-
 	// state machine slots
 	void prepareStateMachine();
 
@@ -96,6 +98,8 @@ protected:
 
 	virtual void disconnectedCleanup();
 	void statusChanged(Status newStatus);
+
+	void doSetStatus(Status status);
 
 protected slots:
 	void loggedIn();
@@ -128,6 +132,7 @@ public:
 	bool isConnected();
 	bool isConnecting();
 
+	// method called by user
 	void setStatus(Status status);
 	Status status() const;
 	virtual int maxDescriptionLength() { return -1; }
@@ -138,7 +143,6 @@ public:
 
 	KaduIcon statusIcon();
 	KaduIcon statusIcon(const Status &status);
-	KaduIcon statusIcon(const QString &statusType);
 
 	KaduIcon icon();
 

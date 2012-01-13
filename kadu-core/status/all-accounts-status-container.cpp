@@ -17,8 +17,8 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "accounts/account.h"
 #include "accounts/account-manager.h"
+#include "accounts/account.h"
 #include "icons/kadu-icon.h"
 #include "protocols/protocol.h"
 
@@ -38,7 +38,7 @@ AllAccountsStatusContainer::~AllAccountsStatusContainer()
 void AllAccountsStatusContainer::accountRegistered(Account account)
 {
 	Accounts.append(account);
-	connect(account, SIGNAL(statusUpdated()), this, SIGNAL(statusUpdated()));
+	connect(account.statusContainer(), SIGNAL(statusUpdated()), this, SIGNAL(statusUpdated()));
 
 	emit statusUpdated();
 }
@@ -47,33 +47,21 @@ void AllAccountsStatusContainer::accountUnregistered(Account account)
 {
 	if (Accounts.removeAll(account) > 0)
 	{
-		disconnect(account, SIGNAL(statusUpdated()), this, SIGNAL(statusUpdated()));
+		disconnect(account.statusContainer(), SIGNAL(statusUpdated()), this, SIGNAL(statusUpdated()));
 		emit statusUpdated();
 	}
-}
-
-void AllAccountsStatusContainer::doSetStatus(Status status)
-{
-	foreach (const Account &account, Accounts)
-		if (account)
-			account.data()->setStatus(status, false);
 }
 
 Status AllAccountsStatusContainer::status()
 {
 	Account account = AccountManager::bestAccount(Accounts);
-	return account ? account.data()->status() : Status();
+	return account ? account.statusContainer()->status() : Status();
 }
 
 bool AllAccountsStatusContainer::isStatusSettingInProgress()
 {
 	Account account = AccountManager::bestAccount(Accounts);
-	return account ? account.data()->isStatusSettingInProgress() : false;
-}
-
-QString AllAccountsStatusContainer::statusDisplayName()
-{
-	return status().displayName();
+	return account ? account.statusContainer()->isStatusSettingInProgress() : false;
 }
 
 KaduIcon AllAccountsStatusContainer::statusIcon()
@@ -84,48 +72,39 @@ KaduIcon AllAccountsStatusContainer::statusIcon()
 KaduIcon AllAccountsStatusContainer::statusIcon(const Status &status)
 {
 	Account account = AccountManager::bestAccount(Accounts);
-	return account ? account.data()->statusIcon(status) : KaduIcon();
+	return account ? account.statusContainer()->statusIcon(status) : KaduIcon();
 }
 
-KaduIcon AllAccountsStatusContainer::statusIcon(const QString &statusType)
+QList<StatusType> AllAccountsStatusContainer::supportedStatusTypes()
 {
 	Account account = AccountManager::bestAccount(Accounts);
-	return account ? account.data()->statusIcon(statusType) : KaduIcon();
-}
-
-QList<StatusType *> AllAccountsStatusContainer::supportedStatusTypes()
-{
-	Account account = AccountManager::bestAccount(Accounts);
-	return account ? account.data()->supportedStatusTypes() : QList<StatusType *>();
+	return account ? account.statusContainer()->supportedStatusTypes() : QList<StatusType>();
 }
 
 int AllAccountsStatusContainer::maxDescriptionLength()
 {
 	Account account = AccountManager::bestAccount(Accounts);
-	return account ? account.data()->maxDescriptionLength() : -1;
+	return account ? account.statusContainer()->maxDescriptionLength() : -1;
 }
 
-void AllAccountsStatusContainer::setStatus(Status status, bool flush)
+void AllAccountsStatusContainer::setStatus(Status status)
 {
 	foreach (const Account &account, Accounts)
-		account.data()->setStatus(status, flush);
+		if (account)
+			account.statusContainer()->setStatus(status);
 }
 
-void AllAccountsStatusContainer::setDescription(const QString &description, bool flush)
+Status AllAccountsStatusContainer::loadStatus()
 {
-	foreach (const Account &account, Accounts)
-		account.data()->setDescription(description, flush);
-}
-
-void AllAccountsStatusContainer::setDefaultStatus(const QString &startupStatus, bool offlineToInvisible,
-		const QString &startupDescription, bool StartupLastDescription)
-{
-	foreach (const Account &account, Accounts)
-		account.data()->setDefaultStatus(startupStatus, offlineToInvisible, startupDescription, StartupLastDescription);
+	Account account = AccountManager::bestAccount(Accounts);
+	if (account)
+		return account.statusContainer()->loadStatus();
+	else
+		return Status();
 }
 
 void AllAccountsStatusContainer::storeStatus(Status status)
 {
 	foreach (const Account &account, Accounts)
-		account.data()->storeStatus(status);
+		account.statusContainer()->storeStatus(status);
 }

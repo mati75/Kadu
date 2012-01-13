@@ -1,11 +1,11 @@
 /*
  * %kadu copyright begin%
+ * Copyright 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2009, 2010 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2010 Piotr Dąbrowski (ultr@ultr.pl)
- * Copyright 2010 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2009, 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2009, 2010 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2009, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -23,11 +23,14 @@
  */
 
 #include "accounts/account-manager.h"
+#include "accounts/account.h"
 #include "buddies/buddy-manager.h"
 #include "buddies/buddy-set.h"
-#include "chat/type/chat-type.h"
+#include "buddies/group-manager.h"
 #include "chat/chat-details.h"
 #include "chat/chat-manager.h"
+#include "chat/type/chat-type.h"
+#include "chat/type/chat-type-manager.h"
 #include "configuration/configuration-file.h"
 #include "contacts/contact-set.h"
 #include "parser/parser.h"
@@ -70,8 +73,9 @@ ChatShared * ChatShared::loadFromStorage(const QSharedPointer<StoragePoint> &sto
  * created.
  */
 ChatShared::ChatShared(const QUuid &uuid) :
-		Shared(uuid), IgnoreAllMessages(false)
+		Shared(uuid), Details(0), IgnoreAllMessages(false), UnreadMessagesCount(0)
 {
+	ChatAccount = new Account();
 }
 
 /**
@@ -86,6 +90,8 @@ ChatShared::~ChatShared()
 	ref.ref();
 
 	triggerAllChatTypesUnregistered();
+
+	delete ChatAccount;
 }
 
 /**
@@ -130,8 +136,29 @@ void ChatShared::load()
 
 	Shared::load();
 
+	XmlConfigFile *configurationStorage = storage()->storage();
+	QDomElement parent = storage()->point();
+
+	Groups.clear();
+
+	QDomElement groupsNode = configurationStorage->getNode(parent, "ChatGroups", XmlConfigFile::ModeFind);
+	if (!groupsNode.isNull())
+	{
+		QDomNodeList groupsList = groupsNode.elementsByTagName("Group");
+
+		int count = groupsList.count();
+		for (int i = 0; i < count; i++)
+		{
+			QDomElement groupElement = groupsList.at(i).toElement();
+			if (groupElement.isNull())
+				continue;
+			doAddToGroup(GroupManager::instance()->byUuid(groupElement.text()));
+		}
+	}
+
+	*ChatAccount = AccountManager::instance()->byUuid(QUuid(loadValue<QString>("Account")));
+	Display = loadValue<QString>("Display");
 	Type = loadValue<QString>("Type");
-	ChatAccount = AccountManager::instance()->byUuid(QUuid(loadValue<QString>("Account")));
 
 	triggerAllChatTypesRegistered();
 }
@@ -151,11 +178,24 @@ void ChatShared::store()
 
 	Shared::store();
 
-	storeValue("Type", Type);
-	storeValue("Account", ChatAccount.uuid().toString());
+	XmlConfigFile *configurationStorage = storage()->storage();
+	QDomElement parent = storage()->point();
 
-	if (details())
-		details()->store();
+	storeValue("Account", ChatAccount->uuid().toString());
+	storeValue("Display", Display);
+	storeValue("Type", Type);
+
+	if (!Groups.isEmpty())
+	{
+		QDomElement groupsNode = configurationStorage->getNode(parent, "ChatGroups", XmlConfigFile::ModeCreate);
+		foreach (const Group &group, Groups)
+			configurationStorage->appendTextNode(groupsNode, "Group", group.uuid().toString());
+	}
+	else
+		configurationStorage->removeNode(parent, "ChatGroups");
+
+	if (Details)
+		Details->ensureStored();
 }
 
 /**
@@ -172,8 +212,8 @@ bool ChatShared::shouldStore()
 	ensureLoaded();
 
 	return UuidStorableObject::shouldStore()
-			&& !ChatAccount.uuid().isNull()
-			&& (!details() || details()->shouldStore());
+			&& !ChatAccount->uuid().isNull()
+			&& (!Details || Details->shouldStore());
 }
 
 /**
@@ -185,8 +225,15 @@ bool ChatShared::shouldStore()
  */
 void ChatShared::aboutToBeRemoved()
 {
-	ChatAccount = Account::null;
-	setDetails(0);
+	*ChatAccount = Account::null;
+	Groups.clear();
+
+	if (Details)
+	{
+		Details->ensureStored();
+		delete Details;
+		Details = 0;
+	}
 }
 
 /**
@@ -210,13 +257,18 @@ void ChatShared::emitUpdated()
  */
 void ChatShared::chatTypeRegistered(ChatType *chatType)
 {
-	if (details())
-		return;
-
 	if (chatType->name() != Type)
 		return;
 
-	setDetails(chatType->createChatDetails(this));
+	if (!Details)
+	{
+		Details = chatType->createChatDetails(this);
+		Q_ASSERT(Details);
+
+		Details->ensureLoaded();
+	}
+
+	ChatManager::instance()->registerItem(this);
 }
 
 /**
@@ -228,42 +280,17 @@ void ChatShared::chatTypeRegistered(ChatType *chatType)
  */
 void ChatShared::chatTypeUnregistered(ChatType *chatType)
 {
-	if (!details())
-		return;
-
 	if (chatType->name() != Type)
 		return;
 
-	setDetails(0);
-}
+	if (Details)
+	{
+		Details->ensureStored();
+		delete Details;
+		Details = 0;
+	}
 
-/**
- * @author Rafal 'Vogel' Malinowski
- * @short Called after new details class was assigned to this object.
- *
- * After new details class is assigned to this object, it data is loaded from storage.
- */
-void ChatShared::detailsAdded()
-{
-	details()->ensureLoaded();
-
-	ChatManager::instance()->detailsLoaded(this);
-}
-
-/**
- * @author Rafal 'Vogel' Malinowski
- * @short Called before old details class is removed from this object.
- *
- * Before old details class is removed from this object its data is stored to storage.
- */
-void ChatShared::detailsAboutToBeRemoved()
-{
-	details()->store();
-}
-
-void ChatShared::detailsRemoved()
-{
-	ChatManager::instance()->detailsUnloaded(this);
+	ChatManager::instance()->unregisterItem(this);
 }
 
 /**
@@ -278,7 +305,7 @@ ContactSet ChatShared::contacts()
 {
 	ensureLoaded();
 
-	return details() ? details()->contacts() : ContactSet();
+	return Details ? Details->contacts() : ContactSet();
 }
 
 /**
@@ -286,12 +313,118 @@ ContactSet ChatShared::contacts()
  * @short Returns chat name.
  * @return chat name
  *
- * Returns chae name. Name fetched from details object, so if no details object is present
+ * Returns chat name. Name is fetched from details object, so if no details object is present
  * empty string will be returned.
  */
 QString ChatShared::name()
 {
 	ensureLoaded();
 
-	return details() ? details()->name() : QString();
+	return Details ? Details->name() : QString();
 }
+
+void ChatShared::setType(const QString &type)
+{
+	ensureLoaded();
+
+	if (Type == type)
+		return;
+
+	if (Details)
+	{
+		Details->ensureStored();
+		delete Details;
+		Details = 0;
+
+		ChatManager::instance()->unregisterItem(this);
+	}
+
+	Type = type;
+
+	ChatType *chatType = ChatTypeManager::instance()->chatType(type);
+	if (chatType)
+		chatTypeRegistered(chatType); // this will add details
+}
+
+void ChatShared::setGroups(const QList<Group> &groups)
+{
+	ensureLoaded();
+
+	if (Groups == groups)
+		return;
+
+	QList<Group> groupsToRemove = Groups;
+
+	foreach (const Group &group, groups)
+		if (groupsToRemove.removeAll(group) <= 0)
+			doAddToGroup(group);
+
+	foreach (const Group &group, groupsToRemove)
+		doRemoveFromGroup(group);
+
+	dataUpdated();
+}
+
+bool ChatShared::isInGroup(const Group &group)
+{
+	ensureLoaded();
+
+	return Groups.contains(group);
+}
+
+bool ChatShared::showInAllGroup()
+{
+	ensureLoaded();
+
+	foreach (const Group &group, Groups)
+		if (group && !group.showInAllGroup())
+			return false;
+
+	return true;
+}
+
+bool ChatShared::doAddToGroup(const Group &group)
+{
+	if (!group || Groups.contains(group))
+		return false;
+
+	Groups.append(group);
+	connect(group, SIGNAL(groupAboutToBeRemoved()), this, SLOT(groupAboutToBeRemoved()));
+
+	return true;
+}
+
+bool ChatShared::doRemoveFromGroup(const Group &group)
+{
+	if (Groups.removeAll(group) <= 0)
+		return false;
+
+	disconnect(group, SIGNAL(groupAboutToBeRemoved()), this, SLOT(groupAboutToBeRemoved()));
+
+	return true;
+}
+
+void ChatShared::addToGroup(const Group &group)
+{
+	ensureLoaded();
+
+	if (doAddToGroup(group))
+		dataUpdated();
+}
+
+void ChatShared::removeFromGroup(const Group &group)
+{
+	ensureLoaded();
+
+	if (doRemoveFromGroup(group))
+		dataUpdated();
+}
+
+void ChatShared::groupAboutToBeRemoved()
+{
+	Group group(sender());
+	if (!group.isNull())
+		removeFromGroup(group);
+}
+
+KaduShared_PropertyPtrDefCRW(ChatShared, Account, chatAccount, ChatAccount);

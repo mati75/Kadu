@@ -1,8 +1,8 @@
 /*
  * %kadu copyright begin%
- * Copyright 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2011, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -77,6 +77,22 @@ void StatusChangerManager::unregisterStatusChanger(StatusChanger *statusChanger)
 	kdebugf2();
 }
 
+void StatusChangerManager::setStatus(StatusContainer *statusContainer, Status status)
+{
+	if (statusContainer)
+	{
+		Statuses.insert(statusContainer, status);
+		statusChanged(statusContainer);
+	}
+}
+
+Status StatusChangerManager::manuallySetStatus(StatusContainer *statusContainer)
+{
+	if (Statuses.contains(statusContainer))
+		return Statuses.value(statusContainer);
+	return Status();
+}
+
 void StatusChangerManager::statusChanged(StatusContainer *container)
 {
 	if (!container)
@@ -88,39 +104,12 @@ void StatusChangerManager::statusChanged(StatusContainer *container)
 		return;
 	}
 
-	kdebugf();
-
-	Status status = Statuses.value(container);
-	for (int i = 0; i < StatusChangers.count(); i++)
-		StatusChangers.at(i)->changeStatus(container, status);
-	RealStatuses.insert(container, status);
-
-	emit statusChanged(container, status);
-
-	kdebugf2();
-}
-
-void StatusChangerManager::setStatus(StatusContainer *statusContainer, Status status)
-{
-	if (statusContainer)
+	if (Statuses.contains(container))
 	{
-		Statuses.insert(statusContainer, status);
-		statusChanged(statusContainer);
+		Status status = Statuses.value(container);
+		for (int i = 0; i < StatusChangers.count(); i++)
+			StatusChangers.at(i)->changeStatus(container, status);
+
+		container->setStatus(status);
 	}
-}
-
-Status StatusChangerManager::realStatus(StatusContainer *statusContainer)
-{
-	if (RealStatuses.contains(statusContainer))
-		return RealStatuses.value(statusContainer);
-	if (Statuses.contains(statusContainer))
-		return Statuses.value(statusContainer);
-	return Status("Offline");
-}
-
-Status StatusChangerManager::manuallySetStatus(StatusContainer *statusContainer)
-{
-	if (RealStatuses.contains(statusContainer))
-		return RealStatuses.value(statusContainer);
-	return Status("Offline");
 }

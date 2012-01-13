@@ -1,9 +1,9 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2008, 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2008, 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -25,8 +25,8 @@
 
 #include "accounts/account.h"
 #include "chat/chat-manager.h"
-#include "contacts/contact.h"
 #include "contacts/contact-set.h"
+#include "contacts/contact.h"
 #include "icons/kadu-icon.h"
 #include "notify/notify-event.h"
 #include "protocols/protocol.h"
@@ -112,7 +112,7 @@ StatusChangedNotification::StatusChangedNotification(const QString &toStatus, co
 	Status status = contact.currentStatus();
 
 	setText(tr("<b>%1</b> changed status to <i>%2</i>").arg(
-			Qt::escape(contact.ownerBuddy().display()), status.displayName()));
+			Qt::escape(contact.display(true)), status.displayName()));
 
 	setDetails(Qt::escape(status.description()));
 

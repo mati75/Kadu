@@ -1,7 +1,8 @@
 /*
  * %kadu copyright begin%
- * Copyright 2009, 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2009, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -30,8 +31,13 @@
 class QAction;
 
 class Action;
-class ActionDataSource;
+class ActionContext;
 class ActionDescription;
+class AddConferenceAction;
+class ChangeStatusAction;
+class DeleteTalkableAction;
+class DefaultProxyAction;
+class EditTalkableAction;
 class MainWindow;
 class StatusContainer;
 
@@ -45,6 +51,7 @@ class KaduWindowActions : QObject, ConfigurationAwareObject
 	ActionDescription *ShowMultilogons;
 	ActionDescription *ExitKadu;
 	ActionDescription *AddUser;
+	AddConferenceAction *AddConference;
 	ActionDescription *MergeContact;
 	ActionDescription *AddGroup;
 	ActionDescription *OpenSearch;
@@ -64,25 +71,24 @@ class KaduWindowActions : QObject, ConfigurationAwareObject
 	ActionDescription *OpenDescriptionLink;
 	ActionDescription *CopyPersonalInfo;
 	ActionDescription *LookupUserInfo;
-	ActionDescription *DeleteUsers;
+	DeleteTalkableAction *DeleteTalkable;
 
 	ActionDescription *InactiveUsers;
 	ActionDescription *DescriptionUsers;
 	ActionDescription *ShowDescriptions;
 	ActionDescription *OnlineAndDescriptionUsers;
-	ActionDescription *EditUser;
-	ActionDescription *ChangeStatus;
+
+	EditTalkableAction *EditTalkable;
+	ChangeStatusAction *ChangeStatus;
+	DefaultProxyAction *DefaultProxy;
 
 private slots:
-	void statusChanged(StatusContainer *container, Status status);
-
 	void showMultilogonsActionCreated(Action *action);
+	void openSearchActionCreated(Action *action);
 	void inactiveUsersActionCreated(Action *action);
 	void descriptionUsersActionCreated(Action *action);
 	void showDescriptionsActionCreated(Action *action);
 	void onlineAndDescUsersActionCreated(Action *action);
-	void editUserActionCreated(Action *action);
-	void changeStatusActionCreated(Action *action);
 	void showInfoPanelActionCreated(Action *action);
 	void showBlockedActionCreated(Action *action);
 	void showMyselfActionCreated(Action *action);
@@ -91,6 +97,7 @@ private slots:
 	void configurationActionActivated(QAction *sender, bool toggled);
 	void yourAccountsActionActivated(QAction *sender, bool toggled);
 	void showMultilogonsActionActivated(QAction *sender, bool toggled);
+	void manageModulesActionActivated(QAction *sender, bool toggled);
 	void exitKaduActionActivated(QAction *sender, bool toggled);
 	void addUserActionActivated(QAction *sender, bool toggled);
 	void mergeContactActionActivated(QAction *sender, bool toggled);
@@ -110,29 +117,26 @@ private slots:
 	void openDescriptionLinkActionActivated(QAction *sender, bool toggled);
 	void copyPersonalInfoActionActivated(QAction *sender, bool toggled);
 	void lookupInDirectoryActionActivated(QAction *sender, bool toggled);
-	void deleteUsersActionActivated(QAction *sender, bool toggled);
 
 	void inactiveUsersActionActivated(QAction *sender, bool toggled);
 	void descriptionUsersActionActivated(QAction *sender, bool toggled);
 	void showDescriptionsActionActivated(QAction *sender, bool toggled);
 	void onlineAndDescUsersActionActivated(QAction *sender, bool toggled);
-	void editUserActionActivated(QAction *sender, bool toggled);
-	void changeStatusActionActivated(QAction *sender, bool toggled);
 
 protected:
 	virtual void configurationUpdated();
 
 public:
-	static void deleteUserActionActivated(ActionDataSource *source);
-	static void editUserActionActivated(ActionDataSource *source);
-
 	explicit KaduWindowActions(QObject *parent);
 	virtual ~KaduWindowActions();
+
+	AddConferenceAction * addConference() { return AddConference; }
+	EditTalkableAction * editTalkable() { return EditTalkable; }
+	DeleteTalkableAction * deleteTalkable() { return DeleteTalkable; }
 
 };
 
 void disableNonIdUles(Action *action);
-void disableContainsSelfUles(Action *action);
 void disableNotOneUles(Action *action);
 void disableNoContact(Action *action);
 void disableNoDescription(Action *action);

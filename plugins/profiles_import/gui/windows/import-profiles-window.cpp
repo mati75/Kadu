@@ -2,6 +2,7 @@
  * %kadu copyright begin%
  * Copyright 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -30,8 +31,8 @@
 #include "identities/identity-manager.h"
 #include "misc/path-conversion.h"
 
-#include "plugins/history_migration/history-importer.h"
 #include "plugins/history_migration/history-importer-manager.h"
+#include "plugins/history_migration/history-importer.h"
 
 #include "profile-data-manager.h"
 #include "profile-importer.h"
@@ -100,13 +101,13 @@ void ImportProfilesWindow::createProfileList(QGridLayout *layout)
 }
 void ImportProfilesWindow::accept()
 {
-	foreach (QCheckBox *importCheckBox, ProfileCheckBoxes.keys())
+	for (QMap<QCheckBox *, ProfileData>::const_iterator it = ProfileCheckBoxes.constBegin(), end = ProfileCheckBoxes.constEnd(); it != end; ++it)
 	{
-		if (!importCheckBox->isChecked())
+		if (!it.key()->isChecked())
 			continue;
 
-		ProfileData profile = ProfileCheckBoxes[importCheckBox];
-		bool importHistory = HistoryCheckBoxes[importCheckBox]->isChecked();
+		const ProfileData &profile = it.value();
+		bool importHistory = HistoryCheckBoxes.value(it.key())->isChecked();
 
 		QString path = profile.Path.startsWith('/')
 				? profile.Path

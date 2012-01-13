@@ -1,8 +1,9 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2010 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -26,28 +27,29 @@
 #include "gui/windows/message-dialog.h"
 #include "identities/identity-manager.h"
 #include "identities/model/identity-model.h"
+#include "model/model-chain.h"
 #include "model/roles.h"
 
 #include "identities-combo-box.h"
 
 IdentitiesComboBox::IdentitiesComboBox(bool includeSelectIdentity, QWidget *parent) :
-		KaduComboBox<Identity>(parent), InActivatedSlot(false), IncludeSelectIdentity(includeSelectIdentity)
+		ActionsComboBox(parent)
 {
-	setUpModel(new IdentityModel(this));
+	if (includeSelectIdentity)
+		addBeforeAction(new QAction(tr(" - Select identity - "), this));
 
 	CreateNewIdentityAction = new QAction(tr("Create a new identity..."), this);
-	CreateNewIdentityAction->setData("createNewIdentity");
+	QFont createNewIdentityActionFont = CreateNewIdentityAction->font();
+	createNewIdentityActionFont.setItalic(true);
+	CreateNewIdentityAction->setFont(createNewIdentityActionFont);
+	CreateNewIdentityAction->setData(true);
+	connect(CreateNewIdentityAction, SIGNAL(triggered()), this, SLOT(createNewIdentity()));
+	addAfterAction(CreateNewIdentityAction);
 
-	ActionsModel->addAfterAction(CreateNewIdentityAction);
+	ModelChain *chain = new ModelChain(new IdentityModel(this), this);
+	setUpModel(IdentityRole, chain);
 
 	setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
-
-	connect(model(), SIGNAL(rowsAboutToBeRemoved(const QModelIndex &, int, int)),
-			this, SLOT(updateValueBeforeChange()));
-	connect(model(), SIGNAL(rowsRemoved(const QModelIndex &, int, int)),
-			this, SLOT(rowsRemoved(const QModelIndex &, int, int)));
-	connect(this, SIGNAL(activated(int)), this, SLOT(activatedSlot(int)));
-	connect(this, SIGNAL(currentIndexChanged(int)), this, SLOT(currentIndexChangedSlot(int)));
 }
 
 IdentitiesComboBox::~IdentitiesComboBox()
@@ -62,74 +64,21 @@ void IdentitiesComboBox::setCurrentIdentity(Identity identity)
 
 Identity IdentitiesComboBox::currentIdentity()
 {
-	return currentValue();
+	return currentValue().value<Identity>();
 }
 
-void IdentitiesComboBox::resetComboBox()
+void IdentitiesComboBox::createNewIdentity()
 {
-	if (!InActivatedSlot)
-		setCurrentIndex(0);
-}
+	bool ok;
 
-void IdentitiesComboBox::activatedSlot(int index)
-{
-	InActivatedSlot = true;
+	QString identityName = QInputDialog::getText(this, tr("New Identity"),
+			tr("Please enter the name for the new identity:"), QLineEdit::Normal,
+			QString(), &ok);
 
-	QModelIndex modelIndex = this->model()->index(index, modelColumn(), rootModelIndex());
-	QAction *action = modelIndex.data(ActionRole).value<QAction *>();
-
-	if (action == CreateNewIdentityAction)
-	{
-		bool ok;
-
-		QString identityName = QInputDialog::getText(this, tr("New Identity"),
-				tr("Please enter the name for the new identity:"), QLineEdit::Normal,
-				QString(), &ok);
-
-		Identity identityToSwitch = IdentityManager::instance()->byName(identityName, ok);
-		if (identityToSwitch)
-			setCurrentIdentity(identityToSwitch);
-		else
-			setCurrentIndex(0);
-	}
-
-	InActivatedSlot = false;
-}
-
-void IdentitiesComboBox::currentIndexChangedSlot(int index)
-{
-	QModelIndex modelIndex = this->model()->index(index, modelColumn(), rootModelIndex());
-	QAction *action = modelIndex.data(ActionRole).value<QAction *>();
-	if (action == CreateNewIdentityAction)
-	{
-		// this is needed to fix bugs #1674 and #1690
-		// as this action has to be activated by the user, otherwise we have to ignore it and reset combo box
-		// TODO: try to redo this as this is a bit tricky
-		if (!InActivatedSlot)
-			QMetaObject::invokeMethod(this, "resetComboBox", Qt::QueuedConnection);
+	if (!ok)
 		return;
-	}
 
-	if (KaduComboBox<Identity>::currentIndexChangedSlot(index))
-		emit identityChanged(CurrentValue);
-}
-
-void IdentitiesComboBox::updateValueBeforeChange()
-{
-	KaduComboBox<Identity>::updateValueBeforeChange();
-}
-
-void IdentitiesComboBox::rowsRemoved(const QModelIndex &parent, int start, int end)
-{
-	KaduComboBox<Identity>::rowsRemoved(parent, start, end);
-}
-
-int IdentitiesComboBox::preferredDataRole() const
-{
-	return IdentityRole;
-}
-
-QString IdentitiesComboBox::selectString() const
-{
-	return IncludeSelectIdentity ? tr(" - Select identity - ") : QString();
+	Identity newIdentity = IdentityManager::instance()->byName(identityName, true);
+	if (newIdentity)
+		setCurrentIdentity(newIdentity);
 }

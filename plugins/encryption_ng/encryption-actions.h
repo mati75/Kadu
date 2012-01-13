@@ -1,6 +1,9 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2008, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -23,45 +26,24 @@
 #include <QtCore/QObject>
 #include <QtGui/QAction>
 
-#include "accounts/accounts-aware-object.h"
 #include "chat/chat.h"
 
 class Action;
 class ActionDescription;
 class Contact;
+class EnableEncryptionActionDescription;
 
-class EncryptionActions : public QObject, AccountsAwareObject
+class EncryptionActions : public QObject
 {
 	Q_OBJECT
 	Q_DISABLE_COPY(EncryptionActions)
 
 	static EncryptionActions *Instance;
 
-	ActionDescription *EnableEncryptionActionDescription;
-	ActionDescription *SendPublicKeyActionDescription;
-	ActionDescription *GenerateKeysActionDescription;
-	QMenu *GenerateKeysMenu;
+	EnableEncryptionActionDescription *EnableEncryptionActionDescriptionInstance;
 
 	EncryptionActions();
 	virtual ~EncryptionActions();
-
-	void updateGenerateKeysMenu();
-	void sendPublicKey(const Contact &contact);
-
-private slots:
-	void insertMenuToMainWindow();
-
-	void canEncryptChanged(const Chat &chat);
-
-	void generateKeysActionCreated(Action *action);
-
-	void generateKeysActionActivated(QAction *action);
-	void enableEncryptionActionActivated(QAction *sender, bool toggled);
-	void sendPublicKeyActionActivated(QAction *sender, bool toggled);
-
-protected:
-	virtual void accountRegistered(Account account);
-	virtual void accountUnregistered(Account account);
 
 public:
 	static void registerActions();

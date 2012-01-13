@@ -1,9 +1,9 @@
 /*
  * %kadu copyright begin%
  * Copyright 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2010 Michał Obrembski (byku@byku.com.pl)
+ * Copyright 2010, 2010 Michał Obrembski (byku@byku.com.pl)
  * Copyright 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -22,13 +22,15 @@
 
 #include <QtCore/QString>
 
-#include "chat/message/message-render-info.h"
 #include "configuration/configuration-file.h"
 #include "contacts/contact-set.h"
-#include "debug.h"
 #include "gui/widgets/chat-messages-view.h"
 #include "gui/widgets/chat-widget-manager.h"
+#include "gui/widgets/chat-widget.h"
+#include "message/message-manager.h"
+#include "message/message-render-info.h"
 #include "protocols/services/chat-service.h"
+#include "debug.h"
 
 #include "image-link.h"
 
@@ -98,7 +100,7 @@ void ImageLink::filterIncomingMessage(Chat chat, Contact sender, QString &messag
 		ImageRegExp.indexIn(message);
 		QStringList list = ImageRegExp.capturedTexts();
 
-		if (ImageRegExp.matchedLength() > 0 && list.size() > 0)
+		if (ImageRegExp.matchedLength() > 0 && !list.isEmpty())
 			insertCodeIntoChatWindow(chat, sender, getImageCode(list[0]));
 	}
 
@@ -146,7 +148,9 @@ void ImageLink::insertCodeIntoChatWindow(Chat chat, Contact sender, const QStrin
 	message.setReceiveDate(QDateTime::currentDateTime());
 	message.setSendDate(QDateTime::currentDateTime());
 
-	ChatWidget *chatWidget = ChatWidgetManager::instance()->byChat(chat);
+	MessageManager::instance()->addUnreadMessage(message);
+
+	ChatWidget *chatWidget = ChatWidgetManager::instance()->byChat(chat, false);
 	if (!chatWidget)
 		ChatWidgetManager::instance()->messageReceived(message);
 	else

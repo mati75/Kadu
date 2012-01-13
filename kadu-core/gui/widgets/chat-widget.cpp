@@ -1,14 +1,22 @@
 /*
  * %kadu copyright begin%
- * Copyright 2007, 2008 Dawid Stawiarski (neeo@kadu.net)
- * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2008 Adrian Smarzewski (adrian@kadu.net)
- * Copyright 2007, 2008, 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2008, 2009 Michał Podsiadlik (michal@kadu.net)
  * Copyright 2010 Tomasz Rostanski (rozteck@interia.pl)
+ * Copyright 2008, 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2008 Tomasz Rostański (rozteck@interia.pl)
- * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
- * Copyright 2008, 2009, 2010 Piotr Galiszewski (piotrgaliszewski@gmail.com)
+ * Copyright 2011 Piotr Dąbrowski (ultr@ultr.pl)
+ * Copyright 2002, 2003, 2004 Tomasz Jarzynka (tomee@cpi.pl)
+ * Copyright 2004, 2005, 2008, 2009 Michał Podsiadlik (michal@kadu.net)
+ * Copyright 2009, 2009 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2004 Roman Krzystyniak (Ron_K@tlen.pl)
+ * Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008 Adrian Smarzewski (adrian@kadu.net)
+ * Copyright 2003, 2004, 2005 Paweł Płuciennik (pawel_p@kadu.net)
+ * Copyright 2002, 2003, 2004 Tomasz Chiliński (chilek@chilan.com)
+ * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2006, 2007, 2008 Dawid Stawiarski (neeo@kadu.net)
+ * Copyright 2004, 2005, 2006, 2007 Marcin Ślusarz (joi@kadu.net)
+ * Copyright 2002, 2003, 2004 Dariusz Jagodzik (mast3r@kadu.net)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -27,64 +35,68 @@
 
 #include <QtCore/QFileInfo>
 #include <QtGui/QIcon>
+#include <QtGui/QInputDialog>
 #include <QtGui/QKeyEvent>
-#include <QtGui/QPushButton>
 #include <QtGui/QShortcut>
 #include <QtGui/QSplitter>
+#include <QtGui/QToolBar>
 #include <QtGui/QVBoxLayout>
 
-#include "accounts/account.h"
 #include "accounts/account-manager.h"
-#include "buddies/model/buddy-list-model.h"
-#include "buddies/buddy.h"
-#include "buddies/buddy-shared.h"
+#include "accounts/account.h"
 #include "buddies/buddy-set.h"
+#include "buddies/buddy.h"
+#include "buddies/model/buddy-list-model.h"
 #include "chat/chat-geometry-data.h"
 #include "chat/chat-manager.h"
-#include "chat/message/message-render-info.h"
 #include "chat/type/chat-type-manager.h"
 #include "configuration/chat-configuration-holder.h"
 #include "configuration/configuration-file.h"
-#include "contacts/contact.h"
 #include "contacts/contact-set.h"
+#include "contacts/contact.h"
 #include "contacts/model/contact-data-extractor.h"
 #include "contacts/model/contact-list-model.h"
 #include "core/core.h"
-#include "gui/hot-key.h"
 #include "gui/actions/action.h"
 #include "gui/actions/actions.h"
-#include "gui/widgets/buddies-list-view.h"
-#include "gui/widgets/buddies-list-widget.h"
+#include "gui/hot-key.h"
 #include "gui/widgets/chat-edit-box-size-manager.h"
 #include "gui/widgets/chat-messages-view.h"
 #include "gui/widgets/chat-widget-actions.h"
+#include "gui/widgets/chat-widget-container.h"
 #include "gui/widgets/chat-widget-manager.h"
 #include "gui/widgets/color-selector.h"
+#include "gui/widgets/filtered-tree-view.h"
+#include "gui/widgets/talkable-tree-view.h"
 #include "gui/windows/kadu-window.h"
 #include "gui/windows/message-dialog.h"
+#include "message/message-manager.h"
+#include "message/message-render-info.h"
+#include "model/model-chain.h"
 #include "parser/parser.h"
 #include "protocols/protocol.h"
+#include "talkable/filter/name-talkable-filter.h"
+#include "talkable/model/talkable-proxy-model.h"
 
+#include "icons/icons-manager.h"
+#include "icons/kadu-icon.h"
+#include "misc/misc.h"
 #include "activate.h"
 #include "chat-edit-box.h"
 #include "custom-input.h"
 #include "debug.h"
-#include "icons/icons-manager.h"
-#include "icons/kadu-icon.h"
-#include "misc/misc.h"
 
 #include "chat-widget.h"
 
 ChatWidget::ChatWidget(const Chat &chat, QWidget *parent) :
-		QWidget(parent), CurrentChat(chat),
-		BuddiesWidget(0), InputBox(0), HorizontalSplitter(0),
+		QWidget(parent), CurrentChat(chat), Container(0),
+		BuddiesWidget(0), ProxyModel(0), InputBox(0), HorizontalSplitter(0),
 		IsComposing(false), CurrentContactActivity(ChatStateService::StateNone),
-		SplittersInitialized(false), NewMessagesCount(0)
+		SplittersInitialized(false)
 {
 	kdebugf();
 
 	setAcceptDrops(true);
-	ChatWidgetManager::instance()->registerChatWidget(this);
 
 	createGui();
 	configurationUpdated();
@@ -105,10 +117,14 @@ ChatWidget::ChatWidget(const Chat &chat, QWidget *parent) :
 	{
 		foreach (const Contact &contact, CurrentChat.contacts())
 		{
-			// actually we only need to send iconChanged() on CurrentStatus update
-			// but we don't have a signal for that in ContactShared
-			// TODO 0.10.0: consider adding currentStatusChanged() signal to ContactShared
-			connect(contact, SIGNAL(updated()), this, SIGNAL(iconChanged()));
+			// Actually we only need to send iconChanged() on CurrentStatus update,
+			// but we don't have a signal for that in ContactShared.
+			// TODO 0.12.0: Consider adding currentStatusChanged() signal to ContactShared.
+			// We need QueuedConnection for this scenario: 1. The user opens chat with unread
+			// messages in tabs. 2. Contact is updated to not have unread messages and we emit
+			// iconChanged(). 3. Tab catches it before Chat is updated and incorrectly sets
+			// tab icon to the envelope. This could be fixed correctly if we would fix the above TODO.
+			connect(contact, SIGNAL(updated()), this, SIGNAL(iconChanged()), Qt::QueuedConnection);
 			connect(contact.ownerBuddy(), SIGNAL(buddySubscriptionChanged()), this, SIGNAL(iconChanged()));
 		}
 
@@ -127,12 +143,22 @@ ChatWidget::~ChatWidget()
 	kdebugf();
 	ComposingTimer.stop();
 
-	ChatWidgetManager::instance()->unregisterChatWidget(this);
+	emit widgetDestroyed();
 
 	if (currentProtocol() && currentProtocol()->chatStateService())
 		currentProtocol()->chatStateService()->chatWidgetClosed(chat());
 
 	kdebugmf(KDEBUG_FUNCTION_END, "chat destroyed\n");
+}
+
+void ChatWidget::setContainer(ChatWidgetContainer *container)
+{
+	Container = container;
+}
+
+ChatWidgetContainer * ChatWidget::container() const
+{
+	return Container;
 }
 
 void ChatWidget::createGui()
@@ -163,12 +189,12 @@ void ChatWidget::createGui()
 	connect(shortcut, SIGNAL(activated()), MessagesView, SLOT(pageDown()));
 	HorizontalSplitter->addWidget(MessagesView);
 
-	if (CurrentChat.contacts().count() > 1)
-		createContactsList();
-
 	InputBox = new ChatEditBox(CurrentChat, this);
 	InputBox->setSizePolicy(QSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored));
 	InputBox->setMinimumHeight(10);
+
+	if (CurrentChat.contacts().count() > 1)
+		createContactsList();
 
 	VerticalSplitter->addWidget(HorizontalSplitter);
 	VerticalSplitter->setStretchFactor(0, 1);
@@ -189,25 +215,37 @@ void ChatWidget::createContactsList()
 	layout->setContentsMargins(0, 0, 0, 0);
 	layout->setSpacing(0);
 
-	BuddiesWidget = new BuddiesListWidget(BuddiesListWidget::FilterAtTop, this);
-	BuddiesWidget->setShowAnonymous(true);
-	BuddiesWidget->view()->setItemsExpandable(false);
+	BuddiesWidget = new FilteredTreeView(FilteredTreeView::FilterAtTop, this);
 	BuddiesWidget->setMinimumSize(QSize(30, 30));
-	BuddiesWidget->view()->setModel(new ContactListModel(CurrentChat.contacts().toContactList(), this));
-	BuddiesWidget->view()->setRootIsDecorated(false);
-	BuddiesWidget->view()->setShowAccountName(false);
-	BuddiesWidget->view()->setContextMenuEnabled(true);
 
-	connect(BuddiesWidget->view(), SIGNAL(chatActivated(Chat)),
-			Core::instance()->kaduWindow(), SLOT(openChatWindow(Chat)));
+	TalkableTreeView *view = new TalkableTreeView(BuddiesWidget);
+	view->setItemsExpandable(false);
 
-	QPushButton *leaveConference = new QPushButton(tr("Leave\nconference"), contactsListContainer);
-	leaveConference->setStyleSheet("text-align: center;");
-	leaveConference->setMinimumWidth(BuddiesWidget->minimumWidth());
-	connect(leaveConference, SIGNAL(clicked()), this, SLOT(leaveConference()));
+	ModelChain *chain = new ModelChain(new ContactListModel(CurrentChat.contacts().toContactVector(), this), this);
+	ProxyModel = new TalkableProxyModel(chain);
 
+	NameTalkableFilter *nameFilter = new NameTalkableFilter(NameTalkableFilter::UndecidedMatching, ProxyModel);
+	connect(BuddiesWidget, SIGNAL(filterChanged(QString)), nameFilter, SLOT(setName(QString)));
+
+	ProxyModel->addFilter(nameFilter);
+	chain->addProxyModel(ProxyModel);
+
+	view->setChain(chain);
+	view->setRootIsDecorated(false);
+	view->setShowIdentityNameIfMany(false);
+	view->setContextMenuEnabled(true);
+
+	connect(view, SIGNAL(talkableActivated(Talkable)),
+			Core::instance()->kaduWindow(), SLOT(talkableActivatedSlot(Talkable)));
+
+	BuddiesWidget->setTreeView(view);
+
+	QToolBar *toolBar = new QToolBar(contactsListContainer);
+	toolBar->addAction(Actions::instance()->createAction("editUserAction", InputBox->actionContext(), toolBar));
+	toolBar->addAction(Actions::instance()->createAction("leaveChatAction", InputBox->actionContext(), toolBar));
+
+	layout->addWidget(toolBar);
 	layout->addWidget(BuddiesWidget);
-	layout->addWidget(leaveConference);
 
 	QList<int> sizes;
 	sizes.append(3);
@@ -256,13 +294,13 @@ bool ChatWidget::keyPressEventHandled(QKeyEvent *e)
 
 	if (HotKey::shortCut(e,"ShortCuts", "kadu_searchuser"))
 	{
-		Actions::instance()->createAction("whoisAction", InputBox)->activate(QAction::Trigger);
+		Actions::instance()->createAction("lookupUserInfoAction", InputBox->actionContext(), InputBox)->activate(QAction::Trigger);
 		return true;
 	}
 
 	if (HotKey::shortCut(e,"ShortCuts", "kadu_openchatwith"))
 	{
-		Actions::instance()->createAction("openChatWithAction", InputBox)->activate(QAction::Trigger);
+		Actions::instance()->createAction("openChatWithAction", InputBox->actionContext(), InputBox)->activate(QAction::Trigger);
 		return true;
 	}
 
@@ -292,6 +330,13 @@ void ChatWidget::refreshTitle()
 	kdebugf();
 	QString title;
 
+	if (!chat().display().isEmpty())
+	{
+		title = chat().display();
+		setTitle(title);
+		return;
+	}
+
 	int contactsCount = chat().contacts().count();
 	kdebugmf(KDEBUG_FUNCTION_START, "chat().contacts().size() = %d\n", contactsCount);
 	if (contactsCount > 1)
@@ -303,7 +348,7 @@ void ChatWidget::refreshTitle()
 		QString conferenceContents = ChatConfigurationHolder::instance()->conferenceContents();
 		QStringList contactslist;
 		foreach (Contact contact, chat().contacts())
-			contactslist.append(Parser::parse(conferenceContents.isEmpty() ? "%a" : conferenceContents, BuddyOrContact(contact), false));
+			contactslist.append(Parser::parse(conferenceContents.isEmpty() ? "%a" : conferenceContents, Talkable(contact), false));
 
 		title.append(contactslist.join(", "));
 	}
@@ -313,13 +358,13 @@ void ChatWidget::refreshTitle()
 
 		if (ChatConfigurationHolder::instance()->chatContents().isEmpty())
 		{
-			if (contact.ownerBuddy().isAnonymous())
-				title = Parser::parse(tr("Chat with ") + "%a", BuddyOrContact(contact), false);
+			if (contact.isAnonymous())
+				title = Parser::parse(tr("Chat with ") + "%a", Talkable(contact), false);
 			else
-				title = Parser::parse(tr("Chat with ") + "%a (%s[: %d])", BuddyOrContact(contact), false);
+				title = Parser::parse(tr("Chat with ") + "%a (%s[: %d])", Talkable(contact), false);
 		}
 		else
-			title = Parser::parse(ChatConfigurationHolder::instance()->chatContents(), BuddyOrContact(contact), false);
+			title = Parser::parse(ChatConfigurationHolder::instance()->chatContents(), Talkable(contact), false);
 
 		if (ChatConfigurationHolder::instance()->contactStateWindowTitle())
 		{
@@ -369,46 +414,48 @@ QIcon ChatWidget::icon()
 	return KaduIcon("internet-group-chat").icon();
 }
 
-void ChatWidget::appendMessages(const QList<MessageRenderInfo *> &messages, bool pending)
+void ChatWidget::appendMessages(const QList<Message> &messages)
 {
-	MessagesView->appendMessages(messages);
+	if (messages.isEmpty())
+		return;
 
-	if (pending)
-		LastMessageTime = QDateTime::currentDateTime();
+	bool unread = false;
+
+	QList<MessageRenderInfo *> messageRenderInfos;
+	foreach (const Message &message, messages)
+	{
+		messageRenderInfos.append(new MessageRenderInfo(message));
+		unread = unread || message.status() == MessageStatusReceived;
+	}
+
+	MessagesView->appendMessages(messageRenderInfos);
+	if (unread)
+		LastReceivedMessageTime = QDateTime::currentDateTime();
 }
 
-void ChatWidget::appendMessage(MessageRenderInfo *message, bool pending)
+void ChatWidget::appendMessage(const Message &message)
 {
-	MessagesView->appendMessage(message);
+	MessagesView->appendMessage(new MessageRenderInfo(message));
 
-	if (pending)
-		LastMessageTime = QDateTime::currentDateTime();
+	if (message.type() != MessageTypeReceived)
+		return;
+
+	LastReceivedMessageTime = QDateTime::currentDateTime();
+	if (Container)
+		Container->alertChatWidget(this);
 }
 
-void ChatWidget::appendSystemMessage(const QString &rawContent, const QString &backgroundColor, const QString &fontColor)
+void ChatWidget::appendSystemMessage(const QString &content)
 {
 	Message message = Message::create();
 	message.setMessageChat(CurrentChat);
 	message.setType(MessageTypeSystem);
-	message.setContent(rawContent);
+	message.setContent(content);
+	message.setReceiveDate(QDateTime::currentDateTime());
 	message.setSendDate(QDateTime::currentDateTime());
-	MessageRenderInfo *messageRenderInfo = new MessageRenderInfo(message);
-	messageRenderInfo->setBackgroundColor(backgroundColor)
-		.setFontColor(fontColor)
-		.setNickColor(fontColor);
+	message.setStatus(MessageStatusReceived);
 
-	MessagesView->appendMessage(messageRenderInfo);
-}
-
-/* invoked from outside when new message arrives, this is the window to the world */
-void ChatWidget::newMessage(MessageRenderInfo *messageRenderInfo)
-{
-	MessagesView->appendMessage(messageRenderInfo);
-
-	LastMessageTime = QDateTime::currentDateTime();
-	NewMessagesCount++;
-
- 	emit messageReceived(CurrentChat);
+	MessagesView->appendMessage(message);
 }
 
 void ChatWidget::resetEditBox()
@@ -416,15 +463,15 @@ void ChatWidget::resetEditBox()
 	InputBox->inputBox()->clear();
 
 	Action *action;
-	action = ChatWidgetManager::instance()->actions()->bold()->action(InputBox);
+	action = ChatWidgetManager::instance()->actions()->bold()->action(InputBox->actionContext());
 	if (action)
 		InputBox->inputBox()->setFontWeight(action->isChecked() ? QFont::Bold : QFont::Normal);
 
-	action = ChatWidgetManager::instance()->actions()->italic()->action(InputBox);
+	action = ChatWidgetManager::instance()->actions()->italic()->action(InputBox->actionContext());
 	if (action)
 		InputBox->inputBox()->setFontItalic(action->isChecked());
 
-	action = ChatWidgetManager::instance()->actions()->underline()->action(InputBox);
+	action = ChatWidgetManager::instance()->actions()->underline()->action(InputBox->actionContext());
 	if (action)
 		InputBox->inputBox()->setFontUnderline(action->isChecked());
 }
@@ -476,8 +523,6 @@ void ChatWidget::sendMessage()
 	if (ComposingTimer.isActive())
 		composingStopped();
 
-	emit messageSentAndConfirmed(CurrentChat, message.toHtml());
-
 	emit messageSent(this);
 	kdebugf2();
 }
@@ -493,9 +538,9 @@ CustomInput * ChatWidget::edit() const
 	return InputBox ? InputBox->inputBox() : 0;
 }
 
-BuddiesListView * ChatWidget::contactsListWidget() const
+TalkableProxyModel * ChatWidget::talkableProxyModel() const
 {
-	return BuddiesWidget ? BuddiesWidget->view() : 0;
+	return ProxyModel;
 }
 
 unsigned int ChatWidget::countMessages() const
@@ -521,7 +566,7 @@ bool ChatWidget::decodeLocalFiles(QDropEvent *event, QStringList &files)
 				files.append(file);
 		}
 	}
-	return files.count() > 0;
+	return !files.isEmpty();
 
 }
 
@@ -563,17 +608,15 @@ Protocol *ChatWidget::currentProtocol() const
 	return CurrentChat.chatAccount().protocolHandler();
 }
 
-void ChatWidget::makeActive()
+void ChatWidget::activate()
 {
-	kdebugf();
-	QWidget *win = this->window();
-	_activateWindow(win);
-	kdebugf2();
+	if (Container)
+		Container->activateChatWidget(this);
 }
 
-void ChatWidget::markAllMessagesRead()
+bool ChatWidget::isActive()
 {
-	NewMessagesCount = 0;
+	return Container && Container->isChatWidgetActive(this);
 }
 
 void ChatWidget::verticalSplitterMoved(int pos, int index)
@@ -587,26 +630,32 @@ void ChatWidget::verticalSplitterMoved(int pos, int index)
 
 void ChatWidget::kaduRestoreGeometry()
 {
-	ChatGeometryData *cgd = chat().data()->moduleStorableData<ChatGeometryData>("chat-geometry", ChatWidgetManager::instance(), false);
+	if (!HorizontalSplitter)
+		return;
 
-	if (cgd && HorizontalSplitter)
-	{
-		QList<int> horizSizes = cgd->widgetHorizontalSizes();
-		if (!horizSizes.empty())
-			HorizontalSplitter->setSizes(horizSizes);
-	}
+	if (!chat())
+		return;
+
+	ChatGeometryData *cgd = chat().data()->moduleStorableData<ChatGeometryData>("chat-geometry", ChatWidgetManager::instance(), false);
+	if (!cgd)
+		return;
+
+	QList<int> horizSizes = cgd->widgetHorizontalSizes();
+	if (!horizSizes.isEmpty())
+		HorizontalSplitter->setSizes(horizSizes);
 }
 
 void ChatWidget::kaduStoreGeometry()
 {
-  	ChatGeometryData *cgd = chat().data()->moduleStorableData<ChatGeometryData>("chat-geometry", ChatWidgetManager::instance(), true);
-	if (!cgd)
+	if (!HorizontalSplitter)
 		return;
 
-	if (HorizontalSplitter)
-		cgd->setWidgetHorizontalSizes(HorizontalSplitter->sizes());
+	if (!chat())
+		return;
 
-	cgd->store();
+	ChatGeometryData *cgd = chat().data()->moduleStorableData<ChatGeometryData>("chat-geometry", ChatWidgetManager::instance(), true);
+	cgd->setWidgetHorizontalSizes(HorizontalSplitter->sizes());
+	cgd->ensureStored();
 }
 
 void ChatWidget::showEvent(QShowEvent *e)
@@ -629,20 +678,11 @@ void ChatWidget::setUpVerticalSizes()
 		return;
 	}
 
-	ChatGeometryData *cgd = chat().data()->moduleStorableData<ChatGeometryData>("chat-geometry", ChatWidgetManager::instance(), false);
-	// no window has set up common height yet, so we use this data
 	QList<int> vertSizes;
-	if (cgd)
-		vertSizes = cgd->widgetVerticalSizes();
+	int h = height();
+	vertSizes.append(h / 3 * 2 + h % 3);
+	vertSizes.append(h / 3);
 
-	// if we dont have default values, we just make some up!
-	if (vertSizes.count() != 2 || vertSizes.at(0) == 0 || vertSizes.at(1) == 0)
-	{
-		int h = height() / 3;
-		vertSizes.clear();
-		vertSizes.append(h * 2);
-		vertSizes.append(h);
-	}
 	VerticalSplitter->setSizes(vertSizes);
 	SplittersInitialized = true;
 	ChatEditBoxSizeManager::instance()->setCommonHeight(vertSizes.at(1));
@@ -732,6 +772,7 @@ void ChatWidget::contactActivityChanged(ChatStateService::ContactActivity state,
 		message.setMessageChat(CurrentChat);
 		message.setType(MessageTypeSystem);
 		message.setMessageSender(contact);
+		message.setStatus(MessageStatusReceived);
 		message.setContent(msg);
 		message.setSendDate(QDateTime::currentDateTime());
 		message.setReceiveDate(QDateTime::currentDateTime());
@@ -740,14 +781,8 @@ void ChatWidget::contactActivityChanged(ChatStateService::ContactActivity state,
 	}
 }
 
-void ChatWidget::leaveConference()
+void ChatWidget::close()
 {
-	if (!MessageDialog::ask(KaduIcon("dialog-warning"), tr("Kadu"), tr("All messages received in this conference will be ignored\nfrom now on. Are you sure you want to leave this conference?"), this))
-		return;
-
-	if (CurrentChat)
-		CurrentChat.setIgnoreAllMessages(true);
-
 	emit closed();
 }
 

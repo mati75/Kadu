@@ -1,7 +1,7 @@
 /*
  * %kadu copyright begin%
- * Copyright 2009, 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -21,8 +21,8 @@
 #ifndef HINT_OVER_USER_CONFIGURATION_WINDOW_H
 #define HINT_OVER_USER_CONFIGURATION_WINDOW_H
 
-#include "gui/windows/configuration-window.h"
 #include "buddies/buddy.h"
+#include "gui/windows/configuration-window.h"
 
 class QFrame;
 class QLabel;

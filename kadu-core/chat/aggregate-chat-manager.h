@@ -1,8 +1,10 @@
 /*
  * %kadu copyright begin%
- * Copyright 2009, 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2009 Michał Podsiadlik (michal@kadu.net)
+ * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
+ * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -49,10 +51,12 @@ class KADUAPI AggregateChatManager : public QObject
 
 	static AggregateChatManager *Instance;
 
-	QHash<BuddySet, QList<Chat> > AggregateChats;
+	QHash<BuddySet, QVector<Chat> > AggregateChats;
 
 	AggregateChatManager();
-	~AggregateChatManager();
+	virtual ~AggregateChatManager();
+
+	void init();
 
 private slots:
 	void chatAdded(const Chat &chat);

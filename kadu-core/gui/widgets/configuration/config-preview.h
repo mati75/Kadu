@@ -1,9 +1,9 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2009 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2008, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2009, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2011 Piotr Dąbrowski (ultr@ultr.pl)
+ * Copyright 2008, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -23,9 +23,9 @@
 #ifndef CONFIG_PREVIEW_H
 #define CONFIG_PREVIEW_H
 
+#include "configuration/configuration-window-data-manager.h"
 #include "gui/widgets/configuration/config-widget.h"
 #include "gui/widgets/preview.h"
-#include "configuration/configuration-window-data-manager.h"
 
 class QLabel;
 class ConfigGroupBox;
@@ -50,11 +50,11 @@ public:
 	ConfigPreview(ConfigGroupBox *parentConfigGroupBox, ConfigurationWindowDataManager *dataManager);
 	virtual ~ConfigPreview();
 
-	virtual void loadConfiguration() {};
-	virtual void saveConfiguration() {};
+	virtual void setVisible(bool visible);
 
-	virtual void show();
-	virtual void hide();
+	virtual void loadConfiguration() {}
+	virtual void saveConfiguration() {}
+
 	virtual bool fromDomElement(QDomElement domElement);
 
 };

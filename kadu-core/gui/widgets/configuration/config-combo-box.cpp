@@ -1,9 +1,9 @@
 /*
  * %kadu copyright begin%
+ * Copyright 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2010 Piotr Dąbrowski (ultr@ultr.pl)
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2009, 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2008, 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -121,16 +121,10 @@ void ConfigComboBox::saveConfiguration()
 		dataManager->writeEntry(section, item, QVariant(itemValues[currentIndex()]));
 }
 
-void ConfigComboBox::show()
+void ConfigComboBox::setVisible(bool visible)
 {
-	label->show();
-	QComboBox::show();
-}
-
-void ConfigComboBox::hide()
-{
-	label->hide();
-	QComboBox::hide();
+	label->setVisible(visible);
+	QComboBox::setVisible(visible);
 }
 
 bool ConfigComboBox::fromDomElement(QDomElement domElement)

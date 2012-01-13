@@ -1,12 +1,12 @@
 /*
  * %kadu copyright begin%
- * Copyright 2011 Piotr Dąbrowski (ultr@ultr.pl)
- * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2010, 2011 Tomasz Rostanski (rozteck@interia.pl)
- * Copyright 2008, 2010 Tomasz Rostański (rozteck@interia.pl)
+ * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2008, 2010, 2010, 2010 Tomasz Rostański (rozteck@interia.pl)
+ * Copyright 2011 Piotr Dąbrowski (ultr@ultr.pl)
+ * Copyright 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -27,22 +27,22 @@
  * growlnotifier.cpp file, which are the part of PSI Jabber Client.
  */
 
-#include "growlnotifier.h"
-#include "growl-notify.h"
 #include "growl-notify-configuration-widget.h"
+#include "growl-notify.h"
+#include "growlnotifier.h"
 
-#include <QtGui/QTextDocument>
 #include <QtGui/QMessageBox>
+#include <QtGui/QTextDocument>
 
 #include "avatars/avatar.h"
 #include "configuration/configuration-file.h"
 #include "gui/windows/message-dialog.h"
+#include "icons/icons-manager.h"
 #include "notify/account-notification.h"
 #include "notify/chat-notification.h"
 #include "notify/notification-manager.h"
 #include "notify/notification.h"
 #include "parser/parser.h"
-#include "icons/icons-manager.h"
 #include "debug.h"
 
 GrowlNotify *GrowlNotify::Instance = NULL;
@@ -133,7 +133,7 @@ void GrowlNotify::notify(Notification *notification)
 		if (chatNotification)
 		{
 			Avatar avatar = //chatNotification->account().accountContact().contactAvatar();
-			chatNotification->chat().contacts().toContact().contactAvatar();
+			chatNotification->chat().contacts().toContact().avatar(true);
 			if (!avatar.isEmpty())
 				pixmap = avatar.pixmap();
 		}

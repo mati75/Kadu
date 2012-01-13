@@ -1,7 +1,8 @@
 /*
  * %kadu copyright begin%
- * Copyright 2009, 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -22,12 +23,15 @@
 #define PATH_CONVERSION_H
 
 #include <QtCore/QString>
+#include <QtCore/QtGlobal>
 
 #include "exports.h"
 
 KADUAPI void printBacktrace(const QString &header = QString());
 
+#ifdef Q_WS_X11
 KADUAPI QString desktopFilePath();
+#endif
 
 KADUAPI QString homePath();
 

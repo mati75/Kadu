@@ -1,13 +1,13 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010, 2011 Piotr Dąbrowski (ultr@ultr.pl)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009, 2010 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Piotr Dąbrowski (ultr@ultr.pl)
  * Copyright 2009 Michał Podsiadlik (michal@kadu.net)
- * Copyright 2009 Longer (longer89@gmail.com)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2009 Longer (longer89@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -26,28 +26,29 @@
 
 #include <QtGui/QMenu>
 
-#include "accounts/account.h"
 #include "accounts/account-manager.h"
-#include "buddies/buddy-shared.h"
-#include "contacts/contact.h"
-#include "contacts/contact-set.h"
-#include "configuration/configuration-file.h"
-#include "core/core.h"
+#include "accounts/account.h"
 #include "chat/chat-manager.h"
+#include "configuration/configuration-file.h"
+#include "contacts/contact-set.h"
+#include "contacts/contact.h"
+#include "core/core.h"
 #include "emoticons/emoticons.h"
 #include "gui/actions/action.h"
 #include "gui/actions/actions.h"
-#include "gui/widgets/buddies-list-view-menu-manager.h"
+#include "gui/actions/chat/leave-chat-action.h"
 #include "gui/widgets/chat-edit-box.h"
 #include "gui/widgets/chat-messages-view.h"
-#include "gui/widgets/chat-widget.h"
 #include "gui/widgets/chat-widget-manager.h"
+#include "gui/widgets/chat-widget.h"
+#include "gui/actions/edit-talkable-action.h"
+#include "gui/widgets/talkable-menu-manager.h"
 #include "gui/widgets/toolbar.h"
-#include "gui/windows/kadu-window.h"
 #include "gui/windows/kadu-window-actions.h"
+#include "gui/windows/kadu-window.h"
 #include "gui/windows/message-dialog.h"
 #include "gui/windows/open-chat-with/open-chat-with.h"
-#include "gui/windows/search-window.h"
+#include "model/roles.h"
 
 #include "custom-input.h"
 #include "debug.h"
@@ -86,7 +87,7 @@ static void disableNoChatImageService(Action *action)
 	if (!chatEditBox)
 		return;
 
-	Account account = action->chat().chatAccount();
+	Account account = action->context()->chat().chatAccount();
 	if (!account)
 		return;
 
@@ -99,7 +100,7 @@ static void disableNoChatImageService(Action *action)
 
 static void checkBlocking(Action *action)
 {
-	BuddySet buddies = action->buddies();
+	BuddySet buddies = action->context()->buddies();
 
 	if (!buddies.count() || buddies.contains(Core::instance()->myself()))
 	{
@@ -107,8 +108,7 @@ static void checkBlocking(Action *action)
 		return;
 	}
 
-	if (action && action->dataSource())
-		action->setEnabled(!action->dataSource()->hasContactSelected());
+	action->setEnabled(!action->context()->roles().contains(ContactRole));
 
 	bool on = false;
 	foreach (const Buddy &buddy, buddies)
@@ -125,7 +125,7 @@ static void disableNoGadu(Action *action)
 {
 	action->setEnabled(false);
 
-	Chat chat = action->chat();
+	Chat chat = action->context()->chat();
 	if (!chat)
 		return;
 
@@ -200,13 +200,6 @@ ChatWidgetActions::ChatWidgetActions(QObject *parent) : QObject(parent)
 	);
 	connect(Send, SIGNAL(actionCreated(Action *)), this, SLOT(sendActionCreated(Action *)));
 
-	Whois = new ActionDescription(0,
-		ActionDescription::TypeChat, "whoisAction",
-		this, SLOT(whoisActionActivated(QAction *, bool)),
-		KaduIcon("edit-find"), tr("Search this User in Directory"), false,
-		disableNoContact
-	);
-
 	BlockUser = new ActionDescription(0,
 		ActionDescription::TypeUser, "blockUserAction",
 		this, SLOT(blockUserActionActivated(QAction *, bool)),
@@ -214,12 +207,16 @@ ChatWidgetActions::ChatWidgetActions(QObject *parent) : QObject(parent)
 		checkBlocking
 	);
 
+	// The last ActionDescription of each type will send actionLoaded() signal.
+	Actions::instance()->unblockSignals();
+
 	OpenChat = new ActionDescription(0,
 		ActionDescription::TypeUser, "chatAction",
 		this, SLOT(openChatActionActivated(QAction *, bool)),
 		KaduIcon("internet-group-chat"), tr("&Chat"), false,
 		disableNoChat
 	);
+	TalkableMenuManager::instance()->addActionDescription(OpenChat, TalkableMenuItem::CategoryChat, 25);
 
 	OpenWith = new ActionDescription(0,
 		ActionDescription::TypeGlobal, "openChatWithAction",
@@ -227,9 +224,6 @@ ChatWidgetActions::ChatWidgetActions(QObject *parent) : QObject(parent)
 		KaduIcon("internet-group-chat"), tr("Open Chat with...")
 	);
 	OpenWith->setShortcut("kadu_openchatwith", Qt::ApplicationShortcut);
-
-	// The last ActionDescription will send ActionAdded signal
-	Actions::instance()->unblockSignals();
 
 	InsertEmoticon = new ActionDescription(0,
 		ActionDescription::TypeChat, "insertEmoticonAction",
@@ -244,7 +238,8 @@ ChatWidgetActions::ChatWidgetActions(QObject *parent) : QObject(parent)
 		KaduIcon("kadu_icons/change-color"), tr("Change Color")
 	);*/
 
-	BuddiesListViewMenuManager::instance()->addActionDescription(OpenChat, BuddiesListViewMenuItem::MenuCategoryChat, 25);
+	EditTalkable = new EditTalkableAction(this);
+	LeaveChat = new LeaveChatAction(this);
 }
 
 ChatWidgetActions::~ChatWidgetActions()
@@ -286,7 +281,7 @@ void ChatWidgetActions::sendActionCreated(Action *action)
 
 void ChatWidgetActions::insertEmoticonActionCreated(Action *action)
 {
-	if (config_file.readEntry("Chat","EmoticonsTheme").isEmpty())
+	if (config_file.readEntry("Chat","EmoticonsTheme").trimmed().isEmpty())
 	{
 		action->setToolTip(tr("Insert emoticon - enable in configuration"));
 		action->setEnabled(false);
@@ -295,18 +290,25 @@ void ChatWidgetActions::insertEmoticonActionCreated(Action *action)
 
 void ChatWidgetActions::insertEmoticonsActionCheck()
 {
-	if (config_file.readEntry("Chat","EmoticonsTheme").isEmpty())
-		foreach (Action *action, InsertEmoticon->actions())
-		{
-			action->setToolTip(tr("Insert emoticon - enable in configuration"));
-			action->setEnabled(false);
-		}
+	QString toolTip;
+	bool enabled;
+
+	if (config_file.readEntry("Chat","EmoticonsTheme").trimmed().isEmpty())
+	{
+		toolTip =  tr("Insert emoticon - enable in configuration");
+		enabled = false;
+	}
 	else
-		foreach (Action *action, InsertEmoticon->actions())
-		{
-			action->setToolTip(tr("Insert Emoticon"));
-			action->setEnabled(true);
-		}
+	{
+		toolTip = tr("Insert emoticon");
+		enabled = true;
+	}
+
+ 	foreach (Action *action, InsertEmoticon->actions())
+	{
+		action->setToolTip(toolTip);
+		action->setEnabled(enabled);
+	}
 }
 
 void ChatWidgetActions::autoSendActionCheck()
@@ -345,7 +347,7 @@ void ChatWidgetActions::moreActionsActionActivated(QAction *sender, bool toggled
 		return;
 
 	QList<QWidget *> widgets = sender->associatedWidgets();
-	if (widgets.size() == 0)
+	if (widgets.isEmpty())
 		return;
 
 	QWidget *widget = widgets.at(widgets.size() - 1);
@@ -365,9 +367,9 @@ void ChatWidgetActions::moreActionsActionActivated(QAction *sender, bool toggled
 
 		ActionDescription *actionDescription = Actions::instance()->value(actionName);
 		if (ActionDescription::TypeChat == actionDescription->type())
-			menu.addAction(Actions::instance()->createAction(actionName, chatEditBox));
+			menu.addAction(Actions::instance()->createAction(actionName, chatEditBox->actionContext(), chatEditBox));
 		else if (ActionDescription::TypeUser == actionDescription->type())
-			subMenu->addAction(Actions::instance()->createAction(actionName, chatEditBox));
+			subMenu->addAction(Actions::instance()->createAction(actionName, chatEditBox->actionContext(), chatEditBox));
 	}
 
 	menu.addSeparator();
@@ -467,30 +469,6 @@ void ChatWidgetActions::sendActionActivated(QAction *sender, bool toggled)
 	kdebugf2();
 }
 
-void ChatWidgetActions::whoisActionActivated(QAction *sender, bool toggled)
-{
-	Q_UNUSED(toggled)
-
-	kdebugf();
-
-	Action *action = qobject_cast<Action *>(sender);
-	if (!action)
-		return;
-
-	Buddy buddy = action->buddy();
-	if (!buddy)
-	{
-		(new SearchWindow(Core::instance()->kaduWindow()))->show();
-		return;
-	}
-
-	SearchWindow *sd = new SearchWindow(Core::instance()->kaduWindow(), buddy);
-	sd->show();
-	sd->firstSearch();
-
-	kdebugf2();
-}
-
 void ChatWidgetActions::blockUserActionActivated(QAction *sender, bool toggled)
 {
 	Q_UNUSED(toggled)
@@ -501,7 +479,7 @@ void ChatWidgetActions::blockUserActionActivated(QAction *sender, bool toggled)
 	if (!action)
 		return;
 
-	BuddySet buddies = action->buddies();
+	BuddySet buddies = action->context()->buddies();
 	if (buddies.isEmpty())
 		return;
 
@@ -530,9 +508,9 @@ void ChatWidgetActions::updateBlockingActions(Buddy buddy)
 
 	foreach (Action *action, BlockUser->actions())
 	{
-		ContactSet contacts = action->contacts();
-		if (1 == contacts.size())
-			if (buddyContacts.contains(*contacts.constBegin()))
+		Contact contact = action->context()->contacts().toContact();
+		if (contact)
+			if (buddyContacts.contains(contact))
 				action->setChecked(buddy.isBlocked());
 	}
 }
@@ -547,9 +525,9 @@ void ChatWidgetActions::openChatActionActivated(QAction *sender, bool toggled)
 	if (!action)
 		return;
 
-	Chat chat = action->chat();
-	if (chat)
-		ChatWidgetManager::instance()->openPendingMessages(chat, true);
+	ChatWidget * const chatWidget = ChatWidgetManager::instance()->byChat(action->context()->chat(), true);
+	if (chatWidget)
+		chatWidget->activate();
 
 	kdebugf2();
 }
@@ -578,7 +556,7 @@ void ChatWidgetActions::colorSelectorActionActivated(QAction *sender, bool toggl
 		return;
 
 	QList<QWidget *> widgets = sender->associatedWidgets();
-	if (widgets.size() == 0)
+	if (widgets.isEmpty())
 		return;
 
 	chatEditBox->openColorSelector(widgets.at(widgets.size() - 1));
@@ -593,7 +571,7 @@ void ChatWidgetActions::insertEmoticonActionActivated(QAction *sender, bool togg
 		return;
 
 	QList<QWidget *> widgets = sender->associatedWidgets();
-	if (widgets.size() == 0)
+	if (widgets.isEmpty())
 		return;
 
 	chatEditBox->openEmoticonSelector(widgets.at(widgets.size() - 1));

@@ -1,10 +1,11 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2009, 2009 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2009 Michał Podsiadlik (michal@kadu.net)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2009, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -24,15 +25,15 @@
 #ifndef CHAT_SHARED_H
 #define CHAT_SHARED_H
 
-#include "accounts/account.h"
 #include "chat/type/chat-type-aware-object.h"
-#include "storage/details-holder.h"
 #include "storage/shared.h"
 
+class Account;
 class BuddySet;
 class Chat;
 class ChatDetails;
 class ContactSet;
+class Group;
 
 /**
  * @addtogroup Chat
@@ -45,30 +46,37 @@ class ContactSet;
  * @short Chat data describing object.
  *
  * This class contains standard data that are common to all chat types used in application.
- * Data specific to given chat type is stored in classes derivered from @link ChatDetails @endlink
- * and attached to objects of this class using @link setDetails @endlink and @link details @endlink
- * methods of @link DetailsHolder @endlink class.
+ * Data specific to given chat type is stored in classes derivered from @link ChatDetails @endlink..
  */
-class KADUAPI ChatShared : public QObject, public Shared, public DetailsHolder<ChatDetails>, ChatTypeAwareObject
+class KADUAPI ChatShared : public QObject, public Shared, ChatTypeAwareObject
 {
 	Q_OBJECT
 	Q_DISABLE_COPY(ChatShared)
 
-	Account ChatAccount;
+	Account *ChatAccount;
+	ChatDetails *Details;
+
+	QString Display;
 	QString Type;
 	bool IgnoreAllMessages;
+	QList<Group> Groups;
+	quint16 UnreadMessagesCount;
+
+	bool doAddToGroup(const Group &group);
+	bool doRemoveFromGroup(const Group &group);
+
+private slots:
+	void groupAboutToBeRemoved();
 
 protected:
 	virtual void load();
+	virtual void store();
+	virtual bool shouldStore();
 
-	void emitUpdated();
+	virtual void emitUpdated();
 
 	virtual void chatTypeRegistered(ChatType *chatType);
 	virtual void chatTypeUnregistered(ChatType *chatType);
-
-	virtual void detailsAdded();
-	virtual void detailsAboutToBeRemoved();
-	virtual void detailsRemoved();
 
 public:
 	static ChatShared * loadStubFromStorage(const QSharedPointer<StoragePoint> &storagePoint);
@@ -80,12 +88,19 @@ public:
 	virtual StorableObject * storageParent();
 	virtual QString storageNodeName();
 
-	virtual void store();
-	virtual bool shouldStore();
 	virtual void aboutToBeRemoved();
+
+	ChatDetails * details() const { return Details; }
 
 	ContactSet contacts();
 	QString name();
+
+	KaduShared_PropertyRead(const QList<Group> &, groups, Groups)
+	void setGroups(const QList<Group> &groups);
+	bool showInAllGroup();
+	bool isInGroup(const Group &group);
+	void addToGroup(const Group &group);
+	void removeFromGroup(const Group &group);
 
 	/**
 	 * @author Rafal 'Vogel' Malinowski
@@ -94,7 +109,9 @@ public:
 	 * Every chat is assigned to account. All contacts in every chat must
 	 * belong to the same account as chat.
 	 */
-	KaduShared_Property(const Account &, chatAccount, ChatAccount);
+	KaduShared_PropertyDeclCRW(Account, chatAccount, ChatAccount)
+
+	KaduShared_Property(const QString &, display, Display)
 
 	/**
 	 * @author Rafal 'Vogel' Malinowski
@@ -106,10 +123,13 @@ public:
 	 * and 'conference' (for on-to-many chats). Other what types could be: 'irc-room' (for irc room
 	 * chats).
 	 */
-	KaduShared_Property(const QString &, type, Type);
+	KaduShared_PropertyWriteDecl(const QString &, type, Type)
+	KaduShared_PropertyRead(const QString &, type, Type)
 
 	// temporary, not stored, lost after program close
 	KaduShared_PropertyBool(IgnoreAllMessages)
+
+	KaduShared_Property(quint16, unreadMessagesCount, UnreadMessagesCount)
 
 signals:
 	void updated();

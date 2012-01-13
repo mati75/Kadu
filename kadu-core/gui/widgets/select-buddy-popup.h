@@ -1,6 +1,9 @@
 /*
  * %kadu copyright begin%
- * Copyright 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2009 Michał Podsiadlik (michal@kadu.net)
+ * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
+ * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -20,24 +23,36 @@
 #ifndef SELECT_BUDDY_POPUP_H
 #define SELECT_BUDDY_POPUP_H
 
-#include "gui/widgets/buddies-list-widget.h"
+#include "talkable/talkable.h"
+
+#include "gui/widgets/filtered-tree-view.h"
 
 class QModelIndex;
 
 class Buddy;
+class TalkableFilter;
+class TalkableProxyModel;
+class TalkableTreeView;
 
-class SelectBuddyPopup : public BuddiesListWidget
+class SelectBuddyPopup : public FilteredTreeView
 {
 	Q_OBJECT
 
+	TalkableTreeView *View;
+	TalkableProxyModel *ProxyModel;
+
 private slots:
 	void itemClicked(const QModelIndex &index);
+	void talkableActivated(const Talkable &talkable);
 
 public:
 	explicit SelectBuddyPopup(QWidget *parent = 0);
 	virtual ~SelectBuddyPopup();
 
 	void show(Buddy buddy);
+
+	void addFilter(TalkableFilter *filter);
+	void removeFilter(TalkableFilter *filter);
 
 signals:
 	void buddySelected(Buddy buddy);

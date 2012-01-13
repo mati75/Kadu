@@ -1,7 +1,8 @@
 /*
  * %kadu copyright begin%
+ * Copyright 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2008, 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -21,9 +22,9 @@
 #ifndef CONFIG_COLOR_BUTTON_H
 #define CONFIG_COLOR_BUTTON_H
 
+#include "configuration/configuration-window-data-manager.h"
 #include "gui/widgets/color-button.h"
 #include "gui/widgets/configuration/config-widget-value.h"
-#include "configuration/configuration-window-data-manager.h"
 
 class QLabel;
 class ConfigGroupBox;
@@ -45,11 +46,11 @@ public:
 	ConfigColorButton(ConfigGroupBox *parentConfigGroupBox, ConfigurationWindowDataManager *dataManager);
 	virtual ~ConfigColorButton();
 
+	virtual void setVisible(bool visible);
+
 	virtual void loadConfiguration();
 	virtual void saveConfiguration();
 
-	virtual void show();
-	virtual void hide();
 };
 
 #endif

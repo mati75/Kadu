@@ -8,8 +8,8 @@
 #ifndef _WINAMP_H
 #define _WINAMP_H
 
-#include "plugins/mediaplayer/player_info.h"
 #include "plugins/mediaplayer/player_commands.h"
+#include "plugins/mediaplayer/player_info.h"
 
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
@@ -23,11 +23,11 @@ class WinampMediaPlayer : public PlayerCommands, public PlayerInfo
 		~WinampMediaPlayer();
 
 		// PlayerInfo
-		QString getTitle(int position = -1);
-		QString getAlbum(int position = -1);
-		QString getArtist(int position = -1);
-		QString getFile(int position = -1);
-		int getLength(int position = -1);
+		QString getTitle();
+		QString getAlbum();
+		QString getArtist();
+		QString getFile();
+		int getLength();
 		int getCurrentPos();
 		bool isPlaying();
 		bool isActive();
@@ -48,6 +48,7 @@ class WinampMediaPlayer : public PlayerCommands, public PlayerInfo
 		void decrVolume();
 	private:
 		HWND findWinamp();
+		QString getFileImpl(int position);
 		QString readWinampMemory(quint32 command, quint32 arg, bool unicode=false);
 		QString getFileTagW(int position, QString tag);
 		QString getFileTagA(int position, QString tag);

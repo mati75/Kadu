@@ -1,6 +1,12 @@
 /*
  * %kadu copyright begin%
- * Copyright 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
+ * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -54,17 +60,16 @@ bool ProfileImporter::import(const Identity &identity)
 
 	Account importedAccount = GaduImporter::import065Account(xmlQuery);
 
-	Account existingAccount = AccountManager::instance()->byId(importedAccount.protocolName(), importedAccount.id());
-	if (existingAccount)
+	if (importedAccount.id().isEmpty())
 	{
-		ErrorMessage = tr("Account already exists.");
+		ErrorMessage = tr("Imported account has no ID");
 		profileFile.close();
 		return false;
 	}
 
-	if (importedAccount.id().isEmpty())
+	if (AccountManager::instance()->byId(importedAccount.protocolName(), importedAccount.id()))
 	{
-		ErrorMessage = tr("Imported account has no ID");
+		ErrorMessage = tr("Account already exists.");
 		profileFile.close();
 		return false;
 	}
@@ -77,8 +82,7 @@ bool ProfileImporter::import(const Identity &identity)
 	QList<Buddy> buddies = GaduImporter::import065Buddies(importedAccount, xmlQuery);
 	foreach (const Buddy &buddy, buddies)
 	{
-		foreach (const Contact &contact, buddy.contacts())
-			ContactManager::instance()->addItem(contact);
+		// GaduImporter returns contacts already added to the ContactManager.
 
 		Buddy existingBuddy = BuddyManager::instance()->byDisplay(buddy.display(), ActionReturnNull);
 		if (existingBuddy)

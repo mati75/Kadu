@@ -1,8 +1,9 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2010, 2010 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -19,8 +20,8 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "jabber-protocol.h"
 #include "utils/vcard-factory.h"
+#include "jabber-protocol.h"
 
 #include "jabber-personal-info-service.h"
 
@@ -51,9 +52,9 @@ void JabberPersonalInfoService::fetchingVCardFinished()
 		if (bday.isValid() && !bday.isNull())
 			CurrentBuddy.setBirthYear(bday.year());
 
-		if (vcard.addressList().count() > 0)
+		if (!vcard.addressList().isEmpty())
 			CurrentBuddy.setCity(vcard.addressList().at(0).locality);
-		if (vcard.emailList().count() > 0)
+		if (!vcard.emailList().isEmpty())
 			CurrentBuddy.setEmail(vcard.emailList().at(0).userid);
 		CurrentBuddy.setWebsite(vcard.url());
 

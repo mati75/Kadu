@@ -1,8 +1,8 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -59,12 +59,13 @@ void AntistringConfiguration::configurationUpdated()
 void AntistringConfiguration::addCondition(const QString &conditionString)
 {
 	QStringList conditionPair = conditionString.split('\t');
-	if (conditionPair.count() <= 0)
+	if (conditionPair.isEmpty())
 		return;
 
 	bool ok;
 	int factor = conditionPair[0].toInt(&ok, 10);
 	if (ok)
+		// TODO why we are not checking if there are two items?
 		Conditions.append(qMakePair(conditionPair[1], factor));
 }
 

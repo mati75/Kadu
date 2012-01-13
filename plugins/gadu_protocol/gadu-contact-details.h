@@ -1,8 +1,11 @@
 /*
  * %kadu copyright begin%
+ * Copyright 2009, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2009 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2008, 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
+ * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -22,28 +25,27 @@
 #ifndef GADU_CONTACT_DETAILS_H
 #define GADU_CONTACT_DETAILS_H
 
-#include "contacts/contact.h"
 #include "contacts/contact-details.h"
-#include "contacts/contact-shared.h"
+#include "contacts/contact.h"
 
 #include "gadu-protocol.h"
 
 class GaduContactDetails : public ContactDetails
 {
-	Q_OBJECT
-
 	int GaduFlags;
+	bool IgnoreNextStatusChange;
 
 public:
-	explicit GaduContactDetails(ContactShared *contactShared, QObject *parent = 0);
+	explicit GaduContactDetails(ContactShared *contactShared);
 	virtual ~GaduContactDetails();
-
-	virtual void store();
 
 	GaduProtocol::UinType uin();
 
 	void setGaduFlags(int gaduFlags);
-	int gaduFlags() const { return GaduFlags; }
+	int gaduFlags() const;
+
+	void setIgnoreNextStatusChange(bool ignoreNextStatusChange);
+	bool ignoreNextStatusChange() const;
 
 };
 

@@ -1,9 +1,10 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2009 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2009, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2011 Piotr Dąbrowski (ultr@ultr.pl)
  * Copyright 2009 Maciej Płaza (plaza.maciej@gmail.com)
+ * Copyright 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -20,7 +21,6 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <QtGui/QApplication>
 #include <QtGui/QPalette>
 #include <QtGui/QSpinBox>
 
@@ -46,7 +46,7 @@ HintsConfigurationWindow::HintsConfigurationWindow(const QString &eventName, Not
 
 	preview = static_cast<ConfigLabel *>(widget()->widgetById("preview"));
 	preview->setMargin(3);
-	preview->setText(qApp->translate("HintsConfigurationWidget", "<b>Preview</b> text"), false);
+	preview->setText(tr("<b>Here</b> you can see the preview"), false);
 
 	connect(static_cast<ConfigSelectFont *>(widget()->widgetById("font")), SIGNAL(fontChanged(QFont)),
 			this, SLOT(fontChanged(QFont)));

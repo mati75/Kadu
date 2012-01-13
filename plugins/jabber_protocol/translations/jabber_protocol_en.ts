@@ -108,6 +108,13 @@
     </message>
 </context>
 <context>
+    <name>CertificateErrorDialog</name>
+    <message>
+        <source>The %1 certificate failed the authenticity test.</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>FacebookProtocolFactory</name>
     <message>
         <source>Facebook ID:</source>
@@ -197,10 +204,6 @@
 <context>
     <name>JabberActions</name>
     <message>
-        <source>Show XML Console for Account</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <source>Resend Subscription</source>
         <translation type="unfinished"></translation>
     </message>
@@ -252,11 +255,6 @@
     <name>JabberChangePasswordWindow</name>
     <message>
         <source>Change Password</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>This dialog box allows you to change your current password.
-</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -477,10 +475,6 @@ Password entered in both fields (&quot;New password&quot; and &quot;Retype passw
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Proxy</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <source>Manually specify server host/port</source>
         <translation type="unfinished"></translation>
     </message>
@@ -578,6 +572,18 @@ Password entered in both fields (&quot;New password&quot; and &quot;Retype passw
     </message>
     <message>
         <source>Remove account</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Proxy configuration</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Privacy</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Publish system information</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -694,10 +700,6 @@ Details: %1</source>
 <context>
     <name>QObject</name>
     <message>
-        <source>The %1 certificate failed the authenticity test.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <source>&amp;Details...</source>
         <translation type="unfinished"></translation>
     </message>
@@ -803,6 +805,13 @@ Details: %1</source>
     </message>
     <message>
         <source>Misc</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>ShowXmlConsoleActionDescription</name>
+    <message>
+        <source>Show XML Console</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

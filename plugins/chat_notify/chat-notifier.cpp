@@ -1,6 +1,10 @@
 /*
  * %kadu copyright begin%
- * Copyright 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
+ * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -17,10 +21,11 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "buddies/buddy-shared.h"
-#include "chat/message/message-render-info.h"
 #include "contacts/contact-set.h"
 #include "gui/widgets/chat-widget-manager.h"
+#include "gui/widgets/chat-widget.h"
+#include "message/message-manager.h"
+#include "message/message-render-info.h"
 #include "notify/chat-notification.h"
 
 #include "chat-notifier.h"
@@ -42,19 +47,11 @@ NotifierConfigurationWidget * ChatNotifier::createConfigurationWidget(QWidget* p
 
 void ChatNotifier::sendNotificationToChatWidget(Notification *notification, ChatWidget *chatWidget)
 {
-	Message message = Message::create();
-	message.setMessageChat(chatWidget->chat());
 	QString content = notification->text();
 	if (!notification->details().isEmpty())
 		content += "<br/> <small>" + notification->details() + "</small>";
-	message.setContent(content);
-	message.setReceiveDate(QDateTime::currentDateTime());
-	message.setSendDate(QDateTime::currentDateTime());
-	message.setStatus(MessageStatusReceived);
-	message.setType(MessageTypeSystem);
-	message.setPending(false);
 
-	chatWidget->appendMessage(new MessageRenderInfo(message));
+	chatWidget->appendSystemMessage(content);
 }
 
 void ChatNotifier::notify(Notification *notification)

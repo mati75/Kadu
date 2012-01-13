@@ -2,6 +2,7 @@
  * %kadu copyright begin%
  * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2010 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
@@ -24,15 +25,17 @@
 #include <QtGui/QMenu>
 #include <QtGui/QTextDocument>
 
-#include "accounts/account.h"
 #include "accounts/account-manager.h"
+#include "accounts/account.h"
 #include "chat/chat-manager.h"
-#include "contacts/contact.h"
 #include "contacts/contact-manager.h"
 #include "contacts/contact-set.h"
+#include "contacts/contact.h"
 #include "gui/widgets/chat-widget-manager.h"
+#include "gui/widgets/chat-widget.h"
 #include "icons/kadu-icon.h"
 #include "misc/misc.h"
+#include "status/status-container.h"
 
 #include "jabber-url-handler.h"
 
@@ -86,8 +89,8 @@ void JabberUrlHandler::convertUrlsToHtml(HtmlDocument &document, bool generateOn
 
 void JabberUrlHandler::openUrl(const QByteArray &url, bool disableMenu)
 {
-	QList<Account> jabberAccounts = AccountManager::instance()->byProtocolName("jabber");
-	if (!jabberAccounts.count())
+	QVector<Account> jabberAccounts = AccountManager::instance()->byProtocolName("jabber");
+	if (jabberAccounts.isEmpty())
 		return;
 
 	QString jabberId = QString::fromUtf8(url);
@@ -99,11 +102,13 @@ void JabberUrlHandler::openUrl(const QByteArray &url, bool disableMenu)
 
 	if (jabberAccounts.count() == 1 || disableMenu)
 	{
-		Contact contact = ContactManager::instance()->byId(jabberAccounts[0], jabberId, ActionCreateAndAdd);
-		Chat chat = ChatManager::instance()->findChat(ContactSet(contact));
+		const Contact &contact = ContactManager::instance()->byId(jabberAccounts[0], jabberId, ActionCreateAndAdd);
+		const Chat &chat = ChatManager::instance()->findChat(ContactSet(contact));
 		if (chat)
 		{
-			ChatWidgetManager::instance()->openPendingMessages(chat, true);
+			ChatWidget * const chatWidget = ChatWidgetManager::instance()->byChat(chat, true);
+			if (chatWidget)
+				chatWidget->activate();
 			return;
 		}
 	}
@@ -112,13 +117,13 @@ void JabberUrlHandler::openUrl(const QByteArray &url, bool disableMenu)
 		QScopedPointer<QMenu> menu(new QMenu());
 
 		QStringList ids;
-		foreach (const Account &account, jabberAccounts)
+		foreach (Account account, jabberAccounts)
 		{
 			ids.clear();
 			ids.append(account.id());
 			ids.append(jabberId);
 
-			menu->addAction(account.data()->statusIcon().icon(), account.id())->setData(ids);
+			menu->addAction(account.statusContainer()->statusIcon().icon(), account.id())->setData(ids);
 		}
 
 		connect(menu.data(), SIGNAL(triggered(QAction *)), this, SLOT(accountSelected(QAction *)));
@@ -129,17 +134,18 @@ void JabberUrlHandler::openUrl(const QByteArray &url, bool disableMenu)
 
 void JabberUrlHandler::accountSelected(QAction *action)
 {
-	QStringList ids = action->data().toStringList();
+	const QStringList &ids = action->data().toStringList();
 
 	if (ids.count() != 2)
 		return;
 
-	Account account = AccountManager::instance()->byId("jabber", ids[0]);
+	const Account &account = AccountManager::instance()->byId("jabber", ids[0]);
 	if (!account)
 		return;
 
-	Contact contact = ContactManager::instance()->byId(account, ids[1], ActionCreateAndAdd);
-	Chat chat = ChatManager::instance()->findChat(ContactSet(contact));
-	if (chat)
-		ChatWidgetManager::instance()->openPendingMessages(chat, true);
+	const Contact &contact = ContactManager::instance()->byId(account, ids[1], ActionCreateAndAdd);
+	const Chat &chat = ChatManager::instance()->findChat(ContactSet(contact));
+	ChatWidget * const chatWidget = ChatWidgetManager::instance()->byChat(chat, true);
+	if (chatWidget)
+		chatWidget->activate();
 }

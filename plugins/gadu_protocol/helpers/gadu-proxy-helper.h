@@ -1,6 +1,9 @@
 /*
  * %kadu copyright begin%
- * Copyright 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
+ * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -22,12 +25,12 @@
 
 #include "gadu-exports.h"
 
-class AccountProxySettings;
+class NetworkProxy;
 
 namespace GaduProxyHelper
 {
 	GADUAPI void cleanUpProxySettings();
-	GADUAPI void setupProxy(AccountProxySettings proxySettings);
+	GADUAPI void setupProxy(NetworkProxy networkProxy);
 }
 
 #endif // GADU_PROXY_HELPER_H

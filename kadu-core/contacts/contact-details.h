@@ -1,10 +1,12 @@
 /*
  * %kadu copyright begin%
- * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2009, 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2010 Tomasz Rostański (rozteck@interia.pl)
- * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2009 Michał Podsiadlik (michal@kadu.net)
+ * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
+ * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -24,20 +26,21 @@
 #ifndef CONTACT_DETAILS_H
 #define CONTACT_DETAILS_H
 
-#include <QtCore/QObject>
-
-#include "contacts/contact-shared.h"
 #include "storage/details.h"
 #include "exports.h"
 
-class KADUAPI ContactDetails : public QObject, public Details<ContactShared>
+class ContactShared;
+
+class KADUAPI ContactDetails : public Details<ContactShared>
 {
-	Q_OBJECT
 
 public:
-	explicit ContactDetails(ContactShared *mainData, QObject *parent = 0);
+	explicit ContactDetails(ContactShared *mainData);
 	virtual ~ContactDetails();
 
 };
+
+// for MOC
+#include "contacts/contact-shared.h"
 
 #endif // CONTACT_DETAILS_H

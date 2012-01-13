@@ -1,8 +1,13 @@
 /*
  * %kadu copyright begin%
+ * Copyright 2008, 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2010 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011 Piotr Dąbrowski (ultr@ultr.pl)
+ * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
+ * Copyright 2007, 2008, 2009, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -22,12 +27,12 @@
 #include <QtCore/QTimer>
 #include <QtGui/QMenu>
 
-#include "accounts/account.h"
 #include "accounts/account-manager.h"
+#include "accounts/account.h"
 #include "configuration/main-configuration-holder.h"
-#include "icons/kadu-icon.h"
 #include "gui/status-icon.h"
 #include "gui/widgets/status-menu.h"
+#include "icons/kadu-icon.h"
 #include "protocols/protocol.h"
 #include "status/status-container.h"
 
@@ -64,7 +69,7 @@ void StatusButton::updateStatus()
 	if (DisplayStatusName)
 	{
 		setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
-		setText(MyStatusContainer->statusDisplayName());
+		setText(MyStatusContainer->status().displayName());
 		setToolTip(QString());
 	}
 	else

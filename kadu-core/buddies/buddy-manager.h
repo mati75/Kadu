@@ -1,12 +1,13 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Piotr Dąbrowski (ultr@ultr.pl)
- * Copyright 2009 Dawid Stawiarski (neeo@kadu.net)
+ * Copyright 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2009, 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2008, 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2009 Michał Podsiadlik (michal@kadu.net)
+ * Copyright 2010 Piotr Dąbrowski (ultr@ultr.pl)
+ * Copyright 2008, 2009 Michał Podsiadlik (michal@kadu.net)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2009 Dawid Stawiarski (neeo@kadu.net)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -30,15 +31,13 @@
 #include <QtCore/QObject>
 #include <QtCore/QUuid>
 
-#include "buddies/buddy.h"
 #include "buddies/buddy-list.h"
-#include "buddies/buddy-shared.h"
+#include "buddies/buddy.h"
 #include "storage/simple-manager.h"
 
 #include "exports.h"
 
 class Account;
-class Group;
 class XmlConfigFile;
 
 class KADUAPI BuddyManager : public QObject, public SimpleManager<Buddy>
@@ -55,10 +54,11 @@ class KADUAPI BuddyManager : public QObject, public SimpleManager<Buddy>
 
 	void importConfiguration(XmlConfigFile *configurationStorage);
 
+	QString mergeValue(const QString &destination, const QString &source) const;
+
 private slots:
 	void buddyDataUpdated();
 	void buddySubscriptionChanged();
-	void groupRemoved(Group group);
 
 protected:
 	virtual void load();
@@ -82,7 +82,8 @@ public:
 	Buddy byContact(Contact contact, NotFoundAction action);
 	Buddy byUuid(const QUuid &uuid);
 
-	void clearOwnerAndRemoveEmptyBuddy(Contact contact);
+	void removeBuddyIfEmpty(Buddy buddy, bool checkOnlyForContacts = false);
+	void clearOwnerAndRemoveEmptyBuddy(Contact contact, bool checkBuddyOnlyForOtherContacts = false);
 
 signals:
 	void buddyAboutToBeAdded(Buddy &buddy);
@@ -93,8 +94,5 @@ signals:
 	void buddyUpdated(Buddy &buddy);
 	void buddySubscriptionChanged(Buddy &buddy);
 };
-
-// for MOC
-#include "buddies/group.h"
 
 #endif // BUDDY_MANAGER_H

@@ -1,10 +1,11 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011 Tomasz Rostanski (rozteck@interia.pl)
+ * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2010 Tomasz Rostański (rozteck@interia.pl)
  * Copyright 2010 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -21,11 +22,11 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <QtCore/QProcess>
 #include <QtCore/QDateTime>
+#include <QtCore/QProcess>
 
-#include "debug.h"
 #include "plugins/mediaplayer/mediaplayer.h"
+#include "debug.h"
 
 #include "itunes.h"
 #include "itunescontroller.h"
@@ -74,48 +75,36 @@ QStringList ITunesMediaPlayer::getPlayListFiles()
 	return list;
 }
 
-uint ITunesMediaPlayer::getPlayListLength()
+QString ITunesMediaPlayer::getTitle()
 {
-	kdebugf();
-	QByteArray reply = executeCommand("tell application \"iTunes\" to get duration of current playlist");
-	return reply.toInt();
-}
-
-QString ITunesMediaPlayer::getTitle(int position)
-{
-	Q_UNUSED(position)
 	kdebugf();
 	Tune t = controller->currentTune();
 	return t.name();
 }
 
-QString ITunesMediaPlayer::getAlbum(int position)
+QString ITunesMediaPlayer::getAlbum()
 {
-	Q_UNUSED(position)
 	kdebugf();
 	Tune t = controller->currentTune();
 	return t.album();
 }
 
-QString ITunesMediaPlayer::getArtist(int position)
+QString ITunesMediaPlayer::getArtist()
 {
-	Q_UNUSED(position)
 	kdebugf();
 	Tune t = controller->currentTune();
 	return t.artist();
 }
 
-QString ITunesMediaPlayer::getFile(int position)
+QString ITunesMediaPlayer::getFile()
 {
-	Q_UNUSED(position)
 	kdebugf();
 	Tune t = controller->currentTune();
 	return t.location();
 }
 
-int ITunesMediaPlayer::getLength(int position)
+int ITunesMediaPlayer::getLength()
 {
-	Q_UNUSED(position)
 	kdebugf();
 	Tune t = controller->currentTune();
 	return t.time();

@@ -1,19 +1,19 @@
 /*
  * %kadu copyright begin%
- * Copyright 2007 Dawid Stawiarski (neeo@kadu.net)
- * Copyright 2004 Tomasz Jarzynka (tomee@cpi.pl)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2009, 2010 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2008, 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2004, 2005, 2006, 2007 Marcin Ślusarz (joi@kadu.net)
- * Copyright 2003, 2005 Adrian Smarzewski (adrian@kadu.net)
- * Copyright 2003 Tomasz Chiliński (chilek@chilan.com)
- * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2008, 2009 Michał Podsiadlik (michal@kadu.net)
  * Copyright 2010 Tomasz Rostanski (rozteck@interia.pl)
+ * Copyright 2008, 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2009, 2010 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2004 Tomasz Jarzynka (tomee@cpi.pl)
+ * Copyright 2008, 2009 Michał Podsiadlik (michal@kadu.net)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2002, 2003, 2005 Adrian Smarzewski (adrian@kadu.net)
  * Copyright 2005 Paweł Płuciennik (pawel_p@kadu.net)
- * Copyright 2003 Dariusz Jagodzik (mast3r@kadu.net)
+ * Copyright 2002, 2003 Tomasz Chiliński (chilek@chilan.com)
+ * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2007 Dawid Stawiarski (neeo@kadu.net)
+ * Copyright 2004, 2005, 2006, 2007 Marcin Ślusarz (joi@kadu.net)
+ * Copyright 2002, 2003 Dariusz Jagodzik (mast3r@kadu.net)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -35,12 +35,12 @@
 #include <QtGui/QInputDialog>
 #include <QtGui/QMenu>
 
-#include "configuration/configuration-file.h"
 #include "buddies/buddy-list-mime-data-helper.h"
 #include "buddies/buddy-manager.h"
-#include "buddies/group.h"
 #include "buddies/group-manager.h"
-#include "buddies/filter/group-buddy-filter.h"
+#include "buddies/group.h"
+#include "chat/chat-list-mime-data-helper.h"
+#include "configuration/configuration-file.h"
 #include "core/core.h"
 #include "gui/windows/add-buddy-window.h"
 #include "gui/windows/group-properties-window.h"
@@ -60,8 +60,6 @@ static bool compareGroups(Group g1, Group g2)
 GroupTabBar::GroupTabBar(QWidget *parent) :
 		QTabBar(parent), ShowAllGroup(true), HadAnyUngrouppedBuddy(false), AutoGroupTabPosition(-1)
 {
-	Filter = new GroupBuddyFilter(this);
-
 	setSizePolicy(QSizePolicy(QSizePolicy::Minimum, QSizePolicy::Expanding));
 
 #ifdef Q_OS_MAC
@@ -74,12 +72,9 @@ GroupTabBar::GroupTabBar(QWidget *parent) :
 	setMovable(true);
 
 	setShape(QTabBar::RoundedWest);
-
-	setFont(QFont(config_file.readFontEntry("Look", "UserboxFont").family(),
-			config_file.readFontEntry("Look", "UserboxFont").pointSize(), QFont::Bold));
 	setIconSize(QSize(16, 16));
 
-	QList<Group> groups = GroupManager::instance()->items();
+	QList<Group> groups = GroupManager::instance()->items().toList();
 	qStableSort(groups.begin(), groups.end(), compareGroups);
 	foreach (const Group &group, groups)
 		addGroup(group);
@@ -96,13 +91,10 @@ GroupTabBar::GroupTabBar(QWidget *parent) :
 
 	if (!config_file.readBoolEntry("Look", "DisplayGroupTabs", true))
 	{
-		Filter->setAllGroupShown(true);
 		setCurrentIndex(AutoGroupTabPosition);
 		setVisible(false);
 		return;
 	}
-
-	Filter->setAllGroupShown(ShowAllGroup);
 
 	int currentGroup = config_file.readNumEntry("Look", "CurrentGroupTab", 0);
 	if (currentGroup == currentIndex())
@@ -203,9 +195,14 @@ void GroupTabBar::addGroup(const Group &group)
 	updateGroup(group);
 }
 
+Group GroupTabBar::group() const
+{
+	return GroupManager::instance()->byUuid(tabData(currentIndex()).toString());
+}
+
 void GroupTabBar::currentChangedSlot(int index)
 {
-	Filter->setGroup(GroupManager::instance()->byUuid(tabData(index).toString()));
+	emit currentGroupChanged(GroupManager::instance()->byUuid(tabData(index).toString()));
 }
 
 void GroupTabBar::groupAdded(Group group)
@@ -285,39 +282,86 @@ void GroupTabBar::contextMenuEvent(QContextMenuEvent *event)
 {
 	int tabIndex = tabAt(event->pos());
 
-	if (tabIndex != -1)
-		currentGroup= GroupManager::instance()->byUuid(tabData(tabIndex).toString());
+	const Group &group = tabIndex == -1
+	        ? Group::null
+	        : GroupManager::instance()->byUuid(tabData(tabIndex).toString());
 
 	QMenu menu;
 
-	menu.addAction(tr("Add Buddy"), this, SLOT(addBuddy()))->setEnabled(tabIndex != -1 && currentGroup);
-	menu.addAction(tr("Rename Group"), this, SLOT(renameGroup()))->setEnabled(tabIndex != -1 && currentGroup);
+	QAction *addBuddyAction = menu.addAction(tr("Add Buddy"), this, SLOT(addBuddy()));
+	addBuddyAction->setEnabled(group);
+	addBuddyAction->setData(group);
+
+	QAction *renameGroupAction = menu.addAction(tr("Rename Group"), this, SLOT(renameGroup()));
+	renameGroupAction->setEnabled(group);
+	renameGroupAction->setData(group);
+
 	menu.addSeparator();
-	menu.addAction(tr("Delete Group"), this, SLOT(deleteGroup()))->setEnabled(tabIndex != -1 && currentGroup);
+
+	QAction *deleteGroupAction = menu.addAction(tr("Delete Group"), this, SLOT(deleteGroup()));
+	deleteGroupAction->setEnabled(group);
+	deleteGroupAction->setData(group);
+
 	menu.addAction(tr("Add Group"), this, SLOT(createNewGroup()));
+
 	menu.addSeparator();
-	menu.addAction(tr("Properties"), this, SLOT(groupProperties()))->setEnabled(tabIndex != -1 && currentGroup);
+
+	QAction *propertiesAction = menu.addAction(tr("Properties"), this, SLOT(groupProperties()));
+	propertiesAction->setEnabled(group);
+	propertiesAction->setData(group);
 
 	menu.exec(event->globalPos());
 }
 
 void GroupTabBar::dragEnterEvent(QDragEnterEvent *event)
 {
-	if (event->mimeData()->hasFormat("application/x-kadu-ules"))
-		event->acceptProposedAction();
+	QTabBar::dragEnterEvent(event);
+
+	if (event->mimeData()->hasFormat("application/x-kadu-buddy-list"))
+	{
+		event->setDropAction(Qt::LinkAction);
+		event->accept();
+	}
+
+	if (event->mimeData()->hasFormat("application/x-kadu-chat-list"))
+	{
+		event->setDropAction(Qt::LinkAction);
+		event->accept();
+	}
+}
+
+void GroupTabBar::dragMoveEvent(QDragMoveEvent *event)
+{
+	QTabBar::dragMoveEvent(event);
+
+	if (event->mimeData()->hasFormat("application/x-kadu-buddy-list"))
+	{
+		event->setDropAction(Qt::LinkAction);
+		event->accept();
+	}
+
+	if (event->mimeData()->hasFormat("application/x-kadu-chat-list"))
+	{
+		event->setDropAction(Qt::LinkAction);
+		event->accept();
+	}
 }
 
 void GroupTabBar::dropEvent(QDropEvent *event)
 {
-	kdebugf();
+	QTabBar::dropEvent(event);
 
-	QStringList ules;
-	if (!event->mimeData()->hasFormat("application/x-kadu-ules"))
+	if (!event->mimeData()->hasFormat("application/x-kadu-buddy-list") &&
+	        !event->mimeData()->hasFormat("application/x-kadu-chat-list"))
+	{
+		event->ignore();
 		return;
+	}
 
 	event->acceptProposedAction();
 
 	BuddyList buddies = BuddyListMimeDataHelper::fromMimeData(event->mimeData());
+	QList<Chat> chats = ChatListMimeDataHelper::fromMimeData(event->mimeData());
 
 	QApplication::setOverrideCursor(Qt::ArrowCursor);
 	int tabIndex = tabAt(event->pos());
@@ -344,24 +388,26 @@ void GroupTabBar::dropEvent(QDropEvent *event)
 
 		Group group = GroupManager::instance()->byName(newGroupName);
 
-		foreach (Buddy buddy, buddies)
+		foreach (const Buddy &buddy, buddies)
 			buddy.addToGroup(group);
+		foreach (const Chat &chat, chats)
+			chat.addToGroup(group);
 
 		QApplication::restoreOverrideCursor();
 
 		return;
 	}
-	else
-		currentGroup = GroupManager::instance()->byUuid(tabData(tabIndex).toString());
 
-	currentBuddies = buddies;
+	Group clickedGroup = GroupManager::instance()->byUuid(tabData(tabIndex).toString());
 
-	if (currentGroup)
+	DNDBuddies = buddies;
+	DNDChats = chats;
+
+	if (clickedGroup)
 	{
 		QMenu menu;
-		menu.addAction(tr("Move to group %1").arg(currentGroup.name()), this, SLOT(moveToGroup()))
-				->setEnabled(tabData(currentIndex()).toString() != "AutoTab");
-		menu.addAction(tr("Add to group %1").arg(currentGroup.name()), this, SLOT(addToGroup()));
+		menu.addAction(tr("Move to group %1").arg(clickedGroup.name()), this, SLOT(moveToGroup()))->setData(clickedGroup);
+		menu.addAction(tr("Add to group %1").arg(clickedGroup.name()), this, SLOT(addToGroup()))->setData(clickedGroup);
 		menu.exec(QCursor::pos());
 	}
 
@@ -372,32 +418,46 @@ void GroupTabBar::dropEvent(QDropEvent *event)
 
 void GroupTabBar::addBuddy()
 {
-	if (!currentGroup)
+	QAction *action = qobject_cast<QAction *>(sender());
+	if (!action)
 		return;
 
 	AddBuddyWindow *addBuddyWindow = new AddBuddyWindow(Core::instance()->kaduWindow());
-	addBuddyWindow->setGroup(currentGroup);
+	addBuddyWindow->setGroup(action->data().value<Group>());
 	addBuddyWindow->show();
 }
 
-
 void GroupTabBar::renameGroup()
 {
-	if (!currentGroup)
+	QAction *action = qobject_cast<QAction *>(sender());
+	if (!action)
 		return;
+
+	const Group &group = action->data().value<Group>();
+	if (!group)
+		return;
+
 	bool ok;
 	QString newGroupName = QInputDialog::getText(this, tr("Rename Group"),
 				tr("Please enter a new name for this group"), QLineEdit::Normal,
-				currentGroup.name(), &ok);
+				group.name(), &ok);
 
-	if (ok && newGroupName != currentGroup.name() && GroupManager::instance()->acceptableGroupName(newGroupName))
-		currentGroup.setName(newGroupName);
+	if (ok && newGroupName != group.name() && GroupManager::instance()->acceptableGroupName(newGroupName))
+		group.setName(newGroupName);
 }
 
 void GroupTabBar::deleteGroup()
 {
-	if (currentGroup && MessageDialog::ask(KaduIcon("dialog-warning"), tr("Kadu"), tr("Selected group:\n%0 will be deleted. Are you sure?").arg(currentGroup.name()), Core::instance()->kaduWindow()))
-		GroupManager::instance()->removeItem(currentGroup);
+	QAction *action = qobject_cast<QAction *>(sender());
+	if (!action)
+		return;
+
+	const Group &group = action->data().value<Group>();
+	if (!group)
+		return;
+
+	if (group && MessageDialog::ask(KaduIcon("dialog-warning"), tr("Kadu"), tr("Selected group:\n%0 will be deleted. Are you sure?").arg(group.name()), Core::instance()->kaduWindow()))
+		GroupManager::instance()->removeItem(group);
 }
 
 void GroupTabBar::createNewGroup()
@@ -413,30 +473,48 @@ void GroupTabBar::createNewGroup()
 
 void GroupTabBar::groupProperties()
 {
-	if (!currentGroup)
+	QAction *action = qobject_cast<QAction *>(sender());
+	if (!action)
 		return;
 
-	(new GroupPropertiesWindow(currentGroup, Core::instance()->kaduWindow()))->show();
+	const Group &group = action->data().value<Group>();
+	if (group)
+		(new GroupPropertiesWindow(group, Core::instance()->kaduWindow()))->show();
 }
 
 void GroupTabBar::addToGroup()
 {
-	if (!currentGroup)
+	QAction *action = qobject_cast<QAction *>(sender());
+	if (!action)
 		return;
 
-	foreach (Buddy buddy, currentBuddies)
-		buddy.addToGroup(currentGroup);
+	const Group &group = action->data().value<Group>();
+
+	foreach (const Buddy &buddy, DNDBuddies)
+		buddy.addToGroup(group);
+	foreach (const Chat &chat, DNDChats)
+		chat.addToGroup(group);
 }
 
 void GroupTabBar::moveToGroup()
 {
-	if (!currentGroup)
+	QAction *action = qobject_cast<QAction *>(sender());
+	if (!action)
 		return;
 
-	foreach (Buddy buddy, currentBuddies)
+	const Group &removeFromGroup = GroupManager::instance()->byUuid(tabData(currentIndex()).toString());
+	const Group &group = action->data().value<Group>();
+
+	foreach (const Buddy &buddy, DNDBuddies)
 	{
-		buddy.removeFromGroup(GroupManager::instance()->byUuid(tabData(currentIndex()).toString()));
-		buddy.addToGroup(currentGroup);
+		buddy.removeFromGroup(removeFromGroup);
+		buddy.addToGroup(group);
+	}
+
+	foreach (const Chat &chat, DNDChats)
+	{
+		chat.removeFromGroup(removeFromGroup);
+		chat.addToGroup(group);
 	}
 }
 
@@ -459,7 +537,6 @@ void GroupTabBar::configurationUpdated()
 	{
 		disconnect(BuddyManager::instance(), SIGNAL(buddyUpdated(Buddy&)), this, SLOT(checkForUngroupedBuddies()));
 
-		Filter->setAllGroupShown(true);
 		for (int i = 0; i < count(); ++i)
 			if (!GroupManager::instance()->byUuid(tabData(i).toString()))
 			{
@@ -479,8 +556,7 @@ void GroupTabBar::configurationUpdated()
 	if (oldShowAllGroup != ShowAllGroup)
 	{
 		updateAutoGroupTab(oldShowAllGroup);
-		Filter->setAllGroupShown(ShowAllGroup);
-		
+
 		if (ShowAllGroup)
 			disconnect(BuddyManager::instance(), SIGNAL(buddyUpdated(Buddy&)), this, SLOT(checkForUngroupedBuddies()));
 		else

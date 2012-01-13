@@ -1,8 +1,12 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2008, 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2008 Michał Podsiadlik (michal@kadu.net)
+ * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
+ * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -24,20 +28,18 @@
 
 #include <QtGui/QSortFilterProxyModel>
 
-class AbstractBuddyFilter;
 class Buddy;
 class Chat;
-class ChatFilter;
 class ChatType;
 class HistoryChatsModel;
+class TalkableFilter;
 
 class HistoryChatsModelProxy : public QSortFilterProxyModel
 {
 	Q_OBJECT
 
 	HistoryChatsModel *Model;
-	QList<ChatFilter *> ChatFilters;
-	QList<AbstractBuddyFilter *> BuddyFilters;
+	QList<TalkableFilter *> TalkableFilters;
 
 	bool BrokenStringCompare;
 	int compareNames(QString n1, QString n2) const;
@@ -51,11 +53,8 @@ public:
 
 	virtual void setSourceModel(QAbstractItemModel *sourceModel);
 
-	void addChatFilter(ChatFilter *filter);
-	void removeChatFilter(ChatFilter *filter);
-
-	void addBuddyFilter(AbstractBuddyFilter *filter);
-	void removeBuddyFilter(AbstractBuddyFilter *filter);
+	void addTalkableFilter(TalkableFilter *filter);
+	void removeTalkableFilter(TalkableFilter *filter);
 
 	QModelIndex chatTypeIndex(ChatType *type) const;
 	QModelIndex chatIndex(const Chat &chat) const;

@@ -1,9 +1,12 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2008, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2009, 2010 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2008 Michał Podsiadlik (michal@kadu.net)
+ * Copyright 2009, 2009, 2010 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
+ * Copyright 2007, 2008, 2009, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -22,6 +25,8 @@
 
 #ifndef ROLES_H
 #define ROLES_H
+
+#include <QtCore/QSet>
 
 const int KaduRoles = 1000;
 
@@ -42,5 +47,8 @@ const int HistoryItemRole = KaduRoles + 14;
 const int IdentityRole = KaduRoles + 15;
 const int ItemTypeRole = KaduRoles + 16;
 const int MultilogonSessionRole = KaduRoles + 17;
+const int NetworkProxyRole = KaduRoles + 18;
+
+typedef QSet<int> RoleSet;
 
 #endif // ROLES_H

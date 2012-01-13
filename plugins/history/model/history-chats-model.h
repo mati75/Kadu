@@ -1,9 +1,9 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2009, 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -25,6 +25,7 @@
 
 #include <QtCore/QAbstractItemModel>
 #include <QtCore/QMap>
+#include <QtCore/QVector>
 
 #include "chat/type/chat-type-aware-object.h"
 
@@ -37,9 +38,9 @@ class HistoryChatsModel : public QAbstractItemModel, ChatTypeAwareObject
 	Q_OBJECT
 
 	QList<ChatType *> ChatKeys;
-	QList<QList<Chat> > Chats;
+	QVector<QVector<Chat> > Chats;
 
-	QList<Buddy> StatusBuddies;
+	QVector<Buddy> StatusBuddies;
 	QList<QString> SmsRecipients;
 
 	void clearChats();
@@ -70,8 +71,8 @@ public:
 
 	virtual QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const;
 
-	void setChats(const QList<Chat> &chats);
-	void setStatusBuddies(const QList<Buddy> &buddies);
+	void setChats(const QVector<Chat> &chats);
+	void setStatusBuddies(const QVector<Buddy> &buddies);
 	void setSmsRecipients(const QList<QString> &smsRecipients);
 
 	QModelIndex chatTypeIndex(ChatType *type) const;

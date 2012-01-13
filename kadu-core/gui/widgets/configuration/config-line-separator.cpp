@@ -1,6 +1,9 @@
 /*
  * %kadu copyright begin%
+ * Copyright 2008 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2010 Piotr Dąbrowski (ultr@ultr.pl)
+ * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -19,8 +22,8 @@
 
 #include <QtGui/QApplication>
 
-#include "gui/widgets/configuration/config-line-separator.h"
 #include "gui/widgets/configuration/config-group-box.h"
+#include "gui/widgets/configuration/config-line-separator.h"
 
 #include "debug.h"
 
@@ -37,14 +40,4 @@ void ConfigLineSeparator::createWidgets()
 	setFrameShape(QFrame::HLine);
 	setMinimumHeight(2*margin+1);
 	parentConfigGroupBox->addWidget(this, true);
-}
-
-void ConfigLineSeparator::show()
-{
-	QFrame::show();
-}
-
-void ConfigLineSeparator::hide()
-{
-	QFrame::hide();
 }

@@ -1,8 +1,9 @@
 /*
  * %kadu copyright begin%
- * Copyright 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2011 Tomasz Rostanski (rozteck@interia.pl)
+ * Copyright 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -57,7 +58,7 @@ void GaduTokenFetcher::tokenReceivedSlot(int id, bool error)
 	Q_UNUSED(error)
 
 	QByteArray data = Http.readAll();
-	if (data.size() == 0)
+	if (data.isEmpty())
 		return;
 
 	if (TokenId.isEmpty())

@@ -9,8 +9,12 @@
  * Copyright 2008, 2009 Piotr Galiszewski (piotrgaliszewski@gmail.com)
  * Copyright 2005 Paweł Płuciennik (pawel_p@kadu.net)
  * %kadu copyright begin%
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2011 Piotr Dąbrowski (ultr@ultr.pl)
+ * Copyright 2011 Sławomir Stępień (s.stepien@interia.pl)
  * Copyright 2010 Radosław Szymczyszyn (lavrin@gmail.com)
+ * Copyright 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -34,8 +38,8 @@
 #include <QtGui/QWidget>
 
 #include "os/generic/desktop-aware-object.h"
-#include "plugins/plugin.h"
 #include "plugins/plugin-info.h"
+#include "plugins/plugin.h"
 #include "plugins/plugins-manager.h"
 
 class QCheckBox;
@@ -56,8 +60,13 @@ class ModulesWindow : public QWidget, DesktopAwareObject
 {
 	Q_OBJECT
 
+	static ModulesWindow *Instance;
+
 	QTreeWidget *ModulesList;
 	QLabel *ModuleInfo;
+
+	ModulesWindow();
+	virtual ~ModulesWindow();
 
 	QTreeWidgetItem * getSelected();
 
@@ -74,13 +83,9 @@ protected:
 	virtual void keyPressEvent(QKeyEvent *event);
 
 public:
-	/**
-		\fn ModulesWindow()
-		Konstruktor standardowy.
-	**/
-	ModulesWindow(QWidget *parent = 0);
-	~ModulesWindow();
+	static ModulesWindow * instance();
+	static void show();
 
 };
 
-#endif
+#endif // KADU_MODULES_WINDOW

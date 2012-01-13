@@ -1,9 +1,9 @@
 /*
  * %kadu copyright begin%
- * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2009, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -38,6 +38,7 @@ class QRadioButton;
 class QTreeWidget;
 class QTreeWidgetItem;
 
+class BaseActionContext;
 class SearchService;
 
 class KADUAPI SearchWindow : public MainWindow
@@ -66,7 +67,7 @@ class KADUAPI SearchWindow : public MainWindow
 
 	bool SearchInProgress;
 	bool DoNotTransferFocus; // TODO: remove
-	
+
 	void createGui();
 
 	QTreeWidgetItem * selectedItem() const;
@@ -95,12 +96,7 @@ public:
 	virtual ~SearchWindow();
 
 	virtual bool supportsActionType(ActionDescription::ActionType type) { return (type & ActionDescription::TypeSearch); }
-	virtual BuddiesListView * buddiesListView() { return 0; }
-	virtual StatusContainer * statusContainer() { return 0; }
-	virtual ContactSet contacts() { return ContactSet(); }
-	virtual BuddySet buddies() { return BuddySet(); }
-	virtual Chat chat() { return Chat::null; }
-	virtual bool hasContactSelected() { return true; } // we really have contacts now
+	virtual TalkableProxyModel * talkableProxyModel() { return 0; }
 
 	void nextSearch();
 	void stopSearch();

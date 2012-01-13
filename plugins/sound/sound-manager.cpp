@@ -1,19 +1,20 @@
 /*
  * %kadu copyright begin%
- * Copyright 2007 Dawid Stawiarski (neeo@kadu.net)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2008, 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009, 2010 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2008, 2009, 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2004, 2005, 2006 Marcin Ślusarz (joi@kadu.net)
- * Copyright 2003, 2004, 2005 Adrian Smarzewski (adrian@kadu.net)
- * Copyright 2003 Tomasz Chiliński (chilek@chilan.com)
- * Copyright 2007, 2008, 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2004 Roman Krzystyniak (Ron_K@tlen.pl)
- * Copyright 2004, 2008, 2009 Michał Podsiadlik (michal@kadu.net)
- * Copyright 2009 Longer (longer89@gmail.com)
  * Copyright 2008, 2009 Tomasz Rostański (rozteck@interia.pl)
+ * Copyright 2004, 2008, 2009 Michał Podsiadlik (michal@kadu.net)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2004 Roman Krzystyniak (Ron_K@tlen.pl)
+ * Copyright 2002, 2003, 2004, 2005 Adrian Smarzewski (adrian@kadu.net)
  * Copyright 2003, 2004, 2005 Paweł Płuciennik (pawel_p@kadu.net)
+ * Copyright 2002, 2003 Tomasz Chiliński (chilek@chilan.com)
+ * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2007 Dawid Stawiarski (neeo@kadu.net)
+ * Copyright 2004, 2005, 2006 Marcin Ślusarz (joi@kadu.net)
+ * Copyright 2002 Dariusz Jagodzik (mast3r@kadu.net)
+ * Copyright 2009 Longer (longer89@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -31,6 +32,7 @@
  */
 
 #include <QtCore/QFile>
+#include <QtCore/QThread>
 
 #include "configuration/configuration-file.h"
 #include "debug.h"
@@ -65,7 +67,15 @@ SoundManager::SoundManager() :
 
 	setMute(!config_file.readBoolEntry("Sounds", "PlaySound"));
 
-	PlayThread = new SoundPlayThread(this);
+
+	PlayThread = new QThread();
+	PlayThreadObject = new SoundPlayThread();
+	PlayThreadObject->moveToThread(PlayThread);
+
+	connect(PlayThread, SIGNAL(started()), PlayThreadObject, SLOT(start()));
+	connect(PlayThreadObject, SIGNAL(finished()), PlayThread, SLOT(quit()), Qt::DirectConnection);
+	connect(PlayThreadObject, SIGNAL(finished()), PlayThread, SLOT(deleteLater()), Qt::DirectConnection);
+
 	PlayThread->start();
 
 	kdebugf2();
@@ -75,7 +85,8 @@ SoundManager::~SoundManager()
 {
 	kdebugf();
 
-	PlayThread->end();
+	PlayThreadObject->end();
+
 	PlayThread->wait(5000);
 	if (PlayThread->isRunning())
 	{
@@ -126,7 +137,7 @@ void SoundManager::playFile(const QString &path, bool force)
 		return;
 
 	if (Player && QFile::exists(path))
-		PlayThread->play(Player, path);
+		PlayThreadObject->play(Player, path);
 }
 
 void SoundManager::playSoundByName(const QString &soundName)

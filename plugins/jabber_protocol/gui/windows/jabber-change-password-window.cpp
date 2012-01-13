@@ -1,10 +1,10 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2010 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2010, 2010 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2010 badboy (badboy@gen2.org)
- * Copyright 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -23,16 +23,16 @@
 
 #include <QtGui/QDialogButtonBox>
 #include <QtGui/QFormLayout>
+#include <QtGui/QKeyEvent>
 #include <QtGui/QLabel>
 #include <QtGui/QLineEdit>
-#include <QtGui/QKeyEvent>
 #include <QtGui/QPushButton>
 #include <QtGui/QStyle>
 #include <QtGui/QVBoxLayout>
 
 #include "gui/windows/message-dialog.h"
-#include "misc/misc.h"
 #include "icons/icons-manager.h"
+#include "misc/misc.h"
 
 #include "server/jabber-server-change-password.h"
 
@@ -48,7 +48,7 @@ JabberChangePasswordWindow::JabberChangePasswordWindow(Account account, QWidget 
 
 	dataChanged();
 
-	loadWindowGeometry(this, "General", "JabberChangePasswordGeometry", 50, 50, 550, 400);
+	loadWindowGeometry(this, "General", "JabberChangePasswordGeometry", 50, 50, 550, 200);
 }
 
 JabberChangePasswordWindow::~JabberChangePasswordWindow()
@@ -60,26 +60,17 @@ void JabberChangePasswordWindow::createGui()
 {
 	QVBoxLayout *mainLayout = new QVBoxLayout(this);
 
-	QLabel *infoLabel = new QLabel(tr("This dialog box allows you to change your current password.\n"));
-	infoLabel->setWordWrap(true);
-	infoLabel->setAlignment(Qt::AlignTop | Qt::AlignLeft);
-	infoLabel->setSizePolicy(QSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum));
-	mainLayout->addWidget(infoLabel);
-
 	QWidget *formWidget = new QWidget(this);
 	mainLayout->addWidget(formWidget);
 
 	QFormLayout *layout = new QFormLayout(formWidget);
 
-	OldPassword = new QLineEdit(this);
-	OldPassword->setEchoMode(QLineEdit::Password);
-	connect(OldPassword, SIGNAL(textChanged(QString)), this, SLOT(dataChanged()));
-	layout->addRow(tr("Old Password") + ':', OldPassword);
+	CurrentPassword = new QLineEdit(this);
+	CurrentPassword->setEchoMode(QLineEdit::Password);
+	connect(CurrentPassword, SIGNAL(textChanged(QString)), this, SLOT(dataChanged()));
+	layout->addRow(tr("Old Password") + ':', CurrentPassword);
 
-	infoLabel = new QLabel(tr("<font size='-1'><i>Enter current password for your XMPP/Jabber account.</i></font>"), this);
-	infoLabel->setWordWrap(true);
-	infoLabel->setAlignment(Qt::AlignTop | Qt::AlignLeft);
-	infoLabel->setSizePolicy(QSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum));
+	QLabel *infoLabel = new QLabel(tr("<font size='-1'><i>Enter current password for your XMPP/Jabber account.</i></font>"), this);
 	layout->addRow(0, infoLabel);
 
 	NewPassword = new QLineEdit(this);
@@ -88,9 +79,6 @@ void JabberChangePasswordWindow::createGui()
 	layout->addRow(tr("New password") + ':', NewPassword);
 
 	infoLabel = new QLabel(tr("<font size='-1'><i>Enter new password for your XMPP/Jabber account.</i></font>"), this);
-	infoLabel->setWordWrap(true);
-	infoLabel->setAlignment(Qt::AlignTop | Qt::AlignLeft);
-	infoLabel->setSizePolicy(QSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum));
 	layout->addRow(0, infoLabel);
 
 	ReNewPassword = new QLineEdit(this);
@@ -115,7 +103,7 @@ void JabberChangePasswordWindow::createGui()
 
 void JabberChangePasswordWindow::dataChanged()
 {
-	bool disable =  OldPassword->text().isEmpty()
+	bool disable =  CurrentPassword->text().isEmpty()
 			|| NewPassword->text().isEmpty()
 			|| ReNewPassword->text().isEmpty();
 
@@ -133,7 +121,7 @@ void JabberChangePasswordWindow::changePassword()
 		return;
 	}
 
-	JabberServerChangePassword *gscp = new JabberServerChangePassword(MyAccount, OldPassword->text(), NewPassword->text());
+	JabberServerChangePassword *gscp = new JabberServerChangePassword(MyAccount, CurrentPassword->text(), NewPassword->text());
 	connect(gscp, SIGNAL(finished(JabberServerChangePassword *)),
 			this, SLOT(changingFinished(JabberServerChangePassword *)));
 
@@ -147,12 +135,13 @@ void JabberChangePasswordWindow::changingFinished(JabberServerChangePassword *gs
 	if (gscp)
 	{
 		result = gscp->result();
-		delete gscp;
+		gscp->deleteLater();
 	}
 
 	if (result)
 	{
-		MessageDialog::show(KaduIcon("dialog-information"), tr("Kadu"),tr("Changing password was successful."), QMessageBox::Ok, this);
+		// using 'this' as parent is invalid, as close below will delete 'this' object
+		MessageDialog::show(KaduIcon("dialog-information"), tr("Kadu"),tr("Changing password was successful."), QMessageBox::Ok);
 
 		MyAccount.setPassword(NewPassword->text());
 		emit passwordChanged(NewPassword->text());

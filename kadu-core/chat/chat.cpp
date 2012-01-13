@@ -1,10 +1,10 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2009, 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2009, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -24,10 +24,10 @@
 #include "accounts/account.h"
 #include "chat/chat-details.h"
 #include "chat/chat-manager.h"
-#include "chat/chat-shared.h"
 #include "contacts/contact-set.h"
 
 #include "chat.h"
+
 
 KaduSharedBaseClassImpl(Chat)
 
@@ -119,9 +119,34 @@ Chat::~Chat()
 {
 }
 
+bool Chat::isInGroup(Group group) const
+{
+	return isNull() ? false : data()->isInGroup(group);
+}
+
+bool Chat::showInAllGroup() const
+{
+	return isNull() ? false : data()->showInAllGroup();
+}
+
+void Chat::addToGroup(Group group) const
+{
+	if (!isNull() && !data()->isInGroup(group))
+		data()->addToGroup(group);
+
+}
+void Chat::removeFromGroup(Group group) const
+{
+	if (!isNull() && data()->isInGroup(group))
+		data()->removeFromGroup(group);
+}
+
 KaduSharedBase_PropertyReadDef(Chat, ContactSet, contacts, Contacts, ContactSet())
 KaduSharedBase_PropertyReadDef(Chat, QString, name, Name, QString())
-KaduSharedBase_PropertyDef(Chat, ChatDetails *, details, Details, 0)
+KaduSharedBase_PropertyReadDef(Chat, ChatDetails *, details, Details, 0)
 KaduSharedBase_PropertyDefCRW(Chat, Account, chatAccount, ChatAccount, Account::null)
 KaduSharedBase_PropertyDefCRW(Chat, QString, type, Type, QString())
+KaduSharedBase_PropertyDefCRW(Chat, QString, display, Display, QString())
 KaduSharedBase_PropertyBoolDef(Chat, IgnoreAllMessages, false)
+KaduSharedBase_PropertyDefCRW(Chat, QList<Group>, groups, Groups, QList<Group>())
+KaduSharedBase_PropertyDef(Chat, quint16, unreadMessagesCount, UnreadMessagesCount, 0)

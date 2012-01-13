@@ -1,10 +1,12 @@
 /*
  * %kadu copyright begin%
+ * Copyright 2008, 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2010 Piotr Dąbrowski (ultr@ultr.pl)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2008, 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2008, 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
+ * Copyright 2007, 2008, 2009, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -21,13 +23,13 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "accounts/account.h"
 #include "accounts/account-manager.h"
+#include "accounts/account.h"
+#include "avatars/avatar.h"
+#include "buddies/buddy-manager.h"
 #include "configuration/xml-configuration-file.h"
 #include "contacts/contact-details.h"
 #include "contacts/contact-manager.h"
-#include "contacts/contact-shared.h"
-#include "buddies/buddy-manager.h"
 #include "storage/storage-point.h"
 
 #include "contact.h"
@@ -76,13 +78,27 @@ Contact::~Contact()
 {
 }
 
-/*
-void Contact::refreshDNSName()
+QString Contact::display(bool useBuddyData) const
 {
-	if (!(Address.isNull()))
-		connect(new DNSHandler(Id, Address), SIGNAL(result(const QString &, const QString &)),
-				this, SLOT(setDNSName(const QString &, const QString &)));
-}*/
+	if (data())
+		return data()->display(useBuddyData);
+
+	return QString();
+}
+
+Avatar Contact::avatar(bool useBuddyData) const
+{
+	if (data())
+		return data()->avatar(useBuddyData);
+
+	return Avatar::null;
+}
+
+void Contact::removeOwnerBuddy() const
+{
+	if (data())
+		data()->removeOwnerBuddy();
+}
 
 Contact Contact::contactWithHigherStatus(const Contact &c1, const Contact &c2)
 {
@@ -93,7 +109,7 @@ Contact Contact::contactWithHigherStatus(const Contact &c1, const Contact &c2)
 	return c2.currentStatus() < c1.currentStatus() ? c2 : c1;
 }
 
-KaduSharedBase_PropertyDef(Contact, ContactDetails *, details, Details, 0)
+KaduSharedBase_PropertyReadDef(Contact, ContactDetails *, details, Details, 0)
 KaduSharedBase_PropertyReadDef(Contact, QUuid, uuid, Uuid, QUuid())
 KaduSharedBase_PropertyReadDef(Contact, QSharedPointer<StoragePoint>, storage, Storage, QSharedPointer<StoragePoint>())
 KaduSharedBase_PropertyDefCRW(Contact, Account, contactAccount, ContactAccount, Account::null)
@@ -109,3 +125,5 @@ KaduSharedBase_PropertyDefCRW(Contact, QHostAddress, address, Address, QHostAddr
 KaduSharedBase_PropertyDef(Contact, unsigned int, port, Port, 0)
 KaduSharedBase_PropertyDefCRW(Contact, QString, dnsName, DnsName, QString())
 KaduSharedBase_PropertyDef(Contact, short int, maximumImageSize, MaximumImageSize, 0)
+KaduSharedBase_PropertyDef(Contact, quint16, unreadMessagesCount, UnreadMessagesCount, 0)
+KaduSharedBase_PropertyBoolReadDef(Contact, Anonymous, true)

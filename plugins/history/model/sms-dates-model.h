@@ -1,8 +1,8 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -24,31 +24,31 @@
 
 #include <QtCore/QAbstractListModel>
 #include <QtCore/QDate>
-#include <QtCore/QList>
+#include <QtCore/QVector>
 
 #include "buddies/buddy.h"
 
-class DatesModelItem;
+struct DatesModelItem;
 
 class SmsDatesModel : public QAbstractListModel
 {
 	Q_OBJECT
 
 	QString Recipient;
-	QList<DatesModelItem> Dates;
+	QVector<DatesModelItem> Dates;
 
 public:
-	SmsDatesModel(const QString &recipient, const QList<DatesModelItem> &dates, QObject *parent = 0);
+	SmsDatesModel(const QString &recipient, const QVector<DatesModelItem> &dates, QObject *parent = 0);
 	virtual ~SmsDatesModel();
 
 	virtual int columnCount(const QModelIndex &parent) const;
 	virtual int rowCount(const QModelIndex &parent = QModelIndex()) const;
 
-	virtual QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const;
+	virtual QVariant headerData(int section, Qt::Orientation orientation, int role) const;
 	virtual QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const;
 
 	void setRecipient(const QString &recipient);
-	void setDates(const QList<DatesModelItem> &dates);
+	void setDates(const QVector<DatesModelItem> &dates);
 
 	QModelIndex indexForDate(const QDate &date);
 

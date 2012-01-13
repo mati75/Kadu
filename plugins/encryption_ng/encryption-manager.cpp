@@ -1,7 +1,8 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -19,8 +20,9 @@
  */
 
 #include "gui/widgets/chat-widget-manager.h"
-#include "protocols/services/chat-service.h"
+#include "gui/widgets/chat-widget.h"
 #include "protocols/protocol.h"
+#include "protocols/services/chat-service.h"
 
 #include "configuration/encryption-ng-configuration.h"
 #include "decryptor.h"
@@ -101,22 +103,33 @@ void EncryptionManager::accountUnregistered(Account account)
 	}
 }
 
-bool EncryptionManager::setEncryptionEnabled(const Chat &chat, bool enable)
+bool EncryptionManager::setEncryptionEnabled(const Chat &chat, bool enable, bool overrideChatDataSetting)
 {
 	EncryptionChatData *encryptionChatData = chat.data()->moduleStorableData<EncryptionChatData>("encryption-ng", this, true);
 	if (enable)
 	{
-		// just in case release previous one
 		Encryptor *encryptor = encryptionChatData->encryptor();
-		if (encryptor)
-			encryptor->provider()->releaseEncryptor(chat, encryptor);
+		bool enableSucceeded;
 
-		encryptor = EncryptionProviderManager::instance()->acquireEncryptor(chat);
-		encryptionChatData->setEncryptor(encryptor);
+		if (encryptor && encryptor->provider() == EncryptionProviderManager::instance()->defaultEncryptorProvider(chat))
+			enableSucceeded = true;
+		else
+		{
+			if (encryptor)
+				encryptor->provider()->releaseEncryptor(chat, encryptor);
 
-		EncryptionActions::instance()->checkEnableEncryption(chat, 0 != encryptor);
-		encryptionChatData->setEncrypt(0 != encryptor);
-		return 0 != encryptor;
+			encryptor = EncryptionProviderManager::instance()->acquireEncryptor(chat);
+			encryptionChatData->setEncryptor(encryptor);
+			enableSucceeded = (0 != encryptor);
+		}
+
+		if (overrideChatDataSetting)
+			encryptionChatData->setEncrypt(enableSucceeded
+					? EncryptionChatData::EncryptStateEnabled
+					: EncryptionChatData::EncryptStateDisabled);
+		EncryptionActions::instance()->checkEnableEncryption(chat, enableSucceeded);
+
+		return enableSucceeded;
 	}
 	else
 	{
@@ -124,9 +137,10 @@ bool EncryptionManager::setEncryptionEnabled(const Chat &chat, bool enable)
 		if (encryptor)
 			encryptor->provider()->releaseEncryptor(chat, encryptor);
 		encryptionChatData->setEncryptor(0);
-		encryptionChatData->setEncrypt(false);
-
+		if (overrideChatDataSetting)
+			encryptionChatData->setEncrypt(EncryptionChatData::EncryptStateDisabled);
 		EncryptionActions::instance()->checkEnableEncryption(chat, false);
+
 		return true; // we can always disable
 	}
 }
@@ -139,18 +153,18 @@ void EncryptionManager::filterRawIncomingMessage(Chat chat, Contact sender, QByt
 	if (!chat)
 		return;
 
-	EncryptionChatData *encryptionChatData = chat.data()->moduleStorableData<EncryptionChatData>("encryption-ng", this, true);
-	if (!encryptionChatData)
+	if (!EncryptionProviderManager::instance()->canDecrypt(chat))
 		return;
 
+	EncryptionChatData *encryptionChatData = chat.data()->moduleStorableData<EncryptionChatData>("encryption-ng", this, true);
 	if (!encryptionChatData->decryptor())
 		encryptionChatData->setDecryptor(EncryptionProviderManager::instance()->acquireDecryptor(chat));
 
 	bool decrypted;
-	message = encryptionChatData->decryptor()->decrypt(message, &decrypted);
+	message = encryptionChatData->decryptor()->decrypt(message, chat, &decrypted);
 
 	if (decrypted && EncryptionNgConfiguration::instance()->encryptAfterReceiveEncryptedMessage())
-		setEncryptionEnabled(chat, true);
+		setEncryptionEnabled(chat, true, false);
 }
 
 void EncryptionManager::filterRawOutgoingMessage(Chat chat, QByteArray &message, bool &stop)
@@ -171,9 +185,15 @@ void EncryptionManager::chatWidgetCreated(ChatWidget *chatWidget)
 	if (!chat.data())
 		return;
 
-	EncryptionChatData *encryptionChatData = chat.data()->moduleStorableData<EncryptionChatData>("encryption-ng", this, true);
-	if (encryptionChatData->encrypt())
-		setEncryptionEnabled(chat, true);
+	if (!EncryptionProviderManager::instance()->canEncrypt(chat))
+		return;
+
+	EncryptionChatData *encryptionChatData = chat.data()->moduleStorableData<EncryptionChatData>("encryption-ng", this, false);
+	bool encryptFromDefault = (!encryptionChatData || encryptionChatData->encrypt() == EncryptionChatData::EncryptStateDefault)
+			&& EncryptionNgConfiguration::instance()->encryptByDefault();
+
+	if (encryptFromDefault || (encryptionChatData && encryptionChatData->encrypt() == EncryptionChatData::EncryptStateEnabled))
+		setEncryptionEnabled(chat, true, !encryptFromDefault);
 }
 
 void EncryptionManager::chatWidgetDestroying(ChatWidget *chatWidget)

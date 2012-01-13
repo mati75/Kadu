@@ -1,10 +1,10 @@
 /*
  * %kadu copyright begin%
- * Copyright 2011 Piotr Dąbrowski (ultr@ultr.pl)
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2009, 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011 Piotr Dąbrowski (ultr@ultr.pl)
+ * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -21,14 +21,17 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "buddies/buddy.h"
 #include "chat/chat.h"
+#include "chat/chat-details-aggregate.h"
+#include "chat/model/chat-data-extractor.h"
 #include "chat/type/chat-type-manager.h"
 #include "icons/kadu-icon.h"
 #include "model/roles.h"
 
 #include "model/history-type.h"
-#include "history-tree-item.h"
 #include "history-chats-model.h"
+#include "history-tree-item.h"
 
 HistoryChatsModel::HistoryChatsModel(QObject *parent) :
 		QAbstractItemModel(parent)
@@ -46,9 +49,12 @@ void HistoryChatsModel::chatTypeRegistered(ChatType *chatType)
 	if (ChatKeys.contains(chatType))
 		return;
 
+	if (-1 == chatType->sortIndex())
+		return;
+
 	beginInsertRows(QModelIndex(), Chats.size(), Chats.size());
 	ChatKeys.append(chatType);
-	Chats.insert(ChatKeys.size() - 1, QList<Chat>());
+	Chats.append(QVector<Chat>());
 	endInsertRows();
 }
 
@@ -59,7 +65,7 @@ void HistoryChatsModel::chatTypeUnregistered(ChatType *chatType)
 
 	int index = ChatKeys.indexOf(chatType);
 	beginRemoveRows(QModelIndex(), index, index);
-	Chats.removeAt(index);
+	Chats.remove(index);
 	ChatKeys.removeAt(index);
 	endRemoveRows();
 }
@@ -112,7 +118,7 @@ QModelIndex HistoryChatsModel::parent(const QModelIndex &child) const
 
 QVariant HistoryChatsModel::chatTypeData(const QModelIndex &index, int role) const
 {
-	if (index.row() < 0 || index.row() >= ChatKeys.count())
+	if (index.row() < 0 || index.row() >= ChatKeys.size())
 		return QVariant();
 
 	ChatType *chatType = ChatKeys.at(index.row());
@@ -136,7 +142,7 @@ QVariant HistoryChatsModel::chatData(const QModelIndex &index, int role) const
 	if (index.internalId() < 0 || index.internalId() >= Chats.size())
 		return QVariant();
 
-	const QList<Chat> &chats = Chats.at(index.internalId());
+	const QVector<Chat> &chats = Chats.at(index.internalId());
 	if (index.row() < 0 || index.row() >= chats.size())
 		return QVariant();
 
@@ -145,10 +151,8 @@ QVariant HistoryChatsModel::chatData(const QModelIndex &index, int role) const
 	switch (role)
 	{
 		case Qt::DisplayRole:
-			return chat.name();
-
 		case ChatRole:
-			return QVariant::fromValue<Chat>(chat);
+			return ChatDataExtractor::data(chat, role);
 
 		case HistoryItemRole:
 			return QVariant::fromValue<HistoryTreeItem>(HistoryTreeItem(chat));
@@ -219,7 +223,7 @@ QVariant HistoryChatsModel::data(const QModelIndex &index, int role) const
 	if (index.parent().parent().isValid())
 		return QVariant();
 
-	int chatTypeIndex = index.parent().isValid() ? index.internalId() : index.row();
+	qint64 chatTypeIndex = index.parent().isValid() ? index.internalId() : index.row();
 	if (chatTypeIndex < 0)
 		return QVariant();
 
@@ -258,7 +262,20 @@ void HistoryChatsModel::addChat(const Chat &chat)
 	if (!chatType)
 		return;
 
+	if (chatType->name() == "Aggregate")
+	{
+		ChatDetailsAggregate *details = qobject_cast<ChatDetailsAggregate *>(chat.details());
+		Q_ASSERT(details);
+		Q_ASSERT(!details->chats().isEmpty());
+
+		chatType = ChatTypeManager::instance()->chatType(details->chats().at(0).type());
+		if (!chatType)
+			return;
+	}
+
 	int id = ChatKeys.indexOf(chatType);
+	if (-1 == id)
+		return;
 
 	QModelIndex idx = index(id, 0);
 	int count = Chats.at(id).count();
@@ -268,7 +285,7 @@ void HistoryChatsModel::addChat(const Chat &chat)
 	endInsertRows();
 }
 
-void HistoryChatsModel::setChats(const QList<Chat> &chats)
+void HistoryChatsModel::setChats(const QVector<Chat> &chats)
 {
 	clearChats();
 
@@ -296,7 +313,7 @@ void HistoryChatsModel::clearSmsRecipients()
 	}
 }
 
-void HistoryChatsModel::setStatusBuddies(const QList<Buddy> &buddies)
+void HistoryChatsModel::setStatusBuddies(const QVector<Buddy> &buddies)
 {
 	clearStatusBuddies();
 

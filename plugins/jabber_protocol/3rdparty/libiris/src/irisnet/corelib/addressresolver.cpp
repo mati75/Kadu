@@ -124,7 +124,7 @@ private:
 	{
 		if((done6 && done4) || (state == AddressFirstCome && (done6 || done4)))
 		{
-			QList<QHostAddress> results = addrs6 + addrs4;
+			QList<QHostAddress> results = addrs4 + addrs6;
 			cleanup();
 
 			if(!results.isEmpty())

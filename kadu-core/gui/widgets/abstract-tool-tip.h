@@ -1,7 +1,9 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
+ * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -23,13 +25,13 @@
 
 class QPoint;
 
-class BuddyOrContact;
+class Talkable;
 
 class AbstractToolTip
 {
 
 public:
-	virtual void showToolTip(const QPoint &point, BuddyOrContact buddyOrContact) = 0;
+	virtual void showToolTip(const QPoint &point, Talkable talkable) = 0;
 	virtual void hideToolTip() = 0;
 
 };

@@ -1,9 +1,10 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2009, 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2009 Michał Podsiadlik (michal@kadu.net)
+ * Copyright 2008, 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2008, 2009 Michał Podsiadlik (michal@kadu.net)
+ * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2007, 2008 Dawid Stawiarski (neeo@kadu.net)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -27,13 +28,12 @@
 #include <QtXml/QDomElement>
 
 #include "accounts/account-shared.h"
-#include "status/base-status-container.h"
 #include "storage/shared-base.h"
 
 class AccountDetails;
-class AccountProxySettings;
 class Contact;
 class Identity;
+class NetworkProxy;
 class Protocol;
 class ProtocolFactory;
 class XmlConfigFile;
@@ -54,16 +54,7 @@ public:
 	Account(const Account &copy);
 	virtual ~Account();
 
-	void importProxySettings();
-
-	/**
-	 * Returns appropriate StatusContainer for this Account, i.e. its Identity's
-	 * StatusContainer in Simple Mode and this Account's otherwise. If you want to get
-	 * status information that is specific for this Account, e.g., non-generic status
-	 * icon, you probably want to call something like account.data()->statusIcon()
-	 * rather than using this method.
-	 */
-	StatusContainer * statusContainer();
+	StatusContainer * statusContainer() const;
 
 	KaduSharedBase_PropertyCRW(Identity, accountIdentity, AccountIdentity)
 	KaduSharedBase_PropertyRead(QSharedPointer<StoragePoint>, storage, Storage)
@@ -75,7 +66,8 @@ public:
 	KaduSharedBase_Property(bool, rememberPassword, RememberPassword)
 	KaduSharedBase_Property(bool, hasPassword, HasPassword)
 	KaduSharedBase_PropertyCRW(QString, password, Password)
-	KaduSharedBase_PropertyCRW(AccountProxySettings, proxySettings, ProxySettings)
+	KaduSharedBase_Property(bool, useDefaultProxy, UseDefaultProxy)
+	KaduSharedBase_PropertyCRW(NetworkProxy, proxy, Proxy)
 	KaduSharedBase_Property(bool, privateStatus, PrivateStatus)
 	KaduSharedBase_Property(bool, removing, Removing)
 

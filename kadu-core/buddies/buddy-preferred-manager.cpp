@@ -1,9 +1,9 @@
 /*
  * %kadu copyright begin%
+ * Copyright 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2010 Piotr Dąbrowski (ultr@ultr.pl)
+ * Copyright 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -21,9 +21,11 @@
  */
 
 #include "buddies/buddy.h"
-#include "chat/message/pending-messages-manager.h"
+#include "chat/chat.h"
 #include "contacts/contact-set.h"
 #include "gui/widgets/chat-widget-manager.h"
+#include "gui/widgets/chat-widget.h"
+#include "status/status-container.h"
 
 #include "buddies/buddy-preferred-manager.h"
 
@@ -67,7 +69,7 @@ Contact BuddyPreferredManager::preferredContact(const Buddy &buddy, const Accoun
 	}
 
 	Contact contact;
-	contact = preferredContactByPendingMessages(buddy, account);
+	contact = preferredContactByUnreadMessages(buddy, account);
 	if (contact)
 		return contact;
 
@@ -103,10 +105,10 @@ Account BuddyPreferredManager::preferredAccount(const Buddy &buddy, bool include
 	return contact.contactAccount();
 }
 
-void BuddyPreferredManager::updatePreferred(Buddy buddy)
+/*void BuddyPreferredManager::updatePreferred(Buddy buddy)
 {
 	Contact contact;
-	contact = preferredContactByPendingMessages(buddy);
+	contact = preferredContactByUnreadMessages(buddy);
 	if (!contact)
 		contact = preferredContactByChatWidgets(buddy);
 
@@ -116,15 +118,15 @@ void BuddyPreferredManager::updatePreferred(Buddy buddy)
 		Preferreds.remove(buddy);
 
 	emit buddyUpdated(buddy);
-}
+}*/
 
-Contact BuddyPreferredManager::preferredContactByPendingMessages(const Buddy &buddy, const Account &account)
+Contact BuddyPreferredManager::preferredContactByUnreadMessages(const Buddy &buddy, const Account &account)
 {
 	Contact result;
-	foreach (const Message &message, PendingMessagesManager::instance()->pendingMessagesForBuddy(buddy))
+	foreach (const Contact &contact, buddy.contacts())
 	{
-		Contact contact = message.messageSender();
-		result = morePreferredContactByStatus(result, contact, account);
+		if (contact.unreadMessagesCount() > 0)
+			result = morePreferredContactByStatus(result, contact, account);
 	}
 	return result;
 }
@@ -161,10 +163,10 @@ Contact BuddyPreferredManager::morePreferredContactByStatus(const Contact &c1, c
 	if (!c2 || (account && c2.contactAccount() != account))
 		return c1;
 
-	if (c1.contactAccount().data()->status().isDisconnected() && !c2.contactAccount().data()->status().isDisconnected())
+	if (c1.contactAccount().statusContainer()->status().isDisconnected() && !c2.contactAccount().statusContainer()->status().isDisconnected())
 		return c2;
 
-	if (c2.contactAccount().data()->status().isDisconnected() && !c1.contactAccount().data()->status().isDisconnected())
+	if (c2.contactAccount().statusContainer()->status().isDisconnected() && !c1.contactAccount().statusContainer()->status().isDisconnected())
 		return c1;
 
 	return Contact::contactWithHigherStatus(c1, c2);

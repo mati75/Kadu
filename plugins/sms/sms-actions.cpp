@@ -1,9 +1,9 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2010 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -25,17 +25,17 @@
 
 #include "contacts/contact-set.h"
 #include "core/core.h"
-#include "gui/actions/action.h"
 #include "gui/actions/action-description.h"
-#include "gui/widgets/buddies-list-view.h"
-#include "gui/widgets/buddies-list-view-menu-manager.h"
+#include "gui/actions/action.h"
 #include "gui/widgets/chat-edit-box.h"
 #include "gui/widgets/chat-widget.h"
+#include "gui/widgets/talkable-menu-manager.h"
+#include "gui/widgets/talkable-tree-view.h"
 #include "gui/windows/kadu-window.h"
 #include "debug.h"
 
-#include "gui/windows/sms-image-dialog.h"
 #include "gui/windows/sms-dialog.h"
+#include "gui/windows/sms-image-dialog.h"
 
 #include "sms-actions.h"
 
@@ -64,8 +64,8 @@ SmsActions * SmsActions::instance()
 
 SmsActions::SmsActions()
 {
-	connect(Core::instance()->kaduWindow()->buddiesListView(), SIGNAL(buddyActivated(Buddy)),
-			this, SLOT(buddyActivated(Buddy)));
+	connect(Core::instance()->kaduWindow(), SIGNAL(talkableActivated(Talkable)),
+			this, SLOT(talkableActivated(Talkable)));
 
 	sendSmsActionDescription = new ActionDescription(this,
 		ActionDescription::TypeGlobal, "sendSmsAction",
@@ -73,16 +73,16 @@ SmsActions::SmsActions()
 		KaduIcon("phone"), tr("Send SMS...")
 	);
 	sendSmsActionDescription->setShortcut("kadu_sendsms");
-	BuddiesListViewMenuManager::instance()->addActionDescription(sendSmsActionDescription, BuddiesListViewMenuItem::MenuCategoryActions, 100);
-	Core::instance()->kaduWindow()->insertMenuActionDescription(sendSmsActionDescription, KaduWindow::MenuContacts, 5);
+	TalkableMenuManager::instance()->addActionDescription(sendSmsActionDescription, TalkableMenuItem::CategoryActions, 100);
+	Core::instance()->kaduWindow()->insertMenuActionDescription(sendSmsActionDescription, KaduWindow::MenuBuddies, 5);
 }
 
 SmsActions::~SmsActions()
 {
-	disconnect(Core::instance()->kaduWindow()->buddiesListView(), SIGNAL(buddyActivated(Buddy)),
-			this, SLOT(buddyActivated(Buddy)));
+	disconnect(Core::instance()->kaduWindow(), SIGNAL(talkableActivated(Talkable)),
+			this, SLOT(talkableActivated(Talkable)));
 
-	BuddiesListViewMenuManager::instance()->removeActionDescription(sendSmsActionDescription);
+	TalkableMenuManager::instance()->removeActionDescription(sendSmsActionDescription);
 	Core::instance()->kaduWindow()->removeMenuActionDescription(sendSmsActionDescription);
 }
 
@@ -93,8 +93,9 @@ void SmsActions::newSms(const QString &mobile)
 	smsDialog->show();
 }
 
-void SmsActions::buddyActivated(Buddy buddy)
+void SmsActions::talkableActivated(const Talkable &talkable)
 {
+	const Buddy &buddy = talkable.toBuddy();
 	if (buddy.contacts().isEmpty() && !buddy.mobile().isEmpty())
 		newSms(buddy.mobile());
 }
@@ -105,5 +106,5 @@ void SmsActions::sendSmsActionActivated(QAction *sender)
 	if (!action)
 		return;
 
-	newSms(action->buddy().mobile());
+	newSms(action->context()->buddies().toBuddy().mobile());
 }

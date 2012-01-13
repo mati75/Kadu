@@ -1,9 +1,10 @@
 /*
  * %kadu copyright begin%
+ * Copyright 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009, 2010 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2009, 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -24,9 +25,8 @@
 #include <QtCore/QTimer>
 
 #include "accounts/account.h"
-#include "avatars/avatar.h"
 #include "avatars/avatar-job-manager.h"
-#include "avatars/avatar-shared.h"
+#include "avatars/avatar.h"
 #include "configuration/configuration-manager.h"
 #include "contacts/contact-manager.h"
 #include "contacts/contact.h"
@@ -42,12 +42,25 @@ AvatarManager * AvatarManager::Instance = 0;
 AvatarManager * AvatarManager::instance()
 {
 	if (!Instance)
+	{
 		Instance = new AvatarManager();
+		Instance->init();
+	}
 
 	return Instance;
 }
 
 AvatarManager::AvatarManager()
+{
+}
+
+AvatarManager::~AvatarManager()
+{
+	triggerAllAccountsUnregistered();
+	disconnect(ContactManager::instance(), SIGNAL(contactAdded(Contact)), this, SLOT(contactAdded(Contact)));
+}
+
+void AvatarManager::init()
 {
 	triggerAllAccountsRegistered();
 
@@ -57,12 +70,6 @@ AvatarManager::AvatarManager()
 	connect(ContactManager::instance(), SIGNAL(contactAdded(Contact)), this, SLOT(contactAdded(Contact)));
 
 	UpdateTimer->start();
-}
-
-AvatarManager::~AvatarManager()
-{
-	triggerAllAccountsUnregistered();
-	disconnect(ContactManager::instance(), SIGNAL(contactAdded(Contact)), this, SLOT(contactAdded(Contact)));
 }
 
 void AvatarManager::itemAboutToBeAdded(Avatar item)
@@ -148,7 +155,7 @@ void AvatarManager::updateAvatars()
 	QMutexLocker locker(&mutex());
 
 	foreach (const Contact &contact, ContactManager::instance()->items())
-		if (!contact.ownerBuddy().isAnonymous())
+		if (!contact.isAnonymous())
 			updateAvatar(contact);
 }
 
@@ -161,7 +168,7 @@ void AvatarManager::updateAccountAvatars()
 		return;
 
 	foreach (const Contact &contact, ContactManager::instance()->contacts(account))
-		if (!contact.ownerBuddy().isAnonymous())
+		if (!contact.isAnonymous())
 			updateAvatar(contact, true);
 }
 
@@ -192,7 +199,6 @@ Avatar AvatarManager::byBuddy(Buddy buddy, NotFoundAction action)
 		return Avatar::null;
 
 	Avatar avatar = Avatar::create();
-	avatar.setAvatarBuddy(buddy);
 	buddy.setBuddyAvatar(avatar);
 
 	if (ActionCreateAndAdd == action)
@@ -210,7 +216,6 @@ Avatar AvatarManager::byContact(Contact contact, NotFoundAction action)
 		return Avatar::null;
 
 	Avatar avatar = Avatar::create();
-	avatar.setAvatarContact(contact);
 	contact.setContactAvatar(avatar);
 
 	if (ActionCreateAndAdd == action)

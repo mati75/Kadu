@@ -1,10 +1,10 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010-2011 Piotr Dąbrowski (ultr@ultr.pl)
- * Copyright 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2010, 2011 Piotr Dąbrowski (ultr@ultr.pl)
  * Copyright 2009 Michał Podsiadlik (michal@kadu.net)
+ * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -25,8 +25,8 @@
 #include <QtGui/QFrame>
 #include <QtGui/QHBoxLayout>
 #include <QtGui/QInputDialog>
-#include <QtGui/QLabel>
 #include <QtGui/QKeyEvent>
+#include <QtGui/QLabel>
 #include <QtGui/QPushButton>
 #include <QtGui/QSplitter>
 #include <QtGui/QStyle>
@@ -36,9 +36,9 @@
 #include "configuration/configuration-file.h"
 #include "gui/widgets/preview.h"
 #include "gui/windows/message-dialog.h"
+#include "icons/icons-manager.h"
 #include "misc/misc.h"
 #include "misc/syntax-list.h"
-#include "icons/icons-manager.h"
 
 #include "syntax-editor-window.h"
 
@@ -49,6 +49,9 @@ SyntaxEditorWindow::SyntaxEditorWindow(const QSharedPointer<SyntaxList> &syntaxL
 		const QString &category, const QString &syntaxHint, QWidget *parent) :
 		QWidget(parent), DesktopAwareObject(this), syntaxList(syntaxList), syntaxName(syntaxName)
 {
+	// TODO: unused since a1a2ce99fa7c849560021ef9e9436f3cc1b7a3d6, fix API
+	Q_UNUSED(category);
+
 	setWindowRole("kadu-syntax-editor");
 
 	setWindowTitle(tr("Kadu syntax editor"));
@@ -99,7 +102,6 @@ SyntaxEditorWindow::SyntaxEditorWindow(const QSharedPointer<SyntaxList> &syntaxL
 	previewPanel->setMinimumHeight(0);
 	previewPanel->setMaximumHeight(QWIDGETSIZE_MAX);
 	previewPanel->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
-	previewPanel->setResetBackgroundColor(config_file.readEntry("Look", category + "BgColor"));
 	previewPanel->setMinimumSize(PREVIEW_MINIMUM_SIZE);
 
 	QPushButton *previewbutton = new QPushButton(qApp->style()->standardIcon(QStyle::SP_BrowserReload), tr("Refresh Preview"), this);

@@ -1,9 +1,9 @@
 /*
  * %kadu copyright begin%
+ * Copyright 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2011 Piotr Dąbrowski (ultr@ultr.pl)
- * Copyright 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -63,8 +63,8 @@ void SoundConfigurationWidget::saveNotifyConfigurations()
 	if (!CurrentNotifyEvent.isEmpty())
 		SoundFiles[CurrentNotifyEvent] = SoundFileSelectFile->file();
 
-	foreach (const QString &key, SoundFiles.keys())
-		config_file.writeEntry("Sounds", key + "_sound", SoundFiles[key]);
+	for (QMap<QString, QString>::const_iterator it = SoundFiles.constBegin(), end = SoundFiles.constEnd(); it != end; ++it)
+		config_file.writeEntry("Sounds", it.key() + "_sound", it.value());
 }
 
 void SoundConfigurationWidget::switchToEvent(const QString &event)
@@ -85,10 +85,10 @@ void SoundConfigurationWidget::themeChanged(int index)
 		return;
 
 	//refresh soundFiles
-	foreach (const QString &key, SoundFiles.keys())
+	for (QMap<QString, QString>::iterator it = SoundFiles.begin(), end = SoundFiles.end(); it != end; ++it)
 	{
-		SoundFiles[key] = config_file.readEntry("Sounds", key + "_sound");
-		if (key == CurrentNotifyEvent)
-			SoundFileSelectFile->setFile(SoundFiles[key]);
+		it.value() = config_file.readEntry("Sounds", it.key() + "_sound");
+		if (it.key() == CurrentNotifyEvent)
+			SoundFileSelectFile->setFile(it.value());
 	}
 }

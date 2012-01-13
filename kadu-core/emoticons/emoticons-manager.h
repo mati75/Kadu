@@ -10,9 +10,9 @@
  * Copyright 2003, 2005 Paweł Płuciennik (pawel_p@kadu.net)
  * Copyright 2003, 2004 Dariusz Jagodzik (mast3r@kadu.net)
  * %kadu copyright begin%
- * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -31,6 +31,8 @@
 
 #ifndef EMOTICONS_MANAGER_H
 #define EMOTICONS_MANAGER_H
+
+#include <QtCore/QVector>
 
 #include "emoticons/emoticons.h"
 #include "themes.h"
@@ -64,8 +66,8 @@ class KADUAPI EmoticonsManager : public QObject
 		QString stat;
 		EmoticonsListItem();
 	};
-	QList<EmoticonsListItem> Aliases;
-	QList<EmoticonsListItem> Selector;
+	QVector<EmoticonsListItem> Aliases;
+	QVector<EmoticonsListItem> Selector;
 	EmotsWalker *walker;
 
 	static QString getQuoted(const QString &s, unsigned int &pos);

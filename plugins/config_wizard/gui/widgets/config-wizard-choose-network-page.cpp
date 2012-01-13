@@ -1,7 +1,8 @@
 /*
  * %kadu copyright begin%
+ * Copyright 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -29,7 +30,7 @@
 #include "config-wizard-choose-network-page.h"
 
 ConfigWizardChooseNetworkPage::ConfigWizardChooseNetworkPage(QWidget *parent) :
-		ConfigWizardPage(parent)
+		ConfigWizardPage(parent), LastProtocol(0)
 {
 	setDescription(tr("<p>Please choose the network for the account that you would like to set up.</p><p>You can also create a new account in the wizard if you don't already have one</p>"));
 
@@ -45,8 +46,8 @@ void ConfigWizardChooseNetworkPage::createGui()
 	formLayout()->addRow(new QLabel(tr("<h3>Account Setup</h3>"), this));
 
 	SelectProtocol = new ProtocolsComboBox(this);
-	connect(SelectProtocol, SIGNAL(protocolChanged(ProtocolFactory*,ProtocolFactory*)),
-			this, SLOT(protocolChanged(ProtocolFactory*,ProtocolFactory*)));
+	connect(SelectProtocol, SIGNAL(currentIndexChanged(int)),
+			this, SLOT(protocolChanged()));
 
 	formLayout()->addRow(tr("IM Network"), SelectProtocol);
 
@@ -58,37 +59,31 @@ void ConfigWizardChooseNetworkPage::createGui()
 	formLayout()->addRow(QString(), SetUpNew);
 	formLayout()->addRow(QString(), Ignore);
 
-	registerField("choose-network.protocol-factory", SelectProtocol, "currentProtocol", SIGNAL(protocolChanged()));
+	registerField("choose-network.protocol-factory", SelectProtocol, "currentProtocol", SIGNAL(currentIndexChanged(int)));
 	registerField("choose-network.existing", SetUpExisting);
 	registerField("choose-network.new", SetUpNew);
 	registerField("choose-network.ignore", Ignore);
 
-	protocolChanged(SelectProtocol->currentProtocol(), 0);
+	protocolChanged();
 }
 
-void ConfigWizardChooseNetworkPage::initializePage()
+void ConfigWizardChooseNetworkPage::protocolChanged()
 {
-	SelectProtocol->setCurrentProtocol(0);
-}
-
-void ConfigWizardChooseNetworkPage::acceptPage()
-{
-}
-
-void ConfigWizardChooseNetworkPage::protocolChanged(ProtocolFactory *protocol, ProtocolFactory *lastProtocol)
-{
+	ProtocolFactory *protocol = SelectProtocol->currentProtocol();
 	if (!protocol)
 	{
 		SetUpExisting->setEnabled(false);
 		SetUpNew->setEnabled(false);
 		Ignore->setChecked(true);
+	}
+	else
+	{
+		SetUpExisting->setEnabled(true);
+		SetUpNew->setEnabled(protocol->canRegister());
 
-		return;
+		if (!LastProtocol || (SetUpNew->isChecked() && !SetUpNew->isEnabled()))
+			SetUpExisting->setChecked(true);
 	}
 
-	SetUpExisting->setEnabled(true);
-	SetUpNew->setEnabled(protocol->canRegister());
-
-	if (!lastProtocol || (SetUpNew->isChecked() && !SetUpNew->isEnabled()))
-		SetUpExisting->setChecked(true);
+	LastProtocol = protocol;
 }

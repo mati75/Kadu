@@ -1,11 +1,11 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Piotr Dąbrowski (ultr@ultr.pl)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2008, 2009, 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2010 Przemysław Rudy (prudy1@o2.pl)
- * Copyright 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2011 Tomasz Rostanski (rozteck@interia.pl)
+ * Copyright 2008, 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2010, 2010 Przemysław Rudy (prudy1@o2.pl)
+ * Copyright 2010, 2011 Piotr Dąbrowski (ultr@ultr.pl)
+ * Copyright 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -21,25 +21,31 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-
 #include <QtGui/QContextMenuEvent>
 #include <QtGui/QMenu>
 
 #include "accounts/account-manager.h"
+#include "buddies/buddy-set.h"
+#include "buddies/buddy.h"
 #include "configuration/configuration-file.h"
 #include "configuration/configuration-manager.h"
 #include "configuration/toolbar-configuration-manager.h"
 #include "configuration/xml-configuration-file.h"
-#include "buddies/buddy.h"
-#include "buddies/buddy-set.h"
-#include "gui/actions/action.h"
-#include "gui/widgets/buddies-list-view.h"
-#include "gui/widgets/toolbar.h"
 #include "core/core.h"
+#include "gui/actions/action.h"
+#include "gui/actions/actions.h"
+#include "gui/widgets/talkable-tree-view.h"
+#include "gui/widgets/toolbar.h"
 
 #include "debug.h"
 
 #include "main-window.h"
+
+#ifdef Q_WS_X11
+#include <QtGui/QX11Info>
+#include "os/x11tools.h" // this should be included as last one,
+#undef Status            // and Status defined by Xlib.h must be undefined
+#endif
 
 MainWindow * MainWindow::findMainWindow(QWidget *widget)
 {
@@ -54,17 +60,31 @@ MainWindow * MainWindow::findMainWindow(QWidget *widget)
 	return 0;
 }
 
-MainWindow::MainWindow(const QString &windowName, QWidget *parent) :
-		QMainWindow(parent), DesktopAwareObject(this),  WindowName(windowName), TransparencyEnabled(false)
+MainWindow::MainWindow(ActionContext *context, const QString &windowName, QWidget *parent) :
+		QMainWindow(parent), DesktopAwareObject(this),  WindowName(windowName), TransparencyEnabled(false), BlurEnabled(false),
+		Context(context)
 {
+	Q_ASSERT(0 != Context);
+
 	connect(ConfigurationManager::instance()->toolbarConfigurationManager(), SIGNAL(configurationUpdated()),
 			this, SLOT(refreshToolBars()));
+	connect(Actions::instance(), SIGNAL(actionLoaded(ActionDescription*)),
+			this, SLOT(actionLoadedOrUnloaded(ActionDescription*)));
+	connect(Actions::instance(), SIGNAL(actionUnloaded(ActionDescription*)),
+			this, SLOT(actionLoadedOrUnloaded(ActionDescription*)));
 }
 
 MainWindow::~MainWindow()
 {
+	disconnect(Actions::instance(), SIGNAL(actionUnloaded(ActionDescription*)),
+			this, SLOT(actionLoadedOrUnloaded(ActionDescription*)));
+	disconnect(Actions::instance(), SIGNAL(actionLoaded(ActionDescription*)),
+			this, SLOT(actionLoadedOrUnloaded(ActionDescription*)));
 	disconnect(ConfigurationManager::instance()->toolbarConfigurationManager(), SIGNAL(configurationUpdated()),
 			this, SLOT(refreshToolBars()));
+
+	delete Context;
+	Context = 0;
 }
 
 void MainWindow::loadToolBarsFromConfig()
@@ -305,6 +325,12 @@ void MainWindow::writeToolBarsToConfig(Qt::ToolBarArea area)
 	}
 }
 
+void MainWindow::actionLoadedOrUnloaded(ActionDescription *action)
+{
+	if (supportsActionType(action->type()))
+		refreshToolBars();
+}
+
 void MainWindow::refreshToolBars()
 {
 	// We don't need it when closing.
@@ -361,12 +387,6 @@ void MainWindow::addRightToolbar()
 	toolbarUpdated();
 }
 
-void MainWindow::actionAdded(Action *action)
-{
-	if (buddiesListView())
-		connect(buddiesListView(), SIGNAL(buddySelectionChanged()), action, SLOT(checkState()));
-}
-
 bool MainWindow::hasAction(const QString &actionName, ToolBar *exclude)
 {
 	foreach (QObject *object, children())
@@ -381,7 +401,7 @@ bool MainWindow::hasAction(const QString &actionName, ToolBar *exclude)
 
 Contact MainWindow::contact()
 {
-	ContactSet contactSet = contacts();
+	ContactSet contactSet = actionContext()->contacts();
 	return 1 == contactSet.count()
 			? *contactSet.constBegin()
 			: Contact::null;
@@ -389,7 +409,7 @@ Contact MainWindow::contact()
 
 Buddy MainWindow::buddy()
 {
-	BuddySet buddySet = buddies();
+	BuddySet buddySet = actionContext()->buddies();
 	return 1 == buddySet.count()
 			? *buddySet.constBegin()
 			: Buddy::null;
@@ -446,4 +466,27 @@ void MainWindow::toolbarRemoved(ToolBar *toolBar)
 	toolBar->deleteLater();
 
 	toolbarUpdated();
+}
+
+ActionContext * MainWindow::actionContext()
+{
+	return Context;
+}
+
+void MainWindow::setBlur(bool enable)
+{
+#if !defined(Q_WS_X11)
+	Q_UNUSED(enable);
+#else
+	BlurEnabled = enable;
+	X11_setBlur(QX11Info::display(), winId(), enable);
+#endif
+}
+
+
+void MainWindow::showEvent(QShowEvent * event)
+{
+	if (BlurEnabled)
+		setBlur(true);
+	QMainWindow::showEvent(event);
 }

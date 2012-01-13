@@ -1,7 +1,13 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2004 Michał Podsiadlik (michal@kadu.net)
+ * Copyright 2002, 2003, 2004, 2005 Adrian Smarzewski (adrian@kadu.net)
+ * Copyright 2002, 2003, 2004 Tomasz Chiliński (chilek@chilan.com)
+ * Copyright 2007, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2007 Dawid Stawiarski (neeo@kadu.net)
+ * Copyright 2005 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -20,13 +26,13 @@
 
 #include "decryptor-wrapper.h"
 
-DecryptorWrapper::DecryptorWrapper(const Chat &chat, EncryptionProviderManager *provider, QObject *parent) :
-		Decryptor(provider, parent), MyChat(chat)
+DecryptorWrapper::DecryptorWrapper(const Chat &chat, EncryptionProviderManager *providerManager, QObject *parent) :
+		Decryptor(providerManager, parent), MyChat(chat)
 {
-	connect(provider, SIGNAL(providerRegistered(EncryptionProvider*)),
+	connect(providerManager, SIGNAL(providerRegistered(EncryptionProvider*)),
 			this, SLOT(providerRegistered(EncryptionProvider*)));
 
-	foreach (EncryptionProvider *provider, provider->providers())
+	foreach (EncryptionProvider *provider, providerManager->providers())
 		providerRegistered(provider);
 }
 
@@ -54,7 +60,7 @@ void DecryptorWrapper::decryptorDestroyed(QObject *decryptor)
 	Decryptors.removeAll(static_cast<Decryptor *>(decryptor));
 }
 
-QByteArray DecryptorWrapper::decrypt(const QByteArray &data, bool *ok)
+QByteArray DecryptorWrapper::decrypt(const QByteArray &data, Chat chat, bool *ok)
 {
 	QByteArray decrypted = data;
 
@@ -64,7 +70,7 @@ QByteArray DecryptorWrapper::decrypt(const QByteArray &data, bool *ok)
 	foreach (Decryptor *decryptor, Decryptors)
 	{
 		bool thisOk;
-		decrypted = decryptor->decrypt(decrypted, &thisOk);
+		decrypted = decryptor->decrypt(decrypted, chat, &thisOk);
 		if (ok)
 			*ok = *ok || thisOk;
 	}

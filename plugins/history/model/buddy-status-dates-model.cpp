@@ -1,8 +1,8 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -30,7 +30,7 @@
 
 #include "buddy-status-dates-model.h"
 
-BuddyStatusDatesModel::BuddyStatusDatesModel(const Buddy &buddy, const QList<DatesModelItem> &dates, QObject *parent) :
+BuddyStatusDatesModel::BuddyStatusDatesModel(const Buddy &buddy, const QVector<DatesModelItem> &dates, QObject *parent) :
 		QAbstractListModel(parent), MyBuddy(buddy), Dates(dates)
 {
 }
@@ -51,7 +51,7 @@ int BuddyStatusDatesModel::rowCount(const QModelIndex &parent) const
 
 QVariant BuddyStatusDatesModel::headerData(int section, Qt::Orientation orientation, int role) const
 {
-    if (role != Qt::DisplayRole)
+	if (role != Qt::DisplayRole)
 		return QVariant();
 
 	if (orientation != Qt::Horizontal)
@@ -103,7 +103,7 @@ void BuddyStatusDatesModel::setBuddy(const Buddy &buddy)
 	MyBuddy = buddy;
 }
 
-void BuddyStatusDatesModel::setDates(const QList<DatesModelItem> &dates)
+void BuddyStatusDatesModel::setDates(const QVector<DatesModelItem> &dates)
 {
 	if (!Dates.isEmpty())
 	{

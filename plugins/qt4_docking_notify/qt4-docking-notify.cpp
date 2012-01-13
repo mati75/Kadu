@@ -1,13 +1,13 @@
 /*
  * %kadu copyright begin%
- * Copyright 2011 Piotr Dąbrowski (ultr@ultr.pl)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2009 Maciej Płaza (plaza.maciej@gmail.com)
- * Copyright 2009 Michał Podsiadlik (michal@kadu.net)
  * Copyright 2008 Tomasz Rostański (rozteck@interia.pl)
+ * Copyright 2011 Piotr Dąbrowski (ultr@ultr.pl)
+ * Copyright 2009 Michał Podsiadlik (michal@kadu.net)
+ * Copyright 2009 Maciej Płaza (plaza.maciej@gmail.com)
+ * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -31,9 +31,10 @@
 #include "notify/notification-manager.h"
 #include "notify/notification.h"
 
-#include "gui/widgets/chat-widget-manager.h"
-#include "gui/windows/message-dialog.h"
 #include "configuration/configuration-file.h"
+#include "gui/widgets/chat-widget-manager.h"
+#include "gui/widgets/chat-widget.h"
+#include "gui/windows/message-dialog.h"
 #include "parser/parser.h"
 #include "debug.h"
 
@@ -92,7 +93,7 @@ QString Qt4Notify::parseText(const QString &text, Notification *notification, co
 		if (chatNotification)
 		{
 			Contact contact = *chatNotification->chat().contacts().constBegin();
-			ret = Parser::parse(text, BuddyOrContact(contact), notification);
+			ret = Parser::parse(text, Talkable(contact), notification);
 		}
 		else
 			ret = Parser::parse(text, notification);
@@ -133,8 +134,9 @@ void Qt4Notify::notify(Notification *notification)
 
 void Qt4Notify::messageClicked()
 {
-	if (chat)
-		ChatWidgetManager::instance()->openPendingMessages(chat, true);
+	ChatWidget * const chatWidget = ChatWidgetManager::instance()->byChat(chat, true);
+	if (chatWidget)
+		chatWidget->activate();
 }
 
 NotifierConfigurationWidget *Qt4Notify::createConfigurationWidget(QWidget *parent)
@@ -145,14 +147,14 @@ NotifierConfigurationWidget *Qt4Notify::createConfigurationWidget(QWidget *paren
 
 void Qt4Notify::import_0_6_5_configuration()
 {
-    	config_file.addVariable("Qt4DockingNotify", "Event_StatusChanged/ToAway_timeout",
-		    config_file.readEntry("Qt4DockingNotify", "Event_StatusChanged/ToBusy_timeout"));
-	config_file.addVariable("Qt4DockingNotify", "Event_StatusChanged/ToAway_syntax",
-		    config_file.readEntry("Qt4DockingNotify", "Event_StatusChanged/ToBusy_timeout"));
 	config_file.addVariable("Qt4DockingNotify", "Event_StatusChanged/ToAway_timeout",
-		    config_file.readEntry("Qt4DockingNotify", "Event_StatusChanged/ToBusy_title"));
+		config_file.readEntry("Qt4DockingNotify", "Event_StatusChanged/ToBusy_timeout"));
+	config_file.addVariable("Qt4DockingNotify", "Event_StatusChanged/ToAway_syntax",
+		config_file.readEntry("Qt4DockingNotify", "Event_StatusChanged/ToBusy_timeout"));
+	config_file.addVariable("Qt4DockingNotify", "Event_StatusChanged/ToAway_timeout",
+		config_file.readEntry("Qt4DockingNotify", "Event_StatusChanged/ToBusy_title"));
 	config_file.addVariable("Qt4DockingNotify", "Event_StatusChanged/ToAway_icon",
-		    config_file.readEntry("Qt4DockingNotify", "Event_StatusChanged/ToBusy_icon"));
+		config_file.readEntry("Qt4DockingNotify", "Event_StatusChanged/ToBusy_icon"));
 }
 
 void Qt4Notify::createDefaultConfiguration()

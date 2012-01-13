@@ -1,7 +1,7 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -20,8 +20,8 @@
 
 #include "accounts/account-manager.h"
 
-#include "buddies/buddy.h"
 #include "buddies/buddy-manager.h"
+#include "buddies/buddy.h"
 #include "contacts/contact.h"
 
 #include "open-chat-with-contact-list-runner.h"

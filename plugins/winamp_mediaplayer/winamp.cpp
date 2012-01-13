@@ -7,11 +7,11 @@
  */
 
 #include <QtCore/QDir>
-#include <QtCore/QTextStream>
 #include <QtCore/QStringList>
+#include <QtCore/QTextStream>
 
-#include "debug.h"
 #include "plugins/mediaplayer/mediaplayer.h"
+#include "debug.h"
 #include "winamp.h"
 
 #include "wa_ipc.h"
@@ -70,7 +70,7 @@ QString WinampMediaPlayer::readWinampMemory(quint32 command, quint32 arg, bool u
 			return QString::fromUtf16((const ushort*)lpBuffer);
 		}
 		else{
-			kdebug("ret = %s\n", lpBuffer);		
+			kdebug("ret = %s\n", lpBuffer);
 			return QString::fromLocal8Bit(lpBuffer);
 		}
 	}
@@ -119,7 +119,7 @@ QString WinampMediaPlayer::getFileTagW(int position, QString tag)
 		ReadProcessMemory(hWinampProcess, pForeightRet, lpReturn, 256, NULL);
 
 		VirtualFreeEx(hWinampProcess, pForeightRet, 0, MEM_RELEASE);
-		VirtualFreeEx(hWinampProcess, pForeightTag, 0, MEM_RELEASE);		
+		VirtualFreeEx(hWinampProcess, pForeightTag, 0, MEM_RELEASE);
 		VirtualFreeEx(hWinampProcess, pFileInfo, 0, MEM_RELEASE);
 
 		CloseHandle(hWinampProcess);
@@ -171,7 +171,7 @@ QString WinampMediaPlayer::getFileTagA(int position, QString tag)
 		ReadProcessMemory(hWinampProcess, pForeightRet, lpReturn, 128, NULL);
 
 		VirtualFreeEx(hWinampProcess, pForeightRet, 0, MEM_RELEASE);
-		VirtualFreeEx(hWinampProcess, pForeightTag, 0, MEM_RELEASE);		
+		VirtualFreeEx(hWinampProcess, pForeightTag, 0, MEM_RELEASE);
 		VirtualFreeEx(hWinampProcess, pFileInfo, 0, MEM_RELEASE);
 
 		CloseHandle(hWinampProcess);
@@ -227,7 +227,7 @@ QStringList WinampMediaPlayer::getPlayListFiles()
 	if(hWinamp){
 		int items=getPlayListLength();
 		for(int i=0;i<items;i++)
-			ret.append(getFile(i));
+			ret.append(getFileImpl(i));
 	}
 	return ret;
 }
@@ -242,14 +242,12 @@ uint WinampMediaPlayer::getPlayListLength()
 	return 0;
 }
 
-QString WinampMediaPlayer::getTitle(int position)
+QString WinampMediaPlayer::getTitle()
 {
 	kdebugf();
 	HWND hWinamp=findWinamp();
 	if(hWinamp){
-		if(position<0){
-			position=SendMessage(hWinamp, WM_WA_IPC, 0, IPC_GETLISTPOS);
-		}
+		int position=SendMessage(hWinamp, WM_WA_IPC, 0, IPC_GETLISTPOS);
 
 		QString title = getFileTagW(position, "title");
 
@@ -262,14 +260,12 @@ QString WinampMediaPlayer::getTitle(int position)
 	return QString();
 }
 
-QString WinampMediaPlayer::getAlbum(int position)
+QString WinampMediaPlayer::getAlbum()
 {
 	kdebugf();
 	HWND hWinamp=findWinamp();
 	if(hWinamp){
-		if(position<0){
-			position=SendMessage(hWinamp, WM_WA_IPC, 0, IPC_GETLISTPOS);
-		}
+		int position=SendMessage(hWinamp, WM_WA_IPC, 0, IPC_GETLISTPOS);
 
 		QString album = getFileTagW(position, "album");
 
@@ -282,14 +278,12 @@ QString WinampMediaPlayer::getAlbum(int position)
 	return QString();
 }
 
-QString WinampMediaPlayer::getArtist(int position)
+QString WinampMediaPlayer::getArtist()
 {
 	kdebugf();
 	HWND hWinamp=findWinamp();
 	if(hWinamp){
-		if(position<0){
-			position=SendMessage(hWinamp, WM_WA_IPC, 0, IPC_GETLISTPOS);
-		}
+		int position=SendMessage(hWinamp, WM_WA_IPC, 0, IPC_GETLISTPOS);
 
 		QString artist = getFileTagW(position, "artist");
 
@@ -302,14 +296,13 @@ QString WinampMediaPlayer::getArtist(int position)
 	return "";
 }
 
-QString WinampMediaPlayer::getFile(int position)
+QString WinampMediaPlayer::getFileImpl(int position)
 {
 	kdebugf();
 	HWND hWinamp=findWinamp();
 	if(hWinamp){
-		if(position<0){
+		if (position < 0)
 			position=SendMessage(hWinamp, WM_WA_IPC, 0, IPC_GETLISTPOS);
-		}
 
 		QString file=readWinampMemory(IPC_GETPLAYLISTFILEW, position, true);
 		if(file.isEmpty()){
@@ -323,54 +316,19 @@ QString WinampMediaPlayer::getFile(int position)
 	return QString();
 }
 
-int WinampMediaPlayer::getLength(int position)
+QString WinampMediaPlayer::getFile()
+{
+	return getFileImpl(-1);
+}
+
+int WinampMediaPlayer::getLength()
 {
 	kdebugf();
 	HWND hWinamp=findWinamp();
 
 	if(hWinamp){
-		if(position<0)
-			return SendMessage(hWinamp, WM_WA_IPC, 2, IPC_GETOUTPUTTIME);
-		else{
-			DWORD processId;
-			GetWindowThreadProcessId(hWinamp, &processId);
-
-			HANDLE hWinampProcess=OpenProcess(PROCESS_VM_OPERATION | PROCESS_VM_READ | PROCESS_VM_WRITE, 0, processId);
-			if(!SUCCEEDED(hWinampProcess)){
-				kdebugm(KDEBUG_WARNING, "unable to open winamp process\n");
-				return 0;
-			}
-
-			basicFileInfoStructW* pFileInfo = (basicFileInfoStructW*)VirtualAllocEx(hWinampProcess, NULL, sizeof(basicFileInfoStructW), MEM_COMMIT, PAGE_READWRITE);
-			if(!pFileInfo){
-				kdebugm(KDEBUG_WARNING, "unable to allocate foreight memory\n");
-				CloseHandle(hWinampProcess);
-				return 0;
-			}
-
-			basicFileInfoStructW fis;
-			fis.filename=(const wchar_t*)SendMessage(hWinamp, WM_WA_IPC, position, IPC_GETPLAYLISTFILEW);
-			fis.quickCheck=0;
-
-			WriteProcessMemory(hWinampProcess, pFileInfo, &fis, sizeof(fis), NULL);
-
-			if(SendMessage(hWinamp, WM_WA_IPC, (WPARAM)pFileInfo, IPC_GET_BASIC_FILE_INFOW)==1){
-				kdebug("unicode not supported\n");
-				fis.filename=(const wchar_t*)SendMessage(hWinamp, WM_WA_IPC, position, IPC_GETPLAYLISTFILE);
-				WriteProcessMemory(hWinampProcess, pFileInfo, &fis, sizeof(fis), NULL);
-				SendMessage(hWinamp, WM_WA_IPC, (WPARAM)pFileInfo, IPC_GET_BASIC_FILE_INFO);
-			}
-
-			ReadProcessMemory(hWinampProcess, pFileInfo, &fis, sizeof(fis), NULL);
-
-			VirtualFreeEx(hWinampProcess, pFileInfo, 0, MEM_RELEASE);
-
-			CloseHandle(hWinampProcess);
-
-			return fis.length * 1000;
-		}
+		return SendMessage(hWinamp, WM_WA_IPC, 2, IPC_GETOUTPUTTIME);
 	}
-
 
 	return 0;
 }
@@ -399,7 +357,7 @@ bool WinampMediaPlayer::isPlaying()
 bool WinampMediaPlayer::isActive()
 {
 	kdebugf();
-	
+
 	return findWinamp();
 }
 

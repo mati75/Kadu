@@ -1,9 +1,10 @@
 /*
  * %kadu copyright begin%
+ * Copyright 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2010 Piotr Dąbrowski (ultr@ultr.pl)
- * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2009 Michał Podsiadlik (michal@kadu.net)
+ * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -26,11 +27,13 @@
 #include <QtCore/QList>
 #include <QtCore/QObject>
 
+#include "status/status-type.h"
+
 class QAction;
 class QActionGroup;
 
 class StatusContainer;
-class StatusType;
+class StatusTypeData;
 
 class StatusActions : public QObject
 {
@@ -42,12 +45,12 @@ class StatusActions : public QObject
 	QActionGroup *ChangeStatusActionGroup;
 	QAction *ChangeDescription;
 	QList<QAction *> Actions;
-	QList<StatusType *> MyStatusTypes;
+	QList<StatusType> MyStatusTypes;
 
 	void createActions();
 	void createBasicActions();
 	QAction * createSeparator();
-	QAction * createStatusAction(StatusType *statusType);
+	QAction * createStatusAction(const StatusTypeData & typeData);
 
 	void cleanUpActions();
 

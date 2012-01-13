@@ -1,7 +1,8 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -45,6 +46,7 @@ class KADUAPI GroupShared : public QObject, public Shared
 
 protected:
 	virtual void load();
+	virtual void store();
 	virtual void emitUpdated();
 
 public:
@@ -57,7 +59,7 @@ public:
 	virtual StorableObject * storageParent();
 	virtual QString storageNodeName();
 
-	virtual void store();
+	virtual void aboutToBeRemoved();
 
 	KaduShared_PropertyRead(const QString &, name, Name)
 	void setName(const QString &name);
@@ -73,6 +75,7 @@ public:
 signals:
 	void updated();
 	void nameChanged();
+	void groupAboutToBeRemoved();
 
 };
 

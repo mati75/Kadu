@@ -1,9 +1,9 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2009, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2009 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -20,13 +20,13 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "accounts/account.h"
 #include "accounts/account-manager.h"
+#include "accounts/account.h"
+#include "icons/icons-manager.h"
 #include "icons/kadu-icon.h"
 #include "model/roles.h"
 #include "protocols/protocol-factory.h"
 #include "protocols/protocols-manager.h"
-#include "icons/icons-manager.h"
 
 #include "protocols-model.h"
 
@@ -71,15 +71,6 @@ QVariant ProtocolsModel::data(const QModelIndex &index, int role) const
 	}
 }
 
-QVariant ProtocolsModel::headerData(int section, Qt::Orientation orientation, int role) const
-{
-	Q_UNUSED(section)
-	Q_UNUSED(orientation)
-	Q_UNUSED(role)
-
-	return QVariant();
-}
-
 ProtocolFactory * ProtocolsModel::protocolFactory(const QModelIndex &index) const
 {
 	if (!index.isValid())
@@ -96,9 +87,15 @@ int ProtocolsModel::protocolFactoryIndex(ProtocolFactory *protocolFactory) const
 	return ProtocolsManager::instance()->indexOf(protocolFactory);
 }
 
-QModelIndex ProtocolsModel::indexForValue(const QVariant &value) const
+QModelIndexList ProtocolsModel::indexListForValue(const QVariant &value) const
 {
-	return index(protocolFactoryIndex(value.value<ProtocolFactory *>()), 0);
+	QModelIndexList result;
+
+	int i = protocolFactoryIndex(value.value<ProtocolFactory *>());
+	if (-1 != i)
+		result.append(index(i, 0));
+
+	return result;
 }
 
 void ProtocolsModel::protocolFactoryAboutToBeRegistered(ProtocolFactory *protocolFactory)

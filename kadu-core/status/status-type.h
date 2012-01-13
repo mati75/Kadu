@@ -1,8 +1,10 @@
 /*
  * %kadu copyright begin%
+ * Copyright 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2008, 2009 Michał Podsiadlik (michal@kadu.net)
+ * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2009 Michał Podsiadlik (michal@kadu.net)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -19,45 +21,65 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef STATUS_TYPE
-#define STATUS_TYPE
+#ifndef STATUS_TYPE_H
+#define STATUS_TYPE_H
 
-#include <QtCore/QString>
 #include <QtCore/QVariant>
 
-#include "exports.h"
+/**
+ * @addtogroup Status
+ * @{
+ */
 
-class StatusGroup;
-
-class KADUAPI StatusType
+/**
+ * @enum StatusType
+ * @author Rafał 'Vogel' Malinowski
+ * @short Status type enum.
+ * @see StatusTypeGroup
+ *
+ * This enum describes possible types of statuses.
+ */
+enum StatusType
 {
-	QString Name;
-	QString DisplayName;
-	QString IconName;
-
-	StatusGroup *MyStatusGroup;
-
-	int SortIndex;
-
-public:
-	static bool lessThan(const StatusType *left, const StatusType *right);
-
-	StatusType(const QString &name, const QString &displayName, const QString &iconName, StatusGroup *statusType, int sortIndex);
-
-	const QString & name() const { return Name; }
-	const QString & displayName() const { return DisplayName; }
-	const QString & iconName() const { return IconName; }
-
-	StatusGroup *statusGroup() { return MyStatusGroup; }
-
-	int sortIndex() { return SortIndex; }
-
-	bool operator < (const StatusType &compare) const;
-	bool operator == (const StatusType &compare) const;
-	bool operator != (const StatusType &compare) const;
-
+	/**
+	 * Empty (invalid) status type.
+	 */
+	StatusTypeNone = -1,
+	/**
+	 * Free for chat status type.
+	 */
+	StatusTypeFreeForChat = 0,
+	/**
+	 * Online status type.
+	 */
+	StatusTypeOnline = 10,
+	/**
+	 * Away status type.
+	 */
+	StatusTypeAway = 20,
+	/**
+	 * Not available status type.
+	 */
+	StatusTypeNotAvailable = 30,
+	/**
+	 * Do not disturb status type.
+	 */
+	StatusTypeDoNotDisturb = 40,
+	/**
+	 * Invisible status type.
+	 */
+	StatusTypeInvisible = 50,
+	/**
+	 * Offline status type.
+	 */
+	StatusTypeOffline = 60
 };
 
-Q_DECLARE_METATYPE(StatusType *)
+/**
+ * @addtogroup Status
+ * @}
+ */
 
-#endif // STATUS_TYPE
+Q_DECLARE_METATYPE(StatusType)
+
+#endif // STATUS_TYPE_H

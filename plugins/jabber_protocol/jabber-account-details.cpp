@@ -1,9 +1,10 @@
 /*
  * %kadu copyright begin%
- * Copyright 2009, 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2010 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2009, 2009, 2010 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2009, 2009 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -34,7 +35,7 @@
 JabberAccountDetails::JabberAccountDetails(AccountShared *data) :
 		AccountDetails(data), AutoResource(false), UseCustomHostPort(false), CustomPort(5222),
 		EncryptionMode(Encryption_Auto), PlainAuthMode(AllowPlainOverTLS), LegacySSLProbe(true),
-		SendTypingNotification(true), SendGoneNotification(true)
+		SendTypingNotification(true), SendGoneNotification(true), PublishSystemInfo(true)
 {
 	OpenChatRunner = new JabberOpenChatWithRunner(data);
 	OpenChatWithRunnerManager::instance()->registerRunner(OpenChatRunner);
@@ -79,6 +80,7 @@ void JabberAccountDetails::load()
 
 	SendTypingNotification = loadValue<bool>("SendTypingNotification", true);
 	SendGoneNotification = loadValue<bool>("SendGoneNotification", true);
+	PublishSystemInfo = loadValue<bool>("PublishSystemInfo", true);
 }
 
 void JabberAccountDetails::store()
@@ -103,4 +105,5 @@ void JabberAccountDetails::store()
 
 	storeValue("SendTypingNotification", SendTypingNotification);
 	storeValue("SendGoneNotification", SendGoneNotification);
+	storeValue("PublishSystemInfo", PublishSystemInfo);
 }

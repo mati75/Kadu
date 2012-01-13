@@ -1,8 +1,8 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2009, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -23,29 +23,31 @@
 #define CONTACT_SHARED_H
 
 #include <QtCore/QObject>
-#include <QtCore/QSharedData>
-#include <QtCore/QUuid>
+#include <QtNetwork/QHostAddress>
 
-#include "accounts/account.h"
-#include "avatars/avatar.h"
-#include "buddies/buddy.h"
 #include "contacts/contact-details.h"
-#include "protocols/protocols-aware-object.h"
 #include "status/status.h"
-#include "storage/details-holder.h"
 #include "storage/shared.h"
 
-class KADUAPI ContactShared : public QObject, public Shared, public DetailsHolder<ContactDetails>, ProtocolsAwareObject
+class Account;
+class Avatar;
+class Buddy;
+class ProtocolFactory;
+
+class KADUAPI ContactShared : public QObject, public Shared
 {
 	Q_OBJECT
 	Q_DISABLE_COPY(ContactShared)
 
-	Account ContactAccount;
-	Avatar ContactAvatar;
-	Buddy OwnerBuddy;
+	ContactDetails *Details;
+
+	Account *ContactAccount;
+	Avatar *ContactAvatar;
+	Buddy *OwnerBuddy;
 	QString Id;
 	int Priority;
 	short int MaximumImageSize;
+	quint16 UnreadMessagesCount;
 
 	Status CurrentStatus;
 	bool Blocking;
@@ -57,23 +59,26 @@ class KADUAPI ContactShared : public QObject, public Shared, public DetailsHolde
 	unsigned int Port;
 	QString DnsName;
 
-	void detach(bool reattaching, bool emitSignals);
-	void attach(bool reattaching, bool emitSignals);
+	void deleteDetails();
 
+	void detach(bool resetBuddy, bool reattaching, bool emitSignals);
+	void attach(const Buddy &buddy, bool reattaching, bool emitSignals);
+
+	void doSetContactAvatar(const Avatar &contactAvatar);
 	void doSetOwnerBuddy(const Buddy &buddy, bool emitSignals);
+
+private slots:
+	void protocolFactoryRegistered(ProtocolFactory *protocolFactory);
+	void protocolFactoryUnregistered(ProtocolFactory *protocolFactory);
+
+	void avatarUpdated();
 
 protected:
 	virtual void load();
+	virtual void store();
+	virtual bool shouldStore();
 
 	virtual void emitUpdated();
-
-	virtual void protocolRegistered(ProtocolFactory *protocolFactory);
-	virtual void protocolUnregistered(ProtocolFactory *protocolFactory);
-
-	virtual void detailsAdded();
-	virtual void afterDetailsAdded();
-	virtual void detailsAboutToBeRemoved();
-	virtual void detailsRemoved();
 
 public:
 	static ContactShared * loadStubFromStorage(const QSharedPointer<StoragePoint> &contactStoragePoint);
@@ -85,22 +90,23 @@ public:
 	virtual StorableObject * storageParent();
 	virtual QString storageNodeName();
 
-	virtual void store();
-	virtual bool shouldStore();
 	virtual void aboutToBeRemoved();
 
-	KaduShared_PropertyRead(const Account &, contactAccount, ContactAccount)
-	void setContactAccount(const Account &account);
-
-	KaduShared_Property(const Avatar &, contactAvatar, ContactAvatar)
-	KaduShared_PropertyRead(const Buddy &, ownerBuddy, OwnerBuddy)
-	void setOwnerBuddy(const Buddy &buddy);
+	ContactDetails * details() const { return Details; }
 
 	KaduShared_PropertyRead(const QString &, id, Id)
 	void setId(const QString &id);
 
 	KaduShared_PropertyBoolRead(Dirty)
 	void setDirty(bool dirty);
+
+	KaduShared_PropertyDeclCRW(Account, contactAccount, ContactAccount)
+
+	KaduShared_PropertyReadDecl(Avatar, contactAvatar)
+	void setContactAvatar(const Avatar &contactAvatar);
+
+	KaduShared_PropertyDeclCRW(Buddy, ownerBuddy, OwnerBuddy)
+	void removeOwnerBuddy();
 
 	KaduShared_Property(int, priority, Priority)
 	KaduShared_Property(const Status &, currentStatus, CurrentStatus)
@@ -110,10 +116,15 @@ public:
 	KaduShared_Property(unsigned int, port, Port)
 	KaduShared_Property(const QString &, dnsName, DnsName)
 	KaduShared_Property(short int, maximumImageSize, MaximumImageSize)
+	KaduShared_Property(quint16, unreadMessagesCount, UnreadMessagesCount)
+
+	bool isAnonymous();
+	QString display(bool useBuddyData);
+	Avatar avatar(bool useBuddyData);
 
 signals:
-	void aboutToBeDetached(bool reattaching);
-	void detached(const Buddy &previousBuddy);
+	void aboutToBeDetached();
+	void detached(const Buddy &previousBuddy, bool reattaching);
 	void aboutToBeAttached(const Buddy &nearFutureBuddy);
 	void attached(bool reattached);
 
@@ -123,4 +134,8 @@ signals:
 
 };
 
+// for MOC
+#include "buddies/buddy.h"
+
 #endif // CONTACT_SHARED_H
+

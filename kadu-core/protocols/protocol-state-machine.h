@@ -1,6 +1,8 @@
 /*
  * %kadu copyright begin%
- * Copyright 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2009 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -102,7 +104,7 @@ class Protocol;
  *       <li>protocol connection closed -> logged out, online</li>
  *     </ul>
  *   </dd>
- *   <dt>loggged in in</dt>
+ *   <dt>Logged in</dt>
  *   <dd>
  *     This state is used when protocol is logged in. This state can be only entered after Logging in state
  *     and is used by protocol objects to set up services, rosters and other data, see Protocol::afterLoggedIn().

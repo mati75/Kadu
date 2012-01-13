@@ -1,13 +1,13 @@
 /*
  * %kadu copyright begin%
- * Copyright 2011 Piotr Dąbrowski (ultr@ultr.pl)
- * Copyright 2007, 2008 Dawid Stawiarski (neeo@kadu.net)
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2008, 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2010 Michał Obrembski (byku@byku.com.pl)
- * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2008, 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2008 Tomasz Rostański (rozteck@interia.pl)
+ * Copyright 2011 Piotr Dąbrowski (ultr@ultr.pl)
+ * Copyright 2010 Michał Obrembski (byku@byku.com.pl)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2007, 2008 Dawid Stawiarski (neeo@kadu.net)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -28,16 +28,16 @@
 #include <QtGui/QScrollBar>
 #include <QtWebKit/QWebFrame>
 
-#include "accounts/account.h"
 #include "accounts/account-manager.h"
-#include "configuration/chat-configuration-holder.h"
-#include "chat/style-engines/chat-style-engine.h"
-#include "chat/message/message-render-info.h"
-#include "chat/message/message-shared.h"
-#include "chat/chat.h"
+#include "accounts/account.h"
 #include "chat/chat-styles-manager.h"
+#include "chat/chat.h"
 #include "chat/html-messages-renderer.h"
+#include "chat/style-engines/chat-style-engine.h"
+#include "configuration/chat-configuration-holder.h"
+#include "contacts/contact-set.h"
 #include "gui/widgets/chat-view-network-access-manager.h"
+#include "message/message-render-info.h"
 #include "protocols/services/chat-image-service.h"
 
 #include "debug.h"
@@ -112,6 +112,14 @@ void ChatMessagesView::connectChat()
 	if (CurrentChat.isNull() || CurrentChat.chatAccount().isNull() || !CurrentChat.chatAccount().protocolHandler())
 		return;
 
+	foreach (const Contact &contact, CurrentChat.contacts())
+	{
+		if (contact.ownerBuddy())
+			connect(contact.ownerBuddy(), SIGNAL(displayUpdated()), this, SLOT(repaintMessages()));
+		connect(contact, SIGNAL(attached(bool)), this, SLOT(repaintMessages()));
+		connect(contact, SIGNAL(detached(Buddy,bool)), this, SLOT(repaintMessages()));
+	}
+
 	ChatImageService *chatImageService = CurrentChat.chatAccount().protocolHandler()->chatImageService();
 	if (chatImageService)
 		connect(chatImageService, SIGNAL(imageReceived(const QString &, const QString &)),
@@ -122,6 +130,14 @@ void ChatMessagesView::disconnectChat()
 {
 	if (CurrentChat.isNull() || CurrentChat.chatAccount().isNull() || !CurrentChat.chatAccount().protocolHandler())
 		return;
+
+	foreach (const Contact &contact, CurrentChat.contacts())
+	{
+		if (contact.ownerBuddy())
+			disconnect(contact.ownerBuddy(), SIGNAL(displayUpdated()), this, SLOT(repaintMessages()));
+		disconnect(contact, SIGNAL(attached(bool)), this, SLOT(repaintMessages()));
+		disconnect(contact, SIGNAL(detached(Buddy,bool)), this, SLOT(repaintMessages()));
+	}
 
 	ChatImageService *chatImageService = CurrentChat.chatAccount().protocolHandler()->chatImageService();
 	if (chatImageService)
@@ -167,7 +183,87 @@ void ChatMessagesView::updateBackgroundsAndColors()
 
 void ChatMessagesView::repaintMessages()
 {
+	setUpdatesEnabled(false);
+
+	int scrollBarPosition = page()->mainFrame()->scrollBarValue(Qt::Vertical);
 	Renderer->refresh();
+	page()->mainFrame()->setScrollBarValue(Qt::Vertical, scrollBarPosition);
+
+	setUpdatesEnabled(true);
+}
+
+bool ChatMessagesView::sameMessage(const Message &left, const Message &right)
+{
+	if (left.isNull() && right.isNull())
+		return true;
+
+	if (left.isNull() || right.isNull()) // one is null, second one is not
+		return false;
+
+	if (left.type() != right.type())
+		return false;
+
+	// In our SQL history we store datetime with accuracy to one second,
+	// while for received XMPP messages we have a millisecond accuracy.
+	// So to have proper results, we need to truncate those additional milliseconds.
+	if (left.sendDate().toTime_t() != right.sendDate().toTime_t())
+		return false;
+
+	if (left.messageChat() != right.messageChat())
+		return false;
+
+	if (left.messageSender() != right.messageSender())
+		return false;
+
+	if (left.content() != right.content())
+		return false;
+
+	return true;
+}
+
+Message ChatMessagesView::firstNonSystemMessage(const QList<MessageRenderInfo *> &messages)
+{
+	foreach (MessageRenderInfo *message, messages)
+		if (message->message().type() != MessageTypeSystem)
+			return message->message();
+
+	return Message::null;
+}
+
+void ChatMessagesView::prependMessages(const QVector<Message> &messages)
+{
+	if (messages.empty())
+		return;
+
+	// case #1: all prepended messages are already rendered
+	const Message &firstMessage = messages.at(0);
+	QList<MessageRenderInfo *> copyOfRendererMessages = Renderer->messages();
+	foreach (const MessageRenderInfo *renderInfo, copyOfRendererMessages)
+		if (sameMessage(renderInfo->message(), firstMessage))
+			return;
+
+	// case #2: some prepended messages are already rendered
+	const Message &firstRenderedMessage = firstNonSystemMessage(copyOfRendererMessages);
+	QList<MessageRenderInfo *> newMessages;
+	foreach (const Message &message, messages)
+	{
+		if (sameMessage(firstRenderedMessage, message))
+			break; // we already have this and following messages in our window
+
+		newMessages.append(new MessageRenderInfo(message));
+	}
+
+	// we need to make new instances of MessageRenderInfo here
+	// clearMessages will destroy existing ones
+	foreach (const MessageRenderInfo *renderInfo, copyOfRendererMessages)
+		newMessages.append(new MessageRenderInfo(renderInfo->message()));
+
+	setUpdatesEnabled(false);
+
+	Renderer->clearMessages();
+	Renderer->appendMessages(newMessages);
+
+	setUpdatesEnabled(true);
 }
 
 void ChatMessagesView::appendMessage(const Message &message)
@@ -180,14 +276,16 @@ void ChatMessagesView::appendMessage(MessageRenderInfo *message)
 {
 	kdebugf();
 
-//	rememberScrollBarPosition();
+	setUpdatesEnabled(false);
 
 	Renderer->appendMessage(message);
+
+	setUpdatesEnabled(true);
 
 	emit messagesUpdated();
 }
 
-void ChatMessagesView::appendMessages(const QList<Message> &messages)
+void ChatMessagesView::appendMessages(const QVector<Message> &messages)
 {
 	kdebugf2();
 
@@ -207,15 +305,23 @@ void ChatMessagesView::appendMessages(const QList<MessageRenderInfo *> &messages
 {
 	kdebugf2();
 
-//	rememberScrollBarPosition();
+	setUpdatesEnabled(false);
 
 	Renderer->appendMessages(messages);
+
+	setUpdatesEnabled(true);
+
 	emit messagesUpdated();
 }
 
 void ChatMessagesView::clearMessages()
 {
+	setUpdatesEnabled(false);
+
 	Renderer->clearMessages();
+
+	setUpdatesEnabled(true);
+
 	emit messagesUpdated();
 	AtBottom = true;
 }

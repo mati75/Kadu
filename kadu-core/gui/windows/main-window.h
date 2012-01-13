@@ -1,10 +1,13 @@
 /*
  * %kadu copyright begin%
- * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2008, 2009 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2010 Przemysław Rudy (prudy1@o2.pl)
- * Copyright 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2008, 2009, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2010, 2010 Przemysław Rudy (prudy1@o2.pl)
+ * Copyright 2011 Piotr Dąbrowski (ultr@ultr.pl)
  * Copyright 2008 Michał Podsiadlik (michal@kadu.net)
+ * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
+ * Copyright 2007, 2008, 2009, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -27,7 +30,8 @@
 #include <QtGui/QMainWindow>
 #include <QtXml/QDomElement>
 
-#include "gui/actions/action-data-source.h"
+#include "gui/actions/action-context-provider.h"
+#include "gui/actions/action-context.h"
 #include "gui/actions/action-description.h"
 #include "os/generic/desktop-aware-object.h"
 
@@ -35,31 +39,33 @@
 
 class QContextMenuEvent;
 
-class BuddiesListView;
 class Buddy;
 class BuddySet;
 class Chat;
 class Contact;
 class ContactSet;
 class StatusContainer;
+class TalkableProxyModel;
 class ToolBar;
 
-class KADUAPI MainWindow : public QMainWindow, public ActionDataSource, DesktopAwareObject
+class KADUAPI MainWindow : public QMainWindow, public ActionContextProvider, DesktopAwareObject
 {
 	Q_OBJECT
 
-	friend class Actions;
-
 	QString WindowName;
 	bool TransparencyEnabled;
+	bool BlurEnabled;
+
+	ActionContext *Context;
 
 	ToolBar * newToolbar(QWidget *parent);
 
 	void loadToolBarsFromConfigNode(QDomElement dockareaConfig, Qt::ToolBarArea area);
 
 private slots:
+	void actionLoadedOrUnloaded(ActionDescription *action);
 	void toolbarUpdated();
-    void toolbarRemoved(ToolBar *toolBar);
+	void toolbarRemoved(ToolBar *toolBar);
 
 protected:
 	void loadToolBarsFromConfig();
@@ -79,7 +85,9 @@ protected:
 	static QDomElement findExistingToolbar(const QString &prefix);
 
 	void setTransparency(bool enable);
-
+	void setBlur(bool enable);
+	virtual void showEvent (QShowEvent * event);
+	
 	virtual void contextMenuEvent(QContextMenuEvent *event);
 
 protected slots:
@@ -88,7 +96,7 @@ protected slots:
 public:
 	static MainWindow * findMainWindow(QWidget *widget);
 
-	MainWindow(const QString &windowName, QWidget *parent);
+	MainWindow(ActionContext *context, const QString &windowName, QWidget *parent);
 	virtual ~MainWindow();
 
 	const QString & windowName() { return WindowName; }
@@ -96,13 +104,15 @@ public:
 	virtual QMenu * createPopupMenu() { return 0; }
 
 	virtual bool supportsActionType(ActionDescription::ActionType type) = 0;
-	virtual BuddiesListView * buddiesListView() = 0;
+	virtual TalkableProxyModel * talkableProxyModel() = 0;
 
 	Contact contact();
 	Buddy buddy();
 
-	void actionAdded(Action *action);
 	bool hasAction(const QString &actionName, ToolBar *exclude = 0);
+
+	// ActionContextProvider implementation
+	ActionContext * actionContext();
 
 public slots:
 	void addTopToolbar();

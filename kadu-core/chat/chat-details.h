@@ -1,10 +1,12 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2009 Michał Podsiadlik (michal@kadu.net)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
+ * Copyright 2007, 2008, 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -42,13 +44,15 @@ class ContactSet;
  * @author Rafal 'Vogel' Malinowski
  * @short Chat data specyfic to given chat type.
  *
- * Objects derivered from this class contains chat data that is specyfic to
+ * Objects derivered from this class contains chat data that is specific to
  * given chat type. This class creates common interface for this custom data
  * - it can return list of contacts in that chat.
  */
 class ChatDetails : public QObject, public Details<ChatShared>
 {
 	Q_OBJECT
+
+	friend class ChatShared;
 
 public:
 	/**

@@ -1,10 +1,10 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009, 2010 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2009, 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -24,21 +24,19 @@
 #include <QtXmlPatterns/QXmlQuery>
 #include <QtXmlPatterns/QXmlResultItems>
 
-#include "accounts/account.h"
 #include "accounts/account-manager.h"
-#include "accounts/account-shared.h"
+#include "accounts/account.h"
 #include "buddies/buddy-manager.h"
 #include "buddies/buddy-set.h"
-#include "buddies/buddy-shared.h"
 #include "buddies/buddy.h"
 #include "configuration/configuration-file.h"
 #include "configuration/xml-configuration-file.h"
 #include "contacts/contact-manager.h"
-#include "contacts/contact-shared.h"
 #include "core/core.h"
 #include "identities/identity-manager.h"
-#include "protocols/protocols-manager.h"
 #include "misc/misc.h"
+#include "network/proxy/network-proxy-manager.h"
+#include "protocols/protocols-manager.h"
 
 #include "helpers/gadu-imported-contact-xml-receiver.h"
 #include "gadu-account-details.h"
@@ -109,15 +107,18 @@ Account GaduImporter::import065Account(QXmlQuery &xmlQuery)
 	accountDetails->setReceiveImagesDuringInvisibility(readEntry(xmlQuery, "Chat", "ReceiveImagesDuringInvisibility").toBool());
 	accountDetails->setMaximumImageRequests(readEntry(xmlQuery, "Chat", "MaxImageRequests").toUInt());
 
-	AccountProxySettings proxySettings;
-	proxySettings.setEnabled(readEntry(xmlQuery, "Network", "UseProxy").toBool());
-	proxySettings.setAddress(readEntry(xmlQuery, "Network", "ProxyHost").toString());
-	proxySettings.setPort(readEntry(xmlQuery, "Network", "ProxyPort").toUInt());
-	proxySettings.setUser(readEntry(xmlQuery, "Network", "ProxyUser").toString());
-	proxySettings.setPassword(readEntry(xmlQuery, "Network", "ProxyPassword").toString());
-	proxySettings.setRequiresAuthentication(!proxySettings.user().isEmpty());
+	QString address = readEntry(xmlQuery, "Network", "ProxyHost").toString();
+	if (!address.isEmpty())
+	{
+		int port = readEntry(xmlQuery, "Network", "ProxyPort").toUInt();
+		QString user = readEntry(xmlQuery, "Network", "ProxyUser").toString();
+		QString password = readEntry(xmlQuery, "Network", "ProxyPassword").toString();
 
-	result.setProxySettings(proxySettings);
+		NetworkProxy networkProxy = NetworkProxyManager::instance()->byConfiguration(
+		            address, port, user, password, ActionCreateAndAdd);
+		if (readEntry(xmlQuery, "Network", "UseProxy").toBool())
+			result.setProxy(networkProxy);
+	}
 
 	return result;
 }
@@ -146,13 +147,16 @@ QList<Buddy> GaduImporter::import065Buddies(Account account, QXmlQuery &xmlQuery
 
 void GaduImporter::importAccounts()
 {
-	if (0 == config_file.readNumEntry("General", "UIN"))
+	quint32 importUin = config_file.readUnsignedNumEntry("General", "UIN");
+	if (0 == importUin)
 		return;
 
 	if (alreadyImported())
 		return;
 
-	if (AccountManager::instance()->byId("gadu", config_file.readEntry("General", "UIN")))
+	QString importUinString = QString::number(importUin);
+
+	if (AccountManager::instance()->byId("gadu", importUinString))
 		return;
 
 	Account defaultGaduGadu = Account::create();
@@ -164,8 +168,8 @@ void GaduImporter::importAccounts()
 	if (!IdentityManager::instance()->items().isEmpty())
 		defaultGaduGadu.setAccountIdentity(IdentityManager::instance()->items().at(0));
 
-	defaultGaduGadu.setId(config_file.readEntry("General", "UIN"));
-	defaultGaduGadu.setPassword(pwHash(config_file.readEntry("General", "Password")).toUtf8().constData());
+	defaultGaduGadu.setId(importUinString);
+	defaultGaduGadu.setPassword(pwHash(config_file.readEntry("General", "Password")));
 	defaultGaduGadu.setRememberPassword(true);
 	defaultGaduGadu.setHasPassword(!defaultGaduGadu.password().isEmpty());
 	defaultGaduGadu.setPrivateStatus(config_file.readBoolEntry("General", "PrivateStatus"));
@@ -175,22 +179,23 @@ void GaduImporter::importAccounts()
 	accountDetails->setReceiveImagesDuringInvisibility(config_file.readBoolEntry("Chat", "ReceiveImagesDuringInvisibility"));
 	accountDetails->setMaximumImageRequests(config_file.readNumEntry("Chat", "MaxImageRequests"));
 
-	AccountProxySettings proxySettings;
-	proxySettings.setEnabled(config_file.readBoolEntry("Network", "UseProxy"));
-	proxySettings.setAddress(config_file.readEntry("Network", "ProxyHost"));
-	proxySettings.setPort(config_file.readNumEntry("Network", "ProxyPort"));
-	proxySettings.setUser(config_file.readEntry("Network", "ProxyUser"));
-	proxySettings.setPassword(config_file.readEntry("Network", "ProxyPassword"));
-	proxySettings.setRequiresAuthentication(!proxySettings.user().isEmpty());
+	QString address = config_file.readEntry("Network", "ProxyHost");
+	if (!address.isEmpty())
+	{
+		int port = config_file.readNumEntry("Network", "ProxyPort");
+		QString user = config_file.readEntry("Network", "ProxyUser");
+		QString password = config_file.readEntry("Network", "ProxyPassword");
 
-	defaultGaduGadu.setProxySettings(proxySettings);
+		NetworkProxy networkProxy = NetworkProxyManager::instance()->byConfiguration(
+		            address, port, user, password, ActionCreateAndAdd);
+		if (config_file.readBoolEntry("Network", "UseProxy"))
+			defaultGaduGadu.setProxy(networkProxy);
+	}
 
 	accountDetails->import_0_6_5_LastStatus();
 
 	AccountManager::instance()->addItem(defaultGaduGadu);
 	defaultGaduGadu.accountContact().setOwnerBuddy(Core::instance()->myself());
-
-	config_file.writeEntry("General", "SimpleMode", true);
 
 	markImported();
 }
@@ -233,10 +238,10 @@ void GaduImporter::importIgnored()
 	if (ignored.isNull())
 		return;
 
-	QList<QDomElement> ignoredGroups = xml_config_file->getNodes(ignored, "IgnoredGroup");
+	QVector<QDomElement> ignoredGroups = xml_config_file->getNodes(ignored, "IgnoredGroup");
 	foreach (const QDomElement &ignoredGroup, ignoredGroups)
 	{
-		QList<QDomElement> ignoredContacts = xml_config_file->getNodes(ignoredGroup, "IgnoredContact");
+		QVector<QDomElement> ignoredContacts = xml_config_file->getNodes(ignoredGroup, "IgnoredContact");
 		if (1 == ignoredContacts.count())
 		{
 			QDomElement ignoredContact = ignoredContacts.at(0);
@@ -253,15 +258,12 @@ void GaduImporter::buddyAdded(Buddy &buddy)
 	if (buddy.customData("uin").isEmpty())
 		return;
 
-	QList<Account> allGaduAccounts = AccountManager::instance()->byProtocolName("gadu");
-	if (0 == allGaduAccounts.count())
+	QVector<Account> allGaduAccounts = AccountManager::instance()->byProtocolName("gadu");
+	if (allGaduAccounts.isEmpty())
 		return;
 
 	// take 1st one
 	Account account = allGaduAccounts.at(0);
 
-	Contact contact = importGaduContact(account, buddy);
-
-	if (contact)
-		ContactManager::instance()->addItem(contact);
+	importGaduContact(account, buddy);
 }

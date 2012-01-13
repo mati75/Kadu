@@ -1,10 +1,10 @@
 /*
  * %kadu copyright begin%
- * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2008 Michał Podsiadlik (michal@kadu.net)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -22,7 +22,6 @@
  */
 
 #include "accounts/account.h"
-#include "accounts/account-shared.h"
 #include "accounts/accounts-aware-object.h"
 #include "buddies/buddy-manager.h"
 #include "configuration/configuration-file.h"
@@ -34,8 +33,8 @@
 #include "identities/identity.h"
 #include "notify/notification-manager.h"
 #include "protocols/connection-error-notification.h"
-#include "protocols/protocol.h"
 #include "protocols/protocol-factory.h"
+#include "protocols/protocol.h"
 #include "protocols/protocols-manager.h"
 #include "debug.h"
 
@@ -46,48 +45,29 @@ AccountManager * AccountManager::Instance = 0;
 AccountManager * AccountManager::instance()
 {
 	if (0 == Instance)
+	{
 		Instance = new AccountManager();
+		Instance->init();
+	}
 
 	return Instance;
 }
 
-Account AccountManager::bestAccount(QList<Account> accounts)
-{
-	Account result;
-	if (accounts.isEmpty())
-		return result;
-
-	foreach (const Account &account, accounts)
-		if (account.details() && account.data())
-		{
-			// TODO: hack
-			bool newConnected = account.data()->protocolHandler() && account.data()->protocolHandler()->isConnected();
-			bool oldConnected = false;
-			if (result)
-				oldConnected = result.data()->protocolHandler() && result.data()->protocolHandler()->isConnected();
-
-			if (!result || (newConnected && !oldConnected)  || (account.protocolName() == "gadu" && result.protocolName() != "gadu"))
-			{
-				result = account;
-				if (newConnected && result.protocolName() == "gadu")
-					break;
-			}
-		}
-
-	return result;
-}
-
 AccountManager::AccountManager()
 {
-	ConfigurationManager::instance()->registerStorableObject(this);
-
-	// needed for QueuedConnection
-	qRegisterMetaType<Account>("Account");
 }
 
 AccountManager::~AccountManager()
 {
 	ConfigurationManager::instance()->unregisterStorableObject(this);
+}
+
+void AccountManager::init()
+{
+	ConfigurationManager::instance()->registerStorableObject(this);
+
+	// needed for QueuedConnection
+	qRegisterMetaType<Account>("Account");
 }
 
 void AccountManager::itemAdded(Account item)
@@ -154,22 +134,6 @@ void AccountManager::itemUnregistered(Account item)
 	emit accountUnregistered(item);
 }
 
-void AccountManager::detailsLoaded(Account account)
-{
-	QMutexLocker locker(&mutex());
-
-	if (!account.isNull())
-		registerItem(account);
-}
-
-void AccountManager::detailsUnloaded(Account account)
-{
-	QMutexLocker locker(&mutex());
-
-	if (!account.isNull())
-		unregisterItem(account);
-}
-
 Account AccountManager::defaultAccount()
 {
 	QMutexLocker locker(&mutex());
@@ -189,13 +153,13 @@ Account AccountManager::bestAccount()
 	return bestAccount(items());
 }
 
-const QList<Account> AccountManager::byIdentity(Identity identity)
+const QVector<Account> AccountManager::byIdentity(Identity identity)
 {
 	QMutexLocker locker(&mutex());
 
 	ensureLoaded();
 
-	QList<Account> list;
+	QVector<Account> list;
 	foreach (const Account &account, allItems())
 		if (account.accountIdentity() == identity)
 			list.append(account);
@@ -216,28 +180,18 @@ Account AccountManager::byId(const QString& protocolName, const QString& id)
 	return Account::null;
 }
 
-const QList<Account> AccountManager::byProtocolName(const QString &name)
+const QVector<Account> AccountManager::byProtocolName(const QString &name)
 {
 	QMutexLocker locker(&mutex());
 
 	ensureLoaded();
 
-	QList<Account> list;
+	QVector<Account> list;
 	foreach (const Account &account, allItems())
 		if (account.protocolName() == name)
 			list.append(account);
 
 	return list;
-}
-
-Status AccountManager::status()
-{
-	QMutexLocker locker(&mutex());
-
-	Account account = defaultAccount();
-	return account.statusContainer()
-			? account.statusContainer()->status()
-			: Status();
 }
 
 void AccountManager::accountDataUpdated()
@@ -265,7 +219,7 @@ void AccountManager::removeAccountAndBuddies(Account account)
 {
 	account.setRemoving(true);
 
-	QList<Contact> contacts = ContactManager::instance()->contacts(account);
+	QVector<Contact> contacts = ContactManager::instance()->contacts(account);
 	foreach (const Contact &contact, contacts)
 		BuddyManager::instance()->clearOwnerAndRemoveEmptyBuddy(contact);
 
@@ -300,6 +254,8 @@ void AccountManager::providePassword(Account account)
 
 void AccountManager::loaded()
 {
+	Manager<Account>::loaded();
+
 	foreach (const Account &account, allItems())
 		account.accountContact().setOwnerBuddy(Core::instance()->myself());
 }

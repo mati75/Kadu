@@ -1,8 +1,8 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2009, 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -22,13 +22,12 @@
 #include <QtCore/QMimeData>
 #include <QtCore/QStringList>
 
-#include "buddies/buddy.h"
-#include "buddies/buddy-list.h"
-#include "buddies/buddy-list-mime-data-helper.h"
 #include "buddies/buddy-manager.h"
-#include "buddies/buddy-shared.h"
+#include "buddies/buddy.h"
 
-QLatin1String BuddyListMimeDataHelper::MimeType("application/x-kadu-ules");
+#include "buddy-list-mime-data-helper.h"
+
+QLatin1String BuddyListMimeDataHelper::MimeType("application/x-kadu-buddy-list");
 
 QStringList BuddyListMimeDataHelper::mimeTypes()
 {
@@ -39,7 +38,7 @@ QStringList BuddyListMimeDataHelper::mimeTypes()
 
 QMimeData * BuddyListMimeDataHelper::toMimeData(const BuddyList &buddyList)
 {
-	if (!buddyList.count())
+	if (buddyList.isEmpty())
 		return 0;
 
 	QMimeData *mimeData = new QMimeData();
@@ -52,7 +51,7 @@ QMimeData * BuddyListMimeDataHelper::toMimeData(const BuddyList &buddyList)
 	return mimeData;
 }
 
-BuddyList BuddyListMimeDataHelper::fromMimeData(const QMimeData * mimeData)
+BuddyList BuddyListMimeDataHelper::fromMimeData(const QMimeData *mimeData)
 {
 	BuddyList result;
 

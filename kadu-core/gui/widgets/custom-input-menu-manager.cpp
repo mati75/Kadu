@@ -1,6 +1,8 @@
 /*
  * %kadu copyright begin%
  * Copyright 2011 Sławomir Stępień (s.stepien@interia.pl)
+ * Copyright 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011 Slawomir Stepien (s.stepien@interia.pl)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -19,8 +21,10 @@
 
 #include <QtGui/QMenu>
 
-#include "gui/actions/action.h"
+#include "gui/actions/action-context-provider.h"
+#include "gui/actions/action-context.h"
 #include "gui/actions/action-description.h"
+#include "gui/actions/action.h"
 
 #include "custom-input-menu-manager.h"
 
@@ -71,31 +75,49 @@ QMenu * CustomInputMenuManager::menu(QWidget *parent)
 {
 	QMenu *menu = new QMenu(parent);
 
-	sortInputContextMenu();
-	QList<CustomInputMenuItem>::const_iterator i = InputContextMenu.constBegin();
-	CustomInputMenuItem::CustomInputMenuCategory lastCategory = CustomInputMenuItem::MenuCategoryTextEdit;
-	bool first = true;
+	QWidget *actionContextWidget = parent;
+	ActionContext *actionContext = 0;
 
-	while (i != InputContextMenu.constEnd())
+	while (actionContextWidget)
 	{
-		if ((!first) && (i->category() != lastCategory))
-			menu->addSeparator();
-
-		Action *action = i->actionDescription()->createAction(0, parent);
-
-		if (i->category() == CustomInputMenuItem::MenuCategorySuggestion)
-			action->setFont(QFont(QString(), -1, QFont::Bold));
-
-		menu->addAction(action);
-		action->checkState();
-
-		lastCategory = i->category();
-		first = false;
-		++i;
+		ActionContextProvider *actionContextProvider = dynamic_cast<ActionContextProvider *>(actionContextWidget);
+		if (actionContextProvider)
+		{
+			actionContext = actionContextProvider->actionContext();
+			break;
+		}
+		else
+			actionContextWidget = actionContextWidget->parentWidget();
 	}
 
-	if (!first)
-		menu->addSeparator();
+	if (actionContext)
+	{
+		sortInputContextMenu();
+		QList<CustomInputMenuItem>::const_iterator i = InputContextMenu.constBegin();
+		CustomInputMenuItem::CustomInputMenuCategory lastCategory = CustomInputMenuItem::MenuCategoryTextEdit;
+		bool first = true;
+
+		while (i != InputContextMenu.constEnd())
+		{
+			if ((!first) && (i->category() != lastCategory))
+				menu->addSeparator();
+
+			Action *action = i->actionDescription()->createAction(actionContext, parent);
+
+			if (i->category() == CustomInputMenuItem::MenuCategorySuggestion)
+				action->setFont(QFont(QString(), -1, QFont::Bold));
+
+			menu->addAction(action);
+			action->checkState();
+
+			lastCategory = i->category();
+			first = false;
+			++i;
+		}
+
+		if (!first)
+			menu->addSeparator();
+	}
 
 	return menu;
 }

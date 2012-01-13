@@ -1,8 +1,9 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2010 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2009, 2009, 2010, 2010 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -24,14 +25,17 @@
  * See COPYING file for the detailed license.
  */
 
-#include <QtDebug>
 #include <QFile>
 #include <QMessageBox>
 #include <QPushButton>
+#include <QtDebug>
 
-#include "certificates/certificate-helpers.h"
-#include "certificates/certificate-error-dialog.h"
+#include "core/core.h"
+#include "gui/windows/kadu-window.h"
+
 #include "certificates/certificate-display-dialog.h"
+#include "certificates/certificate-error-dialog.h"
+#include "certificates/certificate-helpers.h"
 #include "certificates/trusted-certificates-manager.h"
 #include "client/mini-client.h"
 
@@ -39,7 +43,8 @@ CertificateErrorDialog::CertificateErrorDialog(const QString& title, const QStri
 	int result, QCA::Validity validity, const QString &domainOverride, QString &tlsOverrideDomain)
 	: QObject(), certificate_(cert), result_(result), validity_(validity), domainOverride_(domainOverride), host_(host), tlsOverrideDomain_(tlsOverrideDomain)
 {
-	messageBox_ = new QMessageBox(QMessageBox::Warning, title, QObject::tr("The %1 certificate failed the authenticity test.").arg(host));
+	messageBox_ = new QMessageBox(QMessageBox::Warning, title,tr("The %1 certificate failed the authenticity test.").arg(host),
+			QMessageBox::NoButton, Core::instance()->kaduWindow());
 	messageBox_->setInformativeText(CertificateHelpers::resultToString(result, validity));
 
 	detailsButton_ = messageBox_->addButton(QObject::tr("&Details..."), QMessageBox::ActionRole);

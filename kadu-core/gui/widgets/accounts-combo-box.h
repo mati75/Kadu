@@ -1,7 +1,10 @@
 /*
  * %kadu copyright begin%
+ * Copyright 2009, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
+ * Copyright 2007, 2008, 2009, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -22,30 +25,22 @@
 #define ACCOUNTS_COMBO_BOX_H
 
 #include "accounts/account.h"
-#include "gui/widgets/kadu-combo-box.h"
+#include "gui/widgets/actions-combo-box.h"
 
 class AbstractAccountFilter;
 class AccountsModel;
+class AccountsProxyModel;
 
-class AccountsComboBox : public KaduComboBox<Account>
+class AccountsComboBox : public ActionsComboBox
 {
 	Q_OBJECT
 
 	AccountsModel *Model;
-	bool IncludeSelectAccount;
-
-private slots:
-	void currentIndexChangedSlot(int index);
-	void updateValueBeforeChange();
-	void rowsRemoved(const QModelIndex &parent, int start, int end);
-
-protected:
-	virtual int preferredDataRole() const;
-	virtual QString selectString() const;
-	virtual ActionsProxyModel::ActionVisibility selectVisibility() const;
+	AccountsProxyModel *ProxyModel;
 
 public:
-	explicit AccountsComboBox(bool includeSelectAccount, QWidget *parent = 0);
+	explicit AccountsComboBox(bool includeSelectAccount, ActionsProxyModel::ActionVisibility visibility,
+	                          QWidget *parent = 0);
 	virtual ~AccountsComboBox();
 
 	void setCurrentAccount(Account account);
@@ -55,9 +50,6 @@ public:
 
 	void addFilter(AbstractAccountFilter *filter);
 	void removeFilter(AbstractAccountFilter *filter);
-
-signals:
-	void accountChanged(Account account, Account lastAccount = Account::null);
 
 };
 

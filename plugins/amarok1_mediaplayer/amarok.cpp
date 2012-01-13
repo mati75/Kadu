@@ -1,11 +1,11 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2009, 2010 Tomasz Rostański (rozteck@interia.pl)
  * Copyright 2010 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -27,8 +27,8 @@
  * works ;)
  */
 
-#include <QtCore/QProcess>
 #include <QtCore/QByteArray>
+#include <QtCore/QProcess>
 #include <QtCore/QString>
 #include <QtCore/QStringList>
 
@@ -174,53 +174,36 @@ QStringList AmarokMediaPlayer::getPlayListFiles()
 	kdebugf2();
 }
 
-uint AmarokMediaPlayer::getPlayListLength()
+QString AmarokMediaPlayer::getTitle()
 {
-	kdebugf();
-	return getUint("playlist", "getTotalTrackCount");
-	kdebugf2();
-}
-
-QString AmarokMediaPlayer::getTitle(int position)
-{
-	Q_UNUSED(position)
-
 	kdebugf();
 	return getString("player", "title");
 	kdebugf2();
 }
 
-QString AmarokMediaPlayer::getAlbum(int position)
+QString AmarokMediaPlayer::getAlbum()
 {
-	Q_UNUSED(position)
-
 	kdebugf();
 	return getString("player", "album");
 	kdebugf2();
 }
 
-QString AmarokMediaPlayer::getArtist(int position)
+QString AmarokMediaPlayer::getArtist()
 {
-	Q_UNUSED(position)
-
 	kdebugf();
 	return getString("player", "artist");
 	kdebugf2();
 }
 
-QString AmarokMediaPlayer::getFile(int position)
+QString AmarokMediaPlayer::getFile()
 {
-	Q_UNUSED(position)
-
 	kdebugf();
 	return getString("player", "path");
 	kdebugf2();
 }
 
-int AmarokMediaPlayer::getLength(int position)
+int AmarokMediaPlayer::getLength()
 {
-	Q_UNUSED(position)
-
 	kdebugf();
 	return getInt("player", "trackTotalTime") * 1000;
 	kdebugf2();

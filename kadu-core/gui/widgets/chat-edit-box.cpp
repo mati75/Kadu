@@ -1,12 +1,12 @@
 /*
  * %kadu copyright begin%
+ * Copyright 2008, 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2010, 2010 Tomasz Rostański (rozteck@interia.pl)
  * Copyright 2011 Piotr Dąbrowski (ultr@ultr.pl)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2009 Michał Podsiadlik (michal@kadu.net)
- * Copyright 2010 Tomasz Rostański (rozteck@interia.pl)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2008, 2009, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -33,18 +33,23 @@
 #include "chat/chat.h"
 #include "configuration/chat-configuration-holder.h"
 #include "configuration/configuration-file.h"
+#include "configuration/main-configuration-holder.h"
 #include "configuration/xml-configuration-file.h"
-#include "contacts/contact.h"
 #include "contacts/contact-set.h"
+#include "contacts/contact.h"
 #include "emoticons/emoticon-selector.h"
 #include "gui/actions/action.h"
+#include "gui/actions/base-action-context.h"
 #include "gui/widgets/chat-edit-box-size-manager.h"
 #include "gui/widgets/chat-widget-actions.h"
 #include "gui/widgets/chat-widget-manager.h"
 #include "gui/widgets/color-selector.h"
+#include "gui/widgets/talkable-tree-view.h"
 #include "gui/windows/message-dialog.h"
+#include "identities/identity.h"
 #include "protocols/protocol.h"
 #include "protocols/services/chat-image-service.h"
+#include "status/status-container-manager.h"
 
 #include "chat-widget.h"
 #include "custom-input.h"
@@ -56,11 +61,30 @@
 QList<ChatEditBox *> chatEditBoxes;
 
 ChatEditBox::ChatEditBox(const Chat &chat, QWidget *parent) :
-		MainWindow("chat", parent), CurrentChat(chat)
+		MainWindow(new BaseActionContext(), "chat", parent), CurrentChat(chat)
 {
 	chatEditBoxes.append(this);
 
-	InputBox = new CustomInput(this);
+	Context = static_cast<BaseActionContext *>(actionContext());
+
+	Context->blockChangedSignal();
+
+	RoleSet roles;
+	if (CurrentChat.contacts().size() > 1)
+		roles.insert(ChatRole);
+	else
+		roles.insert(BuddyRole);
+	Context->setRoles(roles);
+
+	Context->setChat(CurrentChat);
+	Context->setContacts(CurrentChat.contacts());
+	Context->setBuddies(CurrentChat.contacts().toBuddySet());
+	updateContext();
+	Context->unblockChangedSignal();
+
+	connect(MainConfigurationHolder::instance(), SIGNAL(setStatusModeChanged()), this, SLOT(updateContext()));
+
+	InputBox = new CustomInput(CurrentChat, this);
 	InputBox->setWordWrapMode(QTextOption::WordWrap);
 #ifdef Q_WS_MAEMO_5
 	InputBox->setMinimumHeight(64);
@@ -99,12 +123,12 @@ ChatEditBox::~ChatEditBox()
 
 void ChatEditBox::fontChanged(QFont font)
 {
-	if (ChatWidgetManager::instance()->actions()->bold()->action(this))
-		ChatWidgetManager::instance()->actions()->bold()->action(this)->setChecked(font.bold());
-	if (ChatWidgetManager::instance()->actions()->italic()->action(this))
-		ChatWidgetManager::instance()->actions()->italic()->action(this)->setChecked(font.italic());
-	if (ChatWidgetManager::instance()->actions()->underline()->action(this))
-		ChatWidgetManager::instance()->actions()->underline()->action(this)->setChecked(font.underline());
+	if (ChatWidgetManager::instance()->actions()->bold()->action(actionContext()))
+		ChatWidgetManager::instance()->actions()->bold()->action(actionContext())->setChecked(font.bold());
+	if (ChatWidgetManager::instance()->actions()->italic()->action(actionContext()))
+		ChatWidgetManager::instance()->actions()->italic()->action(actionContext())->setChecked(font.italic());
+	if (ChatWidgetManager::instance()->actions()->underline()->action(actionContext()))
+		ChatWidgetManager::instance()->actions()->underline()->action(actionContext())->setChecked(font.underline());
 }
 
 void ChatEditBox::colorSelectorActionCreated(Action *action)
@@ -140,32 +164,23 @@ bool ChatEditBox::supportsActionType(ActionDescription::ActionType type)
 	return (type == ActionDescription::TypeGlobal || type == ActionDescription::TypeChat || type == ActionDescription::TypeUser);
 }
 
-BuddiesListView * ChatEditBox::buddiesListView()
+TalkableProxyModel * ChatEditBox::talkableProxyModel()
 {
 	ChatWidget *cw = chatWidget();
 	if (cw && cw->chat().contacts().count() > 1)
-		return cw->contactsListWidget();
+		return cw->talkableProxyModel();
 
 	return 0;
 }
 
-StatusContainer * ChatEditBox::statusContainer()
+void ChatEditBox::updateContext()
 {
-	return CurrentChat.chatAccount().statusContainer();
-}
-
-ContactSet ChatEditBox::contacts()
-{
-	ChatWidget *cw = chatWidget();
-	if (cw)
-		return cw->chat().contacts();
-
-	return ContactSet();
-}
-
-BuddySet ChatEditBox::buddies()
-{
-	return contacts().toBuddySet();
+	if (MainConfigurationHolder::instance()->isSetStatusPerIdentity())
+		Context->setStatusContainer(CurrentChat.chatAccount().accountIdentity().data());
+	else if (MainConfigurationHolder::instance()->isSetStatusPerAccount())
+		Context->setStatusContainer(CurrentChat.chatAccount().statusContainer());
+	else
+		Context->setStatusContainer(StatusContainerManager::instance());
 }
 
 ChatWidget * ChatEditBox::chatWidget()
@@ -222,7 +237,7 @@ void ChatEditBox::openInsertImageDialog()
 {
 	// QTBUG-849
 	QString selectedFile = QFileDialog::getOpenFileName(this, tr("Insert image"), config_file.readEntry("Chat", "LastImagePath"),
-							tr("Images") + " (*.png *.PNG *.jpg *.JPG *.jpeg *.JPEG *.gif *.GIF *.bmp *.BMP);;All Files (*)");
+							tr("Images (*.png *.PNG *.jpg *.JPG *.jpeg *.JPEG *.gif *.GIF *.bmp *.BMP);;All Files (*)"));
 	if (!selectedFile.isEmpty())
 	{
 		QFileInfo f(selectedFile);
@@ -277,9 +292,9 @@ void ChatEditBox::openInsertImageDialog()
 			Contact contact = *CurrentChat.contacts().constBegin();
 			if (tooBigCounter > 0)
 				message = tr("This image has %1 KiB and may be too big for %2.")
-						.arg((f.size() + 1023) / 1024).arg(contact.ownerBuddy().display()) + '\n';
+						.arg((f.size() + 1023) / 1024).arg(contact.display(true)) + '\n';
 			else if (disconnectedCounter > 0)
-				message = tr("%1 appears to be offline and may not receive images.").arg(contact.ownerBuddy().display()) + '\n';
+				message = tr("%1 appears to be offline and may not receive images.").arg(contact.display(true)) + '\n';
 		}
 		else
 		{

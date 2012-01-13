@@ -1,10 +1,10 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010 Tomasz Rostański (rozteck@interia.pl)
  * Copyright 2010 Tomasz Rostanski (rozteck@interia.pl)
+ * Copyright 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2010, 2010 Tomasz Rostański (rozteck@interia.pl)
+ * Copyright 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -30,8 +30,8 @@
 #include <QtGui/QLabel>
 #include <QtGui/QLineEdit>
 
-#include "gui/widgets/buddies-list-view.h"
 #include "gui/widgets/line-edit-with-clear-button.h"
+#include "gui/widgets/talkable-tree-view.h"
 
 #include "filter-widget.h"
 
@@ -148,7 +148,7 @@ void FilterWidget::filterTextChanged(const QString &s)
 	}
 	else
 	{
-		if (!isVisible() || View->selectionModel()->selectedIndexes().count() == 0)
+		if (!isVisible() || View->selectionModel()->selectedIndexes().isEmpty())
 		{
 			View->setCurrentIndex(View->model()->index(0, 0));
 			View->selectionModel()->select(View->model()->index(0, 0), QItemSelectionModel::SelectCurrent);
@@ -219,7 +219,7 @@ void FilterWidget::setFilter(const QString &filter)
 #endif
 }
 
-void FilterWidget::setView(BuddiesListView *view)
+void FilterWidget::setView(QTreeView *view)
 {
 	View = view;
 }

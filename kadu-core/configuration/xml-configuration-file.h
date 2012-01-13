@@ -1,7 +1,7 @@
 /*
  * %kadu copyright begin%
  * Copyright 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2008, 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -47,9 +47,9 @@ private:
 	bool isElementNamed(const QDomElement &element, const QString &name);
 	bool isElementUuid(const QDomElement &element, const QString &uuid);
 
-	void removeNodes(QDomElement parentNode, const QList<QDomElement> &elements);
-	void removeUuidNodes(QDomElement parentNode, const QList<QDomElement> &elements, const QString &uuid);
-	void removeNamedNodes(QDomElement parentNode, const QList<QDomElement> &elements, const QString &name);
+	void removeNodes(QDomElement parentNode, const QVector<QDomElement> &elements);
+	void removeUuidNodes(QDomElement parentNode, const QVector<QDomElement> &elements, const QString &uuid);
+	void removeNamedNodes(QDomElement parentNode, const QVector<QDomElement> &elements, const QString &name);
 
 	QDomNode cdataOrText(const QString &text);
 
@@ -131,7 +131,7 @@ public:
 	QDomElement getNamedNode(QDomElement parentNode, const QString &nodeTagName, const QString &nodeName, GetNodeMode getMode = ModeGet);
 	QDomElement getUuidNode(QDomElement parentNode, const QString &uuidTagName, const QString &nodeUuid, GetNodeMode getMode = ModeGet);
 
-	QList<QDomElement> getNodes(const QDomElement &parent, const QString &nodeTagName);
+	QVector<QDomElement> getNodes(const QDomElement &parent, const QString &nodeTagName);
 
 	void appendTextNode(const QDomElement &parentNode, const QString &nodeTagName, const QString &nodeContent);
 	void createTextNode(const QDomElement &parentNode, const QString &nodeTagName, const QString &nodeContent);

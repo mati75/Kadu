@@ -1,9 +1,13 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2011 Tomasz Rostanski (rozteck@interia.pl)
+ * Copyright 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2010 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2010 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
+ * Copyright 2007, 2008, 2009, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -23,26 +27,20 @@
 #ifndef PROTOCOLS_COMBO_BOX_H
 #define PROTOCOLS_COMBO_BOX_H
 
-#include "gui/widgets/kadu-combo-box.h"
 #include "protocols/protocol-factory.h"
 #include "exports.h"
 
-class AbstractProtocolFilter;
+#include "gui/widgets/actions-combo-box.h"
 
-class KADUAPI ProtocolsComboBox : public KaduComboBox<ProtocolFactory *>
+class AbstractProtocolFilter;
+class ProtocolsModelProxy;
+
+class KADUAPI ProtocolsComboBox : public ActionsComboBox
 {
 	Q_OBJECT
 	Q_PROPERTY(ProtocolFactory* currentProtocol READ currentProtocol WRITE setCurrentProtocol)
 
-private slots:
-	void currentIndexChangedSlot(int index);
-	void updateValueBeforeChange();
-	void rowsRemoved(const QModelIndex &parent, int start, int end);
-
-protected:
-	virtual int preferredDataRole() const;
-	virtual QString selectString() const;
-	virtual ActionsProxyModel::ActionVisibility selectVisibility() const;
+	ProtocolsModelProxy *ProxyModel;
 
 public:
 	explicit ProtocolsComboBox(QWidget *parent = 0);
@@ -53,9 +51,6 @@ public:
 
 	void addFilter(AbstractProtocolFilter *filter);
 	void removeFilter(AbstractProtocolFilter *filter);
-
-signals:
-	void protocolChanged(ProtocolFactory *protocol = 0, ProtocolFactory *lastProtocol = 0);
 
 };
 

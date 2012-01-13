@@ -1,11 +1,11 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Piotr Dąbrowski (ultr@ultr.pl)
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2008, 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2008, 2009, 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2010 Piotr Dąbrowski (ultr@ultr.pl)
+ * Copyright 2009, 2009 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -37,6 +37,8 @@
 #include "os/generic/compositing-aware-object.h"
 
 #include "debug.h"
+
+class TabsManager;
 
 class TabBar: public QTabBar
 {
@@ -79,6 +81,8 @@ class TabWidget: public QTabWidget, public ChatWidgetContainer, CompositingAware
 
 	QToolButton *CloseChatButton;
 	QToolButton *OpenChatButton;
+
+	TabsManager *Manager;
 
 	/**
 	* Zmienna konfiguracyjna
@@ -150,8 +154,8 @@ protected:
 	virtual void compositingDisabled();
 
 public:
-	TabWidget();
-    virtual ~TabWidget();
+	explicit TabWidget(TabsManager *manager);
+	virtual ~TabWidget();
 
 	/**
 	* Zmienia aktualną kartę na tą po lewej stronie
@@ -173,12 +177,16 @@ public:
 	*/
 	void configurationUpdated();
 
+	virtual void activateChatWidget(ChatWidget *chatWidget);
+	virtual void alertChatWidget(ChatWidget *chatWidget);
+	virtual bool isChatWidgetActive(ChatWidget *chatWidget);
+
 	/**
 	* Metoda wywoływana w momencie ignorowania/blokowania kontaktu
 	* Informuje, który chat powinien zostać zamknięty
 	* @param chat który powinien zostać zamknięty
 	*/
-	void closeChatWidget(ChatWidget *chat);
+	virtual void closeChatWidget(ChatWidget *chatWidget);
 
 public slots:
 	/**
@@ -200,7 +208,7 @@ public slots:
 signals:
 	void contextMenu(QWidget *w, const QPoint &pos);
 	void openTab(QStringList altnicks, int index);
-	void chatWidgetActivated(ChatWidget *chatWidget);
+
 };
 
 #endif // TABS_TABWIDGET_H

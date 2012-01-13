@@ -1,8 +1,8 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2009 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2008, 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2009, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -23,9 +23,9 @@
 #include <QtGui/QLabel>
 #include <QtXml/QDomElement>
 
-#include "gui/widgets/configuration/config-list-widget.h"
-#include "gui/widgets/configuration/config-group-box.h"
 #include "configuration/configuration-window-data-manager.h"
+#include "gui/widgets/configuration/config-group-box.h"
+#include "gui/widgets/configuration/config-list-widget.h"
 
 #include "debug.h"
 
@@ -76,16 +76,10 @@ void ConfigListWidget::createWidgets()
 	}
 }
 
-void ConfigListWidget::show()
+void ConfigListWidget::setVisible(bool visible)
 {
-	label->show();
-	QListWidget::show();
-}
-
-void ConfigListWidget::hide()
-{
-	label->hide();
-	QListWidget::hide();
+	label->setVisible(visible);
+	QListWidget::setVisible(visible);
 }
 
 bool ConfigListWidget::fromDomElement(QDomElement domElement)

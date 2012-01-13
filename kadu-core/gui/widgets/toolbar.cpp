@@ -1,15 +1,15 @@
 /*
  * %kadu copyright begin%
+ * Copyright 2008, 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2009, 2009 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2008, 2010 Tomasz Rostański (rozteck@interia.pl)
  * Copyright 2010 Piotr Dąbrowski (ultr@ultr.pl)
- * Copyright 2007, 2008 Dawid Stawiarski (neeo@kadu.net)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2008, 2009, 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2005, 2006, 2007 Marcin Ślusarz (joi@kadu.net)
+ * Copyright 2009 Michał Podsiadlik (michal@kadu.net)
  * Copyright 2005, 2006 Adrian Smarzewski (adrian@kadu.net)
  * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2009 Michał Podsiadlik (michal@kadu.net)
- * Copyright 2008, 2010 Tomasz Rostański (rozteck@interia.pl)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2007, 2008 Dawid Stawiarski (neeo@kadu.net)
+ * Copyright 2005, 2006, 2007 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -26,8 +26,8 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <QtCore/QTimer>
 #include <QtCore/QTextStream>
+#include <QtCore/QTimer>
 #include <QtGui/QContextMenuEvent>
 #include <QtGui/QCursor>
 #include <QtGui/QDragEnterEvent>
@@ -42,10 +42,10 @@
 #include "gui/windows/main-window.h"
 #include "gui/windows/message-dialog.h"
 
-#include "debug.h"
 #include "icons/icons-manager.h"
 #include "icons/kadu-icon.h"
 #include "misc/misc.h"
+#include "debug.h"
 
 #include "toolbar.h"
 
@@ -156,16 +156,24 @@ QToolButton * ToolBar::createPushButton(QAction *before, ToolBarAction &action)
 	if (!kaduMainWindow->supportsActionType(Actions::instance()->value(action.actionName)->type()))
 		return 0;
 
-	action.action = Actions::instance()->createAction(action.actionName, kaduMainWindow);
+	action.action = Actions::instance()->createAction(action.actionName, kaduMainWindow->actionContext(), kaduMainWindow);
 	insertAction(before, action.action);
 
 	QToolButton *button = qobject_cast<QToolButton *>(widgetForAction(action.action));
+
 	action.widget = button;
 	if (button)
 	{
 		connect(button, SIGNAL(pressed()), this, SLOT(widgetPressed()));
 		button->installEventFilter(watcher);
 		button->setToolButtonStyle(action.style);
+
+		if (action.action->menu() && Actions::instance()->contains(action.actionName))
+		{
+			ActionDescription *actionDescription = Actions::instance()->value(action.actionName);
+			if (actionDescription)
+				button->setPopupMode(actionDescription->buttonPopupMode());
+		}
 	}
 
 	return button;
@@ -656,6 +664,9 @@ void ToolBar::loadFromConfig(const QDomElement &toolbar_element)
 			actionName += QString::number(ToolBarSeparator::token());
 		else if (actionName == "__spacer")
 			actionName += QString::number(ToolBarSpacer::token());
+		// TODO: remove when we stop supporting migration from 0.10.x
+		else if (actionName == "whoisAction")
+			actionName = "lookupUserInfoAction";
 
 		if (windowHasAction(actionName, true))
 			continue;

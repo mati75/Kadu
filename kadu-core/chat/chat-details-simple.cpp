@@ -1,10 +1,10 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -23,10 +23,8 @@
 
 #include "buddies/buddy-manager.h"
 #include "buddies/buddy-set.h"
-#include "buddies/buddy-shared.h"
-#include "chat/type/chat-type-manager.h"
 #include "chat/chat.h"
-#include "chat/chat-shared.h"
+#include "chat/type/chat-type-manager.h"
 #include "contacts/contact-manager.h"
 #include "contacts/contact-set.h"
 
@@ -71,7 +69,7 @@ void ChatDetailsSimple::load()
 		Buddy buddy = BuddyManager::instance()->byUuid(cadUuid);
 		if (buddy)
 		{
-			QList<Contact> contactList = buddy.contacts(mainData()->chatAccount());
+			QVector<Contact> contactList = buddy.contacts(mainData()->chatAccount());
 			if (!contactList.isEmpty())
 				CurrentContact = contactList.at(0);
 		}
@@ -106,6 +104,8 @@ void ChatDetailsSimple::store()
  */
 bool ChatDetailsSimple::shouldStore()
 {
+	ensureLoaded();
+
 	return StorableObject::shouldStore()
 			&& !CurrentContact.uuid().isNull();
 }
@@ -146,9 +146,7 @@ ContactSet ChatDetailsSimple::contacts() const
  */
 QString ChatDetailsSimple::name() const
 {
-	if (CurrentContact.isNull())
-		return QString();
-	return BuddyManager::instance()->byContact(CurrentContact, ActionCreateAndAdd).display();
+	return CurrentContact.display(true);
 }
 
 /**

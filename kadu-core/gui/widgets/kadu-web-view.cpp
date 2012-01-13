@@ -1,13 +1,14 @@
 /*
  * %kadu copyright begin%
- * Copyright 2007 Dawid Stawiarski (neeo@kadu.net)
+ * Copyright 2008, 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2010 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2008, 2009, 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2005, 2006, 2007 Marcin Ślusarz (joi@kadu.net)
- * Copyright 2007, 2008, 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2009 Michał Podsiadlik (michal@kadu.net)
  * Copyright 2008, 2010 Tomasz Rostański (rozteck@interia.pl)
+ * Copyright 2011 Piotr Dąbrowski (ultr@ultr.pl)
+ * Copyright 2009 Michał Podsiadlik (michal@kadu.net)
+ * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2007 Dawid Stawiarski (neeo@kadu.net)
+ * Copyright 2005, 2006, 2007 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -34,10 +35,10 @@
 #include <QtCore/QFile>
 #include <QtCore/QMimeData>
 #include <QtCore/QPoint>
-#include <QtCore/QWeakPointer>
 #include <QtCore/QString>
 #include <QtCore/QTimer>
 #include <QtCore/QUrl>
+#include <QtCore/QWeakPointer>
 #include <QtGui/QAction>
 #include <QtGui/QApplication>
 #include <QtGui/QClipboard>
@@ -49,8 +50,8 @@
 #include <QtGui/QMouseEvent>
 #include <QtGui/QStyle>
 #include <QtGui/QTextDocument>
-#include <QtWebKit/QWebHitTestResult>
 #include <QtWebKit/QWebHistory>
+#include <QtWebKit/QWebHitTestResult>
 #include <QtWebKit/QWebPage>
 
 #include "configuration/configuration-file.h"
@@ -70,9 +71,10 @@ KaduWebView::KaduWebView(QWidget *parent) :
 	QWebSettings::setMaximumPagesInCache(0);
 	QWebSettings::setObjectCacheCapacities(0, 0, 0);
 
-
 	setAttribute(Qt::WA_NoBackground);
 	setAcceptDrops(false);
+	setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing |
+	               QPainter::SmoothPixmapTransform | QPainter::HighQualityAntialiasing);
 
 	setPage(page());
 
@@ -290,7 +292,7 @@ void KaduWebView::saveImage()
 	{
 		if (fd.data()->exec() != QFileDialog::Accepted)
 			break;
-		if (fd.data()->selectedFiles().count() < 1)
+		if (fd.data()->selectedFiles().isEmpty())
 			break;
 
 		QString file = fd.data()->selectedFiles().at(0);
@@ -409,7 +411,7 @@ void KaduWebView::setUserFont(const QString &fontString, bool force)
 
 QString KaduWebView::userFontStyle(const QFont &font, bool force)
 {
-	QString style = "font-family:" + font.family() + (force ? " !important;" : ";");
+	QString style = "font-family:\"" + font.family() + "\",sans-serif" + (force ? " !important;" : ";");
 	if (force && font.pointSize() != -1)
 		style += QString(" font-size:%1pt;").arg(font.pointSize());
 	return style;

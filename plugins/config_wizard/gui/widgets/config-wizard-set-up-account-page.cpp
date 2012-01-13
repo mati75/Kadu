@@ -1,7 +1,8 @@
 /*
  * %kadu copyright begin%
- * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -103,10 +104,6 @@ bool ConfigWizardSetUpAccountPage::validatePage()
 	return AccountSuccessfullyCreated;
 }
 
-void ConfigWizardSetUpAccountPage::acceptPage()
-{
-}
-
 void ConfigWizardSetUpAccountPage::accountCreated(Account account)
 {
 	if (!account)
@@ -115,7 +112,6 @@ void ConfigWizardSetUpAccountPage::accountCreated(Account account)
 		return;
 	}
 
-	account.importProxySettings();
 	AccountManager::instance()->addItem(account);
 	account.accountContact().setOwnerBuddy(Core::instance()->myself());
 

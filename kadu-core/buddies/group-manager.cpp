@@ -1,10 +1,10 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2009, 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009 Michał Podsiadlik (michal@kadu.net)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -37,24 +37,31 @@
 
 #include "group-manager.h"
 
-GroupManager *GroupManager::Instance = 0;
+GroupManager * GroupManager::Instance = 0;
 
 GroupManager * GroupManager::instance()
 {
 	if (!Instance)
+	{
 		Instance = new GroupManager();
+		Instance->init();
+	}
 
 	return Instance;
 }
 
 GroupManager::GroupManager()
 {
-	ConfigurationManager::instance()->registerStorableObject(this);
 }
 
 GroupManager::~GroupManager()
 {
 	ConfigurationManager::instance()->unregisterStorableObject(this);
+}
+
+void GroupManager::init()
+{
+	ConfigurationManager::instance()->registerStorableObject(this);
 }
 
 void GroupManager::importConfiguration()
@@ -72,7 +79,7 @@ void GroupManager::importConfiguration()
 	if (contactsNode.isNull())
 		return;
 
-	QList<QDomElement> contactsElements = configurationStorage->getNodes(contactsNode, "Contact");
+	QVector<QDomElement> contactsElements = configurationStorage->getNodes(contactsNode, "Contact");
 	foreach (const QDomElement &contactElement, contactsElements)
 		foreach (const QString &newGroup, contactElement.attribute("groups").split(',', QString::SkipEmptyParts))
 			groups << newGroup;

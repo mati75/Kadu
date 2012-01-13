@@ -1,8 +1,8 @@
 /*
  * %kadu copyright begin%
+ * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -30,8 +30,8 @@
 #include "gui/widgets/select-file.h"
 #include "misc/path-conversion.h"
 #include "parser/parser.h"
-#include "speech.h"
 #include "debug.h"
+#include "speech.h"
 
 #include "speech-configuration-ui-handler.h"
 
@@ -110,7 +110,7 @@ void SpeechConfigurationUiHandler::testSpeech()
 	kdebugm(KDEBUG_INFO, "%d %d %d\n", frequency, tempo, baseFrequency);
 
 	QString text;
-	text = Parser::parse(formatF, BuddyOrContact(Buddy::dummy()));
+	text = Parser::parse(formatF, Talkable(Buddy::dummy()));
 
 	Speech::instance()->say(text.contains("%1") ? text.arg("Test") : QString("Test"), program, klatt, mel, sound_system, device, frequency, tempo, baseFrequency);
 

@@ -1,10 +1,10 @@
 /*
  * %kadu copyright begin%
+ * Copyright 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2010 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2009, 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -39,7 +39,8 @@ ActionsProxyModel::~ActionsProxyModel()
 
 void ActionsProxyModel::updateVisibleActions(QList<QAction *> &visibleActions, const QList<ActionWithVisibility> &actions, int globalPosition)
 {
-	int i = 0, sourceModelRowCount = sourceModel() ? sourceModel()->rowCount() : 0;
+	int i = 0;
+	int sourceModelRowCount = sourceModel() ? sourceModel()->rowCount() : 0;
 
 	foreach (const ActionWithVisibility &action, actions)
 	{
@@ -187,6 +188,7 @@ void ActionsProxyModel::sourceRowsInserted(const QModelIndex &sourceParent, int 
 	Q_UNUSED(end)
 
 	endInsertRows();
+
 	updateVisibleBeforeActions();
 	updateVisibleAfterActions();
 }
@@ -223,6 +225,7 @@ void ActionsProxyModel::sourceRowsRemoved(const QModelIndex &sourceParent, int s
 	Q_UNUSED(end)
 
 	endRemoveRows();
+
 	updateVisibleBeforeActions();
 	updateVisibleAfterActions();
 }
@@ -330,12 +333,7 @@ QVariant ActionsProxyModel::data(const QModelIndex &proxyIndex, int role) const
 			return action->icon();
 
 		case Qt::FontRole:
-		{
-			QFont font;
-			if (!action->data().isNull())
-				font.setItalic(true);
-			return font;
-		}
+			return action->font();
 
 		case ActionRole:
 			return QVariant::fromValue<QAction *>(action);

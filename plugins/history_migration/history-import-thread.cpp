@@ -1,10 +1,10 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009 Michał Podsiadlik (michal@kadu.net)
  * Copyright 2009, 2010 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -22,19 +22,20 @@
  */
 
 #include <QtCore/QDateTime>
+#include <QtCore/QScopedPointer>
 
-#include "chat/chat.h"
 #include "chat/chat-manager.h"
-#include "chat/message/message.h"
-#include "contacts/contact.h"
+#include "chat/chat.h"
 #include "contacts/contact-manager.h"
 #include "contacts/contact-set.h"
+#include "contacts/contact.h"
+#include "message/message.h"
 #include "plugins/history/history.h"
 #include "status/status.h"
 
+#include "history-import-thread.h"
 #include "history-importer-chat-data.h"
 #include "history-importer-manager.h"
-#include "history-import-thread.h"
 #include "history-migration-helper.h"
 
 HistoryImportThread::HistoryImportThread(Account gaduAccount, const QString &path, const QList<UinsList> &uinsLists, int totalEntries, QObject *parent) :
@@ -54,7 +55,7 @@ void HistoryImportThread::run()
 	// without this there is a backtrace:
 	// "Warning: QObject: Cannot create children for a parent that is in a different thread."
 	// and Kadu is crashing as in bug #1938
-	QObject *guard = new QObject();
+	QScopedPointer<QObject> guard(new QObject());
 
 	History::instance()->setSyncEnabled(false);
 
@@ -76,7 +77,7 @@ void HistoryImportThread::run()
 		QList<HistoryEntry> entries = HistoryMigrationHelper::historyEntries(Path, uinsList);
 
 		// guard as a parent. See above
-		HistoryImporterChatData *historyImporterChatData = chat.data()->moduleStorableData<HistoryImporterChatData>("history-importer", guard, true);
+		HistoryImporterChatData *historyImporterChatData = chat.data()->moduleStorableData<HistoryImporterChatData>("history-importer", guard.data(), true);
 		if (historyImporterChatData->imported())
 		{
 			ImportedEntries += entries.count();
@@ -101,13 +102,10 @@ void HistoryImportThread::run()
 			break;
 
 		historyImporterChatData->setImported(true);
-		historyImporterChatData->store();
+		historyImporterChatData->ensureStored();
 		// force sync for every chat
 		History::instance()->forceSync();
 	}
-
-	// delete guard, so HistoryImporterChatData is properly destroyed
-	delete guard;
 
 	History::instance()->setSyncEnabled(true);
 }
@@ -158,32 +156,32 @@ void HistoryImportThread::importEntry(const Chat &chat, const HistoryEntry &entr
 		}
 		case HistoryEntry::StatusChange:
 		{
-			QString statusStr;
+			StatusType statusType;
 			switch (entry.Status)
 			{
 				case HistoryEntry::Online:
-					statusStr = "Online";
+					statusType = StatusTypeOnline;
 					break;
 				case HistoryEntry::Busy:
-					statusStr = "Away";
+					statusType = StatusTypeAway;
 					break;
 				case HistoryEntry::Invisible:
-					statusStr = "Invisible";
+					statusType = StatusTypeInvisible;
 					break;
 				case HistoryEntry::FFC:
-					statusStr = "FreeForChat";
+					statusType = StatusTypeFreeForChat;
 					break;
 				case HistoryEntry::DND:
-					statusStr = "DoNotDisturb";
+					statusType = StatusTypeDoNotDisturb;
 					break;
 				case HistoryEntry::Offline:
-					statusStr = "Offline";
+					statusType = StatusTypeOffline;
 					break;
 				default:
 					return;
 			}
 
-			Status status(statusStr, entry.Content);
+			Status status(statusType, entry.Content);
 			Contact contact = ContactManager::instance()->byId(GaduAccount, QString::number(entry.Uin), ActionCreateAndAdd);
 			History::instance()->currentStorage()->appendStatus(contact, status, entry.Date);
 			ImportedEntries++;

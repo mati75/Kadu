@@ -1,15 +1,15 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2008, 2009, 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2004, 2005, 2006, 2007 Marcin Ślusarz (joi@kadu.net)
+ * Copyright 2008, 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2009, 2009 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2008 Tomasz Rostański (rozteck@interia.pl)
+ * Copyright 2008, 2009 Michał Podsiadlik (michal@kadu.net)
  * Copyright 2002, 2003, 2004, 2007 Adrian Smarzewski (adrian@kadu.net)
+ * Copyright 2005 Paweł Płuciennik (pawel_p@kadu.net)
  * Copyright 2002, 2003, 2004 Tomasz Chiliński (chilek@chilan.com)
  * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2008, 2009 Michał Podsiadlik (michal@kadu.net)
- * Copyright 2008 Tomasz Rostański (rozteck@interia.pl)
- * Copyright 2005 Paweł Płuciennik (pawel_p@kadu.net)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2004, 2005, 2006, 2007 Marcin Ślusarz (joi@kadu.net)
  * Copyright 2002 Dariusz Jagodzik (mast3r@kadu.net)
  * %kadu copyright end%
  *
@@ -39,18 +39,17 @@
 #include <QtCore/QString>
 #include <QtCore/QStringList>
 #include <QtCore/QVariant>
-#include <QtGui/QLabel>
-#include <QtGui/QListWidget>
-#include <QtGui/QKeyEvent>
 #include <QtGui/QCheckBox>
 #include <QtGui/QDialog>
+#include <QtGui/QKeyEvent>
+#include <QtGui/QLabel>
+#include <QtGui/QListWidget>
 
 #include "configuration/configuration-aware-object.h"
 #include "core/crash-aware-object.h"
-#include "buddies/buddy-remove-predicate-object.h"
-#include "gui/actions/action.h"
 #include "gui/actions/action-description.h"
-#include "gui/widgets/buddies-list-view-menu-manager.h"
+#include "gui/actions/action.h"
+#include "gui/widgets/talkable-menu-manager.h"
 #include "gui/windows/main-configuration-window.h"
 #include "protocols/protocol.h"
 #include "storage/history-storage.h"
@@ -69,8 +68,9 @@ class Account;
 class ChatWidget;
 class HistorySaveThread;
 class HistoryWindow;
+class ShowHistoryActionDescription;
 
-class HISTORYAPI History : public ConfigurationUiHandler, ConfigurationAwareObject, BuddyRemovePredicateObject, CrashAwareObject
+class HISTORYAPI History : public ConfigurationUiHandler, ConfigurationAwareObject, CrashAwareObject
 {
 	Q_OBJECT
 
@@ -92,8 +92,7 @@ class HISTORYAPI History : public ConfigurationUiHandler, ConfigurationAwareObje
 
 	HistoryStorage *CurrentStorage;
 
-	ActionDescription *ShowHistoryActionDescription;
-	ActionDescription *ShowMoreMessagesInChatWidgetActionDescription;
+	ShowHistoryActionDescription *ShowHistoryActionDescriptionInstance;
 	ActionDescription *ClearHistoryActionDescription;
 
 	QLabel *dontCiteOldMessagesLabel;
@@ -113,7 +112,6 @@ class HISTORYAPI History : public ConfigurationUiHandler, ConfigurationAwareObje
 	void createActionDescriptions();
 	void deleteActionDescriptions();
 	virtual void configurationUpdated();
-	virtual bool removeContactFromStorage(Buddy buddy);
 	void mainConfigurationWindowCreated(MainConfigurationWindow *mainConfigurationWindow);
 
 private slots:
@@ -123,8 +121,6 @@ private slots:
 	void enqueueMessage(const Message &);
 	void contactStatusChanged(Contact contact, Status oldStatus);
 
-	void showHistoryActionActivated(QAction *sender, bool toggled);
-	void showMoreMessages(QAction *action);
 	void clearHistoryActionActivated(QAction *sender, bool toggled);
 
 	void chatCreated(ChatWidget *chatWidget);
@@ -146,17 +142,17 @@ public:
 	void registerStorage(HistoryStorage *storage);
 	void unregisterStorage(HistoryStorage *storage);
 
-	QList<Chat> chatsList(const HistorySearchParameters &search);
-	QList<DatesModelItem> datesForChat(const Chat &chat, const HistorySearchParameters &search);
-	QList<Message> messages(const Chat &chat, const QDate &date = QDate(), int limit = 0);
+	QVector<Chat> chatsList(const HistorySearchParameters &search);
+	QVector<DatesModelItem> datesForChat(const Chat &chat, const HistorySearchParameters &search);
+	QVector<Message> messages(const Chat &chat, const QDate &date = QDate(), int limit = 0);
 
-	QList<Buddy> statusBuddiesList(const HistorySearchParameters &search);
-	QList<DatesModelItem> datesForStatusBuddy(const Buddy &buddy, const HistorySearchParameters &search);
+	QVector<Buddy> statusBuddiesList(const HistorySearchParameters &search);
+	QVector<DatesModelItem> datesForStatusBuddy(const Buddy &buddy, const HistorySearchParameters &search);
 	QList<TimedStatus> statuses(const Buddy &buddy, const QDate &date = QDate(), int limit = 0);
 
 	QList<QString> smsRecipientsList(const HistorySearchParameters &search);
-	QList<DatesModelItem> datesForSmsRecipient(const QString &recipient, const HistorySearchParameters &search);
-	QList<Message> sms(const QString &recipient, const QDate &date = QDate(), int limit = 0);
+	QVector<DatesModelItem> datesForSmsRecipient(const QString &recipient, const HistorySearchParameters &search);
+	QVector<Message> sms(const QString &recipient, const QDate &date = QDate(), int limit = 0);
 
 	void deleteHistory(const Buddy &buddy);
 

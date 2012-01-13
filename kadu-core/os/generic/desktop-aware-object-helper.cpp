@@ -1,6 +1,7 @@
 /*
  * %kadu copyright begin%
  * Copyright 2011 Piotr Dąbrowski (ultr@ultr.pl)
+ * Copyright 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -23,8 +24,8 @@
 #include <QtGui/QDesktopWidget>
 #include <QtGui/QWidget>
 
-#include "os/generic/desktop-aware-object.h"
 #include "misc/misc.h"
+#include "os/generic/desktop-aware-object.h"
 
 #define DESKTOP_AWARE_OBJECT_HELPER_TIMER_INTERVAL 300 /*ms*/
 

@@ -1,7 +1,12 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
+ * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -21,8 +26,8 @@
 #include <QtCore/QBuffer>
 #include <QtCore/QRegExp>
 #include <QtNetwork/QNetworkAccessManager>
-#include <QtNetwork/QNetworkRequest>
 #include <QtNetwork/QNetworkReply>
+#include <QtNetwork/QNetworkRequest>
 
 #include "oauth/oauth-manager.h"
 #include "oauth/oauth-parameters.h"
@@ -57,9 +62,8 @@ void GaduAvatarUploader::authorized(OAuthToken token)
 	{
 		emit avatarUploaded(false, Avatar);
 		deleteLater();
+		return;
 	}
-
-	QByteArray boundary = QByteArray("-----------------------------") + QUuid::createUuid().toString().remove(QRegExp("[{}-]")).toUtf8();
 
 	QBuffer avatarBuffer;
 	avatarBuffer.open(QIODevice::WriteOnly);
@@ -67,32 +71,16 @@ void GaduAvatarUploader::authorized(OAuthToken token)
 	avatarBuffer.close();
 
 	QByteArray url;
-	url += "http://api.gadu-gadu.pl/avatars/";
-	url += token.consumer().consumerKey();
-	url += "/0.xml";
+	url += "http://avatars.nowe.gg/upload";
 
 	QByteArray payload;
-	payload += "--";
-	payload += boundary;
-	payload += "\r\n";
-	payload += "Content-Disposition: form-data; name=\"_method\"\r\n";
-	payload += "\r\n";
-	payload += "PUT\r\n";
-	payload += "--";
-	payload += boundary;
-	payload += "\r\n";
-	payload += "Content-Disposition: form-data; name=\"avatar\"; filename=\"avatar.png\"\r\n";
-	payload += "Content-Type: image/png\r\n";
-	payload += "\r\n";
+	payload += "uin=" + MyAccount.id();
+	payload += "&photo=";
 	payload += avatarBuffer.buffer();
-	payload += "\r\n";
-	payload += "--";
-	payload += boundary;
-	payload += "--\r\n";
 
 	QNetworkRequest putAvatarRequest;
 	putAvatarRequest.setUrl(QString(url));
-	putAvatarRequest.setHeader(QNetworkRequest::ContentTypeHeader, QByteArray("multipart/form-data; boundary=") + boundary);
+	putAvatarRequest.setHeader(QNetworkRequest::ContentTypeHeader, QByteArray("application/x-www-form-urlencoded"));
 
 	OAuthParameters parameters(token.consumer(), token);
 	parameters.setHttpMethod("PUT");

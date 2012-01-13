@@ -1,14 +1,14 @@
 /*
  * %kadu copyright begin%
+ * Copyright 2009, 2010, 2010, 2011, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2009, 2009, 2010, 2010 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2010, 2011 Piotr Dąbrowski (ultr@ultr.pl)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2010 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2009 Michał Podsiadlik (michal@kadu.net)
- * Copyright 2009 Longer (longer89@gmail.com)
- * Copyright 2010 Radosław Szymczyszyn (lavrin@gmail.com)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2010 Radosław Szymczyszyn (lavrin@gmail.com)
+ * Copyright 2009, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2009 Longer (longer89@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -31,50 +31,54 @@
 #include <QtGui/QInputDialog>
 #include <QtGui/QMenu>
 
-#include "accounts/account.h"
 #include "accounts/account-manager.h"
+#include "accounts/account.h"
 #include "buddies/buddy-kadu-data.h"
 #include "buddies/buddy-manager.h"
-#include "buddies/buddy-shared.h"
 #include "buddies/group-manager.h"
-#include "buddies/filter/blocked-buddy-filter.h"
-#include "buddies/filter/has-description-buddy-filter.h"
-#include "buddies/filter/offline-buddy-filter.h"
-#include "buddies/filter/online-and-description-buddy-filter.h"
-#include "buddies/model/buddies-model.h"
-#include "buddies/model/buddies-model-proxy.h"
 #include "configuration/configuration-file.h"
 #include "contacts/contact.h"
 #include "core/core.h"
-#include "icons/kadu-icon.h"
-#include "gui/status-icon.h"
 #include "gui/actions/action.h"
 #include "gui/actions/actions.h"
-#include "gui/widgets/buddies-list-view.h"
-#include "gui/widgets/buddies-list-view-delegate-configuration.h"
-#include "gui/widgets/buddies-list-view-menu-manager.h"
+#include "gui/actions/change-status-action.h"
+#include "gui/actions/chat/add-conference-action.h"
+#include "gui/actions/default-proxy-action.h"
+#include "gui/actions/delete-talkable-action.h"
+#include "gui/actions/edit-talkable-action.h"
+#include "gui/status-icon.h"
+#include "gui/widgets/buddy-info-panel.h"
 #include "gui/widgets/chat-widget-actions.h"
 #include "gui/widgets/chat-widget-manager.h"
-#include "gui/widgets/buddy-info-panel.h"
 #include "gui/widgets/status-menu.h"
+#include "gui/widgets/talkable-delegate-configuration.h"
+#include "gui/widgets/talkable-menu-manager.h"
+#include "gui/widgets/talkable-tree-view.h"
 #include "gui/windows/add-buddy-window.h"
-#include "gui/windows/buddy-data-window.h"
 #include "gui/windows/buddy-delete-window.h"
 #include "gui/windows/kadu-window.h"
 #include "gui/windows/main-configuration-window.h"
 #include "gui/windows/merge-buddies-window.h"
 #include "gui/windows/message-dialog.h"
+#include "gui/windows/modules-window.h"
 #include "gui/windows/multilogon-window.h"
 #include "gui/windows/search-window.h"
 #include "gui/windows/your-accounts.h"
+#include "icons/kadu-icon.h"
 #include "misc/misc.h"
+#include "model/roles.h"
 #include "os/generic/url-opener.h"
 #include "parser/parser.h"
-#include "plugins/plugins-manager.h"
 #include "protocols/protocol.h"
-#include "status/status-changer-manager.h"
 #include "status/status-container-manager.h"
+#include "talkable/filter/blocked-talkable-filter.h"
+#include "talkable/filter/hide-offline-talkable-filter.h"
+#include "talkable/filter/hide-offline-without-description-talkable-filter.h"
+#include "talkable/filter/hide-without-description-talkable-filter.h"
+#include "talkable/model/talkable-model.h"
+#include "talkable/model/talkable-proxy-model.h"
 #include "url-handlers/url-handler-manager.h"
+#include "kadu-application.h"
 
 #include "about.h"
 #include "debug.h"
@@ -94,67 +98,45 @@ void hideNoMultilogonAccounts(Action *action)
 	action->setVisible(hasMultilogonAccount);
 }
 
-void disableContainsSelfUles(Action *action)
+void hideNoSearchServiceAccounts(Action *action)
 {
-	if (action->buddies().contains(Core::instance()->myself()))
-	{
-		action->setEnabled(false);
-		return;
-	}
+	bool hasSearchServiceAccount = false;
+	foreach (const Account &account, AccountManager::instance()->items())
+		if (account.protocolHandler() && account.protocolHandler()->searchService())
+		{
+			hasSearchServiceAccount = true;
+			break;
+		}
 
-	action->setEnabled(true);
+	action->setVisible(hasSearchServiceAccount);
 }
 
-void checkBuddyProperties(Action *action)
+void disableNoSearchService(Action *action)
 {
-	kdebugf();
-
-	if (!action->buddy())
-	{
-		action->setEnabled(false);
-		return;
-	}
-
-	if (action->buddies().contains(Core::instance()->myself()))
-	{
-		action->setEnabled(false);
-		return;
-	}
-
-	action->setEnabled(true);
-
-	if (action->buddy().isAnonymous())
-	{
-		action->setIcon(KaduIcon("contact-new"));
-		action->setText(qApp->translate("KaduWindowActions", "Add Buddy..."));
-	}
-	else
-	{
-		action->setIcon(KaduIcon("x-office-address-book"));
-		action->setText(qApp->translate("KaduWindowActions", "View Buddy Properties"));
-	}
-
-	kdebugf2();
+	const Contact &contact = action->context()->contacts().toContact();
+	action->setEnabled(contact
+			&& contact.contactAccount().protocolHandler()
+			&& contact.contactAccount().protocolHandler()->searchService());
 }
 
 void disableNoContact(Action *action)
 {
-	action->setEnabled(action->contact());
+	action->setEnabled(action->context()->contacts().toContact());
 }
 
 void disableNoDescription(Action *action)
 {
-	action->setEnabled(!action->contact().currentStatus().description().isEmpty());
+	action->setEnabled(!action->context()->contacts().toContact().currentStatus().description().isEmpty());
 }
 
 void disableNoDescriptionUrl(Action *action)
 {
-	action->setEnabled(action->contact().currentStatus().description().indexOf(UrlHandlerManager::instance()->urlRegExp()) >= 0);
+	action->setEnabled(action->context()->contacts().toContact().currentStatus().description().indexOf(UrlHandlerManager::instance()->urlRegExp()) >= 0);
 }
 
 void disableNoEMail(Action *action)
 {
-	const Buddy &buddy = action->buddy();
+	const Buddy &buddy = action->context()->buddies().toBuddy();
 	bool hasMail = !buddy.email().isEmpty() && buddy.email().indexOf(UrlHandlerManager::instance()->mailRegExp()) == 0;
 
 	action->setEnabled(hasMail);
@@ -162,18 +144,20 @@ void disableNoEMail(Action *action)
 
 void disableIfContactSelected(Action *action)
 {
-	if (action && action->dataSource())
-		action->setEnabled(!action->dataSource()->hasContactSelected() && action->dataSource()->buddies().count());
+	if (action && action->context())
+		action->setEnabled(!action->context()->roles().contains(ContactRole) && !action->context()->buddies().isEmpty());
 
-	if (action->buddies().contains(Core::instance()->myself()))
+	if (action->context()->buddies().contains(Core::instance()->myself()))
 		action->setEnabled(false);
+	else
+		action->setEnabled(true);
 }
 
 void disableMerge(Action *action)
 {
 	disableIfContactSelected(action);
 
-	if (1 != action->buddies().size())
+	if (1 != action->context()->buddies().size())
 		action->setEnabled(false);
 }
 
@@ -204,7 +188,7 @@ KaduWindowActions::KaduWindowActions(QObject *parent) : QObject(parent)
 
 	ManageModules = new ActionDescription(this,
 		ActionDescription::TypeMainMenu, "manageModulesAction",
-		PluginsManager::instance(), SLOT(showWindow(QAction *, bool)),
+		this, SLOT(manageModulesActionActivated(QAction *, bool)),
 		KaduIcon("kadu_icons/plugins"), tr("Plugins...")
 	);
 	ManageModules->setShortcut("kadu_modulesmanager", Qt::ApplicationShortcut);
@@ -223,6 +207,8 @@ KaduWindowActions::KaduWindowActions(QObject *parent) : QObject(parent)
 	);
 	AddUser->setShortcut("kadu_adduser", Qt::ApplicationShortcut);
 
+	AddConference = new AddConferenceAction(this);
+
 	AddGroup= new ActionDescription(this,
 		ActionDescription::TypeGlobal, "addGroupAction",
 		this, SLOT(addGroupActionActivated(QAction *, bool)),
@@ -232,8 +218,10 @@ KaduWindowActions::KaduWindowActions(QObject *parent) : QObject(parent)
 	OpenSearch = new ActionDescription(this,
 		ActionDescription::TypeGlobal, "openSearchAction",
 		this, SLOT(openSearchActionActivated(QAction *, bool)),
-		KaduIcon("edit-find"), tr("Search for Buddy...")
+		KaduIcon("edit-find"), tr("Search for Buddy..."), false,
+		hideNoSearchServiceAccounts
 	);
+	connect(OpenSearch, SIGNAL(actionCreated(Action*)), this, SLOT(openSearchActionCreated(Action*)));
 
 	Help = new ActionDescription(this,
 		ActionDescription::TypeMainMenu, "helpAction",
@@ -292,14 +280,14 @@ KaduWindowActions::KaduWindowActions(QObject *parent) : QObject(parent)
 		KaduIcon("edit-copy"), tr("Copy Description"), false,
 		disableNoDescription
 	);
-	BuddiesListViewMenuManager::instance()->addListActionDescription(CopyDescription, BuddiesListViewMenuItem::MenuCategoryActions, 10);
+	TalkableMenuManager::instance()->addListActionDescription(CopyDescription, TalkableMenuItem::CategoryActions, 10);
 
 	CopyPersonalInfo = new ActionDescription(this,
 		ActionDescription::TypeUser, "copyPersonalInfoAction",
 		this, SLOT(copyPersonalInfoActionActivated(QAction *, bool)),
 		KaduIcon("kadu_icons/copy-personal-info"), tr("Copy Personal Info")
 	);
-	BuddiesListViewMenuManager::instance()->addListActionDescription(CopyPersonalInfo, BuddiesListViewMenuItem::MenuCategoryActions, 20);
+	TalkableMenuManager::instance()->addListActionDescription(CopyPersonalInfo, TalkableMenuItem::CategoryActions, 20);
 
 	OpenDescriptionLink = new ActionDescription(this,
 		ActionDescription::TypeUser, "openDescriptionLinkAction",
@@ -307,7 +295,7 @@ KaduWindowActions::KaduWindowActions(QObject *parent) : QObject(parent)
 		KaduIcon("go-jump"), tr("Open Description Link in Browser..."), false,
 		disableNoDescriptionUrl
 	);
-	BuddiesListViewMenuManager::instance()->addListActionDescription(OpenDescriptionLink, BuddiesListViewMenuItem::MenuCategoryActions, 30);
+	TalkableMenuManager::instance()->addListActionDescription(OpenDescriptionLink, TalkableMenuItem::CategoryActions, 30);
 
 	WriteEmail = new ActionDescription(this,
 		ActionDescription::TypeUser, "writeEmailAction",
@@ -315,14 +303,14 @@ KaduWindowActions::KaduWindowActions(QObject *parent) : QObject(parent)
 		KaduIcon("mail-message-new"), tr("Send E-Mail"), false,
 		disableNoEMail
 	);
-	BuddiesListViewMenuManager::instance()->addActionDescription(WriteEmail, BuddiesListViewMenuItem::MenuCategoryActions, 200);
+	TalkableMenuManager::instance()->addActionDescription(WriteEmail, TalkableMenuItem::CategoryActions, 200);
 	connect(WriteEmail, SIGNAL(actionCreated(Action *)), this, SLOT(writeEmailActionCreated(Action *)));
 
 	LookupUserInfo = new ActionDescription(this,
 		ActionDescription::TypeUser, "lookupUserInfoAction",
 		this, SLOT(lookupInDirectoryActionActivated(QAction *, bool)),
 		KaduIcon("edit-find"), tr("Search in Directory"), false,
-		disableNoContact
+		disableNoSearchService
 	);
 
 	InactiveUsers = new ActionDescription(this,
@@ -359,14 +347,8 @@ KaduWindowActions::KaduWindowActions(QObject *parent) : QObject(parent)
 	);
 	connect(OnlineAndDescriptionUsers, SIGNAL(actionCreated(Action *)), this, SLOT(onlineAndDescUsersActionCreated(Action *)));
 
-	EditUser = new ActionDescription(this,
-		ActionDescription::TypeUser, "editUserAction",
-		this, SLOT(editUserActionActivated(QAction *, bool)),
-		KaduIcon("x-office-address-book"), tr("View Buddy Properties"), false,
-		checkBuddyProperties
-	);
-	connect(EditUser, SIGNAL(actionCreated(Action *)), this, SLOT(editUserActionCreated(Action *)));
-	BuddiesListViewMenuManager::instance()->addActionDescription(EditUser, BuddiesListViewMenuItem::MenuCategoryView, 0);
+	EditTalkable = new EditTalkableAction(this);
+	TalkableMenuManager::instance()->addActionDescription(EditTalkable, TalkableMenuItem::CategoryView, 0);
 
 	MergeContact = new ActionDescription(this,
 		ActionDescription::TypeUser, "mergeContactAction",
@@ -374,53 +356,33 @@ KaduWindowActions::KaduWindowActions(QObject *parent) : QObject(parent)
 		KaduIcon("kadu_icons/merge-buddies"), tr("Merge Buddies..."), false,
 		disableMerge
 	);
-	BuddiesListViewMenuManager::instance()->addActionDescription(MergeContact, BuddiesListViewMenuItem::MenuCategoryManagement, 100);
+	TalkableMenuManager::instance()->addActionDescription(MergeContact, TalkableMenuItem::CategoryManagement, 100);
 
-	BuddiesListViewMenuManager::instance()->addActionDescription(ChatWidgetManager::instance()->actions()->blockUser(), BuddiesListViewMenuItem::MenuCategoryManagement, 500);
+	TalkableMenuManager::instance()->addActionDescription(ChatWidgetManager::instance()->actions()->blockUser(), TalkableMenuItem::CategoryManagement, 500);
 
-	DeleteUsers = new ActionDescription(this,
-		ActionDescription::TypeUser, "deleteUsersAction",
-		this, SLOT(deleteUsersActionActivated(QAction *, bool)),
-		KaduIcon("edit-delete"), tr("Delete Buddy..."), false,
-		disableIfContactSelected
-	);
-	DeleteUsers->setShortcut("kadu_deleteuser");
-	BuddiesListViewMenuManager::instance()->addActionDescription(DeleteUsers, BuddiesListViewMenuItem::MenuCategoryManagement, 1000);
+	DeleteTalkable = new DeleteTalkableAction(this);
+	TalkableMenuManager::instance()->addActionDescription(DeleteTalkable, TalkableMenuItem::CategoryManagement, 1000);
 
-	// The last ActionDescription will send ActionAdded signal
+	// The last ActionDescription will send actionLoaded() signal.
+	// TODO It will not reflect all action types (see MainWindow::actionLoadedOrUnloaded() method)
+	// but will work good since KaduActions is created very early. Of course we still need a better mechanism for that.
 	Actions::instance()->unblockSignals();
 
-	ChangeStatus = new ActionDescription(this,
-		ActionDescription::TypeGlobal, "openStatusAction",
-		this, SLOT(changeStatusActionActivated(QAction *, bool)),
-		KaduIcon("kadu_icons/change-status"), tr("Change Status")
-	);
-	connect(ChangeStatus, SIGNAL(actionCreated(Action *)), this, SLOT(changeStatusActionCreated(Action *)));
-
-	connect(StatusChangerManager::instance(), SIGNAL(statusChanged(StatusContainer *, Status)), this, SLOT(statusChanged(StatusContainer *, Status)));
-	foreach (StatusContainer *statusContainer, StatusContainerManager::instance()->statusContainers())
-		statusChanged(statusContainer, StatusChangerManager::instance()->realStatus(statusContainer));
+	ChangeStatus = new ChangeStatusAction(this);
+	DefaultProxy = new DefaultProxyAction(this);
 }
 
 KaduWindowActions::~KaduWindowActions()
 {
 }
 
-void KaduWindowActions::statusChanged(StatusContainer *container, Status status)
+void KaduWindowActions::showMultilogonsActionCreated(Action *action)
 {
-	if (!container)
-		return;
-
-	KaduIcon icon = container->statusIcon(status);
-	foreach (Action *action, ChangeStatus->actions())
-		if (action->statusContainer() == container)
-			action->setIcon(icon);
-
-	if (container == StatusContainerManager::instance()->defaultStatusContainer() && container != StatusContainerManager::instance())
-		statusChanged(StatusContainerManager::instance(), status);
+	connect(AccountManager::instance(), SIGNAL(accountRegistered(Account)), action, SLOT(checkState()));
+	connect(AccountManager::instance(), SIGNAL(accountUnregistered(Account)), action, SLOT(checkState()));
 }
 
-void KaduWindowActions::showMultilogonsActionCreated(Action *action)
+void KaduWindowActions::openSearchActionCreated(Action *action)
 {
 	connect(AccountManager::instance(), SIGNAL(accountRegistered(Account)), action, SLOT(checkState()));
 	connect(AccountManager::instance(), SIGNAL(accountUnregistered(Account)), action, SLOT(checkState()));
@@ -431,17 +393,17 @@ void KaduWindowActions::inactiveUsersActionCreated(Action *action)
 	MainWindow *window = qobject_cast<MainWindow *>(action->parentWidget());
 	if (!window)
 		return;
-	if (!window->buddiesListView())
+	if (!window->talkableProxyModel())
 		return;
 
 	bool enabled = config_file.readBoolEntry("General", "ShowOffline");
-	OfflineBuddyFilter *ofcf = new OfflineBuddyFilter(action);
-	ofcf->setEnabled(!enabled);
+	HideOfflineTalkableFilter *filter = new HideOfflineTalkableFilter(action);
+	filter->setEnabled(!enabled);
 
-	action->setData(QVariant::fromValue(ofcf));
+	action->setData(QVariant::fromValue(filter));
 	action->setChecked(enabled);
 
-	window->buddiesListView()->addFilter(ofcf);
+	window->talkableProxyModel()->addFilter(filter);
 }
 
 void KaduWindowActions::descriptionUsersActionCreated(Action *action)
@@ -449,17 +411,17 @@ void KaduWindowActions::descriptionUsersActionCreated(Action *action)
 	MainWindow *window = qobject_cast<MainWindow *>(action->parentWidget());
 	if (!window)
 		return;
-	if (!window->buddiesListView())
+	if (!window->talkableProxyModel())
 		return;
 
 	bool enabled = !config_file.readBoolEntry("General", "ShowWithoutDescription");
-	HasDescriptionBuddyFilter *hdcf = new HasDescriptionBuddyFilter(action);
-	hdcf->setEnabled(enabled);
+	HideWithoutDescriptionTalkableFilter *filter = new HideWithoutDescriptionTalkableFilter(action);
+	filter->setEnabled(enabled);
 
-	action->setData(QVariant::fromValue(hdcf));
+	action->setData(QVariant::fromValue(filter));
 	action->setChecked(enabled);
 
-	window->buddiesListView()->addFilter(hdcf);
+	window->talkableProxyModel()->addFilter(filter);
 }
 
 void KaduWindowActions::showDescriptionsActionCreated(Action *action)
@@ -473,40 +435,17 @@ void KaduWindowActions::onlineAndDescUsersActionCreated(Action *action)
 	MainWindow *window = qobject_cast<MainWindow *>(action->parentWidget());
 	if (!window)
 		return;
-	if (!window->buddiesListView())
+	if (!window->talkableProxyModel())
 		return;
 
 	bool enabled = config_file.readBoolEntry("General", "ShowOnlineAndDescription");
-	OnlineAndDescriptionBuddyFilter *oadcf = new OnlineAndDescriptionBuddyFilter(action);
-	oadcf->setEnabled(enabled);
+	HideOfflineWithoutDescriptionTalkableFilter *filter = new HideOfflineWithoutDescriptionTalkableFilter(action);
+	filter->setEnabled(enabled);
 
-	action->setData(QVariant::fromValue(oadcf));
+	action->setData(QVariant::fromValue(filter));
 	action->setChecked(enabled);
 
-	window->buddiesListView()->addFilter(oadcf);
-}
-
-void KaduWindowActions::editUserActionCreated(Action *action)
-{
-	Buddy buddy = action->buddy();
-	action->setEnabled(buddy);
-
-	if (buddy && buddy.isAnonymous())
-	{
-		action->setIcon(KaduIcon("contact-new"));
-		action->setText(tr("Add Buddy..."));
-	}
-}
-
-void KaduWindowActions::changeStatusActionCreated(Action *action)
-{
-	StatusContainer *statusContainer = action->statusContainer();
-	if (statusContainer)
-	{
-		StatusIcon *icon = new StatusIcon(statusContainer, action);
-		connect(icon, SIGNAL(iconUpdated(KaduIcon)), action, SLOT(setIcon(KaduIcon)));
-		action->setIcon(icon->icon());
-	}
+	window->talkableProxyModel()->addFilter(filter);
 }
 
 void KaduWindowActions::showInfoPanelActionCreated(Action *action)
@@ -519,17 +458,17 @@ void KaduWindowActions::showBlockedActionCreated(Action *action)
 	MainWindow *window = qobject_cast<MainWindow *>(action->parentWidget());
 	if (!window)
 		return;
-	if (!window->buddiesListView())
+	if (!window->talkableProxyModel())
 		return;
 
 	bool enabled = config_file.readBoolEntry("General", "ShowBlocked");
-	BlockedBuddyFilter *ibf = new BlockedBuddyFilter(action);
-	ibf->setEnabled(!enabled);
+	BlockedTalkableFilter *blockedTalkableFilter = new BlockedTalkableFilter(action);
+	blockedTalkableFilter->setEnabled(!enabled);
 
-	action->setData(QVariant::fromValue(ibf));
+	action->setData(QVariant::fromValue(blockedTalkableFilter));
 	action->setChecked(enabled);
 
-	window->buddiesListView()->addFilter(ibf);
+	window->talkableProxyModel()->addFilter(blockedTalkableFilter);
 }
 
 void KaduWindowActions::showMyselfActionCreated(Action *action)
@@ -537,15 +476,11 @@ void KaduWindowActions::showMyselfActionCreated(Action *action)
 	MainWindow *window = qobject_cast<MainWindow *>(action->parentWidget());
 	if (!window)
 		return;
-	if (!window->buddiesListView())
-		return;
-
-	BuddiesModelProxy *proxyModel = qobject_cast<BuddiesModelProxy *>(window->buddiesListView()->model());
-	if (!proxyModel)
+	if (!window->talkableProxyModel())
 		return;
 
 	bool enabled = config_file.readBoolEntry("General", "ShowMyself", false);
-	BuddiesModel *model = qobject_cast<BuddiesModel *>(proxyModel->sourceModel());
+	TalkableModel *model = qobject_cast<TalkableModel *>(window->talkableProxyModel()->sourceModel());
 	if (model)
 	{
 		model->setIncludeMyself(enabled);
@@ -555,8 +490,9 @@ void KaduWindowActions::showMyselfActionCreated(Action *action)
 
 void KaduWindowActions::writeEmailActionCreated(Action *action)
 {
-	if (action->buddy())
-		connect(action->buddy(), SIGNAL(updated()), action, SLOT(checkState()));
+	const Buddy &buddy = action->context()->buddies().toBuddy();
+	if (buddy)
+		connect(buddy, SIGNAL(updated()), action, SLOT(checkState()));
 }
 
 void KaduWindowActions::configurationActionActivated(QAction *sender, bool toggled)
@@ -583,6 +519,14 @@ void KaduWindowActions::showMultilogonsActionActivated(QAction *sender, bool tog
 	MultilogonWindow::instance()->show();
 }
 
+void KaduWindowActions::manageModulesActionActivated(QAction *sender, bool toggled)
+{
+	Q_UNUSED(sender)
+	Q_UNUSED(toggled)
+
+	ModulesWindow::show();
+}
+
 void KaduWindowActions::exitKaduActionActivated(QAction *sender, bool toggled)
 {
 	Q_UNUSED(sender)
@@ -590,7 +534,7 @@ void KaduWindowActions::exitKaduActionActivated(QAction *sender, bool toggled)
 
 	kdebugf();
 
-	qApp->quit();
+	Core::instance()->application()->quit();
 }
 
 void KaduWindowActions::addUserActionActivated(QAction *sender, bool toggled)
@@ -603,14 +547,14 @@ void KaduWindowActions::addUserActionActivated(QAction *sender, bool toggled)
 	if (!action)
 		return;
 
-	Buddy buddy = action->buddy();
+	const Buddy &buddy = action->context()->buddies().toBuddy();
 
 	if (buddy.isAnonymous())
 		(new AddBuddyWindow(action->parentWidget(), buddy, true))->show();
 	else
 		(new AddBuddyWindow(action->parentWidget()))->show();
 
- 	kdebugf2();
+	kdebugf2();
 }
 
 void KaduWindowActions::mergeContactActionActivated(QAction *sender, bool toggled)
@@ -623,7 +567,7 @@ void KaduWindowActions::mergeContactActionActivated(QAction *sender, bool toggle
 	if (!action)
 		return;
 
-	Buddy buddy = action->buddy();
+	const Buddy &buddy = action->context()->buddies().toBuddy();
 	if (buddy)
 	{
 		MergeBuddiesWindow *mergeBuddiesWindow = new MergeBuddiesWindow(buddy);
@@ -659,7 +603,7 @@ void KaduWindowActions::helpActionActivated(QAction *sender, bool toggled)
 	Q_UNUSED(toggled)
 
 	if (config_file.readEntry("General", "Language") == "pl")
-		UrlOpener::openUrl("http://www.kadu.im/w/Pomoc_online");
+		UrlOpener::openUrl("http://www.kadu.im/w/Pomoc");
 	else
 		UrlOpener::openUrl("http://www.kadu.im/w/English:Kadu:Help");
 }
@@ -715,10 +659,10 @@ void KaduWindowActions::showInfoPanelActionActivated(QAction *sender, bool toggl
 void KaduWindowActions::showBlockedActionActivated(QAction *sender, bool toggled)
 {
 	QVariant v = sender->data();
-	if (v.canConvert<BlockedBuddyFilter *>())
+	if (v.canConvert<BlockedTalkableFilter *>())
 	{
-		BlockedBuddyFilter *bbf = v.value<BlockedBuddyFilter *>();
-		bbf->setEnabled(!toggled);
+		BlockedTalkableFilter *blockedTalkableFilter = v.value<BlockedTalkableFilter *>();
+		blockedTalkableFilter->setEnabled(!toggled);
 		config_file.writeEntry("General", "ShowBlocked", toggled);
 	}
 }
@@ -728,13 +672,10 @@ void KaduWindowActions::showMyselfActionActivated(QAction *sender, bool toggled)
 	MainWindow *window = qobject_cast<MainWindow *>(sender->parentWidget());
 	if (!window)
 		return;
-	if (!window->buddiesListView())
+	if (!window->talkableProxyModel())
 		return;
 
-	BuddiesModelProxy *proxyModel = qobject_cast<BuddiesModelProxy *>(window->buddiesListView()->model());
-	if (!proxyModel)
-		return;
-	BuddiesModel *model = qobject_cast<BuddiesModel *>(proxyModel->sourceModel());
+	TalkableModel *model = qobject_cast<TalkableModel *>(window->talkableProxyModel()->sourceModel());
 	if (model)
 	{
 		model->setIncludeMyself(toggled);
@@ -752,7 +693,7 @@ void KaduWindowActions::writeEmailActionActivated(QAction *sender, bool toggled)
 	if (!action)
 		return;
 
-	Buddy buddy = action->buddy();
+	const Buddy &buddy = action->context()->buddies().toBuddy();
 	if (!buddy)
 		return;
 
@@ -772,12 +713,11 @@ void KaduWindowActions::copyDescriptionActionActivated(QAction *sender, bool tog
 	if (!action)
 		return;
 
-	Contact data = action->contact();
-
-	if (!data)
+	const Contact &contact = action->context()->contacts().toContact();
+	if (!contact)
 		return;
 
-	QString description = data.currentStatus().description();
+	const QString &description = contact.currentStatus().description();
 	if (description.isEmpty())
 		return;
 
@@ -797,12 +737,11 @@ void KaduWindowActions::openDescriptionLinkActionActivated(QAction *sender, bool
 	if (!action)
 		return;
 
-	Contact data = action->contact();
-
-	if (!data)
+	const Contact &contact = action->context()->contacts().toContact();
+	if (!contact)
 		return;
 
-	QString description = data.currentStatus().description();
+	const QString &description = contact.currentStatus().description();
 	if (description.isEmpty())
 		return;
 
@@ -824,12 +763,12 @@ void KaduWindowActions::copyPersonalInfoActionActivated(QAction *sender, bool to
 	if (!action)
 		return;
 
-	ContactSet contacts = action->contacts();
+	ContactSet contacts = action->context()->contacts();
 
 	QStringList infoList;
 	QString copyPersonalDataSyntax = config_file.readEntry("General", "CopyPersonalDataSyntax", tr("Contact: %a[ (%u)]\n[First name: %f\n][Last name: %r\n][Mobile: %m\n]"));
 	foreach (Contact contact, contacts)
-		infoList.append(Parser::parse(copyPersonalDataSyntax, BuddyOrContact(contact), false));
+		infoList.append(Parser::parse(copyPersonalDataSyntax, Talkable(contact), false));
 
 	QString info = infoList.join("\n");
 	if (info.isEmpty())
@@ -851,9 +790,12 @@ void KaduWindowActions::lookupInDirectoryActionActivated(QAction *sender, bool t
 	if (!action)
 		return;
 
-	Buddy buddy = action->buddy();
+	const Buddy &buddy = action->context()->buddies().toBuddy();
 	if (!buddy)
+	{
+		(new SearchWindow(Core::instance()->kaduWindow()))->show();
 		return;
+	}
 
 	SearchWindow *sd = new SearchWindow(Core::instance()->kaduWindow(), buddy);
 	sd->show();
@@ -862,38 +804,13 @@ void KaduWindowActions::lookupInDirectoryActionActivated(QAction *sender, bool t
 	kdebugf2();
 }
 
-void KaduWindowActions::deleteUsersActionActivated(QAction *sender, bool toggled)
-{
-	Q_UNUSED(toggled)
-
-	kdebugf();
-
-	Action *action = qobject_cast<Action *>(sender);
-	if (!action)
-		return;
-
-	deleteUserActionActivated(action->dataSource());
-}
-
-void KaduWindowActions::deleteUserActionActivated(ActionDataSource *source)
-{
-	kdebugf();
-
-	BuddySet buddySet = source->buddies();
-	if (buddySet.empty())
-		return;
-
-	BuddyDeleteWindow *deleteWindow = new BuddyDeleteWindow(buddySet);
-	deleteWindow->show();
-}
-
 void KaduWindowActions::inactiveUsersActionActivated(QAction *sender, bool toggled)
 {
 	QVariant v = sender->data();
-	if (v.canConvert<OfflineBuddyFilter *>())
+	if (v.canConvert<HideOfflineTalkableFilter *>())
 	{
-		OfflineBuddyFilter *ofcf = v.value<OfflineBuddyFilter *>();
-		ofcf->setEnabled(!toggled);
+		HideOfflineTalkableFilter *filter = v.value<HideOfflineTalkableFilter *>();
+		filter->setEnabled(!toggled);
 		config_file.writeEntry("General", "ShowOffline", toggled);
 	}
 }
@@ -901,28 +818,19 @@ void KaduWindowActions::inactiveUsersActionActivated(QAction *sender, bool toggl
 void KaduWindowActions::descriptionUsersActionActivated(QAction *sender, bool toggled)
 {
 	QVariant v = sender->data();
-	if (v.canConvert<HasDescriptionBuddyFilter *>())
+	if (v.canConvert<HideWithoutDescriptionTalkableFilter *>())
 	{
-		HasDescriptionBuddyFilter *hdcf = v.value<HasDescriptionBuddyFilter *>();
-		hdcf->setEnabled(toggled);
+		HideWithoutDescriptionTalkableFilter *filter = v.value<HideWithoutDescriptionTalkableFilter *>();
+		filter->setEnabled(toggled);
 	}
 }
 
 void KaduWindowActions::showDescriptionsActionActivated(QAction *sender, bool toggled)
 {
+	Q_UNUSED(sender)
+
 	config_file.writeEntry("Look", "ShowDesc", toggled);
-
-	Action *action = qobject_cast<Action *>(sender);
-	if (!action)
-		return;
-
-	MainWindow *window = qobject_cast<MainWindow *>(action->parentWidget());
-	if (!window)
-		return;
-	if (!window->buddiesListView())
-		return;
-
-	window->buddiesListView()->delegateConfiguration().configurationUpdated();
+	ConfigurationAwareObject::notifyAll();
 }
 
 void KaduWindowActions::onlineAndDescUsersActionActivated(QAction *sender, bool toggled)
@@ -930,72 +838,26 @@ void KaduWindowActions::onlineAndDescUsersActionActivated(QAction *sender, bool 
 	config_file.writeEntry("General", "ShowOnlineAndDescription", toggled);
 
 	QVariant v = sender->data();
-	if (v.canConvert<OnlineAndDescriptionBuddyFilter *>())
+	if (v.canConvert<HideOfflineWithoutDescriptionTalkableFilter *>())
 	{
-		OnlineAndDescriptionBuddyFilter *oadcf = v.value<OnlineAndDescriptionBuddyFilter *>();
-		oadcf->setEnabled(toggled);
+		HideOfflineWithoutDescriptionTalkableFilter *filter = v.value<HideOfflineWithoutDescriptionTalkableFilter *>();
+		filter->setEnabled(toggled);
 	}
-}
-
-void KaduWindowActions::editUserActionActivated(QAction *sender, bool toggled)
-{
-	Q_UNUSED(toggled)
-
-	kdebugf();
-
-	Action *action = qobject_cast<Action *>(sender);
-	if (!action)
-		return;
-
-	editUserActionActivated(action->dataSource());
-}
-
-void KaduWindowActions::editUserActionActivated(ActionDataSource *source)
-{
-	kdebugf();
-
-	BuddySet buddySet = source->buddies();
-	if (1 != buddySet.count())
-		return;
-
-	Buddy buddy = *buddySet.constBegin();
-
-	if (buddy.isAnonymous())
-		(new AddBuddyWindow(Core::instance()->kaduWindow(), buddy, true))->show();
-	else
-		BuddyDataWindow::instance(buddy, Core::instance()->kaduWindow())->show();
-
-	kdebugf2();
-}
-
-void KaduWindowActions::changeStatusActionActivated(QAction *sender, bool toggled)
-{
-	Q_UNUSED(toggled)
-
-	Action *action = qobject_cast<Action *>(sender);
-	if (!action)
-		return;
-
-	StatusContainer *container = action->statusContainer();
-	if (!container)
-		return;
-
-	QScopedPointer<QMenu> menu(new QMenu());
-	new StatusMenu(container, false, menu.data());
-	menu->exec(QCursor::pos());
 }
 
 void KaduWindowActions::configurationUpdated()
 {
-	if (ShowInfoPanel->action(Core::instance()->kaduWindow())->isChecked() != config_file.readBoolEntry("Look", "ShowInfoPanel"))
-		ShowInfoPanel->action(Core::instance()->kaduWindow())->trigger();
+	ActionContext *context = Core::instance()->kaduWindow()->actionContext();
 
-	if (InactiveUsers->action(Core::instance()->kaduWindow())->isChecked() != config_file.readBoolEntry("General", "ShowOffline"))
-		InactiveUsers->action(Core::instance()->kaduWindow())->trigger();
+	if (ShowInfoPanel->action(context)->isChecked() != config_file.readBoolEntry("Look", "ShowInfoPanel"))
+		ShowInfoPanel->action(context)->trigger();
 
-	if (ShowBlockedBuddies->action(Core::instance()->kaduWindow())->isChecked() != config_file.readBoolEntry("General", "ShowBlocked"))
-		ShowBlockedBuddies->action(Core::instance()->kaduWindow())->trigger();
+	if (InactiveUsers->action(context)->isChecked() != config_file.readBoolEntry("General", "ShowOffline"))
+		InactiveUsers->action(context)->trigger();
 
-	if (ShowMyself->action(Core::instance()->kaduWindow())->isChecked() != config_file.readBoolEntry("General", "ShowMyself"))
-		ShowMyself->action(Core::instance()->kaduWindow())->trigger();
+	if (ShowBlockedBuddies->action(context)->isChecked() != config_file.readBoolEntry("General", "ShowBlocked"))
+		ShowBlockedBuddies->action(context)->trigger();
+
+	if (ShowMyself->action(context)->isChecked() != config_file.readBoolEntry("General", "ShowMyself"))
+		ShowMyself->action(context)->trigger();
 }

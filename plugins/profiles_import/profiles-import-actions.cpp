@@ -1,6 +1,8 @@
 /*
  * %kadu copyright begin%
+ * Copyright 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -19,6 +21,7 @@
 
 #include "core/core.h"
 #include "gui/actions/action-description.h"
+#include "gui/actions/actions.h"
 #include "gui/windows/kadu-window.h"
 
 #include "gui/windows/import-profile-window.h"
@@ -51,10 +54,15 @@ ProfilesImportActions::ProfilesImportActions() :
 {
 	if (!ProfileDataManager::readProfileData().isEmpty())
 	{
+		Actions::instance()->blockSignals();
+
 		ImportProfiles = new ActionDescription(this, ActionDescription::TypeGlobal, "import_profiles",
 				this, SLOT(importProfilesActionActivated(QAction*, bool)), KaduIcon(),
 				tr("Import profiles..."), false);
 		Core::instance()->kaduWindow()->insertMenuActionDescription(ImportProfiles, KaduWindow::MenuTools);
+
+		// The last ActionDescription will send actionLoaded() signal.
+		Actions::instance()->unblockSignals();
 	}
 
 	ImportExternalProfile = new ActionDescription(this, ActionDescription::TypeGlobal, "import_external_profile",

@@ -1,10 +1,10 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2010 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2010 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -28,12 +28,12 @@
 #include "core/core.h"
 #include "file-transfer/file-transfer-handler.h"
 #include "file-transfer/file-transfer-manager.h"
-#include "gui/actions/action.h"
 #include "gui/actions/action-description.h"
-#include "gui/widgets/buddies-list-view-menu-manager.h"
+#include "gui/actions/action.h"
+#include "gui/widgets/talkable-menu-manager.h"
 #include "gui/windows/kadu-window.h"
-#include "protocols/services/file-transfer-service.h"
 #include "protocols/protocol.h"
+#include "protocols/services/file-transfer-service.h"
 #include "debug.h"
 
 #include "file-transfer-actions.h"
@@ -44,9 +44,9 @@ void disableNonFileTransferContacts(Action *action)
 
 	action->setEnabled(false);
 
-	const ContactSet &contacts = action->contacts();
+	const ContactSet &contacts = action->context()->contacts();
 
-	if (!contacts.count())
+	if (contacts.isEmpty())
 		return;
 
 	foreach (const Contact &contact, contacts)
@@ -72,7 +72,10 @@ FileTransferActions::FileTransferActions(QObject *parent)
 		disableNonFileTransferContacts
 	);
 	SendFileActionDescription->setShortcut("kadu_sendfile");
-	BuddiesListViewMenuManager::instance()->addActionDescription(SendFileActionDescription, BuddiesListViewMenuItem::MenuCategoryActions, 100);
+	TalkableMenuManager::instance()->addActionDescription(SendFileActionDescription, TalkableMenuItem::CategoryActions, 100);
+
+	connect(SendFileActionDescription, SIGNAL(actionCreated(Action*)),
+	        this, SLOT(sendFileActionCreated(Action*)));
 
 	FileTransferWindowActionDescription = new ActionDescription(this,
 		ActionDescription::TypeMainMenu, "sendFileWindowAction",
@@ -85,8 +88,18 @@ FileTransferActions::FileTransferActions(QObject *parent)
 
 FileTransferActions::~FileTransferActions()
 {
-	BuddiesListViewMenuManager::instance()->removeActionDescription(SendFileActionDescription);
+	TalkableMenuManager::instance()->removeActionDescription(SendFileActionDescription);
 	Core::instance()->kaduWindow()->removeMenuActionDescription(FileTransferWindowActionDescription);
+}
+
+void FileTransferActions::sendFileActionCreated(Action *action)
+{
+	const Account &account = action->context()->chat().chatAccount();
+	if (!account)
+		return;
+
+	connect(account, SIGNAL(fileTransferServiceRegistered()), action, SLOT(checkState()));
+	connect(account, SIGNAL(fileTransferServiceUnregistered()), action, SLOT(checkState()));
 }
 
 void FileTransferActions::sendFileActionActivated(QAction *sender, bool toggled)
@@ -99,8 +112,8 @@ void FileTransferActions::sendFileActionActivated(QAction *sender, bool toggled)
 	if (!action)
 		return;
 
-	ContactSet contacts = action->contacts();
-	if (contacts.count())
+	ContactSet contacts = action->context()->contacts();
+	if (!contacts.isEmpty())
 		selectFilesAndSend(contacts);
 
 	kdebugf2();
@@ -127,7 +140,7 @@ QStringList FileTransferActions::selectFilesToSend()
 void FileTransferActions::selectFilesAndSend(const ContactSet &contacts)
 {
 	QStringList files = selectFilesToSend();
-	if (!files.count())
+	if (files.isEmpty())
 	{
 		kdebugf2();
 		return;

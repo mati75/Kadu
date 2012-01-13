@@ -1,10 +1,10 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Piotr Dąbrowski (ultr@ultr.pl)
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009, 2010 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Piotr Dąbrowski (ultr@ultr.pl)
+ * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -28,23 +28,26 @@
 #include <QtGui/QPushButton>
 #include <QtGui/QVBoxLayout>
 
-#include "accounts/account.h"
 #include "accounts/account-manager.h"
-#include "buddies/model/buddy-list-model.h"
+#include "accounts/account.h"
 #include "buddies/buddy-manager.h"
 #include "buddies/buddy-set.h"
-#include "buddies/buddy-shared.h"
+#include "buddies/model/buddy-list-model.h"
 #include "chat/chat-manager.h"
 #include "configuration/xml-configuration-file.h"
-#include "contacts/contact.h"
 #include "contacts/contact-manager.h"
 #include "contacts/contact-set.h"
+#include "contacts/contact.h"
 #include "core/core.h"
-#include "gui/widgets/buddies-list-view.h"
 #include "gui/widgets/chat-widget-manager.h"
+#include "gui/widgets/chat-widget.h"
+#include "gui/widgets/filtered-tree-view.h"
 #include "gui/widgets/line-edit-with-clear-button.h"
+#include "gui/widgets/talkable-tree-view.h"
 #include "misc/misc.h"
+#include "model/model-chain.h"
 #include "os/generic/url-opener.h"
+#include "talkable/model/talkable-proxy-model.h"
 
 #include "activate.h"
 #include "debug.h"
@@ -65,7 +68,7 @@ OpenChatWith * OpenChatWith::instance()
 }
 
 OpenChatWith::OpenChatWith() :
-	QWidget(0, Qt::Window), DesktopAwareObject(this), IsTyping(false), ListModel(0)
+	QWidget(0, Qt::Window), DesktopAwareObject(this), IsTyping(false), ListModel(0), Chain(0)
 {
 	kdebugf();
 
@@ -73,7 +76,7 @@ OpenChatWith::OpenChatWith() :
 
 	setWindowTitle(tr("Open chat with..."));
 	setAttribute(Qt::WA_DeleteOnClose);
-	
+
 	int width = QDesktopWidget().availableGeometry().width()*0.25;
 	int height = QDesktopWidget().availableGeometry().height()*0.3;
 	QRect rect(QDesktopWidget().availableGeometry().center().x()-width/2, QDesktopWidget().availableGeometry().center().y()-height/2, width, height);
@@ -88,8 +91,8 @@ OpenChatWith::OpenChatWith() :
 	connect(ContactID, SIGNAL(textChanged(const QString &)), this, SLOT(inputChanged(const QString &)));
 	MainLayout->addWidget(ContactID);
 
-	BuddiesWidget = new BuddiesListView(this);
-	connect(BuddiesWidget, SIGNAL(chatActivated(Chat)), this, SLOT(openChat()));
+	BuddiesWidget = new TalkableTreeView(this);
+	connect(BuddiesWidget, SIGNAL(talkableActivated(Talkable)), this, SLOT(openChat()));
 	MainLayout->addWidget(BuddiesWidget);
 
 	QDialogButtonBox *buttons = new QDialogButtonBox(Qt::Horizontal, this);
@@ -118,8 +121,8 @@ OpenChatWith::~OpenChatWith()
 	delete OpenChatRunner;
 	OpenChatRunner = 0;
 
-	delete ListModel;
-	ListModel = 0;
+	delete Chain;
+	Chain = 0;
 }
 
 bool OpenChatWith::eventFilter(QObject *obj, QEvent *e)
@@ -164,7 +167,7 @@ void OpenChatWith::keyPressEvent(QKeyEvent *e)
 			break;
 	}
 
-	if (BuddiesListView::shouldEventGoToFilter(e))
+	if (FilteredTreeView::shouldEventGoToFilter(e))
 	{
 		ContactID->setText(e->text());
 		ContactID->setFocus(Qt::OtherFocusReason);
@@ -181,17 +184,23 @@ void OpenChatWith::inputChanged(const QString &text)
 {
 	kdebugf();
 
-	BuddyList matchingContacts;
-	if (!text.isEmpty())
-		matchingContacts = OpenChatWithRunnerManager::instance()->matchingContacts(text);
+	BuddyList matchingContacts = text.isEmpty()
+			? BuddyList()
+			: OpenChatWithRunnerManager::instance()->matchingContacts(text);
 
+	delete Chain;
 	delete ListModel;
+
 	ListModel = new BuddyListModel(matchingContacts, this);
-	BuddiesWidget->setModel(ListModel);
+	Chain = new ModelChain(ListModel, this);
+	TalkableProxyModel *proxyModel = new TalkableProxyModel(Chain);
+	Chain->addProxyModel(proxyModel);
+
+	BuddiesWidget->setChain(Chain);
 
 	if (!text.isEmpty())
 	{
-		if (!IsTyping || BuddiesWidget->selectionModel()->selectedIndexes().count() == 0)
+		if (!IsTyping || BuddiesWidget->selectionModel()->selectedIndexes().isEmpty())
 		{
 			BuddiesWidget->setCurrentIndex(BuddiesWidget->model()->index(0, 0));
 			BuddiesWidget->selectionModel()->select(BuddiesWidget->model()->index(0, 0), QItemSelectionModel::SelectCurrent);
@@ -206,7 +215,7 @@ void OpenChatWith::inputChanged(const QString &text)
 
 void OpenChatWith::openChat()
 {
-	ContactSet contacts = BuddiesWidget->selectedContacts();
+	ContactSet contacts = BuddiesWidget->actionContext()->contacts();
 
 	if (contacts.isEmpty())
 	{
@@ -237,15 +246,18 @@ void OpenChatWith::openChat()
 
 	BuddySet buddies = contacts.toBuddySet();
 
-	Chat chat = ChatManager::instance()->findChat(contacts);
+	const Chat &chat = ChatManager::instance()->findChat(contacts);
 	if (chat)
 	{
-		ChatWidgetManager::instance()->openPendingMessages(chat, true);
+		ChatWidget * const chatWidget = ChatWidgetManager::instance()->byChat(chat, true);
+		if (chatWidget)
+			chatWidget->activate();
+
 		close();
 		return;
 	}
 
-	Buddy buddy = *buddies.constBegin();
+	const Buddy &buddy = *buddies.constBegin();
 	if (buddy.mobile().isEmpty() && !buddy.email().isEmpty())
 		UrlOpener::openEmail(buddy.email().toUtf8());
 

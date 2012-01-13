@@ -1,8 +1,8 @@
 /*
  * %kadu copyright begin%
+ * Copyright 2008, 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2009, 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -22,9 +22,9 @@
 #ifndef BUDDY_INFO_PANEL_H
 #define BUDDY_INFO_PANEL_H
 
-#include "buddies/buddy-or-contact.h"
 #include "configuration/configuration-aware-object.h"
 #include "contacts/contact.h"
+#include "talkable/talkable.h"
 
 #include "kadu-web-view.h"
 
@@ -32,7 +32,7 @@ class BuddyInfoPanel : public KaduWebView, private ConfigurationAwareObject
 {
 	Q_OBJECT
 
-	BuddyOrContact Item;
+	Talkable Item;
 	QString Template;
 	QString Syntax;
 	QString BackgroundColor;
@@ -53,7 +53,7 @@ public:
 	virtual void setVisible(bool visible);
 
 public slots:
-	void displayItem(BuddyOrContact item);
+	void displayItem(Talkable item);
 	void update();
 	void styleFixup(QString &syntax);
 

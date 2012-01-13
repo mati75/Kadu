@@ -1,9 +1,9 @@
 /*
  * %kadu copyright begin%
+ * Copyright 2009, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2010 Piotr Dąbrowski (ultr@ultr.pl)
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2009 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2008, 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -23,8 +23,8 @@
 #include <QtGui/QApplication>
 #include <QtGui/QLabel>
 
-#include "gui/widgets/configuration/config-select-font.h"
 #include "gui/widgets/configuration/config-group-box.h"
+#include "gui/widgets/configuration/config-select-font.h"
 
 #include "debug.h"
 
@@ -76,14 +76,8 @@ void ConfigSelectFont::saveConfiguration()
 	dataManager->writeEntry(section, item, QVariant(font().toString()));
 }
 
-void ConfigSelectFont::show()
+void ConfigSelectFont::setVisible(bool visible)
 {
-	label->show();
-	SelectFont::show();
-}
-
-void ConfigSelectFont::hide()
-{
-	label->hide();
-	SelectFont::hide();
+	label->setVisible(visible);
+	SelectFont::setVisible(visible);
 }

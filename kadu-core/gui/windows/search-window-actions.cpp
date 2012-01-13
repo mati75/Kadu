@@ -1,5 +1,7 @@
 /*
  * %kadu copyright begin%
+ * Copyright 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
@@ -23,8 +25,9 @@
 #include <QtGui/QRadioButton>
 #include <QtGui/QTreeWidget>
 
-#include "gui/actions/action.h"
 #include "gui/actions/action-description.h"
+#include "gui/actions/action.h"
+#include "gui/actions/actions.h"
 #include "gui/windows/search-window.h"
 
 #include "search-window-actions.h"
@@ -41,6 +44,8 @@ SearchWindowActions * SearchWindowActions::instance()
 
 SearchWindowActions::SearchWindowActions()
 {
+	Actions::instance()->blockSignals();
+
 	FirstSearch = new ActionDescription(this,
 		ActionDescription::TypeSearch, "firstSearchAction",
 		this, SLOT(firstSearchActionActivated(QAction*)),
@@ -75,6 +80,9 @@ SearchWindowActions::SearchWindowActions()
 		KaduIcon("contact-new"), tr("Add selected user")
 	);
 	connect(AddFound, SIGNAL(actionCreated(Action*)), this, SLOT(actionsFoundActionCreated(Action*)));
+
+	// The last ActionDescription will send actionLoaded() signal.
+	Actions::instance()->unblockSignals();
 
 	ChatFound = new ActionDescription(this,
 		ActionDescription::TypeSearch, "chatSearchedAction",

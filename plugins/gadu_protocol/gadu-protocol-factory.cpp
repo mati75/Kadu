@@ -1,12 +1,14 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2009, 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2010 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2010 badboy (badboy@gen2.org)
- * Copyright 2008, 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2009, 2009, 2010 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2010 Piotr Pełzowski (floss@pelzowski.eu)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
+ * Copyright 2010 badboy (badboy@gen2.org)
+ * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -25,13 +27,12 @@
 
 #include <QtGui/QPushButton>
 
-#include "icons/kadu-icon.h"
 #include "gui/widgets/gadu-add-account-widget.h"
 #include "gui/widgets/gadu-contact-personal-info-widget.h"
 #include "gui/widgets/gadu-create-account-widget.h"
 #include "gui/widgets/gadu-edit-account-widget.h"
+#include "icons/kadu-icon.h"
 #include "status/status-type.h"
-#include "status/status-type-manager.h"
 
 #include "gadu-account-details.h"
 #include "gadu-contact-details.h"
@@ -56,15 +57,13 @@ void GaduProtocolFactory::destroyInstance()
 
 GaduProtocolFactory::GaduProtocolFactory()
 {
-	StatusTypeManager *statusTypeManager = StatusTypeManager::instance();
-	SupportedStatusTypes.append(statusTypeManager->statusType("FreeForChat"));
-	SupportedStatusTypes.append(statusTypeManager->statusType("Online"));
-	SupportedStatusTypes.append(statusTypeManager->statusType("Away"));
-	SupportedStatusTypes.append(statusTypeManager->statusType("DoNotDisturb"));
-	SupportedStatusTypes.append(statusTypeManager->statusType("Invisible"));
-	SupportedStatusTypes.append(statusTypeManager->statusType("Offline"));
-
-	qSort(SupportedStatusTypes.begin(), SupportedStatusTypes.end(), StatusType::lessThan);
+	// already sorted
+	SupportedStatusTypes.append(StatusTypeFreeForChat);
+	SupportedStatusTypes.append(StatusTypeOnline);
+	SupportedStatusTypes.append(StatusTypeAway);
+	SupportedStatusTypes.append(StatusTypeDoNotDisturb);
+	SupportedStatusTypes.append(StatusTypeInvisible);
+	SupportedStatusTypes.append(StatusTypeOffline);
 }
 
 Protocol * GaduProtocolFactory::createProtocolHandler(Account account)
@@ -79,7 +78,7 @@ AccountDetails * GaduProtocolFactory::createAccountDetails(AccountShared *accoun
 
 ContactDetails * GaduProtocolFactory::createContactDetails(ContactShared *contactShared)
 {
-	return new GaduContactDetails(contactShared, this);
+	return new GaduContactDetails(contactShared);
 }
 
 AccountAddWidget * GaduProtocolFactory::newAddAccountWidget(bool showButtons, QWidget *parent)
@@ -103,7 +102,7 @@ AccountEditWidget * GaduProtocolFactory::newEditAccountWidget(Account account, Q
 	return result;
 }
 
-QList<StatusType *> GaduProtocolFactory::supportedStatusTypes()
+QList<StatusType> GaduProtocolFactory::supportedStatusTypes()
 {
 	return SupportedStatusTypes;
 }

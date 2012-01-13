@@ -206,12 +206,6 @@ Czy chcesz mimo to odebrać ten obrazek?</translation>
         <translation>Zmień hasło</translation>
     </message>
     <message>
-        <source>This dialog box allows you to change your current password.
-</source>
-        <translation>To okno dialogowe pozwala zmienić bieżące hasło.
-</translation>
-    </message>
-    <message>
         <source>E-Mail Address</source>
         <translation>Adres e-mail</translation>
     </message>
@@ -452,10 +446,6 @@ Hasło wpisane w polach (&quot;Hasło&quot; i &quot;Powtórz hasło&quot;) musz�
         <translation>Połączenie</translation>
     </message>
     <message>
-        <source>Proxy</source>
-        <translation>Serwer proxy</translation>
-    </message>
-    <message>
         <source>Allow file transfers</source>
         <translation>Zezwól na transfery plików</translation>
     </message>
@@ -464,20 +454,12 @@ Hasło wpisane w polach (&quot;Hasło&quot; i &quot;Powtórz hasło&quot;) musz�
         <translation>Opcje</translation>
     </message>
     <message>
-        <source>Status</source>
-        <translation>Status</translation>
-    </message>
-    <message>
         <source>Show my status to everyone</source>
         <translation>Pokaż wszystkim mój status</translation>
     </message>
     <message>
         <source>When disabled, you&apos;re visible only to buddies on your list</source>
         <translation>Gdy wyłączone, jesteś widoczny tylko dla znajomych z twojej listy</translation>
-    </message>
-    <message>
-        <source>Notifications</source>
-        <translation>Powiadomienia</translation>
     </message>
     <message>
         <source>Send composing events</source>
@@ -559,6 +541,30 @@ Hasło wpisane w polach (&quot;Hasło&quot; i &quot;Powtórz hasło&quot;) musz�
         <source>You have to compile libgadu with SSL support to be able to enable encrypted connection</source>
         <translation>Libgadu skompilowane ze wsparciem dla SSL jest wymagane aby aktywować szyfrowane połączenie</translation>
     </message>
+    <message>
+        <source>Other</source>
+        <translation>Inne</translation>
+    </message>
+    <message>
+        <source>Receive URLs from anonymous buddies</source>
+        <translation>Odbieraj linki od nieznajomych</translation>
+    </message>
+    <message>
+        <source>Proxy configuration</source>
+        <translation>Konfiguracja proxy</translation>
+    </message>
+    <message>
+        <source>Confirm checking &quot;Show my status to everyone&quot; option</source>
+        <translation>Potwierdź włączenie opcji &quot;Pokaż wszystkim mój status&quot; </translation>
+    </message>
+    <message>
+        <source>Are you sure do you want to check &quot;Show my status to everyone&quot; option?
+You have several buddies which are not allowed to see your status.
+Enabling this option will allow them to know you are available.</source>
+        <translation>Jesteś pewny, że chcesz włączyć opcję &quot;Pokaż wszystkim mój status&quot;?
+Dla kilku znajomych na liście jest włączona opcja nie udostępniania statusu.
+Po włączeniu &quot;Pokaż wszystkim mój status&quot; będą oni mogli zobaczyć twój status. </translation>
+    </message>
 </context>
 <context>
     <name>GaduPersonalInfoWidget</name>
@@ -637,10 +643,6 @@ Hasło wpisane w polach (&quot;Hasło&quot; i &quot;Powtórz hasło&quot;) musz�
     <message>
         <source>Remind password</source>
         <translation>Przypomnij hasło</translation>
-    </message>
-    <message>
-        <source>This dialog box allows you to ask server to remind your current password.</source>
-        <translation>To okno dialogowe pozwala zapytać serwer o przypomnienie bieżącego hasła.</translation>
     </message>
     <message>
         <source>E-Mail Address</source>

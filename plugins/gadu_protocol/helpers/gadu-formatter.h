@@ -1,10 +1,12 @@
 /*
  * %kadu copyright begin%
- * Copyright 2011 Piotr Dąbrowski (ultr@ultr.pl)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2009, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2009 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011 Piotr Dąbrowski (ultr@ultr.pl)
+ * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
+ * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -32,12 +34,11 @@ class FormattedMessage;
 
 namespace GaduFormatter
 {
-	GADUAPI unsigned int computeFormatsSize(const FormattedMessage &message);
 	GADUAPI unsigned char * createFormats(Account account, const FormattedMessage &message, unsigned int &size);
 
 	GADUAPI QString createImageId(GaduProtocol::UinType sender, unsigned int size, unsigned int crc32);
 
-	GADUAPI FormattedMessage createMessage(Account account, Contact contact, const QString &content, unsigned char *formats,
+	GADUAPI FormattedMessage createMessage(Account account, Contact contact, const QString &content, const unsigned char *formats,
 			unsigned int size, bool receiveImages);
 
 }

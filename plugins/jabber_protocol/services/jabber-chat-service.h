@@ -1,9 +1,9 @@
 /*
  * %kadu copyright begin%
- * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -23,6 +23,8 @@
 #ifndef JABBER_CHAT_SERVICE_H
 #define JABBER_CHAT_SERVICE_H
 
+#include <QtCore/QMap>
+
 #include <im.h>
 #include <xmpp.h>
 
@@ -36,6 +38,7 @@ class JabberChatService : public ChatService
 	Q_OBJECT
 
 	JabberProtocol *Protocol;
+        QMap<QString, QString> *ContactMessageTypes;
 
 private slots:
 	void clientMessageReceived(const XMPP::Message &msg);

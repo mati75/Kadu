@@ -1,6 +1,6 @@
 /*
  * %kadu copyright begin%
- * Copyright 2008, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2008, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -20,8 +20,8 @@
 #ifndef CONFIG_WIDGET_VALUE_H
 #define CONFIG_WIDGET_VALUE_H
 
-#include "gui/widgets/configuration/config-widget.h"
 #include "configuration/configuration-window-data-manager.h"
+#include "gui/widgets/configuration/config-widget.h"
 
 class QDomElement;
 class ConfigGroupBox;

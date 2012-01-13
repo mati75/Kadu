@@ -1,9 +1,9 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2010 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -49,7 +49,7 @@ JabberRosterService::~JabberRosterService()
 
 const QString & JabberRosterService::itemDisplay(const XMPP::RosterItem &item)
 {
-	if (!item.name().isNull())
+	if (!item.name().isEmpty())
 		return item.name();
 	else
 		return item.jid().bare();
@@ -61,10 +61,10 @@ Buddy JabberRosterService::itemBuddy(const XMPP::RosterItem &item, const Contact
 	Buddy buddy = contact.ownerBuddy();
 	if (buddy.isAnonymous()) // contact has anonymous buddy, we should search for other
 	{
-		Buddy byDispalyBuddy = BuddyManager::instance()->byDisplay(display, ActionReturnNull);
-		if (byDispalyBuddy) // move to buddy by display, why not?
+		Buddy byDisplayBuddy = BuddyManager::instance()->byDisplay(display, ActionReturnNull);
+		if (byDisplayBuddy) // move to buddy by display, why not?
 		{
-			buddy = byDispalyBuddy;
+			buddy = byDisplayBuddy;
 			contact.setOwnerBuddy(buddy);
 		}
 		else
@@ -112,7 +112,10 @@ void JabberRosterService::contactUpdated(const XMPP::RosterItem &item)
 	ContactsForDelete.removeAll(contact);
 
 	if (contact == Protocol->account().accountContact())
+	{
+		Protocol->connectContactManagerSignals();
 		return;
+	}
 
 	int subType = item.subscription().type();
 
@@ -121,7 +124,10 @@ void JabberRosterService::contactUpdated(const XMPP::RosterItem &item)
 	    || ((subType == XMPP::Subscription::None || subType == XMPP::Subscription::From) && item.ask() == "subscribe")
 	    || ((subType == XMPP::Subscription::None || subType == XMPP::Subscription::From) && (!item.name().isEmpty() || !item.groups().isEmpty()))
 	   ))
+	{
+		Protocol->connectContactManagerSignals();
 		return;
+	}
 
 	Buddy buddy = itemBuddy(item, contact);
 	BuddyManager::instance()->addItem(buddy);
@@ -179,7 +185,7 @@ void JabberRosterService::downloadRoster()
 	InRequest = true;
 
 	// flag roster for delete
-	ContactsForDelete = ContactManager::instance()->contacts(Protocol->account());
+	ContactsForDelete = ContactManager::instance()->contacts(Protocol->account()).toList();
 	ContactsForDelete.removeAll(Protocol->account().accountContact());
 
 	Protocol->client()->requestRoster();
@@ -191,7 +197,7 @@ void JabberRosterService::addContact(const Contact &contact)
 	if (Protocol->account().removing())
 		return;
 
-	if (!Protocol->isConnected() || contact.contactAccount() != Protocol->account() || contact.ownerBuddy().isAnonymous())
+	if (!Protocol->isConnected() || contact.contactAccount() != Protocol->account() || contact.isAnonymous())
 		return;
 
 	if (!Protocol->client())

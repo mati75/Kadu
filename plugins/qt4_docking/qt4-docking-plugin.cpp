@@ -1,6 +1,9 @@
 /*
  * %kadu copyright begin%
- * Copyright 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2008, 2009, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
+ * Copyright 2007, 2008, 2009, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -16,8 +19,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-
-#include "core/core.h"
 
 #include "plugins/docking/docking.h"
 
@@ -39,8 +40,7 @@ int Qt4DockingPlugin::init(bool firstLoad)
 
 void Qt4DockingPlugin::done()
 {
-	if (!Core::instance()->isClosing())
-		DockingManager::instance()->setDocker(0);
+	DockingManager::instance()->setDocker(0);
 
 	Qt4TrayIcon::destroyInstance();
 }

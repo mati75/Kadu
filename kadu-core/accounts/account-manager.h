@@ -1,8 +1,9 @@
 /*
  * %kadu copyright begin%
  * Copyright 2009, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2008 Michał Podsiadlik (michal@kadu.net)
+ * Copyright 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -28,10 +29,10 @@
 
 #include "accounts/account.h"
 #include "protocols/protocol-factory.h"
+#include "protocols/protocol.h"
 #include "storage/manager.h"
 #include "exports.h"
 
-class AccountShared;
 class Status;
 class XmlConfigFile;
 
@@ -45,11 +46,7 @@ class KADUAPI AccountManager : public QObject, public Manager<Account>
 	AccountManager();
 	virtual ~AccountManager();
 
-	friend class AccountShared;
-	void detailsLoaded(Account account);
-	void detailsUnloaded(Account account);
-
-	virtual void loaded();
+	void init();
 
 private slots:
 	void passwordProvided(const QVariant &data, const QString &password, bool permament);
@@ -66,10 +63,37 @@ protected:
 	virtual void itemAboutToBeUnregisterd(Account item);
 	virtual void itemUnregistered(Account item);
 
+	virtual void loaded();
+
 public:
 	static AccountManager * instance();
 
-	static Account bestAccount(QList<Account> accounts);
+	template<template <class> class Container>
+	static Account bestAccount(const Container<Account> &accounts)
+	{
+		Account result;
+		if (accounts.isEmpty())
+			return result;
+
+		foreach (const Account &account, accounts)
+			if (account.details() && account.data())
+			{
+				// TODO: hack
+				bool newConnected = account.data()->protocolHandler() && account.data()->protocolHandler()->isConnected();
+				bool oldConnected = false;
+				if (result)
+					oldConnected = result.data()->protocolHandler() && result.data()->protocolHandler()->isConnected();
+
+				if (!result || (newConnected && !oldConnected)  || (account.protocolName() == "gadu" && result.protocolName() != "gadu"))
+				{
+					result = account;
+					if (newConnected && result.protocolName() == "gadu")
+						break;
+				}
+			}
+
+		return result;
+	}
 
 	virtual QString storageNodeName() { return QLatin1String("Accounts"); }
 	virtual QString storageNodeItemName() { return QLatin1String("Account"); }
@@ -77,11 +101,9 @@ public:
 	Account defaultAccount();
 	Account bestAccount();
 
-	const QList<Account> byIdentity(Identity identity);
+	const QVector<Account> byIdentity(Identity identity);
 	Account byId(const QString &protocolName, const QString &id);
-	const QList<Account> byProtocolName(const QString &name);
-
-	Status status();
+	const QVector<Account> byProtocolName(const QString &name);
 
 	void removeAccountAndBuddies(Account account);
 

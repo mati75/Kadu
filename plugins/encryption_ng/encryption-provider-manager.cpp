@@ -1,7 +1,8 @@
 /*
  * %kadu copyright begin%
+ * Copyright 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -96,11 +97,16 @@ bool EncryptionProviderManager::canDecrypt(const Chat &chat)
 
 bool EncryptionProviderManager::canEncrypt(const Chat &chat)
 {
+	return (0 != defaultEncryptorProvider(chat));
+}
+
+EncryptionProvider * EncryptionProviderManager::defaultEncryptorProvider(const Chat &chat)
+{
 	foreach (EncryptionProvider *provider, Providers)
 		if (provider->canEncrypt(chat))
-			return true;
+			return provider;
 
-	return false;
+	return 0;
 }
 
 Decryptor * EncryptionProviderManager::acquireDecryptor(const Chat &chat)
@@ -110,14 +116,11 @@ Decryptor * EncryptionProviderManager::acquireDecryptor(const Chat &chat)
 
 Encryptor * EncryptionProviderManager::acquireEncryptor(const Chat &chat)
 {
-	foreach (EncryptionProvider *provider, Providers)
-	{
-		Encryptor *result = provider->acquireEncryptor(chat);
-		if (result)
-			return result;
-	}
+	EncryptionProvider *provider = defaultEncryptorProvider(chat);
+	if (!provider)
+		return 0;
 
-	return 0;
+	return provider->acquireEncryptor(chat);
 }
 
 void EncryptionProviderManager::releaseDecryptor(const Chat &chat, Decryptor *decryptor)
@@ -146,8 +149,7 @@ void EncryptionProviderManager::releaseEncryptor(const Chat &chat, Encryptor *en
 // I know it is not best place for invoking gui, please change it in future
 void EncryptionProviderManager::keyReceived(const Contact &contact, const QString &keyType, const QByteArray &keyData)
 {
-	Buddy buddy = BuddyManager::instance()->byContact(contact, ActionReturnNull);
-	if (!buddy)
+	if (contact.isAnonymous())
 		return; // just ignore anonymous contacts
 
 	Key key = KeysManager::instance()->byContactAndType(contact, keyType, ActionReturnNull);
@@ -155,7 +157,7 @@ void EncryptionProviderManager::keyReceived(const Contact &contact, const QStrin
 	if (key && key.key() == keyData)
 		return;
 
-	QString question = tr("Buddy %1 is sending you his public key.\nDo you want to save it?").arg(buddy.display());
+	QString question = tr("Buddy %1 is sending you his public key.\nDo you want to save it?").arg(contact.display(true));
 	bool answer = MessageDialog::ask(KaduIcon("dialog-question"), tr("Encryption"), question);
 
 	if (answer)

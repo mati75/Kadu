@@ -1,10 +1,12 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2009, 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009, 2010 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2010 Tomasz Rostański (rozteck@interia.pl)
+ * Copyright 2011 Piotr Dąbrowski (ultr@ultr.pl)
+ * Copyright 2008 Michał Podsiadlik (michal@kadu.net)
+ * Copyright 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -78,6 +80,7 @@ class KADUAPI YourAccounts : public QWidget, AccountsAwareObject, DesktopAwareOb
 	bool ForceWidgetChange;
 
 	ProtocolsComboBox *Protocols;
+	ProtocolFactory *LastProtocol;
 	QWidget *CreateAddAccountContainer;
 
 	QMap<ProtocolFactory *, AccountCreateWidget *> CreateWidgets;
@@ -106,7 +109,7 @@ class KADUAPI YourAccounts : public QWidget, AccountsAwareObject, DesktopAwareOb
 	bool canChangeWidget();
 
 private slots:
-	void protocolChanged(ProtocolFactory *protocolFactory, ProtocolFactory *lastProtocolFactory);
+	void protocolChanged();
 
 	void accountCreated(Account account);
 	void accountSelectionChanged(const QItemSelection &selected, const QItemSelection &deselected);

@@ -1,8 +1,8 @@
 /*
  * %kadu copyright begin%
  * Copyright 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -42,7 +42,7 @@
 /**
  * @class Manager
  * @author Rafal 'Vogel' Malinowski
- * @param Item class type of manager items, must be derivered from UuidStorableObject and DetailsHolder.
+ * @param Item class type of manager items, must be derivered from UuidStorableObject.
  * @short Object that manages instances of given Item type (including storing and loading from XML file).
  *
  * This object manages items of Item type - it allows adding, removing, searching by uuid,
@@ -57,21 +57,18 @@
  * functions: @link itemAboutToBeRegistered @endlink, @link itemRegistered @endlink,
  * @link itemAboutToBeUnregistered @endlink, @link itemUnregisterd @endlink to emit signals.
  *
- * To manager objects not derivered from @link DetailsHolder @endlink class use
- * @link SimpleManager @endlink template class.
- *
  * Class Item must implement Item loadFromStorage(const QSharedPointer\<StoragePoint\> &) static method.
  * Class Item must have static field Item null that represents unique NULL value.
  *
  * This class is thread-safe.
  */
 template<class Item>
-class KADUAPI Manager : public StorableObject
+class Manager : public StorableObject
 {
 	QMutex Mutex;
 
 	QMap<QUuid, Item> Items;
-	QList<Item> ItemsWithDetails;
+	QVector<Item> ItemsWithDetails;
 
 protected:
 	/**
@@ -226,54 +223,6 @@ protected:
 
 	/**
 	 * @author Rafal 'Vogel' Malinowski
-	 * @short Registers item already added to manager.
-	 *
-	 * This method should be run after details has been set on item that
-	 * has already been added to manager. This method has no effect
-	 * for items not added to manager or to items that has already been
-	 * registered. This method calls @link itemAboutToBeRegistered @endlink
-	 * and @link itemRegistered @endlink.
-	 */
-	void registerItem(Item item)
-	{
-		QMutexLocker locker(&Mutex);
-
-		if (ItemsWithDetails.contains(item))
-			return;
-		if (!Items.contains(item.uuid()))
-			return;
-
-		itemAboutToBeRegistered(item);
-		ItemsWithDetails.append(item);
-		itemRegistered(item);
-	}
-
-	/**
-	 * @author Rafal 'Vogel' Malinowski
-	 * @short Unegisters item already added to manager.
-	 *
-	 * This method should be run after details has been removed from item that
-	 * has already been added to manager. This method has no effect
-	 * for items not added to manager or to items that has not been
-	 * registered. This method calls @link itemAboutToBeUnregistered @endlink
-	 * and @link itemUnregisterd @endlink.
-	 */
-	void unregisterItem(Item item)
-	{
-		QMutexLocker locker(&Mutex);
-
-		if (!ItemsWithDetails.contains(item))
-			return;
-		if (!Items.contains(item.uuid()))
-			return;
-
-		itemAboutToBeUnregisterd(item);
-		ItemsWithDetails.removeAll(item);
-		itemUnregistered(item);
-	}
-
-	/**
-	 * @author Rafal 'Vogel' Malinowski
 	 * @short Loads all items from configuration file.
 	 *
 	 * Loads all items from configuration file. Uses @link storageNodeItemName @endlink
@@ -294,7 +243,7 @@ protected:
 		if (itemsNode.isNull())
 			return;
 
-		QList<QDomElement> itemElements = storage()->storage()->getNodes(itemsNode, storageNodeItemName());
+		QVector<QDomElement> itemElements = storage()->storage()->getNodes(itemsNode, storageNodeItemName());
 
 		foreach (const QDomElement &itemElement, itemElements)
 		{
@@ -311,7 +260,6 @@ protected:
 		loaded();
 	}
 
-public:
 	/**
 	 * @author Rafal 'Vogel' Malinowski
 	 * @short Stores all items to configuration file.
@@ -330,6 +278,7 @@ public:
 			item.ensureStored();
 	}
 
+public:
 	/**
 	 * @author Rafal 'Vogel' Malinowski
 	 * @short Returns item by index.
@@ -440,7 +389,7 @@ public:
 	 *
 	 * Return list of registered items.
 	 */
-	const QList<Item> & items()
+	const QVector<Item> & items()
 	{
 		QMutexLocker locker(&Mutex);
 
@@ -497,14 +446,62 @@ public:
 			return;
 
 		itemAboutToBeRemoved(item);
+		item.aboutToBeRemoved();
 
 		if (item.details())
 			unregisterItem(item);
 		Items.remove(item.uuid());
 
 		item.remove();
-
 		itemRemoved(item);
+	}
+
+	/**
+	 * @author Rafal 'Vogel' Malinowski
+	 * @short Registers item already added to manager.
+	 *
+	 * This method should be run after details has been set on item that
+	 * has already been added to manager. This method has no effect
+	 * for items not added to manager or to items that has already been
+	 * registered. This method calls @link itemAboutToBeRegistered @endlink
+	 * and @link itemRegistered @endlink.
+	 */
+	void registerItem(Item item)
+	{
+		QMutexLocker locker(&Mutex);
+
+		if (ItemsWithDetails.contains(item))
+			return;
+		if (!Items.contains(item.uuid()))
+			return;
+
+		itemAboutToBeRegistered(item);
+		ItemsWithDetails.append(item);
+		itemRegistered(item);
+	}
+
+	/**
+	 * @author Rafal 'Vogel' Malinowski
+	 * @short Unegisters item already added to manager.
+	 *
+	 * This method should be run after details has been removed from item that
+	 * has already been added to manager. This method has no effect
+	 * for items not added to manager or to items that has not been
+	 * registered. This method calls @link itemAboutToBeUnregistered @endlink
+	 * and @link itemUnregisterd @endlink.
+	 */
+	void unregisterItem(Item item)
+	{
+		QMutexLocker locker(&Mutex);
+
+		if (!ItemsWithDetails.contains(item))
+			return;
+		if (!Items.contains(item.uuid()))
+			return;
+
+		itemAboutToBeUnregisterd(item);
+		ItemsWithDetails.remove(ItemsWithDetails.indexOf(item));
+		itemUnregistered(item);
 	}
 
 };

@@ -1,18 +1,19 @@
 /*
  * %kadu copyright begin%
- * Copyright 2011 Piotr Dąbrowski (ultr@ultr.pl)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2008, 2009, 2010, 2010, 2011, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009, 2010 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2008, 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2004, 2005, 2006 Marcin Ślusarz (joi@kadu.net)
- * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
- * Copyright 2009, 2010 Maciej Płaza (plaza.maciej@gmail.com)
- * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2008 Michał Podsiadlik (michal@kadu.net)
- * Copyright 2004 Roman Krzystyniak (Ron_K@tlen.pl)
  * Copyright 2008, 2009 Tomasz Rostański (rozteck@interia.pl)
- * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2011 Piotr Dąbrowski (ultr@ultr.pl)
+ * Copyright 2011 Sławomir Stępień (s.stepien@interia.pl)
+ * Copyright 2008 Michał Podsiadlik (michal@kadu.net)
+ * Copyright 2009, 2010 Maciej Płaza (plaza.maciej@gmail.com)
+ * Copyright 2009, 2009 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2004 Roman Krzystyniak (Ron_K@tlen.pl)
+ * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
  * Copyright 2005 Paweł Płuciennik (pawel_p@kadu.net)
+ * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2004, 2005, 2006 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -34,20 +35,22 @@
 #include <QtGui/QLabel>
 #include <QtGui/QVBoxLayout>
 
-#include "contacts/contact.h"
+#include "chat/chat-manager.h"
 #include "configuration/configuration-file.h"
+#include "contacts/contact.h"
 #include "core/core.h"
 #include "gui/widgets/chat-widget-manager.h"
-#include "gui/widgets/tool-tip-class-manager.h"
 #include "gui/widgets/chat-widget.h"
+#include "gui/widgets/tool-tip-class-manager.h"
+#include "message/message-manager.h"
 #include "misc/misc.h"
 #include "notify/chat-notification.h"
 #include "notify/notification-manager.h"
 #include "parser/parser.h"
 
+#include "icons/icons-manager.h"
 #include "activate.h"
 #include "debug.h"
-#include "icons/icons-manager.h"
 #include "hints-configuration-ui-handler.h"
 #include "hints_configuration_widget.h"
 
@@ -83,7 +86,7 @@ HintManager::HintManager(QObject *parent) :
 	layout->setMargin(0);
 
 	connect(hint_timer, SIGNAL(timeout()), this, SLOT(oneSecond()));
-	connect(ChatWidgetManager::instance(), SIGNAL(chatWidgetActivated(ChatWidget *)), this, SLOT(chatWidgetActivated(ChatWidget *)));
+	connect(ChatManager::instance(), SIGNAL(chatUpdated(Chat)), this, SLOT(chatUpdated(Chat)));
 
 	const QString default_hints_syntax(QT_TRANSLATE_NOOP("HintManager", "<table>"
 "<tr>"
@@ -127,7 +130,7 @@ HintManager::~HintManager()
 	NotificationManager::instance()->unregisterNotifier(this);
 
 	disconnect(this, SIGNAL(searchingForTrayPosition(QPoint &)), Core::instance(), SIGNAL(searchingForTrayPosition(QPoint &)));
-	disconnect(ChatWidgetManager::instance(), SIGNAL(chatWidgetActivated(ChatWidget *)), this, SLOT(chatWidgetActivated(ChatWidget *)));
+	disconnect(ChatManager::instance(), SIGNAL(chatUpdated(Chat)), this, SLOT(chatUpdated(Chat)));
 
 	delete tipFrame;
 	tipFrame = 0;
@@ -237,9 +240,11 @@ void HintManager::setHint()
 			newPosition.setY(trayPosition.y() - preferredSize.height());
 	}
 
-	frame->setGeometry(newPosition.x(), newPosition.y(), preferredSize.width(), preferredSize.height());
-	frame->setFixedWidth(preferredSize.width());
 	frame->setWindowOpacity(Opacity);
+	// Only setFixedSize() and move() (in this order) guarantees correct
+	// placement on all platforms (at least those I tested).
+	frame->setFixedSize(preferredSize);
+	frame->move(newPosition);
 
 	if (frame->isVisible())
 		frame->update();
@@ -321,7 +326,14 @@ void HintManager::processButtonPress(const QString &buttonName, Hint *hint)
 
 		case 2:
 			if (hint->chat() && config_file.readBoolEntry("Hints", "DeletePendingMsgWhenHintDeleted"))
-				ChatWidgetManager::instance()->deletePendingMessages(hint->chat());
+			{
+				QList<Message> unreadMessages = MessageManager::instance()->chatUnreadMessages(hint->chat());
+				foreach (const Message &message, unreadMessages)
+				{
+					message.setStatus(MessageStatusRead);
+					MessageManager::instance()->removeUnreadMessage(message);
+				}
+			}
 
 			hint->discardNotification();
 			deleteHintAndUpdate(hint);
@@ -362,17 +374,22 @@ void HintManager::openChat(Hint *hint)
 		if ((hint->getNotification()->type() != "NewChat") && (hint->getNotification()->type() != "NewMessage"))
 			return;
 
-	ChatWidgetManager::instance()->openPendingMessages(hint->chat(), true);
+	ChatWidget * const chatWidget = ChatWidgetManager::instance()->byChat(hint->chat(), true);
+	if (chatWidget)
+		chatWidget->activate();
 
 	deleteHintAndUpdate(hint);
 
 	kdebugf2();
 }
 
-void HintManager::chatWidgetActivated(ChatWidget *chatWidget)
+void HintManager::chatUpdated(const Chat &chat)
 {
-	QPair<Chat , QString> newChat = qMakePair(chatWidget->chat(), QString("NewChat"));
-	QPair<Chat , QString> newMessage = qMakePair(chatWidget->chat(), QString("NewMessage"));
+	if (chat.unreadMessagesCount() > 0)
+		return;
+
+	QPair<Chat, QString> newChat = qMakePair(chat, QString("NewChat"));
+	QPair<Chat, QString> newMessage = qMakePair(chat, QString("NewMessage"));
 
 	if (linkedHints.contains(newChat))
 	{
@@ -387,7 +404,7 @@ void HintManager::chatWidgetActivated(ChatWidget *chatWidget)
 
 	foreach (Hint *h, hints)
 	{
-		if (h->chat() == (chatWidget->chat()) && !h->requireManualClosing())
+		if (h->chat() == chat && !h->requireManualClosing())
 			deleteHint(h);
 	}
 
@@ -475,9 +492,9 @@ void HintManager::setLayoutDirection()
 	kdebugf2();
 }
 
-void HintManager::prepareOverUserHint(QFrame *tipFrame, QLabel *tipLabel, BuddyOrContact buddyOrContact)
+void HintManager::prepareOverUserHint(QFrame *tipFrame, QLabel *tipLabel, Talkable talkable)
 {
-	QString text = Parser::parse(config_file.readEntry("Hints", "MouseOverUserSyntax"), buddyOrContact);
+	QString text = Parser::parse(config_file.readEntry("Hints", "MouseOverUserSyntax"), talkable);
 
 	/* Dorr: the file:// in img tag doesn't generate the image on hint.
 	 * for compatibility with other syntaxes we're allowing to put the file://
@@ -506,7 +523,7 @@ void HintManager::prepareOverUserHint(QFrame *tipFrame, QLabel *tipLabel, BuddyO
 	tipFrame->setFixedSize(tipLabel->sizeHint() + QSize(2 * FRAME_WIDTH, 2 * FRAME_WIDTH));
 }
 
-void HintManager::showToolTip(const QPoint &point, BuddyOrContact buddyOrContact)
+void HintManager::showToolTip(const QPoint &point, Talkable talkable)
 {
 	kdebugf();
 
@@ -529,7 +546,7 @@ void HintManager::showToolTip(const QPoint &point, BuddyOrContact buddyOrContact
 
 	lay->addWidget(tipLabel);
 
-	prepareOverUserHint(tipFrame, tipLabel, buddyOrContact);
+	prepareOverUserHint(tipFrame, tipLabel, talkable);
 
 	double opacity = config_file.readNumEntry("Hints", "HintOverUser_transparency", 0);
 	opacity = 1 - opacity/100;

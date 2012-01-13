@@ -1,8 +1,12 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Piotr Dąbrowski (ultr@ultr.pl)
  * Copyright 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2010, 2011 Piotr Dąbrowski (ultr@ultr.pl)
+ * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
+ * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -35,6 +39,7 @@
 
 #define HANDLER_SIZE 10
 #define HANDLER_HALF_SIZE (HANDLER_SIZE/2)
+#define TOOLBOX_PADDING 10
 
 CropImageWidget::CropImageWidget(QWidget *parent) :
 		QGraphicsView(parent), IsMouseButtonPressed(false)
@@ -132,21 +137,31 @@ void CropImageWidget::updateCropRectDisplay()
 	QRect normalized = CropRect.normalized();
 	SelectionFrame->setSelection(normalized);
 
-	int xMiddle = (normalized.left() + normalized.right()) / 2;
-	int yMiddle = (normalized.top() + normalized.bottom()) / 2;
-
 	// workaround for wrong cursor on negative coordinates
 	TopLeftHandler->setPos(CropRect.left() - HANDLER_HALF_SIZE, CropRect.top() - HANDLER_HALF_SIZE);
-	TopHandler->setPos(xMiddle - HANDLER_HALF_SIZE, CropRect.top() - HANDLER_HALF_SIZE);
+	TopHandler->setPos(normalized.center().x() - HANDLER_HALF_SIZE, CropRect.top() - HANDLER_HALF_SIZE);
 	TopRightHandler->setPos(CropRect.right() - HANDLER_HALF_SIZE, CropRect.top() - HANDLER_HALF_SIZE);
-	LeftHandler->setPos(CropRect.left() - HANDLER_HALF_SIZE, yMiddle - HANDLER_HALF_SIZE);
-	RightHandler->setPos(CropRect.right() - HANDLER_HALF_SIZE, yMiddle - HANDLER_HALF_SIZE);
+	LeftHandler->setPos(CropRect.left() - HANDLER_HALF_SIZE, normalized.center().y() - HANDLER_HALF_SIZE);
+	RightHandler->setPos(CropRect.right() - HANDLER_HALF_SIZE, normalized.center().y() - HANDLER_HALF_SIZE);
 	BottomLeftHandler->setPos(CropRect.left() - HANDLER_HALF_SIZE, CropRect.bottom() - HANDLER_HALF_SIZE);
-	BottomHandler->setPos(xMiddle - HANDLER_HALF_SIZE, CropRect.bottom() - HANDLER_HALF_SIZE);
+	BottomHandler->setPos(normalized.center().x() - HANDLER_HALF_SIZE, CropRect.bottom() - HANDLER_HALF_SIZE);
 	BottomRightHandler->setPos(CropRect.right() - HANDLER_HALF_SIZE, CropRect.bottom() - HANDLER_HALF_SIZE);
 
 	ToolBox->setGeometry(QString("%1x%2").arg(normalized.width()).arg(normalized.height()));
-	ToolBoxProxy->setPos(xMiddle - ToolBox->width() / 2, yMiddle - ToolBox->height() / 2);
+
+	int left = normalized.right() + TOOLBOX_PADDING;
+	if (left + ToolBox->width() > width())
+		left = normalized.left() - TOOLBOX_PADDING - ToolBox->width();
+	if (left < 0)
+		left = normalized.center().x() - ToolBox->width() / 2;
+
+	int top = normalized.bottom() + TOOLBOX_PADDING;
+	if (top + ToolBox->height() > height())
+		top = normalized.top() - TOOLBOX_PADDING - ToolBox->height();
+	if (top < 0)
+		top = normalized.center().y() - ToolBox->height() / 2;
+
+	ToolBoxProxy->setPos(left, top);
 
 	scene()->update(scene()->sceneRect());
 }
@@ -180,6 +195,10 @@ void CropImageWidget::crop()
 
 void CropImageWidget::updateToolBoxFileSizeHint()
 {
+	if (CropRect.normalized() == OldCropRect)
+		return;
+	OldCropRect = CropRect.normalized();
+
 	QBuffer buffer;
 	QPixmap pixmap = croppedPixmap();
 

@@ -1,6 +1,6 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
@@ -18,8 +18,8 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "buddies/buddy-or-contact.h"
 #include "configuration/configuration-file.h"
+#include "talkable/talkable.h"
 
 #include "tool-tip-class-manager.h"
 
@@ -84,11 +84,11 @@ void ToolTipClassManager::useToolTipClass(const QString &toolTipClassName)
 		CurrentToolTipClass = 0;
 }
 
-bool ToolTipClassManager::showToolTip(const QPoint &where, BuddyOrContact buddyOrContact)
+bool ToolTipClassManager::showToolTip(const QPoint &where, Talkable talkable)
 {
 	if (CurrentToolTipClass)
 	{
-		CurrentToolTipClass->showToolTip(where, buddyOrContact);
+		CurrentToolTipClass->showToolTip(where, talkable);
 		return true;
 	}
 

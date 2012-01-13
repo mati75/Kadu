@@ -1,9 +1,10 @@
 /*
  * %kadu copyright begin%
+ * Copyright 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2010 Piotr Dąbrowski (ultr@ultr.pl)
- * Copyright 2009, 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2009, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -28,16 +29,17 @@
 #include "gui/windows/choose-description.h"
 #include "protocols/protocol.h"
 #include "status/status-actions.h"
-#include "status/status-group.h"
-#include "status/status-type.h"
+#include "status/status-container.h"
+#include "status/status-setter.h"
 #include "status/status-type-manager.h"
+#include "status/status-type.h"
 
 #include "status-menu.h"
 
 StatusMenu::StatusMenu(StatusContainer *statusContainer, bool includePrefix, QMenu *menu) :
-		QObject(menu), Menu(menu), MyStatusContainer(statusContainer)
+		QObject(menu), Menu(menu), StatusContainers(statusContainer->subStatusContainers())
 {
-	Actions = new StatusActions(MyStatusContainer, includePrefix, this);
+	Actions = new StatusActions(statusContainer, includePrefix, this);
 
 	connect(Actions, SIGNAL(statusActionsRecreated()), this, SLOT(addStatusActions()));
 	connect(Actions, SIGNAL(statusActionsRecreated()), this, SIGNAL(menuRecreated()));
@@ -66,16 +68,19 @@ void StatusMenu::aboutToHide()
 
 void StatusMenu::changeStatus(QAction *action)
 {
-	StatusType *statusType = action->data().value<StatusType *>();
-	if (!statusType)
-		return;
+	StatusType statusType = action->data().value<StatusType>();
 
-	Status status(MyStatusContainer->status());
-	status.setType(statusType->name());
-	MyStatusContainer->setStatus(status, true);
+	foreach (StatusContainer *container, StatusContainers)
+	{
+		Status status(StatusSetter::instance()->manuallySetStatus(container));
+		status.setType(statusType);
+
+		StatusSetter::instance()->setStatus(container, status);
+		container->storeStatus(status);
+	}
 }
 
 void StatusMenu::changeDescription()
 {
-	ChooseDescription::showDialog(MyStatusContainer, MousePositionBeforeMenuHide);
+	ChooseDescription::showDialog(StatusContainers, MousePositionBeforeMenuHide, Menu);
 }

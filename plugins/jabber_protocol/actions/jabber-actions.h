@@ -1,7 +1,11 @@
 /*
  * %kadu copyright begin%
+ * Copyright 2008, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2009, 2010 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2008 Michał Podsiadlik (michal@kadu.net)
+ * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2007, 2008 Dawid Stawiarski (neeo@kadu.net)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -40,8 +44,6 @@ class JabberActions : QObject
 	ActionDescription *ResendSubscription;
 	ActionDescription *RemoveSubscription;
 	ActionDescription *AskForSubscription;
-	ActionDescription *ShowXmlConsole;
-	QMenu *ShowXmlConsoleMenu;
 
 	Contact contactFromAction(QAction *action);
 	JabberSubscriptionService * subscriptionServiceFromContact(const Contact &contact);
@@ -53,12 +55,6 @@ private slots:
 	void resendSubscriptionActionActivated(QAction *sender);
 	void removeSubscriptionActionActivated(QAction *sender);
 	void askForSubscriptionActionActivated(QAction *sender);
-
-	void showXmlConsoleActionCreated(Action *action);
-	void showXmlConsoleActionActivated(QAction *sender);
-	void updateShowXmlConsoleMenu();
-
-	void insertMenuToMainWindow();
 
 public:
 	static void registerActions();

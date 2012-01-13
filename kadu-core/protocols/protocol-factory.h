@@ -1,11 +1,13 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2009, 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2010 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2009, 2010, 2010 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2010 Tomasz Rostański (rozteck@interia.pl)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
+ * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -45,8 +47,9 @@ class ContactShared;
 class KaduIcon;
 class Protocol;
 class ProtocolMenuManager;
-class StatusType;
 class StoragePoint;
+
+enum StatusType;
 
 class KADUAPI ProtocolFactory : public QObject
 {
@@ -61,7 +64,7 @@ public:
 	virtual AccountEditWidget * newEditAccountWidget(Account, QWidget *parent = 0) = 0;
 	virtual QWidget * newContactPersonalInfoWidget(Contact contact, QWidget *parent = 0) = 0;
 	virtual ProtocolMenuManager * protocolMenuManager() { return 0; }
-	virtual QList<StatusType *> supportedStatusTypes() = 0;
+	virtual QList<StatusType> supportedStatusTypes() = 0;
 	virtual QString idLabel() = 0;
 	virtual QValidator::State validateId(QString id) = 0;
 	virtual bool canRegister() { return true; }

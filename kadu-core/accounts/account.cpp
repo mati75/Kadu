@@ -1,10 +1,13 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2009, 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2009 Michał Podsiadlik (michal@kadu.net)
+ * Copyright 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2011 Piotr Dąbrowski (ultr@ultr.pl)
+ * Copyright 2008, 2009 Michał Podsiadlik (michal@kadu.net)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
+ * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -23,19 +26,18 @@
 
 #include "accounts/account-details.h"
 #include "accounts/account-manager.h"
-#include "accounts/account-proxy-settings.h"
 #include "buddies/buddy-manager.h"
 #include "configuration/configuration-file.h"
 #include "configuration/main-configuration-holder.h"
 #include "configuration/xml-configuration-file.h"
-#include "contacts/contact.h"
 #include "contacts/contact-details.h"
 #include "contacts/contact-manager.h"
+#include "contacts/contact.h"
 #include "identities/identity.h"
-#include "protocols/protocol.h"
-#include "protocols/protocol-factory.h"
-#include "protocols/protocols-manager.h"
 #include "misc/misc.h"
+#include "protocols/protocol-factory.h"
+#include "protocols/protocol.h"
+#include "protocols/protocols-manager.h"
 
 #include "account.h"
 
@@ -83,22 +85,12 @@ Account::~Account()
 {
 }
 
-void Account::importProxySettings()
+StatusContainer * Account::statusContainer() const
 {
-	if (isNull())
-		return;
-
-	Account defaultAccount = AccountManager::instance()->defaultAccount();
-	if (defaultAccount)
-		data()->setProxySettings(defaultAccount.proxySettings()); // data is copied
-}
-
-StatusContainer * Account::statusContainer()
-{
-	if (MainConfigurationHolder::instance()->isSetStatusPerIdentity())
-		return accountIdentity().data();
+	if (!data())
+		return 0;
 	else
-		return data();
+		return data()->statusContainer();
 }
 
 KaduSharedBase_PropertyDefCRW(Account, Identity, accountIdentity, AccountIdentity, Identity::null)
@@ -111,6 +103,7 @@ KaduSharedBase_PropertyDefCRW(Account, QString, id, Id, QString())
 KaduSharedBase_PropertyDef(Account, bool, rememberPassword, RememberPassword, true)
 KaduSharedBase_PropertyDef(Account, bool, hasPassword, HasPassword, false)
 KaduSharedBase_PropertyDefCRW(Account, QString, password, Password, QString())
-KaduSharedBase_PropertyDefCRW(Account, AccountProxySettings, proxySettings, ProxySettings, AccountProxySettings())
+KaduSharedBase_PropertyDef(Account, bool, useDefaultProxy, UseDefaultProxy, true)
+KaduSharedBase_PropertyDefCRW(Account, NetworkProxy, proxy, Proxy, NetworkProxy::null)
 KaduSharedBase_PropertyDef(Account, bool, privateStatus, PrivateStatus, true)
 KaduSharedBase_PropertyDef(Account, bool, removing, Removing, true)

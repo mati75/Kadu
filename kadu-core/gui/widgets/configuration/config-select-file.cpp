@@ -1,9 +1,9 @@
 /*
  * %kadu copyright begin%
+ * Copyright 2009, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2010 Piotr Dąbrowski (ultr@ultr.pl)
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2009 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2008, 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -24,8 +24,8 @@
 #include <QtGui/QLabel>
 #include <QtXml/QDomElement>
 
-#include "gui/widgets/configuration/config-select-file.h"
 #include "gui/widgets/configuration/config-group-box.h"
+#include "gui/widgets/configuration/config-select-file.h"
 
 #include "debug.h"
 
@@ -75,16 +75,10 @@ void ConfigSelectFile::saveConfiguration()
 	dataManager->writeEntry(section, item, file());
 }
 
-void ConfigSelectFile::show()
+void ConfigSelectFile::setVisible(bool visible)
 {
-	label->show();
-	SelectFile::show();
-}
-
-void ConfigSelectFile::hide()
-{
-	label->hide();
-	SelectFile::hide();
+	label->setVisible(visible);
+	SelectFile::setVisible(visible);
 }
 
 bool ConfigSelectFile::fromDomElement(QDomElement domElement)

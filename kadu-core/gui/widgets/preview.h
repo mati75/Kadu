@@ -1,10 +1,10 @@
 /*
  * %kadu copyright begin%
+ * Copyright 2008, 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2011 Piotr Dąbrowski (ultr@ultr.pl)
+ * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2007, 2008 Dawid Stawiarski (neeo@kadu.net)
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2008, 2009, 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2007, 2008, 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -24,41 +24,36 @@
 #ifndef PREVIEW_H
 #define PREVIEW_H
 
-#include "configuration/configuration-aware-object.h"
-#include "contacts/contact.h"
-#include "contacts/contact-shared.h"
-#include "contacts/contact-set.h"
+#include <QtGui/QFrame>
 
-#include "kadu-web-view.h"
+#include "configuration/configuration-aware-object.h"
+#include "contacts/contact-set.h"
+#include "contacts/contact.h"
 
 #define PREVIEW_DEFAULT_HEIGHT 250
 
-class Preview : public KaduWebView, public ConfigurationAwareObject
+class KaduWebView;
+class MessageRenderInfo;
+
+class Preview : public QFrame, public ConfigurationAwareObject
 {
 	Q_OBJECT
 
-	Contact contact;
-	QObjectList objectsToParse;
-	ContactSet contacts;
-	QString resetBackgroundColor;
-	bool DrawFrame;
+	KaduWebView *WebView;
+
+	QList<MessageRenderInfo *> Messages;
 
 protected:
 	virtual void configurationUpdated();
-	void paintEvent(QPaintEvent *event);
 
 public:
-	Preview(QWidget *parent = 0);
-	~Preview();
+	explicit Preview(QWidget *parent = 0);
+	virtual ~Preview();
 
-	void setResetBackgroundColor(const QString &resetBackgroundColor) { this->resetBackgroundColor = resetBackgroundColor; }
-	void addObjectToParse(Contact contact, QObject *object) { contacts.insert(contact); objectsToParse.append(object); }
+	void addMessage(MessageRenderInfo *messageRenderInfo);
+	const QList<MessageRenderInfo *> & messages() const;
 
-	const QObjectList & getObjectsToParse() const { return objectsToParse; }
-	const ContactSet & getContactList() const { return contacts; }
-
-	bool drawFrame() { return DrawFrame; };
-	void setDrawFrame(bool drawFrame);
+	KaduWebView * webView() const;
 
 public slots:
 	void syntaxChanged(const QString &content);

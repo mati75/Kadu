@@ -2,6 +2,7 @@
 *                                                                           *
 *   X11tools                                                                *
 *   Copyright (C) 2008-2011  Piotr Dąbrowski ultr@ultr.pl                   *
+*   Copyright (C) 2011       Przemysław Rudy prudy1@o2.pl                   *
 *                                                                           *
 *   This program is free software: you can redistribute it and/or modify    *
 *   it under the terms of the GNU General Public License as published by    *
@@ -24,8 +25,8 @@
 #include <list>
 #include <unistd.h>
 
-#include <X11/Xutil.h>
 #include <X11/Xatom.h>
+#include <X11/Xutil.h>
 
 #include "x11tools.h"
 
@@ -1004,4 +1005,17 @@ bool X11_isCompositingManagerRunning( Display *display )
 {
 	Atom netwmcms0 = XInternAtom( display, "_NET_WM_CM_S0", False );
 	return XGetSelectionOwner( display, netwmcms0 );
+}
+
+void X11_setBlur( Display *display, Window window, bool enable )
+{
+	Atom atom = XInternAtom( display, "_KDE_NET_WM_BLUR_BEHIND_REGION", False );
+	
+	if ( atom != None )
+	{
+		if  ( enable )
+			XChangeProperty( display, window, atom, XA_CARDINAL, 32, PropModeReplace, NULL, 0 );
+		else
+			XDeleteProperty( display, window, atom );
+	}
 }

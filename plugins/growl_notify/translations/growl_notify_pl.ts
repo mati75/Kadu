@@ -2,6 +2,17 @@
 <!DOCTYPE TS>
 <TS version="2.0" language="pl">
 <context>
+    <name>GrowlNotify</name>
+    <message>
+        <source>Error</source>
+        <translation>Błąd</translation>
+    </message>
+    <message>
+        <source>Growl is not installed in your system</source>
+        <translation>Growl nie jest zainstalowany</translation>
+    </message>
+</context>
+<context>
     <name>GrowlNotifyConfigurationWidget</name>
     <message>
         <source>

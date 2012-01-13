@@ -1,12 +1,13 @@
 /*
  * %kadu copyright begin%
+ * Copyright 2010, 2010, 2011, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2009, 2009 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2009, 2009 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
+ * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2007 Dawid Stawiarski (neeo@kadu.net)
- * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2005, 2006, 2007 Marcin Ślusarz (joi@kadu.net)
- * Copyright 2007, 2008, 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2004, 2005, 2006, 2007 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -30,15 +31,14 @@
 #include "chat/chat-details-conference.h"
 #include "chat/chat-details-simple.h"
 #include "chat/chat-manager.h"
-#include "contacts/contact.h"
 #include "contacts/contact-manager.h"
 #include "contacts/contact-set.h"
+#include "contacts/contact.h"
 #include "core/core.h"
 #include "icons/icons-manager.h"
 #include "icons/kadu-icon.h"
 #include "protocols/protocol-factory.h"
 #include "protocols/protocol-state-machine.h"
-#include "status/status-changer-manager.h"
 #include "status/status-type-manager.h"
 #include "status/status.h"
 #include "debug.h"
@@ -65,9 +65,6 @@ Protocol::Protocol(Account account, ProtocolFactory *factory) :
 	connect(Machine, SIGNAL(loggedOutOfflineStateEntered()), this, SLOT(loggedOutAnyStateEntered()));
 	connect(Machine, SIGNAL(wantToLogInStateEntered()), this, SLOT(wantToLogInStateEntered()));
 	connect(Machine, SIGNAL(passwordRequiredStateEntered()), this, SLOT(passwordRequiredStateEntered()));
-
-	connect(StatusChangerManager::instance(), SIGNAL(statusChanged(StatusContainer*,Status)),
-			this, SLOT(statusChanged(StatusContainer*,Status)));
 }
 
 Protocol::~Protocol()
@@ -120,30 +117,12 @@ void Protocol::disconnectedCleanup()
 
 void Protocol::setStatus(Status status)
 {
-	StatusChangerManager::instance()->setStatus(account().statusContainer(), status);
+	LoginStatus = status;
+	doSetStatus(status);
 }
 
-Status Protocol::loginStatus() const
+void Protocol::doSetStatus(Status status)
 {
-	return StatusChangerManager::instance()->realStatus(account().statusContainer());
-}
-
-Status Protocol::status() const
-{
-	return CurrentStatus;
-}
-
-void Protocol::statusChanged(StatusContainer *container, Status status)
-{
-	if (!container || container != account().statusContainer())
-		return;
-
-	// If we are in logging-in state and user requested stopping connecting,
-	// CurrentStatus and status are both offline but we still have to emit
-	// stateMachineLogout() signal to actually stop connecting.
-	if (!status.isDisconnected() && CurrentStatus == status)
-		return;
-
 	CurrentStatus = status;
 	if (!CurrentStatus.isDisconnected())
 	{
@@ -154,6 +133,16 @@ void Protocol::statusChanged(StatusContainer *container, Status status)
 	}
 	else
 		emit stateMachineLogout();
+}
+
+Status Protocol::loginStatus() const
+{
+	return LoginStatus;
+}
+
+Status Protocol::status() const
+{
+	return CurrentStatus;
 }
 
 void Protocol::loggedIn()
@@ -180,7 +169,7 @@ void Protocol::connectionError()
 
 void Protocol::connectionClosed()
 {
-	setStatus(Status());
+	doSetStatus(Status());
 	statusChanged(Status());
 
 	emit stateMachineConnectionClosed();
@@ -199,16 +188,16 @@ KaduIcon Protocol::statusIcon()
 
 KaduIcon Protocol::statusIcon(const Status &status)
 {
-	return StatusTypeManager::instance()->statusIcon(statusPixmapPath(), status.type(), !status.description().isEmpty(), false);
-}
-
-KaduIcon Protocol::statusIcon(const QString &statusType)
-{
-	return StatusTypeManager::instance()->statusIcon(statusPixmapPath(), statusType, false, false);
+	return StatusTypeManager::instance()->statusIcon(statusPixmapPath(), status);
 }
 
 void Protocol::loggingInStateEntered()
 {
+	// this may be called from our connection error-handling code, when user wants to be logged in
+	// at any cost, so we should assume that we were just disconnected
+	// better do some cleanup then
+	disconnectedCleanup();
+
 	if (!CurrentAccount.details() || account().id().isEmpty())
 	{
 		emit stateMachineConnectionClosed();
@@ -233,7 +222,6 @@ void Protocol::loggedInStateEntered()
 	afterLoggedIn();
 
 	statusChanged(loginStatus());
-	sendStatusToServer();
 
 	emit connected(CurrentAccount);
 }

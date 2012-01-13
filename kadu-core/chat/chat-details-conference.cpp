@@ -1,10 +1,10 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2009, 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -22,9 +22,9 @@
  */
 
 #include "buddies/buddy-manager.h"
-#include "contacts/contact-set-configuration-helper.h"
-#include "chat/type/chat-type-manager.h"
 #include "chat/chat.h"
+#include "chat/type/chat-type-manager.h"
+#include "contacts/contact-set-configuration-helper.h"
 
 #include "chat-details-conference.h"
 
@@ -88,6 +88,8 @@ void ChatDetailsConference::store()
  */
 bool ChatDetailsConference::shouldStore()
 {
+	ensureLoaded();
+
 	return StorableObject::shouldStore() && !Contacts.isEmpty();
 }
 
@@ -114,8 +116,8 @@ ChatType * ChatDetailsConference::type() const
 QString ChatDetailsConference::name() const
 {
 	QStringList displays;
-	foreach (const Contact &contact, Contacts.toContactList())
-		displays.append(BuddyManager::instance()->byContact(contact, ActionCreateAndAdd).display());
+	foreach (const Contact &contact, Contacts)
+		displays.append(contact.display(true));
 
 	displays.sort();
 	return displays.join(", ");

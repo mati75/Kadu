@@ -1,9 +1,10 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -24,8 +25,8 @@
 #define CHAT_DETAILS_CONFERENCE_H
 
 #include "buddies/buddy-set.h"
-#include "contacts/contact.h"
 #include "contacts/contact-set.h"
+#include "contacts/contact.h"
 
 #include "chat/chat-details.h"
 
@@ -51,13 +52,12 @@ class ChatDetailsConference : public ChatDetails
 
 protected:
 	virtual void load();
+	virtual void store();
+	virtual bool shouldStore();
 
 public:
 	explicit ChatDetailsConference(ChatShared *chatData);
 	virtual ~ChatDetailsConference();
-
-	virtual void store();
-	virtual bool shouldStore();
 
 	virtual ChatType * type() const;
 	virtual ContactSet contacts() const { return Contacts; }

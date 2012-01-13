@@ -1,6 +1,8 @@
 /*
  * %kadu copyright begin%
  * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -20,9 +22,9 @@
 #include <QtGui/QTextDocument>
 
 #include "configuration/configuration-file.h"
+#include "icons/icons-manager.h"
 #include "notify/notification-manager.h"
 #include "notify/notify-event.h"
-#include "icons/icons-manager.h"
 
 #include "firewall-notification.h"
 
@@ -52,7 +54,7 @@ void FirewallNotification::notify(const Chat &chat, const Contact &sender, const
 	FirewallNotification *notification = new FirewallNotification(chat);
 	notification->setTitle(tr("Message was blocked"));
 	notification->setText(config_file.readEntry("Firewall", "notification_syntax",
-		tr("%u writes")).replace("%u", sender.ownerBuddy().display()).remove("%m"));
+		tr("%u writes")).replace("%u", sender.display(true)).remove("%m"));
 	notification->setDetails(Qt::escape(message));
 	NotificationManager::instance()->notify(notification);
 }

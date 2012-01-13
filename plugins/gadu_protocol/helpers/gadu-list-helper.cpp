@@ -1,10 +1,10 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2009, 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -26,16 +26,15 @@
 #include <QtCore/QTextStream>
 
 #include "buddies/buddy-list.h"
-#include "buddies/group.h"
 #include "buddies/group-manager.h"
-#include "contacts/contact.h"
+#include "buddies/group.h"
 #include "contacts/contact-manager.h"
-#include "contacts/contact-shared.h"
+#include "contacts/contact.h"
 
 #include "protocols/protocol.h"
 
-#include "debug.h"
 #include "misc/misc.h"
+#include "debug.h"
 
 #include "../gadu-contact-details.h"
 
@@ -252,9 +251,8 @@ BuddyList GaduListHelper::streamPost70ToBuddyList(const QString &line, Account a
 			{
 				Contact contact = Contact::create();
 				contact.setContactAccount(account);
-				GaduContactDetails *details = new GaduContactDetails(contact.data());
+				GaduContactDetails *details = dynamic_cast<GaduContactDetails *>(contact.details());
 				details->setState(StorableObject::StateNew);
-				contact.setDetails(details);
 				contact.setId(numberElement.text());
 				contact.data()->setState(StorableObject::StateNew);
 				contact.setOwnerBuddy(buddy);
@@ -313,9 +311,8 @@ Buddy GaduListHelper::linePre70ToBuddy(Account account, QStringList &sections)
 			Contact contact = Contact::create();
 			contact.setContactAccount(account);
 			contact.setId(QString::number(uin));
-			GaduContactDetails *details = new GaduContactDetails(contact.data());
+			GaduContactDetails *details = dynamic_cast<GaduContactDetails *>(contact.details());
 			details->setState(StorableObject::StateNew);
-			contact.setDetails(details);
 			contact.data()->setState(StorableObject::StateNew);
 			contact.setOwnerBuddy(buddy);
 		}
@@ -384,9 +381,8 @@ Buddy GaduListHelper::line70ToBuddy(Account account, QStringList &sections)
 			Contact contact = Contact::create();
 			contact.setContactAccount(account);
 			contact.setId(QString::number(uin));
-			GaduContactDetails *details = new GaduContactDetails(contact.data());
+			GaduContactDetails *details = dynamic_cast<GaduContactDetails *>(contact.details());
 			details->setState(StorableObject::StateNew);
-			contact.setDetails(details);
 			contact.data()->setState(StorableObject::StateNew);
 			contact.setOwnerBuddy(buddy);
 		}

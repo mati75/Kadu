@@ -1,21 +1,21 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010, 2011 Piotr Dąbrowski (ultr@ultr.pl)
- * Copyright 2007 Dawid Stawiarski (neeo@kadu.net)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2009, 2010 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2008, 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2004, 2005, 2006, 2007 Marcin Ślusarz (joi@kadu.net)
- * Copyright 2002, 2003, 2004 Adrian Smarzewski (adrian@kadu.net)
- * Copyright 2002, 2003 Tomasz Chiliński (chilek@chilan.com)
- * Copyright 2010 Maciej Płaza (plaza.maciej@gmail.com)
- * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2004 Roman Krzystyniak (Ron_K@tlen.pl)
- * Copyright 2004, 2008 Michał Podsiadlik (michal@kadu.net)
- * Copyright 2010 Tomasz Rostański (rozteck@interia.pl)
  * Copyright 2010, 2011 Tomasz Rostanski (rozteck@interia.pl)
- * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2008, 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2009, 2010 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2010, 2010, 2010 Tomasz Rostański (rozteck@interia.pl)
+ * Copyright 2010, 2011 Piotr Dąbrowski (ultr@ultr.pl)
+ * Copyright 2004, 2008 Michał Podsiadlik (michal@kadu.net)
+ * Copyright 2010 Maciej Płaza (plaza.maciej@gmail.com)
+ * Copyright 2009, 2009 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2004 Roman Krzystyniak (Ron_K@tlen.pl)
+ * Copyright 2002, 2003, 2004 Adrian Smarzewski (adrian@kadu.net)
  * Copyright 2004, 2005 Paweł Płuciennik (pawel_p@kadu.net)
+ * Copyright 2002, 2003 Tomasz Chiliński (chilek@chilan.com)
+ * Copyright 2007, 2008, 2009, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2007 Dawid Stawiarski (neeo@kadu.net)
+ * Copyright 2004, 2005, 2006, 2007 Marcin Ślusarz (joi@kadu.net)
  * Copyright 2002, 2003 Dariusz Jagodzik (mast3r@kadu.net)
  * %kadu copyright end%
  *
@@ -42,20 +42,20 @@
 #include <QtGui/QMenu>
 #include <QtGui/QMouseEvent>
 
-#include "activate.h"
-#include "accounts/account-manager.h"
-#include "chat/message/pending-messages-manager.h"
 #include "configuration/configuration-file.h"
 #include "core/core.h"
+#include "gui/widgets/chat-widget.h"
 #include "gui/widgets/status-menu.h"
 #include "gui/windows/kadu-window.h"
 #include "gui/windows/main-configuration-window.h"
 #include "icons/icons-manager.h"
 #include "icons/kadu-icon.h"
+#include "message/message-manager.h"
 #include "misc/misc.h"
 #include "protocols/protocol.h"
 #include "status/status-changer.h"
 #include "status/status-container-manager.h"
+#include "activate.h"
 #include "debug.h"
 
 #ifdef Q_OS_MAC
@@ -66,8 +66,8 @@ extern void qt_mac_set_dock_menu(QMenu *);
 
 #include "docker.h"
 
-#include "docking.h"
 #include <gui/status-icon.h>
+#include "docking.h"
 
 DockingManager * DockingManager::Instance = 0;
 
@@ -95,10 +95,14 @@ DockingManager * DockingManager::instance()
 }
 
 DockingManager::DockingManager() :
-		CurrentDocker(0), KaduWindowLastTimeVisible(true), DockMenuNeedsUpdate(true), AllAccountsMenu(0),
+		CurrentDocker(0), DockMenuNeedsUpdate(true), AllAccountsMenu(0),
 		newMessageIcon(StaticEnvelope), icon_timer(new QTimer(this)), blink(false)
 {
 	kdebugf();
+
+#ifdef Q_WS_X11
+	KaduWindowLastTimeVisible = true;
+#endif
 
 	createDefaultConfiguration();
 
@@ -107,8 +111,10 @@ DockingManager::DockingManager() :
 
 	connect(icon_timer, SIGNAL(timeout()), this, SLOT(changeIcon()));
 
-	connect(PendingMessagesManager::instance(), SIGNAL(messageAdded(Message)), this, SLOT(pendingMessageAdded()));
-	connect(PendingMessagesManager::instance(), SIGNAL(messageRemoved(Message)), this, SLOT(pendingMessageDeleted()));
+	connect(MessageManager::instance(), SIGNAL(unreadMessageAdded(Message)),
+	        this, SLOT(unreadMessageAdded()));
+	connect(MessageManager::instance(), SIGNAL(unreadMessageRemoved(Message)),
+	        this, SLOT(unreadMessageRemoved()));
 
 	connect(Core::instance(), SIGNAL(searchingForTrayPosition(QPoint&)), this, SLOT(searchingForTrayPosition(QPoint&)));
 
@@ -122,11 +128,13 @@ DockingManager::DockingManager() :
 	qt_mac_set_dock_menu(MacDockMenu);
 #endif
 
+#ifdef Q_WS_X11
 	ShowKaduAction = new QAction(tr("&Restore"), this);
 	connect(ShowKaduAction, SIGNAL(triggered()), this, SLOT(showKaduWindow()));
 
 	HideKaduAction = new QAction(tr("&Minimize"), this);
 	connect(HideKaduAction, SIGNAL(triggered()), this, SLOT(hideKaduWindow()));
+#endif
 
 	CloseKaduAction = new QAction(KaduIcon("application-exit").icon(), tr("&Exit Kadu"), this);
 	connect(CloseKaduAction, SIGNAL(triggered()), qApp, SLOT(quit()));
@@ -140,8 +148,10 @@ DockingManager::~DockingManager()
 {
 	kdebugf();
 
-	disconnect(PendingMessagesManager::instance(), SIGNAL(messageAdded(Message)), this, SLOT(pendingMessageAdded()));
-	disconnect(PendingMessagesManager::instance(), SIGNAL(messageRemoved(Message)), this, SLOT(pendingMessageDeleted()));
+	disconnect(MessageManager::instance(), SIGNAL(unreadMessageAdded(Message)),
+	           this, SLOT(unreadMessageAdded()));
+	disconnect(MessageManager::instance(), SIGNAL(unreadMessageRemoved(Message)),
+	           this, SLOT(unreadMessageRemoved()));
 
 //	disconnect(kadu, SIGNAL(searchingForTrayPosition(QPoint&)), this, SIGNAL(searchingForTrayPosition(QPoint&)));
 
@@ -158,7 +168,7 @@ DockingManager::~DockingManager()
 void DockingManager::changeIcon()
 {
 	kdebugf();
-	if (!PendingMessagesManager::instance()->hasPendingMessages() && !icon_timer->isActive())
+	if (!MessageManager::instance()->hasUnreadMessages() && !icon_timer->isActive())
 		return;
 
 	switch (newMessageIcon)
@@ -193,23 +203,23 @@ void DockingManager::changeIcon()
 	}
 }
 
-void DockingManager::pendingMessageAdded()
+void DockingManager::unreadMessageAdded()
 {
 	changeIcon();
 #ifdef Q_OS_MAC
-	MacDockingHelper::instance()->overlay(PendingMessagesManager::instance()->pendingMessages().count());
+	MacDockingHelper::instance()->overlay(MessageManager::instance()->unreadMessagesCount());
 	if (!NotificationManager::instance()->silentMode())
 		MacDockingHelper::instance()->startBounce();
 #endif
 }
 
-void DockingManager::pendingMessageDeleted()
+void DockingManager::unreadMessageRemoved()
 {
 #ifdef Q_OS_MAC
-	MacDockingHelper::instance()->overlay(PendingMessagesManager::instance()->pendingMessages().count());
+	MacDockingHelper::instance()->overlay(MessageManager::instance()->unreadMessagesCount());
 	MacDockingHelper::instance()->stopBounce();
 #endif
-	if (!PendingMessagesManager::instance()->hasPendingMessages())
+	if (!MessageManager::instance()->hasUnreadMessages())
 		if (CurrentDocker)
 			CurrentDocker->changeTrayIcon(defaultIcon());
 }
@@ -218,7 +228,7 @@ void DockingManager::defaultToolTip()
 {
 	if (config_file.readBoolEntry("General", "ShowTooltipInTray"))
 	{
-		Status status = AccountManager::instance()->status();
+		Status status = StatusContainerManager::instance()->status();
 
 		QString tiptext;
 		tiptext.append(tr("Current status:\n%1").arg(status.displayName()));
@@ -243,13 +253,21 @@ void DockingManager::hideKaduWindow()
 		kaduWindow->window()->hide();
 }
 
+void DockingManager::openUnreadMessages()
+{
+	const Message &message = MessageManager::instance()->unreadMessage();
+	ChatWidget * const chatWidget = ChatWidgetManager::instance()->byChat(message.messageChat(), true);
+	if (chatWidget)
+		chatWidget->activate();
+}
+
 void DockingManager::trayMousePressEvent(QMouseEvent * e)
 {
 	kdebugf();
 	if (e->button() == Qt::MidButton)
 	{
 		emit mousePressMidButton();
-		ChatWidgetManager::instance()->openPendingMessages(true);
+		openUnreadMessages();
 		return;
 	}
 
@@ -260,9 +278,9 @@ void DockingManager::trayMousePressEvent(QMouseEvent * e)
 		emit mousePressLeftButton();
 		kdebugm(KDEBUG_INFO, "minimized: %d, visible: %d\n", kadu->isMinimized(), kadu->isVisible());
 
-		if (PendingMessagesManager::instance()->hasPendingMessages() && (e->modifiers() != Qt::ControlModifier))
+		if (MessageManager::instance()->hasUnreadMessages() && (e->modifiers() != Qt::ControlModifier))
 		{
-			ChatWidgetManager::instance()->openPendingMessages(true);
+			openUnreadMessages();
 			return;
 		}
 
@@ -294,7 +312,7 @@ void DockingManager::statusIconChanged(const KaduIcon &icon)
 {
 	kdebugf();
 
-	if (PendingMessagesManager::instance()->hasPendingMessages() || icon_timer->isActive())
+	if (MessageManager::instance()->hasUnreadMessages() || icon_timer->isActive())
 		return;
 
 	if (CurrentDocker)
@@ -341,7 +359,11 @@ void DockingManager::setDocker(Docker *docker)
 
 void DockingManager::contextMenuAboutToBeShown()
 {
-	if (DockMenuNeedsUpdate || Core::instance()->kaduWindow()->window()->isVisible() != KaduWindowLastTimeVisible)
+	if (DockMenuNeedsUpdate
+#ifdef Q_WS_X11
+			|| Core::instance()->kaduWindow()->window()->isVisible() != KaduWindowLastTimeVisible
+#endif
+			)
 		doUpdateContextMenu();
 }
 
@@ -408,8 +430,10 @@ void DockingManager::doUpdateContextMenu()
 		DockMenu->addSeparator();
 	}
 
+#ifdef Q_WS_X11
 	KaduWindowLastTimeVisible = Core::instance()->kaduWindow()->window()->isVisible();
 	DockMenu->addAction(KaduWindowLastTimeVisible ? HideKaduAction : ShowKaduAction);
+#endif
 	DockMenu->addAction(CloseKaduAction);
 
 	DockMenuNeedsUpdate = false;
@@ -493,18 +517,16 @@ void DockingManager::unregisterModuleAction(QAction *action)
 void DockingManager::showMinimizedChats()
 {
 	foreach (ChatWidget *chat, ChatWidgetManager::instance()->chats())
-	{
-		ChatWidgetManager::instance()->activateChatWidget(chat, false);
-	}
+		chat->activate();
 }
 
 void DockingManager::dockIconClicked()
 {
 	QWidget *kadu = Core::instance()->kaduWindow()->window();
 
-	if (PendingMessagesManager::instance()->hasPendingMessages())
+	if (MessageManager::instance()->hasUnreadMessages())
 	{
-		ChatWidgetManager::instance()->openPendingMessages(true);
+		openUnreadMessages();
 		return;
 	}
 

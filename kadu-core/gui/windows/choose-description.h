@@ -1,9 +1,9 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Piotr Dąbrowski (ultr@ultr.pl)
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2009 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2009, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2010, 2010, 2011 Piotr Dąbrowski (ultr@ultr.pl)
+ * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -26,7 +26,6 @@
 #include <QtGui/QDialog>
 
 #include "os/generic/desktop-aware-object.h"
-#include "status/status.h"
 
 class QComboBox;
 class QLabel;
@@ -37,17 +36,18 @@ class ChooseDescription : public QDialog, DesktopAwareObject
 {
 	Q_OBJECT
 
-	static QMap<StatusContainer *, ChooseDescription *> Dialogs;
+	static QMap<QWidget *, ChooseDescription *> Dialogs;
 
 	QComboBox *Description;
 	QLabel *AvailableChars;
 	QPushButton *OkButton;
 
-	StatusContainer *MyStatusContainer;
+	QList<StatusContainer *> StatusContainers;
+	StatusContainer *FirstStatusContainer;
 
 	void setPosition(const QPoint &position);
 
-	explicit ChooseDescription(StatusContainer *statusContainer, QWidget *parent = 0);
+	explicit ChooseDescription(const QList<StatusContainer *> &statusContainerList, QWidget *parent = 0);
 	virtual ~ChooseDescription();
 
 private slots:
@@ -57,7 +57,19 @@ private slots:
 	void currentDescriptionChanged(const QString &);
 
 public:
-	static ChooseDescription * showDialog(StatusContainer *statusContainer, const QPoint &position = QPoint());
+	static QPoint ShowCentered;
+	/**
+	 * @short Shows new choose description dialog window.
+	 * @return Pointer to the created ChooseDescription dialog.
+	 * @param statusContainerList list of statusContainers
+	 * @param position position in which new dialog should be shown on the desktop, ChooseDescription::ShowCentered by default
+	 * @param parent dialog's parent widget, null by default
+	 *
+	 * Creates and shows new choose description dialog window.
+	 *
+	 * Use ChooseDescription::ShowCentered value for position parameter to show the widget in the center of the desktop.
+	 */
+	static ChooseDescription * showDialog(const QList<StatusContainer *> &statusContainerList, const QPoint &position = ChooseDescription::ShowCentered, QWidget *parent = 0);
 
 	virtual QSize sizeHint() const;
 

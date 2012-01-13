@@ -1,8 +1,9 @@
 /*
  * %kadu copyright begin%
- * Copyright 2009, 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2009, 2009 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2008 Tomasz Rostański (rozteck@interia.pl)
+ * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -22,6 +23,8 @@
 #ifndef SQL_HISTORY_PLUGIN
 #define SQL_HISTORY_PLUGIN
 
+#include <QtCore/QWeakPointer>
+
 #include "plugins/generic-plugin.h"
 
 class HistorySqlStorage;
@@ -31,7 +34,7 @@ class SqlHistoryPlugin : public QObject, public GenericPlugin
 	Q_OBJECT
 	Q_INTERFACES(GenericPlugin)
 
-	HistorySqlStorage *Storage;
+	QWeakPointer<HistorySqlStorage> Storage;
 
 public:
 	virtual ~SqlHistoryPlugin();
@@ -41,4 +44,4 @@ public:
 
 };
 
-#endif //SQL_HISTORY_PLUGIN
+#endif // SQL_HISTORY_PLUGIN

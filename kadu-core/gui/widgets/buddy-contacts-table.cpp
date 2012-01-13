@@ -1,10 +1,12 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2010 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2010 Maciej Płaza (plaza.maciej@gmail.com)
- * Copyright 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
+ * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -29,8 +31,8 @@
 
 #include "gui/widgets/buddy-contacts-table-delegate.h"
 #include "gui/widgets/buddy-contacts-table-item.h"
-#include "gui/widgets/buddy-contacts-table-model.h"
 #include "gui/widgets/buddy-contacts-table-model-proxy.h"
+#include "gui/widgets/buddy-contacts-table-model.h"
 #include "gui/windows/message-dialog.h"
 #include "identities/identity.h"
 #include "model/roles.h"

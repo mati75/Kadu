@@ -1,9 +1,9 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2009, 2009 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -20,6 +20,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <QtCore/QVector>
 #include <QtCore/QtAlgorithms>
 
 #include "configuration/configuration-manager.h"
@@ -103,7 +104,7 @@ void MobileNumberManager::load()
 	if (mobileNumbersNode.isNull())
 		return;
 
-	QList<QDomElement> mobileNumberNodes = storage()->storage()->getNodes(mobileNumbersNode, "MobileNumber");
+	QVector<QDomElement> mobileNumberNodes = storage()->storage()->getNodes(mobileNumbersNode, "MobileNumber");
 	foreach (QDomElement mobileNumberElement, mobileNumberNodes)
 	{
 		if (mobileNumberElement.isNull())
@@ -127,7 +128,7 @@ void MobileNumberManager::store()
 	StorableObject::store();
 
 	foreach (MobileNumber *number, Numbers)
-		number->store();
+		number->ensureStored();
 }
 
 QString MobileNumberManager::gatewayId(const QString &mobileNumber)

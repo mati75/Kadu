@@ -1,8 +1,9 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2011 Piotr Dąbrowski (ultr@ultr.pl)
  * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -24,9 +25,9 @@
 
 #include "chat/chat-styles-manager.h"
 #include "chat/style-engines/chat-style-engine.h"
-#include "chat/message/message-render-info.h"
 #include "configuration/chat-configuration-holder.h"
 #include "configuration/configuration-file.h"
+#include "message/message-render-info.h"
 
 #include "html-messages-renderer.h"
 
@@ -46,8 +47,6 @@ HtmlMessagesRenderer::~HtmlMessagesRenderer()
 void HtmlMessagesRenderer::setChat(const Chat &chat)
 {
 	MyChat = chat;
-	clearMessages();
-	refresh();
 }
 
 void HtmlMessagesRenderer::setForcePruneDisabled(bool forcePruneDisabled)
@@ -177,7 +176,7 @@ void HtmlMessagesRenderer::messageStatusChanged(Message message, MessageStatus s
 
 void HtmlMessagesRenderer::contactActivityChanged(ChatStateService::ContactActivity state, const Contact &contact)
 {
-	QString display = contact.ownerBuddy().display();
+	QString display = contact.display(true);
 	QString message;
 	switch (state)
 	{

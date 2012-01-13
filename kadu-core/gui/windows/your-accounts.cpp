@@ -1,12 +1,12 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Piotr Dąbrowski (ultr@ultr.pl)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2009, 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2010 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010 Tomasz Rostański (rozteck@interia.pl)
+ * Copyright 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2009, 2009, 2010, 2010 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2010, 2010 Tomasz Rostański (rozteck@interia.pl)
+ * Copyright 2010, 2011 Piotr Dąbrowski (ultr@ultr.pl)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -54,10 +54,10 @@
 #include "misc/misc.h"
 #include "model/actions-proxy-model.h"
 #include "model/roles.h"
-#include "protocols/protocol.h"
-#include "protocols/protocol-factory.h"
-#include "protocols/protocols-manager.h"
 #include "protocols/filter/can-register-protocol-filter.h"
+#include "protocols/protocol-factory.h"
+#include "protocols/protocol.h"
+#include "protocols/protocols-manager.h"
 
 #include "activate.h"
 
@@ -67,7 +67,7 @@ YourAccounts *YourAccounts::Instance = 0;
 
 YourAccounts::YourAccounts(QWidget *parent) :
 		QWidget(parent), DesktopAwareObject(this), CurrentWidget(0), IsCurrentWidgetEditAccount(false),
-		ForceWidgetChange(false), CanRegisterFilter(new CanRegisterProtocolFilter())
+		ForceWidgetChange(false), LastProtocol(0), CanRegisterFilter(new CanRegisterProtocolFilter())
 {
 	setWindowRole("kadu-your-accounts");
 
@@ -167,6 +167,16 @@ void YourAccounts::switchToCreateMode()
 	MainAccountLabel->setText(tr("<font size='+2'><b>Create New Account</b></font>"));
 	MainAccountGroupBox->setTitle(tr("Create New Account"));
 #endif
+
+	CurrentWidget = getAccountCreateWidget(Protocols->currentProtocol());
+	if (CurrentWidget)
+	{
+		CreateAddStack->setCurrentWidget(CurrentWidget);
+		CreateAddStack->show();
+	}
+	else
+		CreateAddStack->hide();
+
 	Protocols->addFilter(CanRegisterFilter);
 }
 
@@ -176,6 +186,16 @@ void YourAccounts::switchToAddMode()
 	MainAccountLabel->setText(tr("<font size='+2'><b>Add Existing Account</b></font>"));
 	MainAccountGroupBox->setTitle(tr("Setup an Existing Account"));
 #endif
+
+	CurrentWidget = getAccountAddWidget(Protocols->currentProtocol());
+	if (CurrentWidget)
+	{
+		CreateAddStack->setCurrentWidget(CurrentWidget);
+		CreateAddStack->show();
+	}
+	else
+		CreateAddStack->hide();
+
 	Protocols->removeFilter(CanRegisterFilter);
 }
 
@@ -219,8 +239,8 @@ void YourAccounts::createAccountWidget()
 
 	newAccountLayout->addWidget(MainAccountGroupBox, Qt::AlignTop);
 
-	connect(Protocols, SIGNAL(protocolChanged(ProtocolFactory*, ProtocolFactory*)),
-			this, SLOT(protocolChanged(ProtocolFactory*, ProtocolFactory*)));
+	connect(Protocols, SIGNAL(currentIndexChanged(int)),
+			this, SLOT(protocolChanged()));
 
 	switchToCreateMode();
 }
@@ -234,81 +254,77 @@ void YourAccounts::createEditAccountWidget()
 
 AccountCreateWidget * YourAccounts::getAccountCreateWidget(ProtocolFactory *protocol)
 {
-	AccountCreateWidget *widget = 0;
+	if (!protocol)
+		return 0;
 
 	if (!CreateWidgets.contains(protocol))
 	{
-		if (protocol)
-			widget = protocol->newCreateAccountWidget(true, CreateAddStack);
+		AccountCreateWidget *widget = protocol->newCreateAccountWidget(true, CreateAddStack);
+		Q_ASSERT(widget);
 
-		CreateWidgets[protocol] = widget;
-		if (widget)
-		{
-			connect(widget, SIGNAL(accountCreated(Account)), this, SLOT(accountCreated(Account)));
-			CreateAddStack->addWidget(widget);
-		}
+		CreateWidgets.insert(protocol, widget);
+		connect(widget, SIGNAL(accountCreated(Account)), this, SLOT(accountCreated(Account)));
+		CreateAddStack->addWidget(widget);
+
+		return widget;
 	}
-	else
-		widget = CreateWidgets[protocol];
 
-	return widget;
+	return CreateWidgets.value(protocol);
 }
 
 AccountAddWidget * YourAccounts::getAccountAddWidget(ProtocolFactory *protocol)
 {
-	AccountAddWidget *widget = 0;
+	if (!protocol)
+		return 0;
 
 	if (!AddWidgets.contains(protocol))
 	{
-		if (protocol)
-			widget = protocol->newAddAccountWidget(true, CreateAddStack);
+		AccountAddWidget *widget = protocol->newAddAccountWidget(true, CreateAddStack);
+		Q_ASSERT(widget);
 
-		AddWidgets[protocol] = widget;
-		if (widget)
-		{
-			connect(widget, SIGNAL(accountCreated(Account)), this, SLOT(accountCreated(Account)));
-			CreateAddStack->addWidget(widget);
-		}
+		AddWidgets.insert(protocol, widget);
+		connect(widget, SIGNAL(accountCreated(Account)), this, SLOT(accountCreated(Account)));
+		CreateAddStack->addWidget(widget);
+
+		return widget;
 	}
-	else
-		widget = AddWidgets[protocol];
 
-	return widget;
+	return AddWidgets.value(protocol);
 }
 
 AccountEditWidget * YourAccounts::getAccountEditWidget(Account account)
 {
-	AccountEditWidget *editWidget;
+	if (!account.protocolHandler() || !account.protocolHandler()->protocolFactory())
+		return 0;
+
 	if (!EditWidgets.contains(account))
 	{
-		editWidget = account.protocolHandler()->protocolFactory()->newEditAccountWidget(account, this);
-		EditWidgets[account] = editWidget;
+		AccountEditWidget *editWidget = account.protocolHandler()->protocolFactory()->newEditAccountWidget(account, this);
+		EditWidgets.insert(account, editWidget);
 		EditStack->addWidget(editWidget);
-	}
-	else
-		editWidget = EditWidgets[account];
 
-	return editWidget;
+		return editWidget;
+	}
+
+	return EditWidgets.value(account);
 }
 
-void YourAccounts::protocolChanged(ProtocolFactory *protocolFactory, ProtocolFactory *lastProtocolFactory)
+void YourAccounts::protocolChanged()
 {
-	Q_UNUSED(protocolFactory)
-
-	if (canChangeWidget())
-		updateCurrentWidget();
-	else
+	if (!canChangeWidget())
 	{
 		ForceWidgetChange = true;
-		Protocols->setCurrentProtocol(lastProtocolFactory);
+		Protocols->setCurrentProtocol(LastProtocol);
 		ForceWidgetChange = false;
+		return;
 	}
+
+	updateCurrentWidget();
+	LastProtocol = Protocols->currentProtocol();
 }
 
 void YourAccounts::updateCurrentWidget()
 {
-	QWidget *widget = 0;
-
 	QModelIndexList selection = AccountsView->selectionModel()->selectedIndexes();
 	if (1 != selection.size())
 		return;
@@ -318,10 +334,10 @@ void YourAccounts::updateCurrentWidget()
 	{
 		MainStack->setCurrentWidget(EditStack);
 		Account account = selection.at(0).data(AccountRole).value<Account>();
-		if (account)
+		CurrentWidget = getAccountEditWidget(account);
+		if (CurrentWidget)
 		{
-			EditStack->setCurrentWidget(getAccountEditWidget(account));
-			CurrentWidget = getAccountEditWidget(account);
+			EditStack->setCurrentWidget(CurrentWidget);
 			IsCurrentWidgetEditAccount = true;
 		}
 
@@ -332,21 +348,9 @@ void YourAccounts::updateCurrentWidget()
 
 	MainStack->setCurrentWidget(CreateAddAccountContainer);
 	if (action == CreateNewAccountAction)
-	{
-		widget = getAccountCreateWidget(Protocols->currentProtocol());
 		switchToCreateMode();
-	}
 	else if (action == AddExistingAccountAction)
-	{
-		widget = getAccountAddWidget(Protocols->currentProtocol());
 		switchToAddMode();
-	}
-
-	CreateAddStack->setVisible(0 != widget);
-	if (widget)
-		CreateAddStack->setCurrentWidget(widget);
-
-	CurrentWidget = qobject_cast<ModalConfigurationWidget *>(widget);
 }
 
 bool YourAccounts::canChangeWidget()
@@ -429,7 +433,6 @@ void YourAccounts::accountCreated(Account account)
 	if (!account)
 		return;
 
-	account.importProxySettings();
 	AccountManager::instance()->addItem(account);
 	account.accountContact().setOwnerBuddy(Core::instance()->myself());
 
@@ -440,7 +443,14 @@ void YourAccounts::accountCreated(Account account)
 void YourAccounts::selectAccount(Account account)
 {
 	AccountsView->selectionModel()->clearSelection();
-	AccountsView->selectionModel()->select(MyAccountsModel->indexForValue(account), QItemSelectionModel::Select);
+
+	const QModelIndexList &indexes = MyAccountsModel->indexListForValue(account);
+	if (indexes.isEmpty())
+		return;
+
+	Q_ASSERT(indexes.size() == 1);
+
+	AccountsView->selectionModel()->select(indexes.at(0), QItemSelectionModel::Select);
 }
 
 void YourAccounts::accountSelectionChanged(const QItemSelection &selected, const QItemSelection &deselected)
@@ -464,6 +474,9 @@ void YourAccounts::accountUnregistered(Account account)
 	QMap<Account, AccountEditWidget *>::iterator i = EditWidgets.find(account);
 	if (i != EditWidgets.end())
 	{
+		if (i.value() == CurrentWidget)
+			CurrentWidget = 0;
+
 		EditStack->removeWidget(i.value());
 		i.value()->deleteLater();
 		EditWidgets.erase(i);

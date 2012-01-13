@@ -3,8 +3,8 @@
 
 #include "plugins/generic-plugin.h"
 
-#include "plugins/mediaplayer/player_info.h"
 #include "plugins/mediaplayer/player_commands.h"
+#include "plugins/mediaplayer/player_info.h"
 
 class AmarokMediaPlayer : public PlayerCommands, PlayerInfo, GenericPlugin
 {
@@ -27,17 +27,16 @@ public:
 	virtual void done();
 
 	// PlayerInfo implementation
-	virtual QString getTitle(int position = -1);
-	virtual QString getAlbum(int position = -1);
-	virtual QString getArtist(int position = -1);
-	virtual QString getFile(int position = -1);
-	virtual int getLength(int position = -1);
+	virtual QString getTitle();
+	virtual QString getAlbum();
+	virtual QString getArtist();
+	virtual QString getFile();
+	virtual int getLength();
 	virtual int getCurrentPos();
 	virtual bool isPlaying();
 	virtual bool isActive();
 	virtual QStringList getPlayListTitles();
 	virtual QStringList getPlayListFiles();
-	virtual uint getPlayListLength();
 	virtual QString getPlayerName();
 	virtual QString getPlayerVersion();
 

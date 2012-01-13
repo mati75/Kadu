@@ -1,11 +1,11 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2008, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2008, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2008 Michał Podsiadlik (michal@kadu.net)
  * Copyright 2008 Tomasz Rostański (rozteck@interia.pl)
+ * Copyright 2008 Michał Podsiadlik (michal@kadu.net)
+ * Copyright 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -38,27 +38,29 @@ Nowa funkcjonalnosc - Dorregaray
 **/
 
 #include <QtCore/QFile>
-#include <QtCore/QTimer>
 #include <QtCore/QStringList>
+#include <QtCore/QTimer>
 #include <QtGui/QMessageBox>
 
 #include "plugins/history/history.h"
 
-#include "accounts/account.h"
 #include "accounts/account-manager.h"
+#include "accounts/account.h"
 #include "buddies/buddy-manager.h"
 #include "chat/chat-manager.h"
 #include "configuration/configuration-file.h"
 #include "core/core.h"
-#include "debug.h"
 #include "gui/widgets/chat-widget-manager.h"
+#include "gui/widgets/chat-widget.h"
 #include "gui/windows/kadu-window.h"
 #include "gui/windows/search-window.h"
 #include "icons/icons-manager.h"
+#include "misc/misc.h"
 #include "notify/notification-manager.h"
 #include "notify/notification.h"
-#include "misc/misc.h"
 #include "protocols/services/chat-service.h"
+#include "status/status-container.h"
+#include "debug.h"
 
 #include "buddy-firewall-data.h"
 #include "firewall-notification.h"
@@ -161,7 +163,7 @@ void Firewall::filterIncomingMessage(Chat chat, Contact sender, QString &message
 
 	if (CheckFloodingEmoticons)
 	{
-		if ((!EmoticonsAllowKnown || sender.ownerBuddy().isAnonymous()) && checkEmoticons(message))
+		if ((!EmoticonsAllowKnown || sender.isAnonymous()) && checkEmoticons(message))
 		{
 			ignore = true;
 			if (LastNotify.elapsed() > min_interval_notify)
@@ -240,7 +242,7 @@ bool Firewall::checkConference(const Chat &chat)
 
 	foreach (const Contact &contact, chat.contacts())
 	{
-		if (!contact.ownerBuddy().isAnonymous() || Passed.contains(contact))
+		if (!contact.isAnonymous() || Passed.contains(contact))
 		{
 			kdebugf2();
  			return false;
@@ -265,13 +267,13 @@ bool Firewall::checkChat(const Chat &chat, const Contact &sender, const QString 
  		return false;
 	}
 
-	if (!sender.ownerBuddy().isAnonymous() || Passed.contains(sender))
+	if (!sender.isAnonymous() || Passed.contains(sender))
 	{
 		kdebugf2();
  		return false;
 	}
 
-	if (chat.chatAccount().statusContainer()->status().type() == "Invisible" && DropAnonymousWhenInvisible)
+	if (chat.chatAccount().statusContainer()->status().type() == StatusTypeInvisible && DropAnonymousWhenInvisible)
 	{
 		writeLog(sender, tr("Chat with anonim silently dropped.\n") + "----------------------------------------------------\n");
 
@@ -459,7 +461,7 @@ void Firewall::filterOutgoingMessage(Chat chat, QString &msg, bool &stop)
 		if (!chat)
 			continue;
 
-		if (contact.ownerBuddy().isAnonymous() && ChatWidgetManager::instance()->byChat(chat, false))
+		if (contact.isAnonymous() && ChatWidgetManager::instance()->byChat(chat, false))
 			Passed.insert(contact);
 	}
 
@@ -469,16 +471,18 @@ void Firewall::filterOutgoingMessage(Chat chat, QString &msg, bool &stop)
 		{
 			Buddy buddy = contact.ownerBuddy();
 
-			BuddyFirewallData *bfd = 0;
 			if (buddy.data())
-				bfd = buddy.data()->moduleStorableData<BuddyFirewallData>("firewall-secured-sending", Firewall::instance(), false);
+			{
+				BuddyFirewallData *bfd = buddy.data()->moduleStorableData<BuddyFirewallData>("firewall-secured-sending", Firewall::instance(), false);
 
-			if (!bfd || !bfd->securedSending())
-				return;
+				if (!bfd || !bfd->securedSending())
+					return;
+			}
 
 			if (!SecuredTemporaryAllowed.contains(buddy))
 			{
-				switch (QMessageBox::warning(0, "Kadu", tr("Are you sure you want to send this message?"), tr("&Yes"), tr("Yes and allow until chat closed"), tr("&No"), 2, 2))
+				switch (QMessageBox::warning(ChatWidgetManager::instance()->byChat(chat, false), "Kadu",
+						tr("Are you sure you want to send this message?"), tr("&Yes"), tr("Yes and allow until chat closed"), tr("&No"), 2, 2))
 				{
 						default:
 							stop = true;
@@ -515,7 +519,7 @@ void Firewall::writeLog(const Contact &contact, const QString &message)
 
 	logFile.open(QIODevice::WriteOnly | QIODevice::Append);
 	QTextStream stream(&logFile);
-	stream << QDateTime::currentDateTime().toString() << " :: " << contact.ownerBuddy().display() << " :: " << message << "\n";
+	stream << QDateTime::currentDateTime().toString() << " :: " << contact.display(true) << " :: " << message << "\n";
 	logFile.close();
 
 	kdebugf2();
@@ -534,14 +538,9 @@ void Firewall::import_0_6_5_configuration()
 		if (buddy.isNull() || buddy.isAnonymous())
 			continue;
 
-		BuddyFirewallData *bfd = 0;
-		if (buddy.data())
-			bfd = buddy.data()->moduleStorableData<BuddyFirewallData>("firewall-secured-sending", Firewall::instance(), true);
-		if (!bfd)
-			continue;
-
-		bfd->setSecuredSending(true);;
-		bfd->store();
+		BuddyFirewallData *bfd = buddy.data()->moduleStorableData<BuddyFirewallData>("firewall-secured-sending", Firewall::instance(), true);
+		bfd->setSecuredSending(true);
+		bfd->ensureStored();
 	}
 
 	config_file.removeVariable("Firewall", "Secured_list");

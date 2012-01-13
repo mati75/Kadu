@@ -1,10 +1,12 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2008, 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2009 Michał Podsiadlik (michal@kadu.net)
+ * Copyright 2008, 2009 Michał Podsiadlik (michal@kadu.net)
+ * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
+ * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -98,7 +100,7 @@ class ModuleData;
  *
  * Every plugin can attach any data to any StorableObject by using @link moduleData @endlink
  * system. It allows to create named subnodes of arbitrary types under main XML node
- * of StorableObject. All module data object are stored as ModuleData subnodes and are
+ * of StorableObject. All module data objects are stored as ModuleData subnodes and are
  * identified by 'name' attribute, that has to be unique per ModuleData subtype.
  */
 class KADUAPI StorableObject
@@ -139,12 +141,17 @@ private:
 	QMap<QString, void *> ModulesData;
 
 	friend class ModuleData;
-	void moduleDataDestroyed(const QString &moduleName, ModuleData *moduleData);
+	void moduleDataAboutToBeDestroyed(const QString &moduleName, ModuleData *moduleData);
 
 protected:
 	virtual QSharedPointer<StoragePoint> createStoragePoint();
 
 	virtual void load();
+
+	virtual void store();
+	virtual bool shouldStore();
+
+	virtual void loaded() { };
 
 public:
 	StorableObject();
@@ -173,10 +180,6 @@ public:
 
 	const QSharedPointer<StoragePoint> & storage();
 
-	virtual void store();
-	virtual bool shouldStore();
-
-	virtual void loaded() { };
 	/**
 	 * @author Rafal 'Vogel' Malinowski
 	 * @short Returns current object state.
@@ -303,11 +306,11 @@ template<class T>
 	 * @short Loads storable ModuleData data from XML node (as subnode).
 	 * @param T type of returned value (must be class that inherits from @link ModuleData @endlink)
 	 * @param module name of module to be loaded
-	 * @param qobjectParent QObject parent of new object, it will be responsible for deleting data on module unloading
-	 * @param create when true this method can create new ModuleData (if non present)
+	 * @param qobjectParent QObject parent of new object, it will be responsible for deleting data on plugin unloading
+	 * @param create when true this method will create new ModuleData node (if not present)
 	 * @return value of XML subnode, as an object
 	 *
-	 * Loads object from XML subnode 'modules' with type T. If subnode is non present
+	 * Loads object from XML subnode 'modules' with type T. If node is not present
 	 * and create is false this method will return NULL value, else it will at least
 	 * create new object with default values.
 	 */

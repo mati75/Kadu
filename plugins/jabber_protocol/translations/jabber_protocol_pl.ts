@@ -108,6 +108,13 @@
     </message>
 </context>
 <context>
+    <name>CertificateErrorDialog</name>
+    <message>
+        <source>The %1 certificate failed the authenticity test.</source>
+        <translation>Certyfikat %1 nie przeszedł testu autentyczności.</translation>
+    </message>
+</context>
+<context>
     <name>FacebookProtocolFactory</name>
     <message>
         <source>Facebook ID:</source>
@@ -197,10 +204,6 @@
 <context>
     <name>JabberActions</name>
     <message>
-        <source>Show XML Console for Account</source>
-        <translation>Otwórz konsolę XML</translation>
-    </message>
-    <message>
         <source>Resend Subscription</source>
         <translation>Ponów subskrypcję</translation>
     </message>
@@ -253,12 +256,6 @@
     <message>
         <source>Change Password</source>
         <translation>Zmień hasło</translation>
-    </message>
-    <message>
-        <source>This dialog box allows you to change your current password.
-</source>
-        <translation>To okno dialogowe pozwala zmienić bieżące hasło.
-</translation>
     </message>
     <message>
         <source>Old Password</source>
@@ -482,10 +479,6 @@ Hasło w obu polach (&quot;Nowe Hasło&quot; oraz &quot;Powtórz hasło&quot;) m
         <translation>Połączenie</translation>
     </message>
     <message>
-        <source>Proxy</source>
-        <translation>Serwer proxy</translation>
-    </message>
-    <message>
         <source>Manually specify server host/port</source>
         <translation>Ręczne ustawienie hosta/portu</translation>
     </message>
@@ -584,6 +577,18 @@ Hasło w obu polach (&quot;Nowe Hasło&quot; oraz &quot;Powtórz hasło&quot;) m
     <message>
         <source>Remove account</source>
         <translation>Usuń konto</translation>
+    </message>
+    <message>
+        <source>Proxy configuration</source>
+        <translation>Konfiguracja proxy</translation>
+    </message>
+    <message>
+        <source>Privacy</source>
+        <translation>Prywatność</translation>
+    </message>
+    <message>
+        <source>Publish system information</source>
+        <translation>Udostępniaj informacje systemowe</translation>
     </message>
 </context>
 <context>
@@ -703,10 +708,6 @@ Szczegóły: %1</translation>
 <context>
     <name>QObject</name>
     <message>
-        <source>The %1 certificate failed the authenticity test.</source>
-        <translation>Certyfikat %1 nie przeszedł testu autentyczności.</translation>
-    </message>
-    <message>
         <source>&amp;Details...</source>
         <translation>&amp;Szczegóły...</translation>
     </message>
@@ -816,6 +817,13 @@ Szczegóły: %1</translation>
     </message>
 </context>
 <context>
+    <name>ShowXmlConsoleActionDescription</name>
+    <message>
+        <source>Show XML Console</source>
+        <translation>Otwórz konsolę XML</translation>
+    </message>
+</context>
+<context>
     <name>TestDlg</name>
     <message>
         <source>XMPP Test</source>
@@ -855,7 +863,7 @@ Copyright (C) 2003 Justin Karneges</translation>
     </message>
     <message>
         <source>Please enter the Full JID to connect with.</source>
-        <translation>Podaj pełny JabberID, z którym chcesz się połączyć</translation>
+        <translation>Podaj pełny JabberID, z którym chcesz się połączyć.</translation>
     </message>
     <message>
         <source>You must specify a host:port for the proxy.</source>
@@ -943,7 +951,7 @@ Proszę poprawić i spróbować ponownie.</translation>
     </message>
     <message>
         <source>Service Discovery</source>
-		<translation>Przeglądanie usług</translation>
+        <translation>Przeglądanie usług</translation>
     </message>
     <message>
         <source>VCard</source>

@@ -2,6 +2,7 @@
  * %kadu copyright begin%
  * Copyright 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -18,6 +19,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "chat/type/chat-type-aggregate.h"
 #include "chat/type/chat-type-aware-object.h"
 #include "chat/type/chat-type-conference.h"
 #include "chat/type/chat-type-simple.h"
@@ -35,20 +37,29 @@ ChatTypeManager * ChatTypeManager::Instance = 0;
 ChatTypeManager * ChatTypeManager::instance()
 {
 	if (0 == Instance)
+	{
 		Instance = new ChatTypeManager();
+		Instance->init();
+	}
 
 	return Instance;
 }
 
 ChatTypeManager::ChatTypeManager()
 {
-	addChatType(new ChatTypeSimple());
-	addChatType(new ChatTypeConference());
 }
 
 ChatTypeManager::~ChatTypeManager()
 {
 }
+
+void ChatTypeManager::init()
+{
+	addChatType(new ChatTypeSimple());
+	addChatType(new ChatTypeConference());
+	addChatType(new ChatTypeAggregate());
+}
+
 
 /**
  * @author Rafal 'Vogel' Malinowski

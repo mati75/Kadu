@@ -1,10 +1,10 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Piotr Dąbrowski (ultr@ultr.pl)
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009, 2010 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2009, 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2010, 2011 Piotr Dąbrowski (ultr@ultr.pl)
+ * Copyright 2009, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -38,27 +38,37 @@
 #include "parser/parser.h"
 #include "status/description-manager.h"
 #include "status/description-model.h"
+#include "status/status-container.h"
+#include "status/status-setter.h"
 
+#include "icons/icons-manager.h"
 #include "activate.h"
 #include "debug.h"
-#include "icons/icons-manager.h"
 
 #include "choose-description.h"
 
-QMap<StatusContainer *, ChooseDescription *> ChooseDescription::Dialogs;
+QMap<QWidget *, ChooseDescription *> ChooseDescription::Dialogs;
 
-ChooseDescription * ChooseDescription::showDialog(StatusContainer *statusContainer, const QPoint &position)
+/**
+ * Special value for position parameter of ChooseDescription::showDialog method. Causes the dialog to be positioned in the center of the desktop.
+ */
+QPoint ChooseDescription::ShowCentered = QPoint(-512000, -512000);
+
+ChooseDescription * ChooseDescription::showDialog(const QList<StatusContainer *> &statusContainerList, const QPoint &position, QWidget *parent)
 {
+	if (statusContainerList.isEmpty())
+		return 0;
+
 	ChooseDescription *dialog;
-	if (Dialogs.contains(statusContainer))
-		dialog = Dialogs[statusContainer];
+	if (Dialogs.contains(parent))
+		dialog = Dialogs[parent];
 	else
 	{
-		dialog = new ChooseDescription(statusContainer, Core::instance()->kaduWindow());
-		Dialogs[statusContainer] = dialog;
+		dialog = new ChooseDescription(statusContainerList, parent);
+		Dialogs[parent] = dialog;
 	}
 
-	if (!position.isNull())
+	if (position != ChooseDescription::ShowCentered)
 		dialog->setPosition(position);
 	else
 		dialog->setPosition(QPoint((qApp->desktop()->screenGeometry().width() - dialog->sizeHint().width()) / 2,
@@ -70,9 +80,13 @@ ChooseDescription * ChooseDescription::showDialog(StatusContainer *statusContain
 	return dialog;
 }
 
-ChooseDescription::ChooseDescription(StatusContainer *statusContainer, QWidget *parent) :
-		QDialog(parent), DesktopAwareObject(this), MyStatusContainer(statusContainer)
+ChooseDescription::ChooseDescription(const QList<StatusContainer *> &statusContainerList, QWidget *parent) :
+		QDialog(parent), DesktopAwareObject(this), StatusContainers(statusContainerList)
 {
+	Q_ASSERT(!StatusContainers.isEmpty());
+
+	FirstStatusContainer = StatusContainers.at(0);
+
 	kdebugf();
 
 	setWindowRole("kadu-choose-description");
@@ -86,11 +100,11 @@ ChooseDescription::ChooseDescription(StatusContainer *statusContainer, QWidget *
 	Description->setEditable(true);
 	Description->setInsertPolicy(QComboBox::NoInsert);
 	Description->completer()->setCaseSensitivity(Qt::CaseSensitive);
-	Description->setEditText(MyStatusContainer->status().description());
+	Description->setEditText(StatusSetter::instance()->manuallySetStatus(FirstStatusContainer).description());
 	connect(Description, SIGNAL(activated(int)), this, SLOT(activated(int)));
 
 	OkButton = new QPushButton(tr("&OK"), this);
-	OkButton->setIcon(MyStatusContainer->statusIcon().icon());
+	OkButton->setIcon(FirstStatusContainer->statusIcon().icon());
 	OkButton->setDefault(true);
 	connect(OkButton, SIGNAL(clicked(bool)), this, SLOT(accept()));
 
@@ -101,7 +115,7 @@ ChooseDescription::ChooseDescription(StatusContainer *statusContainer, QWidget *
 	QGridLayout *grid = new QGridLayout(this);
 	grid->addWidget(Description, 0, 0, 1, -1);
 
-	int maxDescriptionLength = MyStatusContainer->maxDescriptionLength();
+	int maxDescriptionLength = FirstStatusContainer->maxDescriptionLength();
 	if (maxDescriptionLength > 0)
 	{
 		AvailableChars = new QLabel(this);
@@ -121,14 +135,14 @@ ChooseDescription::ChooseDescription(StatusContainer *statusContainer, QWidget *
 	setMinimumSize(QDialog::sizeHint().expandedTo(QSize(250, 80)));
 
 	connect(this, SIGNAL(accepted()), this, SLOT(setDescription()));
-	connect(MyStatusContainer, SIGNAL(statusUpdated()), this, SLOT(statusUpdated()));
+	connect(FirstStatusContainer, SIGNAL(statusUpdated()), this, SLOT(statusUpdated()));
 
 	kdebugf2();
 }
 
 ChooseDescription::~ChooseDescription()
 {
-	Dialogs.remove(MyStatusContainer);
+	Dialogs.remove(parentWidget());
 }
 
 QSize ChooseDescription::sizeHint() const
@@ -158,9 +172,16 @@ void ChooseDescription::setDescription()
 	DescriptionManager::instance()->addDescription(description);
 
 	if (config_file.readBoolEntry("General", "ParseStatus", false))
-		description = Parser::parse(description, BuddyOrContact(Core::instance()->myself()), false);
+		description = Parser::parse(description, Talkable(Core::instance()->myself()), false);
 
-	MyStatusContainer->setDescription(description, true);
+	foreach (StatusContainer *container, StatusContainers)
+	{
+		Status status = StatusSetter::instance()->manuallySetStatus(container);
+		status.setDescription(description);
+
+		StatusSetter::instance()->setStatus(container, status);
+		container->storeStatus(status);
+	}
 }
 
 void ChooseDescription::activated(int index)
@@ -173,10 +194,10 @@ void ChooseDescription::activated(int index)
 void ChooseDescription::currentDescriptionChanged(const QString &text)
 {
 	int length = text.length();
-	AvailableChars->setText(' ' + QString::number(MyStatusContainer->maxDescriptionLength() - length));
+	AvailableChars->setText(' ' + QString::number(FirstStatusContainer->maxDescriptionLength() - length));
 }
 
 void ChooseDescription::statusUpdated()
 {
-	OkButton->setIcon(MyStatusContainer->statusIcon().icon());
+	OkButton->setIcon(FirstStatusContainer->statusIcon().icon());
 }

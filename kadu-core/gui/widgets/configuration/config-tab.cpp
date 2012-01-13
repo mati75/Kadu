@@ -1,7 +1,8 @@
 /*
  * %kadu copyright begin%
+ * Copyright 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2008, 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -20,13 +21,13 @@
 
 #include <QtGui/QApplication>
 #include <QtGui/QGroupBox>
-#include <QtGui/QVBoxLayout>
 #include <QtGui/QScrollArea>
 #include <QtGui/QTabWidget>
+#include <QtGui/QVBoxLayout>
 
-#include "gui/widgets/configuration/config-tab.h"
-#include "gui/widgets/configuration/config-section.h"
 #include "gui/widgets/configuration/config-group-box.h"
+#include "gui/widgets/configuration/config-section.h"
+#include "gui/widgets/configuration/config-tab.h"
 #include "gui/widgets/configuration/kadu-scroll-area.h"
 
 ConfigTab::ConfigTab(const QString &name, ConfigSection *configSection, QWidget *mainWidget) :
@@ -74,7 +75,7 @@ void ConfigTab::configGroupBoxDestroyed(QObject *obj)
 
 	MyConfigGroupBoxes.remove(static_cast<ConfigGroupBox *>(obj)->name());
 
-	if (MyConfigGroupBoxes.count() == 0)
+	if (MyConfigGroupBoxes.isEmpty())
 		deleteLater();
 }
 

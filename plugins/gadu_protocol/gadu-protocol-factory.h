@@ -1,10 +1,12 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2009, 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2010 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2009, 2009, 2010, 2010 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
+ * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -32,7 +34,7 @@ class GaduProtocolFactory : public ProtocolFactory
 	Q_DISABLE_COPY(GaduProtocolFactory)
 
 	static GaduProtocolFactory *Instance;
-	QList<StatusType *> SupportedStatusTypes;
+	QList<StatusType> SupportedStatusTypes;
 
 	GaduProtocolFactory();
 
@@ -49,7 +51,7 @@ public:
 	virtual AccountCreateWidget * newCreateAccountWidget(bool showButtons, QWidget *parent);
 	virtual AccountEditWidget * newEditAccountWidget(Account, QWidget *parent);
 	virtual QWidget * newContactPersonalInfoWidget(Contact contact, QWidget *parent = 0);
-	virtual QList<StatusType *> supportedStatusTypes();
+	virtual QList<StatusType> supportedStatusTypes();
 	virtual QString idLabel();
 	virtual QValidator::State validateId(QString id);
 	virtual bool canRemoveAvatar() { return false; } // this is so lame for gadu-gadu, so so lame ...

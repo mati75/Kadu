@@ -1,7 +1,8 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -37,6 +38,7 @@ class BuddiesModel : public BuddiesModelBase
 	Q_OBJECT
 
 	bool IncludeMyself;
+	bool DetachingOrAttaching;
 
 private slots:
 	void buddyAboutToBeAdded(Buddy &buddy);
@@ -48,21 +50,21 @@ private slots:
 	void buddyUpdated(Buddy &buddy);
 
 	void contactAboutToBeAttached(Contact contact, Buddy nearFutureBuddy);
-	void contactAttached(Contact contact, bool reattached);
-	void contactAboutToBeDetached(Contact contact, bool reattached);
+	void contactAttached(Contact contact);
+	void contactAboutToBeDetached(Contact contact);
 	void contactDetached(Contact contact, Buddy previousBuddy);
 
 	void contactUpdated(Contact &contact);
+
+protected:
+	virtual int buddyIndex(const Buddy &buddy) const;
+	virtual Buddy buddyAt(int index) const;
 
 public:
 	explicit BuddiesModel(QObject *parent = 0);
 	virtual ~BuddiesModel();
 
 	virtual int rowCount(const QModelIndex &parent = QModelIndex()) const;
-
-	// AbstractContactsModel implementation
-	virtual Buddy buddyAt(const QModelIndex &index) const;
-	virtual QModelIndex indexForValue(const QVariant &value) const;
 
 	void setIncludeMyself(bool includeMyself);
 	bool includeMyself() const { return IncludeMyself; }

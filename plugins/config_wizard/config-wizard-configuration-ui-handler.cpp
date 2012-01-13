@@ -1,8 +1,9 @@
 /*
  * %kadu copyright begin%
+ * Copyright 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2010 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -21,13 +22,13 @@
 
 #include <QtGui/QAction>
 
-#include "activate.h"
 #include "configuration/configuration-file.h"
 #include "core/core.h"
 #include "gui/actions/action-description.h"
 #include "gui/widgets/configuration/configuration-widget.h"
 #include "gui/windows/kadu-window.h"
 #include "misc/path-conversion.h"
+#include "activate.h"
 #include "debug.h"
 
 #include "gui/windows/config-wizard-window.h"

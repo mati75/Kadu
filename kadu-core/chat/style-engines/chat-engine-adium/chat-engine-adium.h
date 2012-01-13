@@ -1,8 +1,9 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2011 Piotr Dąbrowski (ultr@ultr.pl)
  * Copyright 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -25,12 +26,54 @@
 #include "../chat-style-engine.h"
 #include "adium-style.h"
 
+class AdiumChatStyleEngine;
 class Chat;
 class Preview;
+
+// What a ugly hack!
+// TODO: remove
+class RefreshViewHack : public QObject
+{
+	Q_OBJECT
+
+	AdiumChatStyleEngine *Engine;
+	HtmlMessagesRenderer *Renderer;
+
+public:
+	explicit RefreshViewHack(AdiumChatStyleEngine *engine, HtmlMessagesRenderer *renderer, QObject *parent = 0);
+	virtual ~RefreshViewHack();
+
+public slots:
+	void loadFinished();
+
+};
+
+class PreviewHack : public QObject
+{
+	Q_OBJECT
+
+	AdiumChatStyleEngine *Engine;
+	Preview *CurrentPreview;
+	QString BaseHref;
+	QString OutgoingHtml;
+	QString IncomingHtml;
+
+public:
+	explicit PreviewHack(AdiumChatStyleEngine *engine, Preview *preview, const QString &baseHref, const QString &outgoingHtml,
+	                     const QString &incomingHtml, QObject *parent = 0);
+	virtual ~PreviewHack();
+
+public slots:
+	void loadFinished();
+
+};
 
 class AdiumChatStyleEngine : public QObject, public ChatStyleEngine
 {
 	Q_OBJECT
+
+	friend class RefreshViewHack;
+	friend class PreviewHack;
 
 	AdiumStyle CurrentStyle;
 

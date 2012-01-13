@@ -1,10 +1,10 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Piotr Dąbrowski (ultr@ultr.pl)
- * Copyright 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009, 2010 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Piotr Dąbrowski (ultr@ultr.pl)
+ * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -32,9 +32,10 @@
 #include <QtGui/QSortFilterProxyModel>
 #include <QtGui/QVBoxLayout>
 
-#include "buddies/model/groups-model.h"
+#include "accounts/account.h"
 #include "buddies/buddy-manager.h"
 #include "buddies/group-manager.h"
+#include "buddies/model/groups-model.h"
 #include "contacts/contact-manager.h"
 #include "gui/widgets/groups-combo-box.h"
 #include "gui/widgets/select-buddy-combo-box.h"
@@ -101,9 +102,6 @@ SubscriptionWindow::SubscriptionWindow(Contact contact, QWidget *parent) :
 
 	connect(MergeContact, SIGNAL(toggled(bool)), SelectContact, SLOT(setEnabled(bool)));
 	connect(MergeContact, SIGNAL(toggled(bool)), VisibleName, SLOT(setDisabled(bool)));
-	connect(MergeContact, SIGNAL(toggled(bool)), this, SLOT(setAddContactEnabled()));
-	connect(SelectContact, SIGNAL(buddyChanged(Buddy)), this, SLOT(setAddContactEnabled()));
-	connect(SelectContact, SIGNAL(buddyChanged(Buddy)), this, SLOT(setAccountFilter()));
 
 	QDialogButtonBox *buttons = new QDialogButtonBox(Qt::Horizontal, this);
 
@@ -117,15 +115,17 @@ SubscriptionWindow::SubscriptionWindow(Contact contact, QWidget *parent) :
 	connect(cancelButton, SIGNAL(clicked(bool)), this, SLOT(rejected()));
 
 	layout->addWidget(messageLabel, 0, 0, 1, 3);
-	layout->addWidget(groupLabel, 1, 0, 1, 1);
-	layout->addWidget(GroupCombo, 1, 1, 1, 1);
-	layout->addWidget(visibleNameLabel, 2, 0, 1, 1);
-	layout->addWidget(VisibleName, 2, 1, 1, 1);
-	layout->addWidget(hintLabel, 3, 1, 1, 1);
+	layout->addWidget(visibleNameLabel, 1, 0, 1, 1);
+	layout->addWidget(VisibleName, 1, 1, 1, 1);
+	layout->addWidget(hintLabel, 2, 1, 1, 1);
+	layout->addWidget(groupLabel, 3, 0, 1, 1);
+	layout->addWidget(GroupCombo, 3, 1, 1, 1);
 	layout->addWidget(MergeContact, 4, 1, 1, 3);
 	layout->addWidget(selectContactWidget, 5, 1, 1, 3);
 
 	layout->addWidget(buttons, 6, 1, 1, 3);
+
+	VisibleName->setFocus();
 }
 
 SubscriptionWindow::~SubscriptionWindow()

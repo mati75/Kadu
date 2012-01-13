@@ -1,6 +1,8 @@
 /*
  * %kadu copyright begin%
+ * Copyright 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2010 Piotr Dąbrowski (ultr@ultr.pl)
+ * Copyright 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
@@ -23,8 +25,8 @@
 
 #include <QtGui/QFrame>
 
-#include "gui/widgets/configuration/config-widget.h"
 #include "configuration/configuration-window-data-manager.h"
+#include "gui/widgets/configuration/config-widget.h"
 
 class ConfigGroupBox;
 
@@ -45,8 +47,6 @@ public:
 	virtual void loadConfiguration() {};
 	virtual void saveConfiguration() {};
 
-	virtual void show();
-	virtual void hide();
 };
 
 #endif

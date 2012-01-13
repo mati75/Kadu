@@ -1,11 +1,11 @@
 /*
  * %kadu copyright begin%
+ * Copyright 2008, 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2011 Piotr Dąbrowski (ultr@ultr.pl)
- * Copyright 2007, 2008 Dawid Stawiarski (neeo@kadu.net)
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2008, 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2008 Michał Podsiadlik (michal@kadu.net)
+ * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2007, 2008 Dawid Stawiarski (neeo@kadu.net)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -22,16 +22,16 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CHAT_MESSAGES_VIEW
-#define CHAT_MESSAGES_VIEW
+#ifndef CHAT_MESSAGES_VIEW_H
+#define CHAT_MESSAGES_VIEW_H
 
 #include <QtCore/QList>
 
-#include "chat/message/message.h"
 #include "configuration/configuration-aware-object.h"
+#include "message/message.h"
+#include "protocols/protocol.h"
 #include "protocols/services/chat-service.h"
 #include "protocols/services/chat-state-service.h"
-#include "protocols/protocol.h"
 
 #include "kadu-web-view.h"
 
@@ -61,6 +61,8 @@ class KADUAPI ChatMessagesView : public KaduWebView, public ConfigurationAwareOb
 
 	bool AtBottom;
 
+	Message firstNonSystemMessage(const QList<MessageRenderInfo *> &messages);
+
 private slots:
 	void repaintMessages();
 
@@ -72,6 +74,8 @@ private slots:
 	void messageStatusChanged(const Message &message, ChatService::MessageStatus status);
 
 	void scrollToBottom();
+
+	bool sameMessage(const Message &left, const Message &right);
 
 protected:
 	virtual void configurationUpdated();
@@ -85,13 +89,15 @@ public:
 
 	HtmlMessagesRenderer * renderer() { return Renderer; }
 
+	void prependMessages(const QVector<Message> &messages);
+
 	void appendMessage(const Message &message);
 	void appendMessage(MessageRenderInfo *message);
 
-	void appendMessages(const QList<Message> &messages);
+	void appendMessages(const QVector<Message> &messages);
 	void appendMessages(const QList<MessageRenderInfo *> &messages);
 
- 	unsigned int countMessages();
+	unsigned int countMessages();
 
 	void updateBackgroundsAndColors();
 
@@ -111,4 +117,4 @@ signals:
 
 };
 
-#endif // CHAT_MESSAGES_VIEW
+#endif // CHAT_MESSAGES_VIEW_H

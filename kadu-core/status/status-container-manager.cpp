@@ -1,10 +1,10 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Piotr Dąbrowski (ultr@ultr.pl)
+ * Copyright 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2010 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2010, 2011 Piotr Dąbrowski (ultr@ultr.pl)
+ * Copyright 2009, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -21,19 +21,18 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "accounts/account.h"
 #include "accounts/account-manager.h"
-#include "configuration/configuration-file.h"
+#include "accounts/account.h"
 #include "configuration/main-configuration-holder.h"
 #include "core/core.h"
-#include "identities/identity-manager.h"
+#include "icons/icons-manager.h"
 #include "icons/kadu-icon.h"
+#include "identities/identity-manager.h"
 #include "protocols/protocol.h"
 #include "status/all-accounts-status-container.h"
 #include "status/status-container-aware-object.h"
 #include "status/status-type-manager.h"
 #include "status/status-type.h"
-#include "icons/icons-manager.h"
 
 #include "status-container-manager.h"
 
@@ -47,11 +46,9 @@ StatusContainerManager * StatusContainerManager::instance()
 }
 
 StatusContainerManager::StatusContainerManager() :
-		StatusContainer(0), AllowSetDefaultStatus(false), DefaultStatusContainer(0)
+		StatusContainer(0), DefaultStatusContainer(0)
 {
 	AllAccountsContainer = new AllAccountsStatusContainer(this);
-
-	configurationUpdated();
 
 	if (MainConfigurationHolder::instance()->isSetStatusPerIdentity())
 		triggerAllIdentitiesAdded();
@@ -119,19 +116,6 @@ void StatusContainerManager::identityRemoved(Identity identity)
 		unregisterStatusContainer(identity);
 }
 
-void StatusContainerManager::configurationUpdated()
-{
-	StartupStatus = config_file.readEntry("General", "StartupStatus");
-	StartupLastDescription = config_file.readBoolEntry("General", "StartupLastDescription");
-	StartupDescription = config_file.readEntry("General", "StartupDescription");
-	OfflineToInvisible = config_file.readBoolEntry("General", "StartupStatusInvisibleWhenLastWasOffline") && StartupStatus != "Offline";
-
-	if (StartupStatus.isEmpty())
-		StartupStatus = "LastStatus";
-	else if (StartupStatus == "Busy")
-		StartupStatus =  "Away";
-}
-
 void StatusContainerManager::cleanStatusContainers()
 {
 	while (!StatusContainers.isEmpty())
@@ -140,8 +124,8 @@ void StatusContainerManager::cleanStatusContainers()
 
 void StatusContainerManager::addAllAccounts()
 {
-	foreach (const Account &account, AccountManager::instance()->items())
-		registerStatusContainer(account);
+	foreach (Account account, AccountManager::instance()->items())
+		registerStatusContainer(account.statusContainer());
 }
 
 void StatusContainerManager::addAllIdentities()
@@ -190,9 +174,6 @@ void StatusContainerManager::registerStatusContainer(StatusContainer *statusCont
 	StatusContainerAwareObject::notifyStatusContainerRegistered(statusContainer);
 
 	connect(statusContainer, SIGNAL(statusUpdated()), this, SIGNAL(statusUpdated()));
-
-	if (AllowSetDefaultStatus)
-		statusContainer->setDefaultStatus(StartupStatus, OfflineToInvisible, StartupDescription, StartupLastDescription);
 }
 
 void StatusContainerManager::unregisterStatusContainer(StatusContainer *statusContainer)
@@ -213,21 +194,13 @@ void StatusContainerManager::unregisterStatusContainer(StatusContainer *statusCo
 	disconnect(statusContainer, SIGNAL(statusUpdated()), this, SIGNAL(statusUpdated()));
 }
 
-void StatusContainerManager::setAllowSetDefaultStatus(bool allowSetDefaultStatus)
+bool StatusContainerManager::allStatusOfType(StatusType type)
 {
-	if (AllowSetDefaultStatus == allowSetDefaultStatus)
-		return;
+	if (StatusTypeNone == type)
+		return false;
 
-	AllowSetDefaultStatus = allowSetDefaultStatus;
-	if (AllowSetDefaultStatus)
-		foreach (StatusContainer *statusContainer, StatusContainers)
-			statusContainer->setDefaultStatus(StartupStatus, OfflineToInvisible, StartupDescription, StartupLastDescription);
-}
-
-bool StatusContainerManager::allStatusEqual(StatusType *type)
-{
 	foreach (StatusContainer *container, StatusContainers)
-		if (container->status().type() != type->name())
+		if (container->status().type() != type)
 			return false;
 	return true;
 }
@@ -237,22 +210,10 @@ QString StatusContainerManager::statusContainerName()
 	return tr("All");
 }
 
-void StatusContainerManager::setStatus(Status newStatus, bool flush)
+void StatusContainerManager::setStatus(Status status)
 {
 	foreach (StatusContainer *container, StatusContainers)
-		container->setStatus(newStatus, false);
-
-	if (flush)
-		ConfigurationManager::instance()->flush();
-}
-
-void StatusContainerManager::setDescription(const QString &description, bool flush)
-{
-	foreach (StatusContainer *container, StatusContainers)
-		container->setDescription(description, false);
-
-	if (flush)
-		ConfigurationManager::instance()->flush();
+		container->setStatus(status);
 }
 
 Status StatusContainerManager::status()
@@ -269,13 +230,6 @@ bool StatusContainerManager::isStatusSettingInProgress()
 			: false;
 }
 
-QString StatusContainerManager::statusDisplayName()
-{
-	return DefaultStatusContainer
-			? DefaultStatusContainer->statusDisplayName()
-			: tr("Offline");
-}
-
 KaduIcon StatusContainerManager::statusIcon()
 {
 	return statusIcon(status());
@@ -284,25 +238,16 @@ KaduIcon StatusContainerManager::statusIcon()
 KaduIcon StatusContainerManager::statusIcon(const Status &status)
 {
 	if (!DefaultStatusContainer)
-		return StatusTypeManager::instance()->statusIcon("common", "Offline", false, false);
+		return StatusTypeManager::instance()->statusIcon("common", StatusTypeOffline);
 
-	return StatusTypeManager::instance()->statusIcon("common", status.type(), status.hasDescription(), false);
+	return StatusTypeManager::instance()->statusIcon("common", status);
 }
 
-KaduIcon StatusContainerManager::statusIcon(const QString &statusType)
-{
-	if (!DefaultStatusContainer)
-		return StatusTypeManager::instance()->statusIcon("common", "Offline", false, false);
-
-	return StatusTypeManager::instance()->statusIcon("common", statusType, false, false);
-}
-
-QList<StatusType *> StatusContainerManager::supportedStatusTypes()
+QList<StatusType> StatusContainerManager::supportedStatusTypes()
 {
 	return DefaultStatusContainer
 			? DefaultStatusContainer->supportedStatusTypes()
-			: QList<StatusType *>();
-// 			: StatusTypeManager::instance()->statusTypes();
+			: QList<StatusType>();
 }
 
 int StatusContainerManager::maxDescriptionLength()
@@ -317,8 +262,20 @@ QString StatusContainerManager::statusNamePrefix()
 	return tr("All") + ' ';
 }
 
+Status StatusContainerManager::loadStatus()
+{
+	return DefaultStatusContainer
+			? DefaultStatusContainer->loadStatus()
+			: Status();
+}
+
 void StatusContainerManager::storeStatus(Status status)
 {
 	foreach (StatusContainer *statusContainer, StatusContainers)
 		statusContainer->storeStatus(status);
+}
+
+QList<StatusContainer *> StatusContainerManager::subStatusContainers()
+{
+	return StatusContainers;
 }

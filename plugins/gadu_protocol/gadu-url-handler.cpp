@@ -2,6 +2,7 @@
  * %kadu copyright begin%
  * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2010 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
@@ -24,15 +25,17 @@
 #include <QtGui/QMenu>
 #include <QtGui/QTextDocument>
 
-#include "accounts/account.h"
 #include "accounts/account-manager.h"
+#include "accounts/account.h"
 #include "chat/chat-manager.h"
-#include "contacts/contact.h"
 #include "contacts/contact-manager.h"
 #include "contacts/contact-set.h"
+#include "contacts/contact.h"
 #include "gui/widgets/chat-widget-manager.h"
+#include "gui/widgets/chat-widget.h"
 #include "icons/kadu-icon.h"
 #include "misc/misc.h"
+#include "status/status-container.h"
 
 #include "gadu-url-handler.h"
 
@@ -70,8 +73,8 @@ void GaduUrlHandler::convertUrlsToHtml(HtmlDocument &document, bool generateOnly
 
 void GaduUrlHandler::openUrl(const QByteArray &url, bool disableMenu)
 {
-	QList<Account> gaduAccounts = AccountManager::instance()->byProtocolName("gadu");
-	if (!gaduAccounts.count())
+	QVector<Account> gaduAccounts = AccountManager::instance()->byProtocolName("gadu");
+	if (gaduAccounts.isEmpty())
 		return;
 
 	QString gaduId = QString::fromUtf8(url);
@@ -83,11 +86,13 @@ void GaduUrlHandler::openUrl(const QByteArray &url, bool disableMenu)
 
 	if (gaduAccounts.count() == 1 || disableMenu)
 	{
-		Contact contact = ContactManager::instance()->byId(gaduAccounts[0], gaduId, ActionCreateAndAdd);
-		Chat chat = ChatManager::instance()->findChat(ContactSet(contact));
+		const Contact &contact = ContactManager::instance()->byId(gaduAccounts[0], gaduId, ActionCreateAndAdd);
+		const Chat &chat = ChatManager::instance()->findChat(ContactSet(contact));
 		if (chat)
 		{
-			ChatWidgetManager::instance()->openPendingMessages(chat, true);
+			ChatWidget * const chatWidget = ChatWidgetManager::instance()->byChat(chat, true);
+			if (chatWidget)
+				chatWidget->activate();
 			return;
 		}
 	}
@@ -96,13 +101,13 @@ void GaduUrlHandler::openUrl(const QByteArray &url, bool disableMenu)
 		QScopedPointer<QMenu> menu(new QMenu());
 
 		QStringList ids;
-		foreach (const Account &account, gaduAccounts)
+		foreach (Account account, gaduAccounts)
 		{
 			ids.clear();
 			ids.append(account.id());
 			ids.append(gaduId);
 
-			menu->addAction(account.data()->statusIcon().icon(), account.id())->setData(ids);
+			menu->addAction(account.statusContainer()->statusIcon().icon(), account.id())->setData(ids);
 		}
 
 		connect(menu.data(), SIGNAL(triggered(QAction *)), this, SLOT(accountSelected(QAction *)));
@@ -122,8 +127,9 @@ void GaduUrlHandler::accountSelected(QAction *action)
 	if (!account)
 		return;
 
-	Contact contact = ContactManager::instance()->byId(account, ids[1], ActionCreateAndAdd);
-	Chat chat = ChatManager::instance()->findChat(ContactSet(contact));
-	if (chat)
-		ChatWidgetManager::instance()->openPendingMessages(chat, true);
+	const Contact &contact = ContactManager::instance()->byId(account, ids[1], ActionCreateAndAdd);
+	const Chat &chat = ChatManager::instance()->findChat(ContactSet(contact));
+	ChatWidget * const chatWidget = ChatWidgetManager::instance()->byChat(chat, true);
+	if (chatWidget)
+		chatWidget->activate();
 }

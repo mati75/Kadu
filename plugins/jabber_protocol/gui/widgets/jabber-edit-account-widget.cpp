@@ -1,14 +1,14 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2009, 2010 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2010 badboy (badboy@gen2.org)
- * Copyright 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2009, 2010, 2010 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2010 Tomasz Rostański (rozteck@interia.pl)
  * Copyright 2010 Piotr Pełzowski (floss@pelzowski.eu)
  * Copyright 2009 Michał Podsiadlik (michal@kadu.net)
- * Copyright 2010 Tomasz Rostański (rozteck@interia.pl)
- * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2009, 2009, 2011 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2010 badboy (badboy@gen2.org)
+ * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -25,7 +25,6 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <QtCrypto>
 #include <QtCore/QWeakPointer>
 #include <QtGui/QApplication>
 #include <QtGui/QCheckBox>
@@ -40,17 +39,18 @@
 #include <QtGui/QMessageBox>
 #include <QtGui/QTabWidget>
 #include <QtGui/QVBoxLayout>
+#include <QtCrypto>
 
-#include "accounts/account.h"
 #include "accounts/account-manager.h"
+#include "accounts/account.h"
 #include "configuration/configuration-file.h"
 #include "gui/widgets/account-avatar-widget.h"
 #include "gui/widgets/account-buddy-list-widget.h"
-#include "gui/widgets/proxy-group-box.h"
+#include "gui/widgets/proxy-combo-box.h"
 #include "gui/windows/message-dialog.h"
+#include "icons/icons-manager.h"
 #include "identities/identity-manager.h"
 #include "protocols/services/avatar-service.h"
-#include "icons/icons-manager.h"
 
 #include "gui/windows/jabber-change-password-window.h"
 
@@ -130,7 +130,7 @@ void JabberEditAccountWidget::createGeneralTab(QTabWidget *tabWidget)
 	connect(changePasswordLabel, SIGNAL(linkActivated(QString)), this, SLOT(changePasssword()));
 
 	Identities = new IdentitiesComboBox(false, this);
-	connect(Identities, SIGNAL(identityChanged(Identity)), this, SLOT(dataChanged()));
+	connect(Identities, SIGNAL(currentIndexChanged(int)), this, SLOT(dataChanged()));
 	formLayout->addRow(tr("Account Identity") + ':', Identities);
 
 	QLabel *infoLabel = new QLabel(tr("<font size='-1'><i>Select or enter the identity that will be associated with this account.</i></font>"), this);
@@ -159,10 +159,6 @@ void JabberEditAccountWidget::createConnectionTab(QTabWidget *tabWidget)
 
 	QVBoxLayout *layout = new QVBoxLayout(conenctionTab);
 	createGeneralGroupBox(layout);
-
-	Proxy = new ProxyGroupBox(account(), tr("Proxy"), this);
-	connect(Proxy, SIGNAL(stateChanged(ModalConfigurationWidgetState)), this, SLOT(dataChanged()));
-	layout->addWidget(Proxy);
 
 	layout->addStretch(100);
 }
@@ -258,14 +254,28 @@ void JabberEditAccountWidget::createGeneralGroupBox(QVBoxLayout *layout)
 	dataTransferLayout->setSpacing(6);
 	dataTransferLayout->setMargin(0);
 
-	DataTransferProxyLabel = new QLabel(general);
-	DataTransferProxyLabel->setText(tr("Data transfer proxy") + ':');
-	dataTransferLayout->addWidget(DataTransferProxyLabel);
+	QLabel *dataTransferProxyLabel = new QLabel(general);
+	dataTransferProxyLabel->setText(tr("Data transfer proxy") + ':');
+	dataTransferLayout->addWidget(dataTransferProxyLabel);
 
 	DataTransferProxy = new QLineEdit(general);
 	connect(DataTransferProxy, SIGNAL(textEdited(QString)), this, SLOT(dataChanged()));
 	dataTransferLayout->addWidget(DataTransferProxy);
 	vboxLayout2->addLayout(dataTransferLayout);
+
+	QHBoxLayout *proxyLayout = new QHBoxLayout();
+	proxyLayout->setSpacing(6);
+	proxyLayout->setMargin(0);
+
+	QLabel *proxyLabel = new QLabel(tr("Proxy configuration"), general);
+	ProxyCombo = new ProxyComboBox(general);
+	ProxyCombo->enableDefaultProxyAction();
+	connect(ProxyCombo, SIGNAL(currentIndexChanged(int)), this, SLOT(dataChanged()));
+
+	proxyLayout->addWidget(proxyLabel);
+	proxyLayout->addWidget(ProxyCombo);
+
+	vboxLayout2->addLayout(proxyLayout);
 }
 
 void JabberEditAccountWidget::createOptionsTab(QTabWidget *tabWidget)
@@ -323,6 +333,15 @@ void JabberEditAccountWidget::createOptionsTab(QTabWidget *tabWidget)
 	notificationsLayout->addWidget(SendGoneNotification);
 
 	layout->addWidget(notifications);
+
+	QGroupBox *privacy = new QGroupBox(tr("Privacy"), this);
+
+	QVBoxLayout *privacyLayout = new QVBoxLayout(privacy);
+	PublishSystemInfo = new QCheckBox(tr("Publish system information"));
+	connect(PublishSystemInfo, SIGNAL(clicked()), this, SLOT(dataChanged()));
+	privacyLayout->addWidget(PublishSystemInfo);
+
+	layout->addWidget(privacy);
 
 	layout->addStretch(100);
 }
@@ -382,6 +401,8 @@ void JabberEditAccountWidget::dataChanged()
 		&& account().id() == AccountId->text()
 		&& account().rememberPassword() == RememberPassword->isChecked()
 		&& account().password() == AccountPassword->text()
+		&& account().proxy() == ProxyCombo->currentProxy()
+		&& account().useDefaultProxy() == ProxyCombo->isDefaultProxySelected()
 		&& AccountDetails->useCustomHostPort() == CustomHostPort->isChecked()
 		&& AccountDetails->customHost() == CustomHost->displayText()
 		&& AccountDetails->customPort() == CustomPort->displayText().toInt()
@@ -394,15 +415,15 @@ void JabberEditAccountWidget::dataChanged()
 		&& AccountDetails->dataTransferProxy() == DataTransferProxy->text()
 		&& AccountDetails->sendGoneNotification() == SendGoneNotification->isChecked()
 		&& AccountDetails->sendTypingNotification() == SendTypingNotification->isChecked()
-		&& StateNotChanged == Proxy->state()
+		&& AccountDetails->publishSystemInfo() == PublishSystemInfo->isChecked()
 		&& !PersonalInfoWidget->isModified())
 	{
 		resetState();
 		return;
 	}
 
-	bool sameIdExists = AccountManager::instance()->byId(account().protocolName(), account().id())
-			&& AccountManager::instance()->byId(account().protocolName(), account().id()) != account();
+	bool sameIdExists = AccountManager::instance()->byId(account().protocolName(), AccountId->text())
+			&& AccountManager::instance()->byId(account().protocolName(), AccountId->text()) != account();
 
 	if (/*AccountName->text().isEmpty()
 		|| sameNameExists
@@ -427,6 +448,11 @@ void JabberEditAccountWidget::loadAccountData()
 	AccountId->setText(account().id());
 	RememberPassword->setChecked(account().rememberPassword());
 	AccountPassword->setText(account().password());
+
+	if (account().useDefaultProxy())
+		ProxyCombo->selectDefaultProxy();
+	else
+		ProxyCombo->setCurrentProxy(account().proxy());
 }
 
 void JabberEditAccountWidget::loadAccountDetailsData()
@@ -450,7 +476,7 @@ void JabberEditAccountWidget::loadAccountDetailsData()
 	SendGoneNotification->setChecked(AccountDetails->sendGoneNotification());
 	SendTypingNotification->setChecked(AccountDetails->sendTypingNotification());
 
-	Proxy->loadProxyData();
+	PublishSystemInfo->setChecked(AccountDetails->publishSystemInfo());
 }
 
 void JabberEditAccountWidget::apply()
@@ -464,6 +490,8 @@ void JabberEditAccountWidget::apply()
 	account().setRememberPassword(RememberPassword->isChecked());
 	account().setPassword(AccountPassword->text());
 	account().setHasPassword(!AccountPassword->text().isEmpty());
+	account().setUseDefaultProxy(ProxyCombo->isDefaultProxySelected());
+	account().setProxy(ProxyCombo->currentProxy());
 	AccountDetails->setUseCustomHostPort(CustomHostPort->isChecked());
 	AccountDetails->setCustomHost(CustomHost->text());
 	AccountDetails->setCustomPort(CustomPort->text().toInt());
@@ -476,7 +504,7 @@ void JabberEditAccountWidget::apply()
 	AccountDetails->setDataTransferProxy(DataTransferProxy->text());
 	AccountDetails->setSendGoneNotification(SendGoneNotification->isChecked());
 	AccountDetails->setSendTypingNotification(SendTypingNotification->isChecked());
-	Proxy->apply();
+	AccountDetails->setPublishSystemInfo(PublishSystemInfo->isChecked());
 
 	if (PersonalInfoWidget->isModified())
 		PersonalInfoWidget->apply();
@@ -491,7 +519,6 @@ void JabberEditAccountWidget::cancel()
 {
 	loadAccountData();
 	loadAccountDetailsData();
-	Proxy->cancel();
 	PersonalInfoWidget->cancel();
 
 	IdentityManager::instance()->removeUnused();

@@ -1,10 +1,11 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2009, 2010 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2009, 2009, 2010, 2010 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2009 Michał Podsiadlik (michal@kadu.net)
+ * Copyright 2009, 2009 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -36,10 +37,10 @@
 #include "accounts/account-manager.h"
 #include "gui/widgets/choose-identity-widget.h"
 #include "gui/windows/message-dialog.h"
+#include "icons/icons-manager.h"
 #include "identities/identity-manager.h"
 #include "protocols/protocols-manager.h"
 #include "server/jabber-server-register-account.h"
-#include "icons/icons-manager.h"
 
 #include "jabber-account-details.h"
 #include "jabber-protocol-factory.h"
@@ -119,7 +120,7 @@ void JabberAddAccountWidget::createGui(bool showButtons)
 	layout->addRow(0, RememberPassword);
 
 	Identity = new IdentitiesComboBox(true, this);
-	connect(Identity, SIGNAL(identityChanged(Identity)), this, SLOT(dataChanged()));
+	connect(Identity, SIGNAL(currentIndexChanged(int)), this, SLOT(dataChanged()));
 	layout->addRow(tr("Account Identity") + ':', Identity);
 
 	QLabel *infoLabel = new QLabel(tr("<font size='-1'><i>Select or enter the identity that will be associated with this account.</i></font>"), this);
@@ -187,6 +188,16 @@ void JabberAddAccountWidget::apply()
 		{
 			details->setEncryptionMode(JabberAccountDetails::Encryption_No);
 			details->setPlainAuthMode(JabberAccountDetails::NoAllowPlain);
+		}
+		
+		bool isGoogleAppsAccount = Factory->name() == "gmail/google talk" && !Domain->currentText().contains("gmail");
+
+		// Google Apps account sometimes needs custom host/port settings to work
+		if (isGoogleAppsAccount)
+		{
+		  details->setUseCustomHostPort(true);
+		  details->setCustomHost("talk.google.com");
+		  details->setCustomPort(5222);
 		}
 	}
 

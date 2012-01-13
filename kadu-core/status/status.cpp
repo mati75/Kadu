@@ -1,9 +1,12 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Piotr Dąbrowski (ultr@ultr.pl)
- * Copyright 2009 Dawid Stawiarski (neeo@kadu.net)
  * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2008, 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010 Piotr Dąbrowski (ultr@ultr.pl)
+ * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
+ * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2009 Dawid Stawiarski (neeo@kadu.net)
+ * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -20,18 +23,19 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "status/status-group.h"
-#include "status/status-type.h"
+#include "status/status-type-data.h"
+#include "status/status-type-group.h"
 #include "status/status-type-manager.h"
+#include "status/status-type.h"
 
 #include "status.h"
 
 #include <stdio.h>
 
-Status::Status(const QString &type, const QString &description) :
+Status::Status(StatusType statusType, const QString &description) :
 		Description(description)
 {
-	setType(type);
+	setType(statusType);
 }
 
 Status::Status(const Status& copyme) :
@@ -44,44 +48,23 @@ Status::~Status()
 {
 }
 
-void Status::setType(const QString& type)
+void Status::setType(StatusType type)
 {
-	Group = "Offline";
-	DisplayName = "Offline";
-
 	Type = type;
 
-	StatusType *statusType = StatusTypeManager::instance()->statusType(Type);
-	if (!statusType)
-	{
-		Type = "Offline";
-		return;
-	}
-	else
-		DisplayName = statusType->displayName();
-
-	StatusGroup *statusGroup = statusType->statusGroup();
-	if (statusGroup)
-		Group = statusGroup->name();
+	const StatusTypeData & typeData = StatusTypeManager::instance()->statusTypeData(Type);
+	DisplayName = typeData.displayName();
+	Group = typeData.typeGroup();
 }
 
 bool Status::isDisconnected() const
 {
-	return "Offline" == Group;
+	return StatusTypeGroupOffline == Group;
 }
 
 bool Status::operator < (const Status &compare) const
 {
-	StatusType *left = StatusTypeManager::instance()->statusType(Type);
-	StatusType *right = StatusTypeManager::instance()->statusType(compare.Type);
-
-	if (!left)
-		return true;
-
-	if (!right)
-		return false;
-
-	return *left < *right;
+	return Type < compare.Type;
 }
 
 bool Status::operator == (const Status &compare) const

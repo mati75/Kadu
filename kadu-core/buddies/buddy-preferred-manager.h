@@ -1,9 +1,13 @@
 /*
  * %kadu copyright begin%
+ * Copyright 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2010 Piotr Dąbrowski (ultr@ultr.pl)
+ * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
+ * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -23,12 +27,13 @@
 #ifndef BUDDY_PREFERRED_MANAGER_H
 #define BUDDY_PREFERRED_MANAGER_H
 
-#include <QtCore/QObject>
 #include <QtCore/QMap>
+#include <QtCore/QObject>
+
 #include "accounts/account.h"
 #include "buddies/buddy.h"
-#include "chat/message/message.h"
 #include "contacts/contact.h"
+#include "message/message.h"
 
 class Account;
 class Buddy;
@@ -41,7 +46,7 @@ class KADUAPI BuddyPreferredManager : public QObject
 
 	static BuddyPreferredManager *Instance;
 
-	QMap<Buddy, Contact> Preferreds;
+	//QMap<Buddy, Contact> Preferreds;
 
 	BuddyPreferredManager();
 	~BuddyPreferredManager();
@@ -54,12 +59,12 @@ public:
 	Account preferredAccount(const Buddy &buddy, bool includechats = true);
 
 	Contact preferredContactByPriority(const Buddy &buddy, const Account &account = Account::null);
-	Contact preferredContactByPendingMessages(const Buddy &buddy, const Account &account = Account::null);
+	Contact preferredContactByUnreadMessages(const Buddy &buddy, const Account &account = Account::null);
 	Contact preferredContactByChatWidgets(const Buddy &buddy, const Account &account = Account::null);
 	Contact preferredContactByStatus(const Buddy &buddy, const Account &account = Account::null);
 	Contact morePreferredContactByStatus(const Contact & c1, const Contact & c2, const Account &account = Account::null);
 
-	void updatePreferred(Buddy buddy);
+	//void updatePreferred(Buddy buddy);
 
 signals:
 	void buddyUpdated(Buddy &buddy);

@@ -1,6 +1,7 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -31,6 +32,7 @@ class ConfigWizardChooseNetworkPage : public ConfigWizardPage
 {
 	Q_OBJECT
 
+	ProtocolFactory *LastProtocol;
 	ProtocolsComboBox *SelectProtocol;
 
 	QRadioButton *SetUpExisting;
@@ -40,14 +42,11 @@ class ConfigWizardChooseNetworkPage : public ConfigWizardPage
 	void createGui();
 
 public slots:
-	void protocolChanged(ProtocolFactory *protocol, ProtocolFactory *lastProtocol);
+	void protocolChanged();
 
 public:
 	explicit ConfigWizardChooseNetworkPage(QWidget *parent = 0);
 	virtual ~ConfigWizardChooseNetworkPage();
-
-    virtual void initializePage();
-	virtual void acceptPage();
 
 };
 

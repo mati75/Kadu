@@ -1,6 +1,8 @@
 /*
  * %kadu copyright begin%
+ * Copyright 2011 Piotr Dąbrowski (ultr@ultr.pl)
  * Copyright 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -23,19 +25,19 @@
 #include <QtGui/QKeyEvent>
 #include <QtGui/QLabel>
 #include <QtGui/QPushButton>
-#include <QtGui/QVBoxLayout>
 #include <QtGui/QTableView>
+#include <QtGui/QVBoxLayout>
 
 #include "accounts/filter/have-multilogon-filter.h"
 #include "gui/widgets/accounts-combo-box.h"
+#include "icons/icons-manager.h"
 #include "misc/misc.h"
 #include "model/roles.h"
-#include "multilogon/multilogon-session.h"
 #include "multilogon/model/multilogon-model.h"
+#include "multilogon/multilogon-session.h"
 #include "protocols/protocol.h"
 #include "protocols/services/multilogon-service.h"
 #include "activate.h"
-#include "icons/icons-manager.h"
 
 #include "multilogon-window.h"
 
@@ -51,7 +53,7 @@ MultilogonWindow::MultilogonWindow(QWidget *parent) :
 
 	createGui();
 
-	loadWindowGeometry(this, "General", "MultilogonWindowGeometry", 0, 50, 700, 500);
+	loadWindowGeometry(this, "General", "MultilogonWindowGeometry", 0, 50, 450, 300);
 }
 
 MultilogonWindow::~MultilogonWindow()
@@ -85,13 +87,13 @@ void MultilogonWindow::createGui()
 
 	selectAccountLayout->addWidget(new QLabel(tr("Account:"), selectAccountWidget));
 
-	Accounts = new AccountsComboBox(true, selectAccountWidget);
+	Accounts = new AccountsComboBox(true, ActionsProxyModel::NotVisibleWithOneRowSourceModel, selectAccountWidget);
 	Accounts->addFilter(new HaveMultilogonFilter(Accounts));
 	Accounts->setIncludeIdInDisplay(true);
 	selectAccountLayout->addWidget(Accounts);
 	selectAccountLayout->addStretch(1);
 
-	connect(Accounts, SIGNAL(accountChanged(Account)), this, SLOT(accountChanged()));
+	connect(Accounts, SIGNAL(currentIndexChanged(int)), this, SLOT(accountChanged()));
 
 	layout->addWidget(selectAccountWidget);
 
@@ -153,9 +155,7 @@ MultilogonSession * MultilogonWindow::multilogonSession()
 
 void MultilogonWindow::accountChanged()
 {
-	QAbstractItemModel *model = SessionsTable->model();
-	if (model)
-		delete model;
+	delete SessionsTable->model();
 
 	MultilogonService *service = multilogonService();
 	if (!service)

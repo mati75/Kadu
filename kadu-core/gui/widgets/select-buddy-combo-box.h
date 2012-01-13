@@ -1,8 +1,11 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2009, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2010 Tomasz Rostański (rozteck@interia.pl)
+ * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
+ * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -23,27 +26,22 @@
 #define SELECT_BUDDY_COMBO_BOX_H
 
 #include "buddies/buddy.h"
-#include "gui/widgets/kadu-combo-box.h"
 #include "exports.h"
 
-class AbstractBuddyFilter;
-class SelectBuddyPopup;
+#include "gui/widgets/actions-combo-box.h"
 
-class KADUAPI SelectBuddyComboBox : public KaduComboBox<Buddy>
+class SelectBuddyPopup;
+class TalkableFilter;
+class TalkableProxyModel;
+
+class KADUAPI SelectBuddyComboBox : public ActionsComboBox
 {
 	Q_OBJECT
 
 	SelectBuddyPopup *Popup;
-
-private slots:
-	void currentIndexChangedSlot(int index);
-	void updateValueBeforeChange();
-	void rowsRemoved(const QModelIndex &parent, int start, int end);
+	TalkableProxyModel *ProxyModel;
 
 protected:
-	virtual int preferredDataRole() const;
-	virtual QString selectString() const;
-
 	virtual void showPopup();
 	virtual void hidePopup();
 
@@ -53,14 +51,11 @@ public:
 
 	Buddy currentBuddy();
 
-	void addFilter(AbstractBuddyFilter *filter);
-	void removeFilter(AbstractBuddyFilter *filter);
+	void addFilter(TalkableFilter *filter);
+	void removeFilter(TalkableFilter *filter);
 
 public slots:
 	void setCurrentBuddy(Buddy buddy);
-
-signals:
-	void buddyChanged(Buddy buddy);
 
 };
 

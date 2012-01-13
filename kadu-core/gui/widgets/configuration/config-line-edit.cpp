@@ -1,9 +1,9 @@
 /*
  * %kadu copyright begin%
+ * Copyright 2009, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2010 Piotr Dąbrowski (ultr@ultr.pl)
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2009 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2008, 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -23,8 +23,8 @@
 #include <QtGui/QApplication>
 #include <QtGui/QLabel>
 
-#include "gui/widgets/configuration/config-line-edit.h"
 #include "gui/widgets/configuration/config-group-box.h"
+#include "gui/widgets/configuration/config-line-edit.h"
 
 #include "debug.h"
 
@@ -73,14 +73,8 @@ void ConfigLineEdit::saveConfiguration()
 	dataManager->writeEntry(section, item, QVariant(text()));
 }
 
-void ConfigLineEdit::show()
+void ConfigLineEdit::setVisible(bool visible)
 {
-	label->show();
-	QLineEdit::show();
-}
-
-void ConfigLineEdit::hide()
-{
-	label->hide();
-	QLineEdit::hide();
+	label->setVisible(visible);
+	QLineEdit::setVisible(visible);
 }

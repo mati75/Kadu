@@ -1,15 +1,15 @@
 /*
  * %kadu copyright begin%
- * Copyright 2011 Sławomir Stępień (s.stepien@interia.pl)
- * Copyright 2010, 2011 Piotr Dąbrowski (ultr@ultr.pl)
- * Copyright 2007, 2009 Dawid Stawiarski (neeo@kadu.net)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2008, 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2008, 2009, 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2006, 2007 Marcin Ślusarz (joi@kadu.net)
- * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Piotr Dąbrowski (ultr@ultr.pl)
+ * Copyright 2011 Sławomir Stępień (s.stepien@interia.pl)
  * Copyright 2008 Michał Podsiadlik (michal@kadu.net)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2007, 2009 Dawid Stawiarski (neeo@kadu.net)
+ * Copyright 2006, 2007 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -36,15 +36,18 @@
 #include "accounts/account-manager.h"
 #include "configuration/configuration-file.h"
 #include "contacts/contact.h"
-#include "parser/parser-token.h"
 #include "icons/kadu-icon.h"
 #include "misc/misc.h"
-#include "status/status-type.h"
+#include "parser/parser-token.h"
+#include "status/status-container.h"
+#include "status/status-container-manager.h"
+#include "status/status-type-data.h"
 #include "status/status-type-manager.h"
+#include "status/status-type.h"
 
+#include "icons/icons-manager.h"
 #include "debug.h"
 #include "html_document.h"
-#include "icons/icons-manager.h"
 
 #include "parser.h"
 
@@ -53,14 +56,14 @@
 #define ENCODE_INCLUDE_CHARS " %[{\\$@#}]`\'"
 
 QMap<QString, QString> Parser::GlobalVariables;
-QMap<QString, Parser::BuddyOrContactTagCallback> Parser::RegisteredBuddyOrContactTags;
+QMap<QString, Parser::TalkableTagCallback> Parser::RegisteredTalkableTags;
 QMap<QString, Parser::ObjectTagCallback> Parser::RegisteredObjectTags;
 
-bool Parser::registerTag(const QString &name, BuddyOrContactTagCallback func)
+bool Parser::registerTag(const QString &name, TalkableTagCallback func)
 {
 	kdebugf();
 
-	if (RegisteredBuddyOrContactTags.contains(name))
+	if (RegisteredTalkableTags.contains(name))
 	{
 		kdebugmf(KDEBUG_ERROR | KDEBUG_FUNCTION_END, "tag %s already registered!\n", qPrintable(name));
 		return false;
@@ -72,7 +75,7 @@ bool Parser::registerTag(const QString &name, BuddyOrContactTagCallback func)
 		return false;
 	}
 
-	RegisteredBuddyOrContactTags.insert(name, func);
+	RegisteredTalkableTags.insert(name, func);
 
 	kdebugf2();
 	return true;
@@ -82,13 +85,13 @@ bool Parser::unregisterTag(const QString &name)
 {
 	kdebugf();
 
-	if (!RegisteredBuddyOrContactTags.contains(name))
+	if (!RegisteredTalkableTags.contains(name))
 	{
-		kdebugmf(KDEBUG_ERROR | KDEBUG_FUNCTION_END, "BuddyOrContact tag %s not registered!\n", qPrintable(name));
+		kdebugmf(KDEBUG_ERROR | KDEBUG_FUNCTION_END, "Talkable tag %s not registered!\n", qPrintable(name));
 		return false;
 	}
 
-	RegisteredBuddyOrContactTags.remove(name);
+	RegisteredTalkableTags.remove(name);
 
 	kdebugf2();
 	return true;
@@ -104,9 +107,9 @@ bool Parser::registerObjectTag(const QString &name, ObjectTagCallback func)
 		return false;
 	}
 
-	if (RegisteredBuddyOrContactTags.contains(name))
+	if (RegisteredTalkableTags.contains(name))
 	{
-		kdebugmf(KDEBUG_ERROR | KDEBUG_FUNCTION_END, "tag %s already registered (as BuddyOrContact tag)!\n", qPrintable(name));
+		kdebugmf(KDEBUG_ERROR | KDEBUG_FUNCTION_END, "tag %s already registered (as Talkable tag)!\n", qPrintable(name));
 		return false;
 	}
 
@@ -143,7 +146,7 @@ QString Parser::executeCmd(const QString &cmd)
 	QProcess executor;
 	executor.start(s);
 	executor.closeWriteChannel();
-	
+
 	QString ret;
 	if (executor.waitForFinished())
 		ret = executor.readAll();
@@ -178,13 +181,13 @@ bool Parser::isActionParserTokenAtTop(const QStack<ParserToken> &parseStack, con
 	return found;
 }
 
-ParserToken Parser::parsePercentSyntax(const QString &s, int &idx, const BuddyOrContact &buddyOrContact, bool escape)
+ParserToken Parser::parsePercentSyntax(const QString &s, int &idx, const Talkable &talkable, bool escape)
 {
 	ParserToken pe;
 	pe.setType(PT_STRING);
 
-	Buddy buddy = buddyOrContact.buddy();
-	Contact contact = buddyOrContact.contact();
+	Buddy buddy = talkable.toBuddy();
+	Contact contact = talkable.toContact();
 
 	switch (s.at(idx).toAscii())
 	{
@@ -206,9 +209,8 @@ ParserToken Parser::parsePercentSyntax(const QString &s, int &idx, const BuddyOr
 					pe.setContent(qApp->translate("@default", "Blocking"));
 				else
 				{
-					StatusType *type = StatusTypeManager::instance()->statusType(contact.currentStatus().type());
-					if (type)
-						pe.setContent(type->displayName());
+					const StatusTypeData & typeData = StatusTypeManager::instance()->statusTypeData(contact.currentStatus().type());
+					pe.setContent(typeData.displayName());
 				}
 			}
 
@@ -221,6 +223,8 @@ ParserToken Parser::parsePercentSyntax(const QString &s, int &idx, const BuddyOr
 				StatusContainer *container = contact.contactAccount().statusContainer();
 				if (container)
 					pe.setContent(container->statusIcon(contact.currentStatus().type()).path());
+				else
+					pe.setContent(StatusContainerManager::instance()->statusIcon(contact.currentStatus().type()).path());
 			}
 
 			break;
@@ -429,7 +433,7 @@ QString Parser::joinParserTokens(const ContainerClass &parseStack)
 	return joined;
 }
 
-QString Parser::parse(const QString &s, BuddyOrContact buddyOrContact, const QObject * const object, bool escape)
+QString Parser::parse(const QString &s, Talkable talkable, const QObject * const object, bool escape)
 {
 	kdebugmf(KDEBUG_DUMP, "%s escape=%i\n", qPrintable(s), escape);
 
@@ -480,7 +484,7 @@ QString Parser::parse(const QString &s, BuddyOrContact buddyOrContact, const QOb
 			if (idx == len)
 				break;
 
-			pe = parsePercentSyntax(s, idx, buddyOrContact, escape);
+			pe = parsePercentSyntax(s, idx, talkable, escape);
 			pe.encodeContent(QByteArray(), ENCODE_INCLUDE_CHARS);
 
 			parseStack.push(pe);
@@ -695,8 +699,8 @@ QString Parser::parse(const QString &s, BuddyOrContact buddyOrContact, const QOb
 
 						pe.setType(PT_STRING);
 
-						if (RegisteredBuddyOrContactTags.contains(content))
-							pe.setContent(RegisteredBuddyOrContactTags[content](buddyOrContact));
+						if (RegisteredTalkableTags.contains(content))
+							pe.setContent(RegisteredTalkableTags[content](talkable));
 						else if (object && RegisteredObjectTags.contains(content))
 							pe.setContent(RegisteredObjectTags[content](object));
 						else

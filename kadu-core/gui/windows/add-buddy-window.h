@@ -1,10 +1,11 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2009, 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2011 Tomasz Rostanski (rozteck@interia.pl)
+ * Copyright 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2011 Piotr Dąbrowski (ultr@ultr.pl)
  * Copyright 2009, 2010 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -31,29 +32,27 @@
 #include "os/generic/desktop-aware-object.h"
 
 class QCheckBox;
+class QFormLayout;
 class QLabel;
 class QLineEdit;
 class QRegExpValidator;
-class QScrollArea;
 
 class AccountsComboBox;
 class GroupsComboBox;
-class IdValidityFilter;
 class SelectBuddyComboBox;
 
 class AddBuddyWindow : public QDialog, DesktopAwareObject
 {
 	Q_OBJECT
 
-#ifdef Q_WS_MAEMO_5
-	QScrollArea *ScrollArea;
-#endif
+	QFormLayout *Layout;
+
 	QLabel *UserNameLabel;
 	QLineEdit *UserNameEdit;
 	QAction *MobileAccountAction; // TODO: hack
 	QAction *EmailAccountAction; // TODO: hack
+	Account LastSelectedAccount;
 	AccountsComboBox *AccountCombo;
-	IdValidityFilter *AccountComboIdFilter;
 	GroupsComboBox *GroupCombo;
 	QLineEdit *DisplayNameEdit;
 	QCheckBox *MergeBuddy;
@@ -62,6 +61,9 @@ class AddBuddyWindow : public QDialog, DesktopAwareObject
 	QCheckBox *AllowToSeeMeCheck;
 	QLabel *ErrorLabel;
 	QPushButton *AddContactButton;
+
+	QList<QWidget *> NonMergeWidgets;
+	QList<QWidget *> MergeWidgets;
 
 	Buddy MyBuddy;
 	Account MyAccount;
@@ -89,25 +91,20 @@ class AddBuddyWindow : public QDialog, DesktopAwareObject
 	void askForAuthorization(const Contact &contact);
 	void sendAuthorization(const Contact &contact);
 
-#ifdef Q_WS_MAEMO_5
-	void resizeEvent(QResizeEvent *event);
-#endif
-
 private slots:
-	void accountChanged(Account account, Account lastAccount);
+	void accountChanged();
 	void updateGui();
 	void setAddContactEnabled();
-	void setAccountFilter();
-
-protected slots:
-	virtual void accept();
-	virtual void reject();
+	void mergeToggled(bool toggled);
 
 public:
 	explicit AddBuddyWindow(QWidget *parent = 0, const Buddy &buddy = Buddy::null, bool forceBuddyAccount = false);
 	virtual ~AddBuddyWindow();
 
 	void setGroup(Group group);
+
+public slots:
+	virtual void accept();
 
 };
 

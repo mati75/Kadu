@@ -14,6 +14,7 @@ set (SOURCES
 	mpris-player-configuration-ui-handler.cpp
 	mpris-player.cpp
 	mpris-player-plugin.cpp
+	track-info.cpp
 )
 
 set (MOC_SOURCES
@@ -23,6 +24,22 @@ set (MOC_SOURCES
 	mpris-player.h
 	mpris-player-plugin.h
 )
+
+if (UNIX AND NOT APPLE)
+	set (SOURCES ${SOURCES}
+		mpris_controller.cpp
+		mpris_mediaplayer.cpp
+	)
+
+	set (MOC_SOURCES ${MOC_SOURCES}
+		mpris_controller.h
+		mpris_mediaplayer.h
+	)
+
+	set (DBUS_LIBS
+		${QT_QTDBUS_LIBRARY}
+	)
+endif (UNIX AND NOT APPLE)
 
 set (TRANSLATION_SOURCES
 	translations/mprisplayer_mediaplayer_en.ts

@@ -1,7 +1,8 @@
 /*
  * %kadu copyright begin%
- * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -19,8 +20,8 @@
  */
 
 #include "core/core.h"
-#include "gui/actions/action.h"
 #include "gui/actions/action-description.h"
+#include "gui/actions/action.h"
 #include "gui/windows/main-window.h"
 
 #include "actions.h"
@@ -45,7 +46,7 @@ void Actions::insert(ActionDescription *action)
 	QMap<QString, ActionDescription *>::insert(action->name(), action);
 
 	if (!BlockSignals)
-		emit actionLoaded(action->name());
+		emit actionLoaded(action);
 }
 
 void Actions::remove(ActionDescription *action)
@@ -53,16 +54,15 @@ void Actions::remove(ActionDescription *action)
 	QMap<QString, ActionDescription *>::remove(action->name());
 
 	if (!Core::instance()->isClosing())
-		emit actionUnloaded(action->name());
+		emit actionUnloaded(action);
 }
 
-QAction * Actions::createAction(const QString &name, MainWindow *kaduMainWindow)
+QAction * Actions::createAction(const QString &name, ActionContext *context, QObject *parent)
 {
 	if (!contains(name))
 		return 0;
 
-	Action *result = value(name)->createAction(kaduMainWindow, kaduMainWindow);
-	kaduMainWindow->actionAdded(result);
+	Action *result = value(name)->createAction(context, parent);
 
 	emit actionCreated(result);
 

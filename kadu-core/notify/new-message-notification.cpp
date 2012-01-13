@@ -1,10 +1,10 @@
 /*
  * %kadu copyright begin%
- * Copyright 2008 Dawid Stawiarski (neeo@kadu.net)
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2008, 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2008, 2009, 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2007, 2008, 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2008 Dawid Stawiarski (neeo@kadu.net)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -23,10 +23,10 @@
 
 #include <QtGui/QTextDocument>
 
-#include "chat/message/message.h"
+#include "icons/icons-manager.h"
+#include "message/message.h"
 #include "notify/notification-manager.h"
 #include "notify/notify-event.h"
-#include "icons/icons-manager.h"
 
 #include "new-message-notification.h"
 
@@ -70,16 +70,16 @@ MessageNotification::MessageNotification(MessageType messageType, const Message 
 
 	if (messageType == NewChat)
 	{
-		setTitle("New chat");
+		setTitle(tr("New chat"));
 		syntax = tr("Chat with <b>%1</b>");
 	}
 	else
 	{
-		setTitle("New message");
+		setTitle(tr("New message"));
 		syntax = tr("New message from <b>%1</b>");
 	}
 
-	setText(syntax.arg(Qt::escape(message.messageSender().ownerBuddy().display())));
+	setText(syntax.arg(Qt::escape(message.messageSender().display(true))));
 	setDetails(message.content());
 }
 

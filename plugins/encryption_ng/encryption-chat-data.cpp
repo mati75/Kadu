@@ -1,7 +1,12 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
+ * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -18,8 +23,6 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "chat/chat-shared.h"
-#include "configuration/encryption-ng-configuration.h"
 #include "contacts/contact-set.h"
 #include "decryptor.h"
 #include "encryptor.h"
@@ -27,7 +30,7 @@
 #include "encryption-chat-data.h"
 
 EncryptionChatData::EncryptionChatData(const QString &moduleName, StorableObject *parent, QObject *qobjectParent) :
-		ModuleData(moduleName, parent, qobjectParent), ChatEncryptor(0), ChatDecryptor(0)
+		ModuleData(moduleName, parent, qobjectParent), ChatEncryptor(0), ChatDecryptor(0), Encrypt(EncryptStateDefault)
 {
 }
 
@@ -35,9 +38,9 @@ EncryptionChatData::~EncryptionChatData()
 {
 }
 
-bool EncryptionChatData::importEncrypt()
+EncryptionChatData::EncryptState EncryptionChatData::importEncrypt()
 {
-	bool result = EncryptionNgConfiguration::instance()->encryptByDefault();
+	EncryptState result = EncryptStateDefault;
 	StorableObject *chatStorage = storageParent();
 	ChatShared *chat = dynamic_cast<ChatShared *>(chatStorage);
 
@@ -52,8 +55,10 @@ bool EncryptionChatData::importEncrypt()
 	QString encryptionEnabled = contact.ownerBuddy().customData("encryption_enabled");
 	contact.ownerBuddy().removeCustomData("encryption_enabled");
 
-	if (!encryptionEnabled.isEmpty())
-		result = encryptionEnabled == "true";
+	if (encryptionEnabled == "false")
+		result = EncryptStateDisabled;
+	else if (encryptionEnabled == "true")
+		result = EncryptStateEnabled;
 
 	return result;
 }
@@ -66,7 +71,9 @@ void EncryptionChatData::load()
 	StorableObject::load();
 
 	Encrypt = hasValue("Encrypt")
-			? loadValue<bool>("Encrypt")
+			? (loadValue<bool>("Encrypt")
+				? EncryptStateEnabled
+				: EncryptStateDisabled)
 			: importEncrypt();
 }
 
@@ -75,7 +82,16 @@ void EncryptionChatData::store()
 	if (!isValidStorage())
 		return;
 
-	storeValue("Encrypt", Encrypt);
+	Q_ASSERT(Encrypt != EncryptStateDefault);
+
+	storeValue("Encrypt", (Encrypt == EncryptStateEnabled) ? true : false);
+}
+
+bool EncryptionChatData::shouldStore()
+{
+	ensureLoaded();
+
+	return ModuleData::shouldStore() && (Encrypt != EncryptStateDefault);
 }
 
 QString EncryptionChatData::name() const

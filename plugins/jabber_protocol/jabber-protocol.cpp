@@ -1,12 +1,12 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2010 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2009, 2009, 2010, 2010, 2010, 2011 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2010 Piotr Pełzowski (floss@pelzowski.eu)
  * Copyright 2009 Michał Podsiadlik (michal@kadu.net)
- * Copyright 2009, 2010 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2009, 2009, 2010 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2009, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -30,29 +30,29 @@
 #include "buddies/group-manager.h"
 #include "contacts/contact-manager.h"
 #include "core/core.h"
-#include "debug.h"
 #include "gui/windows/message-dialog.h"
 #include "gui/windows/password-window.h"
 #include "os/generic/system-info.h"
 #include "protocols/protocols-manager.h"
 #include "status/status-type-manager.h"
 #include "url-handlers/url-handler-manager.h"
+#include "debug.h"
 
 #include "actions/jabber-actions.h"
 #include "actions/jabber-protocol-menu-manager.h"
 #include "certificates/trusted-certificates-manager.h"
-#include "resource/jabber-resource-pool.h"
-#include "utils/vcard-factory.h"
 #include "iris/filetransfer.h"
 #include "iris/irisnetglobal.h"
+#include "resource/jabber-resource-pool.h"
 #include "services/jabber-roster-service.h"
 #include "services/jabber-subscription-service.h"
+#include "utils/vcard-factory.h"
+#include "facebook-protocol-factory.h"
+#include "gtalk-protocol-factory.h"
 #include "iris-status-adapter.h"
 #include "jabber-contact-details.h"
 #include "jabber-id-validator.h"
 #include "jabber-protocol-factory.h"
-#include "facebook-protocol-factory.h"
-#include "gtalk-protocol-factory.h"
 #include "jabber-url-handler.h"
 
 #include "jabber-protocol.h"
@@ -92,8 +92,8 @@ JabberProtocol::~JabberProtocol()
 
 void JabberProtocol::connectContactManagerSignals()
 {
-	connect(ContactManager::instance(), SIGNAL(contactAboutToBeDetached(Contact, bool)),
-			this, SLOT(contactAboutToBeDetached(Contact, bool)));
+	connect(ContactManager::instance(), SIGNAL(contactDetached(Contact, Buddy, bool)),
+			this, SLOT(contactDetached(Contact, Buddy, bool)));
 	connect(ContactManager::instance(), SIGNAL(contactAttached(Contact, bool)),
 			this, SLOT(contactAttached(Contact, bool)));
 	connect(ContactManager::instance(), SIGNAL(contactIdChanged(Contact, const QString &)),
@@ -105,8 +105,8 @@ void JabberProtocol::connectContactManagerSignals()
 
 void JabberProtocol::disconnectContactManagerSignals()
 {
-	disconnect(ContactManager::instance(), SIGNAL(contactAboutToBeDetached(Contact, bool)),
-			this, SLOT(contactAboutToBeDetached(Contact, bool)));
+	disconnect(ContactManager::instance(), SIGNAL(contactDetached(Contact, Buddy, bool)),
+			this, SLOT(contactDetached(Contact, Buddy, bool)));
 	disconnect(ContactManager::instance(), SIGNAL(contactAttached(Contact, bool)),
 			this, SLOT(contactAttached(Contact, bool)));
 	disconnect(ContactManager::instance(), SIGNAL(contactIdChanged(Contact, const QString &)),
@@ -221,9 +221,13 @@ void JabberProtocol::login()
 		return;
 	}
 
-	JabberClient->setOSName(SystemInfo::instance()->osFullName());
-	JabberClient->setClientName("Kadu");
-	JabberClient->setClientVersion(Core::instance()->version());
+	if (jabberAccountDetails->publishSystemInfo())
+	{
+		JabberClient->setOSName(SystemInfo::instance()->osFullName());
+		JabberClient->setClientName("Kadu");
+		JabberClient->setClientVersion(Core::instance()->version());
+		kdebugm(KDEBUG_WARNING, "CLIENT:  %s, %s\n", qPrintable(SystemInfo::instance()->osFullName()), qPrintable(Core::instance()->version()));
+	}
 
 	// Set caps node information
 	JabberClient->setCapsNode("http://kadu.im/caps");
@@ -276,6 +280,9 @@ void JabberProtocol::logout()
 
 void JabberProtocol::sendStatusToServer()
 {
+	if (!isConnected())
+		return;
+
 	JabberClient->setPresence(IrisStatusAdapter::toIrisStatus(status()));
 	account().accountContact().setCurrentStatus(status());
 }
@@ -302,7 +309,7 @@ void JabberProtocol::clientAvailableResourceReceived(const XMPP::Jid &jid, const
 void JabberProtocol::clientUnavailableResourceReceived(const XMPP::Jid &jid, const XMPP::Resource &resource)
 {
   	kdebug("New resource unavailable for %s\n", jid.full().toUtf8().constData());
-	
+
 	XMPP::Resource bestResource = resourcePool()->bestResource(jid);
 
 	bool notify = bestResource.name() == resource.name();
@@ -321,34 +328,49 @@ void JabberProtocol::notifyAboutPresenceChanged(const XMPP::Jid &jid, const XMPP
 	Status status(IrisStatusAdapter::fromIrisStatus(resource.status()));
 	Contact contact = ContactManager::instance()->byId(account(), jid.bare(), ActionReturnNull);
 
-	if (contact)
-	{
-		Status oldStatus = contact.currentStatus();
-		contact.setCurrentStatus(status);
+	if (!contact)
+		return;
 
+	Status oldStatus = contact.currentStatus();
+	contact.setCurrentStatus(status);
+
+	// see issue #2159 - we need a way to ignore first status of given contact
+	JabberContactDetails *details = static_cast<JabberContactDetails *>(contact.details());
+	if (details && details->ignoreNextStatusChange())
+		details->setIgnoreNextStatusChange(false);
+	else
 		emit contactStatusChanged(contact, oldStatus);
-	}
+}
+
+void JabberProtocol::contactDetached(Contact contact, Buddy previousBuddy, bool reattaching)
+{
+	Q_UNUSED(previousBuddy)
+
+	if (reattaching)
+		return;
+
+	if (CurrentRosterService)
+		CurrentRosterService->removeContact(contact);
 }
 
 void JabberProtocol::contactAttached(Contact contact, bool reattached)
 {
+	if (contact.contactAccount() != account())
+		return;
+
 	if (reattached)
 	{
 		contactUpdated(contact);
 		return;
 	}
 
+	// see issue #2159 - we need a way to ignore first status of given contact
+	JabberContactDetails *details = static_cast<JabberContactDetails *>(contact.details());
+	if (details)
+		details->setIgnoreNextStatusChange(true);
+
 	if (CurrentRosterService)
 		CurrentRosterService->addContact(contact);
-}
-
-void JabberProtocol::contactAboutToBeDetached(Contact contact, bool reattached)
-{
-	if (reattached)
-		return;
-
-	if (CurrentRosterService)
-		CurrentRosterService->removeContact(contact);
 }
 
 void JabberProtocol::buddyUpdated(Buddy &buddy)
@@ -356,7 +378,7 @@ void JabberProtocol::buddyUpdated(Buddy &buddy)
 	if (!isConnected())
 		return;
 
-	QList<Contact> contacts = buddy.contacts(account());
+	QVector<Contact> contacts = buddy.contacts(account());
 	if (contacts.isEmpty() || buddy.isAnonymous())
 		return;
 
@@ -373,10 +395,10 @@ void JabberProtocol::contactUpdated(Contact contact)
 	if (!isConnected() || contact.contactAccount() != account())
 		return;
 
-	Buddy buddy = contact.ownerBuddy();
-	if (buddy.isAnonymous())
+	if (contact.isAnonymous())
 		return;
 
+	Buddy buddy = contact.ownerBuddy();
 	QStringList groupsList;
 	foreach (const Group &group, buddy.groups())
 		groupsList.append(group.name());

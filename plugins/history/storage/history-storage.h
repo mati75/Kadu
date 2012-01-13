@@ -1,10 +1,10 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2009, 2009 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2009 Michał Podsiadlik (michal@kadu.net)
+ * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -26,14 +26,15 @@
 
 #include <QtCore/QDate>
 #include <QtCore/QDateTime>
+#include <QtCore/QFuture>
 #include <QtCore/QObject>
 
-#include "chat/chat.h"
 #include "buddies/buddy.h"
+#include "chat/chat.h"
 
 #include "../history_exports.h"
 
-class DatesModelItem;
+struct DatesModelItem;
 class HistorySearchParameters;
 class Message;
 class Status;
@@ -51,20 +52,20 @@ public:
 	explicit HistoryStorage(QObject *parent) : QObject(parent) {}
 	virtual ~HistoryStorage() {}
 
-	virtual QList<Chat> chats(const HistorySearchParameters &search) = 0;
+	virtual QVector<Chat> chats(const HistorySearchParameters &search) = 0;
 
-	virtual QList<DatesModelItem> chatDates(const Chat &chat, const HistorySearchParameters &search) = 0;
-	virtual QList<Message> messages(const Chat &chat, const QDate &date = QDate(), int limit = 0) = 0;
-	virtual QList<Message> messagesSince(const Chat &chat, const QDate &date) = 0;
-	virtual QList<Message> messagesBackTo(const Chat &chat, const QDateTime &datetime, int limit) = 0;
+	virtual QVector<DatesModelItem> chatDates(const Chat &chat, const HistorySearchParameters &search) = 0;
+	virtual QVector<Message> messages(const Chat &chat, const QDate &date = QDate(), int limit = 0) = 0;
+	virtual QFuture<QVector<Message> > asyncMessagesSince(const Chat &chat, const QDate &date) = 0;
+	virtual QFuture<QVector<Message> > asyncMessagesBackTo(const Chat &chat, const QDateTime &datetime, int limit) = 0;
 
-	virtual QList<Buddy> statusBuddiesList(const HistorySearchParameters &search) = 0;
-	virtual QList<DatesModelItem> datesForStatusBuddy(const Buddy &buddy, const HistorySearchParameters &search) = 0;
+	virtual QVector<Buddy> statusBuddiesList(const HistorySearchParameters &search) = 0;
+	virtual QVector<DatesModelItem> datesForStatusBuddy(const Buddy &buddy, const HistorySearchParameters &search) = 0;
 	virtual QList<TimedStatus> statuses(const Buddy &buddy, const QDate &date = QDate(), int limit = 0) = 0;
 
 	virtual QList<QString> smsRecipientsList(const HistorySearchParameters &search) = 0;
-	virtual QList<DatesModelItem> datesForSmsRecipient(const QString &recipient, const HistorySearchParameters &search) = 0;
-	virtual QList<Message> sms(const QString &recipient, const QDate &date = QDate(), int limit = 0) = 0;
+	virtual QVector<DatesModelItem> datesForSmsRecipient(const QString &recipient, const HistorySearchParameters &search) = 0;
+	virtual QVector<Message> sms(const QString &recipient, const QDate &date = QDate(), int limit = 0) = 0;
 
 	virtual void appendMessage(const Message &message) = 0;
 	virtual void appendStatus(const Contact &contact, const Status &status, const QDateTime &time = QDateTime::currentDateTime()) = 0;

@@ -1,8 +1,12 @@
 /*
  * %kadu copyright begin%
+ * Copyright 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2009, 2009 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
+ * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -22,6 +26,7 @@
 #ifndef CHAT_GEOMETRY_DATA_H
 #define CHAT_GEOMETRY_DATA_H
 
+#include <QtCore/QList>
 #include <QtCore/QRect>
 
 #include "storage/module-data.h"
@@ -29,30 +34,28 @@
 #undef Property
 #define Property(type, name, capitalized_name) \
 	type name() { ensureLoaded(); return capitalized_name; } \
-	void set##capitalized_name(const type &name) { ensureLoaded(); capitalized_name = name; }
+	void set##capitalized_name(type name) { ensureLoaded(); capitalized_name = name; }
 
 class ChatGeometryData : public ModuleData
 {
 	Q_OBJECT
 
 	QRect WindowGeometry;
-	QList<int> WidgetVerticalSizes;
 	QList<int> WidgetHorizontalSizes;
 
 protected:
 	virtual void load();
+	virtual void store();
+	virtual bool shouldStore();
 
 public:
 	ChatGeometryData(const QString &moduleName, StorableObject *parent, QObject *qobjectParent);
 	virtual ~ChatGeometryData();
 
-	virtual void store();
 	virtual QString name() const;
 
-	Property(QRect, windowGeometry, WindowGeometry)
-	// TODO 0.10: remove
-	Property(QList<int>, widgetVerticalSizes, WidgetVerticalSizes)
-	Property(QList<int>, widgetHorizontalSizes, WidgetHorizontalSizes)
+	Property(const QRect &, windowGeometry, WindowGeometry)
+	Property(const QList<int> &, widgetHorizontalSizes, WidgetHorizontalSizes)
 
 };
 

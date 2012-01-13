@@ -1,11 +1,11 @@
 /*
  * %kadu copyright begin%
- * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2009, 2010 Tomasz Rostański (rozteck@interia.pl)
  * Copyright 2010 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -23,8 +23,8 @@
  */
 
 #include <QtCore/QDir>
-#include <QtCore/QTextStream>
 #include <QtCore/QStringList>
+#include <QtCore/QTextStream>
 
 #include "debug.h"
 #include "exports.h"
@@ -125,43 +125,32 @@ QStringList FalfMediaPlayer::getPlayListFiles()
 	return QStringList();
 }
 
-uint FalfMediaPlayer::getPlayListLength()
+QString FalfMediaPlayer::getTitle()
 {
-	kdebugf();
-	return 0;
-}
-
-QString FalfMediaPlayer::getTitle(int position)
-{
-	Q_UNUSED(position)
 	kdebugf();
 	return getData(TypeTitle);
 }
 
-QString FalfMediaPlayer::getAlbum(int position)
+QString FalfMediaPlayer::getAlbum()
 {
-	Q_UNUSED(position)
 	kdebugf();
 	return getData(TypeAlbum);
 }
 
-QString FalfMediaPlayer::getArtist(int position)
+QString FalfMediaPlayer::getArtist()
 {
-	Q_UNUSED(position)
 	kdebugf();
 	return getData(TypeArtist);
 }
 
-QString FalfMediaPlayer::getFile(int position)
+QString FalfMediaPlayer::getFile()
 {
-	Q_UNUSED(position)
 	kdebugf();
 	return QString();
 }
 
-int FalfMediaPlayer::getLength(int position)
+int FalfMediaPlayer::getLength()
 {
-	Q_UNUSED(position)
 	kdebugf();
 	return 0;
 }

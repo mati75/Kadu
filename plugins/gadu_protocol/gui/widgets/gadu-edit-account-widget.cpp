@@ -1,11 +1,11 @@
 /*
  * %kadu copyright begin%
+ * Copyright 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2009, 2009, 2010, 2010 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2010, 2011 Piotr Dąbrowski (ultr@ultr.pl)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2010 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2009, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -38,18 +38,19 @@
 #include <QtGui/QTabWidget>
 #include <QtGui/QVBoxLayout>
 
-#include "accounts/account.h"
 #include "accounts/account-manager.h"
+#include "accounts/account.h"
 #include "configuration/configuration-file.h"
+#include "contacts/contact-manager.h"
 #include "gui/widgets/account-avatar-widget.h"
 #include "gui/widgets/account-buddy-list-widget.h"
 #include "gui/widgets/identities-combo-box.h"
-#include "gui/widgets/proxy-group-box.h"
+#include "gui/widgets/proxy-combo-box.h"
+#include "icons/icons-manager.h"
 #include "identities/identity-manager.h"
+#include "protocols/protocol.h"
 #include "protocols/services/avatar-service.h"
 #include "protocols/services/contact-list-service.h"
-#include "protocols/protocol.h"
-#include "icons/icons-manager.h"
 
 #include "gui/windows/gadu-change-password-window.h"
 #include "gui/windows/gadu-remind-password-window.h"
@@ -69,7 +70,6 @@ GaduEditAccountWidget::GaduEditAccountWidget(Account account, QWidget *parent) :
 
 	createGui();
 	loadAccountData();
-	loadConnectionData();
 	resetState();
 }
 
@@ -144,7 +144,7 @@ void GaduEditAccountWidget::createGeneralTab(QTabWidget *tabWidget)
 	connect(changePasswordLabel, SIGNAL(linkActivated(QString)), this, SLOT(changePasssword()));
 
 	Identities = new IdentitiesComboBox(false, this);
-	connect(Identities, SIGNAL(identityChanged(Identity)), this, SLOT(dataChanged()));
+	connect(Identities, SIGNAL(currentIndexChanged(int)), this, SLOT(dataChanged()));
 	formLayout->addRow(tr("Account Identity") + ':', Identities);
 
 	QLabel *infoLabel = new QLabel(tr("<font size='-1'><i>Select or enter the identity that will be associated with this account.</i></font>"), this);
@@ -184,10 +184,6 @@ void GaduEditAccountWidget::createConnectionTab(QTabWidget *tabWidget)
 
 	QVBoxLayout *layout = new QVBoxLayout(conenctionTab);
 	createGeneralGroupBox(layout);
-
-	Proxy = new ProxyGroupBox(account(), tr("Proxy"), this);
-	connect(Proxy, SIGNAL(stateChanged(ModalConfigurationWidgetState)), this, SLOT(dataChanged()));
-	layout->addWidget(Proxy);
 
 	layout->addStretch(100);
 }
@@ -248,29 +244,33 @@ void GaduEditAccountWidget::createOptionsTab(QTabWidget *tabWidget)
 
 	layout->addWidget(outgoingImages);
 
+	QGroupBox *other = new QGroupBox(tr("Other"), this);
+	QFormLayout *otherLayout = new QFormLayout(other);
+
+	layout->addWidget(other);
+
 	// status
 
-	QGroupBox *status = new QGroupBox(tr("Status"), this);
-	QFormLayout *statusLayout = new QFormLayout(status);
+	ShowStatusToEveryone = new QCheckBox(tr("Show my status to everyone"), other);
+	ShowStatusToEveryone->setToolTip(tr("When disabled, you're visible only to buddies on your list"));
+	connect(ShowStatusToEveryone, SIGNAL(clicked(bool)), this, SLOT(showStatusToEveryoneToggled(bool)));
+	connect(ShowStatusToEveryone, SIGNAL(clicked()), this, SLOT(dataChanged()));
 
-	PrivateStatus = new QCheckBox(tr("Show my status to everyone"), optionsTab);
-	PrivateStatus->setToolTip(tr("When disabled, you're visible only to buddies on your list"));
-	connect(PrivateStatus, SIGNAL(clicked()), this, SLOT(dataChanged()));
-
-	statusLayout->addRow(PrivateStatus);
-
-	layout->addWidget(status);
+	otherLayout->addRow(ShowStatusToEveryone);
 
 	// notifications
 
-	QGroupBox *notifications = new QGroupBox(tr("Notifications"), this);
-
-	QVBoxLayout *notificationsLayout = new QVBoxLayout(notifications);
-	SendTypingNotification = new QCheckBox(tr("Send composing events"));
+	SendTypingNotification = new QCheckBox(tr("Send composing events"), other);
 	connect(SendTypingNotification, SIGNAL(clicked()), this, SLOT(dataChanged()));
-	notificationsLayout->addWidget(SendTypingNotification);
 
-	layout->addWidget(notifications);
+	otherLayout->addRow(SendTypingNotification);
+
+	// spam
+
+	ReceiveSpam = new QCheckBox(tr("Receive URLs from anonymous buddies"), other);
+	connect(ReceiveSpam, SIGNAL(clicked()), this, SLOT(dataChanged()));
+
+	otherLayout->addRow(ReceiveSpam);
 
 	// stretch
 
@@ -335,6 +335,14 @@ void GaduEditAccountWidget::createGeneralGroupBox(QVBoxLayout *layout)
 	externalLayout->addWidget(ExternalPort);
 
 	generalLayout->addLayout(externalLayout, 4, 0, 1, 4);
+
+	QLabel *proxyLabel = new QLabel(tr("Proxy configuration"), general);
+	ProxyCombo = new ProxyComboBox(general);
+	ProxyCombo->enableDefaultProxyAction();
+	connect(ProxyCombo, SIGNAL(currentIndexChanged(int)), this, SLOT(dataChanged()));
+
+	generalLayout->addWidget(proxyLabel, 5, 1);
+	generalLayout->addWidget(ProxyCombo, 5, 2);
 }
 
 void GaduEditAccountWidget::apply()
@@ -344,7 +352,9 @@ void GaduEditAccountWidget::apply()
 	account().setRememberPassword(RememberPassword->isChecked());
 	account().setPassword(AccountPassword->text());
 	account().setHasPassword(!AccountPassword->text().isEmpty());
-	account().setPrivateStatus(!PrivateStatus->isChecked());
+	account().setPrivateStatus(!ShowStatusToEveryone->isChecked());
+	account().setUseDefaultProxy(ProxyCombo->isDefaultProxySelected());
+	account().setProxy(ProxyCombo->currentProxy());
 
 	if (Details)
 	{
@@ -360,12 +370,11 @@ void GaduEditAccountWidget::apply()
 		if (gg_libgadu_check_feature(GG_LIBGADU_FEATURE_SSL))
 			Details->setTlsEncryption(UseTlsEncryption->isChecked());
 		Details->setSendTypingNotification(SendTypingNotification->isChecked());
+		Details->setReceiveSpam(ReceiveSpam->isChecked());
 
 		Details->setExternalIp(ExternalIp->text());
 		Details->setExternalPort(ExternalPort->text().toUInt());
 	}
-
-	Proxy->apply();
 
 	config_file.writeEntry("Network", "isDefServers", useDefaultServers->isChecked());
 	config_file.writeEntry("Network", "Server", ipAddresses->text());
@@ -387,8 +396,6 @@ void GaduEditAccountWidget::apply()
 void GaduEditAccountWidget::cancel()
 {
 	loadAccountData();
-	loadConnectionData();
-	Proxy->cancel();
 	gpiw->cancel();
 
 	IdentityManager::instance()->removeUnused();
@@ -409,7 +416,9 @@ void GaduEditAccountWidget::dataChanged()
 		&& account().id() == AccountId->text()
 		&& account().rememberPassword() == RememberPassword->isChecked()
 		&& account().password() == AccountPassword->text()
-		&& account().privateStatus() != PrivateStatus->isChecked()
+		&& account().privateStatus() != ShowStatusToEveryone->isChecked()
+		&& account().useDefaultProxy() == ProxyCombo->isDefaultProxySelected()
+		&& account().proxy() == ProxyCombo->currentProxy()
 		&& Details->limitImageSize() == LimitImageSize->isChecked()
 		&& Details->maximumImageSize() == MaximumImageSize->value()
 		&& Details->imageSizeAsk() == ImageSizeAsk->isChecked()
@@ -424,7 +433,7 @@ void GaduEditAccountWidget::dataChanged()
 		&& config_file.readEntry("Network", "Server") == ipAddresses->text()
 		&& (!gg_libgadu_check_feature(GG_LIBGADU_FEATURE_SSL) || Details->tlsEncryption() == UseTlsEncryption->isChecked())
 		&& Details->sendTypingNotification() == SendTypingNotification->isChecked()
-		&& StateNotChanged == Proxy->state()
+		&& Details->receiveSpam() == ReceiveSpam->isChecked()
 		&& !gpiw->isModified()
 
 		&& Details->externalIp() == ExternalIp->text()
@@ -434,8 +443,8 @@ void GaduEditAccountWidget::dataChanged()
 		return;
 	}
 
-	bool sameIdExists = AccountManager::instance()->byId(account().protocolName(), account().id())
-			&& AccountManager::instance()->byId(account().protocolName(), account().id()) != account();
+	bool sameIdExists = AccountManager::instance()->byId(account().protocolName(), AccountId->text())
+			&& AccountManager::instance()->byId(account().protocolName(), AccountId->text()) != account();
 
 	if (AccountId->text().isEmpty() || sameIdExists)
 	{
@@ -457,7 +466,11 @@ void GaduEditAccountWidget::loadAccountData()
 	AccountId->setText(account().id());
 	RememberPassword->setChecked(account().rememberPassword());
 	AccountPassword->setText(account().password());
-	PrivateStatus->setChecked(!account().privateStatus());
+	ShowStatusToEveryone->setChecked(!account().privateStatus());
+	if (account().useDefaultProxy())
+		ProxyCombo->selectDefaultProxy();
+	else
+		ProxyCombo->setCurrentProxy(account().proxy());
 
 	GaduAccountDetails *details = dynamic_cast<GaduAccountDetails *>(account().details());
 	if (details)
@@ -475,6 +488,7 @@ void GaduEditAccountWidget::loadAccountData()
 		AllowFileTransfers->setChecked(details->allowDcc());
 		UseTlsEncryption->setChecked(gg_libgadu_check_feature(GG_LIBGADU_FEATURE_SSL) ? details->tlsEncryption() : false);
 		SendTypingNotification->setChecked(details->sendTypingNotification());
+		ReceiveSpam->setChecked(details->receiveSpam());
 
 		ExternalIp->setText(details->externalIp());
 		ExternalPort->setText(QString::number(details->externalPort()));
@@ -482,11 +496,6 @@ void GaduEditAccountWidget::loadAccountData()
 
 	useDefaultServers->setChecked(config_file.readBoolEntry("Network", "isDefServers", true));
 	ipAddresses->setText(config_file.readEntry("Network", "Server"));
-}
-
-void GaduEditAccountWidget::loadConnectionData()
-{
-	Proxy->loadProxyData();
 }
 
 void GaduEditAccountWidget::removeAccount()
@@ -540,4 +549,38 @@ void GaduEditAccountWidget::changePasssword()
 void GaduEditAccountWidget::passwordChanged(const QString &newPassword)
 {
 	AccountPassword->setText(newPassword);
+}
+
+void GaduEditAccountWidget::showStatusToEveryoneToggled(bool toggled)
+{
+	if (!toggled)
+		return;
+
+	int count = 0;
+
+	const QVector<Contact> &contacts = ContactManager::instance()->contacts(account());
+	foreach (const Contact &contact, contacts)
+		if (!contact.isAnonymous() && contact.ownerBuddy().isOfflineTo())
+			count++;
+
+	if (!count)
+		return;
+
+	QWeakPointer<QMessageBox> messageBox = new QMessageBox(this);
+	messageBox.data()->setWindowTitle(tr("Confirm checking \"Show my status to everyone\" option"));
+	messageBox.data()->setText(tr("Are you sure do you want to check \"Show my status to everyone\" option?\n"
+	                              "You have several buddies which are not allowed to see your status.\n"
+	                              "Enabling this option will allow them to know you are available."));
+	QAbstractButton* yesButton = messageBox.data()->addButton(QMessageBox::Yes);
+	messageBox.data()->addButton(QMessageBox::No);
+	messageBox.data()->setDefaultButton(QMessageBox::No);
+	messageBox.data()->exec();
+
+	if (messageBox.isNull())
+		return;
+
+	if (messageBox.data()->clickedButton() == yesButton)
+		return;
+
+	ShowStatusToEveryone->setChecked(false);
 }

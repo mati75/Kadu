@@ -1,8 +1,10 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Piotr Dąbrowski (ultr@ultr.pl)
+ * Copyright 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Piotr Dąbrowski (ultr@ultr.pl)
+ * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -23,9 +25,9 @@
 #include <QtGui/QPushButton>
 #include <QtGui/QVBoxLayout>
 
+#include "icons/icons-manager.h"
 #include "notify/notification.h"
 #include "debug.h"
-#include "icons/icons-manager.h"
 
 #include "window-notifier-window.h"
 
@@ -85,7 +87,7 @@ void WindowNotifierWindow::createGui()
 
 	const QList<Notification::Callback> callbacks = CurrentNotification->getCallbacks();
 
-	if (callbacks.size())
+	if (!callbacks.isEmpty())
 		foreach(const Notification::Callback &i, callbacks)
 			addButton(buttons, i.Caption, i.Slot);
 	else

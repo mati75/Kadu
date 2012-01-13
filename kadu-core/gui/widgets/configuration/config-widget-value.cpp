@@ -1,6 +1,6 @@
 /*
  * %kadu copyright begin%
- * Copyright 2008, 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -20,8 +20,8 @@
 #include <QtGui/QApplication>
 #include <QtXml/QDomElement>
 
-#include "gui/widgets/configuration/config-widget-value.h"
 #include "gui/widgets/configuration/config-group-box.h"
+#include "gui/widgets/configuration/config-widget-value.h"
 
 #include "debug.h"
 

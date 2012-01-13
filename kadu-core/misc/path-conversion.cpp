@@ -1,13 +1,13 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Piotr Dąbrowski (ultr@ultr.pl)
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2009, 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2009 Michał Podsiadlik (michal@kadu.net)
- * Copyright 2010 Tomasz Rostański (rozteck@interia.pl)
  * Copyright 2010, 2011 Tomasz Rostanski (rozteck@interia.pl)
+ * Copyright 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2010, 2010 Tomasz Rostański (rozteck@interia.pl)
+ * Copyright 2010, 2011 Piotr Dąbrowski (ultr@ultr.pl)
+ * Copyright 2009 Michał Podsiadlik (michal@kadu.net)
  * Copyright 2010 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -24,14 +24,16 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <QtCore/QtGlobal>
+#include <cstdio>
+
 #include <QtCore/QDir>
+#include <QtCore/QtGlobal>
 #include <QtGui/QApplication>
 
 #ifdef Q_OS_WIN
-#include <windows.h>
-#include <shlobj.h>
 #include <QFile>
+#include <shlobj.h>
+#include <windows.h>
 #endif
 
 #include "parser/parser.h"
@@ -39,12 +41,6 @@
 #include "kadu-config.h"
 
 #include "path-conversion.h"
-
-#ifndef Q_OS_WIN
-#include <cstdio>
-#include <pwd.h>
-#include <stdlib.h>
-#endif
 
 #if HAVE_EXECINFO
 #include <execinfo.h>
@@ -79,42 +75,38 @@ void printBacktrace(const QString &header)
 	fflush(stderr);
 }
 
+#ifdef Q_WS_X11
 QString desktopFilePath()
 {
 	return QLatin1String(KADU_DESKTOP_FILE_PATH);
 }
+#endif
 
 QString homePath()
 {
 	static QString path;
 	if (path.isNull())
 	{
-		QString home;
-
 #ifdef Q_OS_WIN
 		// on win32 dataPath doesn't need real argv[0] so it's safe to use this
 		// in such ugly way
+		// TODO review this usbinst thing
 		if (QFile::exists(dataPath("usbinst", "")))
-		{
 			path = dataPath("config/");
-			Parser::GlobalVariables["KADU_CONFIG"] = path;
-			return (path);
-		}
-		WCHAR *homepath = new WCHAR[MAX_PATH + 1];
-		WCHAR *homepath_guard = homepath;
-		if (!SUCCEEDED(SHGetFolderPathW(NULL, CSIDL_APPDATA, NULL, 0, homepath)))
-			homepath = _wgetenv(L"HOMEPATH");
-		home = QString::fromUtf16((const ushort *)homepath);
-		delete [] homepath_guard;
-#else
-		struct passwd *pw;
-		if ((pw = getpwuid(getuid())))
-			home = QString::fromLocal8Bit(pw->pw_dir);
 		else
-			home = QString::fromLocal8Bit(getenv("HOME"));
+		{
+			WCHAR homepath[MAX_PATH + 1];
+			// there is unfortunately no way to get this path from Qt4 API
+			if (SUCCEEDED(SHGetFolderPathW(NULL, CSIDL_APPDATA, NULL, 0, homepath)))
+				path = QString::fromUtf16((const ushort *)homepath);
+			else
+				path = QDir::homePath();
+		}
+#else
+		path = QDir::homePath();
 #endif
 
-		path = home;
+		Parser::GlobalVariables["HOME"] = path;
 	}
 
 	return path;
@@ -125,35 +117,6 @@ QString profilePath(const QString &subpath)
 	static QString path;
 	if (path.isNull())
 	{
-		QString home;
-
-#ifdef Q_OS_WIN
-		// on win32 dataPath doesn't need real argv[0] so it's safe to use this
-		// in such ugly way
-		if (QFile::exists(dataPath("usbinst", "")))
-		{
-			path = dataPath("config/");
-			Parser::GlobalVariables["KADU_CONFIG"] = path;
-			return (path+subpath);
-		}
-		WCHAR *homepath = new WCHAR[MAX_PATH + 1];
-		WCHAR *homepath_guard = homepath;
-		if (!SUCCEEDED(SHGetFolderPathW(NULL, CSIDL_APPDATA, NULL, 0, homepath)))
-			homepath = _wgetenv(L"HOMEPATH");
-		home = QString::fromUtf16((const ushort *)homepath);
-		delete [] homepath_guard;
-#else
-		struct passwd *pw;
-		if ((pw = getpwuid(getuid())))
-			home = QString::fromLocal8Bit(pw->pw_dir);
-		else
-			home = QString::fromLocal8Bit(getenv("HOME"));
-#endif
-
-		Parser::GlobalVariables["HOME"] = home;
-
-		QString pwd = QDir::currentPath();
-
 #ifndef Q_OS_WIN
 		QString config_dir = QString::fromLocal8Bit(getenv("CONFIG_DIR"));
 #else
@@ -163,8 +126,23 @@ QString profilePath(const QString &subpath)
 			config_dir = buff;
 #endif
 
+		QString home = homePath();
+
+#ifdef Q_OS_WIN
+		// on win32 dataPath doesn't need real argv[0] so it's safe to use this
+		// in such ugly way
+		if (config_dir.isEmpty() && QFile::exists(dataPath("usbinst", "")))
+		{
+			path = home;
+			Parser::GlobalVariables["KADU_CONFIG"] = path;
+			return path + subpath;
+		}
+#endif
+
+		QString pwd = QDir::currentPath();
+
 #ifdef Q_OS_MAC
-		if (config_dir.isNull())
+		if (config_dir.isEmpty())
 			path = QString("%1/Library/Kadu/").arg(home);
 		else if (config_dir.startsWith("./"))
 		{
@@ -189,7 +167,7 @@ QString profilePath(const QString &subpath)
 				path = QString("%1/%2/").arg(home).arg(config_dir);
 		}
 #elif defined(Q_OS_WIN)
-		if (config_dir.isNull())
+		if (config_dir.isEmpty())
 			path = QString("%1/Kadu/").arg(home);
 		else if (config_dir.startsWith("./") || config_dir.startsWith(".\\"))
 		{
@@ -214,7 +192,7 @@ QString profilePath(const QString &subpath)
 				path = QString("%1/%2/").arg(home).arg(config_dir);
 		}
 #else
-		if (config_dir.isNull())
+		if (config_dir.isEmpty())
 			path = QString("%1/.kadu/").arg(home);
 		else if (config_dir.startsWith("./"))
 		{
@@ -243,7 +221,7 @@ QString profilePath(const QString &subpath)
 		Parser::GlobalVariables["KADU_CONFIG"] = path;
 	}
 
-	return (path + subpath);
+	return path + subpath;
 }
 
 static QString lib_path;

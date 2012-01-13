@@ -1,6 +1,8 @@
 /*
  * %kadu copyright begin%
+ * Copyright 2011 Piotr Dąbrowski (ultr@ultr.pl)
  * Copyright 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -19,8 +21,8 @@
 
 #include "multilogon/multilogon-session.h"
 #include "notify/notify-event.h"
-#include "protocols/services/multilogon-service.h"
 #include "protocols/protocol.h"
+#include "protocols/services/multilogon-service.h"
 
 #include "multilogon-notification.h"
 

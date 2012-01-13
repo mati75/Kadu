@@ -1,8 +1,8 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -21,17 +21,17 @@
 
 #include <QtGui/QDialogButtonBox>
 #include <QtGui/QFormLayout>
+#include <QtGui/QKeyEvent>
 #include <QtGui/QLabel>
 #include <QtGui/QLineEdit>
-#include <QtGui/QKeyEvent>
 #include <QtGui/QPushButton>
 #include <QtGui/QStyle>
 #include <QtGui/QVBoxLayout>
 
 #include "gui/windows/message-dialog.h"
+#include "icons/icons-manager.h"
 #include "misc/misc.h"
 #include "url-handlers/url-handler-manager.h"
-#include "icons/icons-manager.h"
 
 #include "gui/widgets/token-widget.h"
 #include "server/gadu-server-remind-password.h"
@@ -48,7 +48,7 @@ GaduRemindPasswordWindow::GaduRemindPasswordWindow(UinType uin, QWidget *parent)
 
 	dataChanged();
 
-	loadWindowGeometry(this, "General", "GaduRemindPasswordGeometry", 0, 50, 500, 275);
+	loadWindowGeometry(this, "General", "GaduRemindPasswordGeometry", 0, 50, 500, 100);
 }
 
 GaduRemindPasswordWindow::~GaduRemindPasswordWindow()
@@ -60,14 +60,6 @@ void GaduRemindPasswordWindow::createGui()
 {
 	QVBoxLayout *mainLayout = new QVBoxLayout(this);
 
-	QLabel *infoLabel = new QLabel;
-	infoLabel->setText(tr("This dialog box allows you to ask server to remind your current password."));
-	infoLabel->setWordWrap(true);
-	infoLabel->setAlignment(Qt::AlignTop | Qt::AlignLeft);
-	infoLabel->setSizePolicy(QSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum));
-
-	mainLayout->addWidget(infoLabel);
-
 	QWidget *formWidget = new QWidget(this);
 	mainLayout->addWidget(formWidget);
 
@@ -77,10 +69,7 @@ void GaduRemindPasswordWindow::createGui()
 	connect(EMail, SIGNAL(textChanged(const QString &)), this, SLOT(dataChanged()));
 	layout->addRow(tr("E-Mail Address") + ':', EMail);
 
-	infoLabel = new QLabel(tr("<font size='-1'><i>Type E-Mail Address used during registration.</i></font>"), this);
-	infoLabel->setWordWrap(true);
-	infoLabel->setAlignment(Qt::AlignTop | Qt::AlignLeft);
-	infoLabel->setSizePolicy(QSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed));
+	QLabel *infoLabel = new QLabel(tr("<font size='-1'><i>Type E-Mail Address used during registration.</i></font>"), this);
 	layout->addRow(0, infoLabel);
 
 	MyTokenWidget = new TokenWidget(this);
@@ -88,9 +77,6 @@ void GaduRemindPasswordWindow::createGui()
 	layout->addRow(tr("Characters") + ':', MyTokenWidget);
 
 	infoLabel = new QLabel(tr("<font size='-1'><i>For verification purposes, please type the characters above.</i></font>"), this);
-	infoLabel->setWordWrap(true);
-	infoLabel->setAlignment(Qt::AlignTop | Qt::AlignLeft);
-	infoLabel->setSizePolicy(QSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed));
 	layout->addRow(0, infoLabel);
 
 	mainLayout->addStretch(100);

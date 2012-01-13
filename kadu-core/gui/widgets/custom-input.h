@@ -1,10 +1,12 @@
 /*
  * %kadu copyright begin%
- * Copyright 2008, 2009 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2006 Adrian Smarzewski (adrian@kadu.net)
- * Copyright 2005, 2007 Marcin Ślusarz (joi@kadu.net)
- * Copyright 2008, 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2008, 2009, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2008 Tomasz Rostański (rozteck@interia.pl)
+ * Copyright 2011 Piotr Dąbrowski (ultr@ultr.pl)
+ * Copyright 2006 Adrian Smarzewski (adrian@kadu.net)
+ * Copyright 2008, 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2005, 2007 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -26,6 +28,8 @@
 
 #include <QtGui/QTextEdit>
 
+#include "chat/chat.h"
+
 #include "exports.h"
 
 /**
@@ -35,6 +39,8 @@
 class KADUAPI CustomInput : public QTextEdit
 {
 	Q_OBJECT
+
+	Chat CurrentChat;
 
 	bool CopyPossible;
 
@@ -66,7 +72,10 @@ protected:
 		\param e wska�nik do obiektu obs�uguj�cego klamenu
 	**/
 	virtual void contextMenuEvent(QContextMenuEvent *e);
-	
+
+	virtual bool canInsertFromMimeData(const QMimeData *source) const;
+	virtual void insertFromMimeData(const QMimeData *source);
+
 public:
 	/*! Typ wyliczeniowy mowi�cy o rodzaju pisanych znak�w */
 	enum
@@ -81,7 +90,7 @@ public:
 		\param parent rodzic okna
 		\param name nazwa obiektu
 	**/
-	CustomInput(QWidget *parent = 0);
+	CustomInput(Chat chat, QWidget *parent = 0);
 
 public slots:
 	/**

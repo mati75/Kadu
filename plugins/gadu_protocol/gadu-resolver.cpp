@@ -1,9 +1,10 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2011 Tomasz Rostanski (rozteck@interia.pl)
+ * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2010, 2010 Tomasz Rostański (rozteck@interia.pl)
+ * Copyright 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010 Tomasz Rostański (rozteck@interia.pl)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -26,19 +27,19 @@
 #include <QtNetwork/QHostInfo>
 
 #ifdef Q_OS_WIN
-#include <winsock2.h>
 #include <io.h>
+#include <winsock2.h>
 #else
-#include <sys/wait.h>
-#include <netinet/in.h>
-#include <netdb.h>
 #include <arpa/inet.h>
+#include <netinet/in.h>
+#include <sys/wait.h>
+#include <netdb.h>
 #include <unistd.h>
 #endif
 #include <errno.h>
-#include <stdlib.h>
-#include <signal.h>
 #include <libgadu.h>
+#include <signal.h>
+#include <stdlib.h>
 
 #include "debug.h"
 

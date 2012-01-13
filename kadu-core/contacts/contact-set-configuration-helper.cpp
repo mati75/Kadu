@@ -1,10 +1,10 @@
 /*
  * %kadu copyright begin%
+ * Copyright 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2010 Piotr Dąbrowski (ultr@ultr.pl)
- * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2009, 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -23,11 +23,10 @@
 
 #include <QtXml/QDomElement>
 
-#include "configuration/xml-configuration-file.h"
-#include "buddies/buddy.h"
 #include "buddies/buddy-manager.h"
-#include "buddies/buddy-shared.h"
 #include "buddies/buddy-preferred-manager.h"
+#include "buddies/buddy.h"
+#include "configuration/xml-configuration-file.h"
 #include "contacts/contact-manager.h"
 #include "contacts/contact.h"
 
@@ -48,7 +47,8 @@ ContactSet ContactSetConfigurationHelper::loadFromConfiguration(XmlConfigFile *c
 {
 	ContactSet result;
 
-	QList<QDomElement> contactElements = configurationStorage->getNodes(contactSetNode, "Contact");
+	QVector<QDomElement> contactElements = configurationStorage->getNodes(contactSetNode, "Contact");
+	result.reserve(contactElements.count());
 	foreach (const QDomElement &contactElement, contactElements)
 	{
 		Contact contact = ContactManager::instance()->byUuid(contactElement.text());
@@ -72,7 +72,7 @@ void ContactSetConfigurationHelper::saveToConfiguration(StorableObject *parent, 
 
 void ContactSetConfigurationHelper::saveToConfiguration(XmlConfigFile *configurationStorage, QDomElement contactSetNode, const ContactSet &contactSet)
 {
-	while (contactSetNode.childNodes().count())
+	while (!contactSetNode.childNodes().isEmpty())
 		contactSetNode.removeChild(contactSetNode.childNodes().at(0));
 
 	foreach (const Contact &c, contactSet)

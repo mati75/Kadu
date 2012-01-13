@@ -1,6 +1,10 @@
 /*
  * %kadu copyright begin%
- * Copyright 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
+ * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -19,21 +23,15 @@
 
 #include <QtCore/QTimer>
 
-#include "gui/actions/actions.h"
-
 #include "toolbar-configuration-manager.h"
 
 ToolbarConfigurationManager::ToolbarConfigurationManager(QObject *parent) :
 		QObject(parent)
 {
-	connect(Actions::instance(), SIGNAL(actionLoaded(QString)), this, SIGNAL(configurationUpdated()));
-	connect(Actions::instance(), SIGNAL(actionUnloaded(QString)), this, SIGNAL(configurationUpdated()));
 }
 
 ToolbarConfigurationManager::~ToolbarConfigurationManager()
 {
-	disconnect(Actions::instance(), SIGNAL(actionLoaded(QString)), this, SIGNAL(configurationUpdated()));
-	disconnect(Actions::instance(), SIGNAL(actionUnloaded(QString)), this, SIGNAL(configurationUpdated()));
 }
 
 void ToolbarConfigurationManager::notifyConfigurationUpdated()

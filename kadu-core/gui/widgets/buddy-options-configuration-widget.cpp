@@ -1,10 +1,16 @@
 /*
  * %kadu copyright begin%
+ * Copyright 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2009, 2009 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2010 Piotr Dąbrowski (ultr@ultr.pl)
- * Copyright 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2004 Michał Podsiadlik (michal@kadu.net)
+ * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2002, 2003, 2004, 2005 Adrian Smarzewski (adrian@kadu.net)
+ * Copyright 2002, 2003, 2004 Tomasz Chiliński (chilek@chilan.com)
+ * Copyright 2007, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2007 Dawid Stawiarski (neeo@kadu.net)
+ * Copyright 2005 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -26,7 +32,6 @@
 #include <QtGui/QVBoxLayout>
 
 #include "buddies/buddy-kadu-data.h"
-#include "buddies/buddy-shared.h"
 #include "configuration/configuration-file.h"
 #include "notify/buddy-notify-data.h"
 #include "notify/notification-manager.h"
@@ -90,28 +95,21 @@ void BuddyOptionsConfigurationWidget::save()
 	MyBuddy.setBlocked(BlockCheckBox->isChecked());
 	MyBuddy.setOfflineTo(!OfflineToCheckBox->isChecked());
 
-	BuddyNotifyData *bnd = 0;
-	BuddyKaduData *ckd = 0;
 	if (MyBuddy.data())
 	{
-		bnd = MyBuddy.data()->moduleStorableData<BuddyNotifyData>("notify", NotificationManager::instance(), true);
-		ckd = MyBuddy.data()->moduleStorableData<BuddyKaduData>("kadu", 0, true);
-	}
-	if (bnd)
-	{
+		BuddyNotifyData *bnd = MyBuddy.data()->moduleStorableData<BuddyNotifyData>("notify", NotificationManager::instance(), true);
 		bnd->setNotify(NotifyCheckBox->isChecked());
-		bnd->store();
-	}
-	if (ckd)
-	{
+		bnd->ensureStored();
+
+		BuddyKaduData *ckd = MyBuddy.data()->moduleStorableData<BuddyKaduData>("kadu", 0, true);
 		ckd->setHideDescription(HideDescriptionCheckBox->isChecked());
-		ckd->store();
+		ckd->ensureStored();
 	}
 }
 
 void BuddyOptionsConfigurationWidget::configurationUpdated()
 {
-	NotifyCheckBox->setEnabled(!config_file.readBoolEntry("Notify", "NotifyAboutAll"));
+	NotifyCheckBox->setVisible(!config_file.readBoolEntry("Notify", "NotifyAboutAll"));
 }
 
 void BuddyOptionsConfigurationWidget::updateOfflineTo()

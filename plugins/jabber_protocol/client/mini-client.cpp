@@ -1,10 +1,10 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2009, 2010 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2009, 2009, 2010 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -27,13 +27,14 @@
  */
 
 #include <QtCrypto>
-#include <QMessageBox>
 
-#include "debug.h"
+#include "gui/windows/message-dialog.h"
+#include "icons/kadu-icon.h"
 #include "misc/path-conversion.h"
+#include "debug.h"
 
-#include "certificates/certificate-helpers.h"
 #include "certificates/certificate-error-dialog.h"
+#include "certificates/certificate-helpers.h"
 #include "client/jabber-client.h"
 #include "mini-client.h"
 #include "xmpp_tasks.h"
@@ -237,7 +238,7 @@ void MiniClient::cs_warning(int err)
 {
 	if (err == ClientStream::WarnNoTLS && force_ssl) {
 		close();
-		QMessageBox::critical(0, tr("Server Error"), tr("The server does not support TLS encryption."));
+		MessageDialog::show(KaduIcon("dialog-error"), tr("Server Error"), tr("The server does not support TLS encryption."));
 	}
 	else {
 		stream->continueAfterWarning();
@@ -251,7 +252,7 @@ void MiniClient::cs_error(int err)
 	JabberClient::getErrorInfo(err, conn, stream, tlsHandler, &str, &reconn);
 	close();
 
-	QMessageBox::critical(0, tr("Server Error"), tr("There was an error communicating with the Jabber server.\nDetails: %1").arg(str));
+	MessageDialog::show(KaduIcon("dialog-error"), tr("Server Error"), tr("There was an error communicating with the Jabber server.\nDetails: %1").arg(str));
 	error();
 }
 

@@ -1,8 +1,9 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2008, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -24,6 +25,8 @@
 #include <QtGui/QImageReader>
 
 #include "avatars/avatar-manager.h"
+#include "buddies/buddy.h"
+#include "contacts/contact.h"
 #include "misc/misc.h"
 
 #include "avatar-shared.h"
@@ -110,8 +113,6 @@ void AvatarShared::storeAvatar()
 	if (!isValidStorage())
 		return;
 
-	ensureLoaded();
-
 	Shared::store();
 
 	storeValue("LastUpdated", LastUpdated);
@@ -142,13 +143,6 @@ void AvatarShared::aboutToBeRemoved()
 	 * some things to do here.
 	 */
 	Avatar guard(this);
-
-	// cleanup references
-	AvatarBuddy.setBuddyAvatar(Avatar::null);
-	AvatarContact.setContactAvatar(Avatar::null);
-
-	AvatarBuddy = Buddy::null;
-	AvatarContact = Contact::null;
 
 	QFile avatarFile(filePath());
 	if (avatarFile.exists())

@@ -1,8 +1,8 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -163,7 +163,7 @@ void Speech::say(const QString &s, const QString &path,
 	QString t, dev, soundSystem;
 	QStringList list;
 
-	if (path.isNull())
+	if (path.isEmpty())
 	{
 		t = config_file.readEntry("Speech","SpeechProgram", "powiedz");
 		klatt = config_file.readBoolEntry("Speech", "KlattSynt");
@@ -250,7 +250,7 @@ void Speech::notify(Notification *notification)
 		if (chat)
 		{
 			Contact contact = *chat.contacts().begin();
-			text = Parser::parse(syntax, BuddyOrContact(contact), notification);
+			text = Parser::parse(syntax, Talkable(contact), notification);
 		}
 		else
 			text= Parser::parse(syntax, notification);

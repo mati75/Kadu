@@ -1,8 +1,8 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -22,8 +22,8 @@
 #ifndef BUDDY_SEARCH_CRITERIA_H
 #define BUDDY_SEARCH_CRITERIA_H
 
-#include "contacts/contact.h"
 #include "buddies/buddy.h"
+#include "contacts/contact.h"
 
 struct KADUAPI BuddySearchCriteria
 {

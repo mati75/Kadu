@@ -56,17 +56,18 @@
 		}
 		// activate
 		X11_setActiveWindow( QX11Info::display(), window->winId() );
-		window->activateWindow();
 		window->raise();
+		window->activateWindow();
 	}
 
 #elif defined(Q_OS_WIN)
 
-	#include <windows.h>
 	#include <stdio.h>
+	#include <windows.h>
 
 	bool _isActiveWindow( QWidget *window )
 	{
+		// !isMinimized() is a workaround for QTBUG-19026
 		return window->isActiveWindow() && !window->isMinimized();
 	}
 
@@ -75,8 +76,8 @@
 		window = window->window();
 		window->setWindowState(window->windowState() & ~Qt::WindowMinimized);
 		window->show();
-		window->activateWindow();
 		window->raise();
+		window->activateWindow();
 		SetForegroundWindow((HWND)(window->winId()));
 	}
 
@@ -92,19 +93,20 @@
 		window = window->window();
 		window->setWindowState(window->windowState() & ~Qt::WindowMinimized);
 		window->show();
-		window->activateWindow();
 		window->raise();
+		window->activateWindow();
 	}
 
 #endif
 
 bool _isWindowActiveOrFullyVisible( QWidget *window )
 {
-	// we need to ensure we operate on widget's window, if not passed
-	window = window->window();
 #ifdef Q_WS_X11
 	if( _isActiveWindow( window ) )
 		return true;
+
+	// we need to ensure we operate on widget's window, if not passed
+	window = window->window();
 
 	Display *display = QX11Info::display();
 	WId wId = window->winId();

@@ -1,11 +1,12 @@
 /*
  * %kadu copyright begin%
- * Copyright 2007 Dawid Stawiarski (neeo@kadu.net)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2008, 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2008, 2009, 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011 Piotr Dąbrowski (ultr@ultr.pl)
  * Copyright 2008 Michał Podsiadlik (michal@kadu.net)
+ * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2007 Dawid Stawiarski (neeo@kadu.net)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -28,8 +29,8 @@
 #include <QtGui/QPushButton>
 
 #include "configuration/configuration-file.h"
-#include "gui/widgets/configuration/notify-group-box.h"
 #include "gui/widgets/configuration/configuration-widget.h"
+#include "gui/widgets/configuration/notify-group-box.h"
 #include "activate.h"
 #include "debug.h"
 
@@ -40,7 +41,7 @@
 HintsConfigurationWidget::HintsConfigurationWidget(QWidget *parent)
 	: NotifierConfigurationWidget(parent)
 {
-	preview = new QLabel(tr("<b>Preview</b> text"), this);
+	preview = new QLabel(tr("<b>Here</b> you can see the preview"), this);
 	preview->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
 	preview->setMargin(3);
 

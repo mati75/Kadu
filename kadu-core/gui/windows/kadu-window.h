@@ -1,13 +1,14 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Piotr Dąbrowski (ultr@ultr.pl)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2011 Tomasz Rostanski (rozteck@interia.pl)
+ * Copyright 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2010, 2010 Przemysław Rudy (prudy1@o2.pl)
  * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2010 Przemysław Rudy (prudy1@o2.pl)
- * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2009 Michał Podsiadlik (michal@kadu.net)
  * Copyright 2010 Tomasz Rostański (rozteck@interia.pl)
+ * Copyright 2010 Piotr Dąbrowski (ultr@ultr.pl)
+ * Copyright 2009 Michał Podsiadlik (michal@kadu.net)
+ * Copyright 2009, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -30,27 +31,26 @@
 #include <QtCore/QMap>
 #include <QtCore/QPair>
 
-#include "chat/chat.h"
 #include "buddies/buddy-list.h"
+#include "chat/chat.h"
 #include "gui/windows/main-window.h"
 #include "os/generic/compositing-aware-object.h"
+#include "talkable/talkable.h"
 #include "exports.h"
 
 class QSplitter;
 class QMenu;
 class QMenuBar;
-class QPushButton;
 class QVBoxLayout;
 
 class Action;
 class ActionDescription;
-class ActionSource;
 class BuddyInfoPanel;
-class BuddiesListWidget;
-class GroupTabBar;
-class KaduWebView;
+class ProxyActionContext;
 class KaduWindowActions;
+class RosterWidget;
 class StatusButtons;
+class TalkableTreeView;
 
 class KADUAPI KaduWindow : public MainWindow, private ConfigurationAwareObject, CompositingAwareObject
 {
@@ -60,7 +60,7 @@ public:
 	enum MenuType
 	{
 		MenuKadu,
-		MenuContacts,
+		MenuBuddies,
 		MenuTools,
 		MenuHelp
 	};
@@ -85,27 +85,37 @@ private:
 	QMenu *RecentChatsMenu;
 	QAction *RecentChatsMenuAction;
 	bool RecentChatsMenuNeedsUpdate;
-	GroupTabBar *GroupBar;
 
-	BuddiesListWidget *ContactsWidget;
+	QAction *AddConference;
 
 	QWidget *MainWidget;
 	QVBoxLayout *MainLayout;
 
+	RosterWidget *Roster;
 	QMenu *StatusButtonMenu;
 	StatusButtons *ChangeStatusButtons;
 	QPoint LastPositionBeforeStatusMenuHide;
 
+#ifdef Q_WS_WIN
+	QWidget *HiddenParent;
+#endif
 	QWidget *WindowParent;
 
 	bool CompositingEnabled;
 
+	ProxyActionContext *Context;
+
 	void createGui();
+
 	void createMenu();
 	void createKaduMenu();
 	void createContactsMenu();
 	void createToolsMenu();
 	void createHelpMenu();
+
+#ifdef Q_WS_WIN
+	void hideWindowFromTaskbar();
+#endif
 
 	void storeConfiguration();
 
@@ -113,14 +123,16 @@ private:
 	virtual void compositingDisabled();
 
 private slots:
-	void openChatWindow(Chat chat);
-	void buddyActivated(const Buddy &buddy);
-
 	void invalidateRecentChatsMenu();
 	void updateRecentChatsMenu();
+	void updateAddConferenceMenuItem();
 	void openRecentChats(QAction *action);
 
 	void iconThemeChanged();
+
+#ifdef Q_WS_WIN
+	void setHiddenParent();
+#endif
 
 protected:
 	virtual void closeEvent(QCloseEvent *);
@@ -129,39 +141,39 @@ protected:
 
 	virtual bool supportsActionType(ActionDescription::ActionType type);
 
-	virtual StatusContainer * statusContainer();
-
-	virtual ContactSet contacts();
-	virtual BuddySet buddies();
-	virtual Chat chat();
-	virtual bool hasContactSelected();
-
 	virtual void configurationUpdated();
 
 public:
 	static void createDefaultToolbars(QDomElement parentConfig);
 
-	explicit KaduWindow(QWidget *parent = 0);
+	KaduWindow();
 	virtual ~KaduWindow();
 
-	virtual BuddiesListView * buddiesListView();
+	virtual TalkableTreeView * talkableTreeView();
+	virtual TalkableProxyModel * talkableProxyModel();
 
-	void insertMenuActionDescription(ActionDescription *actionDescription, MenuType Type, int pos = -1);
+	KaduWindowActions * kaduWindowActions() const { return Actions; }
+
+	QAction * insertMenuActionDescription(ActionDescription *actionDescription, MenuType Type, int pos = -1);
 	void removeMenuActionDescription(ActionDescription *actionDescription);
 
 	void setDocked(bool);
 	bool docked() { return Docked; }
 
-	ActionDataSource * actionSource();
 	BuddyInfoPanel * infoPanel() { return InfoPanel; }
 
 #ifdef Q_OS_MAC
 	QMenuBar* menuBar() const;
 #endif
 
+public slots:
+	void talkableActivatedSlot(const Talkable &talkable);
+
 signals:
 	void keyPressed(QKeyEvent *e);
 	void parentChanged(QWidget *oldParent);
+
+	void talkableActivated(const Talkable &talkable);
 
 };
 

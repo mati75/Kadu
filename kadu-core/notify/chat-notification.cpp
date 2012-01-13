@@ -1,7 +1,11 @@
 /*
  * %kadu copyright begin%
- * Copyright 2008, 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2007, 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
+ * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -20,6 +24,7 @@
 
 #include "chat/chat.h"
 #include "gui/widgets/chat-widget-manager.h"
+#include "gui/widgets/chat-widget.h"
 
 #include "chat-notification.h"
 
@@ -33,6 +38,8 @@ ChatNotification::ChatNotification(const Chat &chat, const QString &type, const 
 void ChatNotification::openChat()
 {
 	close();
-			
-	ChatWidgetManager::instance()->openPendingMessages(chat(), true);
+
+	ChatWidget * const chatWidget = ChatWidgetManager::instance()->byChat(chat(), true);
+	if (chatWidget)
+		chatWidget->activate();
 }

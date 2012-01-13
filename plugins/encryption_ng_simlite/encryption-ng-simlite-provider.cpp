@@ -1,7 +1,8 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -20,9 +21,8 @@
 
 #include "chat/chat-manager.h"
 #include "contacts/contact-set.h"
-#include "contacts/contact-shared.h"
-#include "protocols/services/chat-service.h"
 #include "protocols/protocol.h"
+#include "protocols/services/chat-service.h"
 
 #include "plugins/encryption_ng/keys/keys-manager.h"
 
@@ -132,9 +132,6 @@ Decryptor * EncryptioNgSimliteProvider::acquireDecryptor(const Chat &chat)
 	if (1 != chat.contacts().size())
 		return 0;
 
-	if (!Decryptors.contains(chat.chatAccount()))
-		return 0;
-
 	return Decryptors.value(chat.chatAccount());
 }
 
@@ -167,11 +164,7 @@ void EncryptioNgSimliteProvider::releaseEncryptor(const Chat &chat, Encryptor *e
 
 void EncryptioNgSimliteProvider::keyUpdated(Key key)
 {
-	Contact contact = key.keyContact();
-	ContactSet contacts;
-	contacts.insert(contact);
-
-	Chat chat = ChatManager::instance()->findChat(contacts, false);
+	Chat chat = ChatManager::instance()->findChat(ContactSet(key.keyContact()), false);
 	if (!chat)
 		return;
 

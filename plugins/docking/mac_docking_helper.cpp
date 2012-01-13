@@ -1,7 +1,9 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Tomasz Rostański (rozteck@interia.pl)
+ * Copyright 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2010, 2011 Tomasz Rostanski (rozteck@interia.pl)
+ * Copyright 2010 Tomasz Rostański (rozteck@interia.pl)
+ * Copyright 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * Copyright 2011 Adam "Vertex" Makświej (vertexbz@gmail.com)
@@ -20,16 +22,16 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <Cocoa/Cocoa.h>
 #include <QtGui/QApplication>
 #include <QtGui/QIcon>
-#include <Cocoa/Cocoa.h>
 
 #include "ApplicationServices/ApplicationServices.h"
-#include "mac_docking_helper.h"
+#include "configuration/configuration-file.h"
 #include "core/core.h"
 #include "gui/windows/kadu-window.h"
-#include "configuration/configuration-file.h"
 #include "docking.h"
+#include "mac_docking_helper.h"
 
 @interface MacDockingHelperObjC : NSObject {
 }

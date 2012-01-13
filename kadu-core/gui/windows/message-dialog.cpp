@@ -1,16 +1,17 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Piotr Dąbrowski (ultr@ultr.pl)
- * Copyright 2007, 2008 Dawid Stawiarski (neeo@kadu.net)
- * Copyright 2004 Tomasz Jarzynka (tomee@cpi.pl)
+ * Copyright 2008, 2009, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009, 2010 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2008, 2009 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2004, 2005, 2006, 2007 Marcin Ślusarz (joi@kadu.net)
+ * Copyright 2010 Tomasz Rostański (rozteck@interia.pl)
+ * Copyright 2010 Piotr Dąbrowski (ultr@ultr.pl)
+ * Copyright 2004 Tomasz Jarzynka (tomee@cpi.pl)
+ * Copyright 2009 Michał Podsiadlik (michal@kadu.net)
  * Copyright 2003, 2005 Adrian Smarzewski (adrian@kadu.net)
  * Copyright 2003 Tomasz Chiliński (chilek@chilan.com)
  * Copyright 2007, 2008, 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2009 Michał Podsiadlik (michal@kadu.net)
- * Copyright 2010 Tomasz Rostański (rozteck@interia.pl)
+ * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2007, 2008 Dawid Stawiarski (neeo@kadu.net)
+ * Copyright 2004, 2005, 2006, 2007 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -32,8 +33,11 @@
 
 #include "message-dialog.h"
 
-void MessageDialog::show(const KaduIcon &icon, const QString &title, const QString &text, QMessageBox::StandardButtons buttons,
-			QWidget *parent, Qt::WindowFlags f)
+namespace MessageDialog
+{
+
+static QMessageBox * createMessageBox(const KaduIcon &icon, const QString &title, const QString &text,
+		QMessageBox::StandardButtons buttons, QWidget *parent, Qt::WindowFlags f)
 {
 	QMessageBox *mb = new QMessageBox(QMessageBox::NoIcon, title, text, buttons, parent, f);
 	mb->setAttribute(Qt::WA_DeleteOnClose, true);
@@ -43,23 +47,26 @@ void MessageDialog::show(const KaduIcon &icon, const QString &title, const QStri
 	if (!pixmap.isNull())
 		mb->setIconPixmap(pixmap);
 
+	return mb;
+}
+
+void show(const KaduIcon &icon, const QString &title, const QString &text,
+		QMessageBox::StandardButtons buttons, QWidget *parent, Qt::WindowFlags f)
+{
+	QMessageBox *mb = createMessageBox(icon, title, text, buttons, parent, f);
 	mb->show();
 }
 
-int MessageDialog::exec(const KaduIcon &icon, const QString &title, const QString &text, QMessageBox::StandardButtons buttons,
-			QWidget *parent, Qt::WindowFlags f)
+int exec(const KaduIcon &icon, const QString &title, const QString &text,
+		QMessageBox::StandardButtons buttons, QWidget *parent, Qt::WindowFlags f)
 {
-	QMessageBox mb(QMessageBox::NoIcon, title, text, buttons, parent, f);
-
-	int iconSize = mb.style()->pixelMetric(QStyle::PM_MessageBoxIconSize, 0, &mb);
-	QPixmap pixmap(icon.icon().pixmap(iconSize, iconSize));
-	if (!pixmap.isNull())
-		mb.setIconPixmap(pixmap);
-
-	return mb.exec();
+	QMessageBox *mb = createMessageBox(icon, title, text, buttons, parent, f);
+	return mb->exec();
 }
 
-bool MessageDialog::ask(const KaduIcon &icon, const QString &title, const QString &text, QWidget *parent, Qt::WindowFlags f)
+bool ask(const KaduIcon &icon, const QString &title, const QString &text, QWidget *parent, Qt::WindowFlags f)
 {
 	return QMessageBox::Yes == exec(icon, title, text, QMessageBox::Yes | QMessageBox::No, parent, f);
 }
+
+} // namespace

@@ -1,5 +1,6 @@
 /*
  * %kadu copyright begin%
+ * Copyright 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
@@ -20,8 +21,8 @@
 #include <QtCore/QHistoryState>
 #include <QtCore/QStringList>
 
-#include "debug.h"
 #include "protocols/protocol.h"
+#include "debug.h"
 
 #include "services/gadu-contact-list-service.h"
 

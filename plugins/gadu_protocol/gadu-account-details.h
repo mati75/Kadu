@@ -1,10 +1,11 @@
 /*
  * %kadu copyright begin%
- * Copyright 2011 Piotr Dąbrowski (ultr@ultr.pl)
- * Copyright 2009 Dawid Stawiarski (neeo@kadu.net)
+ * Copyright 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009, 2010 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2008, 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011 Piotr Dąbrowski (ultr@ultr.pl)
+ * Copyright 2008 Michał Podsiadlik (michal@kadu.net)
+ * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -44,17 +45,17 @@ class GaduAccountDetails : public AccountDetails
 	PROPERTY_DEC(QString, ExternalIp)
 	PROPERTY_DEC(unsigned int, ExternalPort)
 	PROPERTY_DEC(int, UserlistVersion)
+	PROPERTY_DEC(bool, ReceiveSpam)
 
 	GaduOpenChatWithRunner *OpenChatRunner;
 
 protected:
 	virtual void load();
+	virtual void store();
 
 public:
 	explicit GaduAccountDetails(AccountShared *data);
 	virtual ~GaduAccountDetails();
-
-	virtual void store();
 
 	UinType uin();
 
@@ -71,6 +72,7 @@ public:
 	PROPERTY_DEF(QString, externalIp, setExternalIp, ExternalIp)
 	PROPERTY_DEF(unsigned int, externalPort, setExternalPort, ExternalPort)
 	PROPERTY_DEF(int, userlistVersion, setUserlistVersion, UserlistVersion)
+	PROPERTY_DEF(bool, receiveSpam, setReceiveSpam, ReceiveSpam)
 
 	void import_0_6_5_LastStatus();
 

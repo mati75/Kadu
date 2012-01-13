@@ -9,12 +9,13 @@
  * Copyright 2008, 2009 Piotr Galiszewski (piotrgaliszewski@gmail.com)
  * Copyright 2005 Paweł Płuciennik (pawel_p@kadu.net)
  * %kadu copyright begin%
+ * Copyright 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2010, 2010 Tomasz Rostański (rozteck@interia.pl)
  * Copyright 2010, 2011 Piotr Dąbrowski (ultr@ultr.pl)
- * Copyright 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010 Tomasz Rostański (rozteck@interia.pl)
+ * Copyright 2011 Sławomir Stępień (s.stepien@interia.pl)
  * Copyright 2010 Radosław Szymczyszyn (lavrin@gmail.com)
+ * Copyright 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -46,12 +47,28 @@
 #include "configuration/configuration-manager.h"
 #include "icons/kadu-icon.h"
 #include "misc/misc.h"
+#include "activate.h"
 #include "debug.h"
 
 #include "modules-window.h"
 
-ModulesWindow::ModulesWindow(QWidget *parent)
-	: QWidget(parent, Qt::Window), DesktopAwareObject(this),
+ModulesWindow * ModulesWindow::Instance = 0;
+
+ModulesWindow * ModulesWindow::instance()
+{
+	return Instance;
+}
+
+void ModulesWindow::show()
+{
+	if (!Instance)
+		Instance = new ModulesWindow();
+
+	_activateWindow(Instance);
+}
+
+ModulesWindow::ModulesWindow()
+	: QWidget(0, Qt::Window), DesktopAwareObject(this),
 	ModulesList(0), ModuleInfo(0)
 {
 	kdebugf();
@@ -162,6 +179,7 @@ ModulesWindow::ModulesWindow(QWidget *parent)
 ModulesWindow::~ModulesWindow()
 {
 	kdebugf();
+	Instance = 0;
  	saveWindowGeometry(this, "General", "ModulesWindowGeometry");
 	kdebugf2();
 }
@@ -200,9 +218,9 @@ void ModulesWindow::moduleAction(QTreeWidgetItem *)
 
 void ModulesWindow::loadItemPlugin(Plugin *itemPlugin)
 {
-	if (PluginsManager::instance()->activatePlugin(itemPlugin))
-		itemPlugin->setState(Plugin::PluginStateEnabled);
+	PluginsManager::instance()->activatePlugin(itemPlugin, PluginActivationReasonUserRequest);
 
+	// do it unconditionally as dependent plugins might have been loaded even if the requested one failed to do so
 	refreshList();
 
 	ConfigurationManager::instance()->flush();
@@ -210,12 +228,12 @@ void ModulesWindow::loadItemPlugin(Plugin *itemPlugin)
 
 void ModulesWindow::unloadItemPlugin(Plugin *itemPlugin)
 {
-	if (PluginsManager::instance()->deactivatePlugin(itemPlugin, false))
-		itemPlugin->setState(Plugin::PluginStateDisabled);
+	if (PluginsManager::instance()->deactivatePlugin(itemPlugin, PluginDeactivationReasonUserRequest))
+	{
+		refreshList();
 
-	refreshList();
-
-	ConfigurationManager::instance()->flush();
+		ConfigurationManager::instance()->flush();
+	}
 }
 
 void ModulesWindow::refreshList()

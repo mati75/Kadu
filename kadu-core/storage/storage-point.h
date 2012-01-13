@@ -1,7 +1,11 @@
 /*
  * %kadu copyright begin%
- * Copyright 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010 Tomasz Rostański (rozteck@interia.pl)
+ * Copyright 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2008, 2010 Tomasz Rostański (rozteck@interia.pl)
+ * Copyright 2008 Michał Podsiadlik (michal@kadu.net)
+ * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
+ * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -30,10 +34,9 @@
  * This group contains classes and templates that allows to store and load
  * data from XML file. This includes support for Managers (@link<Manager> Manager @endlink
  * and @link<SimpleManager> SimpleManager @endlink) that automates all basic tasks
- * (loading, storing, counting) and @link<Details> Details @endlink and @link<DetailsHolder>
- * DetailsHolder @endlink that allows to separate data for each object into two
- * different class (one for common data for all instances and one for data specific
- * to given implementation of that class).
+ * (loading, storing, counting) and @link<Details> Details @endlink that allows to separate data
+ * for each object into two different class (one for common data for all instances and one for
+ * data specific to given implementation of that class).
  */
 
 /**

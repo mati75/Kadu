@@ -1,6 +1,7 @@
 /*
  * %kadu copyright begin%
  * Copyright 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -19,8 +20,8 @@
 
 #include <libgadu.h>
 
-#include "accounts/account-proxy-settings.h"
 #include "misc/coding-conversion.h"
+#include "network/proxy/network-proxy.h"
 #include "debug.h"
 
 #include "gadu-proxy-helper.h"
@@ -41,25 +42,25 @@ void GaduProxyHelper::cleanUpProxySettings()
 	}
 }
 
-void GaduProxyHelper::setupProxy(AccountProxySettings proxySettings)
+void GaduProxyHelper::setupProxy(NetworkProxy networkProxy)
 {
 	kdebugf();
 
 	GaduProxyHelper::cleanUpProxySettings();
 
-	gg_proxy_enabled = proxySettings.enabled();
+	gg_proxy_enabled = !networkProxy.isNull() && !networkProxy.address().isEmpty();
 	if (!gg_proxy_enabled)
 		return;
 
-	gg_proxy_host = strdup(unicode2latin(proxySettings.address()).constData());
-	gg_proxy_port = proxySettings.port();
+	gg_proxy_host = strdup(unicode2latin(networkProxy.address()).constData());
+	gg_proxy_port = networkProxy.port();
 
 	kdebugmf(KDEBUG_NETWORK|KDEBUG_INFO, "gg_proxy_host = %s\n", gg_proxy_host);
 	kdebugmf(KDEBUG_NETWORK|KDEBUG_INFO, "gg_proxy_port = %d\n", gg_proxy_port);
 
-	if (proxySettings.requiresAuthentication() && !proxySettings.user().isEmpty())
+	if (!networkProxy.user().isEmpty())
 	{
-		gg_proxy_username = strdup(unicode2latin(proxySettings.user()).constData());
-		gg_proxy_password = strdup(unicode2latin(proxySettings.password()).constData());
+		gg_proxy_username = strdup(unicode2latin(networkProxy.user()).constData());
+		gg_proxy_password = strdup(unicode2latin(networkProxy.password()).constData());
 	}
 }

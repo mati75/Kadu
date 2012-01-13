@@ -1,17 +1,17 @@
 /*
  * %kadu copyright begin%
- * Copyright 2008 Dawid Stawiarski (neeo@kadu.net)
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2008, 2009 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2004, 2005, 2006, 2007 Marcin Ślusarz (joi@kadu.net)
- * Copyright 2003, 2004 Adrian Smarzewski (adrian@kadu.net)
- * Copyright 2007, 2008, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2004 Roman Krzystyniak (Ron_K@tlen.pl)
- * Copyright 2004, 2008 Michał Podsiadlik (michal@kadu.net)
  * Copyright 2010 Tomasz Rostanski (rozteck@interia.pl)
+ * Copyright 2008, 2009, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009 Tomasz Rostański (rozteck@interia.pl)
- * Copyright 2010 Radosław Szymczyszyn (lavrin@gmail.com)
+ * Copyright 2004, 2008 Michał Podsiadlik (michal@kadu.net)
+ * Copyright 2004 Roman Krzystyniak (Ron_K@tlen.pl)
+ * Copyright 2003, 2004 Adrian Smarzewski (adrian@kadu.net)
  * Copyright 2005 Paweł Płuciennik (pawel_p@kadu.net)
+ * Copyright 2010 Radosław Szymczyszyn (lavrin@gmail.com)
+ * Copyright 2007, 2008, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2008 Dawid Stawiarski (neeo@kadu.net)
+ * Copyright 2004, 2005, 2006, 2007 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -35,6 +35,7 @@
 #include <QtCore/QMap>
 #include <QtGui/QWidget>
 
+#include "plugins/plugins-common.h"
 #include "storage/storable-object.h"
 #include "exports.h"
 
@@ -85,13 +86,7 @@ class KADUAPI PluginsManager : public QObject, public StorableObject
 
 	static PluginsManager *Instance;
 
-	/* to remove when all modules became plugins */
-	typedef int InitModuleFunc(bool);
-	typedef void CloseModuleFunc(void);
-
 	QMap<QString, Plugin *> Plugins;
-
-	ModulesWindow *Window;
 
 	PluginsManager();
 	virtual ~PluginsManager();
@@ -107,11 +102,9 @@ class KADUAPI PluginsManager : public QObject, public StorableObject
 
 	QString activeDependentPluginNames(const QString &pluginName) const;
 
-private slots:
-	void dialogDestroyed();
-
 protected:
 	virtual void load();
+	virtual void store();
 
 public:
 	static PluginsManager * instance();
@@ -120,8 +113,6 @@ public:
 	virtual StorableObject * storageParent() { return 0; }
 	virtual QString storageNodeName() { return QLatin1String("Plugins"); }
 
-	virtual void store();
-
 	const QMap<QString, Plugin *> & plugins() const { return Plugins; }
 	QList<Plugin *> activePlugins() const;
 
@@ -129,14 +120,11 @@ public:
 	void activatePlugins();
 	void deactivatePlugins();
 
-	bool activatePlugin(Plugin *plugin);
-	bool deactivatePlugin(Plugin *plugin, bool force);
+	bool activatePlugin(Plugin *plugin, PluginActivationReason reason);
+	bool deactivatePlugin(Plugin *plugin, PluginDeactivationReason reason);
 
 	void usePlugin(const QString &pluginName);
 	void releasePlugin(const QString &pluginName);
-
-public slots:
-	void showWindow(QAction *sender, bool toggled);
 
 };
 

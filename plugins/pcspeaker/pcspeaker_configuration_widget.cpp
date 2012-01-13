@@ -1,11 +1,14 @@
 /*
  * %kadu copyright begin%
- * Copyright 2011 Piotr Dąbrowski (ultr@ultr.pl)
- * Copyright 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2011 Tomasz Rostanski (rozteck@interia.pl)
+ * Copyright 2008, 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2008, 2010 Tomasz Rostański (rozteck@interia.pl)
+ * Copyright 2010 Tomasz Rostański (rozteck@interia.pl)
+ * Copyright 2011 Piotr Dąbrowski (ultr@ultr.pl)
+ * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
+ * Copyright 2007, 2008, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -21,17 +24,17 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
+#include <QtGui/QHBoxLayout>
+#include <QtGui/QLabel>
 #include <QtGui/QLineEdit>
 #include <QtGui/QPushButton>
-#include <QtGui/QLabel>
-#include <QtGui/QHBoxLayout>
 
 #include "configuration/configuration-file.h"
 #include "gui/widgets/configuration/notify-group-box.h"
 #include "icons/kadu-icon.h"
 
-#include "pcspeaker_configuration_widget.h"
 #include "pcspeaker.h"
+#include "pcspeaker_configuration_widget.h"
 
 PCSpeakerConfigurationWidget::PCSpeakerConfigurationWidget(QWidget *parent)
 	: NotifierConfigurationWidget(parent)
@@ -57,8 +60,8 @@ void PCSpeakerConfigurationWidget::saveNotifyConfigurations()
 	if (!CurrentNotifyEvent.isEmpty())
 		Sounds[CurrentNotifyEvent] = soundEdit->text();
 
-	foreach (const QString &key, Sounds.keys())
-		config_file.writeEntry("PC Speaker", key + "_Sound", Sounds[key]);
+	for (QMap<QString, QString>::const_iterator it = Sounds.constBegin(), end = Sounds.constEnd(); it != end; ++it)
+		config_file.writeEntry("PC Speaker", it.key() + "_Sound", it.value());
 }
 
 void PCSpeakerConfigurationWidget::switchToEvent(const QString &event)

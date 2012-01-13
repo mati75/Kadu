@@ -1,7 +1,8 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -21,10 +22,10 @@
 #ifndef FILE_TRANSFER_SHARED_H
 #define FILE_TRANSFER_SHARED_H
 
-#include "accounts/account.h"
 #include "file-transfer/file-transfer-enums.h"
 #include "storage/shared.h"
 
+class Contact;
 class FileTransferHandler;
 
 class KADUAPI FileTransferShared : public QObject, public Shared
@@ -32,7 +33,7 @@ class KADUAPI FileTransferShared : public QObject, public Shared
 	Q_OBJECT
 	Q_DISABLE_COPY(FileTransferShared)
 
-	Contact Peer;
+	Contact *Peer;
 	QString LocalFileName;
 	QString RemoteFileName;
 
@@ -50,6 +51,7 @@ private slots:
 
 protected:
 	virtual void load();
+	virtual void store();
 	virtual void emitUpdated();
 
 public:
@@ -59,8 +61,6 @@ public:
 	explicit FileTransferShared(const QUuid &uuid = QUuid());
 	virtual ~FileTransferShared();
 
-	virtual void store();
-
 	virtual StorableObject * storageParent();
 	virtual QString storageNodeName();
 
@@ -69,7 +69,7 @@ public:
 	void setHandler(FileTransferHandler *handler);
 	void createHandler();
 
-	KaduShared_Property(const Contact &, peer, Peer)
+	KaduShared_PropertyDeclCRW(Contact, peer, Peer)
 	KaduShared_Property(const QString &, localFileName, LocalFileName)
 	KaduShared_Property(const QString &, remoteFileName, RemoteFileName)
 	KaduShared_Property(unsigned long, fileSize, FileSize)

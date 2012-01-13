@@ -1,8 +1,8 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2009, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -19,25 +19,27 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <QtGui/QAction>
+
 #include "accounts/filter/abstract-account-filter.h"
 #include "accounts/model/accounts-model.h"
 #include "accounts/model/accounts-proxy-model.h"
+#include "model/model-chain.h"
 #include "model/roles.h"
 
 #include "accounts-combo-box.h"
 
-AccountsComboBox::AccountsComboBox(bool includeSelectAccount, QWidget *parent) :
-		KaduComboBox<Account>(parent), IncludeSelectAccount(includeSelectAccount)
+AccountsComboBox::AccountsComboBox(bool includeSelectAccount, ActionsProxyModel::ActionVisibility visibility, QWidget *parent) :
+		ActionsComboBox(parent)
 {
+	if (includeSelectAccount)
+		addBeforeAction(new QAction(tr(" - Select account - "), this), visibility);
+
 	Model = new AccountsModel(this);
-
-	setUpModel(Model, new AccountsProxyModel(this));
-
-	connect(model(), SIGNAL(rowsAboutToBeRemoved(const QModelIndex &, int, int)),
-			this, SLOT(updateValueBeforeChange()));
-	connect(model(), SIGNAL(rowsRemoved(const QModelIndex &, int, int)),
-			this, SLOT(rowsRemoved(const QModelIndex &, int, int)));
-	connect(this, SIGNAL(currentIndexChanged(int)), this, SLOT(currentIndexChangedSlot(int)));
+	ProxyModel = new AccountsProxyModel(this);
+	ModelChain *chain = new ModelChain(Model, this);
+	chain->addProxyModel(ProxyModel);
+	setUpModel(AccountRole, chain);
 }
 
 AccountsComboBox::~AccountsComboBox()
@@ -51,7 +53,7 @@ void AccountsComboBox::setCurrentAccount(Account account)
 
 Account AccountsComboBox::currentAccount()
 {
-	return currentValue();
+	return currentValue().value<Account>();
 }
 
 void AccountsComboBox::setIncludeIdInDisplay(bool includeIdInDisplay)
@@ -59,43 +61,12 @@ void AccountsComboBox::setIncludeIdInDisplay(bool includeIdInDisplay)
 	Model->setIncludeIdInDisplay(includeIdInDisplay);
 }
 
-void AccountsComboBox::currentIndexChangedSlot(int index)
-{
-	if (KaduComboBox<Account>::currentIndexChangedSlot(index))
-		emit accountChanged(CurrentValue, ValueBeforeChange);
-}
-
-void AccountsComboBox::updateValueBeforeChange()
-{
-	KaduComboBox<Account>::updateValueBeforeChange();
-}
-
-void AccountsComboBox::rowsRemoved(const QModelIndex &parent, int start, int end)
-{
-	KaduComboBox<Account>::rowsRemoved(parent, start, end);
-}
-
-int AccountsComboBox::preferredDataRole() const
-{
-	return AccountRole;
-}
-
-QString AccountsComboBox::selectString() const
-{
-	return IncludeSelectAccount ? tr(" - Select account - ") : QString();
-}
-
-ActionsProxyModel::ActionVisibility AccountsComboBox::selectVisibility() const
-{
-	return ActionsProxyModel::NotVisibleWithOneRowSourceModel;
-}
-
 void AccountsComboBox::addFilter(AbstractAccountFilter *filter)
 {
-	static_cast<AccountsProxyModel *>(SourceProxyModel)->addFilter(filter);
+	ProxyModel->addFilter(filter);
 }
 
 void AccountsComboBox::removeFilter(AbstractAccountFilter *filter)
 {
-	static_cast<AccountsProxyModel *>(SourceProxyModel)->removeFilter(filter);
+	ProxyModel->removeFilter(filter);
 }

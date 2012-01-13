@@ -1,14 +1,14 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010, 2011 Piotr Dąbrowski (ultr@ultr.pl)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2008, 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009, 2010 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2008, 2009, 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2004, 2005, 2006 Marcin Ślusarz (joi@kadu.net)
- * Copyright 2010 Maciej Płaza (plaza.maciej@gmail.com)
- * Copyright 2007, 2008, 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2008, 2009 Tomasz Rostański (rozteck@interia.pl)
+ * Copyright 2010, 2011 Piotr Dąbrowski (ultr@ultr.pl)
+ * Copyright 2010 Maciej Płaza (plaza.maciej@gmail.com)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2004, 2005, 2006 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -34,11 +34,11 @@
 #include "chat/chat.h"
 #include "configuration/configuration-file.h"
 #include "contacts/contact-set.h"
+#include "icons/icons-manager.h"
 #include "notify/chat-notification.h"
 #include "notify/notification.h"
 #include "parser/parser.h"
 #include "debug.h"
-#include "icons/icons-manager.h"
 
 #include "hint.h"
 
@@ -66,7 +66,6 @@ Hint::Hint(QWidget *parent, Notification *notification)
 	startSecs = secs = config_file.readNumEntry("Hints", "Event_" + notification->key() + "_timeout", 10);
 
 	createLabels(notification->icon().icon().pixmap(config_file.readNumEntry("Hints", "AllEvents_iconSize", 32)));
-	updateText();
 
 	const QList<Notification::Callback> callbacks = notification->getCallbacks();
 	bool showButtons = !callbacks.isEmpty();
@@ -95,9 +94,10 @@ Hint::Hint(QWidget *parent, Notification *notification)
 
 	connect(notification, SIGNAL(closed(Notification *)), this, SLOT(notificationClosed()));
 
-	setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
+	setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 
 	configurationUpdated();
+	updateText();
 	show();
 
 	kdebugf2();
@@ -124,6 +124,7 @@ void Hint::configurationUpdated()
 	setMinimumWidth(config_file.readNumEntry("Hints", "MinimumWidth", 100));
 	setMaximumWidth(config_file.readNumEntry("Hints", "MaximumWidth", 500));
 	mouseOut();
+	updateText();
 }
 
 void Hint::createLabels(const QPixmap &pixmap)
@@ -150,9 +151,10 @@ void Hint::createLabels(const QPixmap &pixmap)
 	}
 
 	label = new QLabel(this);
-	label->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::MinimumExpanding);
+	label->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Ignored);
 	label->setTextInteractionFlags(Qt::NoTextInteraction);
 	label->setAlignment(Qt::AlignVCenter | Qt::AlignLeft);
+	label->setWordWrap(true);
 	labels->addWidget(label);
 }
 
@@ -170,7 +172,7 @@ void Hint::updateText()
 		if (CurrentChat)
 		{
 			Contact contact = *CurrentChat.contacts().constBegin();
-			text = Parser::parse(syntax, BuddyOrContact(contact), notification);
+			text = Parser::parse(syntax, Talkable(contact), notification);
 		}
 		else
 			text = Parser::parse(syntax, notification);
@@ -208,12 +210,13 @@ void Hint::updateText()
 		}
 	}
 
-	label->setText(QString("<div style='width:100%; height:100%; vartical-align:middle;'>")
+	label->setText(QString("<div style='width:100%; height:100%; vertical-align:middle;'>")
 		+ text.replace('\n', QLatin1String("<br />"))
 		+ "</div>"
 		);
 
 	adjustSize();
+	updateGeometry();
 	emit updated(this);
 }
 

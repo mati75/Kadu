@@ -1,11 +1,13 @@
 /*
  * %kadu copyright begin%
- * Copyright 2011 Piotr Dąbrowski (ultr@ultr.pl)
- * Copyright 2009 Dawid Stawiarski (neeo@kadu.net)
- * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2009, 2010 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2008, 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2009, 2010 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2011 Piotr Dąbrowski (ultr@ultr.pl)
+ * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
+ * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2009 Dawid Stawiarski (neeo@kadu.net)
+ * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -24,8 +26,8 @@
 
 #include "configuration/configuration-file.h"
 #include "configuration/xml-configuration-file.h"
-#include "gui/windows/open-chat-with/open-chat-with-runner.h"
 #include "gui/windows/open-chat-with/open-chat-with-runner-manager.h"
+#include "gui/windows/open-chat-with/open-chat-with-runner.h"
 #include "misc/misc.h"
 
 #include "gadu-account-details.h"
@@ -34,7 +36,7 @@ GaduAccountDetails::GaduAccountDetails(AccountShared *data) :
 		AccountDetails(data), AllowDcc(true), LimitImageSize(true), MaximumImageSize(255),
 		ImageSizeAsk(false), ReceiveImagesDuringInvisibility(true), MaximumImageRequests(10),
 		ChatImageSizeWarning(true), InitialRosterImport(true), TlsEncryption(false),
-		SendTypingNotification(true), ExternalPort(0), UserlistVersion(-1)
+		SendTypingNotification(true), ExternalPort(0), UserlistVersion(-1), ReceiveSpam(true)
 {
 	OpenChatRunner = new GaduOpenChatWithRunner(data);
 	OpenChatWithRunnerManager::instance()->registerRunner(OpenChatRunner);
@@ -67,6 +69,7 @@ void GaduAccountDetails::load()
 	ExternalIp = loadValue<QString>("ExternalIp");
 	ExternalPort = loadValue<unsigned int>("ExternalPort", 0);
 	UserlistVersion = loadValue<int>("UserlistVersion", -1);
+	ReceiveSpam = loadValue<bool>("ReceiveSpam", true);
 }
 
 void GaduAccountDetails::store()
@@ -87,6 +90,7 @@ void GaduAccountDetails::store()
 	storeValue("ExternalIp", ExternalIp);
 	storeValue("ExternalPort", ExternalPort);
 	storeValue("UserlistVersion", UserlistVersion);
+	storeValue("ReceiveSpam", ReceiveSpam);
 }
 
 void GaduAccountDetails::import_0_6_5_LastStatus()

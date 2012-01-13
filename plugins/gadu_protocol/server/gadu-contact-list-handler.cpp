@@ -1,8 +1,8 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -36,11 +36,10 @@
 
 int GaduContactListHandler::notifyTypeFromContact(const Contact &contact)
 {
-	Buddy buddy = contact.ownerBuddy();
-
-	if (buddy.isAnonymous())
+	if (contact.isAnonymous())
 		return 0;
 
+	Buddy buddy = contact.ownerBuddy();
 	int result = 0x01; // GG_USER_BUDDY
 	if (!buddy.isOfflineTo())
 		result |= 0x02; // GG_USER_FRIEND
@@ -57,8 +56,8 @@ GaduContactListHandler::GaduContactListHandler(GaduProtocol *protocol) :
 			this, SLOT(buddySubscriptionChanged(Buddy &)));
 	connect(ContactManager::instance(), SIGNAL(contactAttached(Contact, bool)),
 			this, SLOT(contactAttached(Contact, bool)));
-	connect(ContactManager::instance(), SIGNAL(contactAboutToBeDetached(Contact, bool)),
-			this, SLOT(contactAboutToBeDetached(Contact, bool)));
+	connect(ContactManager::instance(), SIGNAL(contactDetached(Contact, Buddy, bool)),
+			this, SLOT(contactDetached(Contact, Buddy, bool)));
 	connect(ContactManager::instance(), SIGNAL(contactIdChanged(Contact, const QString &)),
 			this, SLOT(contactIdChanged(Contact, const QString &)));
 }
@@ -69,14 +68,14 @@ GaduContactListHandler::~GaduContactListHandler()
 			this, SLOT(buddySubscriptionChanged(Buddy &)));
 	disconnect(ContactManager::instance(), SIGNAL(contactAttached(Contact, bool)),
 			this, SLOT(contactAttached(Contact, bool)));
-	disconnect(ContactManager::instance(), SIGNAL(contactAboutToBeDetached(Contact, bool)),
-			this, SLOT(contactAboutToBeDetached(Contact, bool)));
+	disconnect(ContactManager::instance(), SIGNAL(contactDetached(Contact, Buddy, bool)),
+			this, SLOT(contactDetached(Contact, Buddy, bool)));
 }
 
-void GaduContactListHandler::setUpContactList(const QList<Contact> &contacts)
+void GaduContactListHandler::setUpContactList(const QVector<Contact> &contacts)
 {
-	QList<Contact> sendList = contacts;
-	sendList.removeAll(Protocol->account().accountContact());
+	QVector<Contact> sendList = contacts;
+        sendList.remove(sendList.indexOf(Protocol->account().accountContact()));
 
 	if (sendList.isEmpty())
 	{
@@ -171,11 +170,18 @@ void GaduContactListHandler::contactAttached(Contact contact, bool reattached)
 	if (contact.contactAccount() != Protocol->account())
 		return;
 
+	// see issue #2159 - we need a way to ignore first status of given contact
+	GaduContactDetails *details = static_cast<GaduContactDetails *>(contact.details());
+	if (details)
+		details->setIgnoreNextStatusChange(true);
+
 	updateContactEntry(contact);
 }
 
-void GaduContactListHandler::contactAboutToBeDetached(Contact contact, bool reattaching)
+void GaduContactListHandler::contactDetached(Contact contact, Buddy previousBuddy, bool reattaching)
 {
+	Q_UNUSED(previousBuddy)
+
 	if (reattaching)
 		return;
 

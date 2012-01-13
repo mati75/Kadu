@@ -26,6 +26,14 @@ GatewayPlus.prototype = {
 		return "01";
 	},
 
+	maxLength: function() {
+		return 0;
+	},
+
+	signatureRequired: function() {
+		return true;
+	},
+
 	sendSms: function(recipient, signature, content, callbackObject) {
 		var sender = new PlusGatewaySmsSender();
 		sender.sendSms(recipient, signature, content, callbackObject);

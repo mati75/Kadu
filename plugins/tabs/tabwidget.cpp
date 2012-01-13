@@ -1,12 +1,12 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010, 2011 Piotr Dąbrowski (ultr@ultr.pl)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2008, 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2008, 2009, 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2010 Tomasz Rostański (rozteck@interia.pl)
- * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2010, 2011 Piotr Dąbrowski (ultr@ultr.pl)
+ * Copyright 2009, 2009 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -25,20 +25,23 @@
 
 #include <QtGui/QDrag>
 
-#include "gui/widgets/buddies-list-widget.h"
-#include "gui/widgets/chat-widget.h"
-#include "gui/windows/open-chat-with/open-chat-with.h"
-
 #include "configuration/configuration-file.h"
+#include "core/core.h"
 #include "gui/hot-key.h"
+#include "gui/widgets/chat-widget.h"
+#include "gui/widgets/filtered-tree-view.h"
+#include "gui/windows/open-chat-with/open-chat-with.h"
 #include "icons/kadu-icon.h"
+#include "message/message-manager.h"
 #include "misc/misc.h"
-
 #include "activate.h"
+#include "kadu-application.h"
+
+#include "tabs.h"
 
 #include "tabwidget.h"
 
-TabWidget::TabWidget()
+TabWidget::TabWidget(TabsManager *manager) : Manager(manager)
 {
 	setWindowRole("kadu-tabs");
 
@@ -49,6 +52,7 @@ TabWidget::TabWidget()
 	setMovable(true);
 
 	setDocumentMode(true);
+	setElideMode(Qt::ElideRight);
 
 #ifdef Q_OS_MAC
 	/* Dorr: on Mac make the tabs look like the ones from terminal or safari */
@@ -82,14 +86,50 @@ TabWidget::~TabWidget()
 {
 }
 
-void TabWidget::closeChatWidget(ChatWidget *chat)
+void TabWidget::activateChatWidget(ChatWidget *chatWidget)
 {
-	if (chat)
-		delete chat;
+	int index = indexOf(chatWidget);
+	if (index < 0)
+		return;
+
+	_activateWindow(this);
+
+	setCurrentIndex(index);
+	chatWidget->edit()->setFocus();
+}
+
+void TabWidget::alertChatWidget(ChatWidget *chatWidget)
+{
+	Q_ASSERT(chatWidget);
+
+	if (isChatWidgetActive(chatWidget))
+	{
+		MessageManager::instance()->markAllMessagesAsRead(chatWidget->chat());
+		return;
+	}
+
+	Manager->addChatWidgetToChatWidgetsWithMessage(chatWidget);
+}
+
+void TabWidget::closeChatWidget(ChatWidget *chatWidget)
+{
+	delete chatWidget;
+}
+
+bool TabWidget::isChatWidgetActive(ChatWidget *chatWidget)
+{
+	return currentWidget() == chatWidget && _isWindowActiveOrFullyVisible(this);
 }
 
 void TabWidget::closeEvent(QCloseEvent *e)
 {
+	// do not block window closing when session is about to close
+	if (Core::instance()->application()->sessionClosing())
+	{
+		QTabWidget::closeEvent(e);
+		return;
+	}
+
 	//w zaleznosci od opcji w konfiguracji zamykamy wszystkie karty, lub tylko aktywna
 	if (config_oldStyleClosing)
 		delete currentWidget();
@@ -211,7 +251,7 @@ void TabWidget::dropEvent(QDropEvent* e)
 	QStringList ules;
 
 	// Jezeli dnd pochodzil z userboxa probujemy dodac nowa karte
-	if (qobject_cast<BuddiesListWidget *>(e->source()) && false)/*UlesDrag::decode(e, ules))*/
+	if (qobject_cast<FilteredTreeView *>(e->source()) && false)/*UlesDrag::decode(e, ules))*/
 	{
 		if (tabBar()->tabAt(e->pos()) != -1)
 		// Jezeli w miejscu upuszczenia jest karta, dodajemy na jej pozycji
@@ -230,12 +270,9 @@ void TabWidget::changeEvent(QEvent *event)
 	if (event->type() == QEvent::ActivationChange)
 	{
 		kdebugf();
-		ChatWidget *chat = static_cast<ChatWidget *>(currentWidget());
-		if (chat && _isActiveWindow(this))
-		{
-			chat->markAllMessagesRead();
-			emit chatWidgetActivated(chat);
-		}
+		ChatWidget *chatWidget = static_cast<ChatWidget *>(currentWidget());
+		if (chatWidget && _isActiveWindow(this))
+			MessageManager::instance()->markAllMessagesAsRead(chatWidget->chat());
 		kdebugf2();
 	}
 }

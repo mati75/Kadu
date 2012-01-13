@@ -1,7 +1,8 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -25,8 +26,8 @@
 #include "contacts/contact-manager.h"
 #include "misc/path-conversion.h"
 
-#include "plugins/encryption_ng/keys/keys-manager.h"
 #include "plugins/encryption_ng/keys/key.h"
+#include "plugins/encryption_ng/keys/keys-manager.h"
 
 #include "encryption-ng-simlite-key-importer.h"
 
@@ -99,5 +100,5 @@ void EncryptioNgSimliteKeyImporter::importKeys(const Account &account)
 	foreach (const QFileInfo &fileInfo, fileInfoList)
 		importKey(account, fileInfo);
 
-	KeysManager::instance()->store();
+	KeysManager::instance()->ensureStored();
 }

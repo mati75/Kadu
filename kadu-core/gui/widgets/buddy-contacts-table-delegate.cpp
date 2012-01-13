@@ -1,8 +1,11 @@
 /*
  * %kadu copyright begin%
+ * Copyright 2008, 2009, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2010 Piotr Dąbrowski (ultr@ultr.pl)
+ * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
+ * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -42,9 +45,11 @@ QWidget * BuddyContactsTableDelegate::createEditor(QWidget *parent, const QStyle
 	if (1 != index.column()) // not account
 		return QStyledItemDelegate::createEditor(parent, option, index);
 
-	AccountsComboBox *accountsComboBox = new AccountsComboBox(index.data(AccountRole).value<Account>().isNull(), parent);
+	AccountsComboBox *accountsComboBox = new AccountsComboBox(index.data(AccountRole).value<Account>().isNull(),
+	                                                          ActionsProxyModel::NotVisibleWithOneRowSourceModel,
+	                                                          parent);
 	// this connect does not work withour Account
-	connect(accountsComboBox, SIGNAL(accountChanged(Account)), this, SLOT(dataChanged()));
+	connect(accountsComboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(dataChanged()));
 
 	return accountsComboBox;
 }

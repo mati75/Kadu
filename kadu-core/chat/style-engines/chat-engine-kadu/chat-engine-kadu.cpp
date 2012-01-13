@@ -1,9 +1,9 @@
 /*
  * %kadu copyright begin%
+ * Copyright 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2010, 2011 Piotr Dąbrowski (ultr@ultr.pl)
+ * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2009, 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -27,11 +27,11 @@
 #include "buddies/buddy-manager.h"
 #include "chat/chat-styles-manager.h"
 #include "chat/html-messages-renderer.h"
-#include "chat/message/message-render-info.h"
 #include "gui/widgets/chat-messages-view.h"
 #include "gui/widgets/preview.h"
 #include "gui/windows/syntax-editor-window.h"
 #include "icons/kadu-icon.h"
+#include "message/message-render-info.h"
 #include "misc/misc.h"
 #include "misc/syntax-list.h"
 #include "parser/parser.h"
@@ -152,7 +152,7 @@ QString KaduChatStyleEngine::formatMessage(MessageRenderInfo *message, MessageRe
 		message->setSeparatorSize(separatorSize);
 
 		Contact sender = msg.messageSender();
-		return Parser::parse(format, BuddyOrContact(sender), message, true);
+		return Parser::parse(format, Talkable(sender), message, true);
 	}
 	else
 	{
@@ -162,7 +162,7 @@ QString KaduChatStyleEngine::formatMessage(MessageRenderInfo *message, MessageRe
 		{
 			Message aft = after->message();
 			includeHeader =
-				(aft.type() != MessageTypeSystem) &&
+				(aft.type() == MessageTypeSystem) ||
 				((msg.receiveDate().toTime_t() - aft.receiveDate().toTime_t() > (ChatStylesManager::instance()->cfgNoHeaderInterval() * 60)) ||
 				 (msg.messageSender() != aft.messageSender()));
 		}
@@ -182,7 +182,7 @@ QString KaduChatStyleEngine::formatMessage(MessageRenderInfo *message, MessageRe
 		message->setSeparatorSize(separatorSize);
 
 		Contact sender = msg.messageSender();
-		return Parser::parse(format, BuddyOrContact(sender), message, true);
+		return Parser::parse(format, Talkable(sender), message, true);
 	}
 }
 
@@ -203,7 +203,7 @@ void KaduChatStyleEngine::repaintMessages(HtmlMessagesRenderer *renderer)
 	text += QString("<script>%1</script>").arg(jsCode);
 
 	Contact contact = renderer->chat().contacts().count() == 1 ? *(renderer->chat().contacts().constBegin()) : Contact();
-	text += Parser::parse(CurrentChatSyntax.top(), BuddyOrContact(contact), true);
+	text += Parser::parse(CurrentChatSyntax.top(), Talkable(contact), true);
 
 	MessageRenderInfo *prevMessage = 0;
 	foreach (MessageRenderInfo *message, renderer->messages())
@@ -217,7 +217,7 @@ void KaduChatStyleEngine::repaintMessages(HtmlMessagesRenderer *renderer)
 		text += messageText;
 		prevMessage = message;
 	}
-	renderer->setLastMessage(prevMessage);	
+	renderer->setLastMessage(prevMessage);
 
 	text += "</body></html>";
 
@@ -256,21 +256,20 @@ void KaduChatStyleEngine::prepareStylePreview(Preview *preview, QString styleNam
 
 	KaduChatSyntax syntax(SyntaxList::readSyntax("chat", styleName, QString()));
 
-	Contact contact = preview->getContactList().count() == 1 ? *(preview->getContactList().constBegin()) : Contact();
-	QString text = Parser::parse(syntax.top(), BuddyOrContact(contact), true);
+	QString text = Parser::parse(syntax.top(), Talkable(), true);
 
-	int count = preview->getObjectsToParse().count();
+	int count = preview->messages().count();
 	if (count)
 	{
 		MessageRenderInfo *message;
 		for (int i = 0; i < count; i++)
 		{
-			message = qobject_cast<MessageRenderInfo *>(preview->getObjectsToParse().at(i));
+			message = preview->messages().at(i);
 			Contact sender = message->message().messageSender();
-			text += Parser::parse(syntax.withHeader(), BuddyOrContact(sender), message);
+			text += Parser::parse(syntax.withHeader(), Talkable(sender), message);
 		}
 	}
-	preview->setHtml(QString("<html><head><style type='text/css'>%1</style></head><body>%2</body>").arg(ChatStylesManager::instance()->mainStyle(), text));
+	preview->webView()->setHtml(QString("<html><head><style type='text/css'>%1</style></head><body>%2</body>").arg(ChatStylesManager::instance()->mainStyle(), text));
 }
 
 void KaduChatStyleEngine::styleEditionRequested(QString styleName)

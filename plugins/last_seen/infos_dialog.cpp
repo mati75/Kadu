@@ -1,12 +1,12 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2010 Dariusz Markowicz (darom@alari.pl)
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2010 badboy (badboy@gen2.org)
- * Copyright 2008, 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2008 Tomasz Rostański (rozteck@interia.pl)
+ * Copyright 2010 Dariusz Markowicz (darom@alari.pl)
+ * Copyright 2010 badboy (badboy@gen2.org)
+ * Copyright 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -31,6 +31,8 @@
 
 #include "contacts/contact-manager.h"
 #include "misc/misc.h"
+#include "status/status-type-data.h"
+#include "status/status-type-manager.h"
 #include "debug.h"
 
 #include "infos.h"
@@ -68,7 +70,7 @@ InfosDialog::InfosDialog(const LastSeen &lastSeen, QWidget *parent) :
 
 	foreach (const Contact &contact, ContactManager::instance()->items())
 	{
-		if(contact.ownerBuddy().isAnonymous())
+		if (contact.isAnonymous())
 			continue;
 
 		QString desc, ip;
@@ -79,14 +81,14 @@ InfosDialog::InfosDialog(const LastSeen &lastSeen, QWidget *parent) :
 			ip = contact.address().toString();
 
 		QStringList labels;
-		labels << contact.ownerBuddy().display()
+		labels << contact.display(true)
 				<< contact.contactAccount().protocolName()
 				<< contact.id()
 				<< contact.ownerBuddy().nickName()
 				<< ip
 				<< contact.dnsName()
 				<< desc
-				<< contact.currentStatus().type()
+				<< StatusTypeManager::instance()->statusTypeData(contact.currentStatus().type()).name()
 				<< lastSeen[qMakePair(contact.contactAccount().protocolName(), contact.id())];
 
 		listView->addTopLevelItem(new QTreeWidgetItem(labels));

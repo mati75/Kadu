@@ -11,6 +11,7 @@ include (FindKadu)
 include (FindPkgConfig)
 
 set (SOURCES
+	encryption-ng-simlite-chat-data.cpp
 	encryption-ng-simlite-decryptor.cpp
 	encryption-ng-simlite-encryptor.cpp
 	encryption-ng-simlite-key-generator.cpp
@@ -22,6 +23,7 @@ set (SOURCES
 )
 
 set (MOC_SOURCES
+	encryption-ng-simlite-chat-data.h
 	encryption-ng-simlite-decryptor.h
 	encryption-ng-simlite-encryptor.h
 	encryption-ng-simlite-key-importer.h
@@ -41,13 +43,23 @@ set (CONFIGURATION_FILES
 )
 
 if (WIN32)
-	if (NOT MINGW_QCA_DIR)
-		message (SEND_ERROR " Pass path to libqca2 -DMINGW_QCA_DIR=path")
-	else (NOT MINGW_QCA_DIR)
-		set (QCA2_INCLUDE_DIRS ${MINGW_QCA_DIR}/include/QtCrypto)
-		set (QCA2_LIBRARY_DIRS ${MINGW_QCA_DIR}/bin)
-		set (QCA2_LIBRARIES qca2)
-	endif (NOT MINGW_QCA_DIR)
+	if (NOT WIN_QCA_DIR)
+		message (SEND_ERROR "Pass path to libqca2 -DWIN_QCA_DIR=path")
+	else (NOT WIN_QCA_DIR)
+		set (QCA2_INCLUDE_DIRS ${WIN_QCA_DIR}/include/QtCrypto)
+
+		if (MSVC)
+			set (QCA2_LIBRARY_DIRS ${WIN_QCA_DIR}/lib)
+		else (MSVC)
+			set (QCA2_LIBRARY_DIRS ${WIN_QCA_DIR}/bin)
+		endif (MSVC)
+
+		if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+			set (QCA2_LIBRARIES qcad2)
+		else (CMAKE_BUILD_TYPE STREQUAL "Debug")
+			set (QCA2_LIBRARIES qca2)
+		endif (CMAKE_BUILD_TYPE STREQUAL "Debug")
+	endif (NOT WIN_QCA_DIR)
 else (WIN32)
 	pkg_search_module (QCA2 REQUIRED qca2)
 endif (WIN32)

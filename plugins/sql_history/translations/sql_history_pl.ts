@@ -75,10 +75,24 @@
         <translation>Kadu</translation>
     </message>
     <message>
-        <source>It seems your Qt library does not provide support for selected database.
- Please select another driver in configuration window or install Qt with %1 plugin.</source>
-        <translation>Zainstalowana biblioteka Qt nie wspiera wybranego typu bazy danych.
-Proszę wybrać inny typ bazy danych w oknie konfiguracji lub zainstalować bibliotekę Qt z pluginem %1.</translation>
+        <source>It seems your Qt library does not provide support for selected database. Please install Qt with %1 plugin.</source>
+        <translation>Twoja biblioteka Qt nie wspiera wybranej bazy danych. Zainstaluj Qt z wtyczką %1.</translation>
+    </message>
+    <message>
+        <source>Optimizing history database. This can take several minutes.
+Please do not close Kadu until optimalization is complete.</source>
+        <translation>Optymalizowanie bazy danych historii. To może zająć kilka minut.
+Kadu powinno pozostać uruchomione do zakończenia optymalizacji. </translation>
+    </message>
+    <message>
+        <source>Optimalization complete. You can now close this window.</source>
+        <translation>Zakończono optymalizację. Można zamknąć to okno.</translation>
+    </message>
+    <message>
+        <source>Optimalization failed. Error message:
+%1</source>
+        <translation>Nieudana optymalizacja. Komunikat błędu:
+%1</translation>
     </message>
 </context>
 </TS>

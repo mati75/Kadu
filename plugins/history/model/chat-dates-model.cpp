@@ -1,8 +1,8 @@
 /*
  * %kadu copyright begin%
+ * Copyright 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2009, 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -29,7 +29,7 @@
 
 #include "chat-dates-model.h"
 
-ChatDatesModel::ChatDatesModel(const Chat &chat, const QList<DatesModelItem> &dates, QObject *parent) :
+ChatDatesModel::ChatDatesModel(const Chat &chat, const QVector<DatesModelItem> &dates, QObject *parent) :
 		QAbstractListModel(parent), MyChat(chat), Dates(dates)
 {
 }
@@ -40,7 +40,7 @@ ChatDatesModel::~ChatDatesModel()
 
 int ChatDatesModel::columnCount(const QModelIndex &parent) const
 {
-    return parent.isValid() ? 0 : 4;
+	return parent.isValid() ? 0 : 3;
 }
 
 int ChatDatesModel::rowCount(const QModelIndex &parent) const
@@ -50,7 +50,7 @@ int ChatDatesModel::rowCount(const QModelIndex &parent) const
 
 QVariant ChatDatesModel::headerData(int section, Qt::Orientation orientation, int role) const
 {
-    if (role != Qt::DisplayRole)
+	if (role != Qt::DisplayRole)
 		return QVariant();
 
 	if (orientation != Qt::Horizontal)
@@ -58,10 +58,9 @@ QVariant ChatDatesModel::headerData(int section, Qt::Orientation orientation, in
 
 	switch (section)
 	{
-		case 0: return tr("Chat");
-		case 1: return tr("Title");
-		case 2: return tr("Date");
-		case 3: return tr("Length");
+		case 0: return tr("Date");
+		case 1: return tr("Length");
+		case 2: return tr("Title");
 	}
 
 	return QVariant();
@@ -84,10 +83,9 @@ QVariant ChatDatesModel::data(const QModelIndex &index, int role) const
 		{
 			switch (col)
 			{
-				case 0: return MyChat.name();
-				case 1: return Dates.at(row).Title;
-				case 2: return Dates.at(row).Date.toString("dd.MM.yyyy");
-				case 3: return Dates.at(row).Count;
+				case 0: return Dates.at(row).Date.toString("dd.MM.yyyy");
+				case 1: return Dates.at(row).Count;
+				case 2: return Dates.at(row).Title;
 			}
 
 			return QVariant();
@@ -106,7 +104,7 @@ void ChatDatesModel::setChat(const Chat &chat)
 	MyChat = chat;
 }
 
-void ChatDatesModel::setDates(const QList<DatesModelItem> &dates)
+void ChatDatesModel::setDates(const QVector<DatesModelItem> &dates)
 {
 	if (!Dates.isEmpty())
 	{

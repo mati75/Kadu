@@ -1,7 +1,8 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2009, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -22,9 +23,8 @@
 #define AVATAR_SHARED_H
 
 #include <QtCore/QDateTime>
+#include <QtCore/QObject>
 #include <QtGui/QPixmap>
-
-#include "contacts/contact.h"
 
 #include "storage/shared.h"
 
@@ -33,8 +33,6 @@ class KADUAPI AvatarShared : public QObject, public Shared
 	Q_OBJECT
 	Q_DISABLE_COPY(AvatarShared)
 
-	Buddy AvatarBuddy;
-	Contact AvatarContact;
 	QDateTime LastUpdated;
 	QDateTime NextUpdate;
 	QString FilePath;
@@ -44,6 +42,8 @@ class KADUAPI AvatarShared : public QObject, public Shared
 
 protected:
 	virtual void load();
+	virtual void store();
+	virtual bool shouldStore();
 
 	virtual void emitUpdated();
 
@@ -57,9 +57,7 @@ public:
 	virtual StorableObject * storageParent();
 	virtual QString storageNodeName();
 
-	virtual void store();
 	virtual void storeAvatar();
-	virtual bool shouldStore();
 	virtual void aboutToBeRemoved();
 
 	QString filePath();
@@ -70,8 +68,6 @@ public:
 	void setPixmap(const QPixmap &pixmap);
 	KaduShared_PropertyRead(const QPixmap &, pixmap, Pixmap)
 
-	KaduShared_Property(const Buddy &, avatarBuddy, AvatarBuddy)
-	KaduShared_Property(const Contact &, avatarContact, AvatarContact)
 	KaduShared_Property(const QDateTime &, lastUpdated, LastUpdated)
 	KaduShared_Property(const QDateTime &, nextUpdate, NextUpdate)
 

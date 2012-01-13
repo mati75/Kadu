@@ -1,8 +1,9 @@
 /*
  * %kadu copyright begin%
- * Copyright 2009, 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -23,15 +24,14 @@
 #include <QtCore/QTimer>
 
 #include "buddies/buddy.h"
-#include "buddies/buddy-shared.h"
 #include "configuration/configuration-file.h"
 #include "configuration/configuration-manager.h"
-#include "contacts/contact.h"
 #include "contacts/contact-parser-tags.h"
-#include "contacts/contact-shared.h"
+#include "contacts/contact.h"
 #include "core/core.h"
-#include "protocols/protocol.h"
+#include "message/message-manager.h"
 #include "protocols/protocol-factory.h"
+#include "protocols/protocol.h"
 #include "debug.h"
 
 #include "contact-manager.h"
@@ -41,22 +41,45 @@ ContactManager * ContactManager::Instance = 0;
 ContactManager * ContactManager::instance()
 {
 	if (0 == Instance)
+	{
 		Instance = new ContactManager();
+		Instance->init();
+	}
 
 	return Instance;
 }
 
 ContactManager::ContactManager()
 {
-	// needed for QueuedConnection
-	qRegisterMetaType<Contact>("Contact");
-
-	ContactParserTags::registerParserTags();
 }
 
 ContactManager::~ContactManager()
 {
+	disconnect(MessageManager::instance(), SIGNAL(unreadMessageAdded(Message)),
+	           this, SLOT(unreadMessageAdded(Message)));
+	disconnect(MessageManager::instance(), SIGNAL(unreadMessageRemoved(Message)),
+	           this, SLOT(unreadMessageRemoved(Message)));
+
+	foreach (const Message &message, MessageManager::instance()->allUnreadMessages())
+		unreadMessageRemoved(message);
+
 	ContactParserTags::unregisterParserTags();
+}
+
+void ContactManager::init()
+{
+	// needed for QueuedConnection
+	qRegisterMetaType<Contact>("Contact");
+
+	ContactParserTags::registerParserTags();
+
+	foreach (const Message &message, MessageManager::instance()->allUnreadMessages())
+		unreadMessageAdded(message);
+
+	connect(MessageManager::instance(), SIGNAL(unreadMessageAdded(Message)),
+	        this, SLOT(unreadMessageAdded(Message)));
+	connect(MessageManager::instance(), SIGNAL(unreadMessageRemoved(Message)),
+	        this, SLOT(unreadMessageRemoved(Message)));
 }
 
 void ContactManager::idChanged(const QString &oldId)
@@ -85,22 +108,36 @@ void ContactManager::dirtinessChanged()
 	}
 }
 
-void ContactManager::aboutToBeDetached(bool reattaching)
+void ContactManager::unreadMessageAdded(const Message &message)
 {
-	QMutexLocker locker(&mutex());
-
-	Contact contact(sender());
-	if (!contact.isNull())
-		emit contactAboutToBeDetached(contact, reattaching);
+	const Contact &contact = message.messageSender();
+	contact.setUnreadMessagesCount(contact.unreadMessagesCount() + 1);
 }
 
-void ContactManager::detached(Buddy previousBuddy)
+void ContactManager::unreadMessageRemoved(const Message &message)
+{
+	const Contact &contact = message.messageSender();
+	quint16 unreadMessagesCount = contact.unreadMessagesCount();
+	if (unreadMessagesCount > 0)
+		contact.setUnreadMessagesCount(unreadMessagesCount - 1);
+}
+
+void ContactManager::aboutToBeDetached()
 {
 	QMutexLocker locker(&mutex());
 
 	Contact contact(sender());
 	if (!contact.isNull())
-		emit contactDetached(contact, previousBuddy);
+		emit contactAboutToBeDetached(contact);
+}
+
+void ContactManager::detached(Buddy previousBuddy, bool reattaching)
+{
+	QMutexLocker locker(&mutex());
+
+	Contact contact(sender());
+	if (!contact.isNull())
+		emit contactDetached(contact, previousBuddy, reattaching);
 }
 
 void ContactManager::aboutToBeAttached(Buddy nearFutureBuddy)
@@ -145,8 +182,8 @@ void ContactManager::itemRegistered(Contact item)
 
 	connect(item, SIGNAL(idChanged(const QString &)), this, SLOT(idChanged(const QString &)));
 	connect(item, SIGNAL(dirtinessChanged()), this, SLOT(dirtinessChanged()));
-	connect(item, SIGNAL(aboutToBeDetached(bool)), this, SLOT(aboutToBeDetached(bool)));
-	connect(item, SIGNAL(detached(Buddy)), this, SLOT(detached(Buddy)));
+	connect(item, SIGNAL(aboutToBeDetached()), this, SLOT(aboutToBeDetached()));
+	connect(item, SIGNAL(detached(Buddy, bool)), this, SLOT(detached(Buddy, bool)));
 	connect(item, SIGNAL(aboutToBeAttached(Buddy)), this, SLOT(aboutToBeAttached(Buddy)));
 	connect(item, SIGNAL(attached(bool)), this, SLOT(attached(bool)));
 }
@@ -163,8 +200,8 @@ void ContactManager::itemUnregistered(Contact item)
 {
 	disconnect(item, SIGNAL(idChanged(const QString &)), this, SLOT(idChanged(const QString &)));
 	disconnect(item, SIGNAL(dirtinessChanged()), this, SLOT(dirtinessChanged()));
-	disconnect(item, SIGNAL(aboutToBeDetached(bool)), this, SLOT(aboutToBeDetached(bool)));
-	disconnect(item, SIGNAL(detached(Buddy)), this, SLOT(detached(Buddy)));
+	disconnect(item, SIGNAL(aboutToBeDetached()), this, SLOT(aboutToBeDetached()));
+	disconnect(item, SIGNAL(detached(Buddy, bool)), this, SLOT(detached(Buddy, bool)));
 	disconnect(item, SIGNAL(aboutToBeAttached(Buddy)), this, SLOT(aboutToBeAttached(Buddy)));
 	disconnect(item, SIGNAL(attached(bool)), this, SLOT(attached(bool)));
 
@@ -172,22 +209,6 @@ void ContactManager::itemUnregistered(Contact item)
 		DirtyContacts.removeAll(item);
 
 	emit contactRemoved(item);
-}
-
-void ContactManager::detailsLoaded(Contact item)
-{
-	QMutexLocker locker(&mutex());
-
-	if (!item.isNull())
-		registerItem(item);
-}
-
-void ContactManager::detailsUnloaded(Contact item)
-{
-	QMutexLocker locker(&mutex());
-
-	if (!item.isNull())
-		unregisterItem(item);
 }
 
 Contact ContactManager::byId(Account account, const QString &id, NotFoundAction action)
@@ -224,13 +245,13 @@ Contact ContactManager::byId(Account account, const QString &id, NotFoundAction 
 	return contact;
 }
 
-QList<Contact> ContactManager::contacts(Account account)
+QVector<Contact> ContactManager::contacts(Account account)
 {
 	QMutexLocker locker(&mutex());
 
 	ensureLoaded();
 
-	QList<Contact> contacts;
+	QVector<Contact> contacts;
 
 	if (account.isNull())
 		return contacts;
@@ -251,13 +272,13 @@ const QList<Contact> & ContactManager::dirtyContacts()
 	return DirtyContacts;
 }
 
-QList<Contact> ContactManager::dirtyContacts(Account account)
+QVector<Contact> ContactManager::dirtyContacts(Account account)
 {
 	QMutexLocker locker(&mutex());
 
 	ensureLoaded();
 
-	QList<Contact> contacts;
+	QVector<Contact> contacts;
 
 	if (account.isNull())
 		return contacts;
@@ -289,7 +310,7 @@ void ContactManager::removeDuplicateContacts()
 		QMap<QPair<Account, QString>, Contact>::iterator it = uniqueContacts.find(qMakePair(contact.contactAccount(), contact.id()));
 		if (it != uniqueContacts.end())
 		{
-			if (it->ownerBuddy().isAnonymous())
+			if (it->isAnonymous())
 			{
 				removeItem(*it);
 				it->setUuid(contact.uuid());

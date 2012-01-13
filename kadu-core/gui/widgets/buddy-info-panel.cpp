@@ -1,10 +1,10 @@
 /*
  * %kadu copyright begin%
+ * Copyright 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2010, 2011 Piotr Dąbrowski (ultr@ultr.pl)
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2009, 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -25,12 +25,11 @@
 
 #include "accounts/account.h"
 #include "avatars/avatar.h"
-#include "buddies/buddy.h"
-#include "buddies/buddy-shared.h"
 #include "buddies/buddy-preferred-manager.h"
-#include "core/core.h"
+#include "buddies/buddy.h"
 #include "configuration/configuration-file.h"
 #include "contacts/contact-manager.h"
+#include "core/core.h"
 #include "emoticons/emoticons-manager.h"
 #include "misc/syntax-list.h"
 #include "parser/parser.h"
@@ -69,7 +68,7 @@ void BuddyInfoPanel::configurationUpdated()
 
 void BuddyInfoPanel::buddyUpdated(Buddy &buddy)
 {
-	if (buddy == Item.buddy())
+	if (buddy == Item.toBuddy())
 		update();
 }
 
@@ -129,7 +128,14 @@ void BuddyInfoPanel::update()
 		"</html>"
 		).arg(fontColor, fontStyle, fontWeight, fontSize, fontFamily, textDecoration, BackgroundColor, "%1");
 
-	Syntax = SyntaxList::readSyntax("infopanel", config_file.readEntry("Look", "InfoPanelSyntaxFile", "ultr"),
+	QString syntaxFile = config_file.readEntry("Look", "InfoPanelSyntaxFile", "ultr");
+	if (syntaxFile == "default")
+	{
+		syntaxFile = "Old Default";
+		config_file.writeEntry("Look", "InfoPanelSyntaxFile", syntaxFile);
+	}
+
+	Syntax = SyntaxList::readSyntax("infopanel", syntaxFile,
 		"<table><tr><td><img width=\"32\" height=\"32\" align=\"left\" valign=\"top\" src=\"file:///@{x-office-address-book:32x32}\"></td><td> "
 		"<div align=\"left\"> [<b>%a</b>][ (%u)] [<br>tel.: %m][<br>IP: %i]</div></td></tr></table> <hr> <b>%s</b> [<br>%d]");
 	displayItem(Item);
@@ -142,7 +148,7 @@ void BuddyInfoPanel::update()
 
 void BuddyInfoPanel::connectItem()
 {
-	Buddy buddy = Item.buddy();
+	Buddy buddy = Item.toBuddy();
 	if (buddy)
 	{
 		connect(buddy, SIGNAL(updated()), this, SLOT(update()));
@@ -150,7 +156,7 @@ void BuddyInfoPanel::connectItem()
 			connect(buddy.buddyAvatar(), SIGNAL(updated()), this, SLOT(update()));
 	}
 
-	Contact contact = Item.contact();
+	Contact contact = Item.toContact();
 	if (contact)
 	{
 		connect(contact, SIGNAL(updated()), this, SLOT(update()));
@@ -161,7 +167,7 @@ void BuddyInfoPanel::connectItem()
 
 void BuddyInfoPanel::disconnectItem()
 {
-	Buddy buddy = Item.buddy();
+	Buddy buddy = Item.toBuddy();
 	if (buddy)
 	{
 		disconnect(buddy, SIGNAL(updated()), this, SLOT(update()));
@@ -169,7 +175,7 @@ void BuddyInfoPanel::disconnectItem()
 			disconnect(buddy.buddyAvatar(), SIGNAL(updated()), this, SLOT(update()));
 	}
 
-	Contact contact = Item.contact();
+	Contact contact = Item.toContact();
 	if (contact)
 	{
 		disconnect(contact, SIGNAL(updated()), this, SLOT(update()));
@@ -178,7 +184,7 @@ void BuddyInfoPanel::disconnectItem()
 	}
 }
 
-void BuddyInfoPanel::displayItem(BuddyOrContact item)
+void BuddyInfoPanel::displayItem(Talkable item)
 {
 	disconnectItem();
 	Item = item;
@@ -187,7 +193,7 @@ void BuddyInfoPanel::displayItem(BuddyOrContact item)
 	if (!isVisible())
 		return;
 
-	if (!item.contact() && !item.buddy())
+	if (item.isEmpty())
 	{
 		setHtml("<body bgcolor=\"" + BackgroundColor + "\"></body>");
 		return;

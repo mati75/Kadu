@@ -1,6 +1,8 @@
 /*
  * %kadu copyright begin%
  * Copyright 2011 Sławomir Stępień (s.stepien@interia.pl)
+ * Copyright 2011 Michał Ziąbkowski (mziab@o2.pl)
+ * Copyright 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -19,8 +21,8 @@
 
 #include "configuration/configuration-file.h"
 
-#include "spellchecker.h" 
 #include "spellchecker-plugin.h"
+#include "spellchecker.h" 
 
 #include "spellchecker-configuration.h"
 
@@ -61,7 +63,7 @@ void SpellcheckerConfiguration::createDefaultConfiguration()
 	config_file.addVariable("ASpell", "Italic", "false");
 	config_file.addVariable("ASpell", "Underline", "true");
 	config_file.addVariable("ASpell", "Color", "#FF0101");
-	config_file.addVariable("ASpell", "Checked", "pl");
+	config_file.addVariable("ASpell", "Checked", config_file.readEntry("General", "Language"));
 	config_file.addVariable("ASpell", "Accents", "false");
 	config_file.addVariable("ASpell", "Case", "false");
 	config_file.addVariable("ASpell", "Suggester", "true");
@@ -70,16 +72,31 @@ void SpellcheckerConfiguration::createDefaultConfiguration()
 
 void SpellcheckerConfiguration::configurationUpdated()
 {
-	Bold = config_file.readBoolEntry("ASpell", "Bold", false);
-	Italic = config_file.readBoolEntry("ASpell", "Italic", false);
-	Underline = config_file.readBoolEntry("ASpell", "Underline", false);
-	Accents = config_file.readBoolEntry("ASpell", "Accents", false);
-	Case = config_file.readBoolEntry("ASpell", "Case", false);
-	Suggester = config_file.readBoolEntry("ASpell", "Suggester", true);
+	bool bold = config_file.readBoolEntry("ASpell", "Bold", false);
+	bool italic = config_file.readBoolEntry("ASpell", "Italic", false);
+	bool underline = config_file.readBoolEntry("ASpell", "Underline", false);
+	bool accents = config_file.readBoolEntry("ASpell", "Accents", false);
+	bool caseSensivity = config_file.readBoolEntry("ASpell", "Case", false);
+	bool suggester = config_file.readBoolEntry("ASpell", "Suggester", true);
 	QColor colorMark("#FF0101");
-	Color = config_file.readColorEntry("ASpell", "Color", &colorMark);
-	Checked = config_file.readEntry("ASpell", "Checked", "pl");
-	SuggesterWordCount = config_file.readNumEntry("ASpell", "SuggesterWordCount");
+	QColor color = config_file.readColorEntry("ASpell", "Color", &colorMark);
+	QStringList checked = config_file.readEntry("ASpell", "Checked", config_file.readEntry("General", "Language")).split(',', QString::SkipEmptyParts);
+	int suggesterWordCount = config_file.readNumEntry("ASpell", "SuggesterWordCount");
+
+	if (bold == Bold && italic == Italic && underline == Underline && accents == Accents &&
+			caseSensivity == Case && suggester == Suggester && color == Color &&
+			checked == Checked && suggesterWordCount == SuggesterWordCount)
+		return;
+
+	Bold = bold;
+	Italic = italic;
+	Underline = underline;
+	Accents = accents;
+	Case = caseSensivity;
+	Suggester = suggester;
+	Color = color;
+	Checked = checked;
+	SuggesterWordCount = suggesterWordCount;
 
 	SpellCheckerPlugin::instance()->spellChecker()->buildMarkTag();
 	SpellCheckerPlugin::instance()->spellChecker()->buildCheckers();

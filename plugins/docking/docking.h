@@ -1,15 +1,16 @@
 /*
  * %kadu copyright begin%
- * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2008, 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2004, 2005, 2006 Marcin Ślusarz (joi@kadu.net)
- * Copyright 2002, 2003, 2004 Adrian Smarzewski (adrian@kadu.net)
- * Copyright 2003 Tomasz Chiliński (chilek@chilan.com)
- * Copyright 2007, 2008, 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2004, 2008 Michał Podsiadlik (michal@kadu.net)
- * Copyright 2010 Tomasz Rostański (rozteck@interia.pl)
  * Copyright 2010, 2011 Tomasz Rostanski (rozteck@interia.pl)
+ * Copyright 2008, 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2010 Tomasz Rostański (rozteck@interia.pl)
+ * Copyright 2004, 2008 Michał Podsiadlik (michal@kadu.net)
+ * Copyright 2002, 2003, 2004 Adrian Smarzewski (adrian@kadu.net)
  * Copyright 2005 Paweł Płuciennik (pawel_p@kadu.net)
+ * Copyright 2002, 2003 Tomasz Chiliński (chilek@chilan.com)
+ * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2004, 2005, 2006 Marcin Ślusarz (joi@kadu.net)
  * Copyright 2002, 2003 Dariusz Jagodzik (mast3r@kadu.net)
  * %kadu copyright end%
  *
@@ -56,17 +57,21 @@ class DOCKINGAPI DockingManager : public QObject, ConfigurationAwareObject, Stat
 
 	Docker *CurrentDocker;
 
+#ifdef Q_WS_X11
 	bool KaduWindowLastTimeVisible;
+#endif
 	bool DockMenuNeedsUpdate;
 	QMenu *DockMenu;
- #ifdef Q_OS_MAC
+#ifdef Q_OS_MAC
 	QMenu *MacDockMenu;
- #endif
+#endif
 
 	StatusMenu *AllAccountsMenu;
 
+#ifdef Q_WS_X11
 	QAction *ShowKaduAction;
 	QAction *HideKaduAction;
+#endif
 	QAction *CloseKaduAction;
 	QAction *containersSeparator;
 
@@ -87,12 +92,13 @@ class DOCKINGAPI DockingManager : public QObject, ConfigurationAwareObject, Stat
 	virtual ~DockingManager();
 
 	void doUpdateContextMenu();
+	void openUnreadMessages();
 
 private slots:
 	void statusIconChanged(const KaduIcon &icon);
 	void changeIcon();
-	void pendingMessageAdded();
-	void pendingMessageDeleted();
+	void unreadMessageAdded();
+	void unreadMessageRemoved();
 	void searchingForTrayPosition(QPoint &point);
 	void iconThemeChanged();
 

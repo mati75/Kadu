@@ -1,8 +1,10 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2008, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2008 Michał Podsiadlik (michal@kadu.net)
+ * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2007, 2008 Dawid Stawiarski (neeo@kadu.net)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -40,7 +42,7 @@ class GaduContactListHandler : public QObject
 private slots:
 	void buddySubscriptionChanged(Buddy &buddy);
 	void contactAttached(Contact contact, bool reattached);
-	void contactAboutToBeDetached(Contact contact, bool reattaching);
+	void contactDetached(Contact contact, Buddy previousBuddy, bool reattaching);
 	void contactIdChanged(Contact contact, const QString &oldId);
 
 public:
@@ -49,7 +51,7 @@ public:
 	explicit GaduContactListHandler(GaduProtocol *protocol);
 	virtual ~GaduContactListHandler();
 
-	void setUpContactList(const QList<Contact> &contacts);
+	void setUpContactList(const QVector<Contact> &contacts);
 	void reset();
 
 	void updateContactEntry(Contact contact);

@@ -1,8 +1,11 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010 Tomasz Rostański (rozteck@interia.pl)
  * Copyright 2010 Tomasz Rostanski (rozteck@interia.pl)
+ * Copyright 2008, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2010 Tomasz Rostański (rozteck@interia.pl)
+ * Copyright 2008 Michał Podsiadlik (michal@kadu.net)
+ * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2007, 2008 Dawid Stawiarski (neeo@kadu.net)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -29,9 +32,8 @@
 #	include <Carbon/Carbon.h>
 #endif
 
-class BuddiesListView;
-
 class QLineEdit;
+class QTreeView;
 
 class KADUAPI FilterWidget : public QWidget
 {
@@ -43,7 +45,7 @@ class KADUAPI FilterWidget : public QWidget
 #else
 	QLineEdit *NameFilterEdit;
 #endif
-	BuddiesListView *View;
+	QTreeView *View;
 	bool sendKeyEventToView(QKeyEvent *);
 
 
@@ -58,7 +60,7 @@ public:
 	virtual ~FilterWidget();
 
 	void setFilter(const QString &filter);
-	void setView(BuddiesListView *view);
+	void setView(QTreeView *view);
 
 signals:
 	void textChanged(const QString &text);

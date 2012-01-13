@@ -1,7 +1,13 @@
 /*
  * %kadu copyright begin%
+ * Copyright 2008, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2008 Michał Podsiadlik (michal@kadu.net)
+ * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
+ * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -22,18 +28,20 @@
 #define SOUND_PLAY_THREAD_H
 
 #include <QtCore/QMutex>
-#include <QtCore/QThread>
+#include <QtCore/QObject>
 #include <QtCore/QWaitCondition>
 
 class SoundPlayer;
 
-class SoundPlayThread : public QThread
+class SoundPlayThread : public QObject
 {
 	Q_OBJECT
 
 	bool End;
+	bool CurrentlyNotWaiting;
 	QMutex PlayingMutex;
-	QWaitCondition NewSoundToPlay;
+	QMutex NewSoundToPlay;
+	QWaitCondition WaitForNewSoundToPlay;
 
 	bool Play;
 
@@ -43,16 +51,19 @@ class SoundPlayThread : public QThread
 private slots:
 	void playerDestroyed();
 
-protected:
-	virtual void run();
-
 public:
-	explicit SoundPlayThread(QObject *parent = 0);
+	explicit SoundPlayThread();
 	virtual ~SoundPlayThread();
 
 	void end();
 
 	void play(SoundPlayer *player, const QString &path);
+
+public slots:
+	void start();
+
+signals:
+	void finished();
 
 };
 

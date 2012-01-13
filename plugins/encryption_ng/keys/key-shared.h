@@ -1,8 +1,12 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2011 Tomasz Rostanski (rozteck@interia.pl)
+ * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2008, 2009 Michał Podsiadlik (michal@kadu.net)
+ * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -24,10 +28,10 @@
 
 #include <QtCrypto>
 
-#include "contacts/contact.h"
-
-#include "storage/shared.h"
 #include "../encryption_exports.h"
+#include "storage/shared.h"
+
+class Contact;
 
 class ENCRYPTIONAPI KeyShared : public QObject, public Shared
 {
@@ -35,13 +39,15 @@ class ENCRYPTIONAPI KeyShared : public QObject, public Shared
 	Q_DISABLE_COPY(KeyShared)
 
 	QString KeyType;
-	Contact KeyContact;
+	Contact *KeyContact;
 	QCA::SecureArray Key;
 
 	QString KeysDir;
 
 protected:
 	virtual void load();
+	virtual void store();
+	virtual bool shouldStore();
 
 	virtual void emitUpdated();
 
@@ -55,16 +61,14 @@ public:
 	virtual StorableObject * storageParent();
 	virtual QString storageNodeName();
 
-	virtual void store();
-	virtual bool shouldStore();
 	virtual void aboutToBeRemoved();
 
 	QString filePath();
 
 	bool isEmpty();
 
+	KaduShared_PropertyDeclCRW(Contact, keyContact, KeyContact)
 	KaduShared_Property(const QString &, keyType, KeyType)
-	KaduShared_Property(const Contact &, keyContact, KeyContact)
 	KaduShared_Property(const QCA::SecureArray &, key, Key)
 
 signals:

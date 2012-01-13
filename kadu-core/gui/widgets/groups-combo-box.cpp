@@ -1,9 +1,9 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2010 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -27,31 +27,32 @@
 
 #include "buddies/group-manager.h"
 #include "buddies/model/groups-model.h"
+#include "model/model-chain.h"
 #include "model/roles.h"
 
 #include "groups-combo-box.h"
 
 GroupsComboBox::GroupsComboBox(QWidget *parent) :
-		KaduComboBox<Group>(parent), InActivatedSlot(false)
+		ActionsComboBox(parent)
 {
-	setUpModel(new GroupsModel(this), new QSortFilterProxyModel(this));
-
-	static_cast<QSortFilterProxyModel *>(SourceProxyModel)->setDynamicSortFilter(true);
-	SourceProxyModel->sort(0);
+	addBeforeAction(new QAction(tr(" - Do not add - "), this));
 
 	CreateNewGroupAction = new QAction(tr("Create a new group..."), this);
-	CreateNewGroupAction->setData("createNewGroup");
+	QFont createNewGroupActionFont = CreateNewGroupAction->font();
+	createNewGroupActionFont.setItalic(true);
+	CreateNewGroupAction->setFont(createNewGroupActionFont);
+	CreateNewGroupAction->setData(true);
+	connect(CreateNewGroupAction, SIGNAL(triggered()), this, SLOT(createNewGroup()));
+	addAfterAction(CreateNewGroupAction);
 
-	ActionsModel->addAfterAction(CreateNewGroupAction);
+	ModelChain *chain = new ModelChain(new GroupsModel(this), this);
+	QSortFilterProxyModel *proxyModel = new QSortFilterProxyModel(this);
+	chain->addProxyModel(proxyModel);
+	setUpModel(GroupRole, chain);
+	proxyModel->setDynamicSortFilter(true);
+	proxyModel->sort(0);
 
 	setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
-
-	connect(model(), SIGNAL(rowsAboutToBeRemoved(const QModelIndex &, int, int)),
-			this, SLOT(updateValueBeforeChange()));
-	connect(model(), SIGNAL(rowsRemoved(const QModelIndex &, int, int)),
-			this, SLOT(rowsRemoved(const QModelIndex &, int, int)));
-	connect(this, SIGNAL(activated(int)), this, SLOT(activatedSlot(int)));
-	connect(this, SIGNAL(currentIndexChanged(int)), this, SLOT(currentIndexChangedSlot(int)));
 }
 
 GroupsComboBox::~GroupsComboBox()
@@ -65,75 +66,25 @@ void GroupsComboBox::setCurrentGroup(Group group)
 
 Group GroupsComboBox::currentGroup()
 {
-	return currentValue();
+	return currentValue().value<Group>();
 }
 
-void GroupsComboBox::resetComboBox()
+void GroupsComboBox::createNewGroup()
 {
-	if (!InActivatedSlot)
-		setCurrentIndex(0);
-}
+	bool ok;
 
-void GroupsComboBox::activatedSlot(int index)
-{
-	InActivatedSlot = true;
+	QString newGroupName = QInputDialog::getText(this, tr("New Group"),
+			tr("Please enter the name for the new group:"), QLineEdit::Normal,
+			QString(), &ok);
 
-	QModelIndex modelIndex = model()->index(index, modelColumn(), rootModelIndex());
-	QAction *action = modelIndex.data(ActionRole).value<QAction *>();
-
-	if (action == CreateNewGroupAction)
-	{
-		bool ok;
-
-		QString newGroupName = QInputDialog::getText(this, tr("New Group"),
-				tr("Please enter the name for the new group:"), QLineEdit::Normal,
-				QString(), &ok);
-
-		ok = ok && GroupManager::instance()->acceptableGroupName(newGroupName, true);
-
-		Group switchToGroup = GroupManager::instance()->byName(newGroupName, ok);
-		if (switchToGroup)
-			setCurrentGroup(switchToGroup);
-		else
-			setCurrentIndex(0);
-	}
-
-	InActivatedSlot = false;
-}
-
-void GroupsComboBox::currentIndexChangedSlot(int index)
-{
-	QModelIndex modelIndex = model()->index(index, modelColumn(), rootModelIndex());
-	QAction *action = modelIndex.data(ActionRole).value<QAction *>();
-	if (action == CreateNewGroupAction)
-	{
-		// this is needed to fix bugs #1674 and #1690
-		// as this action has to be activated by the user, otherwise we have to ignore it and reset combo box
-		// TODO: try to redo this as this is a bit tricky
-		if (!InActivatedSlot)
-			QMetaObject::invokeMethod(this, "resetComboBox", Qt::QueuedConnection);
+	if (!ok)
 		return;
-	}
 
-	KaduComboBox<Group>::currentIndexChangedSlot(index);
-}
+	ok = GroupManager::instance()->acceptableGroupName(newGroupName, true);
+	if (!ok)
+		return;
 
-void GroupsComboBox::updateValueBeforeChange()
-{
-	KaduComboBox<Group>::updateValueBeforeChange();
-}
-
-void GroupsComboBox::rowsRemoved(const QModelIndex &parent, int start, int end)
-{
-	KaduComboBox<Group>::rowsRemoved(parent, start, end);
-}
-
-int GroupsComboBox::preferredDataRole() const
-{
-	return GroupRole;
-}
-
-QString GroupsComboBox::selectString() const
-{
-	return tr(" - Select group - ");
+	Group newGroup = GroupManager::instance()->byName(newGroupName, ok);
+	if (newGroup)
+		setCurrentGroup(newGroup);
 }

@@ -1,16 +1,17 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Piotr Dąbrowski (ultr@ultr.pl)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2009, 2010, 2011 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2010 Przemysław Rudy (prudy1@o2.pl)
- * Copyright 2010 badboy (badboy@gen2.org)
- * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2009, 2010 Maciej Płaza (plaza.maciej@gmail.com)
+ * Copyright 2011 Tomasz Rostanski (rozteck@interia.pl)
+ * Copyright 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2010, 2010 Przemysław Rudy (prudy1@o2.pl)
+ * Copyright 2009, 2010, 2010, 2011 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2010, 2010, 2010 Tomasz Rostański (rozteck@interia.pl)
+ * Copyright 2010, 2011 Piotr Dąbrowski (ultr@ultr.pl)
  * Copyright 2009 Michał Podsiadlik (michal@kadu.net)
- * Copyright 2010 Tomasz Rostański (rozteck@interia.pl)
+ * Copyright 2009, 2010 Maciej Płaza (plaza.maciej@gmail.com)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2010 badboy (badboy@gen2.org)
+ * Copyright 2009, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -39,7 +40,6 @@
 #include "avatars/avatar-manager.h"
 #include "buddies/buddy-manager.h"
 #include "buddies/group-manager.h"
-#include "chat/message/pending-messages-manager.h"
 #include "configuration/configuration-file.h"
 #include "configuration/configuration-manager.h"
 #include "configuration/main-configuration-holder.h"
@@ -50,24 +50,28 @@
 #include "gui/widgets/chat-widget-manager.h"
 #include "gui/windows/kadu-window.h"
 #include "gui/windows/search-window.h"
+#include "icons/icons-manager.h"
 #include "icons/kadu-icon.h"
+#include "message/message-manager.h"
 #include "misc/date-time-parser-tags.h"
 #include "misc/misc.h"
 #include "notify/notification-manager.h"
 #include "plugins/plugins-manager.h"
-#include "protocols/protocol.h"
 #include "protocols/protocol-factory.h"
-#include "protocols/services/chat-service.h"
-#include "status/status-changer-manager.h"
+#include "protocols/protocol.h"
 #include "status/status-container-manager.h"
-#include "status/status-type.h"
+#include "status/status-setter.h"
 #include "status/status-type-manager.h"
+#include "status/status-type.h"
 #include "url-handlers/url-handler-manager.h"
 #include "activate.h"
 #include "debug.h"
-#include "icons/icons-manager.h"
 #include "kadu-config.h"
 #include "updates.h"
+
+#if WITH_LIBINDICATE_QT
+#include <libindicate-qt/qindicateserver.h>
+#endif
 
 #include "core.h"
 
@@ -100,7 +104,8 @@ QString Core::nameWithVersion()
 }
 
 Core::Core() :
-		Myself(Buddy::create()), Window(0), IsClosing(false), ShowMainWindowOnStart(true), QcaInit(new QCA::Initializer())
+		Application(0), Myself(Buddy::create()), Window(0), IsClosing(false),
+		ShowMainWindowOnStart(true), QcaInit(new QCA::Initializer())
 {
 	connect(qApp, SIGNAL(aboutToQuit()), this, SLOT(quit()));
 
@@ -132,10 +137,12 @@ Core::~Core()
 	setIcon(KaduIcon("kadu_icons/kadu"));
 #endif // Q_OS_MAC
 
-	MainConfigurationHolder::destroyInstance();
-
+	QWidget *hiddenParent = Window->parentWidget();
 	delete Window;
 	Window = 0;
+	delete hiddenParent;
+
+	MainConfigurationHolder::destroyInstance();
 
 	triggerAllAccountsUnregistered();
 
@@ -152,6 +159,19 @@ Core::~Core()
 
 	xml_config_file = 0;
 	config_file_ptr = 0;
+}
+
+void Core::setApplication(KaduApplication *application)
+{
+	Q_ASSERT(!Application);
+	Q_ASSERT(application);
+
+	Application = application;
+}
+
+KaduApplication * Core::application() const
+{
+	return Application;
 }
 
 void Core::import_0_6_5_configuration()
@@ -204,7 +224,9 @@ void Core::createDefaultConfiguration()
 	config_file.addVariable("General", "DEBUG_MASK", KDEBUG_ALL & ~KDEBUG_FUNCTION_END);
 	config_file.addVariable("General", "DescriptionHeight", 60);
 	config_file.addVariable("General", "DisconnectWithCurrentDescription", true);
-	config_file.addVariable("General", "HideBaseModules", true);
+#ifdef Q_WS_WIN
+	config_file.addVariable("General", "HideMainWindowFromTaskbar", false);
+#endif
 	config_file.addVariable("General", "Language",  QLocale::system().name().left(2));
 	config_file.addVariable("General", "Nick", tr("Me"));
 	config_file.addVariable("General", "NumberOfDescriptions", 20);
@@ -243,7 +265,16 @@ void Core::createDefaultConfiguration()
 	config_file.addVariable("Look", "AvatarGreyOut", true);
 	config_file.addVariable("Look", "ChatContents", QString());
 	config_file.addVariable("Look", "ForceCustomChatFont", false);
-	config_file.addVariable("Look", "ChatFont", qApp->font());
+	QFont chatFont = qApp->font();
+#ifdef Q_WS_WIN
+	// On Windows default app font is often "MS Shell Dlg 2", and the default sans
+	// family (Arial, at least in Qt 4.8) is better. Though, on X11 the default
+	// sans family is the same while most users will have some nice default app
+	// font, like DejaVu, Ubuntu (the font, not the distro) or alike.
+	chatFont.setStyleHint(QFont::SansSerif);
+	chatFont.setFamily(chatFont.defaultFamily());
+#endif
+	config_file.addVariable("Look", "ChatFont", chatFont);
 	config_file.addVariable("Look", "ChatBgFilled", // depends on configuration imported from older version
 		config_file.readColorEntry("Look", "ChatBgColor").isValid() &&
 		config_file.readColorEntry("Look", "ChatBgColor") != QColor("#ffffff"));
@@ -294,6 +325,7 @@ void Core::createDefaultConfiguration()
 	config_file.addVariable("Look", "UserboxBackgroundDisplayStyle", "Stretched");
 	config_file.addVariable("Look", "UserboxTransparency", false);
 	config_file.addVariable("Look", "UserboxAlpha", 0);
+	config_file.addVariable("Look", "UserboxBlur", true);
 	config_file.addVariable("Look", "UserboxBgColor", w.palette().base().color());
 	config_file.addVariable("Look", "UserboxAlternateBgColor", w.palette().alternateBase().color());
 	config_file.addVariable("Look", "UserBoxColumnCount", 1);
@@ -391,16 +423,21 @@ void Core::init()
 	AccountManager::instance()->ensureLoaded();
 	BuddyManager::instance()->ensureLoaded();
 	ContactManager::instance()->ensureLoaded();
-	// Without that PendingMessagesManager is loaded while filtering buddies list for the first time.
-	// It has to happen earlier because PendingMessagesManager::loaded() might add buddies to the BuddyManager
+	// Without that MessageManager is loaded while filtering buddies list for the first time.
+	// It has to happen earlier because MessageManager::loaded() might add buddies to the BuddyManager
 	// which (the buddies) otherwise will not be taken into account by buddies list before its next update.
-	PendingMessagesManager::instance()->ensureLoaded();
+	MessageManager::instance()->ensureLoaded();
 	AvatarManager::instance(); // initialize that
+
+#if WITH_LIBINDICATE_QT
+	// Use a symbol from libindicate-qt so that it will not get dropped for example by --as-needed.
+	(void)QIndicate::Server::defaultInstance();
+#endif
 }
 
 void Core::initialized()
 {
-	StatusContainerManager::instance()->setAllowSetDefaultStatus(true);
+	StatusSetter::instance()->coreInitialized();
 }
 
 void Core::storeConfiguration()
@@ -459,15 +496,6 @@ void Core::accountRegistered(Account account)
 	if (!protocol)
 		return;
 
-	ChatService *chatService = protocol->chatService();
-	if (chatService)
-	{
-		connect(chatService, SIGNAL(messageReceived(const Message &)),
-			this, SIGNAL(messageReceived(const Message &)));
-		connect(chatService, SIGNAL(messageSent(const Message &)),
-			this, SIGNAL(messageSent(const Message &)));
-	}
-
 	connect(protocol, SIGNAL(connecting(Account)), this, SIGNAL(connecting()));
 	connect(protocol, SIGNAL(connected(Account)), this, SIGNAL(connected()));
 	connect(protocol, SIGNAL(disconnected(Account)), this, SIGNAL(disconnected()));
@@ -479,15 +507,6 @@ void Core::accountUnregistered(Account account)
 
 	if (protocol)
 	{
-		ChatService *chatService = protocol->chatService();
-		if (chatService)
-		{
-			disconnect(chatService, SIGNAL(messageReceived(const Message &)),
-				this, SIGNAL(messageReceived(const Message &)));
-			disconnect(chatService, SIGNAL(messageSent(const Message &)),
-				this, SIGNAL(messageSent(const Message &)));
-		}
-
 		disconnect(protocol, SIGNAL(connecting(Account)), this, SIGNAL(connecting()));
 		disconnect(protocol, SIGNAL(connected(Account)), this, SIGNAL(connected()));
 		disconnect(protocol, SIGNAL(disconnected(Account)), this, SIGNAL(disconnected()));
@@ -513,7 +532,7 @@ void Core::configurationUpdated()
 
 void Core::createGui()
 {
-	Window = new KaduWindow(0);
+	Window = new KaduWindow();
 	Window->setWindowIcon(QApplication::windowIcon());
 	connect(Window, SIGNAL(destroyed()), this, SLOT(kaduWindowDestroyed()));
 

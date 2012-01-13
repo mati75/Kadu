@@ -1,10 +1,10 @@
 /*
  * %kadu copyright begin%
+ * Copyright 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2010 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -24,36 +24,37 @@
 #ifndef ACCOUNT_SHARED_H
 #define ACCOUNT_SHARED_H
 
-#include <QtCore/QObject>
-#include <QtCore/QSharedData>
-#include <QtCore/QUuid>
 #include <QtNetwork/QHostAddress>
 
-#include "accounts/account-proxy-settings.h"
-#include "contacts/contact.h"
-#include "identities/identity.h"
+#include "network/proxy/network-proxy.h"
 #include "protocols/protocols-aware-object.h"
-#include "status/base-status-container.h"
-#include "storage/details-holder.h"
+#include "status/status.h"
 #include "storage/shared.h"
 
 class AccountDetails;
+class AccountStatusContainer;
+class Contact;
 class FileTransferService;
+class Identity;
 class Protocol;
 class ProtocolFactory;
-class StatusType;
+class StatusContainer;
 
-class KADUAPI AccountShared : public BaseStatusContainer, public Shared, public DetailsHolder<AccountDetails>, ProtocolsAwareObject
+class KADUAPI AccountShared : public QObject, public Shared, ProtocolsAwareObject
 {
 	Q_OBJECT
 	Q_DISABLE_COPY(AccountShared)
 
-private:
+	friend class AccountStatusContainer;
+
 	QString ProtocolName;
 	Protocol *ProtocolHandler;
+	AccountStatusContainer *MyStatusContainer;
 
-	Identity AccountIdentity;
-	Contact AccountContact;
+	Identity *AccountIdentity;
+	Contact *AccountContact;
+
+	AccountDetails *Details;
 
 	QString Id;
 
@@ -61,13 +62,15 @@ private:
 	bool HasPassword;
 	QString Password;
 
-	AccountProxySettings ProxySettings;
-
-	short int MaximumImageSize;
+	bool UseDefaultProxy;
+	NetworkProxy Proxy;
 
 	bool PrivateStatus;
 	// TODO: hack, remove at some time
 	bool Removing;
+
+	void protocolFactoryLoaded(ProtocolFactory *factory);
+	void protocolFactoryUnloaded();
 
 	void setDisconnectStatus();
 	void useProtocolFactory(ProtocolFactory *factory);
@@ -75,22 +78,20 @@ private:
 	void doSetAccountIdentity(const Identity &accountIdentity);
 	void doSetId(const QString &id);
 
+	void importNetworkProxy();
+
 protected:
 	virtual void load();
+	virtual void store();
+	virtual bool shouldStore();
 
 	// TODO: 0.11, fix this
 	// hack, changing details does not trigger this
 	friend class GaduEditAccountWidget;
 	void emitUpdated();
 
-	virtual void detailsAdded();
-	virtual void detailsAboutToBeRemoved();
-	virtual void detailsRemoved();
-
 	virtual void protocolRegistered(ProtocolFactory *protocolHandler);
 	virtual void protocolUnregistered(ProtocolFactory *protocolHandler);
-
-	virtual void doSetStatus(Status newStatus);
 
 public:
 	static AccountShared * loadStubFromStorage(const QSharedPointer<StoragePoint> &storagePoint);
@@ -102,14 +103,15 @@ public:
 	virtual StorableObject * storageParent();
 	virtual QString storageNodeName();
 
-	virtual void store();
-	virtual bool shouldStore();
 	virtual void aboutToBeRemoved();
+
+	AccountDetails * details() const { return Details; }
 
 	Contact accountContact();
 
-	void setAccountIdentity(const Identity &accountIdentity);
-	KaduShared_PropertyRead(const Identity &, accountIdentity, AccountIdentity)
+	StatusContainer * statusContainer();
+
+	KaduShared_PropertyDeclCRW(Identity, accountIdentity, AccountIdentity)
 
 	void setProtocolName(const QString &protocolName);
 	KaduShared_PropertyRead(const QString &, protocolName, ProtocolName)
@@ -124,24 +126,9 @@ public:
 	KaduShared_Property(bool, rememberPassword, RememberPassword)
 	KaduShared_Property(bool, hasPassword, HasPassword)
 	KaduShared_Property(const QString &, password, Password)
-	KaduShared_Property(const AccountProxySettings &, proxySettings, ProxySettings)
+	KaduShared_Property(bool, useDefaultProxy, UseDefaultProxy)
+	KaduShared_Property(const NetworkProxy &, proxy, Proxy)
 	KaduShared_Property(bool, removing, Removing)
-
-	// StatusContainer implementation
-
-	virtual QString statusContainerName();
-
-	virtual Status status();
-	virtual bool isStatusSettingInProgress();
-	virtual int maxDescriptionLength();
-
-	virtual QString statusDisplayName();
-
-	virtual KaduIcon statusIcon();
-	virtual KaduIcon statusIcon(const Status &status);
-	virtual KaduIcon statusIcon(const QString &statusType);
-
-	virtual QList<StatusType *> supportedStatusTypes();
 
 	// TODO: 0.11, find better API
 	// this is only for GG now
@@ -165,6 +152,7 @@ signals:
 };
 
 // for MOC
+#include "contacts/contact.h"
 #include "status/status.h"
 
 #endif // ACCOUNT_SHARED_H

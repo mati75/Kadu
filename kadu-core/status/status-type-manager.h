@@ -1,9 +1,13 @@
 /*
  * %kadu copyright begin%
+ * Copyright 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2010 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2009, 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2008 Tomasz Rostański (rozteck@interia.pl)
+ * Copyright 2008 Michał Podsiadlik (michal@kadu.net)
+ * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
+ * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -26,40 +30,91 @@
 #include <QtCore/QList>
 #include <QtCore/QMap>
 
+#include "status/status-type-group.h"
+#include "status/status-type.h"
+
 #include "exports.h"
 
 class QString;
 
 class KaduIcon;
-class StatusGroup;
-class StatusType;
+class Status;
+class StatusTypeData;
 
+/**
+ * @addtogroup StatusTypeManager
+ * @{
+ */
+
+/**
+ * @class StatusTypeManager
+ * @author Rafał 'Vogel' Malinowski
+ * @short Manager containing StatusTypeData instances for each StatusType enum value.
+ * @see StatusType
+ * @see StatusTypeData
+ *
+ * This singleton class contains instances of StatusTypeData for each value of StatusType enum.
+ */
 class KADUAPI StatusTypeManager
 {
 	Q_DISABLE_COPY(StatusTypeManager)
 
 	static StatusTypeManager *Instance;
 
-	QList<StatusType *> StatusTypes;
-	QMap<StatusType *, int> StatusTypesCounter;
+	QMap<StatusType, StatusTypeData> StatusTypes;
 
 	StatusTypeManager();
 	~StatusTypeManager();
 
 public:
+	/**
+	 * @author Rafał 'Vogel' Malinowski
+	 * @short Returns StatusTypeManager singleton instance.
+	 * @return StatusTypeManager singleton instance
+	 *
+	 * Returns StatusTypeManager singleton instance.
+	 */
 	static StatusTypeManager * instance();
 
-	void registerStatusType(const QString &name, const QString &displayName, const QString &iconName,
-			StatusGroup *statusGroup, int sortIndex);
-	void unregisterStatusType(const QString &name);
+	/**
+	 * @author Rafał 'Vogel' Malinowski
+	 * @short Returns StatusType enum value with given name.
+	 * @param name of StatusType enum to search for
+	 * @return StatusType enum value with given name
+	 *
+	 * Returns StatusType enum value with given name. If no valid enum value is found, StatusTypeOffline
+	 * is returned.
+	 */
+	StatusType fromName(const QString &name);
 
-	StatusType * statusType(const QString &name);
-	
-	KaduIcon statusIcon(const QString &protocol, const QString &type,
-			bool description, bool mobile);
+	/**
+	 * @author Rafał 'Vogel' Malinowski
+	 * @short Returns StatusTypeData instance for given StatusType enum value.
+	 * @param statusType StatusType enum value
+	 * @return StatusTypeData instance for given StatusType enum value
+	 *
+	 * Returns StatusTypeData instance for given StatusType enum value. If no valid StatusTypeData instance
+	 * is found, valud for StatusTypeOffline is returned.
+	 */
+	const StatusTypeData statusTypeData(const StatusType statusType);
 
-	const QList<StatusType *> & statusTypes() const { return StatusTypes; }
+	/**
+	 * @author Rafał 'Vogel' Malinowski
+	 * @short Returns icon for given status in given protocol.
+	 * @param protocol protocol name
+	 * @param status status
+	 * @return icon for given status in given protocol
+	 *
+	 * Returns icon for given status in given protocol. Icons can be differen per protocols, status type
+	 * and status description.
+	 */
+	KaduIcon statusIcon(const QString &protocol, const Status &status);
 
 };
+
+/**
+ * @addtogroup Status
+ * @}
+ */
 
 #endif // STATUS_TYPE_MANAGER

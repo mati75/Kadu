@@ -1,6 +1,8 @@
 /*
  * %kadu copyright begin%
+ * Copyright 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2011 Sławomir Stępień (s.stepien@interia.pl)
+ * Copyright 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -21,8 +23,8 @@
 
 #include "configuration/configuration-file.h"
 #include "gui/windows/main-configuration-window.h"
-#include "plugins/plugin.h"
 #include "plugins/plugin-info.h"
+#include "plugins/plugin.h"
 #include "plugins/plugins-manager.h"
 
 #include "plugins/mediaplayer/mediaplayer.h"
@@ -47,8 +49,8 @@ void MPRISPlayer::destroyInstance()
 	Instance = 0;
 }
 
-MPRISPlayer::MPRISPlayer() :
-	MPRISMediaPlayer(QString(), QString())
+MPRISPlayer::MPRISPlayer(QObject *parent) :
+		MPRISMediaPlayer(parent)
 {
 	prepareUserPlayersFile();
 	replacePlugin();

@@ -1,12 +1,13 @@
 /*
  * %kadu copyright begin%
- * Copyright 2007, 2008 Dawid Stawiarski (neeo@kadu.net)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2008, 2009 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2005, 2006, 2007 Marcin Ślusarz (joi@kadu.net)
- * Copyright 2008, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2008 Michał Podsiadlik (michal@kadu.net)
+ * Copyright 2008, 2009, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2010 Tomasz Rostański (rozteck@interia.pl)
+ * Copyright 2011 Piotr Dąbrowski (ultr@ultr.pl)
+ * Copyright 2008 Michał Podsiadlik (michal@kadu.net)
+ * Copyright 2008, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2007, 2008 Dawid Stawiarski (neeo@kadu.net)
+ * Copyright 2005, 2006, 2007 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -61,9 +62,6 @@ protected:
 	virtual void mousePressEvent(QMouseEvent *e);
 	virtual void mouseReleaseEvent(QMouseEvent *e);
 
-	void setUserFont(const QString &fontString, bool force);
-	QString userFontStyle(const QFont &font, bool force);
-
 #ifdef Q_WS_MAEMO_5
 	virtual bool eventFilter(QObject *, QEvent *e);
 #endif
@@ -74,6 +72,9 @@ public:
 
 	// hides QWebPage::setPage() (non-virtual)
 	void setPage(QWebPage *page);
+
+	void setUserFont(const QString &fontString, bool force);
+	QString userFontStyle(const QFont &font, bool force);
 
 };
 

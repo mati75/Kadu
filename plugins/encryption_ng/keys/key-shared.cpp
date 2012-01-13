@@ -1,7 +1,8 @@
 /*
  * %kadu copyright begin%
+ * Copyright 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -22,6 +23,7 @@
 #include <QtCore/QFile>
 
 #include "contacts/contact-manager.h"
+#include "contacts/contact.h"
 #include "misc/misc.h"
 
 #include "keys/keys-manager.h"
@@ -48,11 +50,14 @@ KeyShared::KeyShared(const QUuid &uuid) :
 		Shared(uuid)
 {
 	KeysDir = profilePath("keys/");
+	KeyContact = new Contact();
 }
 
 KeyShared::~KeyShared()
 {
 	ref.ref();
+
+	delete KeyContact;
 }
 
 StorableObject * KeyShared::storageParent()
@@ -79,7 +84,7 @@ void KeyShared::load()
 	Shared::load();
 
 	KeyType = loadValue<QString>("KeyType");
-	KeyContact = ContactManager::instance()->byUuid(loadValue<QString>("Contact"));
+	*KeyContact = ContactManager::instance()->byUuid(loadValue<QString>("Contact"));
 
 	QFile keyFile(filePath());
 	if (keyFile.exists() && keyFile.open(QFile::ReadOnly))
@@ -99,7 +104,7 @@ void KeyShared::store()
 	Shared::store();
 
 	storeValue("KeyType", KeyType);
-	storeValue("Contact", KeyContact.uuid().toString());
+	storeValue("Contact", KeyContact->uuid().toString());
 
 	QDir keysDir(KeysDir + KeyType);
 	if (!keysDir.exists())
@@ -128,7 +133,7 @@ bool KeyShared::shouldStore()
 {
 	ensureLoaded();
 
-	return UuidStorableObject::shouldStore() && !Key.isEmpty() && KeyContact;
+	return UuidStorableObject::shouldStore() && !Key.isEmpty() && *KeyContact;
 }
 
 void KeyShared::aboutToBeRemoved()
@@ -149,3 +154,5 @@ void KeyShared::emitUpdated()
 {
 	emit updated();
 }
+
+KaduShared_PropertyPtrDefCRW(KeyShared, Contact, keyContact, KeyContact)

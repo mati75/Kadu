@@ -1,11 +1,11 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Piotr Dąbrowski (ultr@ultr.pl)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2008, 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2008, 2009, 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2010, 2011 Piotr Dąbrowski (ultr@ultr.pl)
+ * Copyright 2009, 2009 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -23,18 +23,12 @@
  */
 
 #include "accounts/account.h"
-#include "accounts/account-details.h"
-#include "accounts/account-manager.h"
-#include "avatars/avatar.h"
 #include "avatars/avatar-manager.h"
-#include "avatars/avatar-shared.h"
+#include "avatars/avatar.h"
 #include "buddies/buddy-manager.h"
-#include "buddies/buddy-remove-predicate-object.h"
-#include "buddies/buddy-shared.h"
 #include "configuration/configuration-manager.h"
 #include "configuration/xml-configuration-file.h"
 #include "contacts/contact.h"
-#include "contacts/contact-shared.h"
 #include "core/core.h"
 #include "icons/kadu-icon.h"
 #include "identities/identity.h"
@@ -85,6 +79,8 @@ Buddy::Buddy(const Buddy &copy) :
 
 Buddy::~Buddy()
 {
+	if (data())
+		data()->collectGarbage();
 }
 
 void Buddy::importConfiguration(const QDomElement &parent)
@@ -97,19 +93,6 @@ void Buddy::importConfiguration()
 {
 	if (data())
 		data()->importConfiguration();
-}
-
-void Buddy::store()
-{
-	if ((!isNull() && !isAnonymous()) || (isAnonymous() && !BuddyRemovePredicateObject::inquireAll(*this)))
-		data()->store();
-	else
-		data()->removeFromStorage();
-}
-
-QSharedPointer<StoragePoint> Buddy::storagePointForModuleData(const QString& module, bool create) const
-{
-	return data()->storagePointForModuleData(module, create);
 }
 
 QString Buddy::customData(const QString &key)
@@ -155,9 +138,9 @@ void Buddy::removeContact(Contact contact) const
 		data()->removeContact(contact);
 }
 
-QList<Contact> Buddy::contacts(Account account) const
+QVector<Contact> Buddy::contacts(Account account) const
 {
-	return isNull() ? QList<Contact>() : data()->contacts(account);
+	return isNull() ? QVector<Contact>() : data()->contacts(account);
 }
 
 QList<Contact> Buddy::contacts() const
@@ -167,7 +150,7 @@ QList<Contact> Buddy::contacts() const
 
 bool Buddy::hasContact(Account account) const
 {
-	return isNull() ? false : data()->contacts(account).count() > 0;
+	return isNull() ? false : !data()->contacts(account).isEmpty();
 }
 
 QString Buddy::id(Account account) const
@@ -185,24 +168,24 @@ bool Buddy::showInAllGroup() const
 	return isNull() ? false : data()->showInAllGroup();
 }
 
-void Buddy::addToGroup(Group group)
+void Buddy::addToGroup(Group group) const
 {
 	if (!isNull() && !data()->isInGroup(group))
 		data()->addToGroup(group);
 
 }
-void Buddy::removeFromGroup(Group group)
+void Buddy::removeFromGroup(Group group) const
 {
 	if (!isNull() && data()->isInGroup(group))
 		data()->removeFromGroup(group);
 }
 
-bool Buddy::isEmpty() const
+bool Buddy::isEmpty(bool checkOnlyForContacts) const
 {
 	if (isNull())
 		return true;
 	else
-		return data()->isEmpty();
+		return data()->isEmpty(checkOnlyForContacts);
 }
 
 QString Buddy::display() const
@@ -246,42 +229,30 @@ Buddy Buddy::dummy()
 	example.setEmail("jimbo@mail.server.net");
 	example.setHomePhone("+481234567890");
 
-	Account account;
+	Identity identity = Identity::create();
+	identity.setName(identity.data()->tr("Example identity"));
 
-	if (!AccountManager::instance()->defaultAccount().isNull())
-		account = AccountManager::instance()->defaultAccount();
-	else if (ProtocolsManager::instance()->protocolFactories().count())
-	{
-		account = Account::create();
-		ProtocolFactory *firstProto = ProtocolsManager::instance()->protocolFactories().at(0) ;
-		account.setProtocolName(firstProto->name());
-		account.details()->setState(StorableObject::StateNew);
-	}
+	Account account = Account::create();
+	account.setAccountIdentity(identity);
 
-	if (!account.isNull())
-	{
-		Contact contact = Contact::create();
-		contact.setContactAccount(account);
-		contact.setOwnerBuddy(example);
-		contact.setId("999999");
-		contact.setCurrentStatus(Status("Away", example.data()->tr("Example description")));
-		contact.setAddress(QHostAddress(2130706433));
-		contact.setPort(80);
-		contact.setDetails(account.protocolHandler()->protocolFactory()->createContactDetails(contact));
+	Contact contact = Contact::create();
+	contact.setContactAccount(account);
+	contact.setOwnerBuddy(example);
+	contact.setId("999999");
+	contact.setCurrentStatus(Status(StatusTypeAway, example.data()->tr("Example description")));
+	contact.setAddress(QHostAddress(2130706433));
+	contact.setPort(80);
 
-		// this is just an example contact, do not add avatar to list
-		Avatar avatar = AvatarManager::instance()->byContact(contact, ActionCreate);
+	// this is just an example contact, do not add avatar to list
+	Avatar avatar = AvatarManager::instance()->byContact(contact, ActionCreate);
 
-		avatar.setLastUpdated(QDateTime::currentDateTime());
-		avatar.setFilePath(KaduIcon("kadu_icons/buddy0", "96x96").fullPath());
+	avatar.setLastUpdated(QDateTime::currentDateTime());
+	avatar.setFilePath(KaduIcon("kadu_icons/buddy0", "96x96").fullPath());
 
-		example.addContact(contact);
-		example.setAnonymous(false);
+	example.addContact(contact);
+	example.setAnonymous(false);
 
-		return example;
-	}
-
-	return null;
+	return example;
 }
 
 KaduSharedBase_PropertyDefCRW(Buddy, Avatar, buddyAvatar, BuddyAvatar, Avatar::null)
@@ -303,3 +274,4 @@ KaduSharedBase_PropertyDef(Buddy, bool, preferHigherStatuses, PreferHigherStatus
 KaduSharedBase_PropertyBoolDef(Buddy, Anonymous, true)
 KaduSharedBase_PropertyBoolDef(Buddy, Blocked, false)
 KaduSharedBase_PropertyBoolDef(Buddy, OfflineTo, false)
+KaduSharedBase_PropertyReadDef(Buddy, quint16, unreadMessagesCount, UnreadMessagesCount, 0)

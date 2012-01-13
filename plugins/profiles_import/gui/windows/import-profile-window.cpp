@@ -2,6 +2,7 @@
  * %kadu copyright begin%
  * Copyright 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -28,11 +29,11 @@
 #include <QtGui/QPushButton>
 
 #include "gui/widgets/identities-combo-box.h"
-#include "gui/windows/message-dialog.h"
 #include "gui/widgets/path-edit.h"
+#include "gui/windows/message-dialog.h"
 
-#include "plugins/history_migration/history-importer.h"
 #include "plugins/history_migration/history-importer-manager.h"
+#include "plugins/history_migration/history-importer.h"
 
 #include "profile-importer.h"
 
@@ -62,7 +63,7 @@ void ImportProfileWindow::createGui()
 
 	SelectIdentity = new IdentitiesComboBox(this);
 	layout->addRow(new QLabel(tr("Select imported account identity:")), SelectIdentity);
-	connect(SelectIdentity, SIGNAL(identityChanged(Identity)), this, SLOT(validate()));
+	connect(SelectIdentity, SIGNAL(currentIndexChanged(int)), this, SLOT(validate()));
 
 	ImportHistory = new QCheckBox(tr("Import history"), this);
 	ImportHistory->setChecked(true);

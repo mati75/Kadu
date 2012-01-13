@@ -1,10 +1,10 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2008, 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2008, 2009, 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2008, 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010 Tomasz Rostański (rozteck@interia.pl)
+ * Copyright 2010, 2010 Tomasz Rostański (rozteck@interia.pl)
+ * Copyright 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -21,29 +21,29 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <QtCore/QFile>
 #include <QtCore/QRegExp>
 #include <QtCore/QString>
-#include <QtCore/QFile>
 #include <QtCore/QTextStream>
-#include <QtGui/QTreeWidget>
-#include <QtGui/QTreeWidgetItem>
 #include <QtGui/QGridLayout>
+#include <QtGui/QGroupBox>
 #include <QtGui/QHBoxLayout>
 #include <QtGui/QLabel>
-#include <QtGui/QPushButton>
 #include <QtGui/QLineEdit>
-#include <QtGui/QGroupBox>
+#include <QtGui/QPushButton>
 #include <QtGui/QScrollBar>
+#include <QtGui/QTreeWidget>
+#include <QtGui/QTreeWidgetItem>
 
-#include "chat/chat-manager.h"
-#include "gui/widgets/configuration/configuration-widget.h"
-#include "gui/widgets/configuration/config-group-box.h"
-#include "gui/widgets/chat-widget-manager.h"
-#include "gui/widgets/custom-input.h"
 #include "configuration/configuration-file.h"
+#include "gui/widgets/chat-widget-manager.h"
+#include "gui/widgets/chat-widget.h"
+#include "gui/widgets/configuration/config-group-box.h"
+#include "gui/widgets/configuration/configuration-widget.h"
+#include "gui/widgets/custom-input.h"
 #include "misc/misc.h"
-#include "html_document.h"
 #include "debug.h"
+#include "html_document.h"
 
 #include "word-fix.h"
 
@@ -53,19 +53,15 @@ WordFix::WordFix(QObject *parent) :
 {
 	kdebugf();
 
-	connect(ChatWidgetManager::instance(), SIGNAL(chatWidgetCreated(ChatWidget *, time_t)),
-		this, SLOT(chatCreated(ChatWidget *, time_t)));
+	ExtractBody.setPattern("<body[^>]*>.*</body>");
+
+	connect(ChatWidgetManager::instance(), SIGNAL(chatWidgetCreated(ChatWidget *)),
+		this, SLOT(chatCreated(ChatWidget *)));
 	connect(ChatWidgetManager::instance(), SIGNAL(chatWidgetDestroying(ChatWidget *)),
 		this, SLOT(chatDestroying(ChatWidget *)));
 
-	foreach (const Chat &c, ChatManager::instance()->allItems())
-	{
-		ChatWidget *chat = ChatWidgetManager::instance()->byChat(c, true);
-		if (chat)
-		{
-			connectToChat(chat);
-		}
-	}
+	foreach (ChatWidget *chat, ChatWidgetManager::instance()->chats())
+		connectToChat(chat);
 
 	// Loading list
 	QString data = config_file.readEntry("word_fix", "WordFix_list");
@@ -79,9 +75,10 @@ WordFix::WordFix(QObject *parent) :
 			while (!s.atEnd())
 			{
 				pair = s.readLine().split('|');
-				if (pair.count() <= 0)
+				if (pair.isEmpty())
 					continue;
 
+				// TODO why we are not checking if there are actually at least 2 items?
 				wordsList[pair.at(0)] = pair.at(1);
 			}
 			defList.close();
@@ -110,19 +107,13 @@ WordFix::WordFix(QObject *parent) :
 WordFix::~WordFix()
 {
 	kdebugf();
-	disconnect(ChatWidgetManager::instance(), SIGNAL(chatWidgetCreated(ChatWidget *, time_t)),
-		this, SLOT(chatCreated(ChatWidget *, time_t)));
+	disconnect(ChatWidgetManager::instance(), SIGNAL(chatWidgetCreated(ChatWidget *)),
+		this, SLOT(chatCreated(ChatWidget *)));
 	disconnect(ChatWidgetManager::instance(), SIGNAL(chatWidgetDestroying(ChatWidget *)),
 		this, SLOT(chatDestroying(ChatWidget *)));
 
-	foreach (const Chat &c, ChatManager::instance()->allItems())
-	{
-		ChatWidget *chat = ChatWidgetManager::instance()->byChat(c, true);
-		if (chat)
-		{
-			disconnectFromChat(chat);
-		}
-	}
+	foreach (ChatWidget *chat, ChatWidgetManager::instance()->chats())
+		disconnectFromChat(chat);
 
 	kdebugf2();
 }
@@ -146,20 +137,14 @@ void WordFix::done()
 	kdebugf2();
 }
 
-void WordFix::chatCreated(ChatWidget *chat, time_t time)
+void WordFix::chatCreated(ChatWidget *chat)
 {
-	Q_UNUSED(time)
-
-	kdebugf();
 	connectToChat(chat);
-	kdebugf2();
 }
 
 void WordFix::chatDestroying(ChatWidget *chat)
 {
-	kdebugf();
 	disconnectFromChat(chat);
-	kdebugf2();
 }
 
 void WordFix::connectToChat(const ChatWidget *chat)
@@ -184,8 +169,17 @@ void WordFix::sendRequest(ChatWidget* chat)
 		return;
 
 	// Reading chat input to html document.
+	QString html = chat->edit()->toHtml();
+	QString body;
+
+	int pos = ExtractBody.indexIn(html);
+	if (pos >= 0)
+		body = ExtractBody.cap();
+	else
+		body = html;
+
 	HtmlDocument doc;
-	doc.parseHtml(chat->edit()->toHtml());
+	doc.parseHtml(body);
 
 	// Parsing and replacing.
 	for (int i = 0; i < doc.countElements(); i++)
@@ -195,7 +189,10 @@ void WordFix::sendRequest(ChatWidget* chat)
 	}
 
 	// Putting back corrected text.
-	chat->edit()->setText(doc.generateHtml());
+	if (pos >= 0)
+		chat->edit()->setText(html.replace(pos, body.length(), doc.generateHtml()));
+	else
+		chat->edit()->setText(doc.generateHtml());
 
 	kdebugf2();
 }

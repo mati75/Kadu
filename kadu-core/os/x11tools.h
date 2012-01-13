@@ -2,6 +2,7 @@
 *                                                                           *
 *   X11tools                                                                *
 *   Copyright (C) 2008-2011  Piotr Dąbrowski ultr@ultr.pl                   *
+*   Copyright (C) 2011       Przemysław Rudy prudy1@o2.pl                   *
 *                                                                           *
 *   This program is free software: you can redistribute it and/or modify    *
 *   it under the terms of the GNU General Public License as published by    *
@@ -19,7 +20,7 @@
 ****************************************************************************/
 
 
-// VERSION: 1.20
+// VERSION: 1.21
 
 
 /*
@@ -35,10 +36,10 @@ KNOWN ISSUES:
 	#define X11TOOLS_H
 
 
+#include <X11/Xlib.h>
 #include <stdint.h>
 #include <string>
 #include <utility>
-#include <X11/Xlib.h>
 
 
 #ifdef X11TOOLSDEBUG
@@ -121,5 +122,5 @@ void X11_waitForWindowMapped( Display *display, Window window );
 
 bool X11_isCompositingManagerRunning( Display *display );
 
-
+void X11_setBlur( Display *display, Window window, bool enable );
 #endif

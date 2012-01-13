@@ -1,8 +1,11 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
+ * Copyright 2007, 2008, 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -33,15 +36,6 @@ BuddyContactsTableItem::BuddyContactsTableItem(Contact contact, QObject *parent)
 	ItemAccount = contact.contactAccount();
 	Id = contact.id();
 	Action = ItemEdit;
-}
-
-void BuddyContactsTableItem::setItemContact(Contact contact)
-{
-	if (ItemContact != contact)
-	{
-		ItemContact = contact;
-		emit updated(this);
-	}
 }
 
 void BuddyContactsTableItem::setItemContactPriority(int itemContactPriority)
@@ -116,7 +110,7 @@ bool BuddyContactsTableItem::isAddValid() const
 
 	Protocol *handler = ItemAccount.protocolHandler();
 	if (!handler)
-		return true;
+		return false;
 
 	if (handler->protocolFactory()->validateId(Id) != QValidator::Acceptable)
 		return false;
@@ -139,7 +133,7 @@ bool BuddyContactsTableItem::isEditValid() const
 
 	Protocol *handler = ItemAccount.protocolHandler();
 	if (!handler)
-		return true;
+		return false;
 
 	if (handler->protocolFactory()->validateId(Id) != QValidator::Acceptable)
 		return false;

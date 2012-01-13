@@ -108,6 +108,13 @@
     </message>
 </context>
 <context>
+    <name>CertificateErrorDialog</name>
+    <message>
+        <source>The %1 certificate failed the authenticity test.</source>
+        <translation type="unfinished">Osvědčení %1 neprošlo zkouškou pravosti.</translation>
+    </message>
+</context>
+<context>
     <name>FacebookProtocolFactory</name>
     <message>
         <source>Facebook ID:</source>
@@ -197,10 +204,6 @@
 <context>
     <name>JabberActions</name>
     <message>
-        <source>Show XML Console for Account</source>
-        <translation>Ukázat konzoli XML pro účet</translation>
-    </message>
-    <message>
         <source>Resend Subscription</source>
         <translation>Poslat přihlášení znovu</translation>
     </message>
@@ -253,12 +256,6 @@
     <message>
         <source>Change Password</source>
         <translation>Změnit heslo</translation>
-    </message>
-    <message>
-        <source>This dialog box allows you to change your current password.
-</source>
-        <translation>Toto dialogové okénko vám umožní změnu vašeho současného hesla.
-</translation>
     </message>
     <message>
         <source>Old Password</source>
@@ -478,10 +475,6 @@ Password entered in both fields (&quot;New password&quot; and &quot;Retype passw
         <translation>Připojení</translation>
     </message>
     <message>
-        <source>Proxy</source>
-        <translation>Proxy</translation>
-    </message>
-    <message>
         <source>Manually specify server host/port</source>
         <translation>Stanovit hostitele/přípojku serveru ručně</translation>
     </message>
@@ -580,6 +573,18 @@ Password entered in both fields (&quot;New password&quot; and &quot;Retype passw
     <message>
         <source>Remove account</source>
         <translation>Odstranit účet</translation>
+    </message>
+    <message>
+        <source>Proxy configuration</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Privacy</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Publish system information</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -699,10 +704,6 @@ Podrobnosti: %1</translation>
 <context>
     <name>QObject</name>
     <message>
-        <source>The %1 certificate failed the authenticity test.</source>
-        <translation>Osvědčení %1 neprošlo zkouškou pravosti.</translation>
-    </message>
-    <message>
         <source>&amp;Details...</source>
         <translation>&amp;Podrobnosti...</translation>
     </message>
@@ -809,6 +810,13 @@ Podrobnosti: %1</translation>
     <message>
         <source>Misc</source>
         <translation>Různé</translation>
+    </message>
+</context>
+<context>
+    <name>ShowXmlConsoleActionDescription</name>
+    <message>
+        <source>Show XML Console</source>
+        <translation>Ukázat konzoli XML</translation>
     </message>
 </context>
 <context>

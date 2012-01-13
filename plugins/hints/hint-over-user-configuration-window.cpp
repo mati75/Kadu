@@ -1,12 +1,12 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Piotr Dąbrowski (ultr@ultr.pl)
+ * Copyright 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2010 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2009, 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Piotr Dąbrowski (ultr@ultr.pl)
  * Copyright 2009 Maciej Płaza (plaza.maciej@gmail.com)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -31,8 +31,8 @@
 
 #include "accounts/account.h"
 #include "buddies/buddy-preferred-manager.h"
-#include "configuration/configuration-file.h"
 #include "configuration/config-file-data-manager.h"
+#include "configuration/configuration-file.h"
 #include "contacts/contact.h"
 #include "gui/widgets/configuration/config-color-button.h"
 #include "gui/widgets/configuration/config-combo-box.h"
@@ -154,7 +154,7 @@ void HintOverUserConfigurationWindow::syntaxChanged()
 	if (!hintSyntax->document()->isModified())
 		return;
 
-	QString text = Parser::parse(hintSyntax->toPlainText(), BuddyOrContact(ExampleBuddy));
+	QString text = Parser::parse(hintSyntax->toPlainText(), Talkable(ExampleBuddy));
 
 	/* Dorr: the file:// in img tag doesn't generate the image on hint.
 	 * for compatibility with other syntaxes we're allowing to put the file://

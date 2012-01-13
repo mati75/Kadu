@@ -1,9 +1,9 @@
 /*
  * %kadu copyright begin%
+ * Copyright 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2010, 2011 Piotr Dąbrowski (ultr@ultr.pl)
- * Copyright 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -24,11 +24,11 @@
 
 #include "accounts/account.h"
 #include "avatars/avatar.h"
-#include "contacts/contact.h"
 #include "buddies/buddy-kadu-data.h"
-#include "buddies/buddy-shared.h"
+#include "contacts/contact.h"
 #include "icons/kadu-icon.h"
 #include "model/roles.h"
+#include "status/status-container.h"
 
 #include "contact-data-extractor.h"
 
@@ -40,9 +40,7 @@ QVariant ContactDataExtractor::data(const Contact &contact, int role, bool useBu
 	switch (role)
 	{
 		case Qt::DisplayRole:
-			return useBuddyData
-					? contact.ownerBuddy().display()
-					: contact.id();
+			return contact.display(useBuddyData);
 		case Qt::DecorationRole:
 		{
 			if (contact.ownerBuddy().isBlocked())
@@ -52,8 +50,8 @@ QVariant ContactDataExtractor::data(const Contact &contact, int role, bool useBu
 				return KaduIcon("kadu_icons/blocking").icon();
 
 			// TODO generic icon
-			return !contact.contactAccount().isNull()
-					? contact.contactAccount().data()->statusIcon(contact.currentStatus()).icon()
+			return contact.contactAccount().statusContainer()
+					? contact.contactAccount().statusContainer()->statusIcon(contact.currentStatus()).icon()
 					: QIcon();
 		}
 		case BuddyRole:
@@ -62,7 +60,7 @@ QVariant ContactDataExtractor::data(const Contact &contact, int role, bool useBu
 			return QVariant::fromValue(contact);
 		case DescriptionRole:
 		{
-			BuddyKaduData *bkd = contact.ownerBuddy().data()->moduleStorableData<BuddyKaduData>("kadu", 0, true);
+			BuddyKaduData *bkd = contact.ownerBuddy().data()->moduleStorableData<BuddyKaduData>("kadu", 0, false);
 			if (bkd && bkd->hideDescription())
 				return QVariant();
 			return contact.currentStatus().description();
@@ -72,10 +70,7 @@ QVariant ContactDataExtractor::data(const Contact &contact, int role, bool useBu
 		case AccountRole:
 			return QVariant::fromValue(contact.contactAccount());
 		case AvatarRole:
-			if (useBuddyData && !contact.ownerBuddy().buddyAvatar().isEmpty())
-				return QVariant::fromValue(contact.ownerBuddy().buddyAvatar().pixmap());
-			else
-				return QVariant::fromValue(contact.contactAvatar().pixmap());
+			return contact.avatar(useBuddyData).pixmap();
 		case ItemTypeRole:
 			return ContactRole;
 		default:

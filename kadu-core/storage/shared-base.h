@@ -1,8 +1,9 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2009 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2009, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -132,7 +133,7 @@ private:
  *
  * Declares getter and setter for a delegated property of @link Shared @endlink class stored in
  * @link SharedBase @endlink. Getter is named 'name'. Setter is named 'set##capitalized_name'.
- * Argument of the setter wil be a const reference to 'type'.
+ * Argument of the setter will be a const reference to 'type'.
  */
 #define KaduSharedBase_PropertyCRW(type, name, capitalized_name) \
 	KaduSharedBase_PropertyRead(type, name, capitalized_name) \
@@ -471,18 +472,6 @@ public:
 
 	/**
 	 * @author Rafal 'Vogel' Malinowski
-	 * @short Delegates store method to Shared object.
-	 *
-	 * @see Shared::store
-	 */
-	void store()
-	{
-		if (!isNull())
-			Data->store();
-	}
-
-	/**
-	 * @author Rafal 'Vogel' Malinowski
 	 * @short Delegates ensureStored method to Shared object.
 	 *
 	 * @see Shared::ensureStored
@@ -495,19 +484,29 @@ public:
 
 	/**
 	 * @author Rafal 'Vogel' Malinowski
+	 * @author Bartosz 'beevvy' Brachaczek
+	 * @short Informs the object it is about to be removed.
+	 *
+	 * If object is null, this method does nothing.
+	 * This method calls @link<Shared::aboutToBeRemoved @endlink.
+	 */
+	void aboutToBeRemoved()
+	{
+		if (!isNull())
+			Data->aboutToBeRemoved();
+	}
+
+	/**
+	 * @author Rafal 'Vogel' Malinowski
 	 * @short Removes object completely.
 	 *
 	 * If object is null, this method does nothing.
-	 * This method calls @link<Shared::aboutToBeRemoved @endlink. Then data object is removed from
-	 * storage (it must be StorableObject then).
+	 * The Data object is removed from storage (it must be StorableObject then).
 	 */
 	void remove()
 	{
 		if (!isNull())
-		{
-			Data->aboutToBeRemoved();
 			Data->removeFromStorage();
-		}
 	}
 
 	KaduSharedBase_Property(QUuid, uuid, Uuid)

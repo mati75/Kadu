@@ -1,10 +1,15 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2009, 2009, 2009, 2009 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2004 Michał Podsiadlik (michal@kadu.net)
+ * Copyright 2009, 2009 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2002, 2003, 2004, 2005 Adrian Smarzewski (adrian@kadu.net)
+ * Copyright 2002, 2003, 2004 Tomasz Chiliński (chilek@chilan.com)
+ * Copyright 2007, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2007 Dawid Stawiarski (neeo@kadu.net)
+ * Copyright 2005 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -32,14 +37,13 @@
 #include <QtGui/QTreeView>
 #include <QtGui/QVBoxLayout>
 
-#include "accounts/account.h"
 #include "accounts/account-manager.h"
-#include "avatars/avatar.h"
+#include "accounts/account.h"
 #include "avatars/avatar-manager.h"
+#include "avatars/avatar.h"
 #include "buddies/buddy-manager.h"
-#include "buddies/buddy-shared.h"
-#include "contacts/contact.h"
 #include "contacts/contact-manager.h"
+#include "contacts/contact.h"
 #include "gui/widgets/buddy-avatar-widget.h"
 #include "gui/widgets/buddy-contacts-table.h"
 #include "gui/windows/message-dialog.h"
@@ -47,8 +51,8 @@
 #include "misc/misc.h"
 #include "model/actions-proxy-model.h"
 #include "model/roles.h"
-#include "protocols/protocol.h"
 #include "protocols/protocol-factory.h"
+#include "protocols/protocol.h"
 
 #include "buddy-general-configuration-widget.h"
 

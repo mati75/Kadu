@@ -1,7 +1,12 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
+ * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -45,7 +50,6 @@ void ChatGeometryData::load()
 
 	WindowGeometry = stringToRect(loadValue<QString>("WindowGeometry"));
 	WidgetHorizontalSizes = stringToIntList(loadValue<QString>("WidgetHorizontalSizes"));
-	WidgetVerticalSizes = stringToIntList(loadValue<QString>("WidgetVerticalSizes"));
 }
 
 void ChatGeometryData::store()
@@ -53,9 +57,24 @@ void ChatGeometryData::store()
 	if (!isValidStorage())
 		return;
 
-	storeValue("WindowGeometry", rectToString(WindowGeometry));
-	storeValue("WidgetHorizontalSizes", intListToString(WidgetHorizontalSizes));
-	storeValue("WidgetVerticalSizes", intListToString(WidgetVerticalSizes));
+	if (WindowGeometry.isValid())
+		storeValue("WindowGeometry", rectToString(WindowGeometry));
+	else
+		removeValue("WindowGeometry");
+
+	if (!WidgetHorizontalSizes.isEmpty())
+		storeValue("WidgetHorizontalSizes", intListToString(WidgetHorizontalSizes));
+	else
+		removeValue("WidgetHorizontalSizes");
+
+	removeValue("WidgetVerticalSizes");
+}
+
+bool ChatGeometryData::shouldStore()
+{
+	ensureLoaded();
+
+	return ModuleData::shouldStore() && (WindowGeometry.isValid() || !WidgetHorizontalSizes.isEmpty());
 }
 
 QString ChatGeometryData::name() const

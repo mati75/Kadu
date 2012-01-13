@@ -1,9 +1,9 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009, 2010 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -23,15 +23,15 @@
 #include "accounts/account-manager.h"
 #include "contacts/contact.h"
 #include "core/core.h"
-#include "identities/identity-manager.h"
 #include "icons/kadu-icon.h"
+#include "identities/identity-manager.h"
 #include "misc/misc.h"
 #include "protocols/protocol.h"
 
-#include "identity-shared.h"
 #include "status/status-type-manager.h"
 #include "status/status-type.h"
-#include "status/status-group.h"
+
+#include "identity-shared.h"
 
 IdentityShared * IdentityShared::loadStubFromStorage(const QSharedPointer<StoragePoint> &storagePoint)
 {
@@ -50,7 +50,7 @@ IdentityShared * IdentityShared::loadFromStorage(const QSharedPointer<StoragePoi
 }
 
 IdentityShared::IdentityShared(const QUuid &uuid) :
-		BaseStatusContainer(this), Shared(uuid), Permanent(false)
+		StorableStatusContainer(this), Shared(uuid), Permanent(false)
 {
 	setState(StateNotLoaded);
 }
@@ -105,7 +105,7 @@ void IdentityShared::addAccount(const Account &account)
 	ensureLoaded();
 
 	Accounts.append(account);
-	connect(account, SIGNAL(statusUpdated()), this, SIGNAL(statusUpdated()));
+	connect(account.statusContainer(), SIGNAL(statusUpdated()), this, SIGNAL(statusUpdated()));
 
 	emit statusUpdated();
 }
@@ -119,7 +119,7 @@ void IdentityShared::removeAccount(const Account &account)
 
 	if (Accounts.removeAll(account) > 0)
 	{
-		disconnect(account, SIGNAL(statusUpdated()), this, SIGNAL(statusUpdated()));
+		disconnect(account.statusContainer(), SIGNAL(statusUpdated()), this, SIGNAL(statusUpdated()));
 		emit statusUpdated();
 	}
 }
@@ -149,30 +149,25 @@ bool IdentityShared::isEmpty()
 	return Accounts.isEmpty();
 }
 
-void IdentityShared::doSetStatus(Status status)
+void IdentityShared::setStatus(Status status)
 {
 	ensureLoaded();
 
 	foreach (const Account &account, Accounts)
 		if (account)
-			account.data()->setStatus(status, false);
+			account.statusContainer()->setStatus(status);
 }
 
 Status IdentityShared::status()
 {
 	Account account = AccountManager::bestAccount(Accounts);
-	return account ? account.data()->status() : Status();
+	return account ? account.statusContainer()->status() : Status();
 }
 
 bool IdentityShared::isStatusSettingInProgress()
 {
 	Account account = AccountManager::bestAccount(Accounts);
-	return account ? account.data()->isStatusSettingInProgress() : false;
-}
-
-QString IdentityShared::statusDisplayName()
-{
-	return status().displayName();
+	return account ? account.statusContainer()->isStatusSettingInProgress() : false;
 }
 
 KaduIcon IdentityShared::statusIcon()
@@ -183,23 +178,17 @@ KaduIcon IdentityShared::statusIcon()
 KaduIcon IdentityShared::statusIcon(const Status &status)
 {
 	Account account = AccountManager::bestAccount(Accounts);
-	return account ? account.data()->statusIcon(status) : KaduIcon();
+	return account ? account.statusContainer()->statusIcon(status) : KaduIcon();
 }
 
-KaduIcon IdentityShared::statusIcon(const QString &statusType)
+QList<StatusType> IdentityShared::supportedStatusTypes()
 {
 	Account account = AccountManager::bestAccount(Accounts);
-	return account ? account.data()->statusIcon(statusType) : KaduIcon();
-}
-
-QList<StatusType *> IdentityShared::supportedStatusTypes()
-{
-	Account account = AccountManager::bestAccount(Accounts);
-	return account ? account.data()->supportedStatusTypes() : QList<StatusType *>();
+	return account ? account.statusContainer()->supportedStatusTypes() : QList<StatusType>();
 }
 
 int IdentityShared::maxDescriptionLength()
 {
 	Account account = AccountManager::bestAccount(Accounts);
-	return account ? account.data()->maxDescriptionLength() : -1;
+	return account ? account.statusContainer()->maxDescriptionLength() : -1;
 }

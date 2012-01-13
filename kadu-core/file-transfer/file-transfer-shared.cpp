@@ -1,7 +1,8 @@
 /*
  * %kadu copyright begin%
+ * Copyright 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -19,11 +20,13 @@
  */
 
 #include "accounts/account-manager.h"
+#include "accounts/account.h"
 #include "contacts/contact-manager.h"
+#include "contacts/contact.h"
 #include "file-transfer/file-transfer-handler.h"
 #include "file-transfer/file-transfer-manager.h"
-#include "protocols/services/file-transfer-service.h"
 #include "protocols/protocol.h"
+#include "protocols/services/file-transfer-service.h"
 
 #include "file-transfer-shared.h"
 
@@ -47,11 +50,14 @@ FileTransferShared::FileTransferShared(const QUuid &uuid) :
 		TransferType(TypeReceive), TransferStatus(StatusNotConnected),
 		TransferError(ErrorOk), Handler(0)
 {
+	Peer = new Contact();
 }
 
 FileTransferShared::~FileTransferShared()
 {
 	ref.ref();
+
+	delete Peer;
 }
 
 StorableObject * FileTransferShared::storageParent()
@@ -71,7 +77,7 @@ void FileTransferShared::load()
 
 	StorableObject::load();
 
-	Peer = ContactManager::instance()->byUuid(loadValue<QString>("Peer"));
+	*Peer = ContactManager::instance()->byUuid(loadValue<QString>("Peer"));
 	LocalFileName = loadValue<QString>("LocalFileName");
 	RemoteFileName = loadValue<QString>("RemoteFileName");
 	TransferType = ("Send" == loadValue<QString>("TransferType")) ? TypeSend : TypeReceive;
@@ -89,7 +95,7 @@ void FileTransferShared::store()
 
 	ensureLoaded();
 
-	storeValue("Peer", Peer.uuid().toString());
+	storeValue("Peer", Peer->uuid().toString());
 	storeValue("LocalFileName", LocalFileName);
 	storeValue("RemoteFileName", RemoteFileName);
 	storeValue("TransferType", TypeSend == TransferType ? "Send" : "Receive");
@@ -142,7 +148,7 @@ void FileTransferShared::createHandler()
 	if (Handler)
 		return;
 
-	Protocol *protocol = Peer.contactAccount().protocolHandler();
+	Protocol *protocol = Peer->contactAccount().protocolHandler();
 	if (!protocol)
 		return;
 
@@ -163,3 +169,5 @@ void FileTransferShared::handlerDestroyed()
 	Handler = 0;
 	dataUpdated();
 }
+
+KaduShared_PropertyPtrDefCRW(FileTransferShared, Contact, peer, Peer)

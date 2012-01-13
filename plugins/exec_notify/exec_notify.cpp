@@ -1,12 +1,12 @@
 /*
  * %kadu copyright begin%
- * Copyright 2011 Piotr Dąbrowski (ultr@ultr.pl)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2008, 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2008, 2009, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2007, 2008, 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2008 Michał Podsiadlik (michal@kadu.net)
  * Copyright 2008 Tomasz Rostański (rozteck@interia.pl)
+ * Copyright 2011 Piotr Dąbrowski (ultr@ultr.pl)
+ * Copyright 2008 Michał Podsiadlik (michal@kadu.net)
+ * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -25,12 +25,12 @@
 
 #include <QtCore/QProcess>
 #include <QtGui/QApplication>
-#include <QtGui/QLineEdit>
-#include <QtGui/QLabel>
 #include <QtGui/QHBoxLayout>
+#include <QtGui/QLabel>
+#include <QtGui/QLineEdit>
 
-#include "buddies/buddy.h"
 #include "buddies/buddy-list.h"
+#include "buddies/buddy.h"
 
 #include "chat/chat.h"
 
@@ -45,8 +45,8 @@
 
 #include "notify/account-notification.h"
 #include "notify/chat-notification.h"
-#include "notify/notification.h"
 #include "notify/notification-manager.h"
+#include "notify/notification.h"
 
 #include "icons/icons-manager.h"
 #include "parser/parser.h"
@@ -75,8 +75,8 @@ void ExecConfigurationWidget::saveNotifyConfigurations()
 	if (!currentNotifyEvent.isEmpty())
 		Commands[currentNotifyEvent] = commandLineEdit->text();
 
-	foreach (const QString &eventName, Commands.keys())
-		config_file.writeEntry("Exec Notify", eventName + "Cmd", Commands[eventName]);
+	for (QMap<QString, QString>::const_iterator it = Commands.constBegin(), end = Commands.constEnd(); it != end; ++it)
+		config_file.writeEntry("Exec Notify", it.key() + "Cmd", it.value());
 }
 
 void ExecConfigurationWidget::switchToEvent(const QString &event)
@@ -239,7 +239,7 @@ void ExecNotify::notify(Notification *notification)
 
 		Contact contact = *contacts.constBegin();
 		foreach (QString it, s)
-			result.append(Parser::parse(it.replace("%ids", sendersString), BuddyOrContact(contact), notification));
+			result.append(Parser::parse(it.replace("%ids", sendersString), Talkable(contact), notification));
 	}
 	else
 		foreach (const QString &it, s)

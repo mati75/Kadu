@@ -1,10 +1,10 @@
 /*
  * %kadu copyright begin%
- * Copyright 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2010 Tomasz Rostański (rozteck@interia.pl)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -24,8 +24,8 @@
 #ifndef CHAT_DETAILS_AGGREGATE_H
 #define CHAT_DETAILS_AGGREGATE_H
 
-#include "contacts/contact.h"
 #include "chat/chat-details.h"
+#include "contacts/contact.h"
 #include "exports.h"
 
 /**
@@ -44,7 +44,7 @@ class KADUAPI ChatDetailsAggregate : public ChatDetails
 {
 	Q_OBJECT
 
-	QList<Chat> Chats;
+	QVector<Chat> Chats;
 
 public:
 	explicit ChatDetailsAggregate(ChatShared *chatData);
@@ -56,8 +56,8 @@ public:
 	virtual ContactSet contacts() const;
 	virtual QString name() const;
 
-	void setChats(const QList<Chat> &chats);
-	const QList<Chat> & chats() const;
+	void setChats(const QVector<Chat> &chats);
+	const QVector<Chat> & chats() const;
 
 };
 

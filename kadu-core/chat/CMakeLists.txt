@@ -5,20 +5,15 @@ set (chat_SRCS
 	chat-details-conference.cpp
 	chat-details-simple.cpp
 	chat-geometry-data.cpp
+	chat-list-mime-data-helper.cpp
 	chat-manager.cpp
 	chat-shared.cpp
 	chat-styles-manager.cpp
 	html-messages-renderer.cpp
 	recent-chat-manager.cpp
 
-	filter/chat-name-filter.cpp
-
-	message/formatted-message.cpp
-	message/formatted-message-part.cpp
-	message/message.cpp
-	message/message-render-info.cpp
-	message/pending-messages-manager.cpp
-	message/message-shared.cpp
+	model/chat-data-extractor.cpp
+	model/chats-model.cpp
 
 	style-engines/chat-engine-adium/adium-style.cpp
 	style-engines/chat-engine-adium/adium-time-formatter.cpp
@@ -27,6 +22,7 @@ set (chat_SRCS
 	style-engines/chat-engine-kadu/kadu-chat-syntax.cpp
 
 	type/chat-type.cpp
+	type/chat-type-aggregate.cpp
 	type/chat-type-aware-object.cpp
 	type/chat-type-conference.cpp
 	type/chat-type-manager.cpp
@@ -47,28 +43,16 @@ set (chat_MOC_SRCS
 	html-messages-renderer.h
 	recent-chat-manager.h
 
-	filter/chat-filter.h
-	filter/chat-name-filter.h
-
-	message/message-render-info.h
-	message/pending-messages-manager.h
-	message/message-shared.h
+	model/chats-model.h
 
 	style-engines/chat-engine-adium/chat-engine-adium.h
 	style-engines/chat-engine-kadu/chat-engine-kadu.h
 
 	type/chat-type.h
+	type/chat-type-aggregate.h
 	type/chat-type-conference.h
 	type/chat-type-manager.h
 	type/chat-type-simple.h
 )
 
-qt4_wrap_cpp (chat_MOC_FILES ${chat_MOC_SRCS})
-
-add_library (chat
-	STATIC
-	${chat_SRCS}
-	${chat_MOC_FILES}
-)
-
-set_target_properties (chat PROPERTIES COMPILE_DEFINITIONS KADULIB)
+kadu_subdirectory (chat "${chat_SRCS}" "${chat_MOC_SRCS}" "")

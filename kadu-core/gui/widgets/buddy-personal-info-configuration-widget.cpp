@@ -1,10 +1,15 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2009, 2009, 2010 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2004 Michał Podsiadlik (michal@kadu.net)
+ * Copyright 2009, 2009 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2002, 2003, 2004, 2005 Adrian Smarzewski (adrian@kadu.net)
+ * Copyright 2002, 2003, 2004 Tomasz Chiliński (chilek@chilan.com)
+ * Copyright 2007, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2009, 2010 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2007 Dawid Stawiarski (neeo@kadu.net)
+ * Copyright 2005 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -27,11 +32,11 @@
 #include <QtGui/QLabel>
 #include <QtGui/QVBoxLayout>
 
-#include "accounts/account.h"
 #include "accounts/account-manager.h"
-#include "contacts/model/buddy-contact-model.h"
-#include "contacts/contact.h"
+#include "accounts/account.h"
 #include "contacts/contact-manager.h"
+#include "contacts/contact.h"
+#include "contacts/model/buddy-contact-model.h"
 #include "misc/misc.h"
 #include "model/roles.h"
 #include "protocols/protocol.h"

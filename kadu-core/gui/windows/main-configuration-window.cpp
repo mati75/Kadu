@@ -1,17 +1,17 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Piotr Dąbrowski (ultr@ultr.pl)
- * Copyright 2007, 2008 Dawid Stawiarski (neeo@kadu.net)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2008, 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2010, 2010 Przemysław Rudy (prudy1@o2.pl)
  * Copyright 2009, 2010 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2008, 2009, 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2010 Przemysław Rudy (prudy1@o2.pl)
- * Copyright 2010 badboy (badboy@gen2.org)
- * Copyright 2009 Maciej Płaza (plaza.maciej@gmail.com)
- * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2008, 2009 Michał Podsiadlik (michal@kadu.net)
  * Copyright 2008, 2009, 2010 Tomasz Rostański (rozteck@interia.pl)
+ * Copyright 2010, 2011 Piotr Dąbrowski (ultr@ultr.pl)
+ * Copyright 2008, 2009 Michał Podsiadlik (michal@kadu.net)
+ * Copyright 2009 Maciej Płaza (plaza.maciej@gmail.com)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2010 badboy (badboy@gen2.org)
+ * Copyright 2007, 2008, 2009, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2007, 2008 Dawid Stawiarski (neeo@kadu.net)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -32,16 +32,15 @@
 #include <QtCore/QList>
 #include <QtCore/QPair>
 #include <QtGui/QApplication>
+#include <QtGui/QLabel>
 #include <QtGui/QStyleFactory>
 
 #include "configuration/config-file-data-manager.h"
 
-#include "accounts/account.h"
 #include "accounts/account-manager.h"
+#include "accounts/account.h"
 #include "buddies/buddy.h"
-#include "buddies/buddy-shared.h"
 #include "chat/chat-styles-manager.h"
-#include "chat/message/message-render-info.h"
 #include "chat/style-engines/chat-style-engine.h"
 #include "configuration/configuration-file.h"
 #include "contacts/contact.h"
@@ -49,27 +48,36 @@
 #include "emoticons/emoticons-manager.h"
 #include "gui/widgets/buddy-info-panel.h"
 #include "gui/widgets/configuration/buddy-list-background-colors-widget.h"
-#include "gui/widgets/configuration/config-combo-box.h"
-#include "gui/widgets/configuration/config-line-edit.h"
-#include "gui/widgets/configuration/config-preview.h"
-#include "gui/widgets/configuration/config-slider.h"
-#include "gui/widgets/configuration/config-syntax-editor.h"
-#include "gui/widgets/configuration/config-path-list-edit.h"
 #include "gui/widgets/configuration/config-check-box.h"
+#include "gui/widgets/configuration/config-combo-box.h"
+#include "gui/widgets/configuration/config-group-box.h"
+#include "gui/widgets/configuration/config-line-edit.h"
+#include "gui/widgets/configuration/config-path-list-edit.h"
+#include "gui/widgets/configuration/config-preview.h"
+#include "gui/widgets/configuration/config-syntax-editor.h"
 #include "gui/widgets/configuration/configuration-widget.h"
+#include "gui/widgets/proxy-combo-box.h"
 #include "gui/widgets/tool-tip-class-manager.h"
 #include "gui/windows/kadu-window.h"
 #include "gui/windows/syntax-editor-window.h"
+#include "message/message-render-info.h"
 #include "misc/misc.h"
+#include "network/proxy/network-proxy.h"
+#include "status/status-container.h"
 #include "status/status.h"
-#include "themes/icon-theme-manager.h"
 #include "themes/emoticon-theme-manager.h"
+#include "themes/icon-theme-manager.h"
 
-#include "debug.h"
 #include "icons/icons-manager.h"
+#include "debug.h"
 #include "languages-manager.h"
 
 #include "main-configuration-window.h"
+
+#ifdef Q_WS_X11
+#include "os/x11tools.h" // this should be included as last one,
+#undef Status            // and Status defined by Xlib.h must be undefined
+#endif
 
 MainConfigurationWindow *MainConfigurationWindow::Instance = 0;
 ConfigFileDataManager *MainConfigurationWindow::InstanceDataManager = 0;
@@ -172,23 +180,24 @@ MainConfigurationWindow::MainConfigurationWindow() :
 	widget()->appendUiFile(dataPath("kadu/configuration/dialog.ui"));
 
 #if !defined(DEBUG_ENABLED) || defined(Q_OS_WIN)
-	widget()->widgetById("debug")->parentWidget()->hide();
+	widget()->widgetById("debug")->hide();
 #endif
 
 #ifndef Q_OS_WIN
 	widget()->widgetById("startup")->hide();
+	widget()->widgetById("hideMainWindowFromTaskbar")->hide();
 #endif
 
 #ifndef Q_WS_X11
-	widget()->widgetById("windowActivationMethodGroup")->hide();
+	widget()->widgetById("windowActivationMethod")->hide();
 	widget()->widgetById("notify/fullscreenSilentMode")->hide();
 #endif
 
 #if !defined(Q_WS_X11) || defined(Q_WS_MAEMO_5)
 	widget()->widgetById("useTransparency")->hide();
 	widget()->widgetById("userboxTransparency")->hide();
-	// cast is needed to call proper hide() method (QWidget::hide() is not virtual)
-	qobject_cast<ConfigSlider *>(widget()->widgetById("userboxAlpha"))->hide();
+	widget()->widgetById("userboxAlpha")->hide();
+	widget()->widgetById("userboxBlur")->hide();
 #endif
 
 	onStartupSetLastDescription = static_cast<QCheckBox *>(widget()->widgetById("onStartupSetLastDescription"));
@@ -198,8 +207,8 @@ MainConfigurationWindow::MainConfigurationWindow() :
 	Account account = AccountManager::instance()->defaultAccount();
 	if (!account.isNull() && account.protocolHandler())
 	{
-		disconnectDescription->setMaxLength(account.data()->maxDescriptionLength());
-		onStartupSetDescription->setMaxLength(account.data()->maxDescriptionLength());
+		disconnectDescription->setMaxLength(account.statusContainer()->maxDescriptionLength());
+		onStartupSetDescription->setMaxLength(account.statusContainer()->maxDescriptionLength());
 	}
 	connect(widget()->widgetById("showAvatars"), SIGNAL(toggled(bool)), widget()->widgetById("avatarBorder"), SLOT(setEnabled(bool)));
 	connect(widget()->widgetById("showAvatars"), SIGNAL(toggled(bool)), widget()->widgetById("avatarGreyOut"), SLOT(setEnabled(bool)));
@@ -240,7 +249,6 @@ MainConfigurationWindow::MainConfigurationWindow() :
 	connect(widget()->widgetById("lookChatAdvanced"), SIGNAL(clicked()), this, SLOT(showLookChatAdvanced()));
 
 	Preview *infoPanelSyntaxPreview = static_cast<Preview *>(widget()->widgetById("infoPanelSyntaxPreview"));
-	infoPanelSyntaxPreview->setResetBackgroundColor(config_file.readEntry("Look", "InfoPanelBgColor"));
 	connect(infoPanelSyntaxPreview, SIGNAL(needFixup(QString &)), Core::instance()->kaduWindow()->infoPanel(), SLOT(styleFixup(QString &)));
 	connect(widget()->widgetById("infoPanelSyntax"), SIGNAL(syntaxChanged(const QString &)), infoPanelSyntaxPreview, SLOT(syntaxChanged(const QString &)));
 	connect(widget()->widgetById("infoPanelSyntax"), SIGNAL(onSyntaxEditorWindowCreated(SyntaxEditorWindow *)),
@@ -260,6 +268,8 @@ MainConfigurationWindow::MainConfigurationWindow() :
 	userboxTransparency = static_cast<QCheckBox *>(widget()->widgetById("userboxTransparency"));
 	userboxAlpha = static_cast<QSlider *>(widget()->widgetById("userboxAlpha"));
 	connect(userboxTransparency, SIGNAL(toggled(bool)), widget()->widgetById("userboxAlpha"), SLOT(setEnabled(bool)));
+	userboxBlur = static_cast<QCheckBox *>(widget()->widgetById("userboxBlur"));
+	connect(userboxTransparency, SIGNAL(toggled(bool)), widget()->widgetById("userboxBlur"), SLOT(setEnabled(bool)));
 
 	buddyColors = new BuddyListBackgroundColorsWidget(this);
 
@@ -274,14 +284,17 @@ MainConfigurationWindow::~MainConfigurationWindow()
 void MainConfigurationWindow::compositingEnabled()
 {
 	userboxTransparency->setEnabled(true);
-	if (userboxTransparency->isChecked())
-		userboxAlpha->setEnabled(true);
+	userboxTransparency->blockSignals(false);
+	userboxAlpha->setEnabled(userboxTransparency->isChecked());
+	userboxBlur->setEnabled(userboxTransparency->isChecked());
 }
 
 void MainConfigurationWindow::compositingDisabled()
 {
 	userboxTransparency->setEnabled(false);
+	userboxTransparency->blockSignals(true);
 	userboxAlpha->setEnabled(false);
+	userboxBlur->setEnabled(false);
 }
 
 void MainConfigurationWindow::show()

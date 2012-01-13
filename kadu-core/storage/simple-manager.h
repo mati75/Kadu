@@ -1,9 +1,9 @@
 /*
  * %kadu copyright begin%
- * Copyright 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2011 Tomasz Rostanski (rozteck@interia.pl)
+ * Copyright 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -28,6 +28,7 @@
 #include <QtCore/QMutexLocker>
 #include <QtCore/QObject>
 #include <QtCore/QUuid>
+#include <QtCore/QVector>
 
 #include "configuration/configuration-manager.h"
 #include "storage/manager-common.h"
@@ -54,9 +55,6 @@
  * functions: @link itemAboutToBeAdded @endlink, @link itemAdded @endlink,
  * @link itemAboutToBeRemoved @endlink, @link itemRemoved @endlink to emit signals.
  *
- * To manager objects derivered from @link DetailsHolder @endlink class use @link Manager @endlink
- * template class.
- *
  * Class Item must implement Item loadFromStorage(const QSharedPointer\<StoragePoint\> &) static method.
  * Class Item must have static field Item null that represents unique NULL value.
  *
@@ -67,7 +65,7 @@ class SimpleManager : public StorableObject
 {
 	QMutex Mutex;
 
-	QList<Item> Items;
+	QVector<Item> Items;
 
 protected:
 	/**
@@ -194,7 +192,7 @@ protected:
 		if (itemsNode.isNull())
 			return;
 
-		QList<QDomElement> itemElements = storage()->storage()->getNodes(itemsNode, storageNodeItemName());
+		QVector<QDomElement> itemElements = storage()->storage()->getNodes(itemsNode, storageNodeItemName());
 		Items.reserve(itemElements.count());
 
 		foreach (const QDomElement &itemElement, itemElements)
@@ -211,7 +209,6 @@ protected:
 		loaded();
 	}
 
-public:
 	/**
 	 * @author Rafal 'Vogel' Malinowski
 	 * @short Stores all items to configuration file.
@@ -230,6 +227,7 @@ public:
 			item.ensureStored();
 	}
 
+public:
 	/**
 	 * @author Rafal 'Vogel' Malinowski
 	 * @short Returns item by index.
@@ -320,7 +318,7 @@ public:
 	 *
 	 * Return list of items.
 	 */
-	const QList<Item> & items()
+	const QVector<Item> & items()
 	{
 		QMutexLocker locker(&Mutex);
 
@@ -372,10 +370,12 @@ public:
 			return;
 
 		itemAboutToBeRemoved(item);
-		Items.removeAll(item);
-		itemRemoved(item);
+		item.aboutToBeRemoved();
+
+		Items.remove(Items.indexOf(item));
 
 		item.remove();
+		itemRemoved(item);
 	}
 
 };

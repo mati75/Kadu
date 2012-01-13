@@ -1,9 +1,10 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2010 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2010 Tomasz Rostański (rozteck@interia.pl)
+ * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -20,21 +21,25 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <QtGui/QMenu>
+
 #include "accounts/account-manager.h"
-#include "buddies/buddy.h"
 #include "buddies/buddy-set.h"
-#include "gui/actions/action-data-source.h"
+#include "buddies/buddy.h"
+#include "gui/actions/action-context.h"
 #include "gui/actions/action-description.h"
 #include "gui/hot-key.h"
 #include "icons/icons-manager.h"
 #include "icons/kadu-icon.h"
-#include "protocols/services/chat-service.h"
 
 #include "action.h"
 
-Action::Action(ActionDescription *description, ActionDataSource *dataSource, QObject *parent) :
-		QAction(parent), Description(description), DataSource(dataSource)
+Action::Action(ActionDescription *description, ActionContext *context, QObject *parent) :
+		QAction(parent), Description(description), Context(context)
 {
+	Q_ASSERT(0 != description);
+	Q_ASSERT(0 != context);
+
 	setText(Description->Text);
 
 	if (!Description->icon().isNull())
@@ -49,67 +54,24 @@ Action::Action(ActionDescription *description, ActionDataSource *dataSource, QOb
 	connect(this, SIGNAL(hovered()), this, SLOT(hoveredSlot()));
 	connect(this, SIGNAL(triggered(bool)), this, SLOT(triggeredSlot(bool)));
 
+	connect(context, SIGNAL(changed()), this, SLOT(checkState()));
 	checkState();
 }
 
 Action::~Action()
 {
 	emit aboutToBeDestroyed(this);
+
+	// we are real owner of this menu
+	if (menu()) {
+		delete menu();
+		setMenu(0);
+	}
 }
 
-Contact Action::contact()
+ActionContext * Action::context()
 {
-	ContactSet contactSet = contacts();
-	if (1 != contactSet.count())
-		return Contact::null;
-	else
-		return *contactSet.constBegin();
-}
-
-ContactSet Action::contacts()
-{
-	if (DataSource)
-		return DataSource->contacts();
-	else
-		return ContactSet();
-}
-
-Buddy Action::buddy()
-{
-	BuddySet buddySet = buddies();
-	if (1 != buddySet.count())
-		return Buddy::null;
-	else
-		return *buddySet.constBegin();
-}
-
-BuddySet Action::buddies()
-{
-	if (DataSource)
-		return DataSource->buddies();
-	else
-		return BuddySet();
-}
-
-Chat Action::chat()
-{
-	if (DataSource)
-		return DataSource->chat();
-	else
-		return Chat::null;
-}
-
-StatusContainer * Action::statusContainer()
-{
-	if (DataSource)
-		return DataSource->statusContainer();
-	else
-		return 0;
-}
-
-ActionDataSource * Action::dataSource()
-{
-	return DataSource;
+	return Context;
 }
 
 void Action::changedSlot()
@@ -132,8 +94,7 @@ void Action::triggeredSlot(bool checked)
 
 void Action::checkState()
 {
-	if (Description->EnableCallback)
-		(*Description->EnableCallback)(this);
+	Description->updateActionState(this);
 }
 
 void Action::updateIcon()
@@ -148,10 +109,10 @@ void Action::setIcon(const KaduIcon &icon)
 
 void disableEmptyContacts(Action *action)
 {
-	action->setEnabled(!action->contacts().isEmpty());
+	action->setEnabled(!action->context()->contacts().isEmpty());
 }
 
 void disableNoChat(Action *action)
 {
-	action->setEnabled(action->chat());
+	action->setEnabled(action->context()->chat());
 }

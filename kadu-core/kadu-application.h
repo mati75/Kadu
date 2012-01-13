@@ -11,8 +11,9 @@
  * Copyright 2004, 2005 Paweł Płuciennik (pawel_p@kadu.net)
  * Copyright 2002, 2003 Dariusz Jagodzik (mast3r@kadu.net)
  * %kadu copyright begin%
+ * Copyright 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2010, 2010 Tomasz Rostański (rozteck@interia.pl)
  * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2010 Tomasz Rostański (rozteck@interia.pl)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -56,6 +57,8 @@ class KADUAPI KaduApplication : public QApplication
 	AEEventHandlerUPP m_appleEventProcessorUPP;
 #endif // Q_OS_MAC
 
+	bool SessionClosing;
+
 public:
 	KaduApplication(int &argc, char *argv[]);
 
@@ -63,6 +66,8 @@ public:
 #if defined(Q_WS_X11) && !defined(Q_WS_MAEMO_5)
 	virtual bool x11EventFilter(XEvent *event);
 #endif // Q_WS_X11 && !Q_WS_MAEMO_5
+
+	bool sessionClosing() const;
 
 };
 

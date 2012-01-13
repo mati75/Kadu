@@ -6,32 +6,62 @@ set (QT_MIN_VERSION "4.7.0")
 set (CMAKE_MIN_VERSION "2.8.0")
 
 set (KADU_FIND_REQUIRED true)
+set (KADU_INSTALLS_SDK TRUE)
 include (FindKadu)
 
 include (FindPkgConfig)
 
 if (WIN32)
-	if (NOT MINGW_QCA_DIR)
-		message (SEND_ERROR " Pass path to libqca2 -DMINGW_QCA_DIR=path")
-	else (NOT MINGW_QCA_DIR)
-		set (QCA2_INCLUDE_DIRS ${MINGW_QCA_DIR}/include/QtCrypto)
-		set (QCA2_LIBRARY_DIRS ${MINGW_QCA_DIR}/bin)
-		set (QCA2_LIBRARIES qca2)
-	endif (NOT MINGW_QCA_DIR)
-	if (NOT MINGW_ZLIB_DIR)
-		message (SEND_ERROR " Pass path to zlib -DMINGW_ZLIB_DIR=path")
-	else (NOT MINGW_ZLIB_DIR)
-		set (ZLIB_INCLUDE_DIRS ${MINGW_ZLIB_DIR})
-		set (ZLIB_LIBRARY_DIRS ${MINGW_ZLIB_DIR})
-		set (ZLIB_LIBRARIES zlib1)
-	endif (NOT MINGW_ZLIB_DIR)
-	if (NOT MINGW_IDN_DIR)
-		message (SEND_ERROR " Pass path to libidn -DMINGW_IDN_DIR=path")
-	else (NOT MINGW_IDN_DIR)
-		set (IDN_INCLUDE_DIRS ${MINGW_IDN_DIR}/include)
-		set (IDN_LIBRARY_DIRS ${MINGW_IDN_DIR}/bin)
-		set (IDN_LIBRARIES idn-11)
-	endif (NOT MINGW_IDN_DIR)
+	if (NOT WIN_QCA_DIR)
+		message (SEND_ERROR "Pass path to libqca2 -DWIN_QCA_DIR=path")
+	else (NOT WIN_QCA_DIR)
+		set (QCA2_INCLUDE_DIRS ${WIN_QCA_DIR}/include/QtCrypto)
+
+		if (MSVC)
+			set (QCA2_LIBRARY_DIRS ${WIN_QCA_DIR}/lib)
+		else (MSVC)
+			set (QCA2_LIBRARY_DIRS ${WIN_QCA_DIR}/bin)
+		endif (MSVC)
+
+		if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+			set (QCA2_LIBRARIES qcad2)
+		else (CMAKE_BUILD_TYPE STREQUAL "Debug")
+			set (QCA2_LIBRARIES qca2)
+		endif (CMAKE_BUILD_TYPE STREQUAL "Debug")
+	endif (NOT WIN_QCA_DIR)
+
+	if (NOT WIN_ZLIB_DIR)
+		message (SEND_ERROR "Pass path to zlib -DWIN_ZLIB_DIR=path")
+	else (NOT WIN_ZLIB_DIR)
+		set (ZLIB_INCLUDE_DIRS ${WIN_ZLIB_DIR}/include)
+
+		if (MSVC)
+			set (ZLIB_LIBRARY_DIRS ${WIN_ZLIB_DIR}/lib)
+			set (ZLIB_LIBRARIES zdll)
+		else (MSVC)
+			set (ZLIB_LIBRARY_DIRS ${WIN_ZLIB_DIR})
+			set (ZLIB_LIBRARIES zlib1)
+		endif (MSVC)
+	endif (NOT WIN_ZLIB_DIR)
+
+	if (NOT WIN_IDN_DIR)
+		message (SEND_ERROR "Pass path to libidn -DWIN_IDN_DIR=path")
+	else (NOT WIN_IDN_DIR)
+		if (MSVC)
+			set (IDN_INCLUDE_DIRS ${WIN_IDN_DIR}/win32/include ${WIN_IDN_DIR}/lib)
+			set (IDN_LIBRARIES libidn)
+
+			if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+				set (IDN_LIBRARY_DIRS ${WIN_IDN_DIR}/win32/lib/debug)
+			else (CMAKE_BUILD_TYPE STREQUAL "Debug")
+				set (IDN_LIBRARY_DIRS ${WIN_IDN_DIR}/win32/lib)
+			endif (CMAKE_BUILD_TYPE STREQUAL "Debug")
+		else (MSVC)
+			set (IDN_INCLUDE_DIRS ${WIN_IDN_DIR}/include)
+			set (IDN_LIBRARY_DIRS ${WIN_IDN_DIR}/bin)
+			set (IDN_LIBRARIES idn-11)
+		endif (MSVC)
+	endif (NOT WIN_IDN_DIR)
 else (WIN32)
 	pkg_search_module (QCA2 REQUIRED qca2)
 	pkg_search_module (IDN REQUIRED libidn)
@@ -70,6 +100,7 @@ kadu_api_directories (plugins/jabber_protocol
 set (SOURCES
 	actions/jabber-actions.cpp
 	actions/jabber-protocol-menu-manager.cpp
+	actions/show-xml-console-action-description.cpp
 
 	certificates/certificate-display-dialog.cpp
 	certificates/certificate-error-dialog.cpp
@@ -78,6 +109,7 @@ set (SOURCES
 
 	client/jabber-client.cpp
 	client/mini-client.cpp
+	client/pong-server.cpp
 
 	file-transfer/jabber-file-transfer-handler.cpp
 	file-transfer/s5b-server-manager.cpp
@@ -138,6 +170,7 @@ set (SOURCES
 
 set (MOC_SOURCES
 	actions/jabber-actions.h
+	actions/show-xml-console-action-description.h
 
 	certificates/certificate-display-dialog.h
 	certificates/certificate-error-dialog.h
@@ -145,6 +178,7 @@ set (MOC_SOURCES
 
 	client/jabber-client.h
 	client/mini-client.h
+	client/pong-server.h
 
 	file-transfer/jabber-file-transfer-handler.h
 	file-transfer/s5b-server-manager.h
@@ -190,7 +224,6 @@ set (MOC_SOURCES
 
 	facebook-protocol-factory.h
 	gtalk-protocol-factory.h
-	jabber-contact-details.h
 	jabber-id-validator.h
 	jabber-protocol.h
 	jabber-protocol-factory.h

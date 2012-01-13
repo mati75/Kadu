@@ -1,11 +1,11 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2009, 2010, 2010, 2011, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009, 2010 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2009 Michał Podsiadlik (michal@kadu.net)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -27,22 +27,22 @@
 #include <QtGui/QVBoxLayout>
 
 #include "buddies/buddy-manager.h"
-#include "buddies/buddy-shared.h"
-#include "buddies/filter/account-buddy-filter.h"
-#include "buddies/filter/anonymous-buddy-filter.h"
 #include "buddies/model/buddies-model.h"
-#include "buddies/model/buddies-model-proxy.h"
-#include "contacts/contact.h"
-#include "contacts/contact-shared.h"
 #include "contacts/contact-details.h"
 #include "contacts/contact-manager.h"
-#include "gui/widgets/buddies-list-widget.h"
-#include "gui/widgets/buddies-list-view.h"
+#include "contacts/contact.h"
+#include "gui/widgets/filtered-tree-view.h"
+#include "gui/widgets/talkable-tree-view.h"
 #include "gui/windows/message-dialog.h"
+#include "model/model-chain.h"
+#include "talkable/filter/account-talkable-filter.h"
+#include "talkable/filter/hide-anonymous-talkable-filter.h"
+#include "talkable/filter/name-talkable-filter.h"
+#include "talkable/model/talkable-proxy-model.h"
 
-#include "debug.h"
 #include "protocols/protocol.h"
 #include "protocols/services/contact-list-service.h"
+#include "debug.h"
 
 #include "account-buddy-list-widget.h"
 
@@ -53,10 +53,26 @@ AccountBuddyListWidget::AccountBuddyListWidget(Account account, QWidget *parent)
 	layout->setContentsMargins(0, 0, 0, 0);
 	layout->setSpacing(5);
 
-	BuddiesWidget = new BuddiesListWidget(BuddiesListWidget::FilterAtTop, this);
-	BuddiesModelProxy *model = new BuddiesModelProxy(this);
-	model->setSourceModel(new BuddiesModel(this));
-	BuddiesWidget->view()->setModel(model);
+	ModelChain *chain = new ModelChain(new BuddiesModel(this), this);
+	TalkableProxyModel *proxyModel = new TalkableProxyModel(chain);
+
+	AccountTalkableFilter *accountTalkableFilter = new AccountTalkableFilter(proxyModel);
+	accountTalkableFilter->setAccount(CurrentAccount);
+	proxyModel->addFilter(accountTalkableFilter);
+
+	proxyModel->addFilter(new HideAnonymousTalkableFilter(proxyModel));
+	chain->addProxyModel(proxyModel);
+
+	BuddiesWidget = new FilteredTreeView(FilteredTreeView::FilterAtTop, this);
+
+	NameTalkableFilter *nameFilter = new NameTalkableFilter(NameTalkableFilter::UndecidedMatching, proxyModel);
+	connect(BuddiesWidget, SIGNAL(filterChanged(QString)), nameFilter, SLOT(setName(QString)));
+	proxyModel->addFilter(nameFilter);
+
+	TalkableTreeView *view = new TalkableTreeView(BuddiesWidget);
+	view->setChain(chain);
+
+	BuddiesWidget->setTreeView(view);
 	BuddiesWidget->setMinimumSize(QSize(30, 30));
 
 	QWidget *buttons = new QWidget(this);
@@ -74,14 +90,6 @@ AccountBuddyListWidget::AccountBuddyListWidget(Account account, QWidget *parent)
 
 	layout->addWidget(BuddiesWidget);
 	layout->addWidget(buttons);
-
-	AccountBuddyFilter *accountFilter = new AccountBuddyFilter(CurrentAccount, this);
-	accountFilter->setEnabled(true);
-	AnonymousBuddyFilter *anonymousFilter = new AnonymousBuddyFilter(this);
-	anonymousFilter->setEnabled(true);
-
-	BuddiesWidget->view()->addFilter(accountFilter);
-	BuddiesWidget->view()->addFilter(anonymousFilter);
 }
 
 void AccountBuddyListWidget::restoreFromFile()

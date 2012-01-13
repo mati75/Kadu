@@ -1,8 +1,8 @@
 /*
  * %kadu copyright begin%
  * Copyright 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -25,18 +25,20 @@
 #include <QtCore/QAbstractListModel>
 #include <QtCore/QModelIndex>
 
-#include "buddies/model/abstract-buddies-model.h"
 #include "contacts/contact.h"
+#include "model/kadu-abstract-model.h"
 
-// TODO: yes, inheritance is not intuitional with this one, needs to be fixed after realease
-class ContactListModel : public QAbstractItemModel, public AbstractBuddiesModel
+class ContactListModel : public QAbstractItemModel, public KaduAbstractModel
 {
 	Q_OBJECT
 
-	QList<Contact> List;
+	QVector<Contact> List;
+
+private slots:
+	void contactUpdated();
 
 public:
-	explicit ContactListModel(const QList<Contact> &list, QObject *parent = 0);
+	explicit ContactListModel(const QVector<Contact> &list, QObject *parent = 0);
 	virtual ~ContactListModel();
 
 	virtual QModelIndex index(int row, int column, const QModelIndex& parent = QModelIndex()) const;
@@ -47,9 +49,8 @@ public:
 	virtual QModelIndex parent(const QModelIndex &child) const;
 	virtual QVariant data(const QModelIndex &index, int role) const;
 
-	// AbstractContactsModel implementation
-    virtual Contact contactAt(const QModelIndex &index) const;
-	virtual QModelIndex indexForValue(const QVariant &value) const;
+	// KaduAbstractModel implementation
+	virtual QModelIndexList indexListForValue(const QVariant &value) const;
 
 };
 

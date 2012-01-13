@@ -1,11 +1,11 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2009, 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2010 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2009, 2009, 2010, 2010 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2010 Piotr Pełzowski (floss@pelzowski.eu)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -25,18 +25,17 @@
 #include "icons/kadu-icon.h"
 #include "misc/misc.h"
 #include "status/status-type.h"
-#include "status/status-type-manager.h"
 
 #include "actions/jabber-protocol-menu-manager.h"
-#include "gui/widgets/jabber-contact-personal-info-widget.h"
 #include "gui/widgets/jabber-add-account-widget.h"
+#include "gui/widgets/jabber-contact-personal-info-widget.h"
 #include "gui/widgets/jabber-create-account-widget.h"
 #include "gui/widgets/jabber-edit-account-widget.h"
 #include "jabber-account-details.h"
 #include "jabber-contact-details.h"
 #include "jabber-id-validator.h"
-#include "jabber-protocol.h"
 #include "jabber-protocol-factory.h"
+#include "jabber-protocol.h"
 
 JabberProtocolFactory * JabberProtocolFactory::Instance = 0;
 
@@ -54,15 +53,13 @@ void JabberProtocolFactory::destroyInstance()
 
 JabberProtocolFactory::JabberProtocolFactory()
 {
-	StatusTypeManager *statusTypeManager = StatusTypeManager::instance();
-	SupportedStatusTypes.append(statusTypeManager->statusType("Online"));
-	SupportedStatusTypes.append(statusTypeManager->statusType("FreeForChat"));
-	SupportedStatusTypes.append(statusTypeManager->statusType("DoNotDisturb"));
-	SupportedStatusTypes.append(statusTypeManager->statusType("Away"));
-	SupportedStatusTypes.append(statusTypeManager->statusType("NotAvailable"));
-	SupportedStatusTypes.append(statusTypeManager->statusType("Offline"));
-
-	qSort(SupportedStatusTypes.begin(), SupportedStatusTypes.end(), StatusType::lessThan);
+	// already sorted
+	SupportedStatusTypes.append(StatusTypeFreeForChat);
+	SupportedStatusTypes.append(StatusTypeOnline);
+	SupportedStatusTypes.append(StatusTypeAway);
+	SupportedStatusTypes.append(StatusTypeNotAvailable);
+	SupportedStatusTypes.append(StatusTypeDoNotDisturb);
+	SupportedStatusTypes.append(StatusTypeOffline);
 }
 
 KaduIcon JabberProtocolFactory::icon()
@@ -82,7 +79,7 @@ AccountDetails * JabberProtocolFactory::createAccountDetails(AccountShared *acco
 
 ContactDetails * JabberProtocolFactory::createContactDetails(ContactShared *contactShared)
 {
-	return new JabberContactDetails(contactShared, this);
+	return new JabberContactDetails(contactShared);
 }
 
 AccountAddWidget * JabberProtocolFactory::newAddAccountWidget(bool showButtons, QWidget *parent)
@@ -106,7 +103,7 @@ AccountEditWidget * JabberProtocolFactory::newEditAccountWidget(Account account,
 	return result;
 }
 
-QList<StatusType *> JabberProtocolFactory::supportedStatusTypes()
+QList<StatusType> JabberProtocolFactory::supportedStatusTypes()
 {
 	return SupportedStatusTypes;
 }

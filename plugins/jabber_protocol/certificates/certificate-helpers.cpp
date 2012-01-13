@@ -1,9 +1,10 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2010 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2009, 2009, 2010, 2010 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -26,21 +27,21 @@
  * See COPYING for details.
  */
 
-#include <QtDebug>
-#include <QtCrypto>
-#include <QStringList>
-#include <QDomDocument>
 #include <QDebug>
 #include <QDir>
+#include <QDomDocument>
 #include <QFile>
 #include <QMessageBox>
+#include <QStringList>
+#include <QtCrypto>
+#include <QtDebug>
 
 #include "xmpp.h"
 
 #include "misc/path-conversion.h"
 
-#include "certificates/certificate-helpers.h"
 #include "certificates/certificate-error-dialog.h"
+#include "certificates/certificate-helpers.h"
 #include "certificates/trusted-certificates-manager.h"
 #include "client/mini-client.h"
 #include "jabber-protocol.h"

@@ -1,7 +1,8 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -30,6 +31,8 @@ class QAction;
 class Action;
 class ActionDescription;
 class Buddy;
+class EditTalkableAction;
+class LeaveChatAction;
 
 class ChatWidgetActions : public QObject, ConfigurationAwareObject
 {
@@ -43,12 +46,14 @@ class ChatWidgetActions : public QObject, ConfigurationAwareObject
 	ActionDescription *Italic;
 	ActionDescription *Underline;
 	ActionDescription *Send;
-	ActionDescription *Whois;
 	ActionDescription *BlockUser;
 	ActionDescription *OpenChat;
 	ActionDescription *OpenWith;
 	ActionDescription *InsertEmoticon;
 // 	ActionDescription *ColorSelector;
+
+	EditTalkableAction *EditTalkable;
+	LeaveChatAction *LeaveChat;
 
 	void autoSendActionCheck();
 	void insertEmoticonsActionCheck();
@@ -68,7 +73,6 @@ private slots:
 	void italicActionActivated(QAction *sender, bool toggled);
 	void underlineActionActivated(QAction *sender, bool toggled);
 	void sendActionActivated(QAction *sender, bool toggled);
-	void whoisActionActivated(QAction *sender, bool toggled);
 	void blockUserActionActivated(QAction *sender, bool toggled);
 	void openChatActionActivated(QAction *sender, bool toggled);
 	void openChatWithActionActivated(QAction *sender, bool toggled);
@@ -82,14 +86,14 @@ public:
 	explicit ChatWidgetActions(QObject *parent);
 	virtual ~ChatWidgetActions();
 
-	ActionDescription * bold() { return Bold; }
-	ActionDescription * italic() { return Italic; }
-	ActionDescription * underline() { return Underline; }
-	ActionDescription * send() { return Send; }
-	ActionDescription * blockUser() { return BlockUser; }
-	ActionDescription * openChatWith() { return OpenWith; }
+	ActionDescription * bold() const { return Bold; }
+	ActionDescription * italic() const { return Italic; }
+	ActionDescription * underline() const { return Underline; }
+	ActionDescription * send() const { return Send; }
+	ActionDescription * blockUser() const { return BlockUser; }
+	ActionDescription * openChatWith() const { return OpenWith; }
 // 	ActionDescription * colorSelector() { return ColorSelector; }
-	ActionDescription * insertEmoticon() { return InsertEmoticon; }
+	ActionDescription * insertEmoticon() const { return InsertEmoticon; }
 
 };
 

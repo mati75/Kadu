@@ -1,12 +1,14 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009, 2010 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2010 Maciej Płaza (plaza.maciej@gmail.com)
- * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2009 Michał Podsiadlik (michal@kadu.net)
+ * Copyright 2010 Maciej Płaza (plaza.maciej@gmail.com)
  * Copyright 2010 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
+ * Copyright 2007, 2008, 2009, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -29,8 +31,8 @@
 #include <QtCore/QObject>
 
 #include "accounts/accounts-aware-object.h"
-#include "buddies/buddy.h"
 #include "buddies/buddy-list.h"
+#include "buddies/buddy.h"
 #include "chat/chat.h"
 #include "configuration/configuration-aware-object.h"
 #include "icons/kadu-icon.h"
@@ -43,6 +45,7 @@ namespace QCA
 	class Initializer;
 }
 
+class KaduApplication;
 class KaduIcon;
 class KaduWindow;
 class Message;
@@ -53,6 +56,8 @@ class KADUAPI Core : public QObject, private AccountsAwareObject, public Configu
 	Q_DISABLE_COPY(Core)
 
 	static Core *Instance;
+
+	KaduApplication *Application;
 
 	Buddy Myself;
 	KaduWindow *Window;
@@ -94,6 +99,9 @@ public:
 	static QString version();
 	static QString nameWithVersion();
 
+	void setApplication(KaduApplication *application);
+	KaduApplication * application() const;
+
 	bool isClosing() { return IsClosing; }
 	Buddy myself() { return Myself; }
 
@@ -114,9 +122,6 @@ signals:
 	void connecting();
 	void connected();
 	void disconnected();
-
-	void messageReceived(const Message &message);
-	void messageSent(const Message &message);
 
 	// TODO: remove
 	void settingMainIconBlocked(bool &blocked);

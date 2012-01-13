@@ -1,10 +1,10 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2008, 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2009, 2009 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2009 Michał Podsiadlik (michal@kadu.net)
+ * Copyright 2008, 2009, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -36,13 +36,13 @@
 #include "history.h"
 #include "history_exports.h"
 
-class BuddyNameFilter;
+class BaseActionContext;
 class BuddyStatusDatesModel;
 class ChatDatesModel;
-class ChatNameFilter;
 class HistoryChatsModel;
 class HistoryChatsModelProxy;
 class HistoryTreeItem;
+class NameTalkableFilter;
 class SmsDatesModel;
 class TimedStatus;
 
@@ -62,8 +62,7 @@ class HistoryWindow : public MainWindow
 	QTreeView *DetailsListView;
 	HistoryChatsModel *ChatsModel;
 	HistoryChatsModelProxy *ChatsModelProxy;
-	BuddyNameFilter *StatusBuddyNameFilter;
-	ChatNameFilter *NameFilter;
+	NameTalkableFilter *StatusBuddyNameFilter;
 
 	ChatDatesModel *MyChatDatesModel;
 	BuddyStatusDatesModel *MyBuddyStatusDatesModel;
@@ -84,6 +83,8 @@ class HistoryWindow : public MainWindow
 
 	HistorySearchParameters Search;
 
+	BaseActionContext *Context;
+
 	explicit HistoryWindow(QWidget *parent = 0);
 
 	void createGui();
@@ -102,13 +103,15 @@ class HistoryWindow : public MainWindow
 	void smsRecipientActivated(const QString &recipient);
 	void treeItemActivated(const HistoryTreeItem &item);
 
-	QList<Message> statusesToMessages(const QList<TimedStatus> &statuses);
+	ContactSet selectedContacts() const;
+	Chat selectedChat() const;
+
+	QVector<Message> statusesToMessages(const QList<TimedStatus> &statuses);
 
 private slots:
 	void treeCurrentChanged(const QModelIndex &current, const QModelIndex &previous);
 	void dateCurrentChanged(const QModelIndex &current, const QModelIndex &previous);
 
-	void filterLineChanged(const QString &filterText);
 	void searchTextChanged(const QString &searchText);
 	void fromDateChanged(const QDate &date);
 	void toDateChanged(const QDate &date);
@@ -125,10 +128,14 @@ private slots:
 
 	void selectQueryText();
 
+	void updateContext();
+
 protected:
 	virtual void keyPressEvent(QKeyEvent *e);
 
 public:
+	static void show(const Chat &chat);
+
 	virtual ~HistoryWindow();
 
 	virtual QTreeView * detailsListView() { return DetailsListView; }
@@ -136,15 +143,9 @@ public:
 	virtual ChatMessagesView * contentBrowser() { return ContentBrowser; }
 
 	virtual bool supportsActionType(ActionDescription::ActionType type);
-	virtual ContactSet contacts();
-	virtual BuddySet buddies();
-	virtual Chat chat();
 	virtual ChatWidget * chatWidget() { return 0; }
-	virtual BuddiesListView * buddiesListView() { return 0; }
-	virtual StatusContainer* statusContainer() { return 0; }
-	virtual bool hasContactSelected() { return false; } // we can select only buddies here
+	virtual TalkableProxyModel * talkableProxyModel() { return 0; }
 
-	static void show(const Chat &chat);
 };
 
 class HistoryChatsModel;

@@ -2,9 +2,9 @@
 #define SINGLE_WINDOW_H
 
 #include <QtCore/QList>
+#include <QtGui/QMainWindow>
 #include <QtGui/QSplitter>
 #include <QtGui/QTabWidget>
-#include <QtGui/QMainWindow>
 
 #include "chat/chat-manager.h"
 #include "configuration/configuration-aware-object.h"
@@ -24,6 +24,9 @@ class SingleWindow : public QMainWindow, public ChatWidgetContainer
 	QList<int> splitSizes;
 	int rosterPos;
 
+	void updateTabIcon(ChatWidget *chatWidget);
+	void updateTabName(ChatWidget *chatWidget);
+
 protected:
 	void closeEvent(QCloseEvent *event);
 	void keyPressEvent(QKeyEvent *event);
@@ -32,20 +35,27 @@ protected:
 public:
 	SingleWindow();
 	~SingleWindow();
-	void closeChatWidget(ChatWidget *);
+
+	virtual void changeEvent(QEvent *event);
+
+	virtual void activateChatWidget(ChatWidget *chatWidget);
+	virtual void alertChatWidget(ChatWidget *chatWidget);
+	virtual void closeChatWidget(ChatWidget *chatWidget);
+	virtual bool isChatWidgetActive(ChatWidget *chatWidget);
+
 	int rosterPosition() { return rosterPos; }
 	void changeRosterPos(int newRosterPos);
 
 public slots:
-	void onOpenChat(ChatWidget *w);
-	void onNewChat(ChatWidget *w, bool &handled);
-	void onNewMessage(Chat chat);
+	void onNewChat(ChatWidget *chatWidget, bool &handled);
 	void onTabChange(int index);
 	void onChatKeyPressed(QKeyEvent *e, CustomInput *w, bool &handled);
 	void onkaduKeyPressed(QKeyEvent *e);
 	void closeTab(int index);
 	void onIconChanged();
+	void onTitleChanged(ChatWidget *chatWidget, const QString &newTitle);
 	void onStatusPixmapChanged(const KaduIcon &icon);
+	void closeChat();
 
 };
 
@@ -62,7 +72,7 @@ public:
 	explicit SingleWindowManager(QObject *parent = 0);
 	virtual ~SingleWindowManager();
 
-	virtual void mainConfigurationWindowCreated(MainConfigurationWindow */*mainConfigurationWindow*/) {};
+	virtual void mainConfigurationWindowCreated(MainConfigurationWindow * /*mainConfigurationWindow*/) {};
 
 };
 

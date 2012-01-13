@@ -1,8 +1,9 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -26,7 +27,8 @@
 #include <QtCore/QObject>
 #include <QtCore/QUuid>
 
-#include "contacts/contact-shared.h"
+#include "contacts/contact.h"
+#include "message/message.h"
 #include "storage/manager.h"
 #include "exports.h"
 
@@ -45,9 +47,7 @@ class KADUAPI ContactManager : public QObject, public Manager<Contact>
 	ContactManager();
 	virtual ~ContactManager();
 
-	friend class ContactShared;
-	void detailsLoaded(Contact item);
-	void detailsUnloaded(Contact item);
+	void init();
 
 private slots:
 	void removeDuplicateContacts();
@@ -56,10 +56,13 @@ private slots:
 	void idChanged(const QString &oldId);
 	void dirtinessChanged();
 
+	void unreadMessageAdded(const Message &message);
+	void unreadMessageRemoved(const Message &message);
+
 	void aboutToBeAttached(Buddy nearFutureBuddy);
 	void attached(bool reattached);
-	void aboutToBeDetached(bool reattaching);
-	void detached(Buddy previousBuddy);
+	void aboutToBeDetached();
+	void detached(Buddy previousBuddy, bool reattaching);
 
 protected:
 	virtual void loaded();
@@ -75,11 +78,11 @@ public:
 	virtual QString storageNodeName() { return QLatin1String("Contacts"); }
 	virtual QString storageNodeItemName() { return QLatin1String("Contact"); }
 
-	Contact byId(Account account, const QString &id, NotFoundAction = ActionCreate);
-	QList<Contact> contacts(Account account);
+	Contact byId(Account account, const QString &id, NotFoundAction action);
+	QVector<Contact> contacts(Account account);
 
 	const QList<Contact> & dirtyContacts();
-	QList<Contact> dirtyContacts(Account account);
+	QVector<Contact> dirtyContacts(Account account);
 
 signals:
 	void contactAboutToBeAdded(Contact contact);
@@ -87,8 +90,8 @@ signals:
 	void contactAboutToBeRemoved(Contact contact);
 	void contactRemoved(Contact contact);
 
-	void contactAboutToBeDetached(Contact contact, bool reattaching);
-	void contactDetached(Contact contact, Buddy previousBuddy);
+	void contactAboutToBeDetached(Contact contact);
+	void contactDetached(Contact contact, Buddy previousBuddy, bool reattaching);
 	void contactAboutToBeAttached(Contact contact, Buddy nearFutureBuddy);
 	void contactAttached(Contact contact, bool reattached);
 

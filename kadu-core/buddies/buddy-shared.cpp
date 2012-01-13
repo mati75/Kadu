@@ -1,12 +1,12 @@
 /*
  * %kadu copyright begin%
+ * Copyright 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2009, 2009 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2010 Piotr Dąbrowski (ultr@ultr.pl)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2009 Michał Podsiadlik (michal@kadu.net)
- * Copyright 2009, 2010 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2009, 2009, 2010 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2008, 2009, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -28,13 +28,14 @@
 
 #include "accounts/account.h"
 #include "avatars/avatar-manager.h"
+#include "avatars/avatar.h"
 #include "buddies/buddy-manager.h"
-#include "buddies/group.h"
 #include "buddies/group-manager.h"
+#include "buddies/group.h"
 #include "configuration/xml-configuration-file.h"
-#include "contacts/contact.h"
-#include "contacts/contact-shared.h"
 #include "contacts/contact-manager.h"
+#include "contacts/contact.h"
+#include "core/core.h"
 #include "storage/storage-point.h"
 
 #include "buddy-shared.h"
@@ -54,15 +55,52 @@ BuddyShared * BuddyShared::loadFromStorage(const QSharedPointer<StoragePoint> &b
 }
 
 BuddyShared::BuddyShared(const QUuid &uuid) :
-		Shared(uuid),
+		Shared(uuid), CollectingGarbage(false),
 		BirthYear(0), Gender(GenderUnknown), PreferHigherStatuses(true),
 		Anonymous(true), Blocked(false), OfflineTo(false)
 {
+	BuddyAvatar = new Avatar();
 }
 
 BuddyShared::~BuddyShared()
 {
 	ref.ref();
+	delete BuddyAvatar;
+	BuddyAvatar = 0;
+}
+
+void BuddyShared::collectGarbage()
+{
+	if (CollectingGarbage)
+		return;
+
+	CollectingGarbage = true;
+
+	// 1 is for current Buddy
+	const int numberOfReferences = 1 + Contacts.length();
+	if (numberOfReferences != (int)ref)
+	{
+		CollectingGarbage = false;
+		return;
+	}
+
+	foreach (const Contact &contact, Contacts)
+	{
+		Q_ASSERT(!contact.isNull());
+
+		// 1 is for current BuddyShared
+		const int contactNumberOfReferences = 1;
+		if (contactNumberOfReferences != (int)(contact.data()->ref))
+		{
+			CollectingGarbage = false;
+			return;
+		}
+	}
+
+	foreach (const Contact &contact, Contacts)
+		contact.removeOwnerBuddy();
+
+	CollectingGarbage = false;
 }
 
 StorableObject * BuddyShared::storageParent()
@@ -114,22 +152,13 @@ void BuddyShared::importConfiguration()
 
 void BuddyShared::load()
 {
-	QSharedPointer<StoragePoint> sp(storage());
-	if (!sp)
+	if (!isValidStorage())
 		return;
 
 	Shared::load();
 
-	XmlConfigFile *configurationStorage = sp->storage();
-	QDomElement parent = sp->point();
-
-	if (parent.hasAttribute("type"))
-	{
-		Anonymous = (1 == parent.attribute("type").toInt());
-		parent.removeAttribute("type");
-	}
-	else
-		Anonymous = loadValue<bool>("Anonymous", true);
+	XmlConfigFile *configurationStorage = storage()->storage();
+	QDomElement parent = storage()->point();
 
 	QDomElement customDataValues = configurationStorage->getNode(parent, "CustomDataValues", XmlConfigFile::ModeFind);
 	QDomNodeList customDataValuesList = customDataValues.elementsByTagName("CustomDataValue");
@@ -163,7 +192,7 @@ void BuddyShared::load()
 		}
 	}
 
-	BuddyAvatar = AvatarManager::instance()->byUuid(loadValue<QString>("Avatar"));
+	setBuddyAvatar(AvatarManager::instance()->byUuid(loadValue<QString>("Avatar")));
 	Display = loadValue<QString>("Display");
 	FirstName = loadValue<QString>("FirstName");
 	LastName = loadValue<QString>("LastName");
@@ -176,32 +205,38 @@ void BuddyShared::load()
 	OfflineTo = loadValue<bool>("OfflineTo", false);
 	Gender = (BuddyGender)loadValue<int>("Gender", 0);
 	PreferHigherStatuses = loadValue<bool>("PreferHigherStatuses", true);
+
+	// Some crazy bug causes entries like <Buddy uuid="xxx..."/> to be stored to the configuration file
+	// after using open-chat-with. We must not treat them as not anonymous (i.e., present on contact list) buddies,
+	// hence this workaround.
+	Anonymous = Display.isEmpty();
 }
 
 void BuddyShared::store()
 {
-	ensureLoaded();
-
-	QSharedPointer<StoragePoint> sp(storage());
-	if (!sp)
+	if (!isValidStorage())
 		return;
 
 	Shared::store();
 
-	XmlConfigFile *configurationStorage = sp->storage();
-	QDomElement parent = sp->point();
+	XmlConfigFile *configurationStorage = storage()->storage();
+	QDomElement parent = storage()->point();
 
 	QDomElement customDataValues = configurationStorage->getNode(parent, "CustomDataValues", XmlConfigFile::ModeCreate);
 
-	foreach (const QString &key, CustomData.keys())
-		configurationStorage->createNamedTextNode(customDataValues, "CustomDataValue", key, CustomData.value(key));
+	for (QMap<QString, QString>::const_iterator it = CustomData.constBegin(), end = CustomData.constEnd(); it != end; ++it)
+		configurationStorage->createNamedTextNode(customDataValues, "CustomDataValue", it.key(), it.value());
 
-	if (BuddyAvatar.uuid().isNull())
-		removeValue("Avatar");
+	if (!BuddyAvatar->uuid().isNull())
+		storeValue("Avatar", BuddyAvatar->uuid().toString());
 	else
-		storeValue("Avatar", BuddyAvatar.uuid().toString());
+		removeValue("Avatar");
 
+	// should not happen, but who knows...
+	if (Display.isEmpty())
+		Display = uuid().toString();
 	storeValue("Display", Display);
+
 	storeValue("FirstName", FirstName);
 	storeValue("LastName", LastName);
 	storeValue("NickName", NickName);
@@ -209,11 +244,15 @@ void BuddyShared::store()
 	storeValue("Mobile", Mobile);
 	storeValue("Email", Email);
 	storeValue("Website", Website);
-	storeValue("Anonymous", Anonymous);
 	storeValue("Blocked", Blocked);
 	storeValue("OfflineTo", OfflineTo);
 	storeValue("Gender", (int)Gender);
 	storeValue("PreferHigherStatuses", PreferHigherStatuses);
+
+	// This buddy can't be anonymous, otherwise we wouldn't be storing them. Though,
+	// we need to store Anonymous=false, otherwise we will break downgrade to Kadu <0.11.0.
+	// TODO when we change configuration format (or just file name): remove it
+	storeValue("Anonymous", false);
 
 	if (!Groups.isEmpty())
 	{
@@ -229,7 +268,7 @@ bool BuddyShared::shouldStore()
 {
 	ensureLoaded();
 
-    return UuidStorableObject::shouldStore() && !isAnonymous();
+	return UuidStorableObject::shouldStore() && !isAnonymous();
 }
 
 void BuddyShared::aboutToBeRemoved()
@@ -249,8 +288,8 @@ void BuddyShared::aboutToBeRemoved()
 	Contacts.clear();
 	Groups.clear();
 
-	AvatarManager::instance()->removeItem(BuddyAvatar);
-	BuddyAvatar = Avatar::null;
+	AvatarManager::instance()->removeItem(*BuddyAvatar);
+	setBuddyAvatar(Avatar::null);
 }
 
 void BuddyShared::addContact(const Contact &contact)
@@ -298,11 +337,11 @@ void BuddyShared::removeContact(const Contact &contact)
 	dataUpdated();
 }
 
-QList<Contact> BuddyShared::contacts(const Account &account)
+QVector<Contact> BuddyShared::contacts(const Account &account)
 {
 	ensureLoaded();
 
-	QList<Contact> contacts;
+	QVector<Contact> contacts;
 	foreach (const Contact &contact, Contacts)
 		if (contact.contactAccount() == account)
 			contacts.append(contact);
@@ -321,7 +360,7 @@ QString BuddyShared::id(const Account &account)
 {
 	ensureLoaded();
 
-	QList<Contact> contactslist;
+	QVector<Contact> contactslist;
 	contactslist = contacts(account);
 	if (!contactslist.isEmpty())
 		return contactslist.at(0).id();
@@ -349,6 +388,40 @@ void BuddyShared::normalizePriorities()
 void BuddyShared::emitUpdated()
 {
 	emit updated();
+}
+
+void BuddyShared::avatarUpdated()
+{
+	dataUpdated();
+}
+
+void BuddyShared::setBuddyAvatar(const Avatar &buddyAvatar)
+{
+	if (*BuddyAvatar == buddyAvatar)
+		return;
+
+	if (*BuddyAvatar)
+		disconnect(*BuddyAvatar, SIGNAL(updated()), this, SLOT(avatarUpdated()));
+
+	*BuddyAvatar = buddyAvatar;
+	dataUpdated();
+
+	if (*BuddyAvatar)
+		connect(*BuddyAvatar, SIGNAL(updated()), this, SLOT(avatarUpdated()));
+}
+
+void BuddyShared::setDisplay(const QString &display)
+{
+	ensureLoaded();
+
+	if (Display != display)
+	{
+		Display = display;
+		dataUpdated();
+		markContactsDirty();
+
+		emit displayUpdated();
+	}
 }
 
 void BuddyShared::setGroups(const QList<Group> &groups)
@@ -396,6 +469,8 @@ bool BuddyShared::doAddToGroup(const Group &group)
 
 	Groups.append(group);
 	connect(group, SIGNAL(nameChanged()), this, SLOT(markContactsDirty()));
+	connect(group, SIGNAL(groupAboutToBeRemoved()), this, SLOT(groupAboutToBeRemoved()));
+
 	return true;
 }
 
@@ -405,6 +480,8 @@ bool BuddyShared::doRemoveFromGroup(const Group &group)
 		return false;
 
 	disconnect(group, SIGNAL(nameChanged()), this, SLOT(markContactsDirty()));
+	disconnect(group, SIGNAL(groupAboutToBeRemoved()), this, SLOT(groupAboutToBeRemoved()));
+
 	return true;
 }
 
@@ -430,11 +507,21 @@ void BuddyShared::removeFromGroup(const Group &group)
 	}
 }
 
-bool BuddyShared::isEmpty()
+void BuddyShared::groupAboutToBeRemoved()
+{
+	Group group(sender());
+	if (!group.isNull())
+		removeFromGroup(group);
+}
+
+bool BuddyShared::isEmpty(bool checkOnlyForContacts)
 {
 	ensureLoaded();
 
-	return Contacts.isEmpty() && HomePhone.isEmpty() && Mobile.isEmpty() && Website.isEmpty() && Email.isEmpty();
+	if (checkOnlyForContacts)
+		return Contacts.isEmpty();
+	else
+		return Contacts.isEmpty() && HomePhone.isEmpty() && Mobile.isEmpty() && Website.isEmpty() && Email.isEmpty();
 }
 
 void BuddyShared::markContactsDirty()
@@ -444,3 +531,25 @@ void BuddyShared::markContactsDirty()
 	foreach (const Contact &contact, Contacts)
 		contact.setDirty(true);
 }
+
+quint16 BuddyShared::unreadMessagesCount()
+{
+	ensureLoaded();
+
+	quint16 result = 0;
+	foreach (const Contact &contact, Contacts)
+		result += contact.unreadMessagesCount();
+
+	return result;
+}
+
+QSharedPointer<StoragePoint> BuddyShared::createStoragePoint()
+{
+	// TODO: fix this, it is only a workaround for an empty buddy on list
+	if (Core::instance()->myself() == Buddy(this))
+		return QSharedPointer<StoragePoint>();
+	else
+		return Shared::createStoragePoint();
+}
+
+KaduShared_PropertyPtrReadDef(BuddyShared, Avatar, buddyAvatar, BuddyAvatar)

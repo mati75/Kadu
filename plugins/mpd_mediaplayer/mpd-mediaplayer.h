@@ -1,8 +1,11 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2009 Tomasz Rostański (rozteck@interia.pl)
+ * Copyright 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2010 badboy (badboy@gen2.org)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -26,8 +29,8 @@
 
 #include "plugins/generic-plugin.h"
 
-#include "plugins/mediaplayer/player_info.h"
 #include "plugins/mediaplayer/player_commands.h"
+#include "plugins/mediaplayer/player_info.h"
 
 #include "mpd-config.h"
 
@@ -48,17 +51,16 @@ public:
 	mpd_connection * mpdConnect();
 
 	// PlayerInfo implementation
-	virtual QString getTitle(int position = -1);
-	virtual QString getAlbum(int position = -1);
-	virtual QString getArtist(int position = -1);
-	virtual QString getFile(int position = -1);
-	virtual int getLength(int position = -1);
+	virtual QString getTitle();
+	virtual QString getAlbum();
+	virtual QString getArtist();
+	virtual QString getFile();
+	virtual int getLength();
 	virtual int getCurrentPos();
 	virtual bool isPlaying();
 	virtual bool isActive();
 	virtual QStringList getPlayListTitles();
 	virtual QStringList getPlayListFiles();
-	virtual uint getPlayListLength();
 	virtual QString getPlayerName();
 	virtual QString getPlayerVersion();
 

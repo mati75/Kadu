@@ -1,9 +1,9 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -30,7 +30,6 @@
 #include <QtGui/QTextEdit>
 #include <QtGui/QVBoxLayout>
 
-#include "buddies/filter/mobile-buddy-filter.h"
 #include "buddies/buddy-manager.h"
 #include "configuration/configuration-file.h"
 #include "gui/widgets/select-buddy-combo-box.h"
@@ -38,18 +37,20 @@
 #include "icons/kadu-icon.h"
 #include "misc/misc.h"
 #include "plugins/plugins-manager.h"
+#include "talkable/filter/mobile-talkable-filter.h"
 #include "debug.h"
 
 #include "gui/windows/sms-progress-window.h"
 #include "mobile-number-manager.h"
 #include "sms-external-sender.h"
+#include "sms-gateway.h"
 #include "sms-gateway-manager.h"
 #include "sms-internal-sender.h"
 
 #include "sms-dialog.h"
 
 SmsDialog::SmsDialog(QWidget* parent) :
-		QWidget(parent, Qt::Window)
+		QWidget(parent, Qt::Window), MaxLength(0)
 {
 	kdebugf();
 
@@ -57,6 +58,8 @@ SmsDialog::SmsDialog(QWidget* parent) :
 	setAttribute(Qt::WA_DeleteOnClose);
 
 	createGui();
+	validate();
+
 	configurationUpdated();
 
 	loadWindowGeometry(this, "Sms", "SmsDialogGeometry", 200, 200, 400, 250);
@@ -92,15 +95,14 @@ void SmsDialog::createGui()
 
 	connect(RecipientEdit, SIGNAL(textChanged(QString)), this, SLOT(recipientNumberChanged(QString)));
 	connect(RecipientEdit, SIGNAL(returnPressed()), this, SLOT(editReturnPressed()));
+	connect(RecipientEdit, SIGNAL(textChanged(QString)), this, SLOT(validate()));
 
 	recipientLayout->addWidget(RecipientEdit);
 
 	RecipientComboBox = new SelectBuddyComboBox(this);
-	MobileBuddyFilter *mobileFilter = new MobileBuddyFilter(RecipientComboBox);
-	mobileFilter->setEnabled(true);
-	RecipientComboBox->addFilter(mobileFilter);
+	RecipientComboBox->addFilter(new MobileTalkableFilter(RecipientComboBox));
 
-	connect(RecipientComboBox, SIGNAL(buddyChanged(Buddy)), this, SLOT(recipientBuddyChanged(Buddy)));
+	connect(RecipientComboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(recipientBuddyChanged()));
 	recipientLayout->addWidget(RecipientComboBox);
 
 	formLayout->addRow(tr("Recipient") + ':', recipientWidget);
@@ -109,7 +111,9 @@ void SmsDialog::createGui()
 	ProviderComboBox->addItem(tr("Select automatically"), QString());
 
 	foreach (const SmsGateway &gateway, SmsGatewayManager::instance()->items())
-		ProviderComboBox->addItem(gateway.second, gateway.first);
+		ProviderComboBox->addItem(gateway.name(), gateway.id());
+
+	connect(ProviderComboBox, SIGNAL(activated(int)), this, SLOT(gatewayActivated(int)));
 
 	formLayout->addRow(tr("GSM provider") + ':', ProviderComboBox);
 
@@ -157,6 +161,23 @@ void SmsDialog::createGui()
 	resize(400, 250);
 }
 
+void SmsDialog::validate()
+{
+	if (RecipientEdit->text().isEmpty())
+	{
+		SendButton->setEnabled(false);
+		return;
+	}
+
+	int currentLength = ContentEdit->toPlainText().length();
+	if (currentLength == 0)
+		SendButton->setEnabled(false);
+	else if (MaxLength == 0)
+		SendButton->setEnabled(true);
+	else
+		SendButton->setEnabled(currentLength <= MaxLength);
+}
+
 void SmsDialog::configurationUpdated()
 {
 	ContentEdit->setFont(config_file.readFontEntry("Look", "ChatFont"));
@@ -173,9 +194,9 @@ void SmsDialog::setRecipient(const QString &phone)
 	kdebugf2();
 }
 
-void SmsDialog::recipientBuddyChanged(Buddy buddy)
+void SmsDialog::recipientBuddyChanged()
 {
-	RecipientEdit->setText(buddy.mobile());
+	RecipientEdit->setText(RecipientComboBox->currentBuddy().mobile());
 }
 
 void SmsDialog::recipientNumberChanged(const QString &number)
@@ -212,6 +233,21 @@ void SmsDialog::editReturnPressed()
 	kdebugf2();
 }
 
+void SmsDialog::gatewayActivated(int index)
+{
+	QString id = ProviderComboBox->itemData(index).toString();
+	const SmsGateway &gateway = SmsGatewayManager::instance()->byId(id);
+
+	MaxLength = gateway.maxLength();
+
+	if (0 == MaxLength)
+		MaxLengthSuffixText.clear();
+	else
+		MaxLengthSuffixText = QString(" / %1").arg(gateway.maxLength());
+
+	updateCounter();
+}
+
 void SmsDialog::gatewayAssigned(const QString &number, const QString &gatewayId)
 {
 	MobileNumberManager::instance()->registerNumber(number, gatewayId);
@@ -227,7 +263,7 @@ void SmsDialog::sendSms()
 	{
 		int gatewayIndex = ProviderComboBox->currentIndex();
 		QString gatewayId = ProviderComboBox->itemData(gatewayIndex, Qt::UserRole).toString();
-		sender = new SmsInternalSender(RecipientEdit->text(), gatewayId, this);
+		sender = new SmsInternalSender(RecipientEdit->text(), SmsGatewayManager::instance()->byId(gatewayId), this);
 	}
 	else
 	{
@@ -254,7 +290,9 @@ void SmsDialog::sendSms()
 
 void SmsDialog::updateCounter()
 {
-	LengthLabel->setText(QString::number(ContentEdit->toPlainText().length()));
+	LengthLabel->setText(QString::number(ContentEdit->toPlainText().length()) + MaxLengthSuffixText);
+
+	validate();
 }
 
 void SmsDialog::clear()

@@ -6,6 +6,7 @@ set (QT_MIN_VERSION "4.7.0")
 set (CMAKE_MIN_VERSION "2.6.0")
 
 set (KADU_FIND_REQUIRED true)
+set (KADU_INSTALLS_SDK TRUE)
 include (FindKadu)
 
 include (FindPkgConfig)
@@ -18,6 +19,10 @@ kadu_api_directories (plugins/encryption_ng
 )
 
 set (SOURCES
+	actions/enable-encryption-action-description.cpp
+	actions/generate-keys-action-description.cpp
+	actions/send-public-key-action-description.cpp
+
 	configuration/encryption-ng-configuration.cpp
 
 	keys/keys-manager.cpp
@@ -38,6 +43,10 @@ set (SOURCES
 )
 
 set (MOC_SOURCES
+	actions/enable-encryption-action-description.h
+	actions/generate-keys-action-description.h
+	actions/send-public-key-action-description.h
+
 	keys/keys-manager.h
 	keys/key-shared.h
 
@@ -67,13 +76,23 @@ set (CONFIGURATION_FILES
 )
 
 if (WIN32)
-	if (NOT MINGW_QCA_DIR)
-		message (SEND_ERROR " Pass path to libqca2 -DMINGW_QCA_DIR=path")
-	else (NOT MINGW_QCA_DIR)
-		set (QCA2_INCLUDE_DIRS ${MINGW_QCA_DIR}/include/QtCrypto)
-		set (QCA2_LIBRARY_DIRS ${MINGW_QCA_DIR}/bin)
-		set (QCA2_LIBRARIES qca2)
-	endif (NOT MINGW_QCA_DIR)
+	if (NOT WIN_QCA_DIR)
+		message (SEND_ERROR "Pass path to libqca2 -DWIN_QCA_DIR=path")
+	else (NOT WIN_QCA_DIR)
+		set (QCA2_INCLUDE_DIRS ${WIN_QCA_DIR}/include/QtCrypto)
+
+		if (MSVC)
+			set (QCA2_LIBRARY_DIRS ${WIN_QCA_DIR}/lib)
+		else (MSVC)
+			set (QCA2_LIBRARY_DIRS ${WIN_QCA_DIR}/bin)
+		endif (MSVC)
+
+		if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+			set (QCA2_LIBRARIES qcad2)
+		else (CMAKE_BUILD_TYPE STREQUAL "Debug")
+			set (QCA2_LIBRARIES qca2)
+		endif (CMAKE_BUILD_TYPE STREQUAL "Debug")
+	endif (NOT WIN_QCA_DIR)
 else (WIN32)
 	pkg_search_module (QCA2 REQUIRED qca2)
 endif (WIN32)

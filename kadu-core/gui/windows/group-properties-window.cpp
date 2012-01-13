@@ -1,9 +1,10 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Piotr Dąbrowski (ultr@ultr.pl)
+ * Copyright 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2009, 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Piotr Dąbrowski (ultr@ultr.pl)
+ * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -31,8 +32,8 @@
 #include <QtGui/QStyle>
 #include <QtGui/QVBoxLayout>
 
-#include "configuration/configuration-file.h"
 #include "buddies/group.h"
+#include "configuration/configuration-file.h"
 
 #include "icons/kadu-icon.h"
 #include "misc/misc.h"
@@ -135,7 +136,7 @@ GroupPropertiesWindow::GroupPropertiesWindow(Group editedGroup, QWidget *parent)
 void GroupPropertiesWindow::selectIcon()
 {
 	QString file = QFileDialog::getOpenFileName(this, tr("Choose an icon"), config_file.readEntry("GroupIcon", "recentPath", "~/"),
-					tr("Icons (*.png *.xpm *.jpg)") + ";;All Files (*)");
+					tr("Images (*.png *.xpm *.jpg);;All Files (*)"));
 	if (!file.isEmpty())
 	{
 		QFileInfo fileInfo(file);

@@ -1,9 +1,12 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2008, 2009, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011 Piotr Dąbrowski (ultr@ultr.pl)
  * Copyright 2008 Michał Podsiadlik (michal@kadu.net)
+ * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
+ * Copyright 2007, 2008, 2009, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -24,12 +27,13 @@
 #define CHAT_EDIT_BOX_H
 
 #include "chat/chat.h"
-#include "gui/windows/main-window.h"
 #include "configuration/configuration-aware-object.h"
+#include "gui/windows/main-window.h"
 
 #include "exports.h"
 
 class Action;
+class BaseActionContext;
 class ChatWidget;
 class CustomInput;
 
@@ -41,10 +45,14 @@ class KADUAPI ChatEditBox : public MainWindow, public ConfigurationAwareObject
 	CustomInput *InputBox;
 	QColor CurrentColor;
 
+	BaseActionContext *Context;
+
 	void setColorFromCurrentText(bool force);
 
 private slots:
 	void configurationUpdated();
+
+	void updateContext();
 
 	void fontChanged(QFont font);
 	void colorSelectorActionCreated(Action *action);
@@ -60,12 +68,7 @@ public:
 	CustomInput * inputBox();
 
 	virtual bool supportsActionType(ActionDescription::ActionType type);
-	virtual BuddiesListView * buddiesListView();
-	virtual StatusContainer * statusContainer();
-	virtual ContactSet contacts();
-	virtual BuddySet buddies();
-	virtual Chat chat() { return CurrentChat; }
-	virtual bool hasContactSelected() { return false; } // we cannot select one contact, we can only select buddies
+	virtual TalkableProxyModel * talkableProxyModel();
 
 	ChatWidget * chatWidget();
 

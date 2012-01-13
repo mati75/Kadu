@@ -1,8 +1,11 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
+ * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -20,10 +23,9 @@
  */
 
 #include "accounts/account-manager.h"
+#include "buddies/buddy-list.h"
 #include "contacts/contact-manager.h"
 #include "contacts/contact-set.h"
-#include "buddies/buddy-list.h"
-#include "buddies/buddy-shared.h"
 
 #include "buddy-set.h"
 
@@ -50,11 +52,20 @@ BuddyList BuddySet::toBuddyList() const
 	return toList();
 }
 
-QList<Contact> BuddySet::getAllContacts() const
+Buddy BuddySet::toBuddy() const
 {
-	QList<Contact> allContacts;
+	if (count() != 1)
+		return Buddy::null;
+
+	return *constBegin();
+}
+
+QVector<Contact> BuddySet::getAllContacts() const
+{
+	QVector<Contact> allContacts;
 	foreach (const Buddy &buddy, *this)
-		allContacts.append(buddy.contacts());
+		foreach (const Contact &contact, buddy.contacts())
+			allContacts.append(contact);
 
 	return allContacts;
 }

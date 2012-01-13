@@ -1,9 +1,11 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
+ * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -43,7 +45,7 @@ StorableObject::~StorableObject()
 	Destroying = true;
 
 	qDeleteAll(ModulesStorableData);
-	// TODO: 0.10.0, memory leak
+	// TODO: 0.11, memory leak
 // 	foreach (void *moduleData, ModulesData)
 // 		delete moduleData;
 }
@@ -129,7 +131,7 @@ const QSharedPointer<StoragePoint> & StorableObject::storage()
  * @author Rafal 'Vogel' Malinowski
  * @short Stores object data in XML node.
  *
- * Stores all module data object by calling store method on these objects.
+ * Stores all module data object by calling ensureStored() method on these objects.
  * Reimplementations of this method should store all needed object data
  * using storeValue and storeAttribute methods and should call super class
  * method.
@@ -139,17 +141,19 @@ void StorableObject::store()
 	ensureLoaded();
 
 	foreach (ModuleData *moduleData, ModulesStorableData)
-		moduleData->store();
+		moduleData->ensureStored();
 }
 
 /**
  * @author Rafal 'Vogel' Malinowski
  * @short Determines if object is worth to be stored.
  * @return true if object should be stored, defaults to true
- * @todo this method is used only in managers, in 0.10 it should be used in every place
  *
- * If object is incomplete or invalid this method should return false
- * so it will not be stored in persistent storage.
+ * If object is incomplete, invalid or unneeded in storage, this method should return false
+ * so it will not be stored in persistent storage. It is a good practice to reimplement this
+ * method. Value returned by super class should be always considered.
+ *
+ * Default implementation returns true.
  */
 bool StorableObject::shouldStore()
 {
@@ -193,6 +197,8 @@ void StorableObject::ensureLoaded()
  */
 void StorableObject::ensureStored()
 {
+	ensureLoaded();
+
 	if (shouldStore())
 		store();
 	else
@@ -232,14 +238,14 @@ void StorableObject::removeModuleData(const QString& module)
 
 /**
  * @author Rafal 'Vogel' Malinowski
- * @short Called when ModuleData is destroyed, to remove it from this object.
+ * @short Called when ModuleData is about to be destroyed, to remove it from this object.
  * @param moduleName name of ModuleData
- * @param moduleData destroyed object
+ * @param moduleData object about to be destroyed
  *
- * Method is called by ModuleData class in its destructor, so it can be removed
- * from this object.
+ * Method is called by a ModuleData object in its destructor, so it can be removed
+ * from this object. Before it is removed, StorableObject::ensureStored() is called on it.
  */
-void StorableObject::moduleDataDestroyed(const QString &moduleName, ModuleData *moduleData)
+void StorableObject::moduleDataAboutToBeDestroyed(const QString &moduleName, ModuleData *moduleData)
 {
 	if (Destroying)
 		return;
@@ -247,9 +253,9 @@ void StorableObject::moduleDataDestroyed(const QString &moduleName, ModuleData *
 	if (ModulesData.contains(moduleName) && ModulesData.value(moduleName) == moduleData)
 		ModulesData.remove(moduleName);
 
-	if (ModulesStorableData.contains(moduleName) && ModulesStorableData.value(moduleName) == moduleData)
+	if (ModulesStorableData.value(moduleName) == moduleData)
 	{
-		moduleData->store();
+		moduleData->ensureStored();
 		ModulesStorableData.remove(moduleName);
 	}
 }

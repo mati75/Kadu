@@ -1,12 +1,20 @@
 /*
  * %kadu copyright begin%
+ * Copyright 2011 Tomasz Rostanski (rozteck@interia.pl)
+ * Copyright 2008, 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2009, 2010, 2010, 2010 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2008, 2009, 2010, 2010 Tomasz Rostański (rozteck@interia.pl)
+ * Copyright 2011 Piotr Dąbrowski (ultr@ultr.pl)
+ * Copyright 2004, 2005, 2008, 2009 Michał Podsiadlik (michal@kadu.net)
+ * Copyright 2009, 2009 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2004 Roman Krzystyniak (Ron_K@tlen.pl)
+ * Copyright 2003, 2004, 2005 Adrian Smarzewski (adrian@kadu.net)
+ * Copyright 2004 Tomasz Chiliński (chilek@chilan.com)
+ * Copyright 2004, 2005 Paweł Płuciennik (pawel_p@kadu.net)
+ * Copyright 2007, 2008, 2009, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2009, 2010 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2009 Michał Podsiadlik (michal@kadu.net)
- * Copyright 2009, 2010 Tomasz Rostański (rozteck@interia.pl)
- * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2006, 2007, 2008 Dawid Stawiarski (neeo@kadu.net)
+ * Copyright 2004, 2005, 2006, 2007 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -33,27 +41,27 @@
 #include <arpa/inet.h>
 #endif
 
-#include "accounts/account.h"
 #include "accounts/account-manager.h"
-#include "accounts/account-shared.h"
+#include "accounts/account.h"
 #include "avatars/avatar-manager.h"
 #include "buddies/buddy-manager.h"
-#include "chat/chat.h"
-#include "chat/message/formatted-message.h"
 #include "chat/chat-manager.h"
+#include "chat/chat.h"
 #include "configuration/configuration-file.h"
-#include "core/core.h"
 #include "contacts/contact-manager.h"
+#include "core/core.h"
 #include "gui/windows/message-dialog.h"
 #include "gui/windows/password-window.h"
+#include "message/formatted-message.h"
+#include "network/proxy/network-proxy-manager.h"
 #include "qt/long-validator.h"
-#include "status/status.h"
-#include "status/status-type.h"
 #include "status/status-type-manager.h"
+#include "status/status-type.h"
+#include "status/status.h"
 
-#include "debug.h"
 #include "icons/icons-manager.h"
 #include "misc/misc.h"
+#include "debug.h"
 
 #include "server/gadu-contact-list-handler.h"
 #include "server/gadu-servers-manager.h"
@@ -70,11 +78,9 @@
 
 GaduProtocol::GaduProtocol(Account account, ProtocolFactory *factory) :
 		Protocol(account, factory), CurrentFileTransferService(0),
-		ActiveServer(), GaduLoginParams(), GaduSession(0), PingTimer(0)
+		ActiveServer(), GaduLoginParams(), GaduSession(0), SocketNotifiers(0), PingTimer(0)
 {
 	kdebugf();
-
-	SocketNotifiers = new GaduProtocolSocketNotifiers(account, this);
 
 	CurrentAvatarService = new GaduAvatarService(account, this);
 	CurrentChatImageService = new GaduChatImageService(this);
@@ -106,8 +112,25 @@ int GaduProtocol::maxDescriptionLength()
 	return GG_STATUS_DESCR_MAXSIZE;
 }
 
+void GaduProtocol::setStatusFlags()
+{
+	if (!GaduSession)
+		return;
+
+	GaduAccountDetails *details = static_cast<GaduAccountDetails *>(account().details());
+
+	int statusFlags = GG_STATUS_FLAG_UNKNOWN;
+	if (details && details->receiveSpam())
+		statusFlags = statusFlags | GG_STATUS_FLAG_SPAM;
+
+	gg_change_status_flags(GaduSession, GG_STATUS_FLAG_UNKNOWN | statusFlags);
+}
+
 void GaduProtocol::sendStatusToServer()
 {
+	if (!isConnected())
+		return;
+
 	if (!GaduSession)
 		return;
 
@@ -117,6 +140,8 @@ void GaduProtocol::sendStatusToServer()
 
 	int type = GaduProtocolHelper::gaduStatusFromStatus(newStatus);
 	bool hasDescription = !newStatus.description().isEmpty();
+
+	setStatusFlags();
 
 	if (hasDescription)
 		gg_change_status_descr(GaduSession, type | friends, newStatus.description().toUtf8().constData());
@@ -151,6 +176,7 @@ void GaduProtocol::everyMinuteActions()
 
 void GaduProtocol::accountUpdated()
 {
+	sendStatusToServer();
 	setUpFileTransferService();
 }
 
@@ -164,6 +190,12 @@ void GaduProtocol::login()
 		// here was return... do not re-add it ;)
 	}
 
+	if (SocketNotifiers)
+	{
+		delete SocketNotifiers;
+		SocketNotifiers = 0;
+	}
+
 	GaduAccountDetails *gaduAccountDetails = dynamic_cast<GaduAccountDetails *>(account().details());
 	if (!gaduAccountDetails || 0 == gaduAccountDetails->uin())
 	{
@@ -171,7 +203,9 @@ void GaduProtocol::login()
 		return;
 	}
 
-	GaduProxyHelper::setupProxy(account().proxySettings());
+	GaduProxyHelper::setupProxy(account().useDefaultProxy()
+			? NetworkProxyManager::instance()->defaultProxy()
+			: account().proxy());
 
 	setupLoginParams();
 	GaduSession = gg_login(&GaduLoginParams);
@@ -185,6 +219,8 @@ void GaduProtocol::login()
 	}
 
 	ContactListHandler = new GaduContactListHandler(this);
+
+	SocketNotifiers = new GaduProtocolSocketNotifiers(account(), this);
 	SocketNotifiers->watchFor(GaduSession);
 }
 
@@ -201,7 +237,7 @@ void GaduProtocol::connectedToServer()
 	loggedIn();
 
 	// workaround about servers errors
-	if ("Invisible" == status().type())
+	if (StatusTypeInvisible == status().type())
 		sendStatusToServer();
 
 	kdebugf2();
@@ -216,6 +252,7 @@ void GaduProtocol::afterLoggedIn()
 	setUpFileTransferService();
 
 	sendUserList();
+	sendStatusToServer();
 }
 
 void GaduProtocol::logout()
@@ -246,7 +283,12 @@ void GaduProtocol::disconnectedCleanup()
 		PingTimer = 0;
 	}
 
-	SocketNotifiers->watchFor(0); // stop watching
+	if (SocketNotifiers)
+	{
+		SocketNotifiers->watchFor(0); // stop watching
+		delete SocketNotifiers;
+		SocketNotifiers = 0;
+	}
 
 	if (GaduSession)
 	{
@@ -281,6 +323,7 @@ void GaduProtocol::setupLoginParams()
 	GaduLoginParams.tls = gaduAccountDetails->tlsEncryption() ? GG_SSL_ENABLED : GG_SSL_DISABLED;
 
 	ActiveServer = GaduServersManager::instance()->getServer(1 == GaduLoginParams.tls);
+
 	bool haveServer = !ActiveServer.first.isNull();
 	GaduLoginParams.server_addr = haveServer ? htonl(ActiveServer.first.toIPv4Address()) : 0;
 	GaduLoginParams.server_port = haveServer ? ActiveServer.second : 0;
@@ -313,6 +356,8 @@ void GaduProtocol::setupLoginParams()
 	GaduLoginParams.last_sysmsg = config_file.readNumEntry("General", "SystemMsgIndex", 1389);
 
 	GaduLoginParams.image_size = qMax(qMin(gaduAccountDetails->maximumImageSize(), 255), 0);
+
+	setStatusFlags();
 }
 
 void GaduProtocol::cleanUpLoginParams()
@@ -369,11 +414,11 @@ void GaduProtocol::setUpFileTransferService(bool forceClose)
 
 void GaduProtocol::sendUserList()
 {
-	QList<Contact> contacts = ContactManager::instance()->contacts(account());
-	QList<Contact> contactsToSend;
+	QVector<Contact> contacts = ContactManager::instance()->contacts(account());
+	QVector<Contact> contactsToSend;
 
 	foreach (const Contact &contact, contacts)
-		if (!contact.ownerBuddy().isAnonymous())
+		if (!contact.isAnonymous())
 			contactsToSend.append(contact);
 
 	ContactListHandler->setUpContactList(contactsToSend);
@@ -381,13 +426,13 @@ void GaduProtocol::sendUserList()
 
 void GaduProtocol::socketContactStatusChanged(UinType uin, unsigned int status, const QString &description, unsigned int maxImageSize)
 {
-	Contact contact = ContactManager::instance()->byId(account(), QString::number(uin));
-	Buddy buddy = contact.ownerBuddy();
+	Contact contact = ContactManager::instance()->byId(account(), QString::number(uin), ActionReturnNull);
 
-	if (buddy.isAnonymous())
+	if (contact.isAnonymous())
 	{
 		kdebugmf(KDEBUG_INFO, "buddy %u not in list. Damned server!\n", uin);
-		emit userStatusChangeIgnored(buddy);
+		if (contact.ownerBuddy())
+			emit userStatusChangeIgnored(contact.ownerBuddy());
 		ContactListHandler->updateContactEntry(contact);
 		return;
 	}
@@ -401,7 +446,12 @@ void GaduProtocol::socketContactStatusChanged(UinType uin, unsigned int status, 
 	contact.setCurrentStatus(newStatus);
 	contact.setBlocking(GaduProtocolHelper::isBlockingStatus(status));
 
-	emit contactStatusChanged(contact, oldStatus);
+	// see issue #2159 - we need a way to ignore first status of given contact
+	GaduContactDetails *details = static_cast<GaduContactDetails *>(contact.details());
+	if (details && details->ignoreNextStatusChange())
+		details->setIgnoreNextStatusChange(false);
+	else
+		emit contactStatusChanged(contact, oldStatus);
 }
 
 void GaduProtocol::socketConnFailed(GaduError error)
@@ -442,10 +492,14 @@ void GaduProtocol::socketConnFailed(GaduError error)
 	if (!GaduProtocolHelper::isConnectionErrorFatal(error))
 	{
 		GaduServersManager::instance()->markServerAsBad(ActiveServer);
+		logout();
 		connectionError();
 	}
 	else
+	{
+		logout();
 		connectionClosed();
+	}
 
 	kdebugf2();
 }

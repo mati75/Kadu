@@ -1,9 +1,10 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2010 Tomasz Rostański (rozteck@interia.pl)
+ * Copyright 2011 Piotr Dąbrowski (ultr@ultr.pl)
+ * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -25,29 +26,95 @@
 #include <QtCore/QString>
 #include <QtWebKit/QWebFrame>
 
-#include "accounts/account.h"
 #include "accounts/account-manager.h"
+#include "accounts/account.h"
 #include "avatars/avatar.h"
 #include "buddies/buddy-manager.h"
 #include "buddies/buddy-set.h"
 #include "chat/chat-styles-manager.h"
 #include "chat/html-messages-renderer.h"
-#include "chat/message/message-render-info.h"
-#include "contacts/contact.h"
 #include "contacts/contact-set.h"
+#include "contacts/contact.h"
 #include "gui/widgets/chat-messages-view.h"
 #include "gui/widgets/chat-widget.h"
 #include "gui/widgets/preview.h"
 #include "icons/kadu-icon.h"
 #include "identities/identity.h"
+#include "message/message-render-info.h"
+#include "misc/misc.h"
 #include "parser/parser.h"
 #include "protocols/protocol-factory.h"
-#include "misc/misc.h"
 
 #include "adium-style.h"
 #include "adium-time-formatter.h"
 
 #include "chat-engine-adium.h"
+
+RefreshViewHack::RefreshViewHack(AdiumChatStyleEngine *engine, HtmlMessagesRenderer *renderer, QObject *parent) :
+		QObject(parent), Engine(engine), Renderer(renderer)
+{
+}
+
+RefreshViewHack::~RefreshViewHack()
+{
+}
+
+void RefreshViewHack::loadFinished()
+{
+	// We need to clear messages in case something was rendered before this slot was called.
+	Engine->clearMessages(Renderer);
+	Renderer->setLastMessage(0);
+
+	foreach (MessageRenderInfo *message, Renderer->messages())
+		Engine->appendChatMessage(Renderer, message);
+
+	deleteLater();
+}
+
+
+PreviewHack::PreviewHack(AdiumChatStyleEngine *engine, Preview *preview, const QString &baseHref, const QString &outgoingHtml,
+                         const QString &incomingHtml, QObject *parent) :
+		QObject(parent), Engine(engine), CurrentPreview(preview), BaseHref(baseHref), OutgoingHtml(outgoingHtml), IncomingHtml(incomingHtml)
+{
+}
+
+PreviewHack::~PreviewHack()
+{
+}
+
+void PreviewHack::loadFinished()
+{
+	MessageRenderInfo *message = CurrentPreview->messages().at(0);
+
+	QString outgoingHtml(replacedNewLine(Engine->replaceKeywords(BaseHref, OutgoingHtml, message), QLatin1String(" ")));
+	outgoingHtml.replace('\'', QLatin1String("\\'"));
+	if (!message->message().id().isEmpty())
+		outgoingHtml.prepend(QString("<span id=\"message_%1\">").arg(message->message().id()));
+	else
+		outgoingHtml.prepend("<span>");
+	outgoingHtml.append("</span>");
+	CurrentPreview->webView()->page()->mainFrame()->evaluateJavaScript("appendMessage(\'" + outgoingHtml + "\')");
+
+	message = CurrentPreview->messages().at(1);
+	QString incomingHtml(replacedNewLine(Engine->replaceKeywords(BaseHref, IncomingHtml, message), QLatin1String(" ")));
+	incomingHtml.replace('\'', QLatin1String("\\'"));
+	if (!message->message().id().isEmpty())
+		incomingHtml.prepend(QString("<span id=\"message_%1\">").arg(message->message().id()));
+	else
+		incomingHtml.prepend("<span>");
+	incomingHtml.append("</span>");
+	CurrentPreview->webView()->page()->mainFrame()->evaluateJavaScript("appendMessage(\'" + incomingHtml + "\')");
+
+	/* in Qt 4.6.3 / WebKit there is a bug making the following call not working */
+	/* according to: https://bugs.webkit.org/show_bug.cgi?id=35633 */
+	/* the proper refreshing behaviour should occur once the bug is fixed */
+	/* possible temporary solution: use QWebElements API to randomly change */
+	/* URLs in the HTML/CSS content. */
+	CurrentPreview->webView()->page()->triggerAction(QWebPage::ReloadAndBypassCache, false);
+
+	deleteLater();
+}
+
 
 AdiumChatStyleEngine::AdiumChatStyleEngine(QObject *parent) :
 		QObject(parent)
@@ -225,15 +292,17 @@ void AdiumChatStyleEngine::refreshView(HtmlMessagesRenderer *renderer, bool useT
 	if (useTransparency && !CurrentStyle.defaultBackgroundIsTransparent())
 		styleBaseHtml.replace(styleBaseHtml.lastIndexOf("==bodyBackground=="), 18, "background-image: none; background: none; background-color: rgba(0, 0, 0, 0)");
 
+	RefreshViewHack *refreshViewHack = new RefreshViewHack(this, renderer, this);
+
+	// lets wait a while for all javascript to resolve and execute
+	// we dont want to get to the party too early
+	connect(renderer->webPage()->mainFrame(), SIGNAL(loadFinished(bool)),
+	        refreshViewHack, SLOT(loadFinished()), Qt::QueuedConnection);
+
 	renderer->webPage()->mainFrame()->setHtml(styleBaseHtml);
 	renderer->webPage()->mainFrame()->evaluateJavaScript(jsCode);
 	//I don't know why, sometimes 'initStyle' was performed after 'appendMessage'
 	renderer->webPage()->mainFrame()->evaluateJavaScript("initStyle()");
-
-	renderer->setLastMessage(0);
-
-	foreach (MessageRenderInfo *message, renderer->messages())
-		appendChatMessage(renderer, message);
 }
 
 void AdiumChatStyleEngine::loadStyle(const QString &styleName, const QString &variantName)
@@ -278,10 +347,10 @@ void AdiumChatStyleEngine::prepareStylePreview(Preview *preview, QString styleNa
 	AdiumStyle style(styleName);
 
 	style.setCurrentVariant(variantName);
-	if (preview->getObjectsToParse().count() != 2)
+	if (preview->messages().count() != 2)
 		return;
 
-	MessageRenderInfo *message = qobject_cast<MessageRenderInfo *>(preview->getObjectsToParse().at(0));
+	MessageRenderInfo *message = preview->messages().at(0);
 	if (!message)
 		return;
 	Message msg = message->message();
@@ -304,36 +373,17 @@ void AdiumChatStyleEngine::prepareStylePreview(Preview *preview, QString styleNa
 		styleBaseHtml.replace(styleBaseHtml.lastIndexOf("%@"), 2, (style.styleViewVersion() < 3) ? "s" : QString("@import url( \"" + style.mainHref() + "\" );"));
 	}
 
-	preview->page()->mainFrame()->setHtml(styleBaseHtml);
-	preview->page()->mainFrame()->evaluateJavaScript(jsCode);
+	PreviewHack *previewHack = new PreviewHack(this, preview, style.baseHref(), style.outgoingHtml(), style.incomingHtml(), this);
+
+	// lets wait a while for all javascript to resolve and execute
+	// we dont want to get to the party too early
+	connect(preview->webView()->page()->mainFrame(), SIGNAL(loadFinished(bool)),
+	        previewHack, SLOT(loadFinished()),  Qt::QueuedConnection);
+
+	preview->webView()->page()->mainFrame()->setHtml(styleBaseHtml);
+	preview->webView()->page()->mainFrame()->evaluateJavaScript(jsCode);
 	//I don't know why, sometimes 'initStyle' was performed after 'appendMessage'
-	preview->page()->mainFrame()->evaluateJavaScript("initStyle()");
-
-	QString outgoingHtml(replacedNewLine(replaceKeywords(style.baseHref(), style.outgoingHtml(), message), QLatin1String(" ")));
-	outgoingHtml.replace('\'', QLatin1String("\\'"));
-	if (!message->message().id().isEmpty())
-		outgoingHtml.prepend(QString("<span id=\"message_%1\">").arg(message->message().id()));
-	else
-		outgoingHtml.prepend("<span>");
-	outgoingHtml.append("</span>");
-	preview->page()->mainFrame()->evaluateJavaScript("appendMessage(\'" + outgoingHtml + "\')");
-
-	message = qobject_cast<MessageRenderInfo *>(preview->getObjectsToParse().at(1));
-	QString incomingHtml(replacedNewLine(replaceKeywords(style.baseHref(), style.incomingHtml(), message), QLatin1String(" ")));
-	incomingHtml.replace('\'', QLatin1String("\\'"));
-	if (!message->message().id().isEmpty())
-		incomingHtml.prepend(QString("<span id=\"message_%1\">").arg(message->message().id()));
-	else
-		incomingHtml.prepend("<span>");
-	incomingHtml.append("</span>");
-	preview->page()->mainFrame()->evaluateJavaScript("appendMessage(\'" + incomingHtml + "\')");
-
-	/* in Qt 4.6.3 / WebKit there is a bug making the following call not working */
-	/* according to: https://bugs.webkit.org/show_bug.cgi?id=35633 */
-	/* the proper refreshing behaviour should occur once the bug is fixed */
-	/* possible temporary solution: use QWebElements API to randomly change */
-	/* URLs in the HTML/CSS content. */
-	preview->page()->triggerAction(QWebPage::ReloadAndBypassCache, false);
+	preview->webView()->page()->mainFrame()->evaluateJavaScript("initStyle()");
 }
 
 // Some parts of the code below are borrowed from Kopete project (http://kopete.kde.org/)
@@ -347,7 +397,17 @@ QString AdiumChatStyleEngine::replaceKeywords(const Chat &chat, const QString &s
 	//TODO: get Chat name (contacts' nicks?)
 	//Replace %chatName% //TODO. Find way to dynamic update this tag (add id ?)
 	int contactsCount = chat.contacts().count();
-	result.replace(QString("%chatName%"), contactsCount > 1 ? tr("Conference [%1]").arg(contactsCount) : chat.name());
+
+	QString chatName;
+	if (!chat.display().isEmpty())
+		chatName = chat.display();
+	else if (contactsCount > 1)
+		chatName = tr("Conference [%1]").arg(contactsCount);
+	else
+		chatName = chat.name();
+
+	result.replace(QString("%chatName%"), chatName);
+
 	// Replace %sourceName%
 	result.replace(QString("%sourceName%"), chat.chatAccount().accountIdentity().name());
 	// Replace %destinationName%
@@ -369,16 +429,14 @@ QString AdiumChatStyleEngine::replaceKeywords(const Chat &chat, const QString &s
 		photoIncoming = webKitPath(styleHref + QLatin1String("Incoming/buddy_icon.png"));
 	else if (contactsSize == 1)
 	{
-		Contact contact = chat.contacts().toContact();
-		if (!contact.isNull() && !contact.ownerBuddy().buddyAvatar().pixmap().isNull())
-			photoIncoming = webKitPath(contact.ownerBuddy().buddyAvatar().filePath());
-		else if (!contact.isNull() && !contact.contactAvatar().pixmap().isNull())
-			photoIncoming = webKitPath(contact.contactAvatar().filePath());
+		const Avatar &avatar = chat.contacts().toContact().avatar(true);
+		if (!avatar.isEmpty())
+			photoIncoming = webKitPath(avatar.filePath());
 		else
 			photoIncoming = webKitPath(styleHref + QLatin1String("Incoming/buddy_icon.png"));
 	}
 
-	Avatar avatar = chat.chatAccount().accountContact().contactAvatar();
+	const Avatar &avatar = chat.chatAccount().accountContact().avatar(true);
 	if (!avatar.isEmpty())
 		photoOutgoing = webKitPath(avatar.filePath());
 	else
@@ -397,7 +455,7 @@ QString AdiumChatStyleEngine::replaceKeywords(const QString &styleHref, const QS
 	Message msg = message->message();
 
 	// Replace sender (contact nick)
-	result.replace(QString("%sender%"), BuddyManager::instance()->byContact(msg.messageSender(), ActionCreateAndAdd).display());
+	result.replace(QString("%sender%"), msg.messageSender().display(true));
 	// Replace %screenName% (contact ID)
 	result.replace(QString("%senderScreenName%"), msg.messageSender().id());
 	// Replace service name (protocol name)
@@ -409,7 +467,7 @@ QString AdiumChatStyleEngine::replaceKeywords(const QString &styleHref, const QS
 	}
 	else
 	{
-		result.remove("%service%");
+		result.replace(QString("%service%"), msg.messageChat().chatAccount().accountIdentity().name());
 		result.remove("%senderStatusIcon%");
 	}
 
@@ -437,17 +495,16 @@ QString AdiumChatStyleEngine::replaceKeywords(const QString &styleHref, const QS
 	{
 		result.replace(QString("%messageClasses%"), "message incoming");
 
-		if (!msg.messageSender().ownerBuddy().buddyAvatar().pixmap().isNull())
-			photoPath = webKitPath(msg.messageSender().ownerBuddy().buddyAvatar().filePath());
-		else if (!msg.messageSender().contactAvatar().pixmap().isNull())
-			photoPath = webKitPath(msg.messageSender().contactAvatar().filePath());
+		const Avatar &avatar = msg.messageSender().avatar(true);
+		if (!avatar.isEmpty())
+			photoPath = webKitPath(avatar.filePath());
 		else
 			photoPath = webKitPath(styleHref + QLatin1String("Incoming/buddy_icon.png"));
 	}
 	else if (msg.type() == MessageTypeSent)
 	{
-   		result.replace(QString("%messageClasses%"), "message outgoing");
-		Avatar avatar = msg.messageChat().chatAccount().accountContact().contactAvatar();
+		result.replace(QString("%messageClasses%"), "message outgoing");
+		const Avatar &avatar = msg.messageChat().chatAccount().accountContact().avatar(true);
 		if (!avatar.isEmpty())
 			photoPath = webKitPath(avatar.filePath());
 		else

@@ -1,12 +1,13 @@
 /*
  * %kadu copyright begin%
+ * Copyright 2008, 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2009, 2009 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2010 Piotr Dąbrowski (ultr@ultr.pl)
+ * Copyright 2008, 2009 Michał Podsiadlik (michal@kadu.net)
+ * Copyright 2009, 2009 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2008, 2009, 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2009 Michał Podsiadlik (michal@kadu.net)
- * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2007, 2008 Dawid Stawiarski (neeo@kadu.net)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -33,6 +34,7 @@
 #include <QtXml/QDomElement>
 
 #include "buddies/buddy-gender.h"
+#include "buddies/buddy-shared.h"
 #include "storage/shared-base.h"
 #include "exports.h"
 
@@ -72,9 +74,6 @@ public:
 
 	void importConfiguration(const QDomElement &parent);
 	void importConfiguration(); // import configuration from customDataValues
-	void store();
-
-	QSharedPointer<StoragePoint> storagePointForModuleData(const QString &module, bool create = false) const;
 
 	QString customData(const QString &key);
 	void setCustomData(const QString &key, const QString &value);
@@ -85,7 +84,7 @@ public:
 
 // 	void setData(BuddyShared *data) { Data = data; }  // TODO: 0.10 tricky merge, this should work well ;)
 
-	QList<Contact> contacts(Account account) const;
+	QVector<Contact> contacts(Account account) const;
 	QList<Contact> contacts() const;
 	bool hasContact(Account account) const;
 
@@ -94,10 +93,10 @@ public:
 
 	bool showInAllGroup() const;
 	bool isInGroup(Group group) const;
-	void addToGroup(Group group);
-	void removeFromGroup(Group group);
+	void addToGroup(Group group) const;
+	void removeFromGroup(Group group) const;
 
-	bool isEmpty() const;
+	bool isEmpty(bool checkOnlyForContacts = false) const;
 
 	QString display() const;
 
@@ -121,6 +120,7 @@ public:
 	KaduSharedBase_PropertyBool(Ignored)
 	KaduSharedBase_PropertyBool(Blocked)
 	KaduSharedBase_PropertyBool(OfflineTo)
+	KaduSharedBase_PropertyRead(quint16, unreadMessagesCount, UnreadMessagesCount)
 
 };
 

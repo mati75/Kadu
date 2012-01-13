@@ -6,9 +6,11 @@ set (QT_MIN_VERSION "4.7.0")
 set (CMAKE_MIN_VERSION "2.8.0")
 
 set (KADU_FIND_REQUIRED true)
+set (KADU_INSTALLS_SDK TRUE)
 include (FindKadu)
 
 kadu_api_directories (plugins/history
+	actions
 	gui/windows
 	gui
 	model
@@ -18,6 +20,8 @@ kadu_api_directories (plugins/history
 )
 
 set (SOURCES
+	actions/show-history-action-description.cpp
+
 	gui/windows/history-window.cpp
 
 	model/buddy-status-dates-model.cpp
@@ -31,6 +35,7 @@ set (SOURCES
 
 	buddy-history-delete-handler.cpp
 	history.cpp
+	history-messages-prepender.cpp
 	history-plugin.cpp
 	history-tree-item.cpp
 	history-save-thread.cpp
@@ -38,6 +43,8 @@ set (SOURCES
 )
 
 set (MOC_SOURCES
+	actions/show-history-action-description.h
+
 	gui/windows/history-window.h
 
 	model/buddy-status-dates-model.h
@@ -49,6 +56,7 @@ set (MOC_SOURCES
 	storage/history-storage.h
 
 	history.h
+	history-messages-prepender.h
 	history-plugin.h
 	history-save-thread.h
 )

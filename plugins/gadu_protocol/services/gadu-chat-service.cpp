@@ -1,12 +1,12 @@
 /*
  * %kadu copyright begin%
- * Copyright 2011 Piotr Dąbrowski (ultr@ultr.pl)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011 Piotr Dąbrowski (ultr@ultr.pl)
  * Copyright 2009 Michał Podsiadlik (michal@kadu.net)
  * Copyright 2009, 2010 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -28,7 +28,6 @@
 #include <QtCore/QTimer>
 
 #include "buddies/buddy-set.h"
-#include "buddies/buddy-shared.h"
 #include "chat/chat-manager.h"
 #include "configuration/configuration-file.h"
 #include "contacts/contact-manager.h"
@@ -36,7 +35,6 @@
 #include "core/core.h"
 #include "gui/windows/message-dialog.h"
 #include "misc/misc.h"
-#include "status/status-group.h"
 #include "status/status-type.h"
 
 #include "debug.h"
@@ -72,7 +70,7 @@ bool GaduChatService::sendMessage(const Chat &chat, FormattedMessage &message, b
 	kdebugf();
 
 	QString plain = message.toPlain();
-	QList<Contact> contacts = chat.contacts().toContactList();
+	QVector<Contact> contacts = chat.contacts().toContactVector();
 
 	unsigned int uinsCount = 0;
 	unsigned int formatsSize = 0;
@@ -203,7 +201,7 @@ QByteArray GaduChatService::getContent(gg_event *e)
 
 bool GaduChatService::ignoreRichText(Contact sender)
 {
-	bool ignore = sender.ownerBuddy().isAnonymous() &&
+	bool ignore = sender.isAnonymous() &&
 		config_file.readBoolEntry("Chat","IgnoreAnonymousRichtext");
 
 	if (ignore)
@@ -218,11 +216,11 @@ bool GaduChatService::ignoreImages(Contact sender)
 {
 	GaduAccountDetails *gaduAccountDetails = dynamic_cast<GaduAccountDetails *>(Protocol->account().details());
 
-	return sender.ownerBuddy().isAnonymous() ||
+	return sender.isAnonymous() ||
 		(
-			"Offline" == Protocol->status().group() ||
+			StatusTypeGroupOffline == Protocol->status().group() ||
 			(
-				("Invisible" == Protocol->status().group()) &&
+				(StatusTypeGroupInvisible == Protocol->status().group()) &&
 				!gaduAccountDetails->receiveImagesDuringInvisibility()
 			)
 		);
@@ -370,16 +368,21 @@ void GaduChatService::handleEventAck(struct gg_event *e)
 void GaduChatService::removeTimeoutUndeliveredMessages()
 {
 	QDateTime now = QDateTime::currentDateTime();
-	QList<int> toRemove;
+	QHash<int, Message>::iterator it = UndeliveredMessages.begin();
+	QVector<Message> removedMessages;
 
-	foreach (int messageId, UndeliveredMessages.keys())
-		if (UndeliveredMessages[messageId].sendDate().addSecs(MAX_DELIVERY_TIME) < now)
-			toRemove.append(messageId);
+	while (it != UndeliveredMessages.end())
+		if (it.value().sendDate().addSecs(MAX_DELIVERY_TIME) < now)
+		{
+			removedMessages.append(it.value());
+			it = UndeliveredMessages.erase(it);
+		}
+		else
+			++it;
 
-	foreach (int messageId, toRemove)
+	foreach (const Message &message, removedMessages)
 	{
-		UndeliveredMessages[messageId].setStatus(MessageStatusWontDeliver);
-		emit messageStatusChanged(UndeliveredMessages[messageId], StatusRejectedTimeout);
-		UndeliveredMessages.remove(messageId);
+		message.setStatus(MessageStatusWontDeliver);
+		emit messageStatusChanged(message, StatusRejectedTimeout);
 	}
 }

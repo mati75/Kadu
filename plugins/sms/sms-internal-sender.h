@@ -1,8 +1,8 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -24,6 +24,8 @@
 
 #include <QtScript/QScriptValue>
 
+#include "sms-gateway.h"
+
 #include "sms-sender.h"
 
 class QNetworkReply;
@@ -32,7 +34,7 @@ class SmsInternalSender : public SmsSender
 {
 	Q_OBJECT
 
-	QString GatewayId;
+	SmsGateway Gateway;
 
 	QNetworkReply *TokenReply;
 
@@ -48,7 +50,7 @@ private slots:
     void tokenImageDownloaded();
 
 public:
-	explicit SmsInternalSender(const QString &number, const QString &gatewayId = QString(), QObject *parent = 0);
+	explicit SmsInternalSender(const QString &number, const SmsGateway &gateway = SmsGateway(), QObject *parent = 0);
 	virtual ~SmsInternalSender();
 
 	virtual void sendMessage(const QString& message);

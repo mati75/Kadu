@@ -1,9 +1,9 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -20,8 +20,8 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "accounts/account.h"
 #include "accounts/account-manager.h"
+#include "accounts/account.h"
 #include "icons/kadu-icon.h"
 #include "identities/identity.h"
 #include "model/roles.h"
@@ -97,17 +97,6 @@ QVariant AccountsModel::data(const QModelIndex &index, int role) const
 	}
 }
 
-QVariant AccountsModel::headerData(int section, Qt::Orientation orientation, int role) const
-{
-	if (role != Qt::DisplayRole)
-		return QVariant();
-
-	if (orientation == Qt::Horizontal)
-		return QString("Column %1").arg(section);
-	else
-		return QString("Row %1").arg(section);
-}
-
 Account AccountsModel::account(const QModelIndex &index) const
 {
 	if (!index.isValid())
@@ -124,15 +113,22 @@ int AccountsModel::accountIndex(Account account) const
 	return AccountManager::instance()->indexOf(account);
 }
 
-QModelIndex AccountsModel::indexForValue(const QVariant &value) const
+QModelIndexList AccountsModel::indexListForValue(const QVariant &value) const
 {
-	return createIndex(accountIndex(value.value<Account>()), 0, 0);
+	QModelIndexList result;
+
+	const int i = accountIndex(value.value<Account>());
+	if (-1 != i)
+		result.append(index(i));
+
+	return result;
 }
 
 void AccountsModel::accountUpdated(Account account)
 {
-	QModelIndex index = indexForValue(account);
-	emit dataChanged(index, index);
+	const QModelIndexList &indexes = indexListForValue(account);
+	foreach (const QModelIndex &index, indexes)
+		emit dataChanged(index, index);
 }
 
 void AccountsModel::accountAboutToBeRegistered(Account account)

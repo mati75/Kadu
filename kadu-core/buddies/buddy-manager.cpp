@@ -1,10 +1,10 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2009, 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2009, 2009 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2008, 2009, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -23,20 +23,16 @@
 
 #include "accounts/account.h"
 
-#include "buddies/buddy.h"
 #include "buddies/buddy-list.h"
-#include "buddies/buddy-remove-predicate-object.h"
-#include "buddies/buddy-shared.h"
-#include "buddies/group-manager.h"
-#include "contacts/contact-manager.h"
-#include "contacts/contact.h"
+#include "buddies/buddy.h"
 #include "configuration/configuration-manager.h"
 #include "configuration/xml-configuration-file.h"
+#include "contacts/contact-manager.h"
+#include "contacts/contact.h"
 #include "core/core.h"
 #include "storage/storage-point.h"
 
 #include "debug.h"
-#include "group.h"
 
 #include "buddy-manager.h"
 
@@ -65,9 +61,6 @@ void BuddyManager::init()
 {
 	QMutexLocker locker(&mutex());
 
-	connect(GroupManager::instance(), SIGNAL(groupAboutToBeRemoved(Group)),
-			this, SLOT(groupRemoved(Group)));
-
 	int itemsSize = items().size();
 	QDomElement buddiesNode = xml_config_file->getNode("Buddies", XmlConfigFile::ModeFind);
 	QDomElement oldContactsNode = xml_config_file->getNode("OldContacts", XmlConfigFile::ModeFind);
@@ -87,7 +80,7 @@ void BuddyManager::importConfiguration(XmlConfigFile *configurationStorage)
 		return;
 
 	contactsNode.setTagName("OldContacts");
-	QList<QDomElement> contactElements = configurationStorage->getNodes(contactsNode, "Contact");
+	QVector<QDomElement> contactElements = configurationStorage->getNodes(contactsNode, "Contact");
 	foreach (const QDomElement &contactElement, contactElements)
 	{
 		Buddy buddy = Buddy::create();
@@ -138,6 +131,14 @@ void BuddyManager::itemRemoved(Buddy buddy)
 	emit buddyRemoved(buddy);
 }
 
+QString BuddyManager::mergeValue(const QString &destination, const QString &source) const
+{
+	if (destination.isEmpty())
+		return source;
+	else
+		return destination;
+}
+
 void BuddyManager::mergeBuddies(Buddy destination, Buddy source)
 {
 	QMutexLocker locker(&mutex());
@@ -147,11 +148,22 @@ void BuddyManager::mergeBuddies(Buddy destination, Buddy source)
 
 	ensureLoaded();
 
+	destination.setEmail(mergeValue(destination.email(), source.email()));
+	destination.setHomePhone(mergeValue(destination.homePhone(), source.homePhone()));
+	destination.setMobile(mergeValue(destination.mobile(), source.mobile()));
+	destination.setWebsite(mergeValue(destination.website(), source.website()));
+
+	// we need to move contacts before removing source buddy as this would cause
+	// these contacts to detach and remove from roster
+	// i think this is another reason why we should not automate too much
+	// we should just manually delete all contacts when buddy is removed
+
 	foreach (const Contact &contact, source.contacts())
 		contact.setOwnerBuddy(destination);
 
-	source.setAnonymous(true);
 	removeItem(source);
+
+	source.setAnonymous(true);
 	// each item that stores pointer to "source" will now use the same uuid as "destination"
 	source.data()->setUuid(destination.uuid());
 
@@ -207,7 +219,7 @@ Buddy BuddyManager::byContact(Contact contact, NotFoundAction action)
 	if (contact.isNull())
 		return Buddy::null;
 
-	if (ActionReturnNull == action || !contact.ownerBuddy().isAnonymous())
+	if (ActionReturnNull == action || !contact.isAnonymous())
 		return contact.ownerBuddy();
 
 	if (!contact.ownerBuddy())
@@ -235,16 +247,23 @@ Buddy BuddyManager::byUuid(const QUuid &uuid)
 	return Buddy::create();
 }
 
-void BuddyManager::clearOwnerAndRemoveEmptyBuddy(Contact contact)
+void BuddyManager::removeBuddyIfEmpty(Buddy buddy, bool checkOnlyForContacts)
+{
+	if (!buddy)
+		return;
+
+	if (buddy.isEmpty(checkOnlyForContacts))
+		removeItem(buddy);
+}
+
+void BuddyManager::clearOwnerAndRemoveEmptyBuddy(Contact contact, bool checkBuddyOnlyForOtherContacts)
 {
 	if (!contact)
 		return;
 
 	Buddy owner = contact.ownerBuddy();
 	contact.setOwnerBuddy(Buddy::null);
-
-	if (owner && owner.isEmpty())
-		removeItem(owner);
+	removeBuddyIfEmpty(owner, checkBuddyOnlyForOtherContacts);
 }
 
 BuddyList BuddyManager::buddies(Account account, bool includeAnonymous)
@@ -278,12 +297,4 @@ void BuddyManager::buddySubscriptionChanged()
 	Buddy buddy(sender());
 	if (!buddy.isNull())
 		emit buddySubscriptionChanged(buddy);
-}
-
-void BuddyManager::groupRemoved(Group group)
-{
-	QMutexLocker locker(&mutex());
-
-	foreach (Buddy buddy, items())
-		buddy.removeFromGroup(group);
 }

@@ -1,10 +1,10 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2010 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2009, 2010 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2009, 2009, 2010, 2010 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2009, 2009, 2010 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2009, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -24,11 +24,10 @@
 #ifndef JABBER_PROTOCOL_H
 #define JABBER_PROTOCOL_H
 
-#include "protocols/services/chat-service.h"
 #include "protocols/protocol.h"
+#include "protocols/services/chat-service.h"
 
 #include "client/jabber-client.h"
-#include "jabber-account-details.h"
 #include "services/jabber-avatar-service.h"
 #include "services/jabber-chat-service.h"
 #include "services/jabber-chat-state-service.h"
@@ -36,6 +35,7 @@
 #include "services/jabber-file-transfer-service.h"
 #include "services/jabber-personal-info-service.h"
 #include "services/jabber-roster-service.h"
+#include "jabber-account-details.h"
 
 class JabberContactDetails;
 class JabberResourcePool;
@@ -87,7 +87,7 @@ private slots:
 
 	void slotClientDebugMessage (const QString &msg);
 
-	void contactAboutToBeDetached(Contact contact, bool reattached);
+	void contactDetached(Contact contact, Buddy previousBuddy, bool reattaching);
 	void contactAttached(Contact contact, bool reattached);
 	void contactUpdated(Contact contact);
 

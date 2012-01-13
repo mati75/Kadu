@@ -1,7 +1,8 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2009, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -76,6 +77,9 @@ bool AccountsProxyModel::filterAcceptsRow(int sourceRow, const QModelIndex &sour
 
 void AccountsProxyModel::addFilter(AbstractAccountFilter *filter)
 {
+	if (Filters.contains(filter))
+		return;
+
 	Filters.append(filter);
 	invalidateFilter();
 	connect(filter, SIGNAL(filterChanged()), this, SLOT(filterChangedSlot()));
@@ -83,7 +87,9 @@ void AccountsProxyModel::addFilter(AbstractAccountFilter *filter)
 
 void AccountsProxyModel::removeFilter(AbstractAccountFilter *filter)
 {
-	Filters.removeAll(filter);
+	if (Filters.removeAll(filter) <= 0)
+		return;
+
 	invalidateFilter();
 	disconnect(filter, SIGNAL(filterChanged()), this, SLOT(filterChangedSlot()));
 }

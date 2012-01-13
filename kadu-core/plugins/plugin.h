@@ -1,6 +1,8 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011 Tomasz Rostanski (rozteck@interia.pl)
+ * Copyright 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -22,28 +24,10 @@
 
 #include <QtCore/QObject>
 
+#include "plugins/plugins-common.h"
 #include "plugins/plugins-manager.h"
 
 #include "storage/named-storable-object.h"
-
-
-#ifdef Q_OS_MAC
-	#define SO_EXT "dylib"
-	#define SO_EXT_LEN 5
-	#define SO_PREFIX "lib"
-	#define SO_PREFIX_LEN 3
-#elif defined(Q_OS_WIN)
-	#define SO_EXT "dll"
-	#define SO_EXT_LEN 3
-	#define SO_PREFIX ""
-	#define SO_PREFIX_LEN 0
-#else
-	#define SO_EXT "so"
-	#define SO_EXT_LEN 2
-	#define SO_PREFIX "lib"
-	#define SO_PREFIX_LEN 3
-#endif
-
 
 class QLibrary;
 class QPluginLoader;
@@ -134,8 +118,13 @@ private:
 	void loadTranslations();
 	void unloadTranslations();
 
+private slots:
+	void setStateEnabledIfInactive(bool enable);
+
 protected:
 	virtual void load();
+	virtual void store();
+	virtual bool shouldStore();
 
 public:
 	Plugin(const QString &name, QObject *parent = 0);
@@ -146,12 +135,12 @@ public:
 	virtual QString storageNodeName() { return QLatin1String("Plugin"); }
 	virtual QString name() const { return Name; }
 
-	virtual void store();
-
 	bool shouldBeActivated();
 
-	bool activate();
-	void deactivate();
+	bool activate(PluginActivationReason reason);
+	void deactivate(PluginDeactivationReason reason);
+
+	void activationError(const QString &errorMessage, PluginActivationReason activationReason);
 
 	/**
 	 * @author Rafał 'Vogel' Malinowski
@@ -178,6 +167,9 @@ public:
 	 * @return plugin state
 	 *
 	 * Returns plugin state.
+	 *
+	 * Note that plugin state describes only its state on configuration. All combinations
+	 * of state() and isActive() are possible, except state PluginStateNew and plugin active.
 	 */
 	PluginState state() { ensureLoaded(); return State; }
 	void setState(PluginState state);

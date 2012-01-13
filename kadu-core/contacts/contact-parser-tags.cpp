@@ -1,8 +1,9 @@
 /*
  * %kadu copyright begin%
+ * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2010, 2011 Piotr Dąbrowski (ultr@ultr.pl)
- * Copyright 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -21,53 +22,36 @@
 
 #include "accounts/account.h"
 #include "avatars/avatar.h"
-#include "buddies/buddy-preferred-manager.h"
 #include "icons/kadu-icon.h"
 #include "misc/path-conversion.h"
 #include "parser/parser.h"
 #include "protocols/protocol.h"
+#include "status/status-container-manager.h"
 #include "status/status-type-manager.h"
 
 #include "contact-parser-tags.h"
 
-static QString getAvatarPath(BuddyOrContact buddyOrContact)
+static QString getAvatarPath(Talkable talkable)
 {
-	Avatar avatar;
-	if (BuddyOrContact::ItemBuddy == buddyOrContact.type())
-		avatar = buddyOrContact.buddy().buddyAvatar();
-
-	if (!avatar || avatar.pixmap().isNull())
-		avatar = buddyOrContact.contact().contactAvatar();
-
-	if (!avatar || avatar.pixmap().isNull())
-		return QString();
-
+	const Avatar &avatar = talkable.avatar();
 	return webKitPath(avatar.filePath());
 }
 
-static QString getStatusIconPath(BuddyOrContact buddyOrContact)
+static QString getStatusIconPath(Talkable talkable)
 {
-	Buddy buddy = buddyOrContact.buddy();
-	Contact contact = buddyOrContact.contact();
-
-	if (buddy.isBlocked())
+	if (talkable.isBlocked())
 		return KaduIcon("kadu_icons", "16x16", "blocked").webKitPath();
 
-	if (contact.isBlocking())
+	if (talkable.isBlocking())
 		return KaduIcon("kadu_icons", "16x16", "blocking").webKitPath();
 
-	if (contact.contactAccount())
-	{
-		Protocol *protocol = contact.contactAccount().protocolHandler();
-		if (protocol)
-		{
-			const Status &status = contact.currentStatus();
-			return StatusTypeManager::instance()->statusIcon(
-					protocol->statusPixmapPath(), status.type(), !status.description().isEmpty(), false).webKitPath();
-		}
-	}
+	const Status &status = talkable.currentStatus();
 
-	return QString();
+	Protocol *protocol = talkable.account().protocolHandler();
+	if (protocol)
+		return StatusTypeManager::instance()->statusIcon(protocol->statusPixmapPath(), status).webKitPath();
+	else
+		return StatusContainerManager::instance()->statusIcon(status.type()).webKitPath();
 }
 
 void ContactParserTags::registerParserTags()

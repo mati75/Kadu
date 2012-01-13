@@ -1,7 +1,13 @@
 /*
  * %kadu copyright begin%
  * Copyright 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2010 Piotr Dąbrowski (ultr@ultr.pl)
+ * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
+ * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -39,10 +45,10 @@ private slots:
 	void decryptorDestroyed(QObject *decryptor);
 
 public:
-	DecryptorWrapper(const Chat &chat, EncryptionProviderManager *provider, QObject *parent = 0);
+	DecryptorWrapper(const Chat &chat, EncryptionProviderManager *providerManager, QObject *parent = 0);
 	virtual ~DecryptorWrapper() {}
 
-	virtual QByteArray decrypt(const QByteArray &data, bool *ok = 0);
+	virtual QByteArray decrypt(const QByteArray &data, Chat chat, bool *ok = 0);
 
 	const QList<Decryptor *> & decryptors() const { return Decryptors; }
 

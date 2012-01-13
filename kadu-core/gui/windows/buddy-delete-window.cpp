@@ -1,9 +1,13 @@
 /*
  * %kadu copyright begin%
+ * Copyright 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2010 Piotr Dąbrowski (ultr@ultr.pl)
- * Copyright 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
+ * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -28,8 +32,8 @@
 #include <QtGui/QStyle>
 #include <QtGui/QVBoxLayout>
 
-#include "buddies/buddy-additional-data-delete-handler.h"
 #include "buddies/buddy-additional-data-delete-handler-manager.h"
+#include "buddies/buddy-additional-data-delete-handler.h"
 #include "buddies/buddy-manager.h"
 #include "icons/kadu-icon.h"
 
@@ -44,6 +48,8 @@ BuddyDeleteWindow::BuddyDeleteWindow(const BuddySet &buddiesToDelete, QWidget *p
 	setModal(false);
 
 	createGui();
+
+	setMaximumHeight(250);
 }
 
 BuddyDeleteWindow::~BuddyDeleteWindow()
@@ -131,10 +137,10 @@ void BuddyDeleteWindow::deleteBuddy(Buddy buddy)
 		}
 	}
 
+	BuddyManager::instance()->removeItem(buddy);
+
 	foreach (Contact contact, buddy.contacts())
 		contact.setOwnerBuddy(Buddy::null);
-
-	BuddyManager::instance()->removeItem(buddy);
 }
 
 void BuddyDeleteWindow::accept()
@@ -143,10 +149,10 @@ void BuddyDeleteWindow::accept()
 
 	foreach (const Buddy &buddy, BuddiesToDelete)
 		deleteBuddy(buddy);
-	BuddyManager::instance()->store();
+	BuddyManager::instance()->ensureStored();
 }
 
 void BuddyDeleteWindow::reject()
 {
-    QDialog::reject();
+	QDialog::reject();
 }

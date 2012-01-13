@@ -1,10 +1,10 @@
 /*
  * %kadu copyright begin%
- * Copyright 2007, 2008 Dawid Stawiarski (neeo@kadu.net)
- * Copyright 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2005, 2007 Marcin Ślusarz (joi@kadu.net)
- * Copyright 2007, 2008, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2008 Michał Podsiadlik (michal@kadu.net)
+ * Copyright 2007, 2008, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2007, 2008 Dawid Stawiarski (neeo@kadu.net)
+ * Copyright 2005, 2007 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -24,8 +24,8 @@
 #ifndef KADU_THEMES_H
 #define KADU_THEMES_H
 
-#include <QtCore/QStringList>
 #include <QtCore/QMap>
+#include <QtCore/QStringList>
 
 #include "exports.h"
 

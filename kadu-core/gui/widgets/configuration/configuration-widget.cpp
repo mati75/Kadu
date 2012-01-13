@@ -1,14 +1,14 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Piotr Dąbrowski (ultr@ultr.pl)
- * Copyright 2007, 2008 Dawid Stawiarski (neeo@kadu.net)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2008, 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009, 2010 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2008, 2009, 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2007, 2008, 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2010 Tomasz Rostański (rozteck@interia.pl)
+ * Copyright 2010 Piotr Dąbrowski (ultr@ultr.pl)
  * Copyright 2008 Michał Podsiadlik (michal@kadu.net)
- * Copyright 2010 Tomasz Rostański (rozteck@interia.pl)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2007, 2008 Dawid Stawiarski (neeo@kadu.net)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -27,38 +27,39 @@
 
 #include <QtCore/QFile>
 #include <QtGui/QApplication>
-#include <QtGui/QWidget>
-#include <QtGui/QListWidget>
-#include <QtXml/QDomElement>
-#include <QtGui/QHBoxLayout>
-#include <QtGui/QVBoxLayout>
 #include <QtGui/QDialogButtonBox>
+#include <QtGui/QHBoxLayout>
+#include <QtGui/QListWidget>
+#include <QtGui/QVBoxLayout>
+#include <QtGui/QWidget>
+#include <QtXml/QDomElement>
 
 #include "configuration/configuration-file.h"
-#include "icons/kadu-icon.h"
-#include "gui/widgets/configuration/configuration-widget.h"
-#include "gui/widgets/configuration/config-group-box.h"
-#include "gui/widgets/configuration/config-widget.h"
-#include "gui/widgets/configuration/config-section.h"
-#include "gui/widgets/configuration/config-line-edit.h"
-#include "gui/widgets/configuration/config-gg-password-edit.h"
-#include "gui/widgets/configuration/config-check-box.h"
-#include "gui/widgets/configuration/config-spin-box.h"
-#include "gui/widgets/configuration/config-combo-box.h"
-#include "gui/widgets/configuration/config-hot-key-edit.h"
-#include "gui/widgets/configuration/config-path-list-edit.h"
-#include "gui/widgets/configuration/config-color-button.h"
-#include "gui/widgets/configuration/config-select-font.h"
-#include "gui/widgets/configuration/config-syntax-editor.h"
 #include "gui/widgets/configuration/config-action-button.h"
-#include "gui/widgets/configuration/config-radio-button.h"
-#include "gui/widgets/configuration/config-select-file.h"
-#include "gui/widgets/configuration/config-preview.h"
-#include "gui/widgets/configuration/config-slider.h"
+#include "gui/widgets/configuration/config-check-box.h"
+#include "gui/widgets/configuration/config-color-button.h"
+#include "gui/widgets/configuration/config-combo-box.h"
+#include "gui/widgets/configuration/config-gg-password-edit.h"
+#include "gui/widgets/configuration/config-group-box.h"
+#include "gui/widgets/configuration/config-hot-key-edit.h"
 #include "gui/widgets/configuration/config-label.h"
-#include "gui/widgets/configuration/config-list-widget.h"
+#include "gui/widgets/configuration/config-line-edit.h"
 #include "gui/widgets/configuration/config-line-separator.h"
+#include "gui/widgets/configuration/config-list-widget.h"
+#include "gui/widgets/configuration/config-path-list-edit.h"
+#include "gui/widgets/configuration/config-preview.h"
+#include "gui/widgets/configuration/config-proxy-combo-box.h"
+#include "gui/widgets/configuration/config-radio-button.h"
+#include "gui/widgets/configuration/config-section.h"
+#include "gui/widgets/configuration/config-select-file.h"
+#include "gui/widgets/configuration/config-select-font.h"
+#include "gui/widgets/configuration/config-slider.h"
+#include "gui/widgets/configuration/config-spin-box.h"
+#include "gui/widgets/configuration/config-syntax-editor.h"
+#include "gui/widgets/configuration/config-widget.h"
+#include "gui/widgets/configuration/configuration-widget.h"
 #include "gui/windows/configuration-window.h"
+#include "icons/kadu-icon.h"
 
 #include "debug.h"
 
@@ -337,6 +338,8 @@ ConfigWidget * ConfigurationWidget::appendUiElementFromDom(QDomNode uiElementNod
 		widget = new ConfigSelectFile(configGroupBox, DataManager);
 	else if (tagName == "preview")
 		widget = new ConfigPreview(configGroupBox, DataManager);
+	else if (tagName == "proxy-combo-box")
+		widget = new ConfigProxyComboBox(configGroupBox, DataManager);
 	else if (tagName == "slider")
 		widget = new ConfigSlider(configGroupBox, DataManager);
 	else if (tagName == "label")
@@ -361,8 +364,6 @@ ConfigWidget * ConfigurationWidget::appendUiElementFromDom(QDomNode uiElementNod
 	QString id = uiElement.attribute("id");
 	if (!id.isEmpty())
 		Widgets.insert(id, dynamic_cast<QWidget *>(widget));
-
-	widget->show();
 
 	kdebugf2();
 	return widget;

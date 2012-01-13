@@ -1,7 +1,13 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010 Tomasz Rostanski (rozteck@interia.pl)
+ * Copyright 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2010, 2011 Tomasz Rostanski (rozteck@interia.pl)
+ * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
+ * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -19,9 +25,13 @@
  */
 
 #include <QtCore/QUrl>
+#include <QtNetwork/QNetworkProxy>
 #include <QtNetwork/QNetworkReply>
 #include <QtNetwork/QNetworkRequest>
 #include <QtScript/QScriptEngine>
+
+#include "configuration/configuration-file.h"
+#include "network/proxy/network-proxy-manager.h"
 
 #include "scripts/network-reply-wrapper.h"
 
@@ -30,10 +40,36 @@
 NetworkAccessManagerWrapper::NetworkAccessManagerWrapper(QScriptEngine *engine, QObject *parent) :
 		QNetworkAccessManager(parent), Engine(engine), Utf8(false)
 {
+	configurationUpdated();
 }
 
 NetworkAccessManagerWrapper::~NetworkAccessManagerWrapper()
 {
+}
+
+void NetworkAccessManagerWrapper::configurationUpdated()
+{
+	NetworkProxy networkProxy;
+
+	if (config_file.readBoolEntry("SMS", "DefaultProxy", true))
+		networkProxy = NetworkProxyManager::instance()->defaultProxy();
+	else
+		networkProxy = NetworkProxyManager::instance()->byUuid(config_file.readEntry("SMS", "Proxy"));
+
+	QNetworkProxy proxy;
+
+	if (networkProxy)
+	{
+		proxy.setType(QNetworkProxy::HttpProxy);
+		proxy.setHostName(networkProxy.address());
+		proxy.setPort(networkProxy.port());
+		proxy.setUser(networkProxy.user());
+		proxy.setPassword(networkProxy.password());
+	}
+	else
+		proxy.setType(QNetworkProxy::NoProxy);
+
+	setProxy(proxy);
 }
 
 QScriptValue NetworkAccessManagerWrapper::get(const QString &url)

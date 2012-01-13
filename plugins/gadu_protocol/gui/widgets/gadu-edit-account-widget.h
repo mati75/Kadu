@@ -1,10 +1,14 @@
 /*
  * %kadu copyright begin%
- * Copyright 2011 Piotr Dąbrowski (ultr@ultr.pl)
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2008, 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011 Piotr Dąbrowski (ultr@ultr.pl)
+ * Copyright 2008 Michał Podsiadlik (michal@kadu.net)
+ * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
+ * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -37,7 +41,7 @@ class QVBoxLayout;
 class GaduAccountDetails;
 class GaduPersonalInfoWidget;
 class IdentitiesComboBox;
-class ProxyGroupBox;
+class ProxyComboBox;
 
 class GaduEditAccountWidget : public AccountEditWidget
 {
@@ -57,21 +61,23 @@ class GaduEditAccountWidget : public AccountEditWidget
 
 	QCheckBox *ChatImageSizeWarning;
 
-	QCheckBox *PrivateStatus;
-
 	IdentitiesComboBox *Identities;
 
 	GaduPersonalInfoWidget *gpiw;
-	ProxyGroupBox *Proxy;
 
 	QCheckBox *useDefaultServers;
 	QLineEdit *ipAddresses;
 	QCheckBox *AllowFileTransfers;
 	QCheckBox *UseTlsEncryption;
+
+	QCheckBox *ShowStatusToEveryone;
 	QCheckBox *SendTypingNotification;
+	QCheckBox *ReceiveSpam;
 
 	QLineEdit *ExternalIp;
 	QLineEdit *ExternalPort;
+
+	ProxyComboBox *ProxyCombo;
 
 	QPushButton *ApplyButton;
 	QPushButton *CancelButton;
@@ -85,7 +91,6 @@ class GaduEditAccountWidget : public AccountEditWidget
 	void createOptionsTab(QTabWidget *);
 
 	void loadAccountData();
-	void loadConnectionData();
 
 	void resetState();
 
@@ -95,6 +100,7 @@ private slots:
 	void remindPasssword();
 	void changePasssword();
 	void passwordChanged(const QString &newPassword);
+	void showStatusToEveryoneToggled(bool toggled);
 
 public:
 	explicit GaduEditAccountWidget(Account account, QWidget *parent = 0);

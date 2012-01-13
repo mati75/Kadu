@@ -1,10 +1,10 @@
 /*
  * %kadu copyright begin%
+ * Copyright 2009, 2010, 2010, 2011, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2010 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -23,15 +23,17 @@
 
 #include "accounts/account-details.h"
 #include "accounts/account-manager.h"
+#include "accounts/account-status-container.h"
 #include "configuration/configuration-file.h"
 #include "contacts/contact-manager.h"
-#include "contacts/contact.h"
-#include "identities/identity-manager.h"
 #include "icons/kadu-icon.h"
+#include "identities/identity-manager.h"
+#include "identities/identity.h"
 #include "misc/misc.h"
+#include "network/proxy/network-proxy-manager.h"
 #include "protocols/protocol.h"
 #include "protocols/protocols-manager.h"
-#include "status/status-changer-manager.h"
+#include "status/status-setter.h"
 
 #include "account-shared.h"
 
@@ -52,9 +54,12 @@ AccountShared * AccountShared::loadFromStorage(const QSharedPointer<StoragePoint
 }
 
 AccountShared::AccountShared(const QUuid &uuid) :
-		BaseStatusContainer(this), Shared(uuid),
-		ProtocolHandler(0), RememberPassword(false), HasPassword(false), Removing(false)
+		QObject(), Shared(uuid),
+		ProtocolHandler(0), MyStatusContainer(new AccountStatusContainer(this)), Details(0),
+		RememberPassword(false), HasPassword(false), UseDefaultProxy(true), PrivateStatus(true), Removing(false)
 {
+	AccountIdentity = new Identity();
+	AccountContact = new Contact();
 }
 
 AccountShared::~AccountShared()
@@ -63,8 +68,14 @@ AccountShared::~AccountShared()
 
 	triggerAllProtocolsUnregistered();
 
+	delete MyStatusContainer;
+	MyStatusContainer = 0;
+
 	delete ProtocolHandler;
 	ProtocolHandler = 0;
+
+	delete AccountContact;
+	delete AccountIdentity;
 }
 
 StorableObject * AccountShared::storageParent()
@@ -75,6 +86,38 @@ StorableObject * AccountShared::storageParent()
 QString AccountShared::storageNodeName()
 {
 	return QLatin1String("Account");
+}
+
+void AccountShared::importNetworkProxy()
+{
+	QString address = loadValue<QString>("ProxyHost");
+
+	int port = loadValue<int>("ProxyPort");
+	bool requiresAuthentication = loadValue<bool>("ProxyRequiresAuthentication");
+	QString user = loadValue<QString>("ProxyUser");
+	QString password = loadValue<QString>("ProxyPassword");
+
+	if (!requiresAuthentication)
+	{
+		user.clear();
+		password.clear();
+	}
+
+	NetworkProxy importedProxy;
+
+	if (!address.isEmpty())
+		importedProxy = NetworkProxyManager::instance()->byConfiguration(
+		            address, port, user, password, ActionCreateAndAdd);
+
+	if (loadValue<bool>("UseProxy"))
+		Proxy = importedProxy;
+
+	removeValue("UseProxy");
+	removeValue("ProxyHost");
+	removeValue("ProxyPort");
+	removeValue("ProxyRequiresAuthentication");
+	removeValue("ProxyUser");
+	removeValue("ProxyPassword");
 }
 
 void AccountShared::load()
@@ -98,12 +141,17 @@ void AccountShared::load()
 	if (RememberPassword)
 		Password = pwHash(loadValue<QString>("Password"));
 
-	ProxySettings.setEnabled(loadValue<bool>("UseProxy"));
-	ProxySettings.setAddress(loadValue<QString>("ProxyHost"));
-	ProxySettings.setPort(loadValue<int>("ProxyPort"));
-	ProxySettings.setRequiresAuthentication(loadValue<bool>("ProxyRequiresAuthentication"));
-	ProxySettings.setUser(loadValue<QString>("ProxyUser"));
-	ProxySettings.setPassword(loadValue<QString>("ProxyPassword"));
+	if (hasValue("UseProxy"))
+	{
+		UseDefaultProxy = false;
+		importNetworkProxy();
+	}
+	else
+	{
+		UseDefaultProxy = loadValue<bool>("UseDefaultProxy", true);
+		if (!UseDefaultProxy)
+			Proxy = NetworkProxyManager::instance()->byUuid(loadValue<QString>("Proxy"));
+	}
 
 	PrivateStatus = loadValue<bool>("PrivateStatus", true);
 
@@ -117,7 +165,12 @@ void AccountShared::store()
 
 	Shared::store();
 
-	storeValue("Identity", AccountIdentity.uuid().toString());
+	storeValue("Identity", AccountIdentity->uuid().toString());
+	storeValue("UseDefaultProxy", UseDefaultProxy);
+	if (UseDefaultProxy)
+		removeValue("Proxy");
+	else
+		storeValue("Proxy", Proxy.uuid().toString());
 
 	storeValue("Protocol", ProtocolName);
 	storeValue("Id", id());
@@ -127,13 +180,6 @@ void AccountShared::store()
 		storeValue("Password", pwHash(password()));
 	else
 		removeValue("Password");
-
-	storeValue("UseProxy", ProxySettings.enabled());
-	storeValue("ProxyHost", ProxySettings.address());
-	storeValue("ProxyPort", ProxySettings.port());
-	storeValue("ProxyRequiresAuthentication", ProxySettings.requiresAuthentication());
-	storeValue("ProxyUser", ProxySettings.user());
-	storeValue("ProxyPassword", ProxySettings.password());
 
 	storeValue("PrivateStatus", PrivateStatus);
 }
@@ -148,7 +194,14 @@ bool AccountShared::shouldStore()
 
 void AccountShared::aboutToBeRemoved()
 {
-	setDetails(0);
+	if (Details)
+	{
+		Details->ensureStored();
+		delete Details;
+		Details = 0;
+	}
+
+	AccountManager::instance()->unregisterItem(this);
 	setAccountIdentity(Identity::null);
 }
 
@@ -168,58 +221,84 @@ void AccountShared::setDisconnectStatus()
 	QString disconnectDescription = config_file.readEntry("General", "DisconnectDescription");
 
 	Status disconnectStatus;
-	disconnectStatus.setType("Offline");
+	disconnectStatus.setType(StatusTypeOffline);
 
 	if (disconnectWithCurrentDescription)
-		disconnectStatus.setDescription(status().description());
+		disconnectStatus.setDescription(MyStatusContainer->status().description());
 	else
 		disconnectStatus.setDescription(disconnectDescription);
 
-	doSetStatus(disconnectStatus); // this does not store status
+	StatusSetter::instance()->setStatus(MyStatusContainer, disconnectStatus);
+}
+
+void AccountShared::protocolFactoryLoaded(ProtocolFactory *factory)
+{
+	Q_ASSERT(factory);
+	Q_ASSERT(!ProtocolHandler);
+	Q_ASSERT(!Details);
+
+	ProtocolHandler = factory->createProtocolHandler(this);
+	Q_ASSERT(ProtocolHandler);
+
+	Details = factory->createAccountDetails(this);
+	Q_ASSERT(Details);
+
+	details()->ensureLoaded();
+
+	AccountManager::instance()->registerItem(this);
+	emit protocolLoaded();
+}
+
+void AccountShared::protocolFactoryUnloaded()
+{
+	if (Details)
+	{
+		Details->ensureStored();
+		delete Details;
+		Details = 0;
+	}
+
+	AccountManager::instance()->unregisterItem(this);
+	ProtocolHandler = 0;
+	emit protocolUnloaded();
 }
 
 void AccountShared::useProtocolFactory(ProtocolFactory *factory)
 {
+	// Else we might get deleted when deleting oldProtocolHandler.
+	Account guard(this);
+
 	Protocol *oldProtocolHandler = ProtocolHandler;
 
 	if (ProtocolHandler)
 	{
-		disconnect(ProtocolHandler, SIGNAL(statusChanged(Account, Status)), this, SIGNAL(statusUpdated()));
+		disconnect(ProtocolHandler, SIGNAL(statusChanged(Account, Status)), MyStatusContainer, SLOT(triggerStatusUpdated()));
 		disconnect(ProtocolHandler, SIGNAL(contactStatusChanged(Contact, Status)),
-				   this, SIGNAL(buddyStatusChanged(Contact, Status)));
+		           this, SIGNAL(buddyStatusChanged(Contact, Status)));
 		disconnect(ProtocolHandler, SIGNAL(connected(Account)), this, SIGNAL(connected()));
 		disconnect(ProtocolHandler, SIGNAL(disconnected(Account)), this, SIGNAL(disconnected()));
 
-		storeStatus(StatusChangerManager::instance()->manuallySetStatus(this));
 		setDisconnectStatus();
 	}
 
-	if (!factory)
-	{
-		setDetails(0);
-		ProtocolHandler = 0;
-		emit protocolUnloaded();
-	}
+	if (factory)
+		protocolFactoryLoaded(factory);
 	else
-	{
-		ProtocolHandler = factory->createProtocolHandler(this);
-		setDetails(factory->createAccountDetails(this));
-		emit protocolLoaded();
-	}
+		protocolFactoryUnloaded();
 
 	delete oldProtocolHandler;
 	oldProtocolHandler = 0;
 
 	if (ProtocolHandler)
 	{
-		connect(ProtocolHandler, SIGNAL(statusChanged(Account, Status)), this, SIGNAL(statusUpdated()));
+		connect(ProtocolHandler, SIGNAL(statusChanged(Account, Status)), MyStatusContainer, SLOT(triggerStatusUpdated()));
 		connect(ProtocolHandler, SIGNAL(contactStatusChanged(Contact, Status)),
 				this, SIGNAL(buddyStatusChanged(Contact, Status)));
 		connect(ProtocolHandler, SIGNAL(connected(Account)), this, SIGNAL(connected()));
 		connect(ProtocolHandler, SIGNAL(disconnected(Account)), this, SIGNAL(disconnected()));
 	}
 
-	emit statusUpdated();
+	MyStatusContainer->triggerStatusUpdated();
 }
 
 void AccountShared::protocolRegistered(ProtocolFactory *factory)
@@ -248,23 +327,6 @@ void AccountShared::protocolUnregistered(ProtocolFactory* factory)
 	useProtocolFactory(0);
 }
 
-void AccountShared::detailsAdded()
-{
-	details()->ensureLoaded();
-
-	AccountManager::instance()->detailsLoaded(this);
-}
-
-void AccountShared::detailsAboutToBeRemoved()
-{
-	details()->store();
-}
-
-void AccountShared::detailsRemoved()
-{
-	AccountManager::instance()->detailsUnloaded(this);
-}
-
 void AccountShared::doSetAccountIdentity(const Identity &accountIdentity)
 {
 	/* NOTE: This guard is needed to avoid deleting this object when removing
@@ -273,16 +335,16 @@ void AccountShared::doSetAccountIdentity(const Identity &accountIdentity)
 	 */
 	Account guard(this);
 
-	AccountIdentity.removeAccount(this);
-	AccountIdentity = accountIdentity;
-	AccountIdentity.addAccount(this);
+	AccountIdentity->removeAccount(this);
+	*AccountIdentity = accountIdentity;
+	AccountIdentity->addAccount(this);
 }
 
 void AccountShared::setAccountIdentity(const Identity &accountIdentity)
 {
 	ensureLoaded();
 
-	if (AccountIdentity == accountIdentity)
+	if (*AccountIdentity == accountIdentity)
 		return;
 
 	doSetAccountIdentity(accountIdentity);
@@ -306,7 +368,7 @@ void AccountShared::setProtocolName(const QString &protocolName)
 void AccountShared::doSetId(const QString &id)
 {
 	Id = id;
-	AccountContact.setId(id);
+	AccountContact->setId(id);
 }
 
 void AccountShared::setId(const QString &id)
@@ -325,71 +387,15 @@ Contact AccountShared::accountContact()
 {
 	ensureLoaded();
 
-	if (!AccountContact)
-		AccountContact = ContactManager::instance()->byId(this, Id, ActionCreateAndAdd);
+	if (!*AccountContact)
+		*AccountContact = ContactManager::instance()->byId(this, Id, ActionCreateAndAdd);
 
-	return AccountContact;
+	return *AccountContact;
 }
 
-QString AccountShared::statusContainerName()
+StatusContainer * AccountShared::statusContainer()
 {
-	return Id;
-}
-
-void AccountShared::doSetStatus(Status newStatus)
-{
-	if (ProtocolHandler)
-		ProtocolHandler->setStatus(newStatus);
-}
-
-Status AccountShared::status()
-{
-	if (ProtocolHandler)
-		return ProtocolHandler->status();
-	else
-		return Status();
-}
-
-bool AccountShared::isStatusSettingInProgress()
-{
-	if (ProtocolHandler)
-		return ProtocolHandler->isConnecting();
-	else
-		return false;
-}
-
-int AccountShared::maxDescriptionLength()
-{
-	if (ProtocolHandler)
-		return ProtocolHandler->maxDescriptionLength();
-	else
-		return 0;
-}
-
-QString AccountShared::statusDisplayName()
-{
-	return status().displayName();
-}
-
-KaduIcon AccountShared::statusIcon()
-{
-	return statusIcon(status());
-}
-
-KaduIcon AccountShared::statusIcon(const Status &status)
-{
-	if (ProtocolHandler)
-		return ProtocolHandler->statusIcon(status);
-	else
-		return KaduIcon();
-}
-
-KaduIcon AccountShared::statusIcon(const QString &statusType)
-{
-	if (ProtocolHandler)
-		return ProtocolHandler->statusIcon(statusType);
-	else
-		return KaduIcon();
+	return MyStatusContainer;
 }
 
 void AccountShared::setPrivateStatus(bool isPrivate)
@@ -403,14 +409,6 @@ void AccountShared::setPrivateStatus(bool isPrivate)
 		ProtocolHandler->changePrivateMode();
 }
 
-QList<StatusType *> AccountShared::supportedStatusTypes()
-{
-	if (ProtocolHandler)
-		return ProtocolHandler->protocolFactory()->supportedStatusTypes();
-	else
-		return QList<StatusType *>();
-}
-
 void AccountShared::fileTransferServiceChanged(FileTransferService *service)
 {
 	if (service)
@@ -418,3 +416,5 @@ void AccountShared::fileTransferServiceChanged(FileTransferService *service)
 	else
 		emit fileTransferServiceUnregistered();
 }
+
+KaduShared_PropertyPtrReadDef(AccountShared, Identity, accountIdentity, AccountIdentity)

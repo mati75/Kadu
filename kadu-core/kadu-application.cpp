@@ -12,9 +12,9 @@
  * Copyright 2002, 2003 Dariusz Jagodzik (mast3r@kadu.net)
  * %kadu copyright begin%
  * Copyright 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2010 Tomasz Rostański (rozteck@interia.pl)
  * Copyright 2010, 2011 Tomasz Rostanski (rozteck@interia.pl)
+ * Copyright 2010 Tomasz Rostański (rozteck@interia.pl)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -47,9 +47,10 @@
 #endif // Q_WS_X11 && !Q_WS_MAEMO_5
 
 KaduApplication::KaduApplication(int &argc, char *argv[]) :
-		QApplication(argc, argv)
+		QApplication(argc, argv), SessionClosing(false)
 {
 	setApplicationName("Kadu");
+	setQuitOnLastWindowClosed(false);
 
 #if defined(Q_WS_X11) && !defined(Q_WS_MAEMO_5)
 	xfixes_event_base = -1;
@@ -67,12 +68,13 @@ KaduApplication::KaduApplication(int &argc, char *argv[]) :
 #endif // Q_WS_X11 && !Q_WS_MAEMO_5
 }
 
-// TODO: this is a hack, see KaduWindow::closeEvent()
 void KaduApplication::commitData(QSessionManager &manager)
 {
-	Q_UNUSED(manager)
+	SessionClosing = true;
 
-	qApp->quit();
+	QApplication::commitData(manager);
+
+	SessionClosing = false;
 }
 
 #if defined(Q_WS_X11) && !defined(Q_WS_MAEMO_5)
@@ -87,3 +89,8 @@ bool KaduApplication::x11EventFilter(XEvent *event)
 	return false;
 }
 #endif // Q_WS_X11 && !Q_WS_MAEMO_5
+
+bool KaduApplication::sessionClosing() const
+{
+	return SessionClosing;
+}

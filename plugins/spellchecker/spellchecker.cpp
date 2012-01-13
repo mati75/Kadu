@@ -1,13 +1,14 @@
 /*
  * %kadu copyright begin%
- * Copyright 2011 Sławomir Stępień (s.stepien@interia.pl)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2011 Tomasz Rostanski (rozteck@interia.pl)
+ * Copyright 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2009, 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2008, 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2009 Michał Podsiadlik (michal@kadu.net)
  * Copyright 2009 Tomasz Rostański (rozteck@interia.pl)
+ * Copyright 2011 Sławomir Stępień (s.stepien@interia.pl)
+ * Copyright 2009 Michał Podsiadlik (michal@kadu.net)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -42,12 +43,12 @@
 #include "macspellchecker.h"
 #endif
 
+#include "gui/widgets/chat-edit-box.h"
 #include "gui/widgets/chat-widget-manager.h"
 #include "gui/widgets/chat-widget.h"
 #include "gui/widgets/configuration/config-group-box.h"
 #include "gui/widgets/configuration/configuration-widget.h"
 #include "gui/widgets/custom-input.h"
-#include "gui/widgets/chat-edit-box.h"
 #include "gui/windows/message-dialog.h"
 #include "misc/misc.h"
 
@@ -151,31 +152,44 @@ bool SpellChecker::addCheckedLang(const QString &name)
 	if (MyCheckers.contains(name))
 		return true;
 
+	bool ok = true;
+	const char *errorMsg = 0;
+
 #if defined(HAVE_ASPELL)
 	aspell_config_replace(SpellConfig, "lang", name.toAscii().constData());
 
 	// create spell checker using prepared configuration
 	AspellCanHaveError *possibleErr = new_aspell_speller(SpellConfig);
-	if (aspell_error_number(possibleErr) != 0)
-	{
-		MessageDialog::show(KaduIcon("dialog-error"), tr("Kadu"), aspell_error_message(possibleErr));
-		return false;
-	}
+	if (aspell_error_number(possibleErr) == 0)
+		MyCheckers.insert(name, to_aspell_speller(possibleErr));
 	else
-		MyCheckers[name] = to_aspell_speller(possibleErr);
+	{
+		errorMsg = aspell_error_message(possibleErr);
+		ok = false;
+	}
 #elif defined(HAVE_ENCHANT)
 	try
 	{
-		MyCheckers[name] = enchant::Broker::instance()->request_dict(name.toStdString());
+		MyCheckers.insert(name, enchant::Broker::instance()->request_dict(name.toStdString()));
 	}
 	catch (enchant::Exception &e)
 	{
-		MessageDialog::show(KaduIcon("dialog-error"), tr("Kadu"), e.what());
-		return false;
+		errorMsg = e.what();
+		ok = false;
 	}
 #elif defined(Q_WS_MAC)
-	MyCheckers[name] = new MacSpellChecker();
+	MyCheckers.insert(name, new MacSpellChecker());
 #endif
+
+	if (!ok)
+	{
+		MessageDialog::show(KaduIcon("dialog-error"), tr("Kadu"), tr("Could not find dictionary for %1 language.").arg(name)
+				+ (qstrlen(errorMsg) > 0 ? tr("Details: %1.").arg(errorMsg) : QString()));
+
+		// remove this checker from configuration
+		configurationWindowApplied();
+		return false;
+	}
 
 	if (MyCheckers.size() == 1)
 		foreach (ChatWidget *chat, ChatWidgetManager::instance()->chats())
@@ -220,13 +234,8 @@ void SpellChecker::buildCheckers()
 		aspell_config_replace(SpellConfig, "ignore-case", "false");
 #endif
 
-	// load languages to check from configuration
-	QString checkedStr = SpellcheckerConfiguration::instance()->checked();
-	QStringList checkedList = checkedStr.split(',', QString::SkipEmptyParts);
-
-	// create spell checkers for each language
-	for (int i = 0; i < checkedList.count(); i++)
-		addCheckedLang(checkedList.at(i));
+	foreach (const QString &checked, SpellcheckerConfiguration::instance()->checked())
+		addCheckedLang(checked);
 }
 
 void SpellChecker::buildMarkTag()
@@ -293,7 +302,7 @@ void SpellChecker::mainConfigurationWindowCreated(MainConfigurationWindow *mainC
 	connect(mainConfigurationWindow, SIGNAL(configurationWindowApplied()),
 			this, SLOT(configurationWindowApplied()));
 
-#if defined(HAVE_ASPELL)
+#if !defined(HAVE_ASPELL)
 	mainConfigurationWindow->widget()->widgetById("spellchecker/ignoreCase")->hide();
 #endif
 

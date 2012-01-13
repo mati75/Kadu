@@ -1,6 +1,8 @@
 /*
  * %kadu copyright begin%
+ * Copyright 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2010 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
@@ -21,12 +23,12 @@
 #include <stdio.h>
 
 #include "model/roles.h"
-#include "protocols/protocol.h"
-#include "protocols/protocol-factory.h"
 #include "protocols/filter/abstract-protocol-filter.h"
+#include "protocols/protocol-factory.h"
+#include "protocols/protocol.h"
 
-#include "protocols-model.h"
 #include "protocols-model-proxy.h"
+#include "protocols-model.h"
 
 ProtocolsModelProxy::ProtocolsModelProxy(QObject *parent)
 	: QSortFilterProxyModel(parent), SourceProtocolModel(0)
@@ -103,6 +105,9 @@ bool ProtocolsModelProxy::filterAcceptsRow(int sourceRow, const QModelIndex &sou
 
 void ProtocolsModelProxy::addFilter(AbstractProtocolFilter *filter)
 {
+	if (ProtocolFilters.contains(filter))
+		return;
+
 	ProtocolFilters.append(filter);
 	invalidateFilter();
 	connect(filter, SIGNAL(filterChanged()), this, SLOT(invalidate()));
@@ -110,7 +115,9 @@ void ProtocolsModelProxy::addFilter(AbstractProtocolFilter *filter)
 
 void ProtocolsModelProxy::removeFilter(AbstractProtocolFilter *filter)
 {
-	ProtocolFilters.removeAll(filter);
+	if (ProtocolFilters.removeAll(filter) <= 0)
+		return;
+
 	invalidateFilter();
 	disconnect(filter, SIGNAL(filterChanged()), this, SLOT(invalidate()));
 }

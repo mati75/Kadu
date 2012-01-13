@@ -1,10 +1,10 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Piotr Dąbrowski (ultr@ultr.pl)
- * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2010, 2011 Piotr Dąbrowski (ultr@ultr.pl)
  * Copyright 2010 Maciej Płaza (plaza.maciej@gmail.com)
+ * Copyright 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -30,18 +30,18 @@
 #include <QtGui/QSpinBox>
 
 #include "buddies/buddy-preferred-manager.h"
-#include "buddies/buddy-or-contact.h"
 #include "configuration/config-file-data-manager.h"
 #include "core/core.h"
 #include "gui/widgets/configuration/config-group-box.h"
 #include "gui/widgets/configuration/configuration-widget.h"
 #include "notify/chat-notification.h"
+#include "talkable/talkable.h"
 
 #include "hint-over-user-configuration-window.h"
 #include "hints-plugin.h"
 
-#include "activate.h"
 #include "misc/misc.h"
+#include "activate.h"
 
 #include "hints-configuration-ui-handler.h"
 

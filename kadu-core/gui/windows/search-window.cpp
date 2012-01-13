@@ -1,12 +1,12 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Piotr Dąbrowski (ultr@ultr.pl)
- * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009, 2010 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010 Piotr Dąbrowski (ultr@ultr.pl)
  * Copyright 2009 Michał Podsiadlik (michal@kadu.net)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -27,8 +27,8 @@
 #include <QtGui/QButtonGroup>
 #include <QtGui/QCheckBox>
 #include <QtGui/QComboBox>
-#include <QtGui/QGroupBox>
 #include <QtGui/QGridLayout>
+#include <QtGui/QGroupBox>
 #include <QtGui/QKeyEvent>
 #include <QtGui/QLabel>
 #include <QtGui/QLineEdit>
@@ -41,22 +41,25 @@
 #include "buddies/buddy-preferred-manager.h"
 #include "chat/chat-manager.h"
 #include "configuration/configuration-file.h"
-#include "contacts/contact.h"
 #include "contacts/contact-manager.h"
 #include "contacts/contact-set.h"
+#include "contacts/contact.h"
 #include "core/core.h"
-#include "icons/kadu-icon.h"
+#include "gui/actions/base-action-context.h"
 #include "gui/widgets/chat-widget-manager.h"
+#include "gui/widgets/chat-widget.h"
+#include "gui/widgets/toolbar.h"
 #include "gui/windows/add-buddy-window.h"
 #include "gui/windows/kadu-window.h"
 #include "gui/windows/message-dialog.h"
 #include "gui/windows/search-window-actions.h"
+#include "icons/kadu-icon.h"
 #include "misc/misc.h"
-#include "gui/widgets/toolbar.h"
-#include "protocols/protocol.h"
 #include "protocols/protocol-factory.h"
+#include "protocols/protocol.h"
 #include "protocols/services/search-service.h"
 #include "qt/long-validator.h"
+#include "status/status-container.h"
 
 #include "search-window.h"
 
@@ -65,16 +68,16 @@ void SearchWindow::createDefaultToolbars(const QDomElement &toolbarsConfig)
 	QDomElement dockAreaConfig = getDockAreaConfigElement(toolbarsConfig, "search_bottomDockArea");
 	QDomElement toolbarConfig = xml_config_file->createElement(dockAreaConfig, "ToolBar");
 
-	addToolButton(toolbarConfig, "FirstSearch", Qt::ToolButtonTextUnderIcon);
-	addToolButton(toolbarConfig, "NextResults", Qt::ToolButtonTextUnderIcon);
-	addToolButton(toolbarConfig, "StopSearch", Qt::ToolButtonTextUnderIcon);
+	addToolButton(toolbarConfig, "firstSearchAction", Qt::ToolButtonTextUnderIcon);
+	addToolButton(toolbarConfig, "nextResultsAction", Qt::ToolButtonTextUnderIcon);
+	addToolButton(toolbarConfig, "stopSearchAction", Qt::ToolButtonTextUnderIcon);
 	addToolButton(toolbarConfig, "clearSearchAction", Qt::ToolButtonTextUnderIcon);
 	addToolButton(toolbarConfig, "addSearchedAction", Qt::ToolButtonTextUnderIcon);
 	addToolButton(toolbarConfig, "chatSearchedAction", Qt::ToolButtonTextUnderIcon);
 }
 
 SearchWindow::SearchWindow(QWidget *parent, Buddy buddy) :
-		MainWindow("search", parent),
+		MainWindow(new BaseActionContext(), "search", parent),
 		CurrentSearchService(0), UinEdit(0), FirstNameEdit(0), LastNameEdit(0), NickNameEdit(0),
 		StartBirthYearEdit(0), EndBirthYearEdit(0), CityEdit(0),
 		GenderComboBox(0), OnlyActiveCheckBox(0), UinRadioButton(0), PersonalDataRadioButton(0),
@@ -84,6 +87,10 @@ SearchWindow::SearchWindow(QWidget *parent, Buddy buddy) :
 
 	setAttribute(Qt::WA_DeleteOnClose);
 	setWindowTitle(tr("Search User in Directory"));
+
+	RoleSet roles;
+	roles.insert(ContactRole);
+	static_cast<BaseActionContext *>(actionContext())->setRoles(roles);
 
 	if (buddy)
 	{
@@ -101,7 +108,7 @@ SearchWindow::SearchWindow(QWidget *parent, Buddy buddy) :
 				CurrentAccount = account;
 				break;
 			}
-		
+
 		if (CurrentAccount.isNull())
 			CurrentAccount = AccountManager::instance()->defaultAccount();
 	}
@@ -121,7 +128,7 @@ SearchWindow::SearchWindow(QWidget *parent, Buddy buddy) :
 
 	if (CurrentSearchCriteria.SearchBuddy)
 	{
-		QList<Contact> contacts = CurrentSearchCriteria.SearchBuddy.contacts(CurrentAccount);
+		QVector<Contact> contacts = CurrentSearchCriteria.SearchBuddy.contacts(CurrentAccount);
 		Contact contact = contacts.isEmpty() ? Contact::null : contacts.at(0);
 		if (contact)
 			// it should call uinTyped() slot
@@ -136,7 +143,7 @@ SearchWindow::SearchWindow(QWidget *parent, Buddy buddy) :
 
 SearchWindow::~SearchWindow()
 {
- 	saveWindowGeometry(this, "General", "SearchWindowGeometry");
+	saveWindowGeometry(this, "General", "SearchWindowGeometry");
 }
 
 void SearchWindow::createGui()
@@ -322,12 +329,13 @@ void SearchWindow::addFound()
 
 void SearchWindow::chatFound()
 {
-	ContactSet contacts = selectedContacts();
+	const ContactSet &contacts = selectedContacts();
 	if (!contacts.isEmpty())
 	{
-		Chat chat = ChatManager::instance()->findChat(contacts, true);
-		if (chat)
-			ChatWidgetManager::instance()->openPendingMessages(chat, true);
+		const Chat &chat = ChatManager::instance()->findChat(contacts, true);
+		ChatWidget * const chatWidget = ChatWidgetManager::instance()->byChat(chat, true);
+		if (chatWidget)
+			chatWidget->activate();
 	}
 }
 
@@ -349,7 +357,7 @@ void SearchWindow::stopSearch()
 	if ((PersonalDataRadioButton->isChecked() && !isPersonalDataEmpty()) ||
 			(UinRadioButton->isChecked() && !UinEdit->text().isEmpty()))
 		setActionEnabled(SearchWindowActions::instance()->FirstSearch, true);
-	
+
 	if (!ResultsListWidget->selectedItems().isEmpty())
 	{
 		if (PersonalDataRadioButton->isChecked() && !isPersonalDataEmpty())
@@ -358,7 +366,7 @@ void SearchWindow::stopSearch()
 		setActionEnabled(SearchWindowActions::instance()->AddFound, true);
 		setActionEnabled(SearchWindowActions::instance()->ChatFound, true);
 	}
-	
+
 	if (ResultsListWidget->topLevelItemCount() > 0)
 		setActionEnabled(SearchWindowActions::instance()->ClearResults, true);
 }
@@ -459,7 +467,7 @@ void SearchWindow::newSearchResults(const BuddyList &buddies)
 {
 	foreach (const Buddy &buddy, buddies)
 	{
-		QList<Contact> contacts = buddy.contacts(CurrentAccount);
+		QVector<Contact> contacts = buddy.contacts(CurrentAccount);
 		Contact contact = contacts.isEmpty() ? Contact::null : contacts.at(0);
 		QList<QTreeWidgetItem *> items = ResultsListWidget->findItems(contact.id(), Qt::MatchExactly, 1);
 		QTreeWidgetItem *treeItem = items.isEmpty() ? 0 : items.at(0);
@@ -478,7 +486,7 @@ void SearchWindow::newSearchResults(const BuddyList &buddies)
 			strings << QString() << contact.id() << buddy.firstName()
 					<< buddy.city() << buddy.nickName() << QString::number(buddy.birthYear());
 			treeItem = new QTreeWidgetItem(ResultsListWidget, strings);
-			treeItem->setIcon(0, contact.contactAccount().data()->statusIcon(contact.currentStatus()).icon());
+			treeItem->setIcon(0, contact.contactAccount().statusContainer()->statusIcon(contact.currentStatus()).icon());
 		}
 	}
 
@@ -589,7 +597,7 @@ void SearchWindow::selectionChanged()
 
 void SearchWindow::setActionEnabled(ActionDescription *actionDescription, bool enable)
 {
-	Action *action = actionDescription->action(this);
+	Action *action = actionDescription->action(actionContext());
 	if (action)
 		action->setEnabled(enable);
 }

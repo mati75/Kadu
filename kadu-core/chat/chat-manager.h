@@ -1,11 +1,11 @@
 /*
  * %kadu copyright begin%
  * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2009 Michał Podsiadlik (michal@kadu.net)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -25,10 +25,11 @@
 #ifndef CHAT_MANAGER_H
 #define CHAT_MANAGER_H
 
-#include <QtCore/QList>
 #include <QtCore/QObject>
 #include <QtCore/QUuid>
+#include <QtCore/QVector>
 
+#include "message/message.h"
 #include "storage/manager.h"
 
 #include "chat.h"
@@ -93,9 +94,13 @@ class KADUAPI ChatManager : public QObject, public Manager<Chat>
 	ChatManager();
 	virtual ~ChatManager();
 
-	friend class ChatShared;
-	void detailsLoaded(Chat chat);
-	void detailsUnloaded(Chat chat);
+	void init();
+
+private slots:
+	void chatDataUpdated();
+
+	void unreadMessageAdded(const Message &message);
+	void unreadMessageRemoved(const Message &message);
 
 protected:
 	virtual void itemAboutToBeRegistered(Chat item);
@@ -130,6 +135,8 @@ public:
 
 	Chat findChat(const BuddySet &buddies, bool create = true);
 	Chat findChat(const ContactSet &contacts, bool create = true);
+
+	Chat byDisplay(const QString &display);
 
 signals:
 	/**
@@ -175,6 +182,8 @@ signals:
 	 * chat loses its full data.
 	 */
 	void chatRemoved(Chat chat);
+
+	void chatUpdated(const Chat &chat);
 
 };
 

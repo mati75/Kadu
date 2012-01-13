@@ -1,9 +1,11 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Piotr Dąbrowski (ultr@ultr.pl)
- * Copyright 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2008, 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2010, 2011 Piotr Dąbrowski (ultr@ultr.pl)
+ * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
+ * Copyright 2007, 2008, 2009, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -28,10 +30,11 @@
 #include <QtGui/QPushButton>
 #include <QtGui/QVBoxLayout>
 
-#include "buddies/filter/non-buddy-filter.h"
 #include "buddies/buddy-manager.h"
+#include "core/core.h"
 #include "gui/widgets/select-buddy-combo-box.h"
 #include "icons/icons-manager.h"
+#include "talkable/filter/exclude-buddy-talkable-filter.h"
 
 #include "merge-buddies-window.h"
 
@@ -62,10 +65,9 @@ void MergeBuddiesWindow::createGui()
 
 	chooseLayout->addWidget(new QLabel(tr("Contact:"), chooseWidget));
 	SelectCombo = new SelectBuddyComboBox(chooseWidget);
-	NonBuddyFilter *filter = new NonBuddyFilter(SelectCombo);
-	filter->setBuddy(MyBuddy);
-	SelectCombo->addFilter(filter);
-	connect(SelectCombo, SIGNAL(buddyChanged(Buddy)), this, SLOT(selectedBuddyChanged(Buddy)));
+	SelectCombo->addFilter(new ExcludeBuddyTalkableFilter(MyBuddy, SelectCombo));
+	SelectCombo->addFilter(new ExcludeBuddyTalkableFilter(Core::instance()->myself(), SelectCombo));
+	connect(SelectCombo, SIGNAL(currentIndexChanged(int)), this, SLOT(selectedBuddyChanged()));
 	chooseLayout->addWidget(SelectCombo);
 
 	layout->addStretch(100);
@@ -84,9 +86,9 @@ void MergeBuddiesWindow::createGui()
 	buttons->addButton(cancel, QDialogButtonBox::DestructiveRole);
 }
 
-void MergeBuddiesWindow::selectedBuddyChanged(Buddy buddy)
+void MergeBuddiesWindow::selectedBuddyChanged()
 {
-	MergeButton->setEnabled(!buddy.isNull());
+	MergeButton->setEnabled(!SelectCombo->currentBuddy().isNull());
 }
 
 void MergeBuddiesWindow::accept()

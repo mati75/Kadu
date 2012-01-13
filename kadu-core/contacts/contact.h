@@ -1,11 +1,13 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Piotr Dąbrowski (ultr@ultr.pl)
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2008, 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2008, 2009, 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2008, 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2009 Michał Podsiadlik (michal@kadu.net)
+ * Copyright 2010 Piotr Dąbrowski (ultr@ultr.pl)
+ * Copyright 2008, 2009 Michał Podsiadlik (michal@kadu.net)
+ * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
+ * Copyright 2007, 2008, 2009, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -29,6 +31,7 @@
 #include <QtXml/QDomElement>
 
 #include "buddies/buddy.h"
+#include "contacts/contact-shared.h"
 #include "status/status.h"
 #include "storage/shared-base.h"
 
@@ -57,7 +60,12 @@ public:
 	Contact(const Contact &copy);
 	virtual ~Contact();
 
-	KaduSharedBase_Property(ContactDetails *, details, Details)
+	QString display(bool useBuddyData) const;
+	Avatar avatar(bool useBuddyData) const;
+
+	void removeOwnerBuddy() const;
+
+	KaduSharedBase_PropertyRead(ContactDetails *, details, Details)
 	KaduSharedBase_PropertyRead(QUuid, uuid, Uuid)
 	KaduSharedBase_PropertyRead(QSharedPointer<StoragePoint>, storage, Storage)
 	KaduSharedBase_PropertyCRW(Account, contactAccount, ContactAccount)
@@ -73,6 +81,8 @@ public:
 	KaduSharedBase_Property(unsigned int, port, Port)
 	KaduSharedBase_PropertyCRW(QString, dnsName, DnsName)
 	KaduSharedBase_Property(short int, maximumImageSize, MaximumImageSize)
+	KaduSharedBase_Property(quint16, unreadMessagesCount, UnreadMessagesCount)
+	KaduSharedBase_PropertyBoolRead(Anonymous)
 
 };
 

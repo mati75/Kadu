@@ -1,18 +1,18 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010, 2011 Piotr Dąbrowski (ultr@ultr.pl)
- * Copyright 2007, 2008, 2009 Dawid Stawiarski (neeo@kadu.net)
- * Copyright 2004 Tomasz Jarzynka (tomee@cpi.pl)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2008, 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2008, 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2004, 2005, 2006, 2007 Marcin Ślusarz (joi@kadu.net)
- * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
- * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2008, 2009 Michał Podsiadlik (michal@kadu.net)
  * Copyright 2010 Tomasz Rostański (rozteck@interia.pl)
- * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2010, 2011 Piotr Dąbrowski (ultr@ultr.pl)
+ * Copyright 2004 Tomasz Jarzynka (tomee@cpi.pl)
+ * Copyright 2008, 2009 Michał Podsiadlik (michal@kadu.net)
+ * Copyright 2009, 2009 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
  * Copyright 2005 Paweł Płuciennik (pawel_p@kadu.net)
+ * Copyright 2007, 2008, 2009, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2007, 2008, 2009 Dawid Stawiarski (neeo@kadu.net)
+ * Copyright 2004, 2005, 2006, 2007 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -37,25 +37,26 @@
 #include <QtGui/QX11Info>
 #endif
 
-#include "accounts/account.h"
 #include "accounts/account-manager.h"
+#include "accounts/account.h"
 #include "buddies/buddy-manager.h"
-#include "buddies/buddy-shared.h"
-#include "buddies/group.h"
 #include "buddies/group-manager.h"
-#include "chat/message/message.h"
+#include "buddies/group.h"
 #include "configuration/configuration-file.h"
-#include "contacts/contact.h"
 #include "contacts/contact-manager.h"
+#include "contacts/contact.h"
 #include "core/core.h"
 #include "gui/actions/action.h"
-#include "gui/widgets/buddies-list-view-menu-manager.h"
 #include "gui/widgets/chat-widget-manager.h"
+#include "gui/widgets/chat-widget.h"
 #include "gui/widgets/custom-input.h"
+#include "gui/widgets/talkable-menu-manager.h"
 #include "gui/windows/kadu-window.h"
 #include "gui/windows/main-configuration-window.h"
 #include "gui/windows/main-window.h"
 #include "gui/windows/message-dialog.h"
+#include "message/message-manager.h"
+#include "message/message.h"
 #include "multilogon/multilogon-session.h"
 #include "notify/account-notification.h"
 #include "notify/buddy-notify-data.h"
@@ -64,13 +65,14 @@
 #include "notify/notifier.h"
 #include "notify/notify-configuration-ui-handler.h"
 #include "notify/window-notifier.h"
-#include "protocols/services/chat-service.h"
 #include "protocols/services/multilogon-service.h"
 #include "status/status-container-manager.h"
+#include "status/status-type-data.h"
+#include "status/status-type-manager.h"
 
+#include "misc/misc.h"
 #include "activate.h"
 #include "debug.h"
-#include "misc/misc.h"
 
 #include "new-message-notification.h"
 #include "status-changed-notification.h"
@@ -142,6 +144,7 @@ void NotificationManager::init()
 	configurationUpdated();
 	connect(SilentModeActionDescription, SIGNAL(actionCreated(Action *)), this, SLOT(silentModeActionCreated(Action *)));
 
+	connect(MessageManager::instance(), SIGNAL(messageReceived(Message)), this, SLOT(messageReceived(Message)));
 	connect(StatusContainerManager::instance(), SIGNAL(statusUpdated()), this, SLOT(statusUpdated()));
 
 	foreach (const Group &group, GroupManager::instance()->items())
@@ -210,21 +213,20 @@ void NotificationManager::notifyAboutUserActionActivated(QAction *sender, bool t
 	if (!action)
 		return;
 
-	BuddySet buddies = action->buddies();
+	const BuddySet &buddies = action->context()->buddies();
 
 	bool on = true;
 	foreach (const Buddy &buddy, buddies)
-	{
-		BuddyNotifyData *bnd = 0;
 		if (buddy.data())
-			bnd = buddy.data()->moduleStorableData<BuddyNotifyData>("notify", this, false);
-
-		if (!bnd || !bnd->notify())
 		{
-			on = false;
-			break;
+			BuddyNotifyData *bnd = buddy.data()->moduleStorableData<BuddyNotifyData>("notify", this, false);
+
+			if (!bnd || !bnd->notify())
+			{
+				on = false;
+				break;
+			}
 		}
-	}
 
 	if (NotifyAboutAll)
 	{
@@ -237,21 +239,16 @@ void NotificationManager::notifyAboutUserActionActivated(QAction *sender, bool t
 		if (buddy.isNull() || buddy.isAnonymous())
 			continue;
 
-		BuddyNotifyData *bnd = 0;
-		if (buddy.data())
-			bnd = buddy.data()->moduleStorableData<BuddyNotifyData>("notify", this, true);
-		if (!bnd)
-			continue;
-
+		BuddyNotifyData *bnd = buddy.data()->moduleStorableData<BuddyNotifyData>("notify", this, true);
 		if (bnd->notify() == on)
 		{
 			bnd->setNotify(!on);
-			bnd->store();
+			bnd->ensureStored();
 		}
 	}
 
 	foreach (Action *action, notifyAboutUserActionDescription->actions())
-		if (action->contacts().toBuddySet() == buddies)
+		if (action->context()->contacts().toBuddySet() == buddies)
 			action->setChecked(!on);
 
 	kdebugf2();
@@ -271,7 +268,7 @@ void NotificationManager::silentModeActionActivated(QAction *sender, bool toggle
 
 void NotificationManager::statusUpdated()
 {
-	if (SilentModeWhenDnD && !silentMode() && StatusContainerManager::instance()->status().type() == "DoNotDisturb")
+	if (SilentModeWhenDnD && !silentMode() && StatusContainerManager::instance()->status().type() == StatusTypeDoNotDisturb)
 	{
 		foreach (Action *action, SilentModeActionDescription->actions())
 			action->setChecked(false);
@@ -297,11 +294,6 @@ void NotificationManager::accountRegistered(Account account)
 			this, SLOT(contactStatusChanged(Contact, Status)));
 	connect(account, SIGNAL(connected()), this, SLOT(accountConnected()));
 
-	ChatService *chatService = protocol->chatService();
-	if (chatService)
-		connect(chatService, SIGNAL(messageReceived(const Message &)),
-				this, SLOT(messageReceived(const Message &)));
-
 	MultilogonService *multilogonService = protocol->multilogonService();
 	if (multilogonService)
 	{
@@ -322,11 +314,6 @@ void NotificationManager::accountUnregistered(Account account)
 	disconnect(account, SIGNAL(buddyStatusChanged(Contact, Status)),
 			this, SLOT(contactStatusChanged(Contact, Status)));
 	disconnect(account, SIGNAL(connected()), this, SLOT(accountConnected()));
-
-	ChatService *chatService = protocol->chatService();
-	if (chatService)
-		disconnect(chatService, SIGNAL(messageReceived(const Message &)),
-				this, SLOT(messageReceived(const Message &)));
 
 	MultilogonService *multilogonService = protocol->multilogonService();
 	if (multilogonService)
@@ -397,7 +384,8 @@ void NotificationManager::contactStatusChanged(Contact contact, Status oldStatus
 			!oldStatus.isDisconnected())
 		return;
 
-	QString changedTo = "/To" + status.type();
+	const StatusTypeData &typeData = StatusTypeManager::instance()->statusTypeData(status.type());
+	QString changedTo = "/To" + typeData.name();
 
 	StatusChangedNotification *statusChangedNotification = new StatusChangedNotification(changedTo, contact);
 
@@ -410,7 +398,7 @@ void NotificationManager::messageReceived(const Message &message)
 {
 	kdebugf();
 
-	ChatWidget *chatWidget = ChatWidgetManager::instance()->byChat(message.messageChat());
+	ChatWidget *chatWidget = ChatWidgetManager::instance()->byChat(message.messageChat(), false);
 	if (!chatWidget)
 		notify(new MessageNotification(MessageNotification::NewChat, message));
 	else if (!NewMessageOnlyIfInactive || !_isWindowActiveOrFullyVisible(chatWidget))
@@ -452,6 +440,7 @@ void NotificationManager::unregisterNotifyEvent(NotifyEvent *notifyEvent)
 void NotificationManager::registerNotifier(Notifier *notifier)
 {
 	kdebugf();
+
 	if (Notifiers.contains(notifier))
 	{
 		kdebugm(KDEBUG_WARNING, "WARNING: '%s' already exists in notifiers! "
@@ -577,14 +566,9 @@ void NotificationManager::groupUpdated()
 		if (buddy.isNull() || buddy.isAnonymous() || buddy.groups().contains(group))
 			continue;
 
-		BuddyNotifyData *bnd = 0;
-		if (buddy.data())
-			buddy.data()->moduleStorableData<BuddyNotifyData>("notify", this, true);
-		if (!bnd)
-			continue;
-
+		BuddyNotifyData *bnd = buddy.data()->moduleStorableData<BuddyNotifyData>("notify", this, true);
 		bnd->setNotify(notify);
-		bnd->store();
+		bnd->ensureStored();
 	}
 }
 
@@ -631,6 +615,8 @@ QString NotificationManager::notifyConfigurationKey(const QString &eventType)
 
 		event = event.left(slashPosition);
 	}
+
+	Q_ASSERT(false);
 }
 
 ConfigurationUiHandler * NotificationManager::configurationUiHandler()
@@ -690,21 +676,19 @@ void checkNotify(Action *action)
 {
 	kdebugf();
 
-	action->setEnabled(action->buddies().count());
+	action->setEnabled(!action->context()->buddies().isEmpty());
 
 	bool on = true;
-	foreach (const Buddy &buddy, action->contacts().toBuddySet())
-	{
-		BuddyNotifyData *bnd = 0;
+	foreach (const Buddy &buddy, action->context()->contacts().toBuddySet())
 		if (buddy.data())
-			bnd = buddy.data()->moduleStorableData<BuddyNotifyData>("notify", NotificationManager::instance(), false);
-
-		if (!bnd || !bnd->notify())
 		{
-			on = false;
-			break;
+			BuddyNotifyData *bnd = buddy.data()->moduleStorableData<BuddyNotifyData>("notify", NotificationManager::instance(), false);
+			if (!bnd || !bnd->notify())
+			{
+				on = false;
+				break;
+			}
 		}
-	}
 
 	action->setChecked(on);
 

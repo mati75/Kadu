@@ -1,9 +1,9 @@
 /*
  * %kadu copyright begin%
+ * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2010 Piotr Dąbrowski (ultr@ultr.pl)
- * Copyright 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -68,11 +68,8 @@ void ConfigWizardProfilePage::createGui()
 
 void ConfigWizardProfilePage::setLanguages()
 {
-	QStringList languageValues = LanguagesManager::languages().keys();
-	QStringList languageNames = LanguagesManager::languages().values();
-
-	for (int i = 0; i < languageValues.size(); i++)
-		LanguagesCombo->addItem(languageNames.at(i), languageValues.at(i));
+	for (QMap<QString, QString>::const_iterator it = LanguagesManager::languages().constBegin(), end = LanguagesManager::languages().constEnd(); it != end; ++it)
+		LanguagesCombo->addItem(it.value(), it.key());
 }
 
 void ConfigWizardProfilePage::initializePage()

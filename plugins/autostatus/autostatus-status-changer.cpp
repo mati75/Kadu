@@ -1,6 +1,6 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -60,13 +60,13 @@ void AutostatusStatusChanger::changeStatus(StatusContainer *container, Status &s
 	switch (StatusIndex)
 	{
 		case 0:
-			status.setType("Online");
+			status.setType(StatusTypeOnline);
 			break;
 		case 1:
-			status.setType("Away");
+			status.setType(StatusTypeAway);
 			break;
 		case 2:
-			status.setType("Invisible");
+			status.setType(StatusTypeInvisible);
 			break;
 	}
 

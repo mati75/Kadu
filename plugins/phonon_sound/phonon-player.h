@@ -1,9 +1,13 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2009 Tomasz Rostański (rozteck@interia.pl)
+ * Copyright 2008, 2009 Tomasz Rostański (rozteck@interia.pl)
+ * Copyright 2004 Roman Krzystyniak (Ron_K@tlen.pl)
+ * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
+ * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -23,8 +27,10 @@
 #ifndef PHONON_SOUND_H
 #define PHONON_SOUND_H
 
+#include <QtCore/QMutex>
 #include <QtCore/QObject>
 #include <QtCore/QString>
+#include <QtCore/QWaitCondition>
 
 #include "plugins/sound/sound-player.h"
 
@@ -46,6 +52,12 @@ class PhononPlayer : public SoundPlayer
 	PhononPlayer();
 	virtual ~PhononPlayer();
 
+	QMutex MediaObjectMutex;
+	QWaitCondition MediaObjectCreation;
+
+private slots:
+	void createMediaObject();
+
 public:
 	static void createInstance();
 	static void destroyInstance();
@@ -53,6 +65,8 @@ public:
 
 	virtual void playSound(const QString &path);
 
+signals:
+	void createRequest();
 };
 
 #endif // PHONON_SOUND_H

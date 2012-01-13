@@ -1,11 +1,11 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2008, 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2008 Michał Podsiadlik (michal@kadu.net)
  * Copyright 2009 Tomasz Rostański (rozteck@interia.pl)
+ * Copyright 2008 Michał Podsiadlik (michal@kadu.net)
+ * Copyright 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -25,8 +25,9 @@
 #include <QtCore/QFile>
 #include <QtCore/QTextStream>
 #include <QtCore/QTimer>
-#include <QtGui/QMessageBox>
 
+#include "gui/windows/message-dialog.h"
+#include "icons/kadu-icon.h"
 #include "status/status-changer-manager.h"
 
 #include "autostatus-status-changer.h"
@@ -90,7 +91,7 @@ bool Autostatus::readDescriptionList()
 {
 	if (!QFile::exists(Configuration.statusFilePath()))
 	{
-		QMessageBox::information(NULL, "Autostatus", "File does not exist !");
+		MessageDialog::show(KaduIcon("dialog-information"), "Autostatus", "File does not exist !");
 		return false;
 	}
 

@@ -23,6 +23,7 @@
 #include <QtScript/QScriptValueIterator>
 
 #include "scripts/sms-script-manager.h"
+#include "sms-gateway.h"
 
 #include "sms-gateway-manager.h"
 
@@ -62,8 +63,24 @@ void SmsGatewayManager::load()
 	{
 		QScriptValue gatewayName = engine->evaluate(QString("gatewayManager.items[%1].name()").arg(i));
 		QScriptValue gatewayId = engine->evaluate(QString("gatewayManager.items[%1].id()").arg(i));
-		SmsGateway gateway = qMakePair(gatewayId.toString(), gatewayName.toString());
+		QScriptValue gatewayMaxLength = engine->evaluate(QString("gatewayManager.items[%1].maxLength()").arg(i));
+		QScriptValue gatewaySignatureRequired = engine->evaluate(QString("gatewayManager.items[%1].signatureRequired()").arg(i));
+
+		SmsGateway gateway;
+		gateway.setName(gatewayName.toString());
+		gateway.setId(gatewayId.toString());
+		gateway.setMaxLength(gatewayMaxLength.toUInt16());
+		gateway.setSignatureRequired(gatewaySignatureRequired.toBool());
 
 		Items.append(gateway);
 	}
+}
+
+SmsGateway SmsGatewayManager::byId(const QString &id) const
+{
+	foreach (const SmsGateway &gateway, Items)
+		if (gateway.id() == id)
+			return gateway;
+
+	return SmsGateway();
 }

@@ -1,9 +1,9 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009, 2010 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -23,12 +23,12 @@
 #ifndef IDENTITY_SHARED_H
 #define IDENTITY_SHARED_H
 
-#include "status/base-status-container.h"
+#include "status/storable-status-container.h"
 #include "storage/shared.h"
 
 class Account;
 
-class KADUAPI IdentityShared : public BaseStatusContainer, public Shared
+class KADUAPI IdentityShared : public StorableStatusContainer, public Shared
 {
 	Q_OBJECT
 	Q_DISABLE_COPY(IdentityShared)
@@ -39,8 +39,7 @@ class KADUAPI IdentityShared : public BaseStatusContainer, public Shared
 
 protected:
 	virtual void load();
-
-	virtual void doSetStatus(Status newStatus);
+	virtual void store();
 
 public:
 	static IdentityShared * loadStubFromStorage(const QSharedPointer<StoragePoint> &accountStoragePoint);
@@ -52,7 +51,6 @@ public:
 	virtual StorableObject * storageParent();
 	virtual QString storageNodeName();
 
-	virtual void store();
 	virtual void aboutToBeRemoved();
 
 	void addAccount(const Account &account);
@@ -69,16 +67,14 @@ public:
 	virtual QString statusContainerName()  { return name(); }
 
 	virtual Status status();
+	virtual void setStatus(Status status);
 	virtual bool isStatusSettingInProgress();
 	virtual int maxDescriptionLength();
 
-	virtual QString statusDisplayName();
-
 	virtual KaduIcon statusIcon();
 	virtual KaduIcon statusIcon(const Status &status);
-	virtual KaduIcon statusIcon(const QString &statusType);
 
-	virtual QList<StatusType *> supportedStatusTypes();
+	virtual QList<StatusType> supportedStatusTypes();
 
 };
 

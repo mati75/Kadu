@@ -1,8 +1,8 @@
 /*
  * %kadu copyright begin%
  * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -21,15 +21,14 @@
 
 #include <stdio.h>
 
-#include "contacts/contact-set.h"
-#include "buddies/buddy.h"
 #include "buddies/buddy-set.h"
-#include "buddies/filter/abstract-buddy-filter.h"
-#include "chat/filter/chat-filter.h"
-#include "chat/type/chat-type.h"
+#include "buddies/buddy.h"
 #include "chat/chat.h"
-#include "model/roles.h"
+#include "chat/type/chat-type.h"
+#include "contacts/contact-set.h"
 #include "model/history-chats-model.h"
+#include "model/roles.h"
+#include "talkable/filter/talkable-filter.h"
 
 #include "history-chats-model-proxy.h"
 
@@ -57,9 +56,13 @@ bool HistoryChatsModelProxy::filterAcceptsRow(int sourceRow, const QModelIndex &
 	Chat chat = sourceChild.data(ChatRole).value<Chat>();
 	if (chat)
 	{
-		foreach (ChatFilter *filter, ChatFilters)
-			if (!filter->acceptChat(chat))
-				return false;
+		foreach (TalkableFilter *filter, TalkableFilters)
+			switch (filter->filterChat(chat))
+			{
+				case TalkableFilter::Accepted: return true;
+				case TalkableFilter::Undecided: break;
+				case TalkableFilter::Rejected: return false;
+			}
 
 		return true;
 	}
@@ -67,9 +70,13 @@ bool HistoryChatsModelProxy::filterAcceptsRow(int sourceRow, const QModelIndex &
 	Buddy buddy = sourceChild.data(BuddyRole).value<Buddy>();
 	if (buddy)
 	{
-		foreach (AbstractBuddyFilter *filter, BuddyFilters)
-			if (!filter->acceptBuddy(buddy))
-				return false;
+		foreach (TalkableFilter *filter, TalkableFilters)
+			switch (filter->filterBuddy(buddy))
+			{
+				case TalkableFilter::Accepted: return true;
+				case TalkableFilter::Undecided: break;
+				case TalkableFilter::Rejected: return false;
+			}
 
 		return true;
 	}
@@ -83,8 +90,16 @@ bool HistoryChatsModelProxy::lessThan(const QModelIndex &left, const QModelIndex
 	Chat leftChat = left.data(ChatRole).value<Chat>();
 	Chat rightChat = right.data(ChatRole).value<Chat>();
 
-	if (!leftChat.isNull() && !rightChat.isNull())
+	if (leftChat && rightChat)
 	{
+		bool isLeftNamed = !leftChat.display().isEmpty();
+		bool isRightNamed = !rightChat.display().isEmpty();
+
+		if (isLeftNamed && !isRightNamed)
+			return true;
+		if (isRightNamed && !isLeftNamed)
+			return false;
+
 		bool isLeftAllAnonymous = leftChat.contacts().toBuddySet().isAllAnonymous();
 		bool isRightAllAnonymous = rightChat.contacts().toBuddySet().isAllAnonymous();
 
@@ -93,7 +108,21 @@ bool HistoryChatsModelProxy::lessThan(const QModelIndex &left, const QModelIndex
 		if (isRightAllAnonymous && !isLeftAllAnonymous)
 			return true;
 
-		return compareNames(leftChat.name(), rightChat.name()) < 0;
+		return compareNames(left.data(Qt::DisplayRole).toString(), right.data(Qt::DisplayRole).toString()) < 0;
+	}
+
+	// buddies?
+	Buddy leftBuddy = left.data(BuddyRole).value<Buddy>();
+	Buddy rightBuddy = right.data(BuddyRole).value<Buddy>();
+
+	if (leftBuddy && rightBuddy)
+	{
+		if (!leftBuddy.isAnonymous() && rightBuddy.isAnonymous())
+			return true;
+		if (leftBuddy.isAnonymous() && !rightBuddy.isAnonymous())
+			return false;
+
+		return compareNames(leftBuddy.display(), rightBuddy.display()) < 0;
 	}
 
 	ChatType *leftType = left.data(ChatTypeRole).value<ChatType *>();
@@ -116,45 +145,23 @@ void HistoryChatsModelProxy::setSourceModel(QAbstractItemModel *sourceModel)
 	Model = qobject_cast<HistoryChatsModel *>(sourceModel);
 }
 
-void HistoryChatsModelProxy::addChatFilter(ChatFilter *filter)
+void HistoryChatsModelProxy::addTalkableFilter(TalkableFilter *filter)
 {
 	if (!filter)
 		return;
 
-	ChatFilters.append(filter);
+	TalkableFilters.append(filter);
 	connect(filter, SIGNAL(filterChanged()), this, SLOT(invalidate()));
 
 	invalidateFilter();
 }
 
-void HistoryChatsModelProxy::removeChatFilter(ChatFilter *filter)
+void HistoryChatsModelProxy::removeTalkableFilter(TalkableFilter *filter)
 {
 	if (!filter)
 		return;
 
-	ChatFilters.removeAll(filter);
-	disconnect(filter, SIGNAL(filterChanged()), this, SLOT(invalidate()));
-
-	invalidateFilter();
-}
-
-void HistoryChatsModelProxy::addBuddyFilter(AbstractBuddyFilter *filter)
-{
-	if (!filter)
-		return;
-
-	BuddyFilters.append(filter);
-	connect(filter, SIGNAL(filterChanged()), this, SLOT(invalidate()));
-
-	invalidateFilter();
-}
-
-void HistoryChatsModelProxy::removeBuddyFilter(AbstractBuddyFilter *filter)
-{
-	if (!filter)
-		return;
-
-	BuddyFilters.removeAll(filter);
+	TalkableFilters.removeAll(filter);
 	disconnect(filter, SIGNAL(filterChanged()), this, SLOT(invalidate()));
 
 	invalidateFilter();
