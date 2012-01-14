@@ -3,7 +3,7 @@ kadu (0.11.0~rc1-1) unstable; urgency=low
   * New upstream release
   * Updated all external plugins to their newest upstream versions
   * Updated debian/patches/02-external-plugins.patch
-  * Removed cruft from debian/{kadu,kadu-common}.install
+  * Added indicator_docking plugin
   * Backported fix for Kadu patch from git. It fixes problem with
     reconnecting after suspend.
   * Updated debian/patches/02-external-plugins.patch
@@ -11,7 +11,7 @@ kadu (0.11.0~rc1-1) unstable; urgency=low
     debian/patches/05-lowered_expectant_libgadu_version.patch for more
     details.
 
- -- Patryk Cisek <patryk@debian.org>  Sat, 14 Jan 2012 10:36:23 +0100
+ -- Patryk Cisek <patryk@debian.org>  Sat, 14 Jan 2012 11:06:20 +0100
 
 kadu (0.10.1-1) unstable; urgency=low
 
