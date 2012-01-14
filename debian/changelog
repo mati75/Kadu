@@ -7,8 +7,11 @@ kadu (0.11.0~rc1-1) unstable; urgency=low
   * Backported fix for Kadu patch from git. It fixes problem with
     reconnecting after suspend.
   * Updated debian/patches/02-external-plugins.patch
+  * Lowered minimum expected version of libgadu. See description in
+    debian/patches/05-lowered_expectant_libgadu_version.patch for more
+    details.
 
- -- Patryk Cisek <patryk@debian.org>  Sat, 14 Jan 2012 10:21:27 +0100
+ -- Patryk Cisek <patryk@debian.org>  Sat, 14 Jan 2012 10:36:23 +0100
 
 kadu (0.10.1-1) unstable; urgency=low
 

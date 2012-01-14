@@ -2,3 +2,4 @@
 02-external-plugins.patch
 03-about-dialog.patch
 04-backport_patch-only_send_jabber_status_to_server_when_connecting.patch
+05-lowered_expectant_libgadu_version.patch
