@@ -22,10 +22,11 @@
 
 
 
-#include "chat/message/pending-messages-manager.h"
+#include "chat/chat-manager.h"
 #include "configuration/configuration-file.h"
 #include "gui/widgets/chat-widget-manager.h"
 #include "gui/widgets/custom-input.h"
+#include "message/message-manager.h"
 #include "misc/misc.h"
 #include "notify/chat-notification.h"
 #include "notify/notification-manager.h"
@@ -61,17 +62,17 @@ LedNotify::LedNotify() :
 	config_file.addVariable( "LedNotify", "LEDcount",                          3 );
 	MainConfigurationWindow::registerUiFile( dataPath( "kadu/plugins/configuration/lednotify.ui" ) );
 	NotificationManager::instance()->registerNotifier( this );
-	connect( PendingMessagesManager::instance(), SIGNAL(messageRemoved(Message))          , this, SLOT(messageReceived(Message))         );
-	connect( ChatWidgetManager::instance()     , SIGNAL(chatWidgetActivated(ChatWidget*)) , this, SLOT(chatWidgetActivated(ChatWidget*)) );
-	connect( ChatWidgetManager::instance()     , SIGNAL(chatWidgetDestroying(ChatWidget*)), this, SLOT(chatWidgetActivated(ChatWidget*)) );
+	connect( MessageManager::instance()   , SIGNAL(unreadMessageRemoved(Message))    , this, SLOT(messageReceived(Message))          );
+	connect( ChatManager::instance()      , SIGNAL(chatUpdated(const Chat&))         , this, SLOT(chatUpdated(const Chat&))          );
+	connect( ChatWidgetManager::instance(), SIGNAL(chatWidgetDestroying(ChatWidget*)), this, SLOT(chatWidgetDestroying(ChatWidget*)) );
 }
 
 
 LedNotify::~LedNotify()
 {
-	disconnect( ChatWidgetManager::instance()     , SIGNAL(chatWidgetActivated(ChatWidget*)) , this, SLOT(chatWidgetActivated(ChatWidget*)) );
-	disconnect( ChatWidgetManager::instance()     , SIGNAL(chatWidgetDestroying(ChatWidget*)), this, SLOT(chatWidgetActivated(ChatWidget*)) );
-	disconnect( PendingMessagesManager::instance(), SIGNAL(messageRemoved(Message))          , this, SLOT(messageReceived(Message))         );
+	disconnect( MessageManager::instance()   , SIGNAL(unreadMessageRemoved(Message))    , this, SLOT(messageReceived(Message))          );
+	disconnect( ChatManager::instance()      , SIGNAL(chatUpdated(const Chat&))         , this, SLOT(chatUpdated(const Chat&))          );
+	disconnect( ChatWidgetManager::instance(), SIGNAL(chatWidgetDestroying(ChatWidget*)), this, SLOT(chatWidgetDestroying(ChatWidget*)) );
 	NotificationManager::instance()->unregisterNotifier( this );
 	MainConfigurationWindow::unregisterUiFile( dataPath( "kadu/plugins/configuration/lednotify.ui" ) );
 }
@@ -101,13 +102,12 @@ void LedNotify::notify( Notification *notification )
 		ChatNotification *chatnotification = dynamic_cast<ChatNotification*>( notification );
 		if( chatnotification != NULL )
 		{
-			ChatWidget* chat = ChatWidgetManager::instance()->byChat( chatnotification->chat(), false );
-			if( chat != NULL )
+			Chat chat = chatnotification->chat();
+			ChatWidget* chatwidget = ChatWidgetManager::instance()->byChat( chat, false );
+			if( chatwidget != NULL )
 			{
-				printf( "1\n" );
-				if( ! _isActiveWindow( chat->window() ) )
+				if( ! _isActiveWindow( chatwidget->window() ) )
 				{
-					printf( "2\n" );
 					msgChats_.insert( chat );
 					msgBlinking_ = true;
 					blinker_.startInfinite();
@@ -132,7 +132,7 @@ void LedNotify::messageReceived( Message message )
 	Q_UNUSED( message );
 	kdebugf();
 	// Check if we can stop blinking from "NewChat" event...
-	if( chatBlinking_ && ( ! PendingMessagesManager::instance()->hasPendingMessages() ) )
+	if( chatBlinking_ && ( ! MessageManager::instance()->hasUnreadMessages() ) )
 	{
 		chatBlinking_ = false;
 		// ...and make sure "NewMessage" blinking is not running
@@ -143,10 +143,27 @@ void LedNotify::messageReceived( Message message )
 }
 
 
-void LedNotify::chatWidgetActivated( ChatWidget *chatwidget )
+void LedNotify::chatUpdated( const Chat &chat )
 {
 	kdebugf();
-	msgChats_.remove( chatwidget );
+	if( chat.unreadMessagesCount() == 0 )
+		chatRead( chat );
+	kdebugf2();
+}
+
+
+void LedNotify::chatWidgetDestroying( ChatWidget *chatwidget )
+{
+	kdebugf();
+	chatRead( chatwidget->chat() );
+	kdebugf2();
+}
+
+
+void LedNotify::chatRead( const Chat &chat )
+{
+	kdebugf();
+	msgChats_.remove( chat );
 	// Check if we can stop blinking from "NewMessage" event...
 	if( msgBlinking_ && msgChats_.empty() )
 	{

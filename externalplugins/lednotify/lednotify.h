@@ -26,7 +26,7 @@
 
 #include <QSet>
 
-#include "chat/message/message.h"
+#include "message/message.h"
 #include "gui/widgets/chat-widget.h"
 #include "gui/windows/main-configuration-window.h"
 #include "notify/notification.h"
@@ -48,9 +48,9 @@ class LedNotify : public Notifier, public GenericPlugin
 		virtual NotifierConfigurationWidget *createConfigurationWidget( QWidget *widget );
 		virtual void notify( Notification *notification );
 	private:
-		typedef QSet<ChatWidget*> ChatWidgets;
+		void chatRead( const Chat &chat );
 		LedBlinker blinker_;
-		ChatWidgets msgChats_;
+		QSet<Chat> msgChats_;
 		bool chatBlinking_;
 		bool msgBlinking_;
 	private slots:
@@ -59,9 +59,13 @@ class LedNotify : public Notifier, public GenericPlugin
 		 */
 		void messageReceived( Message messaget );
 		/**
-		 *	Checks if all chats with new messages are activated so we could stop blinking
+		 *	Checks if messages in all chats have been read so we could stop blinking
 		 */
-		void chatWidgetActivated( ChatWidget* chatwidget );
+		void chatUpdated( const Chat &chat );
+		/**
+		 *	Checks if messages in all chats have been read so we could stop blinking
+		 */
+		void chatWidgetDestroying( ChatWidget *chatwidget );
 };
 
 
