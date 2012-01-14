@@ -10,8 +10,9 @@ kadu (0.11.0~rc1-1) unstable; urgency=low
   * Lowered minimum expected version of libgadu. See description in
     debian/patches/05-lowered_expectant_libgadu_version.patch for more
     details.
+  * Added libindicate-qt-dev to Build-Depends
 
- -- Patryk Cisek <patryk@debian.org>  Sat, 14 Jan 2012 11:06:20 +0100
+ -- Patryk Cisek <patryk@debian.org>  Sat, 14 Jan 2012 15:50:42 +0100
 
 kadu (0.10.1-1) unstable; urgency=low
 
