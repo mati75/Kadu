@@ -1,5 +1,12 @@
+Description: Selects all usable external themes
+ Kadu has a nice set of external (submitted by 3rd parties) themes and
+ plugins.
+ .
+ This patch makes all usable plugins being compiled and installed
+Author: Patryk Cisek <patryk@debian.org>
+---
 diff --git a/Plugins.cmake b/Plugins.cmake
-index 2041287..9bde616 100644
+index 2041287..c20f7da 100644
 --- a/Plugins.cmake
 +++ b/Plugins.cmake
 @@ -158,6 +158,50 @@ if (WIN32)
@@ -7,7 +14,7 @@ index 2041287..9bde616 100644
  endif (WIN32)
  
 +# External plugins
-+list (APPEND COMPILE_PLUGINS
++list (APPEND DEFAULT_PLUGINS
 +
 +    # anonymous_check
 +        # Automatically search contacts in public directory

@@ -4,8 +4,11 @@ kadu (0.11.0~rc1-1) unstable; urgency=low
   * Updated all external plugins to their newest upstream versions
   * Updated debian/patches/02-external-plugins.patch
   * Removed cruft from debian/{kadu,kadu-common}.install
+  * Backported fix for Kadu patch from git. It fixes problem with
+    reconnecting after suspend.
+  * Updated debian/patches/02-external-plugins.patch
 
- -- Patryk Cisek <patryk@debian.org>  Fri, 13 Jan 2012 18:41:17 +0100
+ -- Patryk Cisek <patryk@debian.org>  Sat, 14 Jan 2012 10:21:27 +0100
 
 kadu (0.10.1-1) unstable; urgency=low
 
