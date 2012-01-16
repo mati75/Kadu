@@ -1,0 +1,20 @@
+Description: Lowered minimum libgadu version for gadu_protocol plugin
+ Since 0.11.1 of libgadu is not yet released (only release candidates),
+ it's not yet been uploaded to Sid. In reality 0.11.1 is not really needed by
+ Kadu. But, since it introduces some new SSL related functionality in
+ client-server communication, Kadu Team decided to depend on 0.11.1.
+Author: Patryk Cisek <patryk@debian.org>
+---
+diff --git a/plugins/gadu_protocol/CMakeLists.txt b/plugins/gadu_protocol/CMakeLists.txt
+index ff8c80b..e651f3a 100644
+--- a/plugins/gadu_protocol/CMakeLists.txt
++++ b/plugins/gadu_protocol/CMakeLists.txt
+@@ -16,7 +16,7 @@ include (FindKadu)
+ 
+ include (FindPkgConfig)
+ 
+-set (LIBGADU_MIN_VERSION "1.11.1")
++set (LIBGADU_MIN_VERSION "1.10.1")
+ 
+ kadu_api_directories (plugins/gadu_protocol
+ 	dcc
