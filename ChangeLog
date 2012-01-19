@@ -1,4 +1,11 @@
-﻿+++ version 0.11.0-rc1
+﻿+++ version 0.11.0-rc2
+* sound: dropped libsndfile dependency (beevvy)
+* gadu: #2410 fixed: after waking up from suspend Gadu is not reconnecting (WhE)
+* gui: #2417 fixed: properly update icons of Kadu windows (beevvy)
+* translations: enabled Russian language (Vogel)
+* gadu: fixed importing from 0.6.5.x configurations (Vogel)
+
++++ version 0.11.0-rc1
 * hints: #2266 fixed: restored word wraping in hints (Vogel, beevvy)
 * sms: #2394 fixed: Orange Multibox SMS length limit is not ignored in Send SMS window anymore (Vogel)
 * sms: #2371 fixed: allow foreign SMS numbers (Vogel)
