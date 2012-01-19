@@ -1,0 +1,9 @@
+[Module]
+Plugin=true
+Description=Notification module using keyboard's LEDs.
+Description[pl]=Modu³ powiadamiania diodami LED klawiatury.
+Author=Micha³ Ma³ek, Piotr "ultr" D±browski
+Provides=notify_method
+Base=false
+LoadByDefault=false
+Version=0.10-32-git
