@@ -1,0 +1,24 @@
+<configuration-ui>
+
+	<section name="MimeTeX" icon="kadu/modules/data/mime_tex/mime_tex_32x32.png">
+
+		<tab name="General">
+
+			<group-box name="MimeTeX">
+				<spin-box caption="Formula refreshment interval" config-section="MimeTeX" config-item="mimetex_refreshment_interval" min-value="200" max-value="20000" step="50" id="mime_tex/interval"/>
+				<combo-box caption="Default font size" config-section="MimeTeX" config-item="mimetex_font_size" id="mime_tex/font_size">
+					<item caption="tiny" value="0" />
+					<item caption="small" value="1" />
+					<item caption="normalsize" value="2" />
+					<item caption="large" value="3" />
+					<item caption="Large (default)" value="4" />
+					<item caption="LARGE" value="5" />
+				</combo-box>
+				<check-box caption="Remove GIF files on module unload" config-section="MimeTeX" config-item="mimetex_remove_tmp_files" />
+				<check-box caption="Use transparent background" config-section="MimeTeX" config-item="mimetex_transparent_bg" />
+			</group-box>
+		</tab>
+
+	</section>
+
+</configuration-ui>

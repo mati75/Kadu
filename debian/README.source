@@ -1,0 +1,28 @@
+Kadu for Debian
+---------------
+
+
+If you want to build Kadu for Debian as it is (meaning; without your own
+modifications) you simply do the following:
+$ dpkg-source -x kadu_<version-debianrevision>.dsc
+
+It unpacks source package to kadu-<version> directory. Inside it you have the
+the following:
+debian - directory containing all data files used by Debian building system
+to produce .deb files
+externalplugins - all additional Kadu plug-ins that are in
+                  kadu_<version>.orig-externalmodules.tar,bz2
+externalthemes  - all additional themes that are in
+                  kadu_<version>.orig-externalthemes.tar,bz2
+
+So the next step is to build it:
+$ cd kadu-<version>
+$ dpkg-buildpackage -us -uc
+
+dpkg-buildpackage will build all debs.
+
+If you're using Git clone of repository containing packaging for Kadu (see
+Vcs-Git field in debian/control), you probably want to use
+debian/build_kadu.sh script for building.
+
+ -- Patryk Cisek <patryk@debian.org>  Mon, 21 Feb 2011 09:55:37 +0100
