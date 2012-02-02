@@ -1,7 +1,7 @@
 /****************************************************************************
 *                                                                           *
 *   GlobalHotkeys plugin for Kadu                                           *
-*   Copyright (C) 2008-2011  Piotr Dąbrowski ultr@ultr.pl                   *
+*   Copyright (C) 2008-2012  Piotr Dąbrowski ultr@ultr.pl                   *
 *                                                                           *
 *   This program is free software: you can redistribute it and/or modify    *
 *   it under the terms of the GNU General Public License as published by    *
@@ -36,13 +36,13 @@ class GlobalWidgetManager : public QObject
 {
 	Q_OBJECT;
 	public:
-		GlobalWidgetManager( QWidget *widget, bool autostart = true, int autostartdelay = -1 );
+		GlobalWidgetManager( QWidget *widget, bool autostart = true );
 		~GlobalWidgetManager();
 		PROPERTY_RO( QWidget*, WIDGET, widget );
 	private slots:
 		void inactivitytimerTimeout();
 		void widgetDestroyed();
-		void start( int delay = 0 );
+		void start();
 		void stop();
 	private:
 		QTimer INACTIVITYTIMER;

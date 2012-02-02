@@ -18,7 +18,6 @@
 #define  GLOBALHOTKEYS_X11ALTGR                                 XK_ISO_Level3_Shift
 #define  GLOBALHOTKEYS_X11LSUPER                                         XK_Super_L
 #define  GLOBALHOTKEYS_X11RSUPER                                         XK_Super_R
-#define  GLOBALHOTKEYS_GLOBALWIDGETDEFAULTINACTIVITYCHECKDELAY                  400  /* ms */
 #define  GLOBALHOTKEYS_GLOBALWIDGETINACTIVITYTIMERINTERVAL                      100  /* ms */
 #define  GLOBALHOTKEYS_BUDDIESMENUSMALLICONSIZE                                  16  /* px */
 #define  GLOBALHOTKEYS_BUDDIESMENUICONMARGINLEFT                                  9  /* px */

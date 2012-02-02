@@ -1,7 +1,7 @@
 /****************************************************************************
 *                                                                           *
 *   GlobalHotkeys plugin for Kadu                                           *
-*   Copyright (C) 2008-2011  Piotr Dąbrowski ultr@ultr.pl                   *
+*   Copyright (C) 2008-2012  Piotr Dąbrowski ultr@ultr.pl                   *
 *                                                                           *
 *   This program is free software: you can redistribute it and/or modify    *
 *   it under the terms of the GNU General Public License as published by    *
@@ -93,6 +93,7 @@ class BuddiesMenu : public GlobalMenu
 		PROPERTY_RW( bool           , CONTACTSSUBMENU             , contactsSubmenu             , setContactsSubmenu              );
 		PROPERTY_RW( ContactSet     , CONTACTSETTOACTIVATE        , contactSetToActivate        , setContactSetToActivate         );
 		PROPERTY_RW( bool           , ONEITEMPERBUDDY             , oneItemPerBuddy             , setOneItemPerBuddy              );
+		PROPERTY_RW( bool           , ALWAYSSHOWCONTACTIDENTIFIER , alwaysShowContactIdentifier , setAlwaysShowContactIdentifier  );
 		PROPERTY_RW( bool           , SORTSTATELESSBUDDIES        , sortStatelessBuddies        , setSortStatelessBuddies         );
 		PROPERTY_RW( bool           , SORTSTATELESSBUDDIESBYSTATUS, sortStatelessBuddiesByStatus, setSortStatelessBuddiesByStatus );
 	protected:

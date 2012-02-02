@@ -231,5 +231,9 @@ jest używanch przez inną aplikację.</numerusform>
         <source>Multilogon window</source>
         <translation>Okno multilogowania</translation>
     </message>
+    <message>
+        <source>Always show contact&apos;s identifier</source>
+        <translation>Zawsze wyświetlaj identyfikator kontaktu</translation>
+    </message>
 </context>
 </TS>

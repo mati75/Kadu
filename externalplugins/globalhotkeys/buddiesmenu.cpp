@@ -1,7 +1,7 @@
 /****************************************************************************
 *                                                                           *
 *   GlobalHotkeys plugin for Kadu                                           *
-*   Copyright (C) 2008-2011  Piotr Dąbrowski ultr@ultr.pl                   *
+*   Copyright (C) 2008-2012  Piotr Dąbrowski ultr@ultr.pl                   *
 *                                                                           *
 *   This program is free software: you can redistribute it and/or modify    *
 *   it under the terms of the GNU General Public License as published by    *
@@ -120,6 +120,7 @@ BuddiesMenu::BuddiesMenu() : GlobalMenu()
 	MENUTYPE = BuddiesMenuTypeBuddies;
 	CONTACTSSUBMENU = true;
 	ONEITEMPERBUDDY              = false;
+	ALWAYSSHOWCONTACTIDENTIFIER  = false;
 	SORTSTATELESSBUDDIES         = false;
 	SORTSTATELESSBUDDIESBYSTATUS = false;
 	opensubmenuaction = NULL;
@@ -157,7 +158,7 @@ void BuddiesMenu::add( ContactSet contactset )
 			chatstate |= ChatStateCurrent;
 			if( chat.unreadMessagesCount() > 0 )
 				chatstate |= ChatStatePending;
-			if( _isActiveWindow( chatwidget ) )
+			if( _isActiveWindow( chatwidget->window() ) && ( ( chatwidget->window() == chatwidget ) || ( chatwidget->isActive() ) ) )
 				chatstate |= ChatStateActive;
 		}
 	}
@@ -396,9 +397,10 @@ void BuddiesMenu::openChat()
 	BuddiesMenuActionData data = ((QAction*)sender())->data().value<BuddiesMenuActionData>();
 	// close the topmost parent menu (it will close all it's submenus)
 	closeTopMostMenu();
-	// (re)open the chat with selected user(s)
+	// (re)open the chat with selected user(s) and activate it
 	Chat chat = ChatManager::instance()->findChat( data.contactSet(), true );
-	ChatWidgetManager::instance()->byChat( chat, true );
+	ChatWidget *chatwidget = ChatWidgetManager::instance()->byChat( chat, true );
+	chatwidget->activate();
 }
 
 
@@ -473,7 +475,7 @@ void BuddiesMenu::prepareActions()
 			foreach( Contact contact, data.contactSet() )
 			{
 				QString name = contact.ownerBuddy().display();
-				if( unique_contacts_of_repeated_buddies_list.at( k ).contains( contact ) )
+				if( ALWAYSSHOWCONTACTIDENTIFIER || unique_contacts_of_repeated_buddies_list.at( k ).contains( contact ) )
 					name += " (" + contact.id() + ")";
 				names << name;
 			}
@@ -518,6 +520,11 @@ void BuddiesMenu::prepareActions()
 
 void BuddiesMenu::keyPressEvent( QKeyEvent *event )
 {
+	if( ! SUBMENU.isNull() )
+	{
+		_activateWindow( SUBMENU );
+		return;
+	}
 	if( event->key() == Qt::Key_Right )
 	{
 		if( ( MENUTYPE == BuddiesMenuTypeBuddies ) && ( activeAction() != NULL ) )
@@ -562,6 +569,7 @@ void BuddiesMenu::openSubmenu( QAction *action )
 		// check current submenu
 		if( ( action == opensubmenuaction ) && ( ! SUBMENU.isNull() ) && SUBMENU->isVisible() )
 		{
+			SUBMENU->closeAllSubmenus();
 			_activateWindow( SUBMENU );
 			timerStart();
 			return;

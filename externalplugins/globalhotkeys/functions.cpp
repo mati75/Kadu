@@ -1,7 +1,7 @@
 /****************************************************************************
 *                                                                           *
 *   GlobalHotkeys plugin for Kadu                                           *
-*   Copyright (C) 2008-2011  Piotr Dąbrowski ultr@ultr.pl                   *
+*   Copyright (C) 2008-2012  Piotr Dąbrowski ultr@ultr.pl                   *
 *                                                                           *
 *   This program is free software: you can redistribute it and/or modify    *
 *   it under the terms of the GNU General Public License as published by    *
@@ -126,28 +126,21 @@ void Functions::functionShowHideKadusMainWindow( ConfHotKey *confhotkey )
 void Functions::functionOpenIncomingChatWindow( ConfHotKey *confhotkey )
 {
 	Q_UNUSED( confhotkey );
+	// activate opened window with new unread message(s)
+	foreach( ChatWidget *chatwidget, ChatWidgetManager::instance()->chats() )
+	{
+		if( chatwidget->chat().unreadMessagesCount() > 0 )
+		{
+			chatwidget->activate();
+			// done - only one window
+			return;
+		}
+	}
+	// open window for unread message(s)
 	if( MessageManager::instance()->hasUnreadMessages() )
 	{
-		// open window for unread message(s)
-		ChatWidgetManager::instance()->byChat( MessageManager::instance()->unreadMessage().messageChat(), true );
-		// activate it
-		QWidget *win = ChatWidgetManager::instance()->chats().values().last();  // last created chat widget
-		win = win->window();
-		_activateWindow( win );
-	}
-	else
-	{
-		// show window with new unread message(s)
-		foreach( ChatWidget *chatwidget, ChatWidgetManager::instance()->chats() )
-		{
-			if( chatwidget->chat().unreadMessagesCount() > 0 )
-			{
-				chatwidget->show();
-				_activateWindow( chatwidget->window() );
-				// done - only one window
-				break;
-			}
-		}
+		ChatWidget *chatwidget = ChatWidgetManager::instance()->byChat( MessageManager::instance()->unreadMessage().messageChat(), true );
+		chatwidget->activate();
 	}
 }
 
@@ -158,21 +151,14 @@ void Functions::functionOpenAllIncomingChatWindows( ConfHotKey *confhotkey )
 	// open all windows for unread message(s)
 	while( MessageManager::instance()->hasUnreadMessages() )
 	{
-		// open the window
-		ChatWidgetManager::instance()->byChat( MessageManager::instance()->unreadMessage().messageChat(), true );
-		// activate it
-		QWidget *win = ChatWidgetManager::instance()->chats().values().last();  // last created chat widget
-		win = win->window();
-		_activateWindow( win );
+		ChatWidget *chatwidget = ChatWidgetManager::instance()->byChat( MessageManager::instance()->unreadMessage().messageChat(), true );
+		chatwidget->activate();
 	}
-	// show all windows with new unread message(s)
+	// activate all opened windows with new unread message(s)
 	foreach( ChatWidget *chatwidget, ChatWidgetManager::instance()->chats() )
 	{
 		if( chatwidget->chat().unreadMessagesCount() > 0 )
-		{
-			chatwidget->show();
-			_activateWindow( chatwidget->window() );
-		}
+			chatwidget->activate();
 	}
 }
 

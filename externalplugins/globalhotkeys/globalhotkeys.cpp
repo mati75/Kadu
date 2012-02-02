@@ -1,7 +1,7 @@
 /****************************************************************************
 *                                                                           *
 *   GlobalHotkeys plugin for Kadu                                           *
-*   Copyright (C) 2008-2011  Piotr Dąbrowski ultr@ultr.pl                   *
+*   Copyright (C) 2008-2012  Piotr Dąbrowski ultr@ultr.pl                   *
 *                                                                           *
 *   This program is free software: you can redistribute it and/or modify    *
 *   it under the terms of the GNU General Public License as published by    *
@@ -448,7 +448,8 @@ void GlobalHotkeys::processConfBuddiesShortcut( ConfBuddiesShortcut *confbuddies
 			contactset.insert( BuddyPreferredManager::instance()->preferredContact( buddy, accounts.first() ) );
 		}
 		Chat chat = ChatManager::instance()->findChat( contactset, true );
-		ChatWidgetManager::instance()->byChat( chat, true );
+		ChatWidget *chatwidget = ChatWidgetManager::instance()->byChat( chat, true );
+		chatwidget->activate();
 	}
 	else
 	{
@@ -604,6 +605,8 @@ void GlobalHotkeys::processConfBuddiesMenu( ConfBuddiesMenu *confbuddiesmenu )
 		menu->remove( buddydisplay );
 	// set one item per buddy
 	menu->setOneItemPerBuddy( confbuddiesmenu->oneItemPerBuddy() );
+	// set always showing contact identifier
+	menu->setAlwaysShowContactIdentifier( confbuddiesmenu->alwaysShowContactIdentifier() );
 	// set stateless sorting
 	menu->setSortStatelessBuddies(         confbuddiesmenu->sortStatelessBuddies()         );
 	menu->setSortStatelessBuddiesByStatus( confbuddiesmenu->sortStatelessBuddiesByStatus() );

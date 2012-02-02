@@ -1,7 +1,7 @@
 /****************************************************************************
 *                                                                           *
 *   GlobalHotkeys plugin for Kadu                                           *
-*   Copyright (C) 2008-2011  Piotr Dąbrowski ultr@ultr.pl                   *
+*   Copyright (C) 2008-2012  Piotr Dąbrowski ultr@ultr.pl                   *
 *                                                                           *
 *   This program is free software: you can redistribute it and/or modify    *
 *   it under the terms of the GNU General Public License as published by    *
@@ -159,6 +159,7 @@ class ConfBuddiesMenu : public QObject
 		PROPERTY_RO( QStringList, GROUPS                      , groups                       );
 		PROPERTY_RO( QStringList, EXCLUDEBUDDIES              , excludeBuddies               );
 		PROPERTY_RO( bool       , ONEITEMPERBUDDY             , oneItemPerBuddy              );
+		PROPERTY_RO( bool       , ALWAYSSHOWCONTACTIDENTIFIER , alwaysShowContactIdentifier  );
 		PROPERTY_RO( bool       , SORTSTATELESSBUDDIES        , sortStatelessBuddies         );
 		PROPERTY_RO( bool       , SORTSTATELESSBUDDIESBYSTATUS, sortStatelessBuddiesByStatus );
 	public slots:
@@ -178,6 +179,7 @@ class ConfBuddiesMenu : public QObject
 		QPointer<ConfigLineEdit>      GROUPSEDIT;
 		QPointer<ConfigLineEdit>      EXCLUDEBUDDIESEDIT;
 		QPointer<ConfigCheckBox>      ONEITEMPERBUDDYCHECKBOX;
+		QPointer<ConfigCheckBox>      ALWAYSSHOWCONTACTIDENTIFIERCHECKBOX;
 		QPointer<ConfigCheckBox>      SORTSTATELESSBUDDIESCHECKBOX;
 		QPointer<ConfigCheckBox>      SORTSTATELESSBUDDIESBYSTATUSCHECKBOX;
 		QPointer<ConfigActionButton>  DELETEBUTTON;

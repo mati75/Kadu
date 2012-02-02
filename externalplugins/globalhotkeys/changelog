@@ -1,3 +1,21 @@
+0.11-30 => 0.11-31
+* #2315: Dodana opcja "Zawsze wyświetlaj identyfikator kontaktu" w menu
+  znajomych.
+* Naprawiony błąd #2213.
+* Poprawiony mechanizm obsługi globalnych menu i widgetów.
+* Szybsze działanie globalnych menu (znajomych i statusu).
+* Drobne porządki w kodzie.
+
+
+0.11-29 => 0.11-30
+* Więcej poprawek do aktywacji okien rozmów w różnych sytuacjach.
+
+
+0.11-28 => 0.11-29
+* Naprawiona aktywacja okien rozmów z menu znajomych.
+* Poprawki kompatybilności z wtyczką Tabs.
+
+
 0.10-27 => 0.11-28
 * Dostosowanie pluginu do zmian API w PluginsManager, ModulesWindow
   i StatusContainer-ach.

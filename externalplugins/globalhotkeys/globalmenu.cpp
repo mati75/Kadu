@@ -1,7 +1,7 @@
 /****************************************************************************
 *                                                                           *
 *   GlobalHotkeys plugin for Kadu                                           *
-*   Copyright (C) 2008-2011  Piotr Dąbrowski ultr@ultr.pl                   *
+*   Copyright (C) 2008-2012  Piotr Dąbrowski ultr@ultr.pl                   *
 *                                                                           *
 *   This program is free software: you can redistribute it and/or modify    *
 *   it under the terms of the GNU General Public License as published by    *
@@ -36,27 +36,35 @@
 
 
 
+QTimer *GlobalMenu::INACTIVITYTIMER = NULL;
+
+
 bool GlobalMenu::INACTIVITYTIMERLOCK = false;
 
 
 GlobalMenu::GlobalMenu() : QMenu()
 {
+	if( INACTIVITYTIMER == NULL )
+	{
+		INACTIVITYTIMER = new QTimer();
+		INACTIVITYTIMER->setInterval( GLOBALHOTKEYS_GLOBALWIDGETINACTIVITYTIMERINTERVAL );
+		INACTIVITYTIMER->setSingleShot( true );
+	}
+	connect( INACTIVITYTIMER, SIGNAL(timeout()), this, SLOT(inactivitytimerTimeout()) );
 	PARENTMENU = NULL;
 	SUBMENU = NULL;
 	ACTIONTOACTIVATE = NULL;
 	setAttribute( Qt::WA_DeleteOnClose );
 	setParent( 0, Qt::Window | Qt::X11BypassWindowManagerHint );
 	setFocusPolicy( Qt::WheelFocus );
-	connect( this, SIGNAL(triggered(QAction*)), this, SLOT(close()) );
-	INACTIVITYTIMER.setInterval( GLOBALHOTKEYS_GLOBALWIDGETINACTIVITYTIMERINTERVAL );
-	INACTIVITYTIMER.setSingleShot( true );
-	connect( &INACTIVITYTIMER, SIGNAL(timeout()), this, SLOT(inactivitytimerTimeout()) );
+	connect( this, SIGNAL(triggered(QAction*)), this, SLOT(closeTopMostMenu()) );
 }
 
 
 void GlobalMenu::closeEvent( QCloseEvent *event )
 {
-	timerStop();
+	if( PARENTMENU.isNull() )
+		timerStop();
 	QMenu::closeEvent( event );
 	if( ! SUBMENU.isNull() )
 		SUBMENU->close();
@@ -66,24 +74,43 @@ void GlobalMenu::closeEvent( QCloseEvent *event )
 void GlobalMenu::closeTopMostMenu()
 {
 	GlobalMenu *menu = this;
-	while( menu->parentMenu() != NULL )
+	while( ! menu->parentMenu().isNull() )
 		menu = menu->parentMenu();
 	menu->close();
 }
 
 
-void GlobalMenu::timerStart( int delay )
+void GlobalMenu::closeAllSubmenus()
 {
-	if( delay > 0 )
-		QTimer::singleShot( delay, &INACTIVITYTIMER, SLOT(start()) );
-	else
-		INACTIVITYTIMER.start();
+	if( SUBMENU.isNull() )
+		return;
+	bool timeractive = INACTIVITYTIMER->isActive();
+	if( timeractive )
+	{
+		// stop timer
+		timerStop();
+	}
+	SUBMENU->closeAllSubmenus();
+	_activateWindow( this );
+	SUBMENU->close();
+	if( timeractive )
+	{
+		// start timer
+		timerLock();
+		timerStart();
+	}
+}
+
+
+void GlobalMenu::timerStart()
+{
+	INACTIVITYTIMER->start();
 }
 
 
 void GlobalMenu::timerStop()
 {
-	INACTIVITYTIMER.stop();
+	INACTIVITYTIMER->stop();
 }
 
 
@@ -101,8 +128,8 @@ void GlobalMenu::timerUnlock()
 
 void GlobalMenu::hideEvent( QHideEvent *event )
 {
-	close();
 	QMenu::hideEvent( event );
+	close();
 }
 
 
@@ -113,8 +140,9 @@ void GlobalMenu::focusInEvent( QFocusEvent *event )
 }
 
 
-void GlobalMenu::popup( QPoint p, int inactivitycheckdelay )
+void GlobalMenu::popup( QPoint p )
 {
+	timerStop();
 	LASTMOUSEPOS = QCursor::pos();
 	if( ! p.isNull() )
 		QMenu::popup( p );
@@ -138,27 +166,29 @@ void GlobalMenu::popup( QPoint p, int inactivitycheckdelay )
 			}
 		}
 	}
+	QApplication::processEvents();
 	_activateWindow( this );
-	QTimer::singleShot( 1, this, SLOT(activate()) );
-	if( PARENTMENU.isNull() )
-	{
-		if( inactivitycheckdelay < 0 )
-			inactivitycheckdelay = GLOBALHOTKEYS_GLOBALWIDGETDEFAULTINACTIVITYCHECKDELAY;
-		timerStart( inactivitycheckdelay );
-	}
+	QApplication::processEvents();
+	timerLock();
+	timerStart();
 }
 
 
 void GlobalMenu::keyPressEvent( QKeyEvent *event )
 {
+	if( ! SUBMENU.isNull() )
+	{
+		_activateWindow( SUBMENU );
+		return;
+	}
 	if( event->key() == Qt::Key_Left )
 	{
-		if( PARENTMENU != NULL )
+		if( ! PARENTMENU.isNull() )
 		{
-			timerStop();
 			timerLock();
-			close();
 			_activateWindow( PARENTMENU );
+			close();
+			QApplication::processEvents();
 		}
 		return;
 	}
@@ -172,9 +202,14 @@ void GlobalMenu::keyPressEvent( QKeyEvent *event )
 }
 
 
-void GlobalMenu::mousePressEvent( QMouseEvent *event )
+void GlobalMenu::keyReleaseEvent( QKeyEvent *event )
 {
-	QMenu::mousePressEvent( event );
+	if( ! SUBMENU.isNull() )
+	{
+		_activateWindow( SUBMENU );
+		return;
+	}
+	QMenu::keyReleaseEvent( event );
 }
 
 
@@ -184,14 +219,10 @@ void GlobalMenu::mouseMoveEvent( QMouseEvent *event )
 	if( event->globalPos() != LASTMOUSEPOS )
 	{
 		if( ! SUBMENU.isNull() )
-		{
 			return;
-		}
 		QAction *action = actionAt( event->pos() );
 		if( action != NULL )
-		{
 			setActiveAction( action );
-		}
 	}
 	LASTMOUSEPOS = event->globalPos();
 }
@@ -205,6 +236,8 @@ void GlobalMenu::leaveEvent( QEvent *event )
 
 void GlobalMenu::inactivitytimerTimeout()
 {
+	if( ! PARENTMENU.isNull() )
+		return;
 	GlobalMenu *menu = this;
 	bool active = false;
 	while( menu != NULL )
@@ -218,7 +251,9 @@ void GlobalMenu::inactivitytimerTimeout()
 	}
 	if( INACTIVITYTIMERLOCK )
 	{
-		if( active )
+		if( ! active )
+			_activateWindow( this );
+		else
 			timerUnlock();
 	}
 	else
@@ -230,10 +265,4 @@ void GlobalMenu::inactivitytimerTimeout()
 		}
 	}
 	timerStart();
-}
-
-
-void GlobalMenu::activate()
-{
-	_activateWindow( this );
 }

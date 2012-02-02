@@ -1,7 +1,7 @@
 /****************************************************************************
 *                                                                           *
 *   GlobalHotkeys plugin for Kadu                                           *
-*   Copyright (C) 2008-2011  Piotr Dąbrowski ultr@ultr.pl                   *
+*   Copyright (C) 2008-2012  Piotr Dąbrowski ultr@ultr.pl                   *
 *                                                                           *
 *   This program is free software: you can redistribute it and/or modify    *
 *   it under the terms of the GNU General Public License as published by    *
@@ -441,6 +441,7 @@ ConfBuddiesMenu::ConfBuddiesMenu( QObject *parent, QString group, bool forcecrea
 	ONLINEBUDDIES                = false;
 	ONLINEBUDDIESINCLUDEBLOCKING = false;
 	ONEITEMPERBUDDY              = true;
+	ALWAYSSHOWCONTACTIDENTIFIER  = false;
 	SORTSTATELESSBUDDIES         = true;
 	SORTSTATELESSBUDDIESBYSTATUS = true;
 	if( ! ConfGroups::GROUPS.contains( GROUP ) )
@@ -466,6 +467,7 @@ ConfBuddiesMenu::~ConfBuddiesMenu()
 	if( ! GROUPSEDIT.isNull()                           ) delete GROUPSEDIT;
 	if( ! EXCLUDEBUDDIESEDIT.isNull()                   ) delete EXCLUDEBUDDIESEDIT;
 	if( ! ONEITEMPERBUDDYCHECKBOX.isNull()              ) delete ONEITEMPERBUDDYCHECKBOX;
+	if( ! ALWAYSSHOWCONTACTIDENTIFIERCHECKBOX.isNull()  ) delete ALWAYSSHOWCONTACTIDENTIFIERCHECKBOX;
 	if( ! SORTSTATELESSBUDDIESCHECKBOX.isNull()         ) delete SORTSTATELESSBUDDIESCHECKBOX;
 	if( ! SORTSTATELESSBUDDIESBYSTATUSCHECKBOX.isNull() ) delete SORTSTATELESSBUDDIESBYSTATUSCHECKBOX;
 	if( ! DELETEBUTTON.isNull()                         ) delete DELETEBUTTON;
@@ -499,6 +501,7 @@ void ConfBuddiesMenu::commitUIData()
 	GROUPS                       = GROUPSEDIT->text().split( QRegExp( GLOBALHOTKEYS_COMMAREGEXP ), QString::SkipEmptyParts );
 	EXCLUDEBUDDIES               = EXCLUDEBUDDIESEDIT->text().split( QRegExp( GLOBALHOTKEYS_COMMAREGEXP ), QString::SkipEmptyParts );
 	ONEITEMPERBUDDY              = ONEITEMPERBUDDYCHECKBOX->isChecked();
+	ALWAYSSHOWCONTACTIDENTIFIER  = ALWAYSSHOWCONTACTIDENTIFIERCHECKBOX->isChecked();
 	SORTSTATELESSBUDDIES         = SORTSTATELESSBUDDIESCHECKBOX->isChecked();
 	SORTSTATELESSBUDDIESBYSTATUS = SORTSTATELESSBUDDIESBYSTATUSCHECKBOX->isChecked();
 }
@@ -517,6 +520,7 @@ void ConfBuddiesMenu::fillUIData()
 	GROUPSEDIT->setText(                              GROUPS.join( ", " )              );
 	EXCLUDEBUDDIESEDIT->setText(                      EXCLUDEBUDDIES.join( ", " )      );
 	ONEITEMPERBUDDYCHECKBOX->setChecked(              ONEITEMPERBUDDY                  );
+	ALWAYSSHOWCONTACTIDENTIFIERCHECKBOX->setChecked(  ALWAYSSHOWCONTACTIDENTIFIER      );
 	SORTSTATELESSBUDDIESCHECKBOX->setChecked(         SORTSTATELESSBUDDIES             );
 	SORTSTATELESSBUDDIESBYSTATUSCHECKBOX->setChecked( SORTSTATELESSBUDDIESBYSTATUS     );
 	ONLINEBUDDIESGROUPSEDIT->setEnabled( ONLINEBUDDIESCHECKBOX->isChecked() );
@@ -541,6 +545,7 @@ QString ConfBuddiesMenu::serialized()
 	list.append( ONEITEMPERBUDDY              ? "1" : "0" );
 	list.append( SORTSTATELESSBUDDIES         ? "1" : "0" );
 	list.append( SORTSTATELESSBUDDIESBYSTATUS ? "1" : "0" );
+	list.append( ALWAYSSHOWCONTACTIDENTIFIER  ? "1" : "0" );
 	return list.serialized();
 }
 
@@ -549,7 +554,7 @@ void ConfBuddiesMenu::deserialize( QString serializedstring )
 {
 	SerializableQStringList list;
 	list.deserialize( serializedstring );
-	while( list.count() < 13 )
+	while( list.count() < 14 )
 		list.append( "" );
 	HOTKEY                       = HotKey( list[ 0] );
 	CURRENTCHATS                 =       ( list[ 1] == "1" );
@@ -564,6 +569,7 @@ void ConfBuddiesMenu::deserialize( QString serializedstring )
 	ONEITEMPERBUDDY              =       ( list[10] == "1" );
 	SORTSTATELESSBUDDIES         =       ( list[11] == "1" );
 	SORTSTATELESSBUDDIESBYSTATUS =       ( list[12] == "1" );
+	ALWAYSSHOWCONTACTIDENTIFIER  =       ( list[13] == "1" );
 	// fill UI data if widgets exist
 	if( ! HOTKEYEDIT.isNull() )
 		fillUIData();
@@ -624,6 +630,7 @@ void ConfBuddiesMenu::mainConfigurationWindowCreated( MainConfigurationWindow *m
 		GROUPSEDIT                           = new ConfigLineEdit(      "", "", QT_TRANSLATE_NOOP( "@default", "Include buddies from these groups (comma separated)" ), ""                                  , configgroupbox, NULL );
 		EXCLUDEBUDDIESEDIT                   = new ConfigLineEdit(      "", "", QT_TRANSLATE_NOOP( "@default", "Exclude these buddies (comma separated)"             ), ""                                  , configgroupbox, NULL );
 		ONEITEMPERBUDDYCHECKBOX              = new ConfigCheckBox(      "", "", QT_TRANSLATE_NOOP( "@default", "Show at most one item per buddy"                     ), ""                                  , configgroupbox, NULL );
+		ALWAYSSHOWCONTACTIDENTIFIERCHECKBOX  = new ConfigCheckBox(      "", "", QT_TRANSLATE_NOOP( "@default", "Always show contact's identifier"                    ), ""                                  , configgroupbox, NULL );
 		SORTSTATELESSBUDDIESCHECKBOX         = new ConfigCheckBox(      "", "", QT_TRANSLATE_NOOP( "@default", "Sort stateless buddies"                              ), ""                                  , configgroupbox, NULL );
 		SORTSTATELESSBUDDIESBYSTATUSCHECKBOX = new ConfigCheckBox(      "", "", QT_TRANSLATE_NOOP( "@default", "Sort by status"                                      ), ""                                  , configgroupbox, NULL );
 		DELETEBUTTON                         = new ConfigActionButton(          QT_TRANSLATE_NOOP( "@default", "Delete this menu"                                    ), ""                                  , configgroupbox, NULL );
@@ -645,6 +652,7 @@ void ConfBuddiesMenu::mainConfigurationWindowCreated( MainConfigurationWindow *m
 	GROUPSEDIT->show();
 	EXCLUDEBUDDIESEDIT->show();
 	ONEITEMPERBUDDYCHECKBOX->show();
+	ALWAYSSHOWCONTACTIDENTIFIERCHECKBOX->show();
 	SORTSTATELESSBUDDIESCHECKBOX->show();
 	SORTSTATELESSBUDDIESBYSTATUSCHECKBOX->show();
 	DELETEBUTTON->show();
@@ -666,6 +674,7 @@ void ConfBuddiesMenu::deletebuttonClicked()
 	GROUPSEDIT->hide();
 	EXCLUDEBUDDIESEDIT->hide();
 	ONEITEMPERBUDDYCHECKBOX->hide();
+	ALWAYSSHOWCONTACTIDENTIFIERCHECKBOX->hide();
 	SORTSTATELESSBUDDIESCHECKBOX->hide();
 	SORTSTATELESSBUDDIESBYSTATUSCHECKBOX->hide();
 	DELETEBUTTON->hide();

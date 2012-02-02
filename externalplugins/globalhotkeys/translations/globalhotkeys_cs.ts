@@ -232,5 +232,9 @@ používané jinými programy.</numerusform>
         <source>Multilogon window</source>
         <translation>Okno s více přihlášeními</translation>
     </message>
+    <message>
+        <source>Always show contact&apos;s identifier</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 </TS>

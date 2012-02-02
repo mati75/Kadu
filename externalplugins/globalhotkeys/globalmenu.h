@@ -1,7 +1,7 @@
 /****************************************************************************
 *                                                                           *
 *   GlobalHotkeys plugin for Kadu                                           *
-*   Copyright (C) 2008-2011  Piotr Dąbrowski ultr@ultr.pl                   *
+*   Copyright (C) 2008-2012  Piotr Dąbrowski ultr@ultr.pl                   *
 *                                                                           *
 *   This program is free software: you can redistribute it and/or modify    *
 *   it under the terms of the GNU General Public License as published by    *
@@ -37,29 +37,31 @@ class GlobalMenu : public QMenu
 	Q_OBJECT
 	public:
 		GlobalMenu();
-		static bool INACTIVITYTIMERLOCK;
-		void popup( QPoint p = QPoint(), int inactivitycheckdelay = -1 );
-		void timerLock();
-		void timerStart( int delay = 0 );
-		void timerStop();
-		void timerUnlock();
+		void popup( QPoint p = QPoint() );
+		void closeAllSubmenus();
 		PROPERTY_RW( QPointer<GlobalMenu>, PARENTMENU      , parentMenu      , setParentMenu       );
 		PROPERTY_RO( QPointer<GlobalMenu>, SUBMENU         , subMenu                               );
 		PROPERTY_RW( QAction*            , ACTIONTOACTIVATE, actionToActivate, setActionToActivate );
-	protected:
+	public slots:
 		void closeTopMostMenu();
+	protected:
+		static void timerLock();
+		static void timerStart();
+		static void timerStop();
+		static void timerUnlock();
+		static bool INACTIVITYTIMERLOCK;
+		static QTimer *INACTIVITYTIMER;
+	protected:
 		virtual void closeEvent( QCloseEvent *event );
 		virtual void focusInEvent( QFocusEvent *event );
 		virtual void hideEvent( QHideEvent *event );
 		virtual void keyPressEvent( QKeyEvent *event );
+		virtual void keyReleaseEvent( QKeyEvent *event );
 		virtual void leaveEvent( QEvent *event );
 		virtual void mouseMoveEvent( QMouseEvent *event );
-		virtual void mousePressEvent( QMouseEvent *event );
 	private slots:
 		void inactivitytimerTimeout();
-		void activate();
 	private:
-		QTimer INACTIVITYTIMER;
 		QPoint LASTMOUSEPOS;
 };
 

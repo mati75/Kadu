@@ -1,7 +1,7 @@
 /****************************************************************************
 *                                                                           *
 *   GlobalHotkeys plugin for Kadu                                           *
-*   Copyright (C) 2008-2011  Piotr Dąbrowski ultr@ultr.pl                   *
+*   Copyright (C) 2008-2012  Piotr Dąbrowski ultr@ultr.pl                   *
 *                                                                           *
 *   This program is free software: you can redistribute it and/or modify    *
 *   it under the terms of the GNU General Public License as published by    *
@@ -21,6 +21,8 @@
 
 
 
+#include <QApplication>
+
 #include "activate.h"
 
 #include "globalwidgetmanager.h"
@@ -28,7 +30,7 @@
 
 
 
-GlobalWidgetManager::GlobalWidgetManager( QWidget *widget, bool autostart, int inactivitycheckdelay )
+GlobalWidgetManager::GlobalWidgetManager( QWidget *widget, bool autostart )
 {
 	setParent( widget );
 	WIDGET = widget->window();
@@ -38,11 +40,7 @@ GlobalWidgetManager::GlobalWidgetManager( QWidget *widget, bool autostart, int i
 	connect( &INACTIVITYTIMER, SIGNAL(timeout()), this, SLOT(inactivitytimerTimeout()) );
 	FIRSTRUN = true;
 	if( autostart )
-	{
-		if( inactivitycheckdelay < 0 )
-			inactivitycheckdelay = GLOBALHOTKEYS_GLOBALWIDGETDEFAULTINACTIVITYCHECKDELAY;
-		start( inactivitycheckdelay );
-	}
+		start();
 }
 
 
@@ -51,19 +49,17 @@ GlobalWidgetManager::~GlobalWidgetManager()
 }
 
 
-void GlobalWidgetManager::start( int delay )
+void GlobalWidgetManager::start()
 {
 	if( FIRSTRUN )
 	{
 		FIRSTRUN = false;
 		if( ! WIDGET->isVisible() )
 			WIDGET->show();
+		QApplication::processEvents();
 		_activateWindow( WIDGET );
 	}
-	if( delay > 0 )
-		QTimer::singleShot( delay, &INACTIVITYTIMER, SLOT(start()) );
-	else
-		INACTIVITYTIMER.start();
+	INACTIVITYTIMER.start();
 }
 
 
@@ -75,6 +71,8 @@ void GlobalWidgetManager::stop()
 
 void GlobalWidgetManager::inactivitytimerTimeout()
 {
+	if( ! WIDGET->isVisible() )
+		return;
 	if( ! _isActiveWindow( WIDGET ) )
 	{
 		WIDGET->close();

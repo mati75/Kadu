@@ -228,5 +228,9 @@ are in use by another application.</numerusform>
         <source>Multilogon window</source>
         <translation>Multilogon window</translation>
     </message>
+    <message>
+        <source>Always show contact&apos;s identifier</source>
+        <translation>Always show contact&apos;s identifier</translation>
+    </message>
 </context>
 </TS>
