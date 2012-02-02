@@ -1,3 +1,11 @@
+kadu (0.11.0~rc3-1) unstable; urgency=low
+
+  * New upstream release
+  * Renamed 05-lowered_expectant_libgadu_version.patch to 04-
+    lowered_expectant_libgadu_version.patch
+
+ -- Patryk Cisek <patryk@debian.org>  Thu, 02 Feb 2012 16:52:30 +0100
+
 kadu (0.11.0~rc2-1) unstable; urgency=low
 
   * New upstream release
