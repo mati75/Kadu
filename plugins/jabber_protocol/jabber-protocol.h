@@ -29,17 +29,14 @@
 
 #include "client/jabber-client.h"
 #include "services/jabber-avatar-service.h"
-#include "services/jabber-chat-service.h"
-#include "services/jabber-chat-state-service.h"
 #include "services/jabber-contact-personal-info-service.h"
 #include "services/jabber-file-transfer-service.h"
 #include "services/jabber-personal-info-service.h"
-#include "services/jabber-roster-service.h"
+#include "services/jabber-subscription-service.h"
 #include "jabber-account-details.h"
 
 class JabberContactDetails;
 class JabberResourcePool;
-class JabberRosterService;
 class JabberSubscriptionService;
 
 class JabberProtocol : public Protocol
@@ -47,12 +44,9 @@ class JabberProtocol : public Protocol
 	Q_OBJECT
 
 	JabberAvatarService *CurrentAvatarService;
-	JabberChatService *CurrentChatService;
-	JabberChatStateService *CurrentChatStateService;
 	JabberContactPersonalInfoService *CurrentContactPersonalInfoService;
 	JabberFileTransferService *CurrentFileTransferService;
 	JabberPersonalInfoService *CurrentPersonalInfoService;
-	JabberRosterService *CurrentRosterService;
 	JabberSubscriptionService *CurrentSubscriptionService;
 
 	friend class XMPP::JabberClient;
@@ -69,9 +63,6 @@ class JabberProtocol : public Protocol
 
 	void initializeJabberClient();
 
-	friend class JabberRosterService;
-	void connectContactManagerSignals();
-	void disconnectContactManagerSignals();
 	XMPP::ClientStream::AllowPlainType plainAuthToXMPP(JabberAccountDetails::AllowPlainType type);
 
 	void notifyAboutPresenceChanged(const XMPP::Jid &jid, const XMPP::Resource &resource);
@@ -79,21 +70,14 @@ class JabberProtocol : public Protocol
 private slots:
 	void connectedToServer();
 	void disconnectedFromServer();
+	void reconnect();
 	void disconnectFromServer(const XMPP::Status &s = XMPP::Status (QString(), QString(), 0, false));
-	void rosterDownloaded(bool success);
+	void rosterReady(bool success);
 
 	void clientAvailableResourceReceived(const XMPP::Jid &j, const XMPP::Resource &r);
 	void clientUnavailableResourceReceived(const XMPP::Jid &j, const XMPP::Resource &r);
 
 	void slotClientDebugMessage (const QString &msg);
-
-	void contactDetached(Contact contact, Buddy previousBuddy, bool reattaching);
-	void contactAttached(Contact contact, bool reattached);
-	void contactUpdated(Contact contact);
-
-	void buddyUpdated(Buddy &buddy);
-
-	void contactIdChanged(Contact contact, const QString &oldId);
 
 	void connectionErrorSlot(const QString &message);
 
@@ -118,14 +102,10 @@ public:
 	virtual QString statusPixmapPath();
 
 	virtual AvatarService * avatarService() { return CurrentAvatarService; }
-	virtual ChatService * chatService() { return CurrentChatService; }
-	virtual ChatStateService *chatStateService() { return CurrentChatStateService; }
 	virtual ContactPersonalInfoService * contactPersonalInfoService() { return CurrentContactPersonalInfoService; }
 	virtual FileTransferService * fileTransferService() { return CurrentFileTransferService; }
 	virtual PersonalInfoService * personalInfoService() { return CurrentPersonalInfoService; }
-	virtual RosterService * rosterService() { return CurrentRosterService; }
-
-	JabberSubscriptionService * subscriptionService() { return CurrentSubscriptionService; }
+	virtual SubscriptionService * subscriptionService() { return CurrentSubscriptionService; }
 
 	JabberResourcePool *resourcePool();
 

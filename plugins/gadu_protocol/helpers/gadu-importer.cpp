@@ -37,6 +37,7 @@
 #include "misc/misc.h"
 #include "network/proxy/network-proxy-manager.h"
 #include "protocols/protocols-manager.h"
+#include "protocols/roster.h"
 
 #include "helpers/gadu-imported-contact-xml-receiver.h"
 #include "gadu-account-details.h"
@@ -90,8 +91,7 @@ QVariant GaduImporter::readEntry(QXmlQuery &xmlQuery, const QString &groupName, 
 
 Account GaduImporter::import065Account(QXmlQuery &xmlQuery)
 {
-	Account result = Account::create();
-	result.setProtocolName("gadu");
+	Account result = Account::create("gadu");
 
 	GaduAccountDetails *accountDetails = dynamic_cast<GaduAccountDetails *>(result.details());
 	accountDetails->setState(StorableObject::StateNew);
@@ -159,8 +159,7 @@ void GaduImporter::importAccounts()
 	if (AccountManager::instance()->byId("gadu", importUinString))
 		return;
 
-	Account defaultGaduGadu = Account::create();
-	defaultGaduGadu.setProtocolName("gadu");
+	Account defaultGaduGadu = Account::create("gadu");
 
 	GaduAccountDetails *accountDetails = dynamic_cast<GaduAccountDetails *>(defaultGaduGadu.details());
 	accountDetails->setState(StorableObject::StateNew);
@@ -202,8 +201,8 @@ void GaduImporter::importAccounts()
 
 void GaduImporter::importContacts()
 {
-	connect(BuddyManager::instance(), SIGNAL(buddyAdded(Buddy &)),
-			this, SLOT(buddyAdded(Buddy &)));
+	connect(BuddyManager::instance(), SIGNAL(buddyAdded(Buddy)),
+			this, SLOT(buddyAdded(Buddy)));
 
 	foreach (Buddy buddy, BuddyManager::instance()->items())
 		buddyAdded(buddy);
@@ -224,6 +223,8 @@ Contact GaduImporter::importGaduContact(Account account, Buddy buddy)
 	buddy.removeCustomData("offline_to");
 
 	contact.setOwnerBuddy(buddy);
+
+	Roster::instance()->addContact(contact);
 
 	return contact;
 }
@@ -253,7 +254,7 @@ void GaduImporter::importIgnored()
 	xml_config_file->removeNode(xml_config_file->rootElement(), "Ignored");
 }
 
-void GaduImporter::buddyAdded(Buddy &buddy)
+void GaduImporter::buddyAdded(const Buddy &buddy)
 {
 	if (buddy.customData("uin").isEmpty())
 		return;

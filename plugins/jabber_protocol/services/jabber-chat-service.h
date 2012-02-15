@@ -33,22 +33,38 @@
 class Chat;
 class JabberProtocol;
 
+namespace XMPP
+{
+
+class Client;
+
 class JabberChatService : public ChatService
 {
 	Q_OBJECT
 
-	JabberProtocol *Protocol;
-        QMap<QString, QString> *ContactMessageTypes;
+	Client *XmppClient;
+
+	QMap<QString, QString> ContactMessageTypes;
 
 private slots:
-	void clientMessageReceived(const XMPP::Message &msg);
+	void clientDestroyed();
 
 public:
-	JabberChatService(JabberProtocol *protocol);
+	explicit JabberChatService(JabberProtocol *protocol);
+	virtual ~JabberChatService();
+
+	void setClient(Client *xmppClient);
 
 public slots:
-	virtual bool sendMessage(const Chat &chat, FormattedMessage &formattedMessage, bool silent = false);
+	virtual bool sendMessage(const Chat &chat, const QString &message, bool silent = false);
+
+	void handleReceivedMessage(const Message &msg);
+
+signals:
+	void messageAboutToSend(Message &message);
 
 };
+
+}
 
 #endif // JABBER_CHAT_SERVICE_H

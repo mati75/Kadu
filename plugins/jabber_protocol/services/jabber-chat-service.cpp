@@ -42,25 +42,50 @@
 
 #include "jabber-chat-service.h"
 
-JabberChatService::JabberChatService(JabberProtocol *protocol)
-	: ChatService(protocol), Protocol(protocol)
+namespace XMPP
 {
-	connect(protocol->client(), SIGNAL(messageReceived(const XMPP::Message &)),
-		this, SLOT(clientMessageReceived(const XMPP::Message &)));
 
-        ContactMessageTypes = new QMap<QString, QString>();
+JabberChatService::JabberChatService(JabberProtocol *protocol) :
+		ChatService(protocol), XmppClient(0)
+{
 }
 
-bool JabberChatService::sendMessage(const Chat &chat, FormattedMessage &formattedMessage, bool silent)
+JabberChatService::~JabberChatService()
 {
+}
+
+void JabberChatService::clientDestroyed()
+{
+	XmppClient = 0;
+}
+
+void JabberChatService::setClient(Client *xmppClient)
+{
+	if (XmppClient)
+		disconnect(XmppClient, SIGNAL(destroyed()), this, SLOT(clientDestroyed()));
+
+	XmppClient = xmppClient;
+
+	if (XmppClient)
+		connect(XmppClient, SIGNAL(destroyed()), this, SLOT(clientDestroyed()));
+}
+
+bool JabberChatService::sendMessage(const Chat &chat, const QString &message, bool silent)
+{
+	if (!XmppClient)
+		return false;
+
 	kdebugf();
 	ContactSet contacts = chat.contacts();
-        // TODO send to more users
+	// TODO send to more users
 	if (contacts.count() > 1 || contacts.count() == 0)
 		return false;
 
+	QTextDocument document;
+	document.setHtml(message);
+
 	//QString cleanmsg = toPlainText(mesg);
-	QString plain = formattedMessage.toPlain();
+	QString plain = document.toPlainText();
 	QString jid = contacts.toContact().id();
 	kdebugmf(KDEBUG_INFO, "jabber: chat msg to %s body %s\n", qPrintable(jid), qPrintable(plain));
 	const XMPP::Jid jus = jid;
@@ -75,30 +100,32 @@ bool JabberChatService::sendMessage(const Chat &chat, FormattedMessage &formatte
 
 	if (stop)
 	{
-	    // TODO: implement formats
-	    kdebugmf(KDEBUG_FUNCTION_END, "end: filter stopped processing\n");
-	    return false;
+		// TODO: implement formats
+		kdebugmf(KDEBUG_FUNCTION_END, "end: filter stopped processing\n");
+		return false;
 	}
 
-	QString messageType = false == ContactMessageTypes->value(jus.bare()).isEmpty()
-                        ? ContactMessageTypes->value(jus.bare())
-                        : "chat";
+	QString messageType = false == ContactMessageTypes.value(jus.bare()).isEmpty()
+	        ? ContactMessageTypes.value(jus.bare())
+	        : "chat";
 
 	msg.setType(messageType);
 	msg.setBody(plain);
 	msg.setTimeStamp(QDateTime::currentDateTime());
 	//msg.setFrom(jabberID);
-	Protocol->client()->sendMessage(msg);
+
+	emit messageAboutToSend(msg);
+	XmppClient->sendMessage(msg);
 
 	if (!silent)
 	{
 		HtmlDocument::escapeText(plain);
 
-		Message message = Message::create();
+		::Message message = ::Message::create();
 		message.setMessageChat(chat);
 		message.setType(MessageTypeSent);
-		message.setMessageSender(Protocol->account().accountContact());
-		message.setContent(Qt::escape(formattedMessage.toPlain()));
+		message.setMessageSender(account().accountContact());
+		message.setContent(plain);
 		message.setSendDate(QDateTime::currentDateTime());
 		message.setReceiveDate(QDateTime::currentDateTime());
 
@@ -109,7 +136,7 @@ bool JabberChatService::sendMessage(const Chat &chat, FormattedMessage &formatte
 	return true;
 }
 
-void JabberChatService::clientMessageReceived(const XMPP::Message &msg)
+void JabberChatService::handleReceivedMessage(const XMPP::Message &msg)
 {
 	kdebugf();
 
@@ -121,13 +148,12 @@ void JabberChatService::clientMessageReceived(const XMPP::Message &msg)
 	if (msg.type() == "error")
 		return;
 
-	Contact contact = ContactManager::instance()->byId(Protocol->account(), msg.from().bare(), ActionCreateAndAdd);
+	Contact contact = ContactManager::instance()->byId(account(), msg.from().bare(), ActionCreateAndAdd);
 	ContactSet contacts(contact);
 
 	Chat chat = ChatManager::instance()->findChat(contacts);
 	bool ignore = false;
 
-	time_t msgtime = msg.timeStamp().toTime_t();
 	QByteArray body = msg.body().toUtf8();
 	emit filterRawIncomingMessage(chat, contact, body, ignore);
 
@@ -135,19 +161,19 @@ void JabberChatService::clientMessageReceived(const XMPP::Message &msg)
 
 	QString plain = formattedMessage.toPlain();
 
-	emit filterIncomingMessage(chat, contact, plain, msgtime, ignore);
+	emit filterIncomingMessage(chat, contact, plain, ignore);
 	if (ignore)
 		return;
 
-        QString messageType = msg.type().isEmpty()
-                        ? "message"
-                        : msg.type();
+	QString messageType = msg.type().isEmpty()
+	        ? "message"
+	        : msg.type();
 
-        ContactMessageTypes->insert(msg.from().bare(), messageType);
+	ContactMessageTypes.insert(msg.from().bare(), messageType);
 
 	HtmlDocument::escapeText(plain);
 
-	Message message = Message::create();
+	::Message message = ::Message::create();
 	message.setMessageChat(chat);
 	message.setType(MessageTypeReceived);
 	message.setMessageSender(contact);
@@ -158,4 +184,6 @@ void JabberChatService::clientMessageReceived(const XMPP::Message &msg)
 	emit messageReceived(message);
 
 	kdebugf2();
+}
+
 }

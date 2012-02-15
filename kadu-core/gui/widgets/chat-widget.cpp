@@ -60,6 +60,7 @@
 #include "gui/actions/action.h"
 #include "gui/actions/actions.h"
 #include "gui/hot-key.h"
+#include "gui/web-view-highlighter.h"
 #include "gui/widgets/chat-edit-box-size-manager.h"
 #include "gui/widgets/chat-messages-view.h"
 #include "gui/widgets/chat-widget-actions.h"
@@ -67,6 +68,7 @@
 #include "gui/widgets/chat-widget-manager.h"
 #include "gui/widgets/color-selector.h"
 #include "gui/widgets/filtered-tree-view.h"
+#include "gui/widgets/search-bar.h"
 #include "gui/widgets/talkable-tree-view.h"
 #include "gui/windows/kadu-window.h"
 #include "gui/windows/message-dialog.h"
@@ -109,7 +111,9 @@ ChatWidget::ChatWidget(const Chat &chat, QWidget *parent) :
 	foreach (const Contact &contact, CurrentChat.contacts())
 	{
 		connect(contact, SIGNAL(updated()), this, SLOT(refreshTitle()));
-		connect(contact.ownerBuddy(), SIGNAL(updated()), this, SLOT(refreshTitle()));
+
+		if (contact.ownerBuddy())
+			connect(contact.ownerBuddy(), SIGNAL(updated()), this, SLOT(refreshTitle()));
 	}
 
 	// icon for conference never changes
@@ -125,12 +129,14 @@ ChatWidget::ChatWidget(const Chat &chat, QWidget *parent) :
 			// iconChanged(). 3. Tab catches it before Chat is updated and incorrectly sets
 			// tab icon to the envelope. This could be fixed correctly if we would fix the above TODO.
 			connect(contact, SIGNAL(updated()), this, SIGNAL(iconChanged()), Qt::QueuedConnection);
-			connect(contact.ownerBuddy(), SIGNAL(buddySubscriptionChanged()), this, SIGNAL(iconChanged()));
+
+			if (contact.ownerBuddy())
+				connect(contact.ownerBuddy(), SIGNAL(buddySubscriptionChanged()), this, SIGNAL(iconChanged()));
 		}
 
 		if (currentProtocol() && currentProtocol()->chatStateService())
-			connect(currentProtocol()->chatStateService(), SIGNAL(contactActivityChanged(ChatStateService::ContactActivity, const Contact &)),
-					this, SLOT(contactActivityChanged(ChatStateService::ContactActivity, const Contact &)));
+			connect(currentProtocol()->chatStateService(), SIGNAL(peerStateChanged(const Contact &, ChatStateService::State)),
+					this, SLOT(contactActivityChanged(const Contact &, ChatStateService::State)));
 	}
 
 	connect(IconsManager::instance(), SIGNAL(themeChanged()), this, SIGNAL(iconChanged()));
@@ -145,8 +151,8 @@ ChatWidget::~ChatWidget()
 
 	emit widgetDestroyed();
 
-	if (currentProtocol() && currentProtocol()->chatStateService())
-		currentProtocol()->chatStateService()->chatWidgetClosed(chat());
+	if (currentProtocol() && currentProtocol()->chatStateService() && chat().contacts().toContact())
+		currentProtocol()->chatStateService()->sendState(chat().contacts().toContact(), ChatStateService::StateGone);
 
 	kdebugmf(KDEBUG_FUNCTION_END, "chat destroyed\n");
 }
@@ -180,18 +186,50 @@ void ChatWidget::createGui()
 	HorizontalSplitter->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
 	HorizontalSplitter->setMinimumHeight(10);
 
-	MessagesView = new ChatMessagesView(CurrentChat);
+	QFrame *frame = new QFrame(HorizontalSplitter);
+	frame->setFrameStyle(QFrame::StyledPanel | QFrame::Sunken);
+
+	QVBoxLayout *frameLayout = new QVBoxLayout(frame);
+	frameLayout->setMargin(0);
+	frameLayout->setSpacing(0);
+
+	MessagesView = new ChatMessagesView(frame);
+	if (CurrentChat)
+	{
+		MessagesView->setChat(CurrentChat);
+		MessagesView->refresh();
+	}
+
+	frameLayout->addWidget(MessagesView);
+
+	WebViewHighlighter *highligher = new WebViewHighlighter(MessagesView);
+
+	SearchBar *messagesSearchBar = new SearchBar(frame);
+	frameLayout->addWidget(messagesSearchBar);
+
+	connect(messagesSearchBar, SIGNAL(searchPrevious(QString)), highligher, SLOT(selectPrevious(QString)));
+	connect(messagesSearchBar, SIGNAL(searchNext(QString)), highligher, SLOT(selectNext(QString)));
+	connect(messagesSearchBar, SIGNAL(clearSearch()), highligher, SLOT(clearSelect()));
 
 	QShortcut *shortcut = new QShortcut(QKeySequence(Qt::Key_PageUp + Qt::SHIFT), this);
 	connect(shortcut, SIGNAL(activated()), MessagesView, SLOT(pageUp()));
 
 	shortcut = new QShortcut(QKeySequence(Qt::Key_PageDown + Qt::SHIFT), this);
 	connect(shortcut, SIGNAL(activated()), MessagesView, SLOT(pageDown()));
-	HorizontalSplitter->addWidget(MessagesView);
+	HorizontalSplitter->addWidget(frame);
+
+	shortcut = new QShortcut(QKeySequence(Qt::Key_PageUp + Qt::ControlModifier), this);
+	connect(shortcut, SIGNAL(activated()), MessagesView, SLOT(pageUp()));
+
+	shortcut = new QShortcut(QKeySequence(Qt::Key_PageDown + Qt::ControlModifier), this);
+	connect(shortcut, SIGNAL(activated()), MessagesView, SLOT(pageDown()));
+	HorizontalSplitter->addWidget(frame);
 
 	InputBox = new ChatEditBox(CurrentChat, this);
 	InputBox->setSizePolicy(QSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored));
 	InputBox->setMinimumHeight(10);
+
+	messagesSearchBar->setSearchWidget(InputBox->inputBox());
 
 	if (CurrentChat.contacts().count() > 1)
 		createContactsList();
@@ -221,7 +259,8 @@ void ChatWidget::createContactsList()
 	TalkableTreeView *view = new TalkableTreeView(BuddiesWidget);
 	view->setItemsExpandable(false);
 
-	ModelChain *chain = new ModelChain(new ContactListModel(CurrentChat.contacts().toContactVector(), this), this);
+	ModelChain *chain = new ModelChain(this);
+	chain->setBaseModel(new ContactListModel(CurrentChat.contacts().toContactVector(), chain));
 	ProxyModel = new TalkableProxyModel(chain);
 
 	NameTalkableFilter *nameFilter = new NameTalkableFilter(NameTalkableFilter::UndecidedMatching, ProxyModel);
@@ -238,7 +277,7 @@ void ChatWidget::createContactsList()
 	connect(view, SIGNAL(talkableActivated(Talkable)),
 			Core::instance()->kaduWindow(), SLOT(talkableActivatedSlot(Talkable)));
 
-	BuddiesWidget->setTreeView(view);
+	BuddiesWidget->setView(view);
 
 	QToolBar *toolBar = new QToolBar(contactsListContainer);
 	toolBar->addAction(Actions::instance()->createAction("editUserAction", InputBox->actionContext(), InputBox));
@@ -510,9 +549,8 @@ void ChatWidget::sendMessage()
 		return;
 	}
 
-	FormattedMessage message = FormattedMessage::parse(InputBox->inputBox()->document());
 	ChatService *chatService = currentProtocol()->chatService();
-	if (!chatService || !chatService->sendMessage(CurrentChat, message))
+	if (!chatService || !chatService->sendMessage(CurrentChat, InputBox->inputBox()->document()->toHtml()))
 		return;
 
 	resetEditBox();
@@ -716,8 +754,8 @@ void ChatWidget::composingStopped()
 	ComposingTimer.stop();
 	IsComposing = false;
 
-	if (currentProtocol() && currentProtocol()->chatStateService())
-		currentProtocol()->chatStateService()->composingStopped(chat());
+	if (currentProtocol() && currentProtocol()->chatStateService() && chat().contacts().toContact())
+		currentProtocol()->chatStateService()->sendState(chat().contacts().toContact(), ChatStateService::StatePaused);
 }
 
 void ChatWidget::checkComposing()
@@ -742,14 +780,15 @@ void ChatWidget::updateComposing()
 		if (edit()->toPlainText().isEmpty())
 			return;
 
-		currentProtocol()->chatStateService()->composingStarted(chat());
+		if (chat().contacts().toContact())
+			currentProtocol()->chatStateService()->sendState(chat().contacts().toContact(), ChatStateService::StateComposing);
 
 		ComposingTimer.start();
 	}
 	IsComposing = true;
 }
 
-void ChatWidget::contactActivityChanged(ChatStateService::ContactActivity state, const Contact &contact)
+void ChatWidget::contactActivityChanged(const Contact &contact, ChatStateService::State state)
 {
 	if (CurrentContactActivity == state)
 		return;
@@ -760,7 +799,7 @@ void ChatWidget::contactActivityChanged(ChatStateService::ContactActivity state,
 	CurrentContactActivity = state;
 
 	if (ChatConfigurationHolder::instance()->contactStateChats())
-		MessagesView->contactActivityChanged(state, contact);
+		MessagesView->contactActivityChanged(contact, state);
 
 	if (ChatConfigurationHolder::instance()->contactStateWindowTitle())
 		refreshTitle();
@@ -789,6 +828,11 @@ void ChatWidget::close()
 void ChatWidget::keyPressedSlot(QKeyEvent *e, CustomInput *input, bool &handled)
 {
 	Q_UNUSED(input)
+
+	if (e->key() == Qt::Key_Home && e->modifiers() == Qt::ControlModifier)
+		MessagesView->scrollToTop();
+	else if (e->key() == Qt::Key_End && e->modifiers() == Qt::ControlModifier)
+		MessagesView->forceScrollToBottom();
 
 	if (handled)
 		return;

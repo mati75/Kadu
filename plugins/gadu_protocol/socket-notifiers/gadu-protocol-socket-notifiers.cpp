@@ -102,30 +102,9 @@ void GaduProtocolSocketNotifiers::dumpConnectionState()
 	}
 }
 
-void GaduProtocolSocketNotifiers::handleEventMsg(struct gg_event *e)
-{
-	if (0 == e->event.msg.sender)
-		return;
-
-	if (GG_CLASS_CTCP == e->event.msg.msgclass) // old DCC6, not supported now
-		return;
-
-	CurrentProtocol->CurrentChatService->handleEventMsg(e);
-}
-
-void GaduProtocolSocketNotifiers::handleEventMultilogonMsg(struct gg_event *e)
-{
-	CurrentProtocol->CurrentChatService->handleEventMultilogonMsg(e);
-}
-
 void GaduProtocolSocketNotifiers::handleEventMultilogonInfo(gg_event* e)
 {
 	CurrentProtocol->CurrentMultilogonService->handleEventMultilogonInfo(e);
-}
-
-void GaduProtocolSocketNotifiers::handleEventTypingNotify(struct gg_event *e)
-{
-	CurrentProtocol->CurrentChatStateService->handleEventTypingNotify(e);
 }
 
 void GaduProtocolSocketNotifiers::handleEventNotify(struct gg_event *e)
@@ -236,11 +215,11 @@ void GaduProtocolSocketNotifiers::socketEvent()
 	switch (e->type)
 	{
 		case GG_EVENT_MSG:
-			handleEventMsg(e);
+			emit msgEventReceived(e);
 			break;
 
 		case GG_EVENT_MULTILOGON_MSG:
-			handleEventMultilogonMsg(e);
+			emit multilogonMsgEventReceived(e);
 			break;
 
 		case GG_EVENT_MULTILOGON_INFO:
@@ -248,7 +227,7 @@ void GaduProtocolSocketNotifiers::socketEvent()
 			break;
 
 		case GG_EVENT_TYPING_NOTIFICATION:
-			handleEventTypingNotify(e);
+			emit typingNotifyEventReceived(e);
 			break;
 
 		case GG_EVENT_NOTIFY:
@@ -266,7 +245,7 @@ void GaduProtocolSocketNotifiers::socketEvent()
 			break;
 
 		case GG_EVENT_ACK:
-			CurrentProtocol->CurrentChatService->handleEventAck(e);
+			emit ackEventReceived(e);
 			break;
 
 		case GG_EVENT_CONN_FAILED:

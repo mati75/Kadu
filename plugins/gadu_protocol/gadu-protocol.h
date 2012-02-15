@@ -98,8 +98,6 @@ private:
 	GaduMultilogonService *CurrentMultilogonService;
 	GaduChatStateService *CurrentChatStateService;
 
-	GaduContactListHandler *ContactListHandler;
-
 	GaduServersManager::GaduServer ActiveServer;
 
 	struct gg_login_params GaduLoginParams;
@@ -113,12 +111,12 @@ private:
 	void setupLoginParams();
 	void cleanUpLoginParams();
 
+	void connectSocketNotifiersToServices();
+
 	void startFileTransferService();
 	void stopFileTransferService();
 
 	void setUpFileTransferService(bool forceClose = false);
-
-	void sendUserList();
 
 	void socketContactStatusChanged(UinType uin, unsigned int status, const QString &description, unsigned int maxImageSize);
 	void socketConnFailed(GaduError error);
@@ -126,6 +124,7 @@ private:
 	void disconnectedFromServer();
 
 	void setStatusFlags();
+	void configureServices();
 
 private slots:
 	void accountUpdated();
@@ -149,14 +148,12 @@ public:
 
 	virtual AvatarService * avatarService() { return CurrentAvatarService; }
 	virtual ChatImageService * chatImageService() { return CurrentChatImageService; }
-	virtual ChatService * chatService() { return CurrentChatService; }
 	virtual ContactListService * contactListService() { return CurrentContactListService; }
 	virtual ContactPersonalInfoService * contactPersonalInfoService() { return CurrentContactPersonalInfoService; }
 	virtual FileTransferService * fileTransferService() { return CurrentFileTransferService; }
 	virtual PersonalInfoService * personalInfoService() { return CurrentPersonalInfoService; }
 	virtual SearchService * searchService() { return CurrentSearchService; }
-    virtual MultilogonService * multilogonService() { return CurrentMultilogonService; }
-	virtual GaduChatStateService * chatStateService()  { return CurrentChatStateService; }
+	virtual MultilogonService * multilogonService() { return CurrentMultilogonService; }
 
 	virtual bool contactsListReadOnly() { return false; }
 	virtual bool supportsPrivateStatus() { return true; }
@@ -174,6 +171,8 @@ signals:
 		Served sent information about status change for unknown user.
 	**/
 	void userStatusChangeIgnored(Buddy);
+
+	void gaduSessionChanged(gg_session *newSession);
 
 };
 

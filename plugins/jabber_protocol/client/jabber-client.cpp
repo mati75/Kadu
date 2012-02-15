@@ -112,20 +112,10 @@ JabberClient::JabberClient(JabberProtocol *protocol, QObject *parent) :
 		using namespace XMPP;
 		QObject::connect(Client, SIGNAL(subscription(const Jid &, const QString &, const QString &)),
 				   this, SLOT(slotSubscription(const Jid &, const QString &, const QString &)));
-		QObject::connect(Client, SIGNAL(rosterRequestFinished(bool, int, const QString &)),
-				   this, SLOT(slotRosterRequestFinished(bool, int, const QString &)));
-		QObject::connect(Client, SIGNAL(rosterItemAdded(const RosterItem &)),
-				   this, SLOT(slotNewContact(const RosterItem &)));
-		QObject::connect(Client, SIGNAL(rosterItemUpdated(const RosterItem &)),
-				   this, SLOT(slotContactUpdated(const RosterItem &)));
-		QObject::connect(Client, SIGNAL(rosterItemRemoved(const RosterItem &)),
-				   this, SLOT(slotContactDeleted(const RosterItem &)));
 		QObject::connect(Client, SIGNAL(resourceAvailable(const Jid &, const Resource &)),
 				   this, SLOT(slotResourceAvailable(const Jid &, const Resource &)));
 		QObject::connect(Client, SIGNAL(resourceUnavailable(const Jid &, const Resource &)),
 				   this, SLOT(slotResourceUnavailable(const Jid &, const Resource &)));
-		QObject::connect(Client, SIGNAL(messageReceived(const Message &)),
-				   this, SLOT(slotReceivedMessage(const Message &)));
 		QObject::connect(Client, SIGNAL(groupChatJoined(const Jid &)),
 				   this, SLOT(slotGroupChatJoined(const Jid &)));
 		QObject::connect(Client, SIGNAL(groupChatLeft(const Jid &)),
@@ -401,22 +391,9 @@ void JabberClient::changeGroupChatNick( const QString &host, const QString &room
 {
 	Client->groupChatChangeNick( host, room, nick, status);
 }
-
-void JabberClient::sendMessage(const XMPP::Message &message)
-{
-	XMPP::Message m = message;
-	emit messageAboutToSend(m);
-	Client->sendMessage(m);
-}
-
 void JabberClient::send(const QString &packet)
 {
 	Client->send(packet);
-}
-
-void JabberClient::requestRoster()
-{
-	Client->rosterRequest();
 }
 
 void JabberClient::slotPsiDebug(const QString &_msg)
@@ -465,7 +442,7 @@ void JabberClient::slotTLSHandshaken()
 	QByteArray cert = jabberAccountDetails->tlsOverrideCert();
 
 	if (CertificateHelpers::checkCertificate(JabberTLS, JabberTLSHandler, domain,
-		QString("%1: ").arg(Protocol->account().accountIdentity().name()) + tr("Server Authentication"), host, Protocol))
+		QString("%1: ").arg(Protocol->account().accountIdentity().name()) + tr("security problem"), host, Protocol))
 		JabberTLSHandler->continueAfterHandshake();
 	else
 		Protocol->logout();
@@ -593,43 +570,6 @@ void JabberClient::slotCSError(int error)
 	}
 }
 
-void JabberClient::addContact(const XMPP::Jid &j, const QString &name, const QStringList &groups)
-{
-	if (AddedContacts.contains(j.bare()))
-		return;
-
-	JT_Roster *r = new JT_Roster(Client->rootTask());
-	r->set(j, name, groups);
-	r->go(true);
-
-	AddedContacts.append(j.bare());
-}
-
-void JabberClient::removeContact(const XMPP::Jid &j)
-{
-	AddedContacts.removeAll(j.bare());
-
-	JT_Roster *r = new JT_Roster(Client->rootTask());
-	r->remove(j);
-	r->go(true);
-
-	//TODO in the future...
-	// if it looks like a transport, unregister (but not if it is the server!!)
-	/*if(u->isTransport() && !Jid(d->client->host()).compare(u->jid())) {
-		JT_UnRegister *ju = new JT_UnRegister(d->client->rootTask());
-		ju->unreg(j);
-		ju->go(true);
-	}
-	*/
-}
-
-void JabberClient::updateContact(const XMPP::Jid &j, const QString &name, const QStringList &groups)
-{
-	JT_Roster *r = new JT_Roster(Client->rootTask());
-	r->set(j, name, groups);
-	r->go(true);
-}
-
 void JabberClient::setPresence(const XMPP::Status &status)
 {
 	kdebug("Status: %s, Reason: %s\n", status.show().toUtf8().constData(), status.status().toUtf8().constData());
@@ -701,26 +641,6 @@ void JabberClient::changeSubscription(const XMPP::Jid &jid, const QString &type)
 	task->go(true);
 }
 
-void JabberClient::slotRosterRequestFinished(bool success, int /*statusCode*/, const QString &/*statusString*/)
-{
-	emit rosterRequestFinished(success);
-}
-
-void JabberClient::slotNewContact(const XMPP::RosterItem &item)
-{
-	emit newContact(item);
-}
-
-void JabberClient::slotContactDeleted(const RosterItem &item)
-{
-	emit contactDeleted(item);
-}
-
-void JabberClient::slotContactUpdated(const RosterItem &item)
-{
-	emit contactUpdated(item);
-}
-
 void JabberClient::slotResourceAvailable(const XMPP::Jid &jid, const Resource &resource)
 {
 	emit resourceAvailable(jid, resource);
@@ -729,11 +649,6 @@ void JabberClient::slotResourceAvailable(const XMPP::Jid &jid, const Resource &r
 void JabberClient::slotResourceUnavailable(const XMPP::Jid &jid, const Resource &resource)
 {
 	emit resourceUnavailable(jid, resource);
-}
-
-void JabberClient::slotReceivedMessage(const Message &message)
-{
-	emit messageReceived(message);
 }
 
 void JabberClient::slotGroupChatJoined(const XMPP::Jid &jid)

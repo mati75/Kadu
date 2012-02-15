@@ -49,14 +49,13 @@
 #include "gui/windows/message-dialog.h"
 #include "icons/icons-manager.h"
 #include "misc/misc.h"
-#include "model/actions-proxy-model.h"
 #include "model/roles.h"
 #include "protocols/protocol-factory.h"
 #include "protocols/protocol.h"
 
 #include "buddy-general-configuration-widget.h"
 
-BuddyGeneralConfigurationWidget::BuddyGeneralConfigurationWidget(Buddy &buddy, QWidget *parent)
+BuddyGeneralConfigurationWidget::BuddyGeneralConfigurationWidget(const Buddy &buddy, QWidget *parent)
 		: QWidget(parent), MyBuddy(buddy)
 {
 	setAttribute(Qt::WA_DeleteOnClose);

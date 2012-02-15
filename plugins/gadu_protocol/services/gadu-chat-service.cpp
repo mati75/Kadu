@@ -23,28 +23,20 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <QtCore/QHash>
 #include <QtCore/QScopedArrayPointer>
 #include <QtCore/QTimer>
+#include <QtGui/QTextDocument>
 
-#include "buddies/buddy-set.h"
 #include "chat/chat-manager.h"
 #include "configuration/configuration-file.h"
 #include "contacts/contact-manager.h"
 #include "contacts/contact-set.h"
-#include "core/core.h"
 #include "gui/windows/message-dialog.h"
-#include "misc/misc.h"
 #include "status/status-type.h"
-
 #include "debug.h"
 
 #include "helpers/gadu-formatter.h"
 #include "helpers/gadu-protocol-helper.h"
-#include "socket-notifiers/gadu-protocol-socket-notifiers.h"
-
-#include "gadu-account-details.h"
-#include "gadu-protocol.h"
 
 #include "gadu-chat-service.h"
 
@@ -52,32 +44,50 @@
 #define MAX_DELIVERY_TIME 60 /*seconds*/
 #define REMOVE_TIMER_INTERVAL 1000
 
-GaduChatService::GaduChatService(GaduProtocol *protocol)
-	: ChatService(protocol), Protocol(protocol)
+GaduChatService::GaduChatService(Protocol *protocol) :
+		ChatService(protocol), GaduSession(0), ReceiveImagesDuringInvisibility(false)
 {
-	// TODO
-// 	connect(protocol->socketNotifiers(), SIGNAL(ackReceived(int, uin_t, int)),
-// 		this, SLOT(ackReceived(int, uin_t, int)));
-
 	RemoveTimer = new QTimer(this);
 	RemoveTimer->setInterval(REMOVE_TIMER_INTERVAL);
 	connect(RemoveTimer, SIGNAL(timeout()), this, SLOT(removeTimeoutUndeliveredMessages()));
 	RemoveTimer->start();
 }
 
-bool GaduChatService::sendMessage(const Chat &chat, FormattedMessage &message, bool silent)
+GaduChatService::~GaduChatService()
+{
+}
+
+void GaduChatService::setGaduSession(gg_session *gaduSession)
+{
+	GaduSession = gaduSession;
+}
+
+void GaduChatService::setReceiveImagesDuringInvisibility(bool receiveImagesDuringInvisibility)
+{
+	ReceiveImagesDuringInvisibility = receiveImagesDuringInvisibility;
+}
+
+bool GaduChatService::sendMessage(const Chat &chat, const QString &message, bool silent)
 {
 	kdebugf();
 
-	QString plain = message.toPlain();
+	if (!GaduSession)
+		return false;
+
+	QTextDocument document;
+	document.setHtml(message);
+
+	FormattedMessage formattedMessage = FormattedMessage::parse(&document);
+
+	QString plain = formattedMessage.toPlain();
 	QVector<Contact> contacts = chat.contacts().toContactVector();
 
 	unsigned int uinsCount = 0;
 	unsigned int formatsSize = 0;
-	QScopedArrayPointer<unsigned char> formats(GaduFormatter::createFormats(Protocol->account(), message, formatsSize));
+	QScopedArrayPointer<unsigned char> formats(GaduFormatter::createFormats(account(), formattedMessage, formatsSize));
 	bool stop = false;
 
-	kdebugmf(KDEBUG_INFO, "\n%s\n", (const char *)unicode2latin(plain));
+	kdebugmf(KDEBUG_INFO, "\n%s\n", qPrintable(plain));
 
 	QByteArray data = plain.toUtf8();
 
@@ -111,21 +121,21 @@ bool GaduChatService::sendMessage(const Chat &chat, FormattedMessage &message, b
 
 		if (formatsSize)
 			messageId = gg_send_message_confer_richtext(
-					Protocol->gaduSession(), GG_CLASS_CHAT, uinsCount, uins.data(), (const unsigned char *)data.constData(),
+					GaduSession, GG_CLASS_CHAT, uinsCount, uins.data(), (const unsigned char *)data.constData(),
 					formats.data(), formatsSize);
 		else
 			messageId = gg_send_message_confer(
-					Protocol->gaduSession(), GG_CLASS_CHAT, uinsCount, uins.data(), (const unsigned char *)data.constData());
+					GaduSession, GG_CLASS_CHAT, uinsCount, uins.data(), (const unsigned char *)data.constData());
 	}
 	else if (uinsCount == 1)
 	{
 		if (formatsSize)
 			messageId = gg_send_message_richtext(
-					Protocol->gaduSession(), GG_CLASS_CHAT, GaduProtocolHelper::uin(contacts.at(0)), (const unsigned char *)data.constData(),
+					GaduSession, GG_CLASS_CHAT, GaduProtocolHelper::uin(contacts.at(0)), (const unsigned char *)data.constData(),
 					formats.data(), formatsSize);
 		else
 			messageId = gg_send_message(
-					Protocol->gaduSession(), GG_CLASS_CHAT, GaduProtocolHelper::uin(contacts.at(0)), (const unsigned char *)data.constData());
+					GaduSession, GG_CLASS_CHAT, GaduProtocolHelper::uin(contacts.at(0)), (const unsigned char *)data.constData());
 	}
 
 	if (-1 == messageId)
@@ -137,9 +147,9 @@ bool GaduChatService::sendMessage(const Chat &chat, FormattedMessage &message, b
 		Message msg = Message::create();
 		msg.setMessageChat(chat);
 		msg.setType(MessageTypeSent);
-		msg.setMessageSender(Protocol->account().accountContact());
+		msg.setMessageSender(account().accountContact());
 		msg.setStatus(MessageStatusSent);
-		msg.setContent(message.toHtml());
+		msg.setContent(formattedMessage.toHtml());
 		msg.setSendDate(QDateTime::currentDateTime());
 		msg.setReceiveDate(QDateTime::currentDateTime());
 		msg.setId(QString::number(messageId));
@@ -164,7 +174,7 @@ bool GaduChatService::isSystemMessage(gg_event *e)
 
 Contact GaduChatService::getSender(gg_event *e)
 {
-	return ContactManager::instance()->byId(Protocol->account(), QString::number(e->event.msg.sender), ActionCreateAndAdd);
+	return ContactManager::instance()->byId(account(), QString::number(e->event.msg.sender), ActionCreateAndAdd);
 }
 
 bool GaduChatService::ignoreSender(gg_event *e, Buddy sender)
@@ -179,7 +189,7 @@ bool GaduChatService::ignoreSender(gg_event *e, Buddy sender)
 
 	if (ignore)
 	{
-		kdebugmf(KDEBUG_INFO, "Ignored anonymous. %u is ignored\n", sender.id(Protocol->account()).toUInt());
+		kdebugmf(KDEBUG_INFO, "Ignored anonymous. %u is ignored\n", sender.id(account()).toUInt());
 	}
 
 	return ignore;
@@ -189,7 +199,7 @@ ContactSet GaduChatService::getRecipients(gg_event *e)
 {
 	ContactSet recipients;
 	for (int i = 0; i < e->event.msg.recipients_count; ++i)
-		recipients.insert(ContactManager::instance()->byId(Protocol->account(), QString::number(e->event.msg.recipients[i]), ActionCreateAndAdd));
+		recipients.insert(ContactManager::instance()->byId(account(), QString::number(e->event.msg.recipients[i]), ActionCreateAndAdd));
 
 	return recipients;
 }
@@ -214,14 +224,12 @@ bool GaduChatService::ignoreRichText(Contact sender)
 
 bool GaduChatService::ignoreImages(Contact sender)
 {
-	GaduAccountDetails *gaduAccountDetails = dynamic_cast<GaduAccountDetails *>(Protocol->account().details());
-
 	return sender.isAnonymous() ||
 		(
-			StatusTypeGroupOffline == Protocol->status().group() ||
+			StatusTypeGroupOffline == protocol()->status().group() ||
 			(
-				(StatusTypeGroupInvisible == Protocol->status().group()) &&
-				!gaduAccountDetails->receiveImagesDuringInvisibility()
+				(StatusTypeGroupInvisible == protocol()->status().group()) &&
+				!ReceiveImagesDuringInvisibility
 			)
 		);
 }
@@ -229,9 +237,9 @@ bool GaduChatService::ignoreImages(Contact sender)
 FormattedMessage GaduChatService::createFormattedMessage(struct gg_event *e, const QByteArray &content, Contact sender)
 {
 	if (ignoreRichText(sender))
-		return GaduFormatter::createMessage(Protocol->account(), sender, QString::fromUtf8(content), 0, 0, false);
+		return GaduFormatter::createMessage(account(), sender, QString::fromUtf8(content), 0, 0, false);
 	else
-		return GaduFormatter::createMessage(Protocol->account(), sender, QString::fromUtf8(content),
+		return GaduFormatter::createMessage(account(), sender, QString::fromUtf8(content),
 				(unsigned char *)e->event.msg.formats, e->event.msg.formats_length, !ignoreImages(sender));
 }
 
@@ -241,7 +249,7 @@ void GaduChatService::handleMsg(Contact sender, ContactSet recipients, MessageTy
 	conference += sender;
 
 	ContactSet chatContacts = conference;
-	chatContacts.remove(Protocol->account().accountContact());
+	chatContacts.remove(account().accountContact());
 
 	Chat chat = ChatManager::instance()->findChat(chatContacts);
 	// create=true in our call for findChat(), but chat might be null for example if chatContacts was empty
@@ -249,10 +257,9 @@ void GaduChatService::handleMsg(Contact sender, ContactSet recipients, MessageTy
 		return;
 
 	QByteArray content = getContent(e);
-	QDateTime time = QDateTime::fromTime_t(e->event.msg.time);
 
 	bool ignore = false;
-	if (Protocol->account().accountContact() != sender)
+	if (account().accountContact() != sender)
 		emit filterRawIncomingMessage(chat, sender, content, ignore);
 
 	FormattedMessage message = createFormattedMessage(e, content, sender);
@@ -262,10 +269,10 @@ void GaduChatService::handleMsg(Contact sender, ContactSet recipients, MessageTy
 	kdebugmf(KDEBUG_INFO, "Got message from %u saying \"%s\"\n",
 			sender.id().toUInt(), qPrintable(message.toPlain()));
 
-	if (Protocol->account().accountContact() != sender)
+	if (account().accountContact() != sender)
 	{
 		QString messageString = message.toPlain();
-		emit filterIncomingMessage(chat, sender, messageString, time.toTime_t(), ignore);
+		emit filterIncomingMessage(chat, sender, messageString, ignore);
 	}
 
 	if (ignore)
@@ -277,7 +284,7 @@ void GaduChatService::handleMsg(Contact sender, ContactSet recipients, MessageTy
 	msg.setMessageSender(sender);
 	msg.setStatus(MessageTypeReceived == type ? MessageStatusReceived : MessageStatusSent);
 	msg.setContent(message.toHtml());
-	msg.setSendDate(time);
+	msg.setSendDate(QDateTime::fromTime_t(e->event.msg.time));
 	msg.setReceiveDate(QDateTime::currentDateTime());
 
 	if (MessageTypeReceived == type)
@@ -291,6 +298,9 @@ void GaduChatService::handleEventMsg(struct gg_event *e)
 	kdebugmf(KDEBUG_NETWORK|KDEBUG_INFO, "recipients_count: %d\n", e->event.msg.recipients_count);
 
 	if (isSystemMessage(e))
+		return;
+
+	if (GG_CLASS_CTCP == e->event.msg.msgclass) // old DCC6, not supported now
 		return;
 
 	Contact sender = getSender(e);
@@ -307,7 +317,7 @@ void GaduChatService::handleEventMultilogonMsg(gg_event *e)
 	// warning: this may be not intuitive code
 
 	// we are sender
-	Contact sender = Protocol->account().accountContact();
+	Contact sender = account().accountContact();
 
 	// e.sender + e.recipeints are real recipients
 	ContactSet recipients = getRecipients(e);
@@ -330,33 +340,21 @@ void GaduChatService::handleEventAck(struct gg_event *e)
 	switch (e->event.ack.status)
 	{
 		case GG_ACK_DELIVERED:
-			kdebugm(KDEBUG_NETWORK|KDEBUG_INFO, "message delivered (uin: %u, seq: %d)\n", uin, messageId);
-			UndeliveredMessages[messageId].setStatus(MessageStatusDelivered);
-			emit messageStatusChanged(UndeliveredMessages[messageId], StatusAcceptedDelivered);
-			break;
 		case GG_ACK_QUEUED:
-			kdebugm(KDEBUG_NETWORK|KDEBUG_INFO, "message queued (uin: %u, seq: %d)\n", uin, messageId);
+			kdebugm(KDEBUG_NETWORK|KDEBUG_INFO, "message delivered (uin: %u, seq: %d, status: %d)\n", uin, messageId, e->event.ack.status);
 			UndeliveredMessages[messageId].setStatus(MessageStatusDelivered);
-			emit messageStatusChanged(UndeliveredMessages[messageId], StatusAcceptedQueued);
+			emit sentMessageStatusChanged(UndeliveredMessages[messageId]);
 			break;
 		case GG_ACK_BLOCKED:
-			kdebugm(KDEBUG_NETWORK|KDEBUG_INFO, "message blocked (uin: %u, seq: %d)\n", uin, messageId);
-			UndeliveredMessages[messageId].setStatus(MessageStatusWontDeliver);
-			emit messageStatusChanged(UndeliveredMessages[messageId], StatusRejectedBlocked);
-			break;
 		case GG_ACK_MBOXFULL:
-			kdebugm(KDEBUG_NETWORK|KDEBUG_INFO, "message box full (uin: %u, seq: %d)\n", uin, messageId);
-			UndeliveredMessages[messageId].setStatus(MessageStatusWontDeliver);
-			emit messageStatusChanged(UndeliveredMessages[messageId], StatusRejectedBoxFull);
-			break;
 		case GG_ACK_NOT_DELIVERED:
-			kdebugm(KDEBUG_NETWORK|KDEBUG_INFO, "message not delivered (uin: %u, seq: %d)\n", uin, messageId);
+			kdebugm(KDEBUG_NETWORK|KDEBUG_INFO, "message not delivered (uin: %u, seq: %d, status: %d)\n", uin, messageId, e->event.ack.status);
 			UndeliveredMessages[messageId].setStatus(MessageStatusWontDeliver);
-			emit messageStatusChanged(UndeliveredMessages[messageId], StatusRejectedUnknown);
+			emit sentMessageStatusChanged(UndeliveredMessages[messageId]);
 			break;
 		default:
 			kdebugm(KDEBUG_NETWORK|KDEBUG_WARNING, "unknown acknowledge! (uin: %u, seq: %d, status:%d)\n", uin, messageId, e->event.ack.status);
-			break;
+			return;
 	}
 	UndeliveredMessages.remove(messageId);
 
@@ -383,6 +381,6 @@ void GaduChatService::removeTimeoutUndeliveredMessages()
 	foreach (const Message &message, removedMessages)
 	{
 		message.setStatus(MessageStatusWontDeliver);
-		emit messageStatusChanged(message, StatusRejectedTimeout);
+		emit sentMessageStatusChanged(message);
 	}
 }

@@ -75,7 +75,7 @@ public:
 	void importConfiguration(const QDomElement &parent);
 	void importConfiguration(); // import configuration from customDataValues
 
-	QString customData(const QString &key);
+	QString customData(const QString &key) const;
 	void setCustomData(const QString &key, const QString &value);
 	void removeCustomData(const QString &key);
 
@@ -114,7 +114,7 @@ public:
 	KaduSharedBase_PropertyCRW(QString, website, Website)
 	KaduSharedBase_Property(unsigned short, birthYear, BirthYear)
 	KaduSharedBase_Property(BuddyGender, gender, Gender)
-	KaduSharedBase_PropertyCRW(QList<Group>, groups, Groups)
+	KaduSharedBase_PropertyCRW(QSet<Group>, groups, Groups)
 	KaduSharedBase_Property(bool, preferHigherStatuses, PreferHigherStatuses)
 	KaduSharedBase_PropertyBool(Anonymous)
 	KaduSharedBase_PropertyBool(Ignored)

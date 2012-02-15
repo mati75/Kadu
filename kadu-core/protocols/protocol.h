@@ -57,6 +57,7 @@ class ProtocolStateMachine;
 class RosterService;
 class SearchService;
 class Status;
+class SubscriptionService;
 class KaduIcon;
 
 class KADUAPI Protocol : public QObject
@@ -68,6 +69,11 @@ class KADUAPI Protocol : public QObject
 	ProtocolStateMachine *Machine;
 
 	Account CurrentAccount;
+
+	// services
+	ChatService *CurrentChatService;
+	ChatStateService *CurrentChatStateService;
+	RosterService *CurrentRosterService;
 
 	// real status, can be offline after connection error
 	Status CurrentStatus;
@@ -101,6 +107,11 @@ protected:
 
 	void doSetStatus(Status status);
 
+	// services
+	void setChatService(ChatService * const chatService);
+	void setChatStateService(ChatStateService * const chatStateService);
+	void setRosterService(RosterService * const rosterService);
+
 protected slots:
 	void loggedIn();
 	void loggedOut();
@@ -117,15 +128,17 @@ public:
 
 	virtual AvatarService * avatarService() { return 0; }
 	virtual ChatImageService * chatImageService() { return 0; }
-	virtual ChatService * chatService() { return 0; }
-	virtual ChatStateService * chatStateService() { return 0; }
+	virtual ChatService * chatService() { return CurrentChatService; }
+	virtual ChatStateService * chatStateService() { return CurrentChatStateService; }
 	virtual ContactPersonalInfoService * contactPersonalInfoService() { return 0; }
 	virtual ContactListService * contactListService() { return 0; }
 	virtual FileTransferService * fileTransferService() { return 0; }
 	virtual MultilogonService * multilogonService() { return 0; }
 	virtual PersonalInfoService * personalInfoService() { return 0; }
-	virtual RosterService * rosterService() { return 0; }
+	virtual RosterService * rosterService() const { return CurrentRosterService; }
 	virtual SearchService * searchService() { return 0; }
+	virtual SubscriptionService * subscriptionService() { return 0; }
+
 	virtual bool contactsListReadOnly() = 0;
 	virtual bool supportsPrivateStatus() { return false; }
 

@@ -167,7 +167,8 @@ void RosterWidget::compositingDisabled()
 
 ModelChain * RosterWidget::createModelChain()
 {
-	ModelChain *chain = new ModelChain(TalkableModelFactory::createInstance(TalkableTree), TalkableTree);
+	ModelChain *chain = new ModelChain(TalkableTree);
+	chain->setBaseModel(TalkableModelFactory::createInstance(chain));
 
 	ProxyModel = new TalkableProxyModel(chain);
 	ProxyModel->addFilter(new HideSimpleChatsTalkableFilter(ProxyModel));
@@ -199,7 +200,7 @@ void RosterWidget::createTalkableWidget(QWidget *parent)
 	connect(TalkableTree, SIGNAL(talkableActivated(Talkable)), this, SIGNAL(talkableActivated(Talkable)));
 	connect(TalkableTree, SIGNAL(currentChanged(Talkable)), this, SIGNAL(currentChanged(Talkable)));
 
-	TalkableWidget->setTreeView(TalkableTree);
+	TalkableWidget->setView(TalkableTree);
 }
 
 TalkableTreeView * RosterWidget::talkableTreeView()

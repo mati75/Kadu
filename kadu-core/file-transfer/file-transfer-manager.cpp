@@ -27,6 +27,7 @@
 #include <QtGui/QMessageBox>
 
 #include "accounts/account.h"
+#include "activate.h"
 #include "chat/chat-manager.h"
 #include "chat/chat.h"
 #include "configuration/configuration-file.h"
@@ -266,26 +267,7 @@ void FileTransferManager::showFileTransferWindow()
 		Window = new FileTransferWindow();
 		connect(Window, SIGNAL(destroyed()), this, SLOT(fileTransferWindowDestroyed()));
 	}
-	Window->show();
-}
-
-void FileTransferManager::hideFileTransferWindow()
-{
-	QMutexLocker locker(&mutex());
-
-	if (Window)
-	{
-		disconnect(Window, SIGNAL(destroyed()), this, SLOT(fileTransferWindowDestroyed()));
-		delete Window;
-		Window = 0;
-	}
-}
-
-bool FileTransferManager::isFileTransferWindowVisible()
-{
-	QMutexLocker locker(&mutex());
-
-	return Window && Window->isVisible();
+	_activateWindow(Window);
 }
 
 FileTransfer FileTransferManager::byPeerAndRemoteFileName(Contact peer, const QString &remoteFileName)

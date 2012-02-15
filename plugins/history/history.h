@@ -51,18 +51,11 @@
 #include "gui/actions/action.h"
 #include "gui/widgets/talkable-menu-manager.h"
 #include "gui/windows/main-configuration-window.h"
+#include "message/message.h"
 #include "protocols/protocol.h"
 #include "storage/history-storage.h"
 
 #include "history_exports.h"
-
-enum HistoryEntryType
-{
-	EntryTypeMessage = 0x00000001,
-	EntryTypeStatus = 0x00000010,
-	EntryTypeSms = 0x00000020,
-	EntryTypeAll = 0x0000003f
-};
 
 class Account;
 class ChatWidget;
@@ -114,6 +107,10 @@ class HISTORYAPI History : public ConfigurationUiHandler, ConfigurationAwareObje
 	virtual void configurationUpdated();
 	void mainConfigurationWindowCreated(MainConfigurationWindow *mainConfigurationWindow);
 
+	friend class HistorySaveThread;
+	Message dequeueUnsavedMessage();
+	QPair<Contact, Status> dequeueUnsavedStatusChange();
+
 private slots:
 	void accountRegistered(Account);
 	void accountUnregistered(Account);
@@ -135,29 +132,15 @@ public:
 	static void destroyInstance();
 	static History * instance();
 
-	Message dequeueUnsavedMessage();
-	QPair<Contact, Status> dequeueUnsavedStatusChange();
-
 	HistoryStorage * currentStorage() { return CurrentStorage; }
 	void registerStorage(HistoryStorage *storage);
 	void unregisterStorage(HistoryStorage *storage);
 
-	QVector<Chat> chatsList(const HistorySearchParameters &search);
-	QVector<DatesModelItem> datesForChat(const Chat &chat, const HistorySearchParameters &search);
-	QVector<Message> messages(const Chat &chat, const QDate &date = QDate(), int limit = 0);
-
-	QVector<Buddy> statusBuddiesList(const HistorySearchParameters &search);
-	QVector<DatesModelItem> datesForStatusBuddy(const Buddy &buddy, const HistorySearchParameters &search);
-	QList<TimedStatus> statuses(const Buddy &buddy, const QDate &date = QDate(), int limit = 0);
-
-	QList<QString> smsRecipientsList(const HistorySearchParameters &search);
-	QVector<DatesModelItem> datesForSmsRecipient(const QString &recipient, const HistorySearchParameters &search);
-	QVector<Message> sms(const QString &recipient, const QDate &date = QDate(), int limit = 0);
-
-	void deleteHistory(const Buddy &buddy);
-
 	void forceSync();
 	void setSyncEnabled(bool syncEnabled);
+
+signals:
+	void storageChanged(HistoryStorage *newStorage);
 
 };
 

@@ -43,7 +43,7 @@ KaduChatStyleEngine::KaduChatStyleEngine(QObject *parent) :
 {
 	EngineName = "Kadu";
 	syntaxList = QSharedPointer<SyntaxList>(new SyntaxList("chat"));
-	QFile file(dataPath("kadu") + "/scripts/chat-scripts.js");
+	QFile file(dataPath() + "/scripts/chat-scripts.js");
 	if (file.open(QIODevice::ReadOnly | QIODevice::Text))
 		jsCode = file.readAll();
 }
@@ -109,7 +109,7 @@ void KaduChatStyleEngine::messageStatusChanged(HtmlMessagesRenderer *renderer, M
 	renderer->webPage()->mainFrame()->evaluateJavaScript(QString("kadu_messageStatusChanged(\"%1\", %2);").arg(message.id()).arg((int)status));
 }
 
-void KaduChatStyleEngine::contactActivityChanged(HtmlMessagesRenderer *renderer, ChatStateService::ContactActivity state, const QString &message, const QString &name)
+void KaduChatStyleEngine::contactActivityChanged(HtmlMessagesRenderer *renderer, ChatStateService::State state, const QString &message, const QString &name)
 {
 	renderer->webPage()->mainFrame()->evaluateJavaScript(QString("kadu_contactActivityChanged(%1, \"%2\", \"%3\");").arg((int)state).arg(message).arg(name));
 }

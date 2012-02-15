@@ -1,4 +1,22 @@
-﻿+++ version 0.11.0
+﻿+++ version 0.12.0-alpha1
+* history: #2450 done, #2300 fixed: new, polished history window (Vogel)
+* history: #2415 done: per-contact history (Vogel)
+* gui: #2277 fixed: status subscription window has proper meaning (Juzef)
+* gui: #2452 fixed: contact added via subscription window is saved by Add Buddy window, not magically before (Juzef)
+* jabber: redesigned SSL certificate error dialog (Juzef)
+* jabber: do not ask user for removing contact which revoked status subscription (Juzef)
+* gui: #2454 fixed: fix memory leak in emoticons selector (Juzef)
+* gui: #2435 & #2437 fixed: View File Transfers action always shows & activates file transfer window (Juzef)
+* jabber: #2176 fixed: do not try to fetch personal info when account is disconnected (Juzef)
+* gui: #2458 done: added search bar to chat widgets and history window (Vogel)
+* gui: #2465 done: added Ctrl+Home/End/PageUp/PageDown shortcuts to chat windows - to scroll to top/bottom/up/down of chat (Vogel)
+* core: #2457 fixed: actually respect custom KADU_BINDIR, KADU_DATADIR and KADU_PLUGINS_LIBDIR directories (beevvy)
+* core: semi-official portable installation support on all platforms by creating file named "portable" in Kadu data directory (beevvy)
+
++++ version 0.11.1
+* gui: #2464 fixed: Clear Chat button was not properly activated after reading messages from history (Vogel)
+
++++ version 0.11.0
 * gui: #2454 fixed: memory leak in emoticons selector (Juzef)
 
 +++ version 0.11.0-rc3
@@ -20,6 +38,7 @@
 * translations: enabled Russian language (Vogel)
 * gadu: fixed importing from 0.6.5.x configurations (Vogel)
 * spellchecker: #2422 fixed: crash on plugin unload or Kadu exit (beevvy)
+* gui: #2427 workaround: clear list of unused identities more ofter (Vogel)
 
 +++ version 0.11.0-rc1
 * hints: #2266 fixed: restored word wraping in hints (Vogel, beevvy)

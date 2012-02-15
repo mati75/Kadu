@@ -21,26 +21,16 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <QtGui/QAction>
 #include <QtGui/QApplication>
-#include <QtGui/QCheckBox>
 #include <QtGui/QDialogButtonBox>
-#include <QtGui/QInputDialog>
 #include <QtGui/QLabel>
-#include <QtGui/QLineEdit>
 #include <QtGui/QPushButton>
-#include <QtGui/QSortFilterProxyModel>
 #include <QtGui/QVBoxLayout>
 
-#include "accounts/account.h"
 #include "buddies/buddy-manager.h"
-#include "buddies/group-manager.h"
-#include "buddies/model/groups-model.h"
 #include "contacts/contact-manager.h"
-#include "gui/widgets/groups-combo-box.h"
-#include "gui/widgets/select-buddy-combo-box.h"
+#include "gui/windows/add-buddy-window.h"
 #include "icons/icons-manager.h"
-#include "model/actions-proxy-model.h"
 #include "model/roles.h"
 
 #include "subscription-window.h"
@@ -48,7 +38,7 @@
 void SubscriptionWindow::getSubscription(Contact contact, QObject *receiver, const char *slot)
 {
 	SubscriptionWindow *window = new SubscriptionWindow(contact);
-	connect(window, SIGNAL(requestAccepted(Contact, bool)), receiver, slot);
+	connect(window, SIGNAL(requestConsidered(Contact, bool)), receiver, slot);
 
 	window->exec();
 }
@@ -59,7 +49,8 @@ SubscriptionWindow::SubscriptionWindow(Contact contact, QWidget *parent) :
 	setWindowRole("kadu-subscription");
 
 	setAttribute(Qt::WA_DeleteOnClose);
-	setWindowTitle(tr("New Contact Request"));
+	setWindowTitle(tr("Ask For Sharing Status"));
+	resize(500, 120);
 
 	// It'd be too unsafe to not add this contact to the manager now and rely later on addItem()
 	// as the contact might be added in the meantime. See bug #2222.
@@ -69,63 +60,44 @@ SubscriptionWindow::SubscriptionWindow(Contact contact, QWidget *parent) :
 	else
 	{
 		CurrentContact.setDirty(false);
-		ContactManager::instance()->addItem(CurrentContact);
 	}
 
 	QGridLayout *layout = new QGridLayout(this);
 	layout->setColumnStretch(2, 4);
 
-	QLabel *messageLabel = new QLabel(tr("<b>%1</b> wants to be able to chat with you.").arg(CurrentContact.id()), this);
+	QLabel *messageLabel = new QLabel(tr("User <b>%1</b> wants to add you to his contact list.").arg(CurrentContact.id()), this);
 
-	QLabel *groupLabel = new QLabel(tr("Add in Group") + ':', this);
-
-	GroupCombo = new GroupsComboBox(this);
-
-	QLabel *visibleNameLabel = new QLabel(tr("Visible Name") + ':', this);
-
-	QLabel *hintLabel = new QLabel(tr("Enter a name for this contact."), this);
-	QFont hintLabelFont = hintLabel->font();
-	hintLabelFont.setItalic(true);
-	hintLabelFont.setPointSize(hintLabelFont.pointSize() - 2);
-	hintLabel->setFont(hintLabelFont);
-
-	VisibleName = new QLineEdit(this);
-
-	MergeContact = new QCheckBox(tr("Merge with an existing contact"), this);
-
-	QWidget *selectContactWidget = new QWidget(this);
-	QHBoxLayout *selectContactLayout = new QHBoxLayout(selectContactWidget);
-	selectContactLayout->addSpacing(20);
-	SelectContact = new SelectBuddyComboBox(selectContactWidget);
-	SelectContact->setEnabled(false);
-	selectContactLayout->addWidget(SelectContact);
-
-	connect(MergeContact, SIGNAL(toggled(bool)), SelectContact, SLOT(setEnabled(bool)));
-	connect(MergeContact, SIGNAL(toggled(bool)), VisibleName, SLOT(setDisabled(bool)));
+	QLabel *finalQuestionLabel = new QLabel(tr("Do you want this person to see your status?"), this);
 
 	QDialogButtonBox *buttons = new QDialogButtonBox(Qt::Horizontal, this);
 
-	QPushButton *okButton = new QPushButton(qApp->style()->standardIcon(QStyle::SP_DialogOkButton), tr("Allow"), this);
-	okButton->setDefault(true);
-	buttons->addButton(okButton, QDialogButtonBox::AcceptRole);
+	QPushButton *shareAndAdd = new QPushButton(qApp->style()->standardIcon(QStyle::SP_DialogOkButton), tr("Allow and add buddy..."), this);
+	if (knownContact && !knownContact.isAnonymous())
+	{
+		shareAndAdd->setVisible(false);
+	}
+	else
+	{
+		shareAndAdd->setDefault(true);
+		buttons->addButton(shareAndAdd, QDialogButtonBox::AcceptRole);
+	}
+
+	QPushButton *share = new QPushButton(qApp->style()->standardIcon(QStyle::SP_DialogOkButton), tr("Allow"), this);
+	share->setDefault(true);
+	buttons->addButton(share, QDialogButtonBox::AcceptRole);
+
 	QPushButton *cancelButton = new QPushButton(qApp->style()->standardIcon(QStyle::SP_DialogCancelButton), tr("Ignore"), this);
 	buttons->addButton(cancelButton, QDialogButtonBox::RejectRole);
 
-	connect(okButton, SIGNAL(clicked(bool)), this, SLOT(accepted()));
+	connect(shareAndAdd, SIGNAL(clicked(bool)), this, SLOT(accepted()));
+	connect(share, SIGNAL(clicked(bool)), this, SLOT(allowed()));
 	connect(cancelButton, SIGNAL(clicked(bool)), this, SLOT(rejected()));
 
 	layout->addWidget(messageLabel, 0, 0, 1, 3);
-	layout->addWidget(visibleNameLabel, 1, 0, 1, 1);
-	layout->addWidget(VisibleName, 1, 1, 1, 1);
-	layout->addWidget(hintLabel, 2, 1, 1, 1);
-	layout->addWidget(groupLabel, 3, 0, 1, 1);
-	layout->addWidget(GroupCombo, 3, 1, 1, 1);
-	layout->addWidget(MergeContact, 4, 1, 1, 3);
-	layout->addWidget(selectContactWidget, 5, 1, 1, 3);
+	layout->addWidget(finalQuestionLabel, 1, 0, 1, 1);
+	layout->addWidget(buttons, 2, 0, 1, 3);
 
-	layout->addWidget(buttons, 6, 1, 1, 3);
-
-	VisibleName->setFocus();
+	shareAndAdd->setFocus();
 }
 
 SubscriptionWindow::~SubscriptionWindow()
@@ -134,39 +106,20 @@ SubscriptionWindow::~SubscriptionWindow()
 
 void SubscriptionWindow::accepted()
 {
-	//Giving somebody a status subscription does not force us to add them to our contact list.
-	if (VisibleName->text().isEmpty() && !MergeContact->isChecked())
-	{
-		emit requestAccepted(CurrentContact, true);
-		close();
-	}
+	Buddy buddy = BuddyManager::instance()->byContact(CurrentContact, ActionCreate);
+	buddy.setAnonymous(true);
+	(new AddBuddyWindow(0, buddy))->show();
+	allowed();
+}
 
-	Buddy buddy;
-	if (!MergeContact->isChecked())
-	{
-		buddy = BuddyManager::instance()->byContact(CurrentContact, ActionCreateAndAdd);
-		buddy.setAnonymous(false);
-		buddy.setDisplay(VisibleName->text());
-	}
-	else
-	{
-		buddy = SelectContact->currentBuddy();
-		if (!buddy)
-			return;
-
-		CurrentContact.setOwnerBuddy(buddy);
-	}
-
-	Group group = GroupCombo->currentGroup();
-	if (group)
-		buddy.addToGroup(group);
-
-	emit requestAccepted(CurrentContact, true);
+void SubscriptionWindow::allowed()
+{
+	emit requestConsidered(CurrentContact, true);
 	close();
 }
 
 void SubscriptionWindow::rejected()
 {
-  	emit requestAccepted(CurrentContact, false);
+	emit requestConsidered(CurrentContact, false);
 	close();
 }

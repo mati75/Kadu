@@ -1,7 +1,4 @@
 set (gui_SRCS
-	hot-key.cpp
-	status-icon.cpp
-
 	actions/chat/add-conference-action.cpp
 	actions/chat/leave-chat-action.cpp
 
@@ -65,10 +62,11 @@ set (gui_SRCS
 	widgets/proxy-combo-box.cpp
 	widgets/preview.cpp
 	widgets/roster-widget.cpp
-	widgets/select-buddy-combo-box.cpp
-	widgets/select-buddy-popup.cpp
+	widgets/search-bar.cpp
 	widgets/select-file.cpp
 	widgets/select-font.cpp
+	widgets/select-talkable-combo-box.cpp
+	widgets/select-talkable-popup.cpp
 	widgets/status-button.cpp
 	widgets/status-buttons.cpp
 	widgets/status-menu.cpp
@@ -81,6 +79,7 @@ set (gui_SRCS
 	widgets/talkable-tree-view.cpp
 	widgets/toolbar.cpp
 	widgets/tool-tip-class-manager.cpp
+	widgets/wait-overlay.cpp
 
 	widgets/configuration/buddy-list-background-colors-widget.cpp
 	widgets/configuration/config-action-button.cpp
@@ -149,12 +148,13 @@ set (gui_SRCS
 	windows/open-chat-with/open-chat-with.cpp
 	windows/open-chat-with/open-chat-with-contact-list-runner.cpp
 	windows/open-chat-with/open-chat-with-runner-manager.cpp
+
+	hot-key.cpp
+	status-icon.cpp
+	web-view-highlighter.cpp
 )
 
 set (gui_MOC_SRCS
-	hot-key.h
-	status-icon.h
-
 	actions/chat/add-conference-action.h
 	actions/chat/leave-chat-action.h
 
@@ -220,10 +220,11 @@ set (gui_MOC_SRCS
 	widgets/progress-label.h
 	widgets/protocols-combo-box.h
 	widgets/roster-widget.h
-	widgets/select-buddy-combo-box.h
-	widgets/select-buddy-popup.h
+	widgets/search-bar.h
 	widgets/select-file.h
 	widgets/select-font.h
+	widgets/select-talkable-combo-box.h
+	widgets/select-talkable-popup.h
 	widgets/status-button.h
 	widgets/status-buttons.h
 	widgets/status-menu.h
@@ -232,6 +233,7 @@ set (gui_MOC_SRCS
 	widgets/talkable-menu-manager.h
 	widgets/talkable-tree-view.h
 	widgets/toolbar.h
+	widgets/wait-overlay.h
 
 	widgets/configuration/buddy-list-background-colors-widget.h
 	widgets/configuration/config-action-button.h
@@ -298,6 +300,10 @@ set (gui_MOC_SRCS
 
 	windows/open-chat-with/open-chat-with.h
 	windows/open-chat-with/open-chat-with-runner-manager.h
+
+	hot-key.h
+	status-icon.h
+	web-view-highlighter.h
 )
 
 if (MINGW)

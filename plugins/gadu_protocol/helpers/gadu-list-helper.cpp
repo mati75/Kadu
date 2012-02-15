@@ -26,12 +26,13 @@
 #include <QtCore/QTextStream>
 
 #include "buddies/buddy-list.h"
+#include "buddies/buddy-manager.h"
 #include "buddies/group-manager.h"
 #include "buddies/group.h"
 #include "contacts/contact-manager.h"
 #include "contacts/contact.h"
-
 #include "protocols/protocol.h"
+#include "protocols/roster.h"
 
 #include "misc/misc.h"
 #include "debug.h"
@@ -56,7 +57,7 @@ void GaduListHelper::setSupportedBuddyInformation(const Buddy &destination, cons
 QString GaduListHelper::contactToLine70(Contact contact)
 {
 	QStringList list;
-	Buddy buddy = contact.ownerBuddy();
+	Buddy buddy = BuddyManager::instance()->byContact(contact, ActionCreateAndAdd);
 
 	list.append(buddy.firstName());
 	list.append(buddy.lastName());
@@ -236,12 +237,12 @@ BuddyList GaduListHelper::streamPost70ToBuddyList(const QString &line, Account a
 			buddy.setWebsite(contactElement.firstChildElement("WwwAddress").text());
 			buddy.setGender((BuddyGender)contactElement.firstChildElement("Gender").text().toInt());
 
-			QList<Group> groups;
+			QSet<Group> groups;
 			QDomElement groupsElement = contactsNode.firstChildElement("Groups");
 			QDomElement groupElement = groupsElement.firstChildElement("GroupId");
 			for (; !groupElement.isNull(); groupElement = groupElement.nextSiblingElement("GroupId"))
 				if (importedGroups.contains(groupElement.text()))
-					groups.append(importedGroups.value(groupElement.text()));
+					groups.insert(importedGroups.value(groupElement.text()));
 
 			if (!groups.isEmpty())
 				buddy.setGroups(groups);
@@ -249,13 +250,14 @@ BuddyList GaduListHelper::streamPost70ToBuddyList(const QString &line, Account a
 			QDomElement numberElement = contactElement.firstChildElement("GGNumber");
 			if (!numberElement.text().isEmpty() && numberElement.text() != account.id())
 			{
-				Contact contact = Contact::create();
+				Contact contact = Contact::create(numberElement.text());
 				contact.setContactAccount(account);
 				GaduContactDetails *details = dynamic_cast<GaduContactDetails *>(contact.details());
 				details->setState(StorableObject::StateNew);
-				contact.setId(numberElement.text());
 				contact.data()->setState(StorableObject::StateNew);
 				contact.setOwnerBuddy(buddy);
+
+				Roster::instance()->addContact(contact);
 			}
 
 			buddy.setAnonymous(false);
@@ -268,7 +270,7 @@ BuddyList GaduListHelper::streamPost70ToBuddyList(const QString &line, Account a
 
 Buddy GaduListHelper::linePre70ToBuddy(Account account, QStringList &sections)
 {
-	QList<Group> groups;
+	QSet<Group> groups;
 	unsigned int i, secCount;
 	bool ok = false;
 
@@ -287,7 +289,7 @@ Buddy GaduListHelper::linePre70ToBuddy(Account account, QStringList &sections)
 
 	groups.clear();
 	if (!sections[5].isEmpty())
-		groups.append(GroupManager::instance()->byName(sections[5]));
+		groups.insert(GroupManager::instance()->byName(sections[5]));
 
 	i = 6;
 	while (!ok && i < secCount)
@@ -295,7 +297,7 @@ Buddy GaduListHelper::linePre70ToBuddy(Account account, QStringList &sections)
 		sections[i].toULong(&ok);
 		ok = ok || sections[i].isEmpty();
 		if (!ok)
-			groups.append(GroupManager::instance()->byName(sections[i]));
+			groups.insert(GroupManager::instance()->byName(sections[i]));
 		++i;
 	}
 	buddy.setGroups(groups);
@@ -308,13 +310,14 @@ Buddy GaduListHelper::linePre70ToBuddy(Account account, QStringList &sections)
 			uin = 0;
 		if (uin && QString::number(uin) != account.id())
 		{
-			Contact contact = Contact::create();
+			Contact contact = Contact::create(QString::number(uin));
 			contact.setContactAccount(account);
-			contact.setId(QString::number(uin));
 			GaduContactDetails *details = dynamic_cast<GaduContactDetails *>(contact.details());
 			details->setState(StorableObject::StateNew);
 			contact.data()->setState(StorableObject::StateNew);
 			contact.setOwnerBuddy(buddy);
+
+			Roster::instance()->addContact(contact);
 		}
 	}
 
@@ -345,7 +348,7 @@ Buddy GaduListHelper::linePre70ToBuddy(Account account, QStringList &sections)
 
 Buddy GaduListHelper::line70ToBuddy(Account account, QStringList &sections)
 {
-	QList<Group> groups;
+	QSet<Group> groups;
 	unsigned int i, secCount;
 	bool ok = false;
 
@@ -365,7 +368,7 @@ Buddy GaduListHelper::line70ToBuddy(Account account, QStringList &sections)
 	if (!sections[5].isEmpty())
 	{
 		foreach (const QString &group, sections[5].split(',', QString::SkipEmptyParts))
-			groups.append(GroupManager::instance()->byName(group));
+			groups.insert(GroupManager::instance()->byName(group));
 
 		buddy.setGroups(groups);
 	}
@@ -378,13 +381,14 @@ Buddy GaduListHelper::line70ToBuddy(Account account, QStringList &sections)
 			uin = 0;
 		if (uin && QString::number(uin) != account.id())
 		{
-			Contact contact = Contact::create();
+			Contact contact = Contact::create(QString::number(uin));
 			contact.setContactAccount(account);
-			contact.setId(QString::number(uin));
 			GaduContactDetails *details = dynamic_cast<GaduContactDetails *>(contact.details());
 			details->setState(StorableObject::StateNew);
 			contact.data()->setState(StorableObject::StateNew);
 			contact.setOwnerBuddy(buddy);
+
+			Roster::instance()->addContact(contact);
 		}
 	}
 

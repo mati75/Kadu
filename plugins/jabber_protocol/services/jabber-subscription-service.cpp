@@ -25,6 +25,7 @@
 #include "buddies/buddy-manager.h"
 #include "contacts/contact-manager.h"
 #include "gui/windows/message-dialog.h"
+#include "protocols/roster.h"
 #include "debug.h"
 
 #include "gui/windows/subscription-window.h"
@@ -35,7 +36,7 @@
 #include "jabber-subscription-service.h"
 
 JabberSubscriptionService::JabberSubscriptionService(JabberProtocol *protocol) :
-		QObject(protocol), Protocol(protocol)
+		SubscriptionService(protocol), Protocol(protocol)
 {
 	connect(Protocol->client(), SIGNAL(subscription(const XMPP::Jid &, const QString &, const QString &)),
 		   this, SLOT(subscription(const XMPP::Jid &, const QString &, const QString &)));
@@ -47,58 +48,32 @@ void JabberSubscriptionService::subscription(const XMPP::Jid &jid, const QString
 
 	if (type == "unsubscribed")
 	{
+		kdebug("%s revoked our presence authorization\n", jid.full().toUtf8().constData());
 		/*
 		 * Someone else removed our authorization to see them.
+		 * We want to leave the contact in our contact list.
+		 * In this case, we need to delete all the resources
+		 * we have for it, as the Jabber server won't signal us
+		 * that the contact is offline now.
 		 */
-		kdebug("%s revoked our presence authorization\n", jid.full().toUtf8().constData());
+		Status offlineStatus;
+		Contact contact = ContactManager::instance()->byId(Protocol->account(), jid.bare(), ActionReturnNull);
 
-		XMPP::JT_Roster *task;
-		if (MessageDialog::ask(KaduIcon("dialog-question"), tr("Kadu"), tr("The user %1 removed subscription to you. "
-					   "You will no longer be able to view his/her online/offline status. "
-					   "Do you want to delete the contact?").arg(jid.full())))
+		if (contact)
 		{
-			/*
-			 * Delete this contact from our roster.
-			 */
-			task = new XMPP::JT_Roster(Protocol->client()->rootTask());
-			task->remove(jid);
-			task->go(true);
+			Status oldStatus = contact.currentStatus();
+			contact.setCurrentStatus(offlineStatus);
 
-			Contact contact = ContactManager::instance()->byId(Protocol->account(), jid.bare(), ActionReturnNull);
-			BuddyManager::instance()->clearOwnerAndRemoveEmptyBuddy(contact);
+			Protocol->emitContactStatusChanged(contact, oldStatus);
 		}
-		else
-		{
-			/*
-				 * We want to leave the contact in our contact list.
-				 * In this case, we need to delete all the resources
-				 * we have for it, as the Jabber server won't signal us
-				 * that the contact is offline now.
-			*/
-			Status offlineStatus;
-			Contact contact = ContactManager::instance()->byId(Protocol->account(), jid.bare(), ActionReturnNull);
 
-			if (contact)
-			{
-				Status oldStatus = contact.currentStatus();
-				contact.setCurrentStatus(offlineStatus);
-
-				Protocol->emitContactStatusChanged(contact, oldStatus);
-			}
-
-			Protocol->resourcePool()->removeAllResources(jid);
-		}
+		Protocol->resourcePool()->removeAllResources(jid);
 	}
 
 	if (type == "subscribe")
 	{
 		Contact contact = ContactManager::instance()->byId(Protocol->account(), jid.bare(), ActionCreate);
-		if (contact.isAnonymous())
-			SubscriptionWindow::getSubscription(contact, this, SLOT(authorizeContact(Contact, bool)));
-		else
-			authorizeContact(contact, MessageDialog::ask(KaduIcon("dialog-question"), tr("Kadu - authorize user?"), tr("The user %1 (%2) is asking for subscription from you. "
-						   "He will be able to view your online/offline status. "
-						   "Do you want to authorize the contact?").arg(contact.display(true), jid.full())));
+		SubscriptionWindow::getSubscription(contact, this, SLOT(authorizeContact(Contact, bool)));
 	}
 }
 
@@ -114,18 +89,24 @@ void JabberSubscriptionService::authorizeContact(Contact contact, bool authorize
 
 void JabberSubscriptionService::resendSubscription(const Contact &contact)
 {
-	if (Protocol && Protocol->client())
-		Protocol->client()->resendSubscription(contact.id());
+	if (!Protocol || !Protocol->isConnected() || contact.contactAccount() != Protocol->account() || !Protocol->client())
+		return;
+
+	Protocol->client()->resendSubscription(contact.id());
 }
 
 void JabberSubscriptionService::removeSubscription(const Contact &contact)
 {
-	if (Protocol && Protocol->client())
-		Protocol->client()->rejectSubscription(contact.id());
+	if (!Protocol || !Protocol->isConnected() || contact.contactAccount() != Protocol->account() || !Protocol->client())
+		return;
+
+	Protocol->client()->rejectSubscription(contact.id());
 }
 
 void JabberSubscriptionService::requestSubscription(const Contact &contact)
 {
-	if (Protocol && Protocol->client())
-		Protocol->client()->requestSubscription(contact.id());
+	if (!Protocol || !Protocol->isConnected() || contact.contactAccount() != Protocol->account() || !Protocol->client())
+		return;
+
+	Protocol->client()->requestSubscription(contact.id());
 }

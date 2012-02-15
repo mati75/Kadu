@@ -41,16 +41,16 @@
 TalkableDelegate::TalkableDelegate(TalkableTreeView *parent) :
 		KaduTreeViewDelegate(parent), Chain(0)
 {
-	connect(ContactManager::instance(), SIGNAL(contactUpdated(Contact&)), this, SLOT(contactUpdated(Contact&)));
-	connect(BuddyPreferredManager::instance(), SIGNAL(buddyUpdated(Buddy&)), this, SLOT(buddyUpdated(Buddy&)));
+	connect(ContactManager::instance(), SIGNAL(contactUpdated(Contact)), this, SLOT(contactUpdated(Contact)));
+	connect(BuddyPreferredManager::instance(), SIGNAL(buddyUpdated(Buddy)), this, SLOT(buddyUpdated(Buddy)));
 	connect(MessageManager::instance(), SIGNAL(unreadMessageAdded(Message)), this, SLOT(messageStatusChanged(Message)));
 	connect(MessageManager::instance(), SIGNAL(unreadMessageRemoved(Message)), this, SLOT(messageStatusChanged(Message)));
 }
 
 TalkableDelegate::~TalkableDelegate()
 {
-	disconnect(ContactManager::instance(), SIGNAL(contactUpdated(Contact&)), this, SLOT(contactUpdated(Contact&)));
-	disconnect(BuddyPreferredManager::instance(), SIGNAL(buddyUpdated(Buddy&)), this, SLOT(buddyUpdated(Buddy&)));
+	disconnect(ContactManager::instance(), SIGNAL(contactUpdated(Contact)), this, SLOT(contactUpdated(Contact)));
+	disconnect(BuddyPreferredManager::instance(), SIGNAL(buddyUpdated(Buddy)), this, SLOT(buddyUpdated(Buddy)));
 	disconnect(MessageManager::instance(), SIGNAL(unreadMessageAdded(Message)), this, SLOT(messageStatusChanged(Message)));
 	disconnect(MessageManager::instance(), SIGNAL(unreadMessageRemoved(Message)), this, SLOT(messageStatusChanged(Message)));
 }
@@ -66,7 +66,7 @@ void TalkableDelegate::setChain(ModelChain *chain)
 		connect(Chain, SIGNAL(destroyed(QObject *)), this, SLOT(chainDestroyed()));
 }
 
-void TalkableDelegate::contactUpdated(Contact &contact)
+void TalkableDelegate::contactUpdated(const Contact &contact)
 {
 	if (!Chain)
 		return;
@@ -76,7 +76,7 @@ void TalkableDelegate::contactUpdated(Contact &contact)
 		emit sizeHintChanged(contactIndex);
 }
 
-void TalkableDelegate::buddyUpdated(Buddy &buddy)
+void TalkableDelegate::buddyUpdated(const Buddy &buddy)
 {
 	if (!Chain)
 		return;

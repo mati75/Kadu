@@ -17,6 +17,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "model/kadu-merged-proxy-model.h"
 #include "model/merged-proxy-model.h"
 
 #include "merged-proxy-model-factory.h"
@@ -25,5 +26,12 @@ QAbstractItemModel * MergedProxyModelFactory::createInstance(QList<QAbstractItem
 {
 	MergedProxyModel *mergedProxyModel = new MergedProxyModel(parent);
 	mergedProxyModel->setModels(models);
+	return mergedProxyModel;
+}
+
+QAbstractItemModel * MergedProxyModelFactory::createKaduModelInstance(QList<KaduAbstractModel *> models, QObject *parent)
+{
+	KaduMergedProxyModel *mergedProxyModel = new KaduMergedProxyModel(parent);
+	mergedProxyModel->setKaduModels(models);
 	return mergedProxyModel;
 }

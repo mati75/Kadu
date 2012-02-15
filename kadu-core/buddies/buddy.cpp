@@ -95,7 +95,7 @@ void Buddy::importConfiguration()
 		data()->importConfiguration();
 }
 
-QString Buddy::customData(const QString &key)
+QString Buddy::customData(const QString &key) const
 {
 	return isNull() ? QString() : data()->customData()[key];
 }
@@ -232,13 +232,12 @@ Buddy Buddy::dummy()
 	Identity identity = Identity::create();
 	identity.setName(identity.data()->tr("Example identity"));
 
-	Account account = Account::create();
+	Account account = Account::create("");
 	account.setAccountIdentity(identity);
 
-	Contact contact = Contact::create();
+	Contact contact = Contact::create("999999");
 	contact.setContactAccount(account);
 	contact.setOwnerBuddy(example);
-	contact.setId("999999");
 	contact.setCurrentStatus(Status(StatusTypeAway, example.data()->tr("Example description")));
 	contact.setAddress(QHostAddress(2130706433));
 	contact.setPort(80);
@@ -269,7 +268,7 @@ KaduSharedBase_PropertyDefCRW(Buddy, QString, email, Email, QString())
 KaduSharedBase_PropertyDefCRW(Buddy, QString, website, Website, QString())
 KaduSharedBase_PropertyDef(Buddy, unsigned short, birthYear, BirthYear, 0)
 KaduSharedBase_PropertyDef(Buddy, BuddyGender, gender, Gender, GenderUnknown)
-KaduSharedBase_PropertyDefCRW(Buddy, QList<Group>, groups, Groups, QList<Group>())
+KaduSharedBase_PropertyDefCRW(Buddy, QSet<Group>, groups, Groups, QSet<Group>())
 KaduSharedBase_PropertyDef(Buddy, bool, preferHigherStatuses, PreferHigherStatuses, true)
 KaduSharedBase_PropertyBoolDef(Buddy, Anonymous, true)
 KaduSharedBase_PropertyBoolDef(Buddy, Blocked, false)

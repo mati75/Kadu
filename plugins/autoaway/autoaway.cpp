@@ -80,7 +80,7 @@ int AutoAway::init(bool firstLoad)
 {
 	Q_UNUSED(firstLoad)
 
-	MainConfigurationWindow::registerUiFile(dataPath("kadu/plugins/configuration/autoaway.ui"));
+	MainConfigurationWindow::registerUiFile(dataPath("plugins/configuration/autoaway.ui"));
 	MainConfigurationWindow::registerUiHandler(this);
 
 	return 0;
@@ -89,7 +89,7 @@ int AutoAway::init(bool firstLoad)
 void AutoAway::done()
 {
 	MainConfigurationWindow::unregisterUiHandler(this);
-	MainConfigurationWindow::unregisterUiFile(dataPath("kadu/plugins/configuration/autoaway.ui"));
+	MainConfigurationWindow::unregisterUiFile(dataPath("plugins/configuration/autoaway.ui"));
 }
 
 AutoAwayStatusChanger::ChangeStatusTo AutoAway::changeStatusTo()
@@ -103,7 +103,7 @@ AutoAwayStatusChanger::ChangeStatusTo AutoAway::changeStatusTo()
 	else if (idleTime >= autoExtendedAwayTime && autoExtendedAwayEnabled)
 		return AutoAwayStatusChanger::ChangeStatusToExtendedAway;
 	else if (idleTime >= autoAwayTime && autoAwayEnabled)
-		return AutoAwayStatusChanger::ChangeStatusToBusy;
+		return AutoAwayStatusChanger::ChangeStatusToAway;
 	else
 		return AutoAwayStatusChanger::NoChangeStatus;
 }

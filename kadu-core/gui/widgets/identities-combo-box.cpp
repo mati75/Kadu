@@ -35,6 +35,8 @@
 IdentitiesComboBox::IdentitiesComboBox(bool includeSelectIdentity, QWidget *parent) :
 		ActionsComboBox(parent)
 {
+	IdentityManager::instance()->removeUnused();
+
 	if (includeSelectIdentity)
 		addBeforeAction(new QAction(tr(" - Select identity - "), this));
 
@@ -46,7 +48,8 @@ IdentitiesComboBox::IdentitiesComboBox(bool includeSelectIdentity, QWidget *pare
 	connect(CreateNewIdentityAction, SIGNAL(triggered()), this, SLOT(createNewIdentity()));
 	addAfterAction(CreateNewIdentityAction);
 
-	ModelChain *chain = new ModelChain(new IdentityModel(this), this);
+	ModelChain *chain = new ModelChain(this);
+	chain->setBaseModel(new IdentityModel(chain));
 	setUpModel(IdentityRole, chain);
 
 	setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);

@@ -31,52 +31,58 @@
 
 #include "protocols/services/chat-state-service.h"
 
-class Chat;
 class JabberProtocol;
+
+namespace XMPP
+{
+
+class Client;
 
 class JabberChatStateService : public ChatStateService
 {
 	Q_OBJECT
 
-	struct ChatInfo
+	struct ContactInfo
 	{
 		bool UserRequestedEvents;
 		QString EventId;
 
-		XMPP::ChatState ContactChatState;
-		XMPP::ChatState LastChatState;
+		ChatState ContactChatState;
+		ChatState LastChatState;
 
-		ChatInfo()
+		ContactInfo() :
+				UserRequestedEvents(false), ContactChatState(::XMPP::StateNone), LastChatState(::XMPP::StateNone)
 		{
-			ContactChatState = XMPP::StateNone;
-			LastChatState = XMPP::StateNone;
-			UserRequestedEvents = false;
 		}
 	};
 
-	QHash<Chat, ChatInfo> ChatInfos;
+	Client *XmppClient;
 
-	JabberProtocol *Protocol;
+	QHash<Contact, ContactInfo> ContactInfos;
 
-	bool shouldSendEvent(const Chat &chat);
+	bool shouldSendEvent(const Contact &contact);
 
-	void setChatState(const Chat &chat, XMPP::ChatState state);
+	void setChatState(const Contact &contact, ChatState state);
 
-	static ContactActivity xmppStateToContactState(XMPP::ChatState state);
+	static State xmppStateToContactState(ChatState state);
 
 private slots:
-	void incomingMessage(const XMPP::Message &m);
-	void messageAboutToSend(XMPP::Message &message);
+	void clientDestroyed();
 
 public:
-	JabberChatStateService(JabberProtocol *protocol);
+	explicit JabberChatStateService(JabberProtocol *protocol);
+	virtual ~JabberChatStateService();
 
-	virtual void composingStarted(const Chat &chat);
-	virtual void composingStopped(const Chat &chat);
+	virtual void sendState(const Contact &contact, State state);
 
-	virtual void chatWidgetClosed(const Chat &chat);
-	virtual void chatWidgetActivated(const Chat &chat);
-	virtual void chatWidgetDeactivated(const Chat &chat);
+	void setClient(Client *xmppClient);
+
+public slots:
+	void handleReceivedMessage(const Message &m);
+	void handleMessageAboutToSend(Message &message);
+
 };
+
+}
 
 #endif // JABBER_CHAT_STATE_SERVICE_H

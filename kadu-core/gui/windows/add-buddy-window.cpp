@@ -43,21 +43,24 @@
 #include "buddies/buddy-manager.h"
 #include "buddies/buddy-preferred-manager.h"
 #include "buddies/buddy.h"
+#include "buddies/model/buddies-model.h"
 #include "buddies/model/groups-model.h"
 #include "contacts/contact-manager.h"
 #include "contacts/contact.h"
 #include "core/core.h"
 #include "gui/widgets/accounts-combo-box.h"
 #include "gui/widgets/groups-combo-box.h"
-#include "gui/widgets/select-buddy-combo-box.h"
+#include "gui/widgets/select-talkable-combo-box.h"
 #include "icons/kadu-icon.h"
 #include "identities/identity.h"
 #include "misc/misc.h"
 #include "model/roles.h"
 #include "protocols/protocol-factory.h"
 #include "protocols/protocol.h"
+#include "protocols/roster.h"
 #include "protocols/services/roster-service.h"
 #include "talkable/filter/exclude-buddy-talkable-filter.h"
+#include "protocols/services/subscription-service.h"
 #include "url-handlers/url-handler-manager.h"
 
 #include "add-buddy-window.h"
@@ -102,7 +105,7 @@ void AddBuddyWindow::createGui()
 
 	Layout = new QFormLayout(mainWidget);
 
-	AccountCombo = new AccountsComboBox(MyBuddy.isNull(), ActionsProxyModel::NotVisibleWithOneRowSourceModel, this);
+	AccountCombo = new AccountsComboBox(MyBuddy.isNull(), AccountsComboBox::NotVisibleWithOneRowSourceModel, this);
 	AccountCombo->setIncludeIdInDisplay(true);
 	AccountCombo->addFilter(new WriteableContactsListFilter(AccountCombo));
 
@@ -166,7 +169,9 @@ void AddBuddyWindow::createGui()
 
 	NonMergeWidgets.append(GroupCombo);
 
-	SelectBuddy = new SelectBuddyComboBox(this);
+	SelectBuddy = new SelectTalkableComboBox(this);
+	SelectBuddy->addBeforeAction(new QAction(tr(" - Select buddy - "), SelectBuddy));
+	SelectBuddy->setBaseModel(new BuddiesModel(SelectBuddy));
 	SelectBuddy->setEnabled(false);
 	SelectBuddy->setVisible(false);
 	SelectBuddy->addFilter(new ExcludeBuddyTalkableFilter(Core::instance()->myself(), SelectBuddy));
@@ -265,7 +270,7 @@ void AddBuddyWindow::accountChanged()
 		disconnect(LastSelectedAccount.protocolHandler(), SIGNAL(disconnected(Account)), this, SLOT(setAddContactEnabled()));
 	}
 
-	if (!account || !account.protocolHandler() || !account.protocolHandler()->rosterService())
+	if (!account || !account.protocolHandler() || !account.protocolHandler()->subscriptionService())
 	{
 		AskForAuthorization->setEnabled(false);
 		AskForAuthorization->setChecked(false);
@@ -358,7 +363,7 @@ void AddBuddyWindow::validateData()
 
 	if (MergeBuddy->isChecked())
 	{
-		if (!SelectBuddy->currentBuddy())
+		if (!SelectBuddy->currentTalkable().isValidBuddy())
 		{
 			displayErrorMessage(tr("Select buddy to merge with"));
 			return;
@@ -505,23 +510,29 @@ bool AddBuddyWindow::addContact()
 	}
 	else
 	{
-		buddy = SelectBuddy->currentBuddy();
+		buddy = SelectBuddy->currentTalkable().toBuddy();
 		if (buddy.isNull())
 			return false;
 	}
 
-	Contact contact = ContactManager::instance()->byId(account, UserNameEdit->text(), ActionCreateAndAdd);
+	NotFoundAction action = MyBuddy.isNull()
+			? ActionCreateAndAdd
+			: ActionReturnNull;
 
-	// force reattach for gadu protocol, even if buddy == contact.ownerBuddy()
-	// TODO: this is probably unneeded, please review
-	contact.setOwnerBuddy(Buddy::null);
-	contact.setOwnerBuddy(buddy);
+	Contact contact = ContactManager::instance()->byId(account, UserNameEdit->text(), action);
 
-	if (!buddy.isOfflineTo())
-		sendAuthorization(contact);
+	if (contact)
+	{
+		contact.setOwnerBuddy(buddy);
 
-	if (AskForAuthorization->isChecked())
-		askForAuthorization(contact);
+		Roster::instance()->addContact(contact);
+
+		if (!buddy.isOfflineTo())
+			sendAuthorization(contact);
+
+		if (AskForAuthorization->isChecked())
+			askForAuthorization(contact);
+	}
 
 	return true;
 }
@@ -573,18 +584,18 @@ void AddBuddyWindow::askForAuthorization(const Contact &contact)
 {
 	Account account = AccountCombo->currentAccount();
 
-	if (!account || !account.protocolHandler() || !account.protocolHandler()->rosterService())
+	if (!account || !account.protocolHandler() || !account.protocolHandler()->subscriptionService())
 		return;
 
-	account.protocolHandler()->rosterService()->askForAuthorization(contact);
+	account.protocolHandler()->subscriptionService()->requestSubscription(contact);
 }
 
 void AddBuddyWindow::sendAuthorization(const Contact &contact)
 {
 	Account account = AccountCombo->currentAccount();
 
-	if (!account || !account.protocolHandler() || !account.protocolHandler()->rosterService())
+	if (!account || !account.protocolHandler() || !account.protocolHandler()->subscriptionService())
 		return;
 
-	account.protocolHandler()->rosterService()->sendAuthorization(contact);
+	account.protocolHandler()->subscriptionService()->resendSubscription(contact);
 }

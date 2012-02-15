@@ -27,23 +27,20 @@
 
 #include <libgadu.h>
 
-#include "chat/chat.h"
-#include "message/message.h"
+#include "message/message-common.h"
+
 #include "protocols/services/chat-service.h"
 
 class QTimer;
-
-class GaduProtocol;
 
 class GaduChatService : public ChatService
 {
 	Q_OBJECT
 
+	gg_session *GaduSession;
+
 	QHash<int, Message> UndeliveredMessages;
-
-	GaduProtocol *Protocol;
-
-	friend class GaduProtocolSocketNotifiers;
+	bool ReceiveImagesDuringInvisibility;
 
 	bool isSystemMessage(struct gg_event *e);
 	Contact getSender(struct gg_event *e);
@@ -56,20 +53,25 @@ class GaduChatService : public ChatService
 
 	void handleMsg(Contact sender, ContactSet recipients, MessageType type, struct gg_event *e);
 
-	void handleEventMsg(struct gg_event *e);
-	void handleEventMultilogonMsg(struct gg_event *e);
-	void handleEventAck(struct gg_event *e);
-
 	QTimer *RemoveTimer;
 
 private slots:
 	void removeTimeoutUndeliveredMessages();
 
 public:
-	GaduChatService(GaduProtocol *protocol);
+	explicit GaduChatService(Protocol *protocol);
+	virtual ~GaduChatService();
+
+	void setReceiveImagesDuringInvisibility(bool receiveImagesDuringInvisibility);
 
 public slots:
-	virtual bool sendMessage(const Chat &chat, FormattedMessage &message, bool silent = false);
+	virtual bool sendMessage(const Chat &chat, const QString &message, bool silent = false);
+
+	void setGaduSession(gg_session *gaduSession);
+
+	void handleEventMsg(struct gg_event *e);
+	void handleEventMultilogonMsg(struct gg_event *e);
+	void handleEventAck(struct gg_event *e);
 
 };
 

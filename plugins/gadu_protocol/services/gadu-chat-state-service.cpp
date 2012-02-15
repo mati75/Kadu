@@ -20,93 +20,66 @@
  */
 
 #include "contacts/contact-manager.h"
-#include "contacts/contact-set.h"
-#include "contacts/contact.h"
 
 #include "helpers/gadu-protocol-helper.h"
-#include "gadu-account-details.h"
-#include "gadu-protocol.h"
 
 #include "gadu-chat-state-service.h"
 
-GaduChatStateService::GaduChatStateService(GaduProtocol *parent) :
-	ChatStateService(parent), Protocol(parent)
+GaduChatStateService::GaduChatStateService(Protocol *parent) :
+		ChatStateService(parent), GaduSession(0), SendTypingNotifications(false)
 {
-	if (Protocol->chatService())
-		connect(Protocol->chatService(), SIGNAL(messageReceived(Message)), this, SLOT(messageReceived(Message)));
+}
+
+GaduChatStateService::~GaduChatStateService()
+{
+}
+
+void GaduChatStateService::setGaduSession(gg_session *gaduSession)
+{
+	GaduSession = gaduSession;
+}
+
+void GaduChatStateService::setSendTypingNotifications(bool sendTypingNotifications)
+{
+	SendTypingNotifications = sendTypingNotifications;
 }
 
 void GaduChatStateService::messageReceived(const Message &message)
 {
 	// it seems it is what is also done and expected by GG10
-	emit contactActivityChanged(StatePaused, message.messageSender());
+	emit peerStateChanged(message.messageSender(), StatePaused);
 }
 
 void GaduChatStateService::handleEventTypingNotify(struct gg_event *e)
 {
-	Contact contact = ContactManager::instance()->byId(Protocol->account(), QString::number(e->event.typing_notification.uin), ActionReturnNull);
+	Contact contact = ContactManager::instance()->byId(account(), QString::number(e->event.typing_notification.uin), ActionReturnNull);
 	if (!contact)
 		return;
 
 	if (e->event.typing_notification.length > 0x0000)
-		emit contactActivityChanged(StateComposing, contact);
+		emit peerStateChanged(contact, StateComposing);
 	else if (e->event.typing_notification.length == 0x0000)
-		emit contactActivityChanged(StatePaused, contact);
+		emit peerStateChanged(contact, StatePaused);
 }
 
-bool GaduChatStateService::shouldSendEvent()
+void GaduChatStateService::sendState(const Contact &contact, State state)
 {
-	GaduAccountDetails *gaduAccountDetails = dynamic_cast<GaduAccountDetails *>(Protocol->account().details());
-	if (!gaduAccountDetails)
-		return false;
-
-	if (!gaduAccountDetails->sendTypingNotification())
-		return false;
-
-	return true;
-}
-
-void GaduChatStateService::composingStarted(const Chat &chat)
-{
-	if (!shouldSendEvent())
+	if (!SendTypingNotifications || !contact)
 		return;
 
-	Contact contact = chat.contacts().toContact();
-	if (!contact)
+	if (!GaduSession)
 		return;
 
-	if (!Protocol->gaduSession())
-		return;
-
-	gg_typing_notification(Protocol->gaduSession(), GaduProtocolHelper::uin(contact), 0x0001);
-}
-
-void GaduChatStateService::composingStopped(const Chat &chat)
-{
-	if (!shouldSendEvent())
-		return;
-
-	Contact contact = chat.contacts().toContact();
-	if (!contact)
-		return;
-
-	if (!Protocol->gaduSession())
-		return;
-
-	gg_typing_notification(Protocol->gaduSession(), GaduProtocolHelper::uin(contact), 0x0000);
-}
-
-void GaduChatStateService::chatWidgetClosed(const Chat &chat)
-{
-	composingStopped(chat);
-}
-
-void GaduChatStateService::chatWidgetActivated(const Chat &chat)
-{
-	Q_UNUSED(chat)
-}
-
-void GaduChatStateService::chatWidgetDeactivated(const Chat &chat)
-{
-	Q_UNUSED(chat)
+	switch (state)
+	{
+		case StateComposing:
+			gg_typing_notification(GaduSession, GaduProtocolHelper::uin(contact), 0x0001);
+			break;
+		case StatePaused:
+		case StateGone:
+			gg_typing_notification(GaduSession, GaduProtocolHelper::uin(contact), 0x0000);
+			break;
+		default:
+			break;
+	}
 }

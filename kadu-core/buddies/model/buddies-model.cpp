@@ -35,38 +35,38 @@
 #include "buddies-model.h"
 
 BuddiesModel::BuddiesModel(QObject *parent) :
-		BuddiesModelBase(parent), DetachingOrAttaching(false)
+		BuddiesModelBase(parent)
 {
 	IncludeMyself = config_file.readBoolEntry("General", "ShowMyself", false);
 
 	triggerAllAccountsRegistered();
 
 	BuddyManager *manager = BuddyManager::instance();
-	connect(manager, SIGNAL(buddyAboutToBeAdded(Buddy &)),
-			this, SLOT(buddyAboutToBeAdded(Buddy &)));
-	connect(manager, SIGNAL(buddyAdded(Buddy &)),
-			this, SLOT(buddyAdded(Buddy &)));
-	connect(manager, SIGNAL(buddyAboutToBeRemoved(Buddy &)),
-			this, SLOT(buddyAboutToBeRemoved(Buddy &)));
-	connect(manager, SIGNAL(buddyRemoved(Buddy &)),
-			this, SLOT(buddyRemoved(Buddy &)));
-	connect(manager, SIGNAL(buddyUpdated(Buddy &)),
-			this, SLOT(buddyUpdated(Buddy &)));
+	connect(manager, SIGNAL(buddyAboutToBeAdded(Buddy)),
+			this, SLOT(buddyAboutToBeAdded(Buddy)), Qt::DirectConnection);
+	connect(manager, SIGNAL(buddyAdded(Buddy)),
+			this, SLOT(buddyAdded(Buddy)), Qt::DirectConnection);
+	connect(manager, SIGNAL(buddyAboutToBeRemoved(Buddy)),
+			this, SLOT(buddyAboutToBeRemoved(Buddy)), Qt::DirectConnection);
+	connect(manager, SIGNAL(buddyRemoved(Buddy)),
+			this, SLOT(buddyRemoved(Buddy)), Qt::DirectConnection);
+	connect(manager, SIGNAL(buddyUpdated(Buddy)),
+			this, SLOT(buddyUpdated(Buddy)), Qt::DirectConnection);
+	connect(manager, SIGNAL(buddyContactAboutToBeAdded(Buddy,Contact)),
+	        this, SLOT(buddyContactAboutToBeAdded(Buddy,Contact)), Qt::DirectConnection);
+	connect(manager, SIGNAL(buddyContactAdded(Buddy,Contact)),
+	        this, SLOT(buddyContactAdded(Buddy,Contact)), Qt::DirectConnection);
+	connect(manager, SIGNAL(buddyContactAboutToBeRemoved(Buddy,Contact)),
+	        this, SLOT(buddyContactAboutToBeRemoved(Buddy,Contact)), Qt::DirectConnection);
+	connect(manager, SIGNAL(buddyContactRemoved(Buddy,Contact)),
+	        this, SLOT(buddyContactRemoved(Buddy,Contact)), Qt::DirectConnection);
 
 	connect(Core::instance()->myself(), SIGNAL(updated()),
-			this, SLOT(myselfBuddyUpdated()));
+			this, SLOT(myselfBuddyUpdated()), Qt::DirectConnection);
 
 	ContactManager *cm = ContactManager::instance();
-	connect(cm, SIGNAL(contactAboutToBeAttached(Contact, Buddy)),
-			this, SLOT(contactAboutToBeAttached(Contact, Buddy)));
-	connect(cm, SIGNAL(contactAttached(Contact, bool)),
-			this, SLOT(contactAttached(Contact)));
-	connect(cm, SIGNAL(contactAboutToBeDetached(Contact)),
-			this, SLOT(contactAboutToBeDetached(Contact)));
-	connect(cm, SIGNAL(contactDetached(Contact, Buddy, bool)),
-			this, SLOT(contactDetached(Contact, Buddy)));
-	connect(cm, SIGNAL(contactUpdated(Contact&)),
-			   this, SLOT(contactUpdated(Contact&)));
+	connect(cm, SIGNAL(contactUpdated(Contact)),
+			   this, SLOT(contactUpdated(Contact)), Qt::DirectConnection);
 }
 
 BuddiesModel::~BuddiesModel()
@@ -74,28 +74,28 @@ BuddiesModel::~BuddiesModel()
 	triggerAllAccountsUnregistered();
 
 	BuddyManager *manager = BuddyManager::instance();
-	disconnect(manager, SIGNAL(buddyAboutToBeAdded(Buddy &)),
-			this, SLOT(buddyAboutToBeAdded(Buddy &)));
-	disconnect(manager, SIGNAL(buddyAdded(Buddy &)),
-			this, SLOT(buddyAdded(Buddy &)));
-	disconnect(manager, SIGNAL(buddyAboutToBeRemoved(Buddy &)),
-			this, SLOT(buddyAboutToBeRemoved(Buddy &)));
-	disconnect(manager, SIGNAL(buddyRemoved(Buddy &)),
-			this, SLOT(buddyRemoved(Buddy &)));
-	disconnect(manager, SIGNAL(buddyUpdated(Buddy &)),
-			this, SLOT(buddyUpdated(Buddy &)));
+	disconnect(manager, SIGNAL(buddyAboutToBeAdded(Buddy)),
+			this, SLOT(buddyAboutToBeAdded(Buddy)));
+	disconnect(manager, SIGNAL(buddyAdded(Buddy)),
+			this, SLOT(buddyAdded(Buddy)));
+	disconnect(manager, SIGNAL(buddyAboutToBeRemoved(Buddy)),
+			this, SLOT(buddyAboutToBeRemoved(Buddy)));
+	disconnect(manager, SIGNAL(buddyRemoved(Buddy)),
+			this, SLOT(buddyRemoved(Buddy)));
+	disconnect(manager, SIGNAL(buddyUpdated(Buddy)),
+			this, SLOT(buddyUpdated(Buddy)));
+	disconnect(manager, SIGNAL(buddyContactAboutToBeAdded(Buddy,Contact)),
+	           this, SLOT(buddyContactAboutToBeAdded(Buddy,Contact)));
+	disconnect(manager, SIGNAL(buddyContactAdded(Buddy,Contact)),
+	           this, SLOT(buddyContactAdded(Buddy,Contact)));
+	disconnect(manager, SIGNAL(buddyContactAboutToBeRemoved(Buddy,Contact)),
+	           this, SLOT(buddyContactAboutToBeRemoved(Buddy,Contact)));
+	disconnect(manager, SIGNAL(buddyContactRemoved(Buddy,Contact)),
+	           this, SLOT(buddyContactRemoved(Buddy,Contact)));
 
 	ContactManager *cm = ContactManager::instance();
-	disconnect(cm, SIGNAL(contactAboutToBeAttached(Contact, Buddy)),
-			this, SLOT(contactAboutToBeAttached(Contact, Buddy)));
-	disconnect(cm, SIGNAL(contactAttached(Contact, bool)),
-			this, SLOT(contactAttached(Contact)));
-	disconnect(cm, SIGNAL(contactAboutToBeDetached(Contact)),
-			this, SLOT(contactAboutToBeDetached(Contact)));
-	disconnect(cm, SIGNAL(contactDetached(Contact, Buddy, bool)),
-			this, SLOT(contactDetached(Contact, Buddy)));
-	disconnect(cm, SIGNAL(contactUpdated(Contact&)),
-			   this, SLOT(contactUpdated(Contact&)));
+	disconnect(cm, SIGNAL(contactUpdated(Contact)),
+			   this, SLOT(contactUpdated(Contact)));
 }
 
 int BuddiesModel::rowCount(const QModelIndex &parent) const
@@ -122,7 +122,7 @@ Buddy BuddiesModel::buddyAt(int index) const
 		return BuddyManager::instance()->byIndex(index);
 }
 
-void BuddiesModel::buddyAboutToBeAdded(Buddy &buddy)
+void BuddiesModel::buddyAboutToBeAdded(const Buddy &buddy)
 {
 	Q_UNUSED(buddy)
 
@@ -130,7 +130,7 @@ void BuddiesModel::buddyAboutToBeAdded(Buddy &buddy)
 	beginInsertRows(QModelIndex(), count, count);
 }
 
-void BuddiesModel::buddyAdded(Buddy &buddy)
+void BuddiesModel::buddyAdded(const Buddy &buddy)
 {
 	endInsertRows();
 
@@ -149,7 +149,7 @@ void BuddiesModel::buddyAdded(Buddy &buddy)
 	emit dataChanged(index, index);
 }
 
-void BuddiesModel::buddyAboutToBeRemoved(Buddy &buddy)
+void BuddiesModel::buddyAboutToBeRemoved(const Buddy &buddy)
 {
 	const QModelIndexList &indexes = indexListForValue(buddy);
 	if (indexes.isEmpty())
@@ -161,39 +161,18 @@ void BuddiesModel::buddyAboutToBeRemoved(Buddy &buddy)
 	beginRemoveRows(QModelIndex(), index.row(), index.row());
 }
 
-void BuddiesModel::buddyRemoved(Buddy &buddy)
+void BuddiesModel::buddyRemoved(const Buddy &buddy)
 {
 	Q_UNUSED(buddy)
 
 	endRemoveRows();
 }
 
-void BuddiesModel::myselfBuddyUpdated()
-{
-	if (IncludeMyself)
-	{
-		Buddy myself = Core::instance()->myself();
-		buddyUpdated(myself);
-	}
-}
-
-void BuddiesModel::buddyUpdated(Buddy &buddy)
-{
-	const QModelIndexList &indexes = indexListForValue(buddy);
-	if (indexes.isEmpty())
-		return;
-
-	Q_ASSERT(indexes.size() == 1);
-
-	const QModelIndex &index = indexes.at(0);
-	emit dataChanged(index, index);
-}
-
-void BuddiesModel::contactAboutToBeAttached(Contact contact, Buddy nearFutureBuddy)
+void BuddiesModel::buddyContactAboutToBeAdded(const Buddy &buddy, const Contact &contact)
 {
 	Q_UNUSED(contact)
 
-	const QModelIndexList &indexes = indexListForValue(nearFutureBuddy);
+	const QModelIndexList &indexes = indexListForValue(buddy);
 	if (indexes.isEmpty())
 		return;
 
@@ -203,17 +182,13 @@ void BuddiesModel::contactAboutToBeAttached(Contact contact, Buddy nearFutureBud
 	if (!index.isValid())
 		return;
 
-	DetachingOrAttaching = true;
-
-	int count = nearFutureBuddy.contacts().size();
+	int count = buddy.contacts().size();
 	beginInsertRows(index, count, count);
 }
 
-void BuddiesModel::contactAttached(Contact contact)
+void BuddiesModel::buddyContactAdded(const Buddy &buddy, const Contact &contact)
 {
-	DetachingOrAttaching = false;
-
-	const Buddy &buddy = contact.ownerBuddy();
+	Q_UNUSED(contact)
 
 	const QModelIndexList &indexes = indexListForValue(buddy);
 	if (indexes.isEmpty())
@@ -228,10 +203,8 @@ void BuddiesModel::contactAttached(Contact contact)
 	endInsertRows();
 }
 
-void BuddiesModel::contactAboutToBeDetached(Contact contact)
+void BuddiesModel::buddyContactAboutToBeRemoved(const Buddy &buddy, const Contact &contact)
 {
-	const Buddy &buddy = contact.ownerBuddy();
-
 	const QModelIndexList &indexes = indexListForValue(buddy);
 	if (indexes.isEmpty())
 		return;
@@ -242,19 +215,15 @@ void BuddiesModel::contactAboutToBeDetached(Contact contact)
 	if (!index.isValid())
 		return;
 
-	DetachingOrAttaching = true;
-
 	int contactIndex = buddy.contacts().indexOf(contact);
 	beginRemoveRows(index, contactIndex, contactIndex);
 }
 
-void BuddiesModel::contactDetached(Contact contact, Buddy previousBuddy)
+void BuddiesModel::buddyContactRemoved(const Buddy &buddy, const Contact &contact)
 {
 	Q_UNUSED(contact)
 
-	DetachingOrAttaching = false;
-
-	const QModelIndexList &indexes = indexListForValue(previousBuddy);
+	const QModelIndexList &indexes = indexListForValue(buddy);
 	if (indexes.isEmpty())
 		return;
 
@@ -267,11 +236,29 @@ void BuddiesModel::contactDetached(Contact contact, Buddy previousBuddy)
 	endRemoveRows();
 }
 
-void BuddiesModel::contactUpdated(Contact &contact)
+void BuddiesModel::myselfBuddyUpdated()
 {
-	if (DetachingOrAttaching)
+	if (IncludeMyself)
+	{
+		Buddy myself = Core::instance()->myself();
+		buddyUpdated(myself);
+	}
+}
+
+void BuddiesModel::buddyUpdated(const Buddy &buddy)
+{
+	const QModelIndexList &indexes = indexListForValue(buddy);
+	if (indexes.isEmpty())
 		return;
 
+	Q_ASSERT(indexes.size() == 1);
+
+	const QModelIndex &index = indexes.at(0);
+	emit dataChanged(index, index);
+}
+
+void BuddiesModel::contactUpdated(const Contact &contact)
+{
 	const Buddy &buddy = contact.ownerBuddy();
 	if (!buddy)
 		return;

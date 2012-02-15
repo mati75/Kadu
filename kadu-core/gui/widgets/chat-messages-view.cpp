@@ -74,7 +74,8 @@ ChatMessagesView::ChatMessagesView(const Chat &chat, bool supportTransparency, Q
 	connect(this->page()->mainFrame(), SIGNAL(contentsSizeChanged(const QSize &)), this, SLOT(scrollToBottom()));
 
 	if (chat.chatAccount().protocolHandler() && chat.chatAccount().protocolHandler()->chatService())
-		connect(chat.chatAccount().protocolHandler()->chatService(), SIGNAL(messageStatusChanged(const Message &, ChatService::MessageStatus)), this, SLOT(messageStatusChanged(const Message &, ChatService::MessageStatus)));
+		connect(chat.chatAccount().protocolHandler()->chatService(), SIGNAL(sentMessageStatusChanged(const Message &)),
+		        this, SLOT(sentMessageStatusChanged(const Message &)));
 
 	ChatStylesManager::instance()->chatViewCreated(this);
 }
@@ -88,8 +89,7 @@ ChatMessagesView::~ChatMessagesView()
 
 void ChatMessagesView::mouseReleaseEvent(QMouseEvent *e)
 {
-	AtBottom = page()->mainFrame()->scrollBarValue(Qt::Vertical) >= page()->mainFrame()->scrollBarMaximum(Qt::Vertical);
-
+	updateAtBottom();
 	KaduWebView::mouseReleaseEvent(e);
 }
 
@@ -102,9 +102,13 @@ void ChatMessagesView::resizeEvent(QResizeEvent *e)
 
 void ChatMessagesView::wheelEvent(QWheelEvent* e)
 {
-	AtBottom = page()->mainFrame()->scrollBarValue(Qt::Vertical) >= page()->mainFrame()->scrollBarMaximum(Qt::Vertical);
-
+	updateAtBottom();
 	QWebView::wheelEvent(e);
+}
+
+void ChatMessagesView::updateAtBottom()
+{
+	AtBottom = page()->mainFrame()->scrollBarValue(Qt::Vertical) >= page()->mainFrame()->scrollBarMaximum(Qt::Vertical);
 }
 
 void ChatMessagesView::connectChat()
@@ -113,12 +117,7 @@ void ChatMessagesView::connectChat()
 		return;
 
 	foreach (const Contact &contact, CurrentChat.contacts())
-	{
-		if (contact.ownerBuddy())
-			connect(contact.ownerBuddy(), SIGNAL(displayUpdated()), this, SLOT(repaintMessages()));
-		connect(contact, SIGNAL(attached(bool)), this, SLOT(repaintMessages()));
-		connect(contact, SIGNAL(detached(Buddy,bool)), this, SLOT(repaintMessages()));
-	}
+		connect(contact, SIGNAL(buddyUpdated()), this, SLOT(repaintMessages()));
 
 	ChatImageService *chatImageService = CurrentChat.chatAccount().protocolHandler()->chatImageService();
 	if (chatImageService)
@@ -132,12 +131,7 @@ void ChatMessagesView::disconnectChat()
 		return;
 
 	foreach (const Contact &contact, CurrentChat.contacts())
-	{
-		if (contact.ownerBuddy())
-			disconnect(contact.ownerBuddy(), SIGNAL(displayUpdated()), this, SLOT(repaintMessages()));
-		disconnect(contact, SIGNAL(attached(bool)), this, SLOT(repaintMessages()));
-		disconnect(contact, SIGNAL(detached(Buddy,bool)), this, SLOT(repaintMessages()));
-	}
+		disconnect(contact, SIGNAL(buddyUpdated()), this, SLOT(repaintMessages()));
 
 	ChatImageService *chatImageService = CurrentChat.chatAccount().protocolHandler()->chatImageService();
 	if (chatImageService)
@@ -154,6 +148,11 @@ void ChatMessagesView::setChat(const Chat &chat)
 	Renderer->setChat(CurrentChat);
 }
 
+void ChatMessagesView::refresh()
+{
+	Renderer->refresh();
+}
+
 void ChatMessagesView::setForcePruneDisabled(bool disable)
 {
 	Renderer->setForcePruneDisabled(disable);
@@ -161,13 +160,13 @@ void ChatMessagesView::setForcePruneDisabled(bool disable)
 
 void ChatMessagesView::pageUp()
 {
-	QKeyEvent event(QEvent::KeyPress, 0x01000016, Qt::NoModifier);
+	QKeyEvent event(QEvent::KeyPress, Qt::Key_PageUp, Qt::NoModifier);
 	keyPressEvent(&event);
 }
 
 void ChatMessagesView::pageDown()
 {
-	QKeyEvent event(QEvent::KeyPress, 0x01000017, Qt::NoModifier);
+	QKeyEvent event(QEvent::KeyPress, Qt::Key_PageDown, Qt::NoModifier);
 	keyPressEvent(&event);
 }
 
@@ -264,6 +263,8 @@ void ChatMessagesView::prependMessages(const QVector<Message> &messages)
 	Renderer->appendMessages(newMessages);
 
 	setUpdatesEnabled(true);
+
+	emit messagesUpdated();
 }
 
 void ChatMessagesView::appendMessage(const Message &message)
@@ -331,23 +332,34 @@ unsigned int ChatMessagesView::countMessages()
 	return Renderer->messages().count();
 }
 
-void ChatMessagesView::messageStatusChanged(const Message &message, ChatService::MessageStatus status)
+void ChatMessagesView::sentMessageStatusChanged(const Message &message)
 {
-	Q_UNUSED(status);
 	if (CurrentChat != message.messageChat())
 		return;
 	Renderer->messageStatusChanged(message, message.status());
 }
 
-void ChatMessagesView::contactActivityChanged(ChatStateService::ContactActivity state, const Contact &contact)
+void ChatMessagesView::contactActivityChanged(const Contact &contact, ChatStateService::State state)
 {
-	Renderer->contactActivityChanged(state, contact);
+	Renderer->contactActivityChanged(contact, state);
+}
+
+void ChatMessagesView::scrollToTop()
+{
+	page()->mainFrame()->setScrollBarValue(Qt::Vertical, 0);
+	updateAtBottom();
 }
 
 void ChatMessagesView::scrollToBottom()
 {
 	if (AtBottom)
 		page()->mainFrame()->setScrollBarValue(Qt::Vertical, page()->mainFrame()->scrollBarMaximum(Qt::Vertical));
+}
+
+void ChatMessagesView::forceScrollToBottom()
+{
+	page()->mainFrame()->setScrollBarValue(Qt::Vertical, page()->mainFrame()->scrollBarMaximum(Qt::Vertical));
+	updateAtBottom();
 }
 
 void ChatMessagesView::configurationUpdated()

@@ -181,7 +181,8 @@ public:
 	 * @return Contact instance from this Talkable instance
 	 *
 	 * If current Talkable instance is of type ItemChat, then Chat used to create this instance is returned.
-	 * In other case null Chat is returned.
+	 * When current Talkable is of type ItemBuddy then AggreagetChat is returned. In other case, Chat build
+	 * from one Contact is returned.
 	 */
 	Chat toChat() const;
 
@@ -231,12 +232,42 @@ public:
 
 	/**
 	 * @author Rafał 'Vogel' Malinowski
+	 * @short Returns display value of this Talkable instance.
+	 * @return display value of this Talkable instance
+	 */
+	QString display() const;
+
+	/**
+	 * @author Rafał 'Vogel' Malinowski
 	 * @short Returns current status of Contact returnd by toContact().
 	 * @return current status of Contact returnd by toContact()
 	 */
 	Status currentStatus() const;
 
+	/**
+	 * @author Rafał 'Vogel' Malinowski
+	 * @short Returns true if Talkable is not-null Chat.
+	 * @return true if current item is not-null Chat
+	 */
+	bool isValidChat() const;
+
+	/**
+	 * @author Rafał 'Vogel' Malinowski
+	 * @short Returns true if Talkable is not-null Buddy.
+	 * @return true if current item is not-null Buddy
+	 */
+	bool isValidBuddy() const;
+
+	/**
+	 * @author Rafał 'Vogel' Malinowski
+	 * @short Returns true if Talkable is not-null Contact.
+	 * @return true if current item is not-null Contact
+	 */
+	bool isValidContact() const;
+
 };
+
+Q_DECLARE_METATYPE(Talkable)
 
 /**
  * @}

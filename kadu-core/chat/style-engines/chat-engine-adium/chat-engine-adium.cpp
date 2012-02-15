@@ -150,7 +150,7 @@ AdiumChatStyleEngine::AdiumChatStyleEngine(QObject *parent) :
 		QObject(parent), CurrentPreviewHack(0)
 {
 	// Load required javascript functions
-	QFile file(dataPath("kadu") + "/scripts/chat-scripts.js");
+	QFile file(dataPath() + "/scripts/chat-scripts.js");
 	if (file.open(QIODevice::ReadOnly | QIODevice::Text))
 		jsCode = file.readAll();
 }
@@ -197,7 +197,7 @@ QStringList AdiumChatStyleEngine::styleVariants(QString styleName)
 	QDir dir;
 	QString styleBaseHref = profilePath() + "/syntax/chat/" + styleName + "/Contents/Resources/Variants/";
 	if (!dir.exists(styleBaseHref))
-		styleBaseHref = dataPath("kadu") + "/syntax/chat/" + styleName + "/Contents/Resources/Variants/";
+		styleBaseHref = dataPath() + "/syntax/chat/" + styleName + "/Contents/Resources/Variants/";
 	dir.setPath(styleBaseHref);
 	dir.setNameFilters(QStringList("*.css"));
 	return dir.entryList();
@@ -479,9 +479,7 @@ QString AdiumChatStyleEngine::replaceKeywords(const Chat &chat, const QString &s
 	QString photoOutgoing;
 
 	int contactsSize = chat.contacts().size();
-	if (contactsSize > 1)
-		photoIncoming = webKitPath(styleHref + QLatin1String("Incoming/buddy_icon.png"));
-	else if (contactsSize == 1)
+	if (contactsSize == 1)
 	{
 		const Avatar &avatar = chat.contacts().toContact().avatar(true);
 		if (!avatar.isEmpty())
@@ -489,6 +487,8 @@ QString AdiumChatStyleEngine::replaceKeywords(const Chat &chat, const QString &s
 		else
 			photoIncoming = webKitPath(styleHref + QLatin1String("Incoming/buddy_icon.png"));
 	}
+	else
+		photoIncoming = webKitPath(styleHref + QLatin1String("Incoming/buddy_icon.png"));
 
 	const Avatar &avatar = chat.chatAccount().accountContact().avatar(true);
 	if (!avatar.isEmpty())
@@ -612,7 +612,7 @@ void AdiumChatStyleEngine::messageStatusChanged(HtmlMessagesRenderer *renderer, 
 	renderer->webPage()->mainFrame()->evaluateJavaScript(QString("adium_messageStatusChanged(\"%1\", %2);").arg(message.id()).arg((int)status));
 }
 
-void AdiumChatStyleEngine::contactActivityChanged(HtmlMessagesRenderer *renderer, ChatStateService::ContactActivity state, const QString &message, const QString &name)
+void AdiumChatStyleEngine::contactActivityChanged(HtmlMessagesRenderer *renderer, ChatStateService::State state, const QString &message, const QString &name)
 {
 	renderer->webPage()->mainFrame()->evaluateJavaScript(QString("adium_contactActivityChanged(%1, \"%2\", \"%3\");").arg((int)state).arg(message).arg(name));
 }

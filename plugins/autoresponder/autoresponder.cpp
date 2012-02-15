@@ -80,7 +80,7 @@ int AutoResponder::init(bool firstLoad)
 {
 	Q_UNUSED(firstLoad)
 
-	MainConfigurationWindow::registerUiFile(dataPath("kadu/plugins/configuration/autoresponder.ui"));
+	MainConfigurationWindow::registerUiFile(dataPath("plugins/configuration/autoresponder.ui"));
 	MainConfigurationWindow::registerUiHandler(this);
 
 	return 0;
@@ -89,7 +89,7 @@ int AutoResponder::init(bool firstLoad)
 void AutoResponder::done()
 {
 	MainConfigurationWindow::unregisterUiHandler(this);
-	MainConfigurationWindow::unregisterUiFile(dataPath("kadu/plugins/configuration/autoresponder.ui"));
+	MainConfigurationWindow::unregisterUiFile(dataPath("plugins/configuration/autoresponder.ui"));
 }
 
 void AutoResponder::accountRegistered(Account account)
@@ -101,8 +101,8 @@ void AutoResponder::accountRegistered(Account account)
 	ChatService *chatService = protocol->chatService();
 	if (chatService)
 	{
-		connect(chatService, SIGNAL(filterIncomingMessage(Chat, Contact, QString &, time_t, bool &)),
-				this, SLOT(filterIncomingMessage(Chat, Contact, QString &, time_t, bool &)));
+		connect(chatService, SIGNAL(filterIncomingMessage(Chat, Contact, QString &, bool &)),
+				this, SLOT(filterIncomingMessage(Chat, Contact, QString &, bool &)));
 	}
 }
 
@@ -115,14 +115,13 @@ void AutoResponder::accountUnregistered(Account account)
 	ChatService *chatService = protocol->chatService();
 	if (chatService)
 	{
-		disconnect(chatService, SIGNAL(filterIncomingMessage(Chat, Contact, QString &, time_t, bool &)),
-				this, SLOT(filterIncomingMessage(Chat, Contact, QString &, time_t, bool &)));
+		disconnect(chatService, SIGNAL(filterIncomingMessage(Chat, Contact, QString &, bool &)),
+				this, SLOT(filterIncomingMessage(Chat, Contact, QString &, bool &)));
 	}
 }
 
-void AutoResponder::filterIncomingMessage(Chat chat, Contact sender, QString &message, time_t time, bool &ignore)
+void AutoResponder::filterIncomingMessage(Chat chat, Contact sender, QString &message, bool &ignore)
 {
-	Q_UNUSED(time)
 	Q_UNUSED(ignore)
 
 	kdebugf();

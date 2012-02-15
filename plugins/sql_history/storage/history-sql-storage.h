@@ -31,6 +31,7 @@
 
 class QSqlError;
 
+class HistoryQuery;
 class ProgressWindow2;
 
 /**
@@ -57,28 +58,41 @@ class HistorySqlStorage : public HistoryStorage
 	QMap<Contact, int> ContactMap;
 	QMap<QString, int> DateMap;
 
+	HistoryMessagesStorage *ChatStorage;
+	HistoryMessagesStorage *StatusStorage;
+	HistoryMessagesStorage *SmsStorage;
+
 	void initQueries();
 
 	int findOrCreateChat(const Chat &chat);
+	Chat findChat(int id);
 	int findOrCreateContact(const Contact &contact);
 	int saveMessageContent(const Message &message);
 	int findOrCreateDate(const QDate &date);
 
 	QString chatWhere(const Chat &chat, const QString &chatPrefix = "chat.");
+	QString talkableContactsWhere(const Talkable &talkable, const QString &fieldName);
 	QString buddyContactsWhere(const Buddy &buddy, const QString &fieldName);
 
 	void executeQuery(QSqlQuery &query);
 	QVector<Message> messagesFromQuery(QSqlQuery &query);
-	QList<TimedStatus> statusesFromQuery(QSqlQuery &query);
+	QVector<Message> statusesFromQuery(const Contact &contact, QSqlQuery &query);
 	QVector<Message> smsFromQuery(QSqlQuery &query);
 
-	bool isDatabaseReady(bool wait);
+	bool isDatabaseReady();
+	bool waitForDatabase();
 
-	QVector<Message> getMessagesSince(const Chat &chat, const QDate &date);
-	QVector<Message> syncMessagesSince(const Chat &chat, const QDate &date);
+	QVector<Talkable> syncChats();
+	QVector<Talkable> syncStatusBuddies();
+	QVector<Talkable> syncSmsRecipients();
 
-	QVector<Message> getMessagesBackTo(const Chat &chat, const QDateTime &datetime, int limit);
-	QVector<Message> syncGetMessagesBackTo(const Chat &chat, const QDateTime &datetime, int limit);
+	QVector<HistoryQueryResult> syncChatDates(const HistoryQuery &historyQuery);
+	QVector<HistoryQueryResult> syncStatusDates(const HistoryQuery &historyQuery);
+	QVector<HistoryQueryResult> syncSmsRecipientDates(const HistoryQuery &historyQuery);
+
+	QVector<Message> syncMessages(const HistoryQuery &historyQuery);
+	QVector<Message> syncStatuses(const HistoryQuery &historyQuery);
+	QVector<Message> syncSmses(const HistoryQuery &historyQuery);
 
 private slots:
 	virtual void messageReceived(const Message &message);
@@ -94,31 +108,32 @@ public:
 	explicit HistorySqlStorage(QObject *parent = 0);
 	virtual ~HistorySqlStorage();
 
-	virtual QVector<Chat> chats(const HistorySearchParameters &search);
+	virtual QFuture<QVector<Talkable> > chats();
+	virtual QFuture<QVector<Talkable> > statusBuddies();
+	virtual QFuture<QVector<Talkable> > smsRecipients();
 
-	virtual QVector<DatesModelItem> chatDates(const Chat &chat, const HistorySearchParameters &search);
-	virtual QVector<Message> messages(const Chat &chat, const QDate &date = QDate(), int limit = 0);
-	virtual QFuture<QVector<Message> > asyncMessagesSince(const Chat &chat, const QDate &date);
-	virtual QFuture<QVector<Message> > asyncMessagesBackTo(const Chat &chat, const QDateTime &datetime, int limit);
+	virtual QFuture<QVector<HistoryQueryResult> > chatDates(const HistoryQuery &historyQuery);
+	virtual QFuture<QVector<HistoryQueryResult> > statusDates(const HistoryQuery &historyQuery);
+	virtual QFuture<QVector<HistoryQueryResult> > smsRecipientDates(const HistoryQuery &historyQuery);
 
-	virtual QVector<Buddy> statusBuddiesList(const HistorySearchParameters &search);
-	virtual QVector<DatesModelItem> datesForStatusBuddy(const Buddy &buddy, const HistorySearchParameters &search);
-	virtual QList<TimedStatus> statuses(const Buddy &buddy, const QDate &date = QDate(), int limit = 0);
-
-	virtual QList<QString> smsRecipientsList(const HistorySearchParameters &search);
-	virtual QVector<DatesModelItem> datesForSmsRecipient(const QString &recipient, const HistorySearchParameters &search);
-	virtual QVector<Message> sms(const QString &recipient, const QDate &date = QDate(), int limit = 0);
+	virtual QFuture<QVector<Message> > messages(const HistoryQuery &historyQuery);
+	virtual QFuture<QVector<Message> > statuses(const HistoryQuery &historyQuery);
+	virtual QFuture<QVector<Message> > smses(const HistoryQuery &historyQuery);
 
 	virtual void appendMessage(const Message &message);
-	virtual void appendStatus(const Contact &contact, const Status &status, const QDateTime &time = QDateTime::currentDateTime());
-	virtual void appendSms(const QString &recipient, const QString &content, const QDateTime &time = QDateTime::currentDateTime());
+	virtual void appendStatus(const Contact &contact, const Status &status, const QDateTime &time);
+	virtual void appendSms(const QString &recipient, const QString &content, const QDateTime &time);
 
 	void sync();
 
-	virtual void clearChatHistory(const Chat &chat, const QDate &date = QDate());
-	virtual void clearSmsHistory(const QString &recipient, const QDate &date = QDate());
-	virtual void clearStatusHistory(const Buddy &buddy, const QDate &date = QDate());
-	virtual void deleteHistory(const Buddy &buddy);
+	virtual void clearChatHistory(const Talkable &talkable, const QDate &date = QDate());
+	virtual void clearSmsHistory(const Talkable &talkable, const QDate &date = QDate());
+	virtual void clearStatusHistory(const Talkable &talkable, const QDate &date = QDate());
+	virtual void deleteHistory(const Talkable &talkable);
+
+	virtual HistoryMessagesStorage * chatStorage();
+	virtual HistoryMessagesStorage * statusStorage();
+	virtual HistoryMessagesStorage * smsStorage();
 
 };
 

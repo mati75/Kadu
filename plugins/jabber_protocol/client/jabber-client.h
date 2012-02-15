@@ -87,8 +87,6 @@ namespace XMPP
 		ServerInfoManager *serverInfoManager;
 		PEPManager *PepManager;
 
-		QStringList AddedContacts;
-
 		// ignore TLS warnings
 		bool IgnoreTLSWarnings;
 
@@ -159,18 +157,6 @@ namespace XMPP
 
 		/* Called from Psi: report certificate status */
 		void slotTLSHandshaken();
-
-		/* Called from Psi: roster request finished */
-		void slotRosterRequestFinished(bool success, int statusCode, const QString &statusString);
-
-		/* A new item appeared in our roster */
-		void slotNewContact(const RosterItem &);
-
-		/* An item has been deleted from our roster. */
-		void slotContactDeleted(const RosterItem &);
-
-		/* Update a contact's details. */
-		void slotContactUpdated(const RosterItem &);
 
 		/* Someone on our contact list had(another) resource come online. */
 		void slotResourceAvailable(const Jid &, const Resource &);
@@ -487,28 +473,15 @@ namespace XMPP
 		void changeGroupChatNick(const QString &host, const QString &room, const QString &nick, const XMPP::Status &status =XMPP::Status());
 
 		/**
-		 * Send a message.
-		 */
-		void sendMessage(const XMPP::Message &message);
-
-		/**
 		 * Send raw packet to the server.
 		 */
 		void send(const QString &packet);
-
-		/**
-		 * Request the roster from the Jabber server.
-		 */
-		void requestRoster();
 
 		PEPManager *pepManager() { return PepManager; }
 		bool isPEPAvailable() { return PepAvailable; }
 
 		static void getErrorInfo(int err, AdvancedConnector *conn, Stream *stream, QCATLSHandler *tlsHandler, QString *_str, bool *_reconn);
 
-		void addContact(const XMPP::Jid &j, const QString &name, const QStringList &groups);
-		void updateContact(const XMPP::Jid &j, const QString &name, const QStringList &groups);
-		void removeContact(const XMPP::Jid &j);
 		void changeSubscription(const XMPP::Jid &jid, const QString &type);
 		void requestSubscription(const XMPP::Jid &jid);
 		void resendSubscription(const XMPP::Jid &jid);
@@ -550,26 +523,6 @@ namespace XMPP
 		void error(XMPP::JabberClient::ErrorCode code);
 
 		/**
-		 * Roster has been transmitted and processed.
-		 */
-		void rosterRequestFinished(bool success);
-
-		/**
-		 * A new contact appeared on the roster.
-		 */
-		void newContact(const XMPP::RosterItem &item);
-
-		/**
-		 * A contact has been removed from the roster.
-		 */
-		void contactDeleted(const XMPP::RosterItem &item);
-
-		/**
-		 * A roster item has changed.
-		 */
-		void contactUpdated(const XMPP::RosterItem &item);
-
-		/**
 		 * New resource is available for a contact.
 		 */
 		void resourceAvailable(const XMPP::Jid &jid, const XMPP::Resource &resource);
@@ -578,16 +531,6 @@ namespace XMPP
 		 * An existing resource has been removed.
 		 */
 		void resourceUnavailable(const XMPP::Jid &jid, const XMPP::Resource &resource);
-
-		/**
-		 * Some way to modify message before send it - i.e. for chat event handling
-		 */
-		void messageAboutToSend(XMPP::Message &message);
-
-		/**
-		 * A new message has been received.
-		 */
-		void messageReceived(const XMPP::Message &message);
 
 		/**
 		 * Groupchat has been joined.

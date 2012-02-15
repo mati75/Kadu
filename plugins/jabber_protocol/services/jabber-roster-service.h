@@ -26,46 +26,59 @@
 
 #include "protocols/services/roster-service.h"
 
-namespace XMPP
-{
-	class RosterItem;
-}
-
 class Buddy;
 class Contact;
 class JabberProtocol;
+
+namespace XMPP
+{
+
+class Client;
+class RosterItem;
 
 class JabberRosterService : public RosterService
 {
 	Q_OBJECT
 
-	JabberProtocol *Protocol;
+	Client *XmppClient;
 
 	QList<Contact> ContactsForDelete;
-	bool InRequest;
 
-	const QString & itemDisplay(const XMPP::RosterItem &item);
-	Buddy itemBuddy(const XMPP::RosterItem &item, const Contact &contact);
+	static QStringList buddyGroups(const Buddy &buddy);
+	static const QString & itemDisplay(const RosterItem &item);
+
+	Buddy itemBuddy(const RosterItem &item, const Contact &contact);
+
+	void connectToClient();
+	void disconnectFromClient();
 
 private slots:
-	void contactUpdated(const XMPP::RosterItem &item);
-	void contactDeleted(const XMPP::RosterItem &item);
+	void clientDestroyed();
+
+	void contactUpdated(const RosterItem &item);
+	void contactDeleted(const RosterItem &item);
 	void rosterRequestFinished(bool success);
+
+protected:
+	virtual bool canPerformLocalUpdate() const;
+
+protected slots:
+	virtual void updateContact(const Contact &contact);
 
 public:
 	explicit JabberRosterService(JabberProtocol *protocol);
 	virtual ~JabberRosterService();
 
-	virtual void addContact(const Contact &contact);
-	virtual void removeContact(const Contact &contact);
-	virtual void askForAuthorization(const Contact &contact);
-	virtual void sendAuthorization(const Contact &contact);
+	virtual void prepareRoster();
 
-	void downloadRoster();
+	void setClient(Client *xmppClient);
 
-signals:
-	void rosterDownloaded(bool success);
+public slots:
+	virtual bool addContact(const Contact &contact);
+	virtual bool removeContact(const Contact &contact);
 
 };
+
+}
 
 #endif // JABBER_ROSTER_SERVICE_H

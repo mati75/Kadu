@@ -53,7 +53,8 @@ AccountBuddyListWidget::AccountBuddyListWidget(Account account, QWidget *parent)
 	layout->setContentsMargins(0, 0, 0, 0);
 	layout->setSpacing(5);
 
-	ModelChain *chain = new ModelChain(new BuddiesModel(this), this);
+	ModelChain *chain = new ModelChain(this);
+	chain->setBaseModel(new BuddiesModel(chain));
 	TalkableProxyModel *proxyModel = new TalkableProxyModel(chain);
 
 	AccountTalkableFilter *accountTalkableFilter = new AccountTalkableFilter(proxyModel);
@@ -72,7 +73,7 @@ AccountBuddyListWidget::AccountBuddyListWidget(Account account, QWidget *parent)
 	TalkableTreeView *view = new TalkableTreeView(BuddiesWidget);
 	view->setChain(chain);
 
-	BuddiesWidget->setTreeView(view);
+	BuddiesWidget->setView(view);
 	BuddiesWidget->setMinimumSize(QSize(30, 30));
 
 	QWidget *buttons = new QWidget(this);

@@ -28,34 +28,32 @@
 #include <libgadu.h>
 
 #include "message/message.h"
-#include "protocols/services/chat-state-service.h"
 
-class Chat;
-class GaduProtocol;
+#include "protocols/services/chat-state-service.h"
 
 class GaduChatStateService : public ChatStateService
 {
 	Q_OBJECT
 
-	GaduProtocol *Protocol;
+	gg_session *GaduSession;
 
-	bool shouldSendEvent();
-
-	friend class GaduProtocolSocketNotifiers;
-	void handleEventTypingNotify(struct gg_event *e);
-
-private slots:
-	void messageReceived(const Message & message);
+	bool SendTypingNotifications;
 
 public:
-	GaduChatStateService(GaduProtocol *parent);
+	explicit GaduChatStateService(Protocol *parent);
+	virtual ~GaduChatStateService();
 
-	virtual void composingStarted(const Chat &chat);
-	virtual void composingStopped(const Chat &chat);
+	virtual void sendState(const Contact &contact, State state);
 
-	virtual void chatWidgetClosed(const Chat &chat);
-	virtual void chatWidgetActivated(const Chat &chat);
-	virtual void chatWidgetDeactivated(const Chat &chat);
+	void setSendTypingNotifications(bool sendTypingNotifications);
+
+public slots:
+	void setGaduSession(gg_session *gaduSession);
+
+	void handleEventTypingNotify(struct gg_event *e);
+
+	void messageReceived(const Message & message);
+
 };
 
 #endif // GADU_CHAT_STATE_SERVICE_H

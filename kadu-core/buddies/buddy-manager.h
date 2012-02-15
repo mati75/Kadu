@@ -60,6 +60,11 @@ private slots:
 	void buddyDataUpdated();
 	void buddySubscriptionChanged();
 
+	void buddyContactAboutToBeAdded(const Contact &contact);
+	void buddyContactAdded(const Contact &contact);
+	void buddyContactAboutToBeRemoved(const Contact &contact);
+	void buddyContactRemoved(const Contact &contact);
+
 protected:
 	virtual void load();
 
@@ -86,13 +91,19 @@ public:
 	void clearOwnerAndRemoveEmptyBuddy(Contact contact, bool checkBuddyOnlyForOtherContacts = false);
 
 signals:
-	void buddyAboutToBeAdded(Buddy &buddy);
-	void buddyAdded(Buddy &buddy);
-	void buddyAboutToBeRemoved(Buddy &buddy);
-	void buddyRemoved(Buddy &buddy);
+	void buddyAboutToBeAdded(const Buddy &buddy);
+	void buddyAdded(const Buddy &buddy);
+	void buddyAboutToBeRemoved(const Buddy &buddy);
+	void buddyRemoved(const Buddy &buddy);
 
-	void buddyUpdated(Buddy &buddy);
-	void buddySubscriptionChanged(Buddy &buddy);
+	void buddyContactAboutToBeAdded(const Buddy &buddy, const Contact &contact);
+	void buddyContactAdded(const Buddy &buddy, const Contact &contact);
+	void buddyContactAboutToBeRemoved(const Buddy &buddy, const Contact &contact);
+	void buddyContactRemoved(const Buddy &buddy, const Contact &contact);
+
+	void buddyUpdated(const Buddy &buddy);
+	void buddySubscriptionChanged(const Buddy &buddy);
+
 };
 
 #endif // BUDDY_MANAGER_H

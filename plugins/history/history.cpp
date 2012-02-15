@@ -63,15 +63,15 @@
 #include "message/message-manager.h"
 #include "message/message.h"
 #include "misc/path-conversion.h"
+#include "protocols/services/chat-service.h"
 
 #include "debug.h"
 
 #include "actions/show-history-action-description.h"
 #include "gui/windows/history-window.h"
-#include "model/dates-model-item.h"
+#include "history-query.h"
 #include "history-messages-prepender.h"
 #include "history-save-thread.h"
-#include "timed-status.h"
 
 #include "history.h"
 
@@ -212,10 +212,12 @@ void History::chatCreated(ChatWidget *chatWidget)
 
 	Chat chat = AggregateChatManager::instance()->aggregateChat(chatWidget->chat());
 
-	QDateTime backTo = QDateTime::currentDateTime().addSecs(ChatHistoryQuotationTime * 3600);
-	QFuture<QVector<Message> > futureMessages = CurrentStorage->asyncMessagesBackTo(chat ? chat : chatWidget->chat(), backTo,
-			config_file.readNumEntry("Chat", "ChatPruneLen", 20));
-	new HistoryMessagesPrepender(futureMessages, chatMessagesView);
+	HistoryQuery query;
+	query.setTalkable(chat ? chat : chatWidget->chat());
+	query.setFromDateTime(QDateTime::currentDateTime().addSecs(ChatHistoryQuotationTime * 3600));
+	query.setLimit(config_file.readNumEntry("History", "ChatHistoryCitation", 10));
+
+	new HistoryMessagesPrepender(CurrentStorage->messages(query), chatMessagesView);
 }
 
 void History::accountRegistered(Account account)
@@ -382,6 +384,8 @@ void History::registerStorage(HistoryStorage *storage)
 
 	foreach (const Account &account, AccountManager::instance()->items())
 		accountRegistered(account);
+
+	emit storageChanged(CurrentStorage);
 }
 
 void History::unregisterStorage(HistoryStorage *storage)
@@ -396,75 +400,8 @@ void History::unregisterStorage(HistoryStorage *storage)
 
 	delete CurrentStorage;
 	CurrentStorage = 0;
-}
 
-QVector<Chat> History::chatsList(const HistorySearchParameters &search)
-{
-	kdebugf();
-
-	return CurrentStorage->chats(search);
-}
-
-QVector<DatesModelItem> History::datesForChat(const Chat &chat, const HistorySearchParameters &search)
-{
-	kdebugf();
-
-	return CurrentStorage->chatDates(chat, search);
-}
-
-QVector<Message> History::messages(const Chat &chat, const QDate &date, int limit)
-{
-	kdebugf();
-
-	return CurrentStorage->messages(chat, date, limit);
-}
-
-QVector<Buddy> History::statusBuddiesList(const HistorySearchParameters &search)
-{
-	kdebugf();
-
-	return CurrentStorage->statusBuddiesList(search);
-}
-
-QVector<DatesModelItem> History::datesForStatusBuddy(const Buddy &buddy, const HistorySearchParameters &search)
-{
-	kdebugf();
-
-	return CurrentStorage->datesForStatusBuddy(buddy, search);
-}
-
-QList<TimedStatus> History::statuses(const Buddy &buddy, const QDate &date, int limit)
-{
-	kdebugf();
-
-	return CurrentStorage->statuses(buddy, date, limit);
-}
-
-QList<QString> History::smsRecipientsList(const HistorySearchParameters &search)
-{
-	kdebugf();
-
-	return CurrentStorage->smsRecipientsList(search);
-}
-
-QVector<DatesModelItem> History::datesForSmsRecipient(const QString &recipient, const HistorySearchParameters &search)
-{
-	kdebugf();
-
-	return CurrentStorage->datesForSmsRecipient(recipient, search);
-}
-
-QVector<Message> History::sms(const QString &recipient, const QDate &date, int limit)
-{
-	kdebugf();
-
-	return CurrentStorage->sms(recipient, date, limit);
-}
-
-void History::deleteHistory(const Buddy &buddy)
-{
-	if (CurrentStorage)
-		CurrentStorage->deleteHistory(buddy);
+	emit storageChanged(CurrentStorage);
 }
 
 void History::createDefaultConfiguration()

@@ -45,7 +45,7 @@
 
 #include "jabber-contact-personal-info-widget.h"
 
-JabberContactPersonalInfoWidget::JabberContactPersonalInfoWidget(Contact &contact, QWidget *parent) :
+JabberContactPersonalInfoWidget::JabberContactPersonalInfoWidget(const Contact &contact, QWidget *parent) :
 		QWidget(parent), MyContact(contact)
 {
 	setAttribute(Qt::WA_DeleteOnClose);
@@ -60,8 +60,7 @@ JabberContactPersonalInfoWidget::JabberContactPersonalInfoWidget(Contact &contac
 	connect(service, SIGNAL(personalInfoAvailable(Buddy)), this, SLOT(personalInfoAvailable(Buddy)));
 
 	Buddy b = Buddy::create();
-	Contact c = Contact::create();
-	c.setId(contact.id());
+	Contact c = Contact::create(contact.id());
 	c.setOwnerBuddy(b);
 
 	service->fetchPersonalInfo(c);

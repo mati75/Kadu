@@ -26,10 +26,13 @@
 #include "configuration/configuration-file.h"
 #include "gui/actions/action.h"
 #include "gui/widgets/chat-edit-box.h"
+#include "gui/widgets/chat-messages-view.h"
 #include "gui/widgets/chat-widget.h"
 
 #include "gui/windows/history-window.h"
+#include "history-query.h"
 #include "history-messages-prepender.h"
+#include "history.h"
 
 #include "show-history-action-description.h"
 
@@ -74,9 +77,9 @@ void ShowHistoryActionDescription::actionInstanceCreated(Action *action)
 	// no parents for menu as it is destroyed manually by Action class
 	QMenu *menu = new QMenu();
 
-	if (config_file.readBoolEntry("Chat", "ChatPrune", false))
+	if (config_file.readNumEntry("History", "ChatHistoryCitation", 10) > 0)
 	{
-		int prune = config_file.readNumEntry("Chat", "ChatPruneLen", 20);
+		int prune = config_file.readNumEntry("History", "ChatHistoryCitation", 10);
 		menu->addAction(tr("Show last %1 messages").arg(prune), this, SLOT(showPruneMessages()))->setData(chatWidgetData);
 		menu->addSeparator();
 	}
@@ -123,9 +126,6 @@ void ShowHistoryActionDescription::showAllMessages()
 
 void ShowHistoryActionDescription::showDaysMessages(QAction *action, int days)
 {
-	if (!History::instance()->currentStorage())
-		return;
-
 	Action *act = qobject_cast<Action *>(action);
 	Chat actionChat = act ? act->context()->chat() : Chat::null;
 
@@ -155,18 +155,13 @@ void ShowHistoryActionDescription::showDaysMessages(QAction *action, int days)
 	const Chat &messagesChat = aggregateChat ? aggregateChat : chatWidget->chat();
 	HistoryStorage *historyStorage = History::instance()->currentStorage();
 
-	QFuture<QVector<Message> > futureMessages;
-	if (0 != days)
-	{
-		QDate since = QDate::currentDate().addDays(-days);
-		futureMessages = historyStorage->asyncMessagesSince(messagesChat, since);
-	}
-	else
-	{
-		int pruneLen = config_file.readNumEntry("Chat", "ChatPruneLen", 20);
-		QDateTime backTo = QDateTime::currentDateTime().addSecs(ChatHistoryQuotationTime * 3600);
-		futureMessages = historyStorage->asyncMessagesBackTo(messagesChat, backTo, pruneLen);
-	}
+	HistoryQuery query;
+	query.setTalkable(messagesChat);
 
-	new HistoryMessagesPrepender(futureMessages, chatMessagesView);
+	if (0 == days)
+		query.setLimit(config_file.readNumEntry("History", "ChatHistoryCitation", 10));
+	else
+		query.setFromDate(QDate::currentDate().addDays(-days));
+
+	new HistoryMessagesPrepender(historyStorage->messages(query), chatMessagesView);
 }

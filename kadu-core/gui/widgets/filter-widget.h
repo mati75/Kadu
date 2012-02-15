@@ -32,8 +32,9 @@
 #	include <Carbon/Carbon.h>
 #endif
 
+class QAbstractItemView;
+class QLabel;
 class QLineEdit;
-class QTreeView;
 
 class KADUAPI FilterWidget : public QWidget
 {
@@ -43,11 +44,15 @@ class KADUAPI FilterWidget : public QWidget
 	CFStringRef searchFieldText;
 	HIViewRef searchField;
 #else
+	QLabel *Label;
 	QLineEdit *NameFilterEdit;
 #endif
-	QTreeView *View;
-	bool sendKeyEventToView(QKeyEvent *);
 
+	QAbstractItemView *View;
+	bool AutoVisibility;
+
+	void updateVisibility();
+	bool sendKeyEventToView(QKeyEvent *);
 
 private slots:
 	void filterTextChanged(const QString &);
@@ -59,8 +64,10 @@ public:
 	explicit FilterWidget(QWidget *parent = 0);
 	virtual ~FilterWidget();
 
+	void setLabel(const QString &label);
 	void setFilter(const QString &filter);
-	void setView(QTreeView *view);
+	void setView(QAbstractItemView *view);
+	void setAutoVisibility(bool autoVisibility);
 
 signals:
 	void textChanged(const QString &text);

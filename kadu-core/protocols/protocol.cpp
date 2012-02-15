@@ -39,6 +39,7 @@
 #include "icons/kadu-icon.h"
 #include "protocols/protocol-factory.h"
 #include "protocols/protocol-state-machine.h"
+#include "services/roster-service.h"
 #include "status/status-type-manager.h"
 #include "status/status.h"
 #include "debug.h"
@@ -46,7 +47,8 @@
 #include "protocol.h"
 
 Protocol::Protocol(Account account, ProtocolFactory *factory) :
-		Factory(factory), CurrentAccount(account)
+		Factory(factory), CurrentAccount(account),
+		CurrentChatService(0), CurrentChatStateService(0), CurrentRosterService(0)
 {
 	Machine = new ProtocolStateMachine(this);
 	/*
@@ -197,6 +199,8 @@ KaduIcon Protocol::statusIcon(const Status &status)
 
 void Protocol::loggingInStateEntered()
 {
+	emit disconnected(CurrentAccount);
+
 	// this may be called from our connection error-handling code, when user wants to be logged in
 	// at any cost, so we should assume that we were just disconnected
 	// better do some cleanup then
@@ -223,31 +227,32 @@ void Protocol::loggingInStateEntered()
 
 void Protocol::loggedInStateEntered()
 {
-	afterLoggedIn();
-
 	statusChanged(loginStatus());
-	sendStatusToServer();
+	afterLoggedIn();
 
 	emit connected(CurrentAccount);
 }
 
 void Protocol::loggingOutStateEntered()
 {
+	emit disconnected(CurrentAccount);
+
 	// call protocol implementation
 	logout();
 }
 
 void Protocol::loggedOutAnyStateEntered()
 {
+	emit disconnected(CurrentAccount);
 
 	disconnectedCleanup();
 	statusChanged(loginStatus());
-
-	emit disconnected(CurrentAccount);
 }
 
 void Protocol::wantToLogInStateEntered()
 {
+	emit disconnected(CurrentAccount);
+
 	disconnectedCleanup();
 	statusChanged(Status());
 
@@ -272,4 +277,19 @@ bool Protocol::isConnected()
 bool Protocol::isConnecting()
 {
 	return Machine->isLoggingIn();
+}
+
+void Protocol::setChatService(ChatService * const chatService)
+{
+	CurrentChatService = chatService;
+}
+
+void Protocol::setChatStateService(ChatStateService * const chatStateService)
+{
+	CurrentChatStateService = chatStateService;
+}
+
+void Protocol::setRosterService(RosterService * const rosterService)
+{
+	CurrentRosterService = rosterService;
 }

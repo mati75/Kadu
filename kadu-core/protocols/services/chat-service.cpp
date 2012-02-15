@@ -25,9 +25,11 @@
 
 #include "chat-service.h"
 
-bool ChatService::sendMessage(const Chat &chat, const QString &messageContent, bool silent)
+ChatService::ChatService(Protocol *protocol) :
+		ProtocolService(protocol)
 {
-	QTextDocument document(messageContent);
-	FormattedMessage message = FormattedMessage::parse(&document);
-	return sendMessage(chat, message, silent);
+}
+
+ChatService::~ChatService()
+{
 }
