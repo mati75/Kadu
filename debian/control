@@ -4,7 +4,8 @@ Priority: optional
 Maintainer: Patryk Cisek <patryk@debian.org>
 Vcs-Git: git://git.debian.org/users/patryk/kadu.git
 Vcs-Browser: http://git.debian.org/?p=users/patryk/kadu.git
-Build-Depends: bzip2,
+Build-Depends: aspell,
+               bzip2,
                cmake (>=2.6),
                debhelper (>= 7),
                libasound2-dev,
