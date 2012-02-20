@@ -1,0 +1,27 @@
+<configuration-ui>
+	<section name="Look">
+		<tab name="PanelKadu">
+			<group-box name="Geometry">
+				<combo-box caption="Side" config-section="PanelKadu" config-item="Side" id="panelkadu/side">
+					<item value="0" caption="Right" />
+					<item value="1" caption="Bottom" />
+					<item value="2" caption="Left" />
+					<item value="3" caption="Top" />
+				</combo-box>
+				<spin-box caption="Size" config-section="PanelKadu" config-item="Size" min-value="100" max-value="10000" step="1" suffix=" px" id="panelkadu/size" />
+				<check-box caption="User defined panel length" config-section="PanelKadu" config-item="UserDefinedPanelLength" id="panelkadu/userDefinedPanelLength" />
+				<spin-box caption="Position" config-section="PanelKadu" config-item="PanelPosition" min-value="0" max-value="10000" step="1" suffix=" px" id="panelkadu/panelPosition" />
+				<spin-box caption="Length" config-section="PanelKadu" config-item="PanelLength" min-value="100" max-value="10000" step="1" suffix=" px" id="panelkadu/panelLength" />
+			</group-box>
+			<group-box name="Behaviour">
+				<spin-box caption="Activation time" config-section="PanelKadu" config-item="ActivationTime" min-value="0" max-value="10000" step="10" suffix="%n millisecond(s)" id="panelkadu/activationTime" />
+				<spin-box caption="Hide panel after" config-section="PanelKadu" config-item="HideTime" min-value="0" max-value="10000" step="10" suffix="[after] %n millisecond(s)" id="panelkadu/hideTime" />
+				<spin-box caption="Hiding margin" config-section="PanelKadu" config-item="HidingMargin" min-value="0" max-value="10000" step="1" suffix=" px" id="panelkadu/hidingMargin" />
+				<check-box caption="Use activation ranges" config-section="PanelKadu" config-item="UseActivationRanges" id="panelkadu/useActivationRanges" />
+				<line-edit caption="Activation ranges" config-section="PanelKadu" config-item="ActivationRanges" id="panelkadu/activationRanges"
+					tool-tip="Use spaces to separate ranges: '0-100 200-300 400-500'" />
+				<check-box caption="Don't hide panel when active" config-section="PanelKadu" config-item="DontHidePanelWhenActive" id="panelkadu/dontHidePanelWhenActive" />
+			</group-box>
+		</tab>
+	</section>
+</configuration-ui>
