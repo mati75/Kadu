@@ -29,7 +29,7 @@ Build-Depends: aspell,
                sharutils,
                x11proto-scrnsaver-dev,
                zlib1g-dev
-Standards-Version: 3.9.2
+Standards-Version: 3.9.3
 Homepage: http://kadu.net
 
 Package: kadu
