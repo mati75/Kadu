@@ -64,7 +64,7 @@ void ShowHistoryActionDescription::actionInstanceCreated(Action *action)
 	if (!chatEditBox || !chatEditBox->chatWidget())
 		return;
 
-	QVariant chatWidgetData = (qlonglong)chatEditBox->chatWidget();
+	QVariant chatWidgetData = QVariant::fromValue(chatEditBox->chatWidget());
 	action->setData(chatWidgetData);
 
 	// not a menu
@@ -129,7 +129,7 @@ void ShowHistoryActionDescription::showDaysMessages(QAction *action, int days)
 	Action *act = qobject_cast<Action *>(action);
 	Chat actionChat = act ? act->context()->chat() : Chat::null;
 
-	ChatWidget *chatWidget = static_cast<ChatWidget *>((void*)(action->data().toLongLong()));
+	ChatWidget *chatWidget = action->data().value<ChatWidget *>();
 	if (!chatWidget)
 	{
 		HistoryWindow::show(actionChat);
@@ -154,6 +154,9 @@ void ShowHistoryActionDescription::showDaysMessages(QAction *action, int days)
 	const Chat &aggregateChat = AggregateChatManager::instance()->aggregateChat(chatWidget->chat());
 	const Chat &messagesChat = aggregateChat ? aggregateChat : chatWidget->chat();
 	HistoryStorage *historyStorage = History::instance()->currentStorage();
+
+	if (!historyStorage)
+		return;
 
 	QFuture<QVector<Message> > futureMessages;
 	if (0 != days)

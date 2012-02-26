@@ -67,6 +67,11 @@ ChatMessagesView::ChatMessagesView(const Chat &chat, bool supportTransparency, Q
 	page()->setPalette(p);
 	setAttribute(Qt::WA_OpaquePaintEvent, false);
 
+	page()->currentFrame()->evaluateJavaScript(
+		"XMLHttpRequest.prototype.open = function() { return false; };"
+		"XMLHttpRequest.prototype.send = function() { return false; };"
+	);
+
 	configurationUpdated();
 
 	connectChat();
@@ -264,6 +269,8 @@ void ChatMessagesView::prependMessages(const QVector<Message> &messages)
 	Renderer->appendMessages(newMessages);
 
 	setUpdatesEnabled(true);
+
+	emit messagesUpdated();
 }
 
 void ChatMessagesView::appendMessage(const Message &message)
