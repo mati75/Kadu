@@ -2,6 +2,7 @@ debian/tmp/usr/lib/kadu/plugins/bin/mime_tex
 debian/tmp/usr/lib/kadu/plugins/libanonymous_check.so
 debian/tmp/usr/lib/kadu/plugins/libglobalhotkeys.so
 debian/tmp/usr/lib/kadu/plugins/libimport_history.so
+debian/tmp/usr/lib/kadu/plugins/libkadu_completion.so
 debian/tmp/usr/lib/kadu/plugins/liblednotify.so
 debian/tmp/usr/lib/kadu/plugins/libmessagessplitter.so
 debian/tmp/usr/lib/kadu/plugins/libmime_tex.so
@@ -18,6 +19,7 @@ debian/tmp/usr/share/kadu/plugins/configuration/networkping.ui
 debian/tmp/usr/share/kadu/plugins/configuration/nextinfo.ui
 debian/tmp/usr/share/kadu/plugins/configuration/panelkadu.ui
 debian/tmp/usr/share/kadu/plugins/configuration/senthistory.ui
+debian/tmp/usr/share/kadu/plugins/data/kadu_completion/list.txt
 debian/tmp/usr/share/kadu/plugins/data/mime_tex
 debian/tmp/usr/share/kadu/plugins/globalhotkeys.desc
 debian/tmp/usr/share/kadu/plugins/import_history.desc

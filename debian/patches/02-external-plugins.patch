@@ -6,10 +6,10 @@ Description: Selects all usable external themes
 Author: Patryk Cisek <patryk@debian.org>
 ---
 diff --git a/Plugins.cmake b/Plugins.cmake
-index 2041287..c20f7da 100644
+index 2041287..b61c21a 100644
 --- a/Plugins.cmake
 +++ b/Plugins.cmake
-@@ -158,6 +158,50 @@ if (WIN32)
+@@ -158,6 +158,54 @@ if (WIN32)
  	)
  endif (WIN32)
  
@@ -27,6 +27,10 @@ index 2041287..c20f7da 100644
 +    # importhistory
 +        # Imports history from original Gadu-Gadu client
 +        importhistory
++
++    # kadu_completion
++        # Adds bash-like completion to Kadu's chat window for its <...> emoticons
++        kadu_completion
 +
 +    # lednotify
 +        # Notifying using Scroll Loch LED

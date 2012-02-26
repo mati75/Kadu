@@ -4,8 +4,9 @@ kadu (0.11.1-1) unstable; urgency=high
   * This upstream versions contains important security issues introduced in
     version 0.9.0.
   * Bumped Standards-Version to 3.9.3
+  * Added kadu_completion plugin to kadu-external-modules
 
- -- Patryk Cisek <patryk@debian.org>  Sun, 26 Feb 2012 19:05:28 +0100
+ -- Patryk Cisek <patryk@debian.org>  Sun, 26 Feb 2012 20:04:08 +0100
 
 kadu (0.11.0-2) unstable; urgency=low
 
