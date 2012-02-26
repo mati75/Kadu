@@ -1,0 +1,6 @@
+[Module]
+Description=Bash completion-like module for Kadu
+Description[pl]=Dope¿nianie podobne do bash completion dla Kadu
+Author=Patryk Cisek <patryk@debian.org>
+Plugin=true
+Version=0.10.0-1
