@@ -23,6 +23,7 @@ debian/tmp/usr/share/kadu/plugins/data/kadu_completion/list.txt
 debian/tmp/usr/share/kadu/plugins/data/mime_tex
 debian/tmp/usr/share/kadu/plugins/globalhotkeys.desc
 debian/tmp/usr/share/kadu/plugins/import_history.desc
+debian/tmp/usr/share/kadu/plugins/kadu_completion.desc
 debian/tmp/usr/share/kadu/plugins/lednotify.desc
 debian/tmp/usr/share/kadu/plugins/messagessplitter.desc
 debian/tmp/usr/share/kadu/plugins/mime_tex.desc
