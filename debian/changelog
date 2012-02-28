@@ -1,8 +1,16 @@
+kadu (0.11.1-2) unstable; urgency=low
+
+  * Fixed serious mistake in changelog entry for 0.11.1-1:
+    This upstream versions contains important security issues... ->
+    This upstream versions contains fixes of important security issues
+
+ -- Patryk Cisek <patryk@debian.org>  Tue, 28 Feb 2012 08:15:00 +0100
+
 kadu (0.11.1-1) unstable; urgency=high
 
   * New upstream release
-  * This upstream versions contains important security issues introduced in
-    version 0.9.0.
+  * This upstream versions contains fixes of important security issues
+    introduced in version 0.9.0.
   * Bumped Standards-Version to 3.9.3
   * Added kadu_completion plugin to kadu-external-modules
   * TLS negotiation problem solved upstream (Closes: #634037)
