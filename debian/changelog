@@ -1,3 +1,12 @@
+kadu (0.11.1-3) unstable; urgency=low
+
+  * Backported the following fix of kadu_completion plugin from upstream
+    repository:
+    git://gitorious.org/mime_tex/kadu_completion.git
+    The backported commit's fix: dfa94a16d3ff51e9bc05996836e4d46627d93d84
+
+ -- Patryk Cisek <patryk@debian.org>  Wed, 04 Apr 2012 15:15:58 +0200
+
 kadu (0.11.1-2) unstable; urgency=low
 
   * Fixed serious mistake in changelog entry for 0.11.1-1:
