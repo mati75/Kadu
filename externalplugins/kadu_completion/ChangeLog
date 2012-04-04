@@ -1,0 +1,6 @@
+2012-02-27  Patryk Cisek <patryk@debian.org>
+
+        * Added LoadByDefault=true to make it loaded by default when Kadu
+          starts.
+        * Fixed character encoding in plugin's description in
+          kadu_completion.desc

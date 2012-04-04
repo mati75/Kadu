@@ -1,0 +1,32 @@
+Description: Fixes crash in kadu_completion plugin
+ Backported bug fix from upstream introduced in commit:
+ 22114011400000209167001001. The repository is here:
+ git://gitorious.org/mime_tex/kadu_completion.git
+Author: Patryk Cisek <patryk@debian.org>
+---
+diff --git a/externalplugins/kadu_completion/completion_context.cpp b/externalplugins/kadu_completion/completion_context.cpp
+index 7069aaa..521659b 100644
+--- a/externalplugins/kadu_completion/completion_context.cpp
++++ b/externalplugins/kadu_completion/completion_context.cpp
+@@ -16,6 +16,7 @@ KaduCompletion::CompletionContext::CompletionContext(const KaduCompletion::Emoti
+     else {
+         connect(edit, SIGNAL(keyPressed(QKeyEvent*,CustomInput*,bool&)),
+                 this, SLOT(keyPressed(QKeyEvent*,CustomInput*,bool&)));
++        connect(edit, SIGNAL(destroyed()), this, SLOT(deleteLater()));
+     }
+ }
+ 
+diff --git a/externalplugins/kadu_completion/kadu_completion.cpp b/externalplugins/kadu_completion/kadu_completion.cpp
+index d4286ee..c031b5a 100644
+--- a/externalplugins/kadu_completion/kadu_completion.cpp
++++ b/externalplugins/kadu_completion/kadu_completion.cpp
+@@ -36,7 +36,8 @@ void KaduCompletion::KaduCompletion::destroyInstance() {
+ }
+ 
+ void KaduCompletion::KaduCompletion::chatWidgetCreated(ChatWidget *chatWidget) {
+-    new CompletionContext(_list, chatWidget->edit());
++    CompletionContext *newContext = new CompletionContext(_list, chatWidget->edit());
++    connect(this, SIGNAL(destroyed()), newContext, SLOT(deleteLater()));
+ }
+ 
+ KaduCompletion::KaduCompletion::KaduCompletion() {
