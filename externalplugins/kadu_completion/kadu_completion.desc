@@ -4,4 +4,4 @@ Description[pl]=Dope³nianie podobne do bash completion dla Kadu
 Author=Patryk Cisek <patryk@debian.org>
 LoadByDefault=true
 Plugin=true
-Version=0.11.0-1
+Version=0.11.0-2

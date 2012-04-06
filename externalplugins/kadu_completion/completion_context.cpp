@@ -16,6 +16,7 @@ KaduCompletion::CompletionContext::CompletionContext(const KaduCompletion::Emoti
     else {
         connect(edit, SIGNAL(keyPressed(QKeyEvent*,CustomInput*,bool&)),
                 this, SLOT(keyPressed(QKeyEvent*,CustomInput*,bool&)));
+        connect(edit, SIGNAL(destroyed()), this, SLOT(deleteLater()));
     }
 }
 

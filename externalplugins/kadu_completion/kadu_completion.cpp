@@ -36,7 +36,8 @@ void KaduCompletion::KaduCompletion::destroyInstance() {
 }
 
 void KaduCompletion::KaduCompletion::chatWidgetCreated(ChatWidget *chatWidget) {
-    new CompletionContext(_list, chatWidget->edit());
+    CompletionContext *newContext = new CompletionContext(_list, chatWidget->edit());
+    connect(this, SIGNAL(destroyed()), newContext, SLOT(deleteLater()));
 }
 
 KaduCompletion::KaduCompletion::KaduCompletion() {
