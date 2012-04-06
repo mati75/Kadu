@@ -1,3 +1,14 @@
++++ version 0.11.2
+* url-handlers: #2485 fixed: do not treat strings beginning with "ftp." as http links (beevvy)
+* gadu: fixed rare problem which have been causing inability to send any messages (beevvy)
+* gadu: fixed possible application hangs, especially when trying to connect on unstable Internet connection (beevvy)
+* chat styles: fixed issues with contact activity icon not being displayed in old message styles (beevvy)
+* history: #2527 fixed: sort messages in history correctly (ultr)
+* sms: fixed gateway code (Vogel)
+* history: #2517 fixed: statuses were always stored as Offline (Vogel)
+* chat styles: #2518 fixed: text in system messages was overflowing time (Vogel)
+* gui: #2534 fixed: first incoming message was being displayed twice when "Open chat window on new message" option was enabled (beevvy)
+
 +++ version 0.11.1
 * gui: #2464 fixed: Clear Chat button was not properly activated after reading messages from history (Vogel)
 * gui: #2477 fixed: remove expired recent chats at Kadu startup (ultr)
@@ -7,6 +18,7 @@
 * history: #2480 probably fixed: crash when loading last day/week/month history into chat widget on 32bit systems (Vogel)
 * history: various security improvements pointed by Mateusz Goik from http://www.aliantsoft.pl (Vogel)
 * history_migration: #2503 fixed: crashes during history import from Kadu 0.6.5 (Vogel)
+* spellchecker: #2319 done: better and smaller aspell Polish dictionary on Windows (beevvy)
 
 ﻿+++ version 0.11.0
 * gui: #2454 fixed: memory leak in emoticons selector (Juzef)
