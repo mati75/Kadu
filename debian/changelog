@@ -4,7 +4,7 @@ kadu (0.11.2-1) unstable; urgency=low
   * Removed debian/patches/05-kadu_completion_fix.patch -- fix already
     included upstream
 
- -- Patryk Cisek <patryk@debian.org>  Fri, 06 Apr 2012 20:04:39 +0200
+ -- Patryk Cisek <patryk@debian.org>  Sun, 08 Apr 2012 07:34:06 +0200
 
 kadu (0.11.1-3) unstable; urgency=low
 
