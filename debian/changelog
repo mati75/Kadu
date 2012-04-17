@@ -3,8 +3,9 @@ kadu (0.11.2-1) unstable; urgency=low
   * New upstream release
   * Removed debian/patches/05-kadu_completion_fix.patch -- fix already
     included upstream
+  * Added libqt4-svg to kadu's Depends
 
- -- Patryk Cisek <patryk@debian.org>  Sun, 08 Apr 2012 07:34:06 +0200
+ -- Patryk Cisek <patryk@debian.org>  Tue, 17 Apr 2012 07:52:47 +0200
 
 kadu (0.11.1-3) unstable; urgency=low
 
