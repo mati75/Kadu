@@ -14,7 +14,7 @@ Description: Fixes contents of "About" dialog's tabs.
 Author: Patryk Cisek <patryk@debian.org>
 ---
 diff --git a/kadu-core/gui/windows/about.cpp b/kadu-core/gui/windows/about.cpp
-index 4af878c..953b3c2 100644
+index 8f08e2f..a4472ec 100644
 --- a/kadu-core/gui/windows/about.cpp
 +++ b/kadu-core/gui/windows/about.cpp
 @@ -158,7 +158,7 @@ About::About(QWidget *parent) :
@@ -30,7 +30,7 @@ index 4af878c..953b3c2 100644
  {
  	kdebugf();
  
--	QFile file(dataPath("" + name));
+-	QFile file(KaduPaths::instance()->dataPath() + name);
 +	QString fullName = (QString("COPYING") == name ?
 +			QString("/usr/share/common-licenses/GPL-2") :
 +			QString("/usr/share/doc/kadu/" + name));
