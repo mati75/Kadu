@@ -34,8 +34,8 @@
 
 namespace
 {
-	const int NUMLOCK_LED    = 1;
-	const int CAPSLOCK_LED   = 2;
+	const int CAPSLOCK_LED   = 1;
+	const int NUMLOCK_LED    = 2;
 	const int SCROLLLOCK_LED = 3;
 }
 
@@ -79,7 +79,7 @@ void LedDriver::Impl::set( LedDriver::Diode diode, bool ledState )
 	// new X
 	int xkbmajor = XkbMajorVersion, xkbminor = XkbMinorVersion;
 	int xkbopcode, xkbevent, xkberror;
-	Atom ledatom;
+	Atom ledatom = None;
 	if( XkbQueryExtension( display_, &xkbopcode, &xkbevent, &xkberror, &xkbmajor, &xkbminor ) )
 	{
 		switch( diode )

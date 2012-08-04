@@ -27,20 +27,24 @@
 
 #include <X11/Xlib.h>
 #include <X11/keysym.h>
+#include <X11/XKBlib.h>
 
 
 
 
 HotkeyEdit::HotkeyEdit( const QString &section, const QString &item, const QString &widgetCaption, const QString &toolTip, ConfigGroupBox *parentConfigGroupBox, ConfigurationWindowDataManager *dataManager )
-	: ConfigLineEdit( section, item, widgetCaption, toolTip, parentConfigGroupBox, dataManager )
+	: ConfigLineEdit( section, item, widgetCaption, toolTip, parentConfigGroupBox, dataManager ), LASTVALIDVALUE( "" )
 {
-	LASTVALIDVALUE = "";
+	connect( this, SIGNAL(cleared()), this, SLOT(onClear()) );
+	setClearButtonVisible( true );
 }
 
 
 HotkeyEdit::HotkeyEdit( ConfigGroupBox *parentConfigGroupBox, ConfigurationWindowDataManager *dataManager )
-	: ConfigLineEdit( parentConfigGroupBox, dataManager )
+	: ConfigLineEdit( parentConfigGroupBox, dataManager ), LASTVALIDVALUE( "" )
 {
+	connect( this, SIGNAL(cleared()), this, SLOT(onClear()) );
+	setClearButtonVisible( true );
 }
 
 
@@ -50,7 +54,7 @@ bool HotkeyEdit::x11Event( XEvent *event )
 	{
 		// event data
 		uint keycode = event->xkey.keycode;
-		KeySym keysym = XKeycodeToKeysym( QX11Info::display(), keycode, 0 );
+		KeySym keysym = XkbKeycodeToKeysym( QX11Info::display(), keycode, 0, 0 );
 		// result string
 		QString hotkeystring = "";
 		// get the modifiers
@@ -86,8 +90,7 @@ bool HotkeyEdit::x11Event( XEvent *event )
 					)
 				{
 					// clear key was pressed
-					setText( "" );
-					LASTVALIDVALUE = "";
+					clear();
 				}
 				else
 				{
@@ -217,7 +220,7 @@ void HotkeyEdit::focusInEvent( QFocusEvent *event )
 {
 	LASTVALIDVALUE = text();
 	// important: call the default focusInEvent
-	QLineEdit::focusInEvent( event );
+	ConfigLineEdit::focusInEvent( event );
 }
 
 
@@ -227,5 +230,11 @@ void HotkeyEdit::focusOutEvent( QFocusEvent *event )
 		if( text().at( text().length() - 1 ) == '+' )  // if the hotkey typing is not finished yet ("+" at the end)
 			setText( LASTVALIDVALUE ); // reset the text to the last valid value
 	// important: call the default focusOutEvent
-	QLineEdit::focusOutEvent( event );
+	ConfigLineEdit::focusOutEvent( event );
+}
+
+
+void HotkeyEdit::onClear()
+{
+	LASTVALIDVALUE = "";
 }

@@ -33,66 +33,51 @@
 #include "defines.h"
 
 
+static QString getTag_middleName( Talkable talkable )
+{
+	return BuddyNExtInfoData::middleName( talkable.toBuddy() );
+}
+
+
 static QString getTag_address( Talkable talkable )
 {
-	BuddyNExtInfoData *bdata = NExtInfo::bData( talkable.toBuddy() );
-	if( ! bdata )
-		return QString();
-	return bdata->address();
+	return BuddyNExtInfoData::address( talkable.toBuddy() );
 }
 
 
 static QString getTag_city( Talkable talkable )
 {
-	BuddyNExtInfoData *bdata = NExtInfo::bData( talkable.toBuddy() );
-	if( ! bdata )
-		return QString();
-	return bdata->city();
+	return BuddyNExtInfoData::city( talkable.toBuddy() );
 }
 
 
 static QString getTag_email2( Talkable talkable )
 {
-	BuddyNExtInfoData *bdata = NExtInfo::bData( talkable.toBuddy() );
-	if( ! bdata )
-		return QString();
-	return bdata->email2();
+	return BuddyNExtInfoData::email2( talkable.toBuddy() );
 }
 
 
 static QString getTag_birthday( Talkable talkable )
 {
-	BuddyNExtInfoData *bdata = NExtInfo::bData( talkable.toBuddy() );
-	if( ! bdata )
-		return QString();
-	return bdata->birthday();
+	return BuddyNExtInfoData::birthday( talkable.toBuddy() );
 }
 
 
 static QString getTag_nameday( Talkable talkable )
 {
-	BuddyNExtInfoData *bdata = NExtInfo::bData( talkable.toBuddy() );
-	if( ! bdata )
-		return QString();
-	return bdata->nameday();
+	return BuddyNExtInfoData::nameday( talkable.toBuddy() );
 }
 
 
 static QString getTag_interests( Talkable talkable )
 {
-	BuddyNExtInfoData *bdata = NExtInfo::bData( talkable.toBuddy() );
-	if( ! bdata )
-		return QString();
-	return bdata->interests().replace( "\n", "<br/>" );
+	return BuddyNExtInfoData::interests( talkable.toBuddy() ).replace( "\n", "<br/>" );
 }
 
 
 static QString getTag_notes( Talkable talkable )
 {
-	BuddyNExtInfoData *bdata = NExtInfo::bData( talkable.toBuddy() );
-	if( ! bdata )
-		return QString();
-	return bdata->notes().replace( "\n", "<br/>" );
+	return BuddyNExtInfoData::notes( talkable.toBuddy() ).replace( "\n", "<br/>" );
 }
 
 

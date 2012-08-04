@@ -31,10 +31,13 @@
 #include "gui/widgets/chat-edit-box.h"
 #include "gui/widgets/chat-widget-manager.h"
 #include "gui/widgets/custom-input.h"
+#include "misc/kadu-paths.h"
 #include "misc/misc.h"
 #include "debug.h"
 
 #include "plugins/encryption_ng/encryption-chat-data.h"
+#include "plugins/encryption_ng/encryption-manager.h"
+#include "plugins/encryption_ng/encryption-provider-manager.h"
 
 #include "messagessplitter.h"
 
@@ -47,7 +50,7 @@ int MessagesSplitter::init( bool firstLoad )
 {
 	Q_UNUSED( firstLoad );
 	kdebugf();
-	MainConfigurationWindow::registerUiFile( dataPath("kadu/plugins/configuration/messagessplitter.ui") );
+	MainConfigurationWindow::registerUiFile( KaduPaths::instance()->dataPath() + "plugins/configuration/messagessplitter.ui" );
 	kdebugf2();
 	return 0;
 }
@@ -56,7 +59,7 @@ int MessagesSplitter::init( bool firstLoad )
 void MessagesSplitter::done()
 {
 	kdebugf();
-	MainConfigurationWindow::unregisterUiFile( dataPath("kadu/plugins/configuration/messagessplitter.ui") );
+	MainConfigurationWindow::unregisterUiFile( KaduPaths::instance()->dataPath() + "plugins/configuration/messagessplitter.ui" );
 	kdebugf2();
 }
 
@@ -160,8 +163,7 @@ void MessagesSplitter::messageSendRequested( ChatWidget *chatwidget )
 	int maxlength = MESSAGESSPLITTER_MAXIMUM_LENGTH_NORMAL;
 	int maxbackward = MESSAGESSPLITTER_MAXIMUM_BACKWARD;
 	// check encryption
-	EncryptionChatData *encryptionChatData = chatwidget->chat().data()->moduleStorableData<EncryptionChatData>("encryption-ng", this, true);
-	if( encryptionChatData && encryptionChatData->encryptor() )
+	if( EncryptionProviderManager::instance()->canEncrypt( chatwidget->chat() ) && EncryptionManager::instance()->chatEncryption( chatwidget->chat() )->encrypt() )
 		maxlength = MESSAGESSPLITTER_MAXIMUM_LENGTH_ENCRYPTED;
 	// start
 	edit->setUpdatesEnabled( false );

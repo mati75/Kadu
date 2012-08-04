@@ -25,58 +25,45 @@
 
 #include <QDate>
 
-#include "storage/module-data.h"
+#include "buddies/buddy.h"
 
 #include "defines.h"
 
 
-#undef Property
-#define Property( type, name, capitalized_name )  \
-	public:                                         \
-		type name()                                   \
-		{                                             \
-			ensureLoaded();                             \
-			return capitalized_name;                    \
-		}                                             \
-		void set##capitalized_name(const type &name)  \
-		{                                             \
-			ensureLoaded();                             \
-			capitalized_name = name;                    \
-		}                                             \
-	private:                                        \
-		type capitalized_name;
-
-
-class BuddyNExtInfoData : public ModuleData
+class BuddyNExtInfoData
 {
-	Q_OBJECT
 	public:
-		BuddyNExtInfoData( const QString &moduleName, StorableObject *parent, QObject *qobjectParent );
-		virtual ~BuddyNExtInfoData();
-		virtual void store();
-		virtual QString name() const;
-		QDate birthdayDate();
-		QDate nextBirthdayDate();
-		QDate nextNamedayDate();
-		int age();
-		int nextBirthdayAge();
-		QDate birthdayRemindDate();
-		QDate namedayRemindDate();
-		void setBirthdayRemindDate( QDate date );
-		void setNamedayRemindDate( QDate date );
-		Property( QString, address       , Address        );
-		Property( QString, city          , City           );
-		Property( QString, email2        , Email2         );
-		Property( QString, birthday      , Birthday       );
-		Property( QString, nameday       , Nameday        );
-		Property( QString, interests     , Interests      );
-		Property( QString, notes         , Notes          );
-		Property( int    , birthdayRemind, BirthdayRemind );
-		Property( int    , namedayRemind , NamedayRemind  );
+		static QDate birthdayDate( Buddy buddy );
+		static QDate nextBirthdayDate( Buddy buddy );
+		static QDate nextNamedayDate( Buddy buddy );
+		static int age( Buddy buddy );
+		static int nextBirthdayAge( Buddy buddy );
+		static QDate birthdayRemindDate( Buddy buddy );
+		static QDate namedayRemindDate( Buddy buddy );
+		static void setBirthdayRemindDate( Buddy buddy, QDate date );
+		static void setNamedayRemindDate( Buddy buddy, QDate date );
+		static QString middleName( Buddy buddy );
+		static void setMiddleName( Buddy buddy, const QString &middlename );
+		static QString address( Buddy buddy );
+		static void setAddress( Buddy buddy, const QString &address );
+		static QString city( Buddy buddy );
+		static void setCity( Buddy buddy, const QString &city );
+		static QString email2( Buddy buddy );
+		static void setEmail2( Buddy buddy, const QString &email2 );
+		static QString birthday( Buddy buddy );
+		static void setBirthday( Buddy buddy, const QString &birthday );
+		static QString nameday( Buddy buddy );
+		static void setNameday( Buddy buddy, const QString &nameday );
+		static QString interests( Buddy buddy );
+		static void setInterests( Buddy buddy, const QString &interests );
+		static QString notes( Buddy buddy );
+		static void setNotes( Buddy buddy, const QString &notes );
+		static int birthdayRemind( Buddy buddy );
+		static void setBirthdayRemind( Buddy buddy, int birthdayremind );
+		static int namedayRemind( Buddy buddy );
+		static void setNamedayRemind( Buddy buddy, int namedayremind );
 	protected:
-		virtual void load();
-	private:
-		QDate closestDate( int month, int day );
+		static QDate closestDate( int month, int day );
 };
 
 

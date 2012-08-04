@@ -1,5 +1,6 @@
 #include <X11/keysymdef.h>
 
+#define  GLOBALHOTKEYS_CONFIGVERSION                                              2
 #define  GLOBALHOTKEYS_CONFIGURATIONCLEARKEY                           XK_BackSpace
 #define  GLOBALHOTKEYS_HOTKEYSTIMERINTERVAL                                     100  /* ms */
 #define  GLOBALHOTKEYS_X11SHIFTMASK                                       ShiftMask

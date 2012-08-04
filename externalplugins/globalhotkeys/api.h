@@ -27,7 +27,9 @@
 
 #include "accounts/account.h"
 #include "buddies/buddy-set.h"
+#include "chat/chat.h"
 #include "contacts/contact-set.h"
+#include "storage/manager-common.h"
 
 
 class Api
@@ -36,6 +38,7 @@ class Api
 		static Account        commonAccount(  BuddySet buddyset, ContactSet contactset = ContactSet()                );
 		static QList<Account> commonAccounts( BuddySet buddyset, ContactSet contactset = ContactSet(), int limit = 0 );
 		static QList<Account> accountsOfBuddy( Buddy buddy );
+		static Chat           findChatForContactOrContactSet( ContactSet contactset, NotFoundAction notfoundaction );
 };
 
 

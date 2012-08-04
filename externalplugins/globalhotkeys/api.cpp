@@ -20,6 +20,8 @@
 
 
 #include "buddies/buddy-preferred-manager.h"
+#include "chat/type/chat-type-contact.h"
+#include "chat/type/chat-type-contact-set.h"
 
 #include "api.h"
 
@@ -110,4 +112,16 @@ QList<Account> Api::accountsOfBuddy( Buddy buddy )
 			accountslist.append( contact.contactAccount() );
 	}
 	return accountslist;
+}
+
+
+Chat Api::findChatForContactOrContactSet( ContactSet contactset, NotFoundAction notfoundaction )
+{
+	if( contactset.count() < 1 )
+		return Chat::null;
+
+	if( contactset.count() == 1 )
+		return ChatTypeContact::findChat( contactset.toContact(), notfoundaction );
+
+	return ChatTypeContactSet::findChat( contactset, notfoundaction );
 }

@@ -73,12 +73,29 @@ void GlobalWidgetManager::inactivitytimerTimeout()
 {
 	if( ! WIDGET->isVisible() )
 		return;
-	if( ! _isActiveWindow( WIDGET ) )
+	if( shouldClose( WIDGET ) )
 	{
 		WIDGET->close();
 		return;
 	}
 	INACTIVITYTIMER.start();
+}
+
+
+bool GlobalWidgetManager::shouldClose( QWidget *widget )
+{
+	foreach( QObject *child, widget->children() )
+	{
+		QWidget *widget = dynamic_cast<QWidget*>( child );
+		if( ! widget )
+			continue;
+		if( ! widget->isWindow() )
+			continue;
+		if( ! widget->isVisible() )
+			continue;
+		return false;
+	}
+	return ( ! _isActiveWindow( widget ) );
 }
 
 

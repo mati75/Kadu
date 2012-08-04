@@ -1,7 +1,7 @@
 /****************************************************************************
 *                                                                           *
 *   NetworkPing plugin for Kadu                                             *
-*   Copyright (C) 2011  Piotr Dąbrowski ultr@ultr.pl                        *
+*   Copyright (C) 2011-2012  Piotr Dąbrowski ultr@ultr.pl                   *
 *                                                                           *
 *   This program is free software: you can redistribute it and/or modify    *
 *   it under the terms of the GNU General Public License as published by    *
@@ -23,6 +23,7 @@
 
 #include "configuration/configuration-file.h"
 #include "gui/windows/main-configuration-window.h"
+#include "misc/kadu-paths.h"
 #include "misc/misc.h"
 #include "debug.h"
 
@@ -35,7 +36,7 @@ int NetworkPing::init( bool firstLoad )
 {
 	Q_UNUSED( firstLoad );
 	kdebugf();
-	MainConfigurationWindow::registerUiFile( dataPath("kadu/plugins/configuration/networkping.ui") );
+	MainConfigurationWindow::registerUiFile( KaduPaths::instance()->dataPath() + "plugins/configuration/networkping.ui" );
 	kdebugf2();
 	return 0;
 }
@@ -44,7 +45,7 @@ int NetworkPing::init( bool firstLoad )
 void NetworkPing::done()
 {
 	kdebugf();
-	MainConfigurationWindow::unregisterUiFile( dataPath("kadu/plugins/configuration/networkping.ui") );
+	MainConfigurationWindow::unregisterUiFile( KaduPaths::instance()->dataPath() + "plugins/configuration/networkping.ui" );
 	kdebugf2();
 }
 

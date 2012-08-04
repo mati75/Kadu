@@ -30,6 +30,8 @@
 
 #include "statusesmenu.h"
 
+#include "wideiconmenustyle.h"
+
 
 
 
@@ -58,6 +60,7 @@ StatusesMenuActionData::~StatusesMenuActionData() {}
 
 StatusesMenu::StatusesMenu() : GlobalMenu()
 {
+	setStyle( new WideIconMenuStyle() );
 	createMenu();
 }
 
@@ -84,6 +87,7 @@ void StatusesMenu::createMenu()
 			variant.setValue( StatusesMenuActionData( statuscontainer ) );
 			action->setData( variant );
 			action->setIconVisibleInMenu( true );
+			action->setProperty( "hasSubMenu", true );
 			addAction( action );
 		}
 		addSeparator();

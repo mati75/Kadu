@@ -30,7 +30,6 @@
 #include "buddies/buddy-set.h"
 #include "buddies/buddy-shared.h"
 #include "chat/type/chat-type-manager.h"
-#include "chat/chat-manager.h"
 #include "chat/recent-chat-manager.h"
 #include "contacts/model/contact-data-extractor.h"
 #include "contacts/contact-set.h"
@@ -43,7 +42,8 @@
 
 #include "buddiesmenu.h"
 
-#include "wideiconsmenu.h"
+#include "api.h"
+#include "wideiconmenustyle.h"
 
 
 
@@ -72,7 +72,7 @@ BuddiesMenuActionData::~BuddiesMenuActionData() {}
 
 bool BuddiesMenuActionData::operator<( const BuddiesMenuActionData &other ) const
 {
-	// returning 'true' puts the current item above the &other one in the list
+	// returning 'true' puts the current item below the other one in the list
 	if( CHATSTATE == other.CHATSTATE )
 	{
 		Contact cc = CONTACTSET.toContact();
@@ -91,8 +91,10 @@ bool BuddiesMenuActionData::operator<( const BuddiesMenuActionData &other ) cons
 			{
 				if( SORTSTATELESSBYSTATUS )
 					if( cc.currentStatus() != oc.currentStatus() )
-						return oc.currentStatus() < cc.currentStatus();
-				return cc.ownerBuddy().display().toLower() > oc.ownerBuddy().display().toLower();
+						return ( oc.currentStatus() < cc.currentStatus() );
+				if( cc.ownerBuddy().display().toLower() != oc.ownerBuddy().display().toLower() )
+					return ( QString::localeAwareCompare( cc.ownerBuddy().display().toLower(), oc.ownerBuddy().display().toLower() ) > 0 );
+				return ( QString::localeAwareCompare( cc.id().toLower(), oc.id().toLower() ) > 0 );
 			}
 		}
 		return ( INITIALORDER > other.INITIALORDER );
@@ -130,7 +132,7 @@ BuddiesMenu::BuddiesMenu() : GlobalMenu()
 		GLOBALHOTKEYS_BUDDIESMENUICONSPACING +
 		GLOBALHOTKEYS_BUDDIESMENUSMALLICONSIZE +
 		GLOBALHOTKEYS_BUDDIESMENUICONMARGINRIGHT;
-	setStyle( new WideIconsMenu( wideiconwidth ) );
+	setStyle( new WideIconMenuStyle( wideiconwidth ) );
 }
 
 
@@ -145,7 +147,7 @@ void BuddiesMenu::add( ContactSet contactset )
 			return;
 	// chatstate
 	ChatState chatstate = ChatStateNone;
-	Chat chat = ChatManager::instance()->findChat( contactset, false );
+	Chat chat = Api::findChatForContactOrContactSet( contactset, ActionReturnNull );
 	if( ! chat.isNull() )
 	{
 		if( RecentChatManager::instance()->recentChats().contains( chat ) )
@@ -344,11 +346,11 @@ QIcon BuddiesMenu::createIcon( ContactSet contactset, ChatState chatstate )
 {
 	QIcon chatstateicon;
 	if( ( chatstate & ChatStatePending ) > 0x0 )
-		chatstateicon = IconsManager::instance()->iconByPath( "protocols/common/message" );
+		chatstateicon = KaduIcon("protocols/common/message").icon();
 	else if( ( chatstate & ChatStateCurrent ) > 0x0 )
-		chatstateicon = IconsManager::instance()->iconByPath( "internet-group-chat" );
+		chatstateicon = KaduIcon("internet-group-chat").icon();
 	else if( ( chatstate & ChatStateRecent ) > 0x0 )
-		chatstateicon = IconsManager::instance()->iconByPath( "kadu_icons/history" );
+		chatstateicon = KaduIcon("kadu_icons/history").icon();
 	else
 	{
 		QPixmap emptypixmap( GLOBALHOTKEYS_BUDDIESMENUSMALLICONSIZE, GLOBALHOTKEYS_BUDDIESMENUSMALLICONSIZE );
@@ -398,9 +400,10 @@ void BuddiesMenu::openChat()
 	// close the topmost parent menu (it will close all it's submenus)
 	closeTopMostMenu();
 	// (re)open the chat with selected user(s) and activate it
-	Chat chat = ChatManager::instance()->findChat( data.contactSet(), true );
+	Chat chat = Api::findChatForContactOrContactSet( data.contactSet(), ActionCreateAndAdd );
 	ChatWidget *chatwidget = ChatWidgetManager::instance()->byChat( chat, true );
-	chatwidget->activate();
+	if( chatwidget )
+		chatwidget->activate();
 }
 
 
@@ -491,6 +494,9 @@ void BuddiesMenu::prepareActions()
 		}
 		// action
 		QAction *action = new QAction( icon, caption, this );
+		if( data.isConference() || CONTACTSSUBMENU )
+			if(  MENUTYPE == BuddiesMenuTypeBuddies )
+				action->setProperty( "hasSubMenu", true );
 		action->setIconVisibleInMenu( true );
 		QVariant variant;
 		variant.setValue( data );
@@ -511,9 +517,7 @@ void BuddiesMenu::prepareActions()
 		addAction( action );
 		// set action to activate if requested
 		if( ( ! CONTACTSETTOACTIVATE.isEmpty() ) && ( data.contactSet() == CONTACTSETTOACTIVATE ) )
-		{
 			setActionToActivate( action );
-		}
 	}
 }
 
@@ -540,14 +544,25 @@ void BuddiesMenu::keyPressEvent( QKeyEvent *event )
 
 void BuddiesMenu::mousePressEvent( QMouseEvent *event )
 {
-	if( event->button() == Qt::RightButton )
+	if( ( event->button() == Qt::RightButton ) || ( event->button() == Qt::MiddleButton ) )
 	{
 		if( MENUTYPE == BuddiesMenuTypeBuddies )
 		{
 			QAction *action = actionAt( event->pos() );
 			if( action != NULL )
-				setActiveAction( action );
-			openSubmenu( action );
+			{
+				// check current submenu
+				if( ( action == opensubmenuaction ) && ( ! SUBMENU.isNull() ) && SUBMENU->isVisible() )
+				{
+					closeAllSubmenus();
+					_activateWindow( this );
+				}
+				else
+				{
+					setActiveAction( action );
+					openSubmenu( action );
+				}
+			}
 		}
 		return;
 	}

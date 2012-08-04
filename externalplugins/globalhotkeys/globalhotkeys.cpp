@@ -38,7 +38,6 @@
 #include "buddies/buddy-manager.h"
 #include "buddies/buddy-preferred-manager.h"
 #include "buddies/group-manager.h"
-#include "chat/chat-manager.h"
 #include "chat/recent-chat-manager.h"
 #include "core/core.h"
 #include "configuration/configuration-file.h"
@@ -53,7 +52,7 @@
 #include "gui/windows/your-accounts.h"
 #include "icons/icons-manager.h"
 #include "message/message-manager.h"
-#include "misc/path-conversion.h"
+#include "misc/kadu-paths.h"
 #include "notify/notification-manager.h"
 #include "status/status-container-manager.h"
 #include "status/status-type.h"
@@ -66,11 +65,14 @@
 #include "api.h"
 #include "conf.h"
 #include "functions.h"
+#include "serializableqstringlist.h"
 #include "statusesmenu.h"
 
 #include <X11/Xlib.h>
 #include <X11/Xatom.h>
 
+#undef Status
+#include "os/x11tools.h"
 
 
 
@@ -78,7 +80,7 @@ int GlobalHotkeys::init( bool firstload )
 {
 	Q_UNUSED( firstload );
 	kdebugf();
-	MainConfigurationWindow::registerUiFile( dataPath("kadu/plugins/configuration/globalhotkeys.ui") );
+	MainConfigurationWindow::registerUiFile( KaduPaths::instance()->dataPath() + "plugins/configuration/globalhotkeys.ui" );
 	MainConfigurationWindow::registerUiHandler( this );
 	kdebugf2();
 	return 0;
@@ -89,7 +91,7 @@ void GlobalHotkeys::done()
 {
 	kdebugf();
 	MainConfigurationWindow::unregisterUiHandler( this );
-	MainConfigurationWindow::unregisterUiFile( dataPath("kadu/plugins/configuration/globalhotkeys.ui") );
+	MainConfigurationWindow::unregisterUiFile( KaduPaths::instance()->dataPath() + "plugins/configuration/globalhotkeys.ui" );
 	kdebugf2();
 }
 
@@ -99,6 +101,8 @@ GlobalHotkeys::GlobalHotkeys()
 	INSTANCE = this;
 	// create Functions
 	new Functions();
+	// import old config if needed
+	importConfig();
 	// create simple hotkeys
 	new ConfHotKey( this, QT_TRANSLATE_NOOP( "@default", "Kadu"              ), QT_TRANSLATE_NOOP( "@default", "Show Kadu's main window"            ), "ShowKadusMainWindow"        , "functionShowKadusMainWindow"                  );
 	new ConfHotKey( this, QT_TRANSLATE_NOOP( "@default", "Kadu"              ), QT_TRANSLATE_NOOP( "@default", "Hide Kadu's main window"            ), "HideKadusMainWindow"        , "functionHideKadusMainWindow"                  );
@@ -140,6 +144,10 @@ GlobalHotkeys::GlobalHotkeys()
 		confbuddiesmenu->BUDDIES                      = QStringList();
 		confbuddiesmenu->GROUPS                       = QStringList();
 		confbuddiesmenu->EXCLUDEBUDDIES               = QStringList();
+		confbuddiesmenu->ONEITEMPERBUDDY              = true;
+		confbuddiesmenu->ALWAYSSHOWCONTACTIDENTIFIER  = false;
+		confbuddiesmenu->SORTSTATELESSBUDDIES         = true;
+		confbuddiesmenu->SORTSTATELESSBUDDIESBYSTATUS = true;
 		confbuddiesmenu = new ConfBuddiesMenu( this, QT_TRANSLATE_NOOP( "@default", "Buddies menus" ), false );
 		confbuddiesmenu->HOTKEY                       = HotKey( "Alt+A" );
 		confbuddiesmenu->CURRENTCHATS                 = false;
@@ -151,10 +159,15 @@ GlobalHotkeys::GlobalHotkeys()
 		confbuddiesmenu->BUDDIES                      = QStringList();
 		confbuddiesmenu->GROUPS                       = QStringList();
 		confbuddiesmenu->EXCLUDEBUDDIES               = QStringList();
+		confbuddiesmenu->ONEITEMPERBUDDY              = true;
+		confbuddiesmenu->ALWAYSSHOWCONTACTIDENTIFIER  = false;
+		confbuddiesmenu->SORTSTATELESSBUDDIES         = true;
+		confbuddiesmenu->SORTSTATELESSBUDDIESBYSTATUS = true;
 	}
 	// data
 	DISPLAY = NULL;
 	SHOWNGLOBALWIDGET = NULL;
+	LASTACTIVEWINDOW = None;
 	// create and connect() the hotkeys timer
 	HOTKEYSTIMER = new QTimer();
 	HOTKEYSTIMER->setSingleShot( true );
@@ -197,6 +210,66 @@ GlobalHotkeys *GlobalHotkeys::INSTANCE = NULL;
 GlobalHotkeys *GlobalHotkeys::instance()
 {
 	return INSTANCE;
+}
+
+
+void GlobalHotkeys::importConfig()
+{
+	int configversion = config_file.readNumEntry( "GlobalHotkeys", "ConfigVersion", 1 );
+	if( configversion == 1 )
+	{
+		// BuddiesShortcuts
+		{
+			QStringList keys;
+			keys << "HOTKEY" << "BUDDIES" << "SHOWMENU";
+			SerializableQStringList list;
+			list.oldDeserialize( config_file.readEntry( "GlobalHotkeys", "BuddiesShortcuts" ) );
+			SerializableQStringList newlist;
+			foreach( QString string, list )
+				if( ! string.isEmpty() )
+				{
+					SerializableQStringList values;
+					values.oldDeserialize( string );
+					SerializableQStringList keysvalues;
+					for( int i = 0; i < keys.count(); ++i )
+					{
+						if( values.count() <= i )
+							break;
+						keysvalues.append( keys.at( i ) );
+						keysvalues.append( values.at( i ) );
+					}
+					newlist.append( keysvalues.serialized() );
+				}
+			config_file.writeEntry( "GlobalHotkeys", "BuddiesShortcuts", newlist.serialized() );
+		}
+		// BuddiesMenus
+		{
+			QStringList keys;
+			keys << "HOTKEY" << "CURRENTCHATS" << "PENDINGCHATS" << "RECENTCHATS" << "ONLINEBUDDIES" << "ONLINEBUDDIESGROUPS"
+				<< "ONLINEBUDDIESINCLUDEBLOCKING" << "BUDDIES" << "GROUPS" << "EXCLUDEBUDDIES" << "ONEITEMPERBUDDY"
+				<< "SORTSTATELESSBUDDIES" << "SORTSTATELESSBUDDIESBYSTATUS" << "ALWAYSSHOWCONTACTIDENTIFIER";
+			SerializableQStringList list;
+			list.oldDeserialize( config_file.readEntry( "GlobalHotkeys", "BuddiesMenus" ) );
+			SerializableQStringList newlist;
+			foreach( QString string, list )
+				if( ! string.isEmpty() )
+				{
+					SerializableQStringList values;
+					values.oldDeserialize( string );
+					SerializableQStringList keysvalues;
+					for( int i = 0; i < keys.count(); ++i )
+					{
+						if( values.count() <= i )
+							break;
+						keysvalues.append( keys.at(i) );
+						keysvalues.append( values.at(i) );
+					}
+					newlist.append( keysvalues.serialized() );
+				}
+			config_file.writeEntry( "GlobalHotkeys", "BuddiesMenus", newlist.serialized() );
+		}
+	}
+	config_file.writeEntry( "GlobalHotkeys", "ConfigVersion", GLOBALHOTKEYS_CONFIGVERSION );
 }
 
 
@@ -447,13 +520,15 @@ void GlobalHotkeys::processConfBuddiesShortcut( ConfBuddiesShortcut *confbuddies
 		{
 			contactset.insert( BuddyPreferredManager::instance()->preferredContact( buddy, accounts.first() ) );
 		}
-		Chat chat = ChatManager::instance()->findChat( contactset, true );
+		Chat chat = Api::findChatForContactOrContactSet( contactset, ActionCreateAndAdd );
 		ChatWidget *chatwidget = ChatWidgetManager::instance()->byChat( chat, true );
-		chatwidget->activate();
+		if( chatwidget )
+			chatwidget->activate();
 	}
 	else
 	{
 		// close previous global widget, if any
+		GlobalHotkeys::instance()->updateLastActiveWindow();
 		if( ! SHOWNGLOBALWIDGET.isNull() )
 		{
 			SHOWNGLOBALWIDGET->close();
@@ -462,6 +537,7 @@ void GlobalHotkeys::processConfBuddiesShortcut( ConfBuddiesShortcut *confbuddies
 				// last widget was this one - don't show it again
 				SHOWNGLOBALWIDGET = NULL;
 				SHOWNGLOBALWIDGETHOTKEY = HotKey();
+				GlobalHotkeys::instance()->activateLastActiveWindow();
 				return;
 			}
 		}
@@ -497,6 +573,7 @@ void GlobalHotkeys::processConfBuddiesShortcut( ConfBuddiesShortcut *confbuddies
 void GlobalHotkeys::processConfBuddiesMenu( ConfBuddiesMenu *confbuddiesmenu )
 {
 	// close previous global widget, if any
+	GlobalHotkeys::instance()->updateLastActiveWindow();
 	if( ! SHOWNGLOBALWIDGET.isNull() )
 	{
 		SHOWNGLOBALWIDGET->close();
@@ -505,6 +582,7 @@ void GlobalHotkeys::processConfBuddiesMenu( ConfBuddiesMenu *confbuddiesmenu )
 			// last widget was this one - don't show it again
 			SHOWNGLOBALWIDGET = NULL;
 			SHOWNGLOBALWIDGETHOTKEY = HotKey();
+			GlobalHotkeys::instance()->activateLastActiveWindow();
 			return;
 		}
 	}
@@ -615,6 +693,20 @@ void GlobalHotkeys::processConfBuddiesMenu( ConfBuddiesMenu *confbuddiesmenu )
 	// global data
 	SHOWNGLOBALWIDGET = menu;
 	SHOWNGLOBALWIDGETHOTKEY = confbuddiesmenu->hotKey();
+}
+
+
+void GlobalHotkeys::updateLastActiveWindow()
+{
+	if( SHOWNGLOBALWIDGET == NULL )
+		LASTACTIVEWINDOW = X11_getActiveWindow( DISPLAY );
+}
+
+
+void GlobalHotkeys::activateLastActiveWindow()
+{
+	if( LASTACTIVEWINDOW != None )
+		X11_setActiveWindow( DISPLAY, LASTACTIVEWINDOW );
 }
 
 

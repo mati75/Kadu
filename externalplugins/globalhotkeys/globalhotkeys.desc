@@ -1,9 +1,14 @@
 [Module]
 Plugin=true
-Description=Adds global hotkeys support to Kadu.
-Description[pl]=Dodaje do Kadu obs³ugê skrótów globalnych.
-Author=Piotr "ultr" D±browski
-LoadByDefault=true
-Dependencies=history
-Version=0.11-31
 Base=false
+Category=Desktop
+Author=Piotr "ultr" DÄ…browski
+DisplayName=GlobalHotkeys
+Description=Adds global hotkeys support to Kadu
+Description[pl]=Dodaje do Kadu obsÅ‚ugÄ™ skrÃ³tÃ³w globalnych
+Provides=
+Dependencies=history
+Conflicts=
+Replaces=
+LoadByDefault=false
+Version=0.12-32

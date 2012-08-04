@@ -286,6 +286,7 @@ void ConfManager::configurationWindowApplied()
 ConfBuddiesShortcut::ConfBuddiesShortcut( QObject *parent, QString group, bool forcecreate ) : QObject( parent )
 {
 	INSTANCES.append( this );
+	clear();
 	GROUP = group;
 	DELETED = false;
 	if( ! ConfGroups::GROUPS.contains( GROUP ) )
@@ -304,6 +305,14 @@ ConfBuddiesShortcut::~ConfBuddiesShortcut()
 	if( ! BUDDIESEDIT.isNull()      ) delete BUDDIESEDIT;
 	if( ! SHOWMENUCHECKBOX.isNull() ) delete SHOWMENUCHECKBOX;
 	if( ! DELETEBUTTON.isNull()     ) delete DELETEBUTTON;
+}
+
+
+void ConfBuddiesShortcut::clear()
+{
+	HOTKEY   = HotKey();
+	BUDDIES.clear();
+	SHOWMENU = false;
 }
 
 
@@ -328,22 +337,24 @@ void ConfBuddiesShortcut::fillUIData()
 QString ConfBuddiesShortcut::serialized()
 {
 	SerializableQStringList list;
-	list.append( HOTKEY.string()      );
-	list.append( BUDDIES.join( ", " ) );
-	list.append( SHOWMENU ? "1" : "0" );
+	list.append( "HOTKEY"   ); list.append( HOTKEY.string()      );
+	list.append( "BUDDIES"  ); list.append( BUDDIES.join( ", " ) );
+	list.append( "SHOWMENU" ); list.append( SHOWMENU ? "1" : "0" );
 	return list.serialized();
 }
 
 
 void ConfBuddiesShortcut::deserialize( QString serializedstring )
 {
+	clear();
 	SerializableQStringList list;
 	list.deserialize( serializedstring );
-	while( list.count() < 3 )
-		list.append( "" );
-	HOTKEY   = HotKey( list[0] );
-	BUDDIES  =       ( list[1].split( QRegExp( GLOBALHOTKEYS_COMMAREGEXP ), QString::SkipEmptyParts ) );
-	SHOWMENU =       ( list[2] == "1" );
+	for( int n = 0; n < list.count() - 1; n += 2 )
+	{
+		if(      list[n] == "HOTKEY"   ) HOTKEY   = HotKey( list[n+1] );
+		else if( list[n] == "BUDDIES"  ) BUDDIES  =       ( list[n+1].split( QRegExp( GLOBALHOTKEYS_COMMAREGEXP ), QString::SkipEmptyParts ) );
+		else if( list[n] == "SHOWMENU" ) SHOWMENU =       ( list[n+1] == "1" );
+	}
 	// fill UI data if widgets exist
 	if( ! HOTKEYEDIT.isNull() )
 		fillUIData();
@@ -433,17 +444,9 @@ void ConfBuddiesShortcut::deletebuttonClicked()
 ConfBuddiesMenu::ConfBuddiesMenu( QObject *parent, QString group, bool forcecreate ) : QObject( parent )
 {
 	INSTANCES.append( this );
+	clear();
 	GROUP = group;
 	DELETED = false;
-	CURRENTCHATS                 = false;
-	PENDINGCHATS                 = false;
-	RECENTCHATS                  = false;
-	ONLINEBUDDIES                = false;
-	ONLINEBUDDIESINCLUDEBLOCKING = false;
-	ONEITEMPERBUDDY              = true;
-	ALWAYSSHOWCONTACTIDENTIFIER  = false;
-	SORTSTATELESSBUDDIES         = true;
-	SORTSTATELESSBUDDIESBYSTATUS = true;
 	if( ! ConfGroups::GROUPS.contains( GROUP ) )
 		ConfGroups::GROUPS.append( GROUP );
 	connect( GlobalHotkeys::instance(), SIGNAL(mainConfigurationWindowCreatedSignal(MainConfigurationWindow*)), this, SLOT(mainConfigurationWindowCreated(MainConfigurationWindow*)) );
@@ -480,6 +483,25 @@ QList<ConfBuddiesMenu*> ConfBuddiesMenu::INSTANCES;
 QList<ConfBuddiesMenu*> ConfBuddiesMenu::instances()
 {
 	return INSTANCES;
+}
+
+
+void ConfBuddiesMenu::clear()
+{
+	HOTKEY                       = HotKey();
+	CURRENTCHATS                 = false;
+	PENDINGCHATS                 = false;
+	RECENTCHATS                  = false;
+	ONLINEBUDDIES                = false;
+	ONLINEBUDDIESGROUPS.clear();
+	ONLINEBUDDIESINCLUDEBLOCKING = false;
+	BUDDIES.clear();
+	GROUPS.clear();
+	EXCLUDEBUDDIES.clear();
+	ONEITEMPERBUDDY              = true;
+	ALWAYSSHOWCONTACTIDENTIFIER  = false;
+	SORTSTATELESSBUDDIES         = true;
+	SORTSTATELESSBUDDIESBYSTATUS = true;
 }
 
 
@@ -532,44 +554,46 @@ void ConfBuddiesMenu::fillUIData()
 QString ConfBuddiesMenu::serialized()
 {
 	SerializableQStringList list;
-	list.append( HOTKEY.string()                          );
-	list.append( CURRENTCHATS                 ? "1" : "0" );
-	list.append( PENDINGCHATS                 ? "1" : "0" );
-	list.append( RECENTCHATS                  ? "1" : "0" );
-	list.append( ONLINEBUDDIES                ? "1" : "0" );
-	list.append( ONLINEBUDDIESGROUPS.join( ", " )         );
-	list.append( ONLINEBUDDIESINCLUDEBLOCKING ? "1" : "0" );
-	list.append( BUDDIES.join( ", " )                     );
-	list.append( GROUPS.join( ", " )                      );
-	list.append( EXCLUDEBUDDIES.join( ", " )              );
-	list.append( ONEITEMPERBUDDY              ? "1" : "0" );
-	list.append( SORTSTATELESSBUDDIES         ? "1" : "0" );
-	list.append( SORTSTATELESSBUDDIESBYSTATUS ? "1" : "0" );
-	list.append( ALWAYSSHOWCONTACTIDENTIFIER  ? "1" : "0" );
+	list.append( "HOTKEY"                       ); list.append( HOTKEY.string()                          );
+	list.append( "CURRENTCHATS"                 ); list.append( CURRENTCHATS                 ? "1" : "0" );
+	list.append( "PENDINGCHATS"                 ); list.append( PENDINGCHATS                 ? "1" : "0" );
+	list.append( "RECENTCHATS"                  ); list.append( RECENTCHATS                  ? "1" : "0" );
+	list.append( "ONLINEBUDDIES"                ); list.append( ONLINEBUDDIES                ? "1" : "0" );
+	list.append( "ONLINEBUDDIESGROUPS"          ); list.append( ONLINEBUDDIESGROUPS.join( ", " )         );
+	list.append( "ONLINEBUDDIESINCLUDEBLOCKING" ); list.append( ONLINEBUDDIESINCLUDEBLOCKING ? "1" : "0" );
+	list.append( "BUDDIES"                      ); list.append( BUDDIES.join( ", " )                     );
+	list.append( "GROUPS"                       ); list.append( GROUPS.join( ", " )                      );
+	list.append( "EXCLUDEBUDDIES"               ); list.append( EXCLUDEBUDDIES.join( ", " )              );
+	list.append( "ONEITEMPERBUDDY"              ); list.append( ONEITEMPERBUDDY              ? "1" : "0" );
+	list.append( "ALWAYSSHOWCONTACTIDENTIFIER"  ); list.append( ALWAYSSHOWCONTACTIDENTIFIER  ? "1" : "0" );
+	list.append( "SORTSTATELESSBUDDIES"         ); list.append( SORTSTATELESSBUDDIES         ? "1" : "0" );
+	list.append( "SORTSTATELESSBUDDIESBYSTATUS" ); list.append( SORTSTATELESSBUDDIESBYSTATUS ? "1" : "0" );
 	return list.serialized();
 }
 
 
 void ConfBuddiesMenu::deserialize( QString serializedstring )
 {
+	clear();
 	SerializableQStringList list;
 	list.deserialize( serializedstring );
-	while( list.count() < 14 )
-		list.append( "" );
-	HOTKEY                       = HotKey( list[ 0] );
-	CURRENTCHATS                 =       ( list[ 1] == "1" );
-	PENDINGCHATS                 =       ( list[ 2] == "1" );
-	RECENTCHATS                  =       ( list[ 3] == "1" );
-	ONLINEBUDDIES                =       ( list[ 4] == "1" );
-	ONLINEBUDDIESGROUPS          =       ( list[ 5].split( QRegExp( GLOBALHOTKEYS_COMMAREGEXP ), QString::SkipEmptyParts ) );
-	ONLINEBUDDIESINCLUDEBLOCKING =       ( list[ 6] == "1" );
-	BUDDIES                      =       ( list[ 7].split( QRegExp( GLOBALHOTKEYS_COMMAREGEXP ), QString::SkipEmptyParts ) );
-	GROUPS                       =       ( list[ 8].split( QRegExp( GLOBALHOTKEYS_COMMAREGEXP ), QString::SkipEmptyParts ) );
-	EXCLUDEBUDDIES               =       ( list[ 9].split( QRegExp( GLOBALHOTKEYS_COMMAREGEXP ), QString::SkipEmptyParts ) );
-	ONEITEMPERBUDDY              =       ( list[10] == "1" );
-	SORTSTATELESSBUDDIES         =       ( list[11] == "1" );
-	SORTSTATELESSBUDDIESBYSTATUS =       ( list[12] == "1" );
-	ALWAYSSHOWCONTACTIDENTIFIER  =       ( list[13] == "1" );
+	for( int n = 0; n < list.count() - 1; n += 2 )
+	{
+		if(      list[n] == "HOTKEY"                       ) HOTKEY                       = HotKey( list[n+1] );
+		else if( list[n] == "CURRENTCHATS"                 ) CURRENTCHATS                 =       ( list[n+1] == "1" );
+		else if( list[n] == "PENDINGCHATS"                 ) PENDINGCHATS                 =       ( list[n+1] == "1" );
+		else if( list[n] == "RECENTCHATS"                  ) RECENTCHATS                  =       ( list[n+1] == "1" );
+		else if( list[n] == "ONLINEBUDDIES"                ) ONLINEBUDDIES                =       ( list[n+1] == "1" );
+		else if( list[n] == "ONLINEBUDDIESGROUPS"          ) ONLINEBUDDIESGROUPS          =       ( list[n+1].split( QRegExp( GLOBALHOTKEYS_COMMAREGEXP ), QString::SkipEmptyParts ) );
+		else if( list[n] == "ONLINEBUDDIESINCLUDEBLOCKING" ) ONLINEBUDDIESINCLUDEBLOCKING =       ( list[n+1] == "1" );
+		else if( list[n] == "BUDDIES"                      ) BUDDIES                      =       ( list[n+1].split( QRegExp( GLOBALHOTKEYS_COMMAREGEXP ), QString::SkipEmptyParts ) );
+		else if( list[n] == "GROUPS"                       ) GROUPS                       =       ( list[n+1].split( QRegExp( GLOBALHOTKEYS_COMMAREGEXP ), QString::SkipEmptyParts ) );
+		else if( list[n] == "EXCLUDEBUDDIES"               ) EXCLUDEBUDDIES               =       ( list[n+1].split( QRegExp( GLOBALHOTKEYS_COMMAREGEXP ), QString::SkipEmptyParts ) );
+		else if( list[n] == "ONEITEMPERBUDDY"              ) ONEITEMPERBUDDY              =       ( list[n+1] == "1" );
+		else if( list[n] == "ALWAYSSHOWCONTACTIDENTIFIER"  ) ALWAYSSHOWCONTACTIDENTIFIER  =       ( list[n+1] == "1" );
+		else if( list[n] == "SORTSTATELESSBUDDIES"         ) SORTSTATELESSBUDDIES         =       ( list[n+1] == "1" );
+		else if( list[n] == "SORTSTATELESSBUDDIESBYSTATUS" ) SORTSTATELESSBUDDIESBYSTATUS =       ( list[n+1] == "1" );
+	}
 	// fill UI data if widgets exist
 	if( ! HOTKEYEDIT.isNull() )
 		fillUIData();

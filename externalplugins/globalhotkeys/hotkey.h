@@ -34,8 +34,9 @@ class HotKey
 {
 	public:
 		HotKey();
-		HotKey( bool shift, bool control, bool alt, bool altgr, bool super, int keycode, QString comment = "" );
-		HotKey( QString hotkeystring );
+		HotKey( const HotKey &other );
+		HotKey( bool shift, bool control, bool alt, bool altgr, bool super, int keycode, const QString &comment = QString("") );
+		HotKey( const QString &hotkeystring );
 		~HotKey();
 		bool operator==( const HotKey &other );
 		bool isNull();

@@ -185,6 +185,7 @@
     </message>
     <message>
         <source>code(n-th birthday)</source>
+        <translatorcomment>JavaScript code returning localized ordinal number for n. In English translation: &apos;1st&apos; for n=1, &apos;2nd&apos; for n=2, etc.</translatorcomment>
         <translation>var s = &quot;&quot;;
 if( n &lt; 0 )
 	s = &quot;.&quot;;
@@ -244,6 +245,7 @@ return &quot;&quot; + n + s;</translation>
     </message>
     <message>
         <source>&lt;b&gt;%1&lt;/b&gt; has their &lt;b&gt;%2 birthday&lt;/b&gt; &lt;b&gt;today&lt;/b&gt;</source>
+        <translatorcomment>singular they; see http://en.wikipedia.org/wiki/Singular_they</translatorcomment>
         <translation>&lt;b&gt;%1&lt;/b&gt; obchodzi &lt;b&gt;dzisiaj&lt;/b&gt; swoje &lt;b&gt;%2 urodziny&lt;/b&gt;</translation>
     </message>
     <message>
@@ -256,6 +258,7 @@ return &quot;&quot; + n + s;</translation>
     </message>
     <message>
         <source>&lt;b&gt;%1&lt;/b&gt; has their &lt;b&gt;%2 birthday&lt;/b&gt; &lt;b&gt;tomorrow&lt;/b&gt;</source>
+        <translatorcomment>singular they; see http://en.wikipedia.org/wiki/Singular_they</translatorcomment>
         <translation>&lt;b&gt;%1&lt;/b&gt; obchodzi &lt;b&gt;jutro&lt;/b&gt; swoje &lt;b&gt;%2 urodziny&lt;/b&gt;</translation>
     </message>
     <message>
@@ -268,6 +271,7 @@ return &quot;&quot; + n + s;</translation>
     </message>
     <message>
         <source>&lt;b&gt;%1&lt;/b&gt; has their &lt;b&gt;%2 birthday&lt;/b&gt; in &lt;b&gt;%3 days&lt;/b&gt;</source>
+        <translatorcomment>singular they; see http://en.wikipedia.org/wiki/Singular_they</translatorcomment>
         <translation>&lt;b&gt;%1&lt;/b&gt; obchodzi swoje &lt;b&gt;%2 urodziny&lt;/b&gt; za &lt;b&gt;%3 dni&lt;/b&gt;</translation>
     </message>
     <message>
@@ -280,6 +284,7 @@ return &quot;&quot; + n + s;</translation>
     </message>
     <message>
         <source>&lt;b&gt;%1&lt;/b&gt; has their &lt;b&gt;name-day&lt;/b&gt; &lt;b&gt;today&lt;/b&gt;</source>
+        <translatorcomment>singular they; see http://en.wikipedia.org/wiki/Singular_they</translatorcomment>
         <translation>&lt;b&gt;%1&lt;/b&gt; obchodzi &lt;b&gt;dzisiaj&lt;/b&gt; &lt;b&gt;imieniny&lt;/b&gt;</translation>
     </message>
     <message>
@@ -292,6 +297,7 @@ return &quot;&quot; + n + s;</translation>
     </message>
     <message>
         <source>&lt;b&gt;%1&lt;/b&gt; has their &lt;b&gt;name-day&lt;/b&gt; &lt;b&gt;tomorrow&lt;/b&gt;</source>
+        <translatorcomment>singular they; see http://en.wikipedia.org/wiki/Singular_they</translatorcomment>
         <translation>&lt;b&gt;%1&lt;/b&gt; obchodzi &lt;b&gt;jutro&lt;/b&gt; &lt;b&gt;imieniny&lt;/b&gt;</translation>
     </message>
     <message>
@@ -304,6 +310,7 @@ return &quot;&quot; + n + s;</translation>
     </message>
     <message>
         <source>&lt;b&gt;%1&lt;/b&gt; has their &lt;b&gt;name-day&lt;/b&gt; in &lt;b&gt;%2 days&lt;/b&gt;</source>
+        <translatorcomment>singular they; see http://en.wikipedia.org/wiki/Singular_they</translatorcomment>
         <translation>&lt;b&gt;%1&lt;/b&gt; obchodzi &lt;b&gt;imieniny&lt;/b&gt; za &lt;b&gt;%2 dni&lt;/b&gt;</translation>
     </message>
     <message>
@@ -329,6 +336,10 @@ return &quot;&quot; + n + s;</translation>
     <message>
         <source>Name-day</source>
         <translation>Imieniny</translation>
+    </message>
+    <message>
+        <source>Middle name</source>
+        <translation>Drugie imię</translation>
     </message>
 </context>
 </TS>

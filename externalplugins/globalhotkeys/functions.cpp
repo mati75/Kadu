@@ -37,14 +37,14 @@
 #include "gui/widgets/status-menu.h"
 #include "gui/windows/add-buddy-window.h"
 #include "gui/windows/kadu-window.h"
-#include "gui/windows/modules-window.h"
+#include "gui/windows/plugins-window.h"
 #include "gui/windows/multilogon-window.h"
 #include "gui/windows/search-window.h"
+#include "gui/windows/status-window.h"
 #include "gui/windows/your-accounts.h"
 #include "file-transfer/file-transfer-manager.h"
 #include "icons/icons-manager.h"
 #include "message/message-manager.h"
-#include "misc/path-conversion.h"
 #include "notify/notification-manager.h"
 #include "status/status-container-manager.h"
 #include "status/status-type.h"
@@ -241,6 +241,7 @@ void Functions::functionCloseAllChatWindows( ConfHotKey *confhotkey )
 void Functions::functionOpenChatWith( ConfHotKey *confhotkey )
 {
 	// close previous global widget, if any
+	GlobalHotkeys::instance()->updateLastActiveWindow();
 	if( ! GlobalHotkeys::instance()->SHOWNGLOBALWIDGET.isNull() )
 	{
 		GlobalHotkeys::instance()->SHOWNGLOBALWIDGET->close();
@@ -249,6 +250,7 @@ void Functions::functionOpenChatWith( ConfHotKey *confhotkey )
 			// last widget was this one - don't show it again
 			GlobalHotkeys::instance()->SHOWNGLOBALWIDGET = NULL;
 			GlobalHotkeys::instance()->SHOWNGLOBALWIDGETHOTKEY = HotKey();
+			GlobalHotkeys::instance()->activateLastActiveWindow();
 			return;
 		}
 	}
@@ -296,7 +298,11 @@ void Functions::functionQuitKadu( ConfHotKey *confhotkey )
 
 void Functions::functionChangeStatus( ConfHotKey *confhotkey )
 {
+	// abort on no accounts
+	if( StatusContainerManager::instance()->statusContainers().count() == 0 )
+		return;
 	// close previous global widget, if any
+	GlobalHotkeys::instance()->updateLastActiveWindow();
 	if( ! GlobalHotkeys::instance()->SHOWNGLOBALWIDGET.isNull() )
 	{
 		GlobalHotkeys::instance()->SHOWNGLOBALWIDGET->close();
@@ -305,6 +311,7 @@ void Functions::functionChangeStatus( ConfHotKey *confhotkey )
 			// last widget was this one - don't show it again
 			GlobalHotkeys::instance()->SHOWNGLOBALWIDGET = NULL;
 			GlobalHotkeys::instance()->SHOWNGLOBALWIDGETHOTKEY = HotKey();
+			GlobalHotkeys::instance()->activateLastActiveWindow();
 			return;
 		}
 	}
@@ -320,7 +327,11 @@ void Functions::functionChangeStatus( ConfHotKey *confhotkey )
 
 void Functions::functionChangeDescription( ConfHotKey *confhotkey )
 {
+	// abort on no accounts
+	if( StatusContainerManager::instance()->statusContainers().count() == 0 )
+		return;
 	// close previous global widget, if any
+	GlobalHotkeys::instance()->updateLastActiveWindow();
 	if( ! GlobalHotkeys::instance()->SHOWNGLOBALWIDGET.isNull() )
 	{
 		GlobalHotkeys::instance()->SHOWNGLOBALWIDGET->close();
@@ -329,14 +340,15 @@ void Functions::functionChangeDescription( ConfHotKey *confhotkey )
 			// last widget was this one - don't show it again
 			GlobalHotkeys::instance()->SHOWNGLOBALWIDGET = NULL;
 			GlobalHotkeys::instance()->SHOWNGLOBALWIDGETHOTKEY = HotKey();
+			GlobalHotkeys::instance()->activateLastActiveWindow();
 			return;
 		}
 	}
-	QList<StatusContainer*> statuscontainers =
+	StatusContainer* statuscontainer =
 		( StatusContainerManager::instance()->statusContainers().count() == 1 )
-			? ( QList<StatusContainer*>() << StatusContainerManager::instance()->statusContainers()[0] )
-			: StatusContainerManager::instance()->subStatusContainers();
-	ChooseDescription *dialog = ChooseDescription::showDialog( statuscontainers );
+			? StatusContainerManager::instance()->statusContainers()[0]
+			: StatusContainerManager::instance();
+	StatusWindow *dialog = StatusWindow::showDialog( statuscontainer );
 	new GlobalWidgetManager( dialog );
 	// global data
 	GlobalHotkeys::instance()->SHOWNGLOBALWIDGET = dialog;
@@ -395,5 +407,5 @@ void Functions::functionAccountManagerWindow( ConfHotKey *confhotkey )
 void Functions::functionPluginsWindow( ConfHotKey *confhotkey )
 {
 	Q_UNUSED( confhotkey );
-	ModulesWindow::show();
+	PluginsWindow::show();
 }

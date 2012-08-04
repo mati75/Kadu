@@ -31,8 +31,6 @@
 
 #include "globalmenu.h"
 
-#include "wideiconsmenu.h"
-
 
 
 

@@ -45,6 +45,8 @@ class GlobalWidgetManager : public QObject
 		void start();
 		void stop();
 	private:
+		bool shouldClose( QWidget *widget );
+	private:
 		QTimer INACTIVITYTIMER;
 		bool FIRSTRUN;
 };

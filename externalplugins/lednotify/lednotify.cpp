@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2008-2011                                               *
+ *   Copyright (C) 2008-2012                                               *
  *     Michał Małek  michalm@jabster.pl                                    *
  *     Piotr Dąbrowski  ultr@ultr.pl                                       *
  *                                                                         *
@@ -27,6 +27,7 @@
 #include "gui/widgets/chat-widget-manager.h"
 #include "gui/widgets/custom-input.h"
 #include "message/message-manager.h"
+#include "misc/kadu-paths.h"
 #include "misc/misc.h"
 #include "notify/chat-notification.h"
 #include "notify/notification-manager.h"
@@ -60,7 +61,7 @@ LedNotify::LedNotify() :
 	config_file.addVariable( "LedNotify", "LEDdiode", LedDriver::DiodeScrollLock );
 	config_file.addVariable( "LedNotify", "LEDdelay",                        500 );
 	config_file.addVariable( "LedNotify", "LEDcount",                          3 );
-	MainConfigurationWindow::registerUiFile( dataPath( "kadu/plugins/configuration/lednotify.ui" ) );
+	MainConfigurationWindow::registerUiFile( KaduPaths::instance()->dataPath() + "plugins/configuration/lednotify.ui" );
 	NotificationManager::instance()->registerNotifier( this );
 	connect( MessageManager::instance()   , SIGNAL(unreadMessageRemoved(Message))    , this, SLOT(messageReceived(Message))          );
 	connect( ChatManager::instance()      , SIGNAL(chatUpdated(const Chat&))         , this, SLOT(chatUpdated(const Chat&))          );
@@ -74,7 +75,7 @@ LedNotify::~LedNotify()
 	disconnect( ChatManager::instance()      , SIGNAL(chatUpdated(const Chat&))         , this, SLOT(chatUpdated(const Chat&))          );
 	disconnect( ChatWidgetManager::instance(), SIGNAL(chatWidgetDestroying(ChatWidget*)), this, SLOT(chatWidgetDestroying(ChatWidget*)) );
 	NotificationManager::instance()->unregisterNotifier( this );
-	MainConfigurationWindow::unregisterUiFile( dataPath( "kadu/plugins/configuration/lednotify.ui" ) );
+	MainConfigurationWindow::unregisterUiFile( KaduPaths::instance()->dataPath() + "plugins/configuration/lednotify.ui" );
 }
 
 

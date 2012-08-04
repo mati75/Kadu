@@ -1,7 +1,7 @@
 /****************************************************************************
 *                                                                           *
 *   PanelKadu plugin for Kadu                                               *
-*   Copyright (C) 2008-2011  Piotr Dąbrowski ultr@ultr.pl                   *
+*   Copyright (C) 2008-2012  Piotr Dąbrowski ultr@ultr.pl                   *
 *                                                                           *
 *   This program is free software: you can redistribute it and/or modify    *
 *   it under the terms of the GNU General Public License as published by    *
@@ -34,7 +34,7 @@
 #include "core/core.h"
 #include "gui/widgets/configuration/configuration-widget.h"
 #include "gui/windows/kadu-window.h"
-#include "misc/path-conversion.h"
+#include "misc/kadu-paths.h"
 #include "os/x11tools.h"
 #include "activate.h"
 #include "debug.h"
@@ -51,7 +51,7 @@ int PanelKadu::init( bool firstLoad )
 {
 	Q_UNUSED( firstLoad );
 	kdebugf();
-	MainConfigurationWindow::registerUiFile( dataPath("kadu/plugins/configuration/panelkadu.ui") );
+	MainConfigurationWindow::registerUiFile( KaduPaths::instance()->dataPath() + "plugins/configuration/panelkadu.ui" );
 	kdebugf2();
 	return 0;
 }
@@ -60,7 +60,7 @@ int PanelKadu::init( bool firstLoad )
 void PanelKadu::done()
 {
 	kdebugf();
-	MainConfigurationWindow::unregisterUiFile( dataPath("kadu/plugins/configuration/panelkadu.ui") );
+	MainConfigurationWindow::unregisterUiFile( KaduPaths::instance()->dataPath() + "plugins/configuration/panelkadu.ui" );
 	kdebugf2();
 }
 

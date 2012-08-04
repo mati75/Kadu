@@ -1,8 +1,14 @@
 [Module]
 Plugin=true
-Description=New ext_info module providing extended buddies information support
-Description[pl]=Nowy modu³ ext_info wprowadzaj±cy obs³ugê dodatkowych informacji o znajomych
-Author=Piotr "ultr" D±browski
-LoadByDefault=false
-Version=0.11-8
 Base=false
+Category=Misc
+Author=Piotr "ultr" DÄ…browski
+DisplayName=NExtInfo
+Description=New ext_info module providing extended buddies information support
+Description[pl]=Nowy moduÅ‚ ext_info wprowadzajÄ…cy obsÅ‚ugÄ™ dodatkowych informacji o znajomych
+Provides=
+Dependencies=
+Conflicts=
+Replaces=
+LoadByDefault=false
+Version=0.12-9

@@ -30,7 +30,9 @@ class SerializableQStringList : public QStringList
 {
 	public:
 		QString serialized();
-		void deserialize( QString serializedstring );
+		void deserialize( const QString &serializedstring );
+		QString oldSerialized();
+		void oldDeserialize( const QString &serializedstring );
 };
 
 

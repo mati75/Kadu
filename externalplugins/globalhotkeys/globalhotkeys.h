@@ -29,7 +29,6 @@
 
 #include "gui/widgets/configuration/config-action-button.h"
 #include "gui/widgets/chat-widget.h"
-#include "gui/windows/choose-description.h"
 #include "gui/windows/main-configuration-window.h"
 #include "gui/windows/open-chat-with/open-chat-with.h"
 #include "plugins/generic-plugin.h"
@@ -64,8 +63,11 @@ class GlobalHotkeys : public ConfigurationUiHandler, public ConfigurationAwareOb
 		void buddiesShortcutsAddNewButtonPressed();
 		void buddiesMenusAddNewButtonPressed();
 		void checkPendingHotkeys();
+		void updateLastActiveWindow();
+		void activateLastActiveWindow();
 	private:
 		static GlobalHotkeys *INSTANCE;
+		void importConfig();
 		int grabHotKey( HotKey hotkey );
 		void processConfBuddiesShortcut( ConfBuddiesShortcut *confbuddiesshortcut );
 		void processConfBuddiesMenu( ConfBuddiesMenu *confbuddiesmenu );
@@ -76,6 +78,7 @@ class GlobalHotkeys : public ConfigurationUiHandler, public ConfigurationAwareOb
 		Display *DISPLAY;
 		QPointer<QWidget> SHOWNGLOBALWIDGET;
 		HotKey SHOWNGLOBALWIDGETHOTKEY;
+		Window LASTACTIVEWINDOW;
 };
 
 

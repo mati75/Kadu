@@ -91,6 +91,15 @@ ExtendedInformationWidgets::ExtendedInformationWidgets( BuddyDataWindow* owner )
 		field_firstname = new QLineEdit( extinfotab );
 		layout_firstname->addWidget( field_firstname );
 		layout_extinfotab->addLayout( layout_firstname );
+	layout_middlename = new QHBoxLayout( 0 );
+	layout_middlename->setMargin( 0 );
+	layout_middlename->setSpacing( 6 );
+		label_middlename = new QLabel( extinfotab );
+		label_middlename->setAlignment( Qt::AlignRight | Qt::AlignVCenter );
+		layout_middlename->addWidget( label_middlename );
+		field_middlename = new QLineEdit( extinfotab );
+		layout_middlename->addWidget( field_middlename );
+		layout_extinfotab->addLayout( layout_middlename );
 	layout_lastname = new QHBoxLayout( 0 );
 	layout_lastname->setMargin( 0 );
 	layout_lastname->setSpacing( 6 );
@@ -282,8 +291,8 @@ ExtendedInformationWidgets::ExtendedInformationWidgets( BuddyDataWindow* owner )
 	// load buddy
 	loadBuddy();
 	// connect buddy updating
-	connect( buddydatawindow, SIGNAL(updatingBuddy()), this, SLOT(saveBuddy()) );
-	connect( buddydatawindow, SIGNAL(updatingBuddy()), this, SLOT(loadBuddy()) );
+	connect( buddydatawindow, SIGNAL(save()), this, SLOT(saveBuddy()) );
+	connect( buddydatawindow, SIGNAL(save()), this, SLOT(loadBuddy()) );
 }
 
 
@@ -292,8 +301,8 @@ ExtendedInformationWidgets::~ExtendedInformationWidgets()
 	BuddyDataWindow *buddydatawindow = dynamic_cast<BuddyDataWindow*>( parent() );
 	if( buddydatawindow != NULL )
 	{
-		disconnect( buddydatawindow, SIGNAL(updatingBuddy()), this, SLOT(saveBuddy()) );
-		disconnect( buddydatawindow, SIGNAL(updatingBuddy()), this, SLOT(loadBuddy()) );
+		disconnect( buddydatawindow, SIGNAL(save()), this, SLOT(saveBuddy()) );
+		disconnect( buddydatawindow, SIGNAL(save()), this, SLOT(loadBuddy()) );
 	}
 	INSTANCES.removeOne( this );
 	if( ! extinfotab.isNull() )
@@ -318,25 +327,27 @@ void ExtendedInformationWidgets::languageChange()
 	// tab: extinfo
 	tabwidget->setTabText( tabwidget->indexOf( extinfotab ), qApp->translate( "@nextinfo", "Extended information" ) );
 	// tab: extinfo: labels: set texts
-	label_firstname->setText( qApp->translate( "@nextinfo", "First name"            ) + ":" );
-	label_lastname->setText(  qApp->translate( "@nextinfo", "Last name"             ) + ":" );
-	label_nickname->setText(  qApp->translate( "@nextinfo", "Nickname"              ) + ":" );
-	label_gender->setText(    qApp->translate( "@nextinfo", "Gender"                ) + ":" );
-	label_address->setText(   qApp->translate( "@nextinfo", "Address"               ) + ":" );
-	label_city->setText(      qApp->translate( "@nextinfo", "City"                  ) + ":" );
-	label_phone->setText(     qApp->translate( "@nextinfo", "Phone"                 ) + ":" );
-	label_mobile->setText(    qApp->translate( "@nextinfo", "Mobile"                ) + ":" );
-	label_email->setText(     qApp->translate( "@nextinfo", "e-mail"                ) + ":" );
-	label_email2->setText(    qApp->translate( "@nextinfo", "Alternative e-mail"    ) + ":" );
-	label_www->setText(       qApp->translate( "@nextinfo", "Website"               ) + ":" );
-	label_birthday->setText(  qApp->translate( "@nextinfo", "Birthday (DD.MM.YYYY)" ) + ":" );
-	label_nameday->setText(   qApp->translate( "@nextinfo", "Name-day (DD.MM)"      ) + ":" );
+	label_firstname->setText(  qApp->translate( "@nextinfo", "First name"            ) + ":" );
+	label_middlename->setText( qApp->translate( "@nextinfo", "Middle name"           ) + ":" );
+	label_lastname->setText(   qApp->translate( "@nextinfo", "Last name"             ) + ":" );
+	label_nickname->setText(   qApp->translate( "@nextinfo", "Nickname"              ) + ":" );
+	label_gender->setText(     qApp->translate( "@nextinfo", "Gender"                ) + ":" );
+	label_address->setText(    qApp->translate( "@nextinfo", "Address"               ) + ":" );
+	label_city->setText(       qApp->translate( "@nextinfo", "City"                  ) + ":" );
+	label_phone->setText(      qApp->translate( "@nextinfo", "Phone"                 ) + ":" );
+	label_mobile->setText(     qApp->translate( "@nextinfo", "Mobile"                ) + ":" );
+	label_email->setText(      qApp->translate( "@nextinfo", "e-mail"                ) + ":" );
+	label_email2->setText(     qApp->translate( "@nextinfo", "Alternative e-mail"    ) + ":" );
+	label_www->setText(        qApp->translate( "@nextinfo", "Website"               ) + ":" );
+	label_birthday->setText(   qApp->translate( "@nextinfo", "Birthday (DD.MM.YYYY)" ) + ":" );
+	label_nameday->setText(    qApp->translate( "@nextinfo", "Name-day (DD.MM)"      ) + ":" );
 	// set gender combobox items
 	field_gender->addItem( ""                                      , 0 );
 	field_gender->addItem( qApp->translate( "@nextinfo", "female" ), 1 );
 	field_gender->addItem( qApp->translate( "@nextinfo", "male"   ), 2 );
 	// tab: extinfo: labels: set new sizes
 	label_firstname->adjustSize();
+	label_middlename->adjustSize();
 	label_lastname->adjustSize();
 	label_nickname->adjustSize();
 	label_gender->adjustSize();
@@ -351,35 +362,38 @@ void ExtendedInformationWidgets::languageChange()
 	label_nameday->adjustSize();
 	// tab: extinfo: labels: get maximum width
 	int labels_width = 1;  // px
-	if( label_firstname->width() > labels_width ) { labels_width = label_firstname->width(); }
-	if( label_lastname->width()  > labels_width ) { labels_width = label_lastname->width();  }
-	if( label_nickname->width()  > labels_width ) { labels_width = label_nickname->width();  }
-	if( label_gender->width()    > labels_width ) { labels_width = label_gender->width();    }
-	if( label_address->width()   > labels_width ) { labels_width = label_address->width();   }
-	if( label_city->width()      > labels_width ) { labels_width = label_city->width();      }
-	if( label_phone->width()     > labels_width ) { labels_width = label_phone->width();     }
-	if( label_mobile->width()    > labels_width ) { labels_width = label_mobile->width();    }
-	if( label_email->width()     > labels_width ) { labels_width = label_email->width();     }
-	if( label_email2->width()    > labels_width ) { labels_width = label_email2->width();    }
-	if( label_www->width()       > labels_width ) { labels_width = label_www->width();       }
-	if( label_birthday->width()  > labels_width ) { labels_width = label_birthday->width();  }
-	if( label_nameday->width()   > labels_width ) { labels_width = label_nameday->width();   }
+	if( label_firstname->width()  > labels_width ) { labels_width = label_firstname->width();  }
+	if( label_middlename->width() > labels_width ) { labels_width = label_middlename->width(); }
+	if( label_lastname->width()   > labels_width ) { labels_width = label_lastname->width();   }
+	if( label_nickname->width()   > labels_width ) { labels_width = label_nickname->width();   }
+	if( label_gender->width()     > labels_width ) { labels_width = label_gender->width();     }
+	if( label_address->width()    > labels_width ) { labels_width = label_address->width();    }
+	if( label_city->width()       > labels_width ) { labels_width = label_city->width();       }
+	if( label_phone->width()      > labels_width ) { labels_width = label_phone->width();      }
+	if( label_mobile->width()     > labels_width ) { labels_width = label_mobile->width();     }
+	if( label_email->width()      > labels_width ) { labels_width = label_email->width();      }
+	if( label_email2->width()     > labels_width ) { labels_width = label_email2->width();     }
+	if( label_www->width()        > labels_width ) { labels_width = label_www->width();        }
+	if( label_birthday->width()   > labels_width ) { labels_width = label_birthday->width();   }
+	if( label_nameday->width()    > labels_width ) { labels_width = label_nameday->width();    }
 	// tab: extinfo: labels: set width of each label to the maximum width
-	label_firstname->setMinimumWidth( labels_width );
-	label_lastname->setMinimumWidth(  labels_width );
-	label_nickname->setMinimumWidth(  labels_width );
-	label_gender->setMinimumWidth(    labels_width );
-	label_address->setMinimumWidth(   labels_width );
-	label_city->setMinimumWidth(      labels_width );
-	label_phone->setMinimumWidth(     labels_width );
-	label_mobile->setMinimumWidth(    labels_width );
-	label_email->setMinimumWidth(     labels_width );
-	label_email2->setMinimumWidth(    labels_width );
-	label_www->setMinimumWidth(       labels_width );
-	label_birthday->setMinimumWidth(  labels_width );
-	label_nameday->setMinimumWidth(   labels_width );
+	label_firstname->setMinimumWidth(  labels_width );
+	label_middlename->setMinimumWidth( labels_width );
+	label_lastname->setMinimumWidth(   labels_width );
+	label_nickname->setMinimumWidth(   labels_width );
+	label_gender->setMinimumWidth(     labels_width );
+	label_address->setMinimumWidth(    labels_width );
+	label_city->setMinimumWidth(       labels_width );
+	label_phone->setMinimumWidth(      labels_width );
+	label_mobile->setMinimumWidth(     labels_width );
+	label_email->setMinimumWidth(      labels_width );
+	label_email2->setMinimumWidth(     labels_width );
+	label_www->setMinimumWidth(        labels_width );
+	label_birthday->setMinimumWidth(   labels_width );
+	label_nameday->setMinimumWidth(    labels_width );
 	// tab: extinfo: labels: update labels' geometry
 	label_firstname->updateGeometry();
+	label_middlename->updateGeometry();
 	label_lastname->updateGeometry();
 	label_nickname->updateGeometry();
 	label_gender->updateGeometry();
@@ -421,38 +435,31 @@ void ExtendedInformationWidgets::languageChange()
 
 void ExtendedInformationWidgets::loadBuddy()
 {
-	// module data
-	BuddyNExtInfoData *bdata = NExtInfo::bData( buddy );
-	if( ! bdata )
-		return;
 	// load standard information
-	field_firstname->setText( buddy.firstName() );
-	field_lastname->setText(  buddy.lastName()  );
-	field_nickname->setText(  buddy.nickName()  );
+	field_firstname->setText(  buddy.firstName() );
+	field_middlename->setText( BuddyNExtInfoData::middleName( buddy ) );
+	field_lastname->setText(   buddy.lastName()  );
+	field_nickname->setText(   buddy.nickName()  );
 	// load standard read-only information
-	field_phone->setText(     buddy.homePhone() );
-	field_mobile->setText(    buddy.mobile()    );
-	field_email->setText(     buddy.email()     );
-	field_www->setText(       buddy.website()   );
+	field_phone->setText(      buddy.homePhone() );
+	field_mobile->setText(     buddy.mobile()    );
+	field_email->setText(      buddy.email()     );
+	field_www->setText(        buddy.website()   );
 	// load gender
 	field_gender->setCurrentIndex( buddy.gender() );
 	// load extended information
-	field_address->setText(   bdata->address()   );
-	field_city->setText(      bdata->city()      );
-	field_email2->setText(    bdata->email2()    );
-	field_birthday->setText(  bdata->birthday()  );
-	field_nameday->setText(   bdata->nameday()   );
-	field_interests->setText( bdata->interests() );
-	field_notes->setText(     bdata->notes()     );
+	field_address->setText(    BuddyNExtInfoData::address(   buddy ) );
+	field_city->setText(       BuddyNExtInfoData::city(      buddy ) );
+	field_email2->setText(     BuddyNExtInfoData::email2(    buddy ) );
+	field_birthday->setText(   BuddyNExtInfoData::birthday(  buddy ) );
+	field_nameday->setText(    BuddyNExtInfoData::nameday(   buddy ) );
+	field_interests->setText(  BuddyNExtInfoData::interests( buddy ) );
+	field_notes->setText(      BuddyNExtInfoData::notes(     buddy ) );
 }
 
 
 void ExtendedInformationWidgets::saveBuddy()
 {
-	// module data
-	BuddyNExtInfoData *bdata = NExtInfo::bData( buddy );
-	if( ! bdata )
-		return;
 	// check birthday format
 	if( ! field_birthday->text().contains( QRegExp( NEXTINFO_REGEXPBIRTHDAY ) ) )  // if bad format
 		field_birthday->setText( "" );
@@ -469,14 +476,14 @@ void ExtendedInformationWidgets::saveBuddy()
 		gender = 0;
 	buddy.setGender( (BuddyGender)gender );
 	// save extended information
-	bdata->setAddress(   field_address->text()          );
-	bdata->setCity(      field_city->text()             );
-	bdata->setEmail2(    field_email2->text()           );
-	bdata->setBirthday(  field_birthday->text()         );
-	bdata->setNameday(   field_nameday->text()          );
-	bdata->setInterests( field_interests->toPlainText() );
-	bdata->setNotes(     field_notes->toPlainText()     );
-	bdata->store();
+	BuddyNExtInfoData::setMiddleName( buddy, field_middlename->text()       );
+	BuddyNExtInfoData::setAddress(    buddy, field_address->text()          );
+	BuddyNExtInfoData::setCity(       buddy, field_city->text()             );
+	BuddyNExtInfoData::setEmail2(     buddy, field_email2->text()           );
+	BuddyNExtInfoData::setBirthday(   buddy, field_birthday->text()         );
+	BuddyNExtInfoData::setNameday(    buddy, field_nameday->text()          );
+	BuddyNExtInfoData::setInterests(  buddy, field_interests->toPlainText() );
+	BuddyNExtInfoData::setNotes(      buddy, field_notes->toPlainText()     );
 }
 
 

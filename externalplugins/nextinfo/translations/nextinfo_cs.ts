@@ -185,6 +185,7 @@
     </message>
     <message>
         <source>code(n-th birthday)</source>
+        <translatorcomment>JavaScript code returning localized ordinal number for n. In English translation: &apos;1st&apos; for n=1, &apos;2nd&apos; for n=2, etc.</translatorcomment>
         <translation>code(n-té narozeniny)</translation>
     </message>
     <message>
@@ -225,6 +226,7 @@
     </message>
     <message>
         <source>&lt;b&gt;%1&lt;/b&gt; has their &lt;b&gt;%2 birthday&lt;/b&gt; &lt;b&gt;today&lt;/b&gt;</source>
+        <translatorcomment>singular they; see http://en.wikipedia.org/wiki/Singular_they</translatorcomment>
         <translation>&lt;b&gt;%1&lt;/b&gt; mají své &lt;b&gt;%2 narozeniny&lt;/b&gt; &lt;b&gt;dnes&lt;/b&gt;</translation>
     </message>
     <message>
@@ -237,6 +239,7 @@
     </message>
     <message>
         <source>&lt;b&gt;%1&lt;/b&gt; has their &lt;b&gt;%2 birthday&lt;/b&gt; &lt;b&gt;tomorrow&lt;/b&gt;</source>
+        <translatorcomment>singular they; see http://en.wikipedia.org/wiki/Singular_they</translatorcomment>
         <translation>&lt;b&gt;%1&lt;/b&gt; mají své &lt;b&gt;%2 narozeniny&lt;/b&gt; &lt;b&gt;zítra&lt;/b&gt;</translation>
     </message>
     <message>
@@ -249,6 +252,7 @@
     </message>
     <message>
         <source>&lt;b&gt;%1&lt;/b&gt; has their &lt;b&gt;%2 birthday&lt;/b&gt; in &lt;b&gt;%3 days&lt;/b&gt;</source>
+        <translatorcomment>singular they; see http://en.wikipedia.org/wiki/Singular_they</translatorcomment>
         <translation>&lt;b&gt;%1&lt;/b&gt; mají své &lt;b&gt;%2 narozeniny&lt;/b&gt; za &lt;b&gt;%3 dny&lt;/b&gt;</translation>
     </message>
     <message>
@@ -261,6 +265,7 @@
     </message>
     <message>
         <source>&lt;b&gt;%1&lt;/b&gt; has their &lt;b&gt;name-day&lt;/b&gt; &lt;b&gt;today&lt;/b&gt;</source>
+        <translatorcomment>singular they; see http://en.wikipedia.org/wiki/Singular_they</translatorcomment>
         <translation>&lt;b&gt;%1&lt;/b&gt; mají své &lt;b&gt;jmeniny&lt;/b&gt; &lt;b&gt;dnes&lt;/b&gt;</translation>
     </message>
     <message>
@@ -273,6 +278,7 @@
     </message>
     <message>
         <source>&lt;b&gt;%1&lt;/b&gt; has their &lt;b&gt;name-day&lt;/b&gt; &lt;b&gt;tomorrow&lt;/b&gt;</source>
+        <translatorcomment>singular they; see http://en.wikipedia.org/wiki/Singular_they</translatorcomment>
         <translation>&lt;b&gt;%1&lt;/b&gt; mají své &lt;b&gt;jmeniny&lt;/b&gt; &lt;b&gt;zítra&lt;/b&gt;</translation>
     </message>
     <message>
@@ -285,6 +291,7 @@
     </message>
     <message>
         <source>&lt;b&gt;%1&lt;/b&gt; has their &lt;b&gt;name-day&lt;/b&gt; in &lt;b&gt;%2 days&lt;/b&gt;</source>
+        <translatorcomment>singular they; see http://en.wikipedia.org/wiki/Singular_they</translatorcomment>
         <translation>&lt;b&gt;%1&lt;/b&gt; mají své &lt;b&gt;jmeniny&lt;/b&gt; za &lt;b&gt;%2 dny&lt;/b&gt;</translation>
     </message>
     <message>
@@ -310,6 +317,10 @@
     <message>
         <source>Name-day</source>
         <translation>Jmeniny</translation>
+    </message>
+    <message>
+        <source>Middle name</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 </TS>

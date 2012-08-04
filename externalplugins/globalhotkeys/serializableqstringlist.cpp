@@ -32,22 +32,43 @@ QString SerializableQStringList::serialized()
 	bool first = true;
 	foreach( QString string, *this )
 	{
-		if( first )
-			first = false;
-		else
-			result += "<;>";
-		result += string.replace( QRegExp( "<(;+)>" ), "<;\\1>" );
+		if( ! first )
+			result += ",;,";
+		result += string.replace( QRegExp( ",(;+)," ), ",;\\1," );
+		first = false;
 	}
 	return result;
 }
 
 
-void SerializableQStringList::deserialize( QString serializedstring )
+void SerializableQStringList::deserialize( const QString &serializedstring )
+{
+	clear();
+	QStringList strings = serializedstring.split( ",;,", QString::KeepEmptyParts );
+	foreach( QString string, strings )
+		append( string.replace( QRegExp( ",;(;+)," ), ",\\1," ) );
+}
+
+
+QString SerializableQStringList::oldSerialized()
+{
+	QString result = "";
+	bool first = true;
+	foreach( QString string, *this )
+	{
+		if( ! first )
+			result += "<;>";
+		result += string.replace( QRegExp( "<(;+)>" ), "<;\\1>" );
+		first = false;
+	}
+	return result;
+}
+
+
+void SerializableQStringList::oldDeserialize( const QString &serializedstring )
 {
 	clear();
 	QStringList strings = serializedstring.split( "<;>", QString::KeepEmptyParts );
 	foreach( QString string, strings )
-	{
 		append( string.replace( QRegExp( "<;(;+)>" ), "<\\1>" ) );
-	}
 }

@@ -1,7 +1,7 @@
 /****************************************************************************
 *                                                                           *
-*   WideIconsMenu for Qt4 (4.6+)                                            *
-*   Copyright (C) 2009-2011  Piotr Dąbrowski ultr@ultr.pl                   *
+*   WideIconMenuStyle 2.0                                                   *
+*   Copyright (C) 2009-2012  Piotr Dąbrowski ultr@ultr.pl                   *
 *                                                                           *
 *   This program is free software: you can redistribute it and/or modify    *
 *   it under the terms of the GNU General Public License as published by    *
@@ -19,25 +19,31 @@
 ****************************************************************************/
 
 
-#ifndef __WIDEICONSMENU_H
-	#define __WIDEICONSMENU_H
+#ifndef WIDEICONMENUSTYLE_H
+	#define WIDEICONMENUSTYLE_H
 
 
 	#include <QProxyStyle>
 
 
-	#define  ICONHEIGHT  16  /*px*/
-	#define  LEFTMARGIN   2  /*px*/
+	#define  LEFTMARGIN    2  /*px*/
+	#define  RIGHTMARGIN   1  /*px*/
 
 
-	class WideIconsMenu : public QProxyStyle
+	class WideIconMenuStyle : public QProxyStyle
 	{
 		public:
-			WideIconsMenu( int _iconswidth );
-			int pixelMetric( PixelMetric metric, const QStyleOption *option=0, const QWidget *widget=0 ) const;
-			void drawControl( ControlElement element, const QStyleOption *option, QPainter *painter, const QWidget *widget=0 ) const;
-		private:
-			int iconswidth;
+			static int defaultIconSize();
+		public:
+			WideIconMenuStyle( int iconWidth = 0, int iconHeight = 0 );
+		public:
+			virtual void  drawControl( ControlElement element, const QStyleOption *option, QPainter *painter, const QWidget *widget = 0 ) const;
+			virtual int   pixelMetric( PixelMetric metric, const QStyleOption *option, const QWidget *widget ) const;
+			virtual QSize sizeFromContents( ContentsType type, const QStyleOption *option, const QSize &size, const QWidget *widget ) const;
+		protected:
+			int  iconwidth;
+			int  iconheight;
+			bool defaultsize;
 	};
 
 

@@ -1,7 +1,7 @@
 /****************************************************************************
 *                                                                           *
 *   SentHistory plugin for Kadu                                             *
-*   Copyright (C) 2008-2011  Piotr Dąbrowski ultr@ultr.pl                   *
+*   Copyright (C) 2008-2012  Piotr Dąbrowski ultr@ultr.pl                   *
 *                                                                           *
 *   This program is free software: you can redistribute it and/or modify    *
 *   it under the terms of the GNU General Public License as published by    *
@@ -29,6 +29,7 @@
 #include "gui/windows/kadu-window.h"
 #include "gui/windows/main-configuration-window.h"
 #include "gui/hot-key.h"
+#include "misc/kadu-paths.h"
 #include "misc/misc.h"
 #include "debug.h"
 
@@ -41,7 +42,7 @@ int SentHistory::init( bool firstLoad )
 {
 	Q_UNUSED( firstLoad );
 	kdebugf();
-	MainConfigurationWindow::registerUiFile( dataPath("kadu/plugins/configuration/senthistory.ui") );
+	MainConfigurationWindow::registerUiFile( KaduPaths::instance()->dataPath() + "plugins/configuration/senthistory.ui" );
 	kdebugf2();
 	return 0;
 }
@@ -50,7 +51,7 @@ int SentHistory::init( bool firstLoad )
 void SentHistory::done()
 {
 	kdebugf();
-	MainConfigurationWindow::unregisterUiFile( dataPath("kadu/plugins/configuration/senthistory.ui") );
+	MainConfigurationWindow::unregisterUiFile( KaduPaths::instance()->dataPath() + "plugins/configuration/senthistory.ui" );
 	kdebugf2();
 }
 

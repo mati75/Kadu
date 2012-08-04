@@ -32,61 +32,9 @@
 #include "buddynextinfodata.h"
 
 
-
-
-BuddyNExtInfoData::BuddyNExtInfoData( const QString &moduleName, StorableObject *parent, QObject *qobjectParent )
-	: ModuleData( moduleName, parent, qobjectParent )
+QDate BuddyNExtInfoData::birthdayDate( Buddy buddy )
 {
-}
-
-
-BuddyNExtInfoData::~BuddyNExtInfoData()
-{
-}
-
-
-QString BuddyNExtInfoData::name() const
-{
-	return QLatin1String( "nextinfo" );
-}
-
-
-void BuddyNExtInfoData::load()
-{
-	if( ! isValidStorage() )
-		return;
-	StorableObject::load();
-	Address        = loadValue<QString>( "address"       , "" );
-	City           = loadValue<QString>( "city"          , "" );
-	Email2         = loadValue<QString>( "email2"        , "" );
-	Birthday       = loadValue<QString>( "birthday"      , "" );
-	Nameday        = loadValue<QString>( "nameday"       , "" );
-	Interests      = loadValue<QString>( "interests"     , "" );
-	Notes          = loadValue<QString>( "notes"         , "" );
-	BirthdayRemind = loadValue<int>(     "birthdayremind",  0 );
-	NamedayRemind  = loadValue<int>(     "namedayremind" ,  0 );
-}
-
-
-void BuddyNExtInfoData::store()
-{
-	if( ! isValidStorage() )
-		return;
-	storeValue( "address"       , Address        );
-	storeValue( "city"          , City           );
-	storeValue( "email2"        , Email2         );
-	storeValue( "birthday"      , Birthday       );
-	storeValue( "nameday"       , Nameday        );
-	storeValue( "interests"     , Interests      );
-	storeValue( "notes"         , Notes          );
-	storeValue( "birthdayremind", BirthdayRemind );
-	storeValue( "namedayremind" , NamedayRemind  );
-}
-
-
-QDate BuddyNExtInfoData::birthdayDate()
-{
-	ensureLoaded();
+	QString Birthday = birthday( buddy );
 	if( Birthday.isEmpty() )
 		return QDate();
 	if( ! Birthday.contains( QRegExp( NEXTINFO_REGEXPBIRTHDAY ) ) ) // bad format
@@ -100,19 +48,18 @@ QDate BuddyNExtInfoData::birthdayDate()
 }
 
 
-QDate BuddyNExtInfoData::nextBirthdayDate()
+QDate BuddyNExtInfoData::nextBirthdayDate( Buddy buddy )
 {
-	ensureLoaded();
-	QDate birthdaydate = birthdayDate();
+	QDate birthdaydate = birthdayDate( buddy );
 	if( ! birthdaydate.isValid() )
 		return QDate();
 	return closestDate( birthdaydate.month(), birthdaydate.day() );
 }
 
 
-QDate BuddyNExtInfoData::nextNamedayDate()
+QDate BuddyNExtInfoData::nextNamedayDate( Buddy buddy )
 {
-	ensureLoaded();
+	QString Nameday = nameday( buddy );
 	if( Nameday.isEmpty() )
 		return QDate();
 	if( ! Nameday.contains( QRegExp( NEXTINFO_REGEXPNAMEDAY ) ) ) // bad format
@@ -125,59 +72,175 @@ QDate BuddyNExtInfoData::nextNamedayDate()
 }
 
 
-int BuddyNExtInfoData::age()
+int BuddyNExtInfoData::age( Buddy buddy )
 {
-	ensureLoaded();
-	QDate birthdaydate = birthdayDate();
+	QDate birthdaydate = birthdayDate( buddy );
 	if( ! birthdaydate.isValid() )
 		return -1;
 	int a = QDate::currentDate().year() - birthdaydate.year();
-	if( ( nextBirthdayDate() != QDate::currentDate() ) && ( nextBirthdayDate().year() == QDate::currentDate().year() ) )
+	if( ( nextBirthdayDate( buddy ) != QDate::currentDate() ) && ( nextBirthdayDate( buddy ).year() == QDate::currentDate().year() ) )
 		a--;
 	return a;
 }
 
 
-int BuddyNExtInfoData::nextBirthdayAge()
+int BuddyNExtInfoData::nextBirthdayAge( Buddy buddy )
 {
-	ensureLoaded();
-	QDate birthdaydate = birthdayDate();
+	QDate birthdaydate = birthdayDate( buddy );
 	if( ! birthdaydate.isValid() )
 		return -1;
-	QDate nextbirthdaydate = nextBirthdayDate();
+	QDate nextbirthdaydate = nextBirthdayDate( buddy );
 	return nextbirthdaydate.year() - birthdaydate.year();
 }
 
 
-QDate BuddyNExtInfoData::birthdayRemindDate()
+QDate BuddyNExtInfoData::birthdayRemindDate( Buddy buddy )
 {
-	ensureLoaded();
 	QDateTime datetime;
-	datetime.setTime_t( BirthdayRemind );
+	datetime.setTime_t( birthdayRemind( buddy ) );
 	return datetime.date();
 }
 
 
-QDate BuddyNExtInfoData::namedayRemindDate()
+QDate BuddyNExtInfoData::namedayRemindDate( Buddy buddy )
 {
-	ensureLoaded();
 	QDateTime datetime;
-	datetime.setTime_t( NamedayRemind );
+	datetime.setTime_t( namedayRemind( buddy ) );
 	return datetime.date();
 }
 
 
-void BuddyNExtInfoData::setBirthdayRemindDate( QDate date )
+void BuddyNExtInfoData::setBirthdayRemindDate( Buddy buddy, QDate date )
 {
-	ensureLoaded();
-	BirthdayRemind = QDateTime( date ).toTime_t();
+	int BirthdayRemind = QDateTime( date ).toTime_t();
+	setBirthdayRemind( buddy, BirthdayRemind );
 }
 
 
-void BuddyNExtInfoData::setNamedayRemindDate( QDate date )
+void BuddyNExtInfoData::setNamedayRemindDate( Buddy buddy, QDate date )
 {
-	ensureLoaded();
-	NamedayRemind = QDateTime( date ).toTime_t();
+	int NamedayRemind = QDateTime( date ).toTime_t();
+	setNamedayRemind( buddy, NamedayRemind );
+}
+
+
+QString BuddyNExtInfoData::middleName( Buddy buddy )
+{
+	return buddy.property( "nextinfo:middleName", "" ).toString();
+}
+
+
+void BuddyNExtInfoData::setMiddleName( Buddy buddy, const QString &middlename )
+{
+	buddy.addProperty( "nextinfo:middleName", middlename, CustomProperties::Storable );
+}
+
+
+QString BuddyNExtInfoData::address( Buddy buddy )
+{
+	return buddy.property( "nextinfo:address", "" ).toString();
+}
+
+
+void BuddyNExtInfoData::setAddress( Buddy buddy, const QString &address )
+{
+	buddy.addProperty( "nextinfo:address", address, CustomProperties::Storable );
+}
+
+
+QString BuddyNExtInfoData::city( Buddy buddy )
+{
+	return buddy.property( "nextinfo:city", "" ).toString();
+}
+
+
+void BuddyNExtInfoData::setCity( Buddy buddy, const QString &city )
+{
+	buddy.addProperty( "nextinfo:city", city, CustomProperties::Storable );
+}
+
+
+QString BuddyNExtInfoData::email2( Buddy buddy )
+{
+	return buddy.property( "nextinfo:email2", "" ).toString();
+}
+
+
+void BuddyNExtInfoData::setEmail2( Buddy buddy, const QString &email2 )
+{
+	buddy.addProperty( "nextinfo:email2", email2, CustomProperties::Storable );
+}
+
+
+QString BuddyNExtInfoData::birthday( Buddy buddy )
+{
+	return buddy.property( "nextinfo:birthday", "" ).toString();
+}
+
+
+void BuddyNExtInfoData::setBirthday( Buddy buddy, const QString &birthday )
+{
+	buddy.addProperty( "nextinfo:birthday", birthday, CustomProperties::Storable );
+}
+
+
+QString BuddyNExtInfoData::nameday( Buddy buddy )
+{
+	return buddy.property( "nextinfo:nameday", "" ).toString();
+}
+
+
+void BuddyNExtInfoData::setNameday( Buddy buddy, const QString &nameday )
+{
+	buddy.addProperty( "nextinfo:nameday", nameday, CustomProperties::Storable );
+}
+
+
+QString BuddyNExtInfoData::interests( Buddy buddy )
+{
+	return buddy.property( "nextinfo:interests", "" ).toString();
+}
+
+
+void BuddyNExtInfoData::setInterests( Buddy buddy, const QString &interests )
+{
+	buddy.addProperty( "nextinfo:interests", interests, CustomProperties::Storable );
+}
+
+
+QString BuddyNExtInfoData::notes( Buddy buddy )
+{
+	return buddy.property( "nextinfo:notes", "" ).toString();
+}
+
+
+void BuddyNExtInfoData::setNotes( Buddy buddy, const QString &notes )
+{
+	buddy.addProperty( "nextinfo:notes", notes, CustomProperties::Storable );
+}
+
+
+int BuddyNExtInfoData::birthdayRemind( Buddy buddy )
+{
+	return buddy.property( "nextinfo:birthdayremind", 0 ).toInt();
+}
+
+
+void BuddyNExtInfoData::setBirthdayRemind( Buddy buddy, int birthdayremind )
+{
+	buddy.addProperty( "nextinfo:birthdayremind", birthdayremind, CustomProperties::Storable );
+}
+
+
+int BuddyNExtInfoData::namedayRemind( Buddy buddy )
+{
+	return buddy.property( "nextinfo:namedayremind", 0 ).toInt();
+}
+
+
+void BuddyNExtInfoData::setNamedayRemind( Buddy buddy, int namedayremind )
+{
+	buddy.addProperty( "nextinfo:namedayremind", namedayremind, CustomProperties::Storable );
 }
 
 

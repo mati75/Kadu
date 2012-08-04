@@ -39,11 +39,23 @@ HotKey::HotKey()
 	ALTGR   = false;
 	SUPER   = false;
 	KEYCODE = 0;
-	STRING  = "";
+	STRING  = QString("");
 }
 
 
-HotKey::HotKey( bool shift, bool control, bool alt, bool altgr, bool super, int keycode, QString string )
+HotKey::HotKey( const HotKey &other )
+{
+	SHIFT   = other.SHIFT;
+	CONTROL = other.CONTROL;
+	ALT     = other.ALT;
+	ALTGR   = other.ALTGR;
+	SUPER   = other.SUPER;
+	KEYCODE = other.KEYCODE;
+	STRING  = other.STRING;
+}
+
+
+HotKey::HotKey( bool shift, bool control, bool alt, bool altgr, bool super, int keycode, const QString &comment )
 {
 	SHIFT   = shift;
 	CONTROL = control;
@@ -51,14 +63,12 @@ HotKey::HotKey( bool shift, bool control, bool alt, bool altgr, bool super, int 
 	ALTGR   = altgr;
 	SUPER   = super;
 	KEYCODE = keycode;
-	STRING  = string;
+	STRING  = comment;
 }
 
 
-HotKey::HotKey( QString hotkeystring )
+HotKey::HotKey( const QString &hotkeystring )
 {
-	// remove "white" characters from begining and end of the string
-	hotkeystring = hotkeystring.trimmed();
 	// initial values
 	SHIFT   = false;
 	CONTROL = false;
@@ -66,11 +76,12 @@ HotKey::HotKey( QString hotkeystring )
 	ALTGR   = false;
 	SUPER   = false;
 	KEYCODE = 0;
-	STRING  = hotkeystring.isNull() ? "" : hotkeystring;
+	STRING  = hotkeystring.trimmed();
 	// return if the string is empty
-	if( hotkeystring.isEmpty() ) return;
-	// split hotkeystring into parts using "+" as the separator
-	QStringList parts = hotkeystring.split( "+", QString::KeepEmptyParts );
+	if( STRING.isEmpty() )
+		return;
+	// split STRING into parts using "+" as the separator
+	QStringList parts = STRING.split( "+", QString::KeepEmptyParts );
 	// set Shift
 	if( parts.contains( "Shift" ) > 0 )
 		SHIFT = true;

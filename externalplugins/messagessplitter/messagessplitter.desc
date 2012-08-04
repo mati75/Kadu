@@ -1,9 +1,14 @@
 [Module]
 Plugin=true
-Description=Automatically splits too long messages
-Description[pl]=Automatycznie dzieli za d³ugie wiadomo¶ci
-Author=Piotr "ultr" D±browski
-LoadByDefault=false
-Version=0.11-4
 Base=false
+Category=Chat
+Author=Piotr "ultr" DÄ…browski
+DisplayName=MessagesSplitter
+Description=Automatically splits too long messages
+Description[pl]=Automatycznie dzieli zbyt dÅ‚ugie wiadomoÅ›ci
+Provides=
 Dependencies=gadu_protocol encryption_ng
+Conflicts=
+Replaces=
+LoadByDefault=false
+Version=0.12-5

@@ -22,7 +22,7 @@ set( SOURCES
 	hotkeyedit.cpp
 	serializableqstringlist.cpp
 	statusesmenu.cpp
-	wideiconsmenu.cpp
+	wideiconmenustyle.cpp
 )
 
 set( MOC_SOURCES
@@ -32,6 +32,7 @@ set( MOC_SOURCES
 	functions.h
 	globalmenu.h
 	globalwidgetmanager.h
+	hotkeyedit.h
 	statusesmenu.h
 )
 

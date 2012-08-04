@@ -1,9 +1,14 @@
 [Module]
 Plugin=true
-Description=Notification module using keyboard's LEDs.
-Description[pl]=Modu³ powiadamiania diodami LED klawiatury.
-Author=Micha³ Ma³ek, Piotr "ultr" D±browski
-Provides=notify_method
 Base=false
+Category=Notifications
+Author=MichaÅ‚ MaÅ‚ek, Piotr "ultr" DÄ…browski
+DisplayName=LedNotify
+Description=Notification plugin using keyboard's LEDs
+Description[pl]=Wtyczka powiadamiania diodami LED klawiatury
+Provides=notify_method
+Dependencies=
+Conflicts=
+Replaces=
 LoadByDefault=false
-Version=0.11-32
+Version=0.12-33

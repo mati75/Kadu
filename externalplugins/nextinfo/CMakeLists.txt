@@ -19,7 +19,6 @@ set( SOURCES
 
 set( MOC_SOURCES
 	nextinfo.h
-	buddynextinfodata.h
 	extendedinformationwidgets.h
 	photowidget.h
 )
@@ -27,6 +26,7 @@ set( MOC_SOURCES
 set( TRANSLATION_SOURCES
 	translations/nextinfo_en.ts
 	translations/nextinfo_cs.ts
+	translations/nextinfo_fr.ts
 	translations/nextinfo_pl.ts
 )
 

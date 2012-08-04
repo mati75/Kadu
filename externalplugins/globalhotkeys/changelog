@@ -1,3 +1,18 @@
+0.11-31 => 0.12-32
+* Użycie zamiast WideIconsMenu ulepszonej klasy WideIconMenuStyle, która przy
+  rysowaniu menu dużo lepiej współpracuje ze stylami systemowymi, m.in. stylem
+  Oxygen (elementy menu nie mają już niepotrzebnie dużej wysokości).
+* Dodanie ponownej aktywacji poprzedniego okna po zamknięciu globalnego widgetu.
+* Poza prawym klawiszem myszy i strzałką w prawo można teraz używać także
+  środkowego klawisza myszy (scrolla) do otwierania kolejnego poziomu menu
+  znajomych.
+* Poprawnione sortowanie znajomych w menu.
+* Dodany przycisk czyszczenia pól skrótów.
+* #2598: Dodana obsługa globalnych widgetów posiadających okna potomne.
+* Plugin dostosowany do Kadu 0.12.0.
+* Drobne poprawki kodu.
+
+
 0.11-30 => 0.11-31
 * #2315: Dodana opcja "Zawsze wyświetlaj identyfikator kontaktu" w menu
   znajomych.

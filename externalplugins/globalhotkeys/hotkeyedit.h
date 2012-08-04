@@ -33,6 +33,7 @@
 
 class HotkeyEdit : public ConfigLineEdit
 {
+	Q_OBJECT
 	public:
 		HotkeyEdit( const QString &section, const QString &item, const QString &widgetCaption, const QString &toolTip, ConfigGroupBox *parentConfigGroupBox, ConfigurationWindowDataManager *dataManager );
 		HotkeyEdit( ConfigGroupBox *parentConfigGroupBox, ConfigurationWindowDataManager *dataManager );
@@ -40,6 +41,8 @@ class HotkeyEdit : public ConfigLineEdit
 		virtual bool x11Event( XEvent *event );
 		virtual void focusInEvent( QFocusEvent *event );
 		virtual void focusOutEvent( QFocusEvent *event );
+	private slots:
+		virtual void onClear();
 	private:
 		QString LASTVALIDVALUE;
 };

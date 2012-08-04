@@ -109,6 +109,7 @@ class ConfBuddiesShortcut : public QObject
 		static ConfBuddiesShortcut *findByHotkey( HotKey hotkey );
 		ConfBuddiesShortcut( QObject *parent, QString group, bool forcecreate = false );
 		~ConfBuddiesShortcut();
+		void clear();
 		void commitUIData();
 		void fillUIData();
 		QString serialized();
@@ -141,6 +142,7 @@ class ConfBuddiesMenu : public QObject
 		static ConfBuddiesMenu *findByHotkey( HotKey hotkey );
 		ConfBuddiesMenu( QObject *parent, QString group, bool forcecreate = false );
 		~ConfBuddiesMenu();
+		void clear();
 		void commitUIData();
 		void fillUIData();
 		QString serialized();

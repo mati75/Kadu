@@ -36,8 +36,6 @@
 #include "notify/notify-event.h"
 #include "plugins/generic-plugin.h"
 
-#include "buddynextinfodata.h"
-
 #include "defines.h"
 
 
@@ -60,17 +58,15 @@ class NExtInfo : public ConfigurationUiHandler, public ConfigurationAwareObject,
 		NExtInfo();
 		~NExtInfo();
 	public:
-		static BuddyNExtInfoData *bData( Buddy buddy );
-	public:
 		static void updateActionBirthday( Action *action );
 		static void updateActionNameday( Action *action );
 		static void updateActionBirthdayMenu( Action *action );
 		static void updateActionNamedayMenu( Action *action);
 	public:
-		static QPair< bool, QPair<int,int> > checkBirthdayNotify( BuddyNExtInfoData *bdata );
-		static QPair< bool, QPair<int,int> > checkNamedayNotify(  BuddyNExtInfoData *bdata );
-		static bool checkBirthdayRemind( BuddyNExtInfoData *bdata );
-		static bool checkNamedayRemind(  BuddyNExtInfoData *bdata );
+		static QPair< bool, QPair<int,int> > checkBirthdayNotify( Buddy buddy );
+		static QPair< bool, QPair<int,int> > checkNamedayNotify(  Buddy buddy );
+		static bool checkBirthdayRemind( Buddy buddy );
+		static bool checkNamedayRemind(  Buddy buddy );
 	public:
 		virtual void mainConfigurationWindowCreated( MainConfigurationWindow *mainConfigurationWindow );
 		void updateActionsBirthday();
@@ -96,8 +92,6 @@ class NExtInfo : public ConfigurationUiHandler, public ConfigurationAwareObject,
 		virtual void buddyDataWindowDestroyed( BuddyDataWindow *buddydatawindow );
 	private slots:
 		void notifyBirthdayNameday();
-	private:
-		static QObject *guard;
 	private:
 		void createDefaultConfiguration();
 		void setBirthdayRemind( Buddy buddy, RemindTime time );
