@@ -44,15 +44,14 @@
 #include "gadu-protocol-socket-notifiers.h"
 
 GaduProtocolSocketNotifiers::GaduProtocolSocketNotifiers(Account account, GaduProtocol *protocol) :
-		GaduSocketNotifiers(protocol), CurrentAccount(account), CurrentProtocol(protocol), Sess(0),
-		Timeout(15000)
+		GaduSocketNotifiers(protocol), CurrentAccount(account), CurrentProtocol(protocol), Sess(0)
 {
 }
 
 void GaduProtocolSocketNotifiers::watchFor(gg_session *sess)
 {
 	Sess = sess;
-	GaduSocketNotifiers::watchFor(Sess ? Sess->fd : 0);
+	GaduSocketNotifiers::watchFor(Sess ? Sess->fd : -1);
 }
 
 bool GaduProtocolSocketNotifiers::checkRead()
@@ -343,7 +342,7 @@ void GaduProtocolSocketNotifiers::socketEvent()
 
 int GaduProtocolSocketNotifiers::timeout()
 {
-	return Timeout;
+	return 15000;
 }
 
 bool GaduProtocolSocketNotifiers::handleSoftTimeout()

@@ -50,10 +50,13 @@ class EmotsWalker
 	QList<const PrefixNode *> positions;
 	QList<int> lengths;
 	int amountPositions;
+	bool previousWasLetter;
 
 	PrefixNode * findChild(const PrefixNode *node, const QChar &c);
 	PrefixNode * insertChild(PrefixNode *node, const QChar &c);
 	void removeChilds(PrefixNode *node);
+
+	QChar extractLetter(QChar c);
 
 public:
 	EmotsWalker();
@@ -72,7 +75,7 @@ public:
 		beginning of text analysis is turned on by 'initWalking()'
 		if no emot occures, -1 is returned
 	*/
-	int checkEmotOccurrence(const QChar &c);
+	int checkEmotOccurrence(QChar c, bool nextIsLetter);
 
 	/**
 		clear internal structures responsible for analyzing text, it allows

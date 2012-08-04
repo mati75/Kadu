@@ -73,6 +73,17 @@
     </message>
 </context>
 <context>
+    <name>TabWidget</name>
+    <message>
+        <source>Kadu</source>
+        <translation>Kadu</translation>
+    </message>
+    <message>
+        <source>New message received, close window anyway?</source>
+        <translation>Otrzymano nową wiadomość. Zamknąć okno?</translation>
+    </message>
+</context>
+<context>
     <name>TabsManager</name>
     <message>
         <source>Chat in New Window</source>
@@ -105,6 +116,10 @@
     <message>
         <source>Close all</source>
         <translation>Zamknij wszystkie</translation>
+    </message>
+    <message>
+        <source>Close all but active</source>
+        <translation>Zamknij wszystkie oprócz aktywnej</translation>
     </message>
     <message>
         <source>Conference [%1]</source>

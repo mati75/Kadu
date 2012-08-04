@@ -44,6 +44,7 @@
 #ifdef Q_WS_X11
 #include <QtGui/QX11Info>
 #include "os/x11tools.h" // this should be included as last one,
+#undef KeyPress
 #undef Status            // and Status defined by Xlib.h must be undefined
 #endif
 
@@ -76,12 +77,8 @@ MainWindow::MainWindow(ActionContext *context, const QString &windowName, QWidge
 
 MainWindow::~MainWindow()
 {
-	disconnect(Actions::instance(), SIGNAL(actionUnloaded(ActionDescription*)),
-			this, SLOT(actionLoadedOrUnloaded(ActionDescription*)));
-	disconnect(Actions::instance(), SIGNAL(actionLoaded(ActionDescription*)),
-			this, SLOT(actionLoadedOrUnloaded(ActionDescription*)));
-	disconnect(ConfigurationManager::instance()->toolbarConfigurationManager(), SIGNAL(configurationUpdated()),
-			this, SLOT(refreshToolBars()));
+	disconnect(Actions::instance(), 0, this, 0);
+	disconnect(ConfigurationManager::instance()->toolbarConfigurationManager(), 0, this, 0);
 
 	delete Context;
 	Context = 0;

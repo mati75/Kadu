@@ -23,17 +23,61 @@
 
 #include "contact-list-model.h"
 
-ContactListModel::ContactListModel(const QVector<Contact> &list, QObject *parent) :
-		QAbstractItemModel(parent), List(list)
+ContactListModel::ContactListModel(QObject *parent) :
+		QAbstractItemModel(parent)
 {
-	foreach (const Contact &contact, List)
-		connect(contact, SIGNAL(updated()), this, SLOT(contactUpdated()));
 }
 
 ContactListModel::~ContactListModel()
 {
+}
+
+void ContactListModel::connectContact(const Contact &contact)
+{
+	connect(contact, SIGNAL(updated()), this, SLOT(contactUpdated()));
+}
+
+void ContactListModel::disconnectContact(const Contact &contact)
+{
+	disconnect(contact, 0, this, 0);
+}
+
+void ContactListModel::setContactList(const QVector<Contact> &contacts)
+{
+	beginResetModel();
+
 	foreach (const Contact &contact, List)
-		connect(contact, SIGNAL(updated()), this, SLOT(contactUpdated()));
+		disconnectContact(contact);
+	List = contacts;
+	foreach (const Contact &contact, List)
+		connectContact(contact);
+
+	endResetModel();
+}
+
+void ContactListModel::addContact(const Contact &contact)
+{
+	if (List.contains(contact))
+		return;
+
+	connectContact(contact);
+
+	beginInsertRows(QModelIndex(), List.count(), List.count());
+	List.append(contact);
+	endInsertRows();
+}
+
+void ContactListModel::removeContact(const Contact &contact)
+{
+	int index = List.indexOf(contact);
+	if (-1 == index)
+		return;
+
+	disconnectContact(contact);
+
+	beginRemoveRows(QModelIndex(), index, index);
+	List.remove(index);
+	endRemoveRows();
 }
 
 void ContactListModel::contactUpdated()
@@ -52,9 +96,17 @@ void ContactListModel::contactUpdated()
 
 QModelIndex ContactListModel::index(int row, int column, const QModelIndex &parent) const
 {
-	return hasIndex(row, column, parent)
-	        ? createIndex(row, column, parent.isValid() ? parent.row() : -1)
-	        : QModelIndex();
+	if (parent.isValid() || !hasIndex(row, column, parent))
+		return QModelIndex();
+
+	return createIndex(row, column, List.at(row).data());
+}
+
+QModelIndex ContactListModel::parent(const QModelIndex &child) const
+{
+	Q_UNUSED(child)
+
+	return QModelIndex();
 }
 
 int ContactListModel::columnCount(const QModelIndex &parent) const
@@ -67,21 +119,16 @@ int ContactListModel::rowCount(const QModelIndex &parentIndex) const
 	return parentIndex.isValid() ? 0 : List.size();
 }
 
-QModelIndex ContactListModel::parent(const QModelIndex &child) const
-{
-	Q_UNUSED(child)
-
-	return QModelIndex();
-}
-
 QVariant ContactListModel::data(const QModelIndex &index, int role) const
 {
-	int row = index.row();
-	const Contact &contact = (row < 0 || row >= List.size())
-			? Contact::null
-			: List.at(row);
+	QObject *sharedData = static_cast<QObject *>(index.internalPointer());
+	Q_ASSERT(sharedData);
 
-	return ContactDataExtractor::data(contact, role, true);
+	ContactShared *contact = qobject_cast<ContactShared *>(sharedData);
+	if (!contact)
+		return QVariant();
+
+	return ContactDataExtractor::data(Contact(contact), role, true);
 }
 
 QModelIndexList ContactListModel::indexListForValue(const QVariant &value) const

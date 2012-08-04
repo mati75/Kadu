@@ -47,7 +47,7 @@ void AllAccountsStatusContainer::accountUnregistered(Account account)
 {
 	if (Accounts.removeAll(account) > 0)
 	{
-		disconnect(account.statusContainer(), SIGNAL(statusUpdated()), this, SIGNAL(statusUpdated()));
+		disconnect(account.statusContainer(), 0, this, 0);
 		emit statusUpdated();
 	}
 }
@@ -87,11 +87,11 @@ int AllAccountsStatusContainer::maxDescriptionLength()
 	return account ? account.statusContainer()->maxDescriptionLength() : -1;
 }
 
-void AllAccountsStatusContainer::setStatus(Status status)
+void AllAccountsStatusContainer::setStatus(Status status, StatusChangeSource source)
 {
 	foreach (const Account &account, Accounts)
 		if (account)
-			account.statusContainer()->setStatus(status);
+			account.statusContainer()->setStatus(status, source);
 }
 
 Status AllAccountsStatusContainer::loadStatus()

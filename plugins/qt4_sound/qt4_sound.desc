@@ -1,9 +1,12 @@
 [Module]
-Description=Sound module using Qt4 API
-Description[pl]=Modu≥ obs≥ugi dºwiÍku przez Qt4
+DisplayName=Sound support
+DisplayName[pl]=Obs≈Çuga d≈∫wiƒôku
+Description=Sound support using standard Qt4 mechanisms
+Description[pl]=Obs≈Çuga d≈∫wiƒôku z u≈ºyciem standardowych funkcji Qt4
 Author=Kadu Team
 Dependencies=sound
 Provides=sound_driver
 Conflicts=sound_driver
 Version=core
 Plugin=true
+Category=Sound

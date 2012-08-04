@@ -155,10 +155,6 @@ Win+ Enter/Backspace/Left/Right/Up/Down.</translation>
         <translation>MediaPlayer</translation>
     </message>
     <message>
-        <source>Player isn&apos;t running!</source>
-        <translation>Odtwarzacz nie jest uruchomiony!</translation>
-    </message>
-    <message>
         <source>%1 isn&apos;t running!</source>
         <translation>%1 nie jest uruchomiony!</translation>
     </message>
@@ -213,6 +209,10 @@ Win+ Enter/Backspace/Left/Right/Up/Down.</translation>
     <message>
         <source>Pause</source>
         <translation>Pauza</translation>
+    </message>
+    <message>
+        <source>Player isn&apos;t running!</source>
+        <translation>Odtwarzacz nie jest uruchomiony!</translation>
     </message>
 </context>
 </TS>

@@ -14,7 +14,7 @@
  *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  *
  */
 
@@ -870,8 +870,8 @@ void ClientStream::srvProcessNext()
 
 				// calculate key
 				QByteArray str = QCA::Hash("sha1").hashToString("secret").toUtf8();
-				str = QCA::Hash("sha1").hashToString(str + "im.pyxa.org").toUtf8();
-				str = QCA::Hash("sha1").hashToString(str + d->srv.id.toUtf8()).toUtf8();
+				str = QCA::Hash("sha1").hashToString(QByteArray(str + "im.pyxa.org")).toUtf8();
+				str = QCA::Hash("sha1").hashToString(QByteArray(str + d->srv.id.toUtf8())).toUtf8();
 				d->srv.setDialbackKey(str);
 
 				//d->srv.setDialbackKey("3c5d721ea2fcc45b163a11420e4e358f87e3142a");

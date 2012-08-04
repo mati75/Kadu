@@ -41,7 +41,7 @@
     </message>
     <message>
         <source>Antistring notifications</source>
-        <translation type="unfinished"></translation>
+        <translation>Oznámení protisněhové koule</translation>
     </message>
 </context>
 <context>

@@ -5,6 +5,7 @@
  * Copyright 2011 Piotr Dąbrowski (ultr@ultr.pl)
  * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2012 Marcel Zięba (marseel@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -53,8 +54,8 @@
 RefreshViewHack::RefreshViewHack(AdiumChatStyleEngine *engine, HtmlMessagesRenderer *renderer, QObject *parent) :
 		QObject(parent), Engine(engine), Renderer(renderer)
 {
-	connect(Engine, SIGNAL(destroyed(QObject*)), this, SLOT(cancel()));
-	connect(Renderer, SIGNAL(destroyed(QObject*)), this, SLOT(cancel()));
+	connect(Engine, SIGNAL(destroyed()), this, SLOT(cancel()));
+	connect(Renderer, SIGNAL(destroyed()), this, SLOT(cancel()));
 }
 
 RefreshViewHack::~RefreshViewHack()
@@ -77,14 +78,12 @@ void RefreshViewHack::loadFinished()
 		return;
 	}
 
-	// We need to clear messages in case something was rendered before this slot was called.
-	Engine->clearMessages(Renderer);
+	emit finished(Renderer);
+
 	Renderer->setLastMessage(0);
 
 	foreach (MessageRenderInfo *message, Renderer->messages())
 		Engine->appendChatMessage(Renderer, message);
-
-	emit finished(Renderer);
 
 	deleteLater();
 }
@@ -93,8 +92,8 @@ PreviewHack::PreviewHack(AdiumChatStyleEngine *engine, Preview *preview, const Q
                          const QString &incomingHtml, QObject *parent) :
 		QObject(parent), Engine(engine), CurrentPreview(preview), BaseHref(baseHref), OutgoingHtml(outgoingHtml), IncomingHtml(incomingHtml)
 {
-	connect(Engine, SIGNAL(destroyed(QObject*)), this, SLOT(cancel()));
-	connect(CurrentPreview, SIGNAL(destroyed(QObject*)), this, SLOT(cancel()));
+	connect(Engine, SIGNAL(destroyed()), this, SLOT(cancel()));
+	connect(CurrentPreview, SIGNAL(destroyed()), this, SLOT(cancel()));
 }
 
 PreviewHack::~PreviewHack()
@@ -147,10 +146,10 @@ void PreviewHack::loadFinished()
 
 
 AdiumChatStyleEngine::AdiumChatStyleEngine(QObject *parent) :
-		QObject(parent), CurrentPreviewHack(0)
+		QObject(parent)
 {
 	// Load required javascript functions
-	QFile file(dataPath() + "/scripts/chat-scripts.js");
+	QFile file(KaduPaths::instance()->dataPath() + QLatin1String("scripts/chat-scripts.js"));
 	if (file.open(QIODevice::ReadOnly | QIODevice::Text))
 		jsCode = file.readAll();
 }
@@ -195,9 +194,9 @@ QString AdiumChatStyleEngine::currentStyleVariant()
 QStringList AdiumChatStyleEngine::styleVariants(QString styleName)
 {
 	QDir dir;
-	QString styleBaseHref = profilePath() + "/syntax/chat/" + styleName + "/Contents/Resources/Variants/";
+	QString styleBaseHref = KaduPaths::instance()->profilePath() + QLatin1String("syntax/chat/") + styleName + QLatin1String("/Contents/Resources/Variants/");
 	if (!dir.exists(styleBaseHref))
-		styleBaseHref = dataPath() + "/syntax/chat/" + styleName + "/Contents/Resources/Variants/";
+		styleBaseHref = KaduPaths::instance()->dataPath() + QLatin1String("syntax/chat/") + styleName + QLatin1String("/Contents/Resources/Variants/");
 	dir.setPath(styleBaseHref);
 	dir.setNameFilters(QStringList("*.css"));
 	return dir.entryList();
@@ -205,6 +204,9 @@ QStringList AdiumChatStyleEngine::styleVariants(QString styleName)
 
 void AdiumChatStyleEngine::appendMessages(HtmlMessagesRenderer *renderer, const QList<MessageRenderInfo *> &messages)
 {
+	if (CurrentRefreshHacks.contains(renderer))
+		return;
+
 	if (ChatStylesManager::instance()->cfgNoHeaderRepeat() && renderer->pruneEnabled())
 	{
 		clearMessages(renderer);
@@ -220,6 +222,9 @@ void AdiumChatStyleEngine::appendMessages(HtmlMessagesRenderer *renderer, const 
 
 void AdiumChatStyleEngine::appendMessage(HtmlMessagesRenderer *renderer, MessageRenderInfo *message)
 {
+	if (CurrentRefreshHacks.contains(renderer))
+		return;
+
 	if (ChatStylesManager::instance()->cfgNoHeaderRepeat() && renderer->pruneEnabled())
 	{
 		clearMessages(renderer);
@@ -234,6 +239,9 @@ void AdiumChatStyleEngine::appendMessage(HtmlMessagesRenderer *renderer, Message
 
 void AdiumChatStyleEngine::appendChatMessage(HtmlMessagesRenderer *renderer, MessageRenderInfo *message)
 {
+	if (CurrentRefreshHacks.contains(renderer))
+		return;
+
 	QString formattedMessageHtml;
 	bool includeHeader = true;
 
@@ -246,6 +254,8 @@ void AdiumChatStyleEngine::appendChatMessage(HtmlMessagesRenderer *renderer, Mes
 	if (lastMessage)
 	{
 		Message last = lastMessage->message();
+		if (msg.receiveDate().toTime_t() < last.receiveDate().toTime_t())
+			qWarning("New message has earlier date than last message");
 
 		includeHeader =
 			msg.type() == MessageTypeSystem ||
@@ -298,23 +308,15 @@ void AdiumChatStyleEngine::appendChatMessage(HtmlMessagesRenderer *renderer, Mes
 	renderer->setLastMessage(message);
 }
 
-void AdiumChatStyleEngine::currentPreviewHackDestroyed()
-{
-	CurrentPreviewHack = 0;
-}
-
 void AdiumChatStyleEngine::refreshHackFinished(HtmlMessagesRenderer *renderer)
 {
-	if (!CurrentRefreshHacks.contains(renderer))
-		return;
-
 	CurrentRefreshHacks.remove(renderer);
 }
 
 void AdiumChatStyleEngine::refreshView(HtmlMessagesRenderer *renderer, bool useTransparency)
 {
 	QString styleBaseHtml = CurrentStyle.templateHtml();
-	styleBaseHtml.replace(styleBaseHtml.indexOf("%@"), 2, webKitPath(CurrentStyle.baseHref()));
+	styleBaseHtml.replace(styleBaseHtml.indexOf("%@"), 2, KaduPaths::webKitPath(CurrentStyle.baseHref()));
 	styleBaseHtml.replace(styleBaseHtml.lastIndexOf("%@"), 2, replaceKeywords(renderer->chat(), CurrentStyle.baseHref(), CurrentStyle.footerHtml()));
 	styleBaseHtml.replace(styleBaseHtml.lastIndexOf("%@"), 2, replaceKeywords(renderer->chat(), CurrentStyle.baseHref(), CurrentStyle.headerHtml()));
 
@@ -387,7 +389,7 @@ bool AdiumChatStyleEngine::clearDirectory(const QString &directory)
 
 bool AdiumChatStyleEngine::removeStyle(const QString &styleName)
 {
-	QDir dir(QString(profilePath() + "/syntax/chat/" + styleName));
+	QDir dir(QString(KaduPaths::instance()->profilePath() + QLatin1String("syntax/chat/") + styleName));
 	return clearDirectory(dir.absolutePath()) && dir.cdUp() && dir.rmdir(styleName);
 }
 
@@ -405,7 +407,7 @@ void AdiumChatStyleEngine::prepareStylePreview(Preview *preview, QString styleNa
 	Message msg = message->message();
 
 	QString styleBaseHtml = style.templateHtml();
-	styleBaseHtml.replace(styleBaseHtml.indexOf("%@"), 2, webKitPath(style.baseHref()));
+	styleBaseHtml.replace(styleBaseHtml.indexOf("%@"), 2, KaduPaths::webKitPath(style.baseHref()));
 	styleBaseHtml.replace(styleBaseHtml.lastIndexOf("%@"), 2, replaceKeywords(msg.messageChat(), style.baseHref(), style.footerHtml()));
 	styleBaseHtml.replace(styleBaseHtml.lastIndexOf("%@"), 2, replaceKeywords(msg.messageChat(), style.baseHref(), style.headerHtml()));
 
@@ -422,17 +424,14 @@ void AdiumChatStyleEngine::prepareStylePreview(Preview *preview, QString styleNa
 		styleBaseHtml.replace(styleBaseHtml.lastIndexOf("%@"), 2, (style.styleViewVersion() < 3) ? "s" : QString("@import url( \"" + style.mainHref() + "\" );"));
 	}
 
-	if (CurrentPreviewHack)
-		delete CurrentPreviewHack;
-
+	PreviewHack *previousHack = CurrentPreviewHack.data();
 	CurrentPreviewHack = new PreviewHack(this, preview, style.baseHref(), style.outgoingHtml(), style.incomingHtml(), this);
-	connect(CurrentPreviewHack, SIGNAL(destroyed(QObject*)),
-	        this, SLOT(currentPreviewHackDestroyed()));
+	delete previousHack;
 
 	// lets wait a while for all javascript to resolve and execute
 	// we dont want to get to the party too early
 	connect(preview->webView()->page()->mainFrame(), SIGNAL(loadFinished(bool)),
-	        CurrentPreviewHack, SLOT(loadFinished()),  Qt::QueuedConnection);
+	        CurrentPreviewHack.data(), SLOT(loadFinished()),  Qt::QueuedConnection);
 
 	preview->webView()->page()->mainFrame()->setHtml(styleBaseHtml);
 	preview->webView()->page()->mainFrame()->evaluateJavaScript(jsCode);
@@ -483,18 +482,18 @@ QString AdiumChatStyleEngine::replaceKeywords(const Chat &chat, const QString &s
 	{
 		const Avatar &avatar = chat.contacts().toContact().avatar(true);
 		if (!avatar.isEmpty())
-			photoIncoming = webKitPath(avatar.filePath());
+			photoIncoming = KaduPaths::webKitPath(avatar.smallFilePath());
 		else
-			photoIncoming = webKitPath(styleHref + QLatin1String("Incoming/buddy_icon.png"));
+			photoIncoming = KaduPaths::webKitPath(styleHref + QLatin1String("Incoming/buddy_icon.png"));
 	}
 	else
-		photoIncoming = webKitPath(styleHref + QLatin1String("Incoming/buddy_icon.png"));
+		photoIncoming = KaduPaths::webKitPath(styleHref + QLatin1String("Incoming/buddy_icon.png"));
 
 	const Avatar &avatar = chat.chatAccount().accountContact().avatar(true);
 	if (!avatar.isEmpty())
-		photoOutgoing = webKitPath(avatar.filePath());
+		photoOutgoing = KaduPaths::webKitPath(avatar.smallFilePath());
 	else
-		photoOutgoing = webKitPath(styleHref + QLatin1String("Outgoing/buddy_icon.png"));
+		photoOutgoing = KaduPaths::webKitPath(styleHref + QLatin1String("Outgoing/buddy_icon.png"));
 
 	result.replace(QString("%incomingIconPath%"), photoIncoming);
 	result.replace(QString("%outgoingIconPath%"), photoOutgoing);
@@ -551,18 +550,18 @@ QString AdiumChatStyleEngine::replaceKeywords(const QString &styleHref, const QS
 
 		const Avatar &avatar = msg.messageSender().avatar(true);
 		if (!avatar.isEmpty())
-			photoPath = webKitPath(avatar.filePath());
+			photoPath = KaduPaths::webKitPath(avatar.smallFilePath());
 		else
-			photoPath = webKitPath(styleHref + QLatin1String("Incoming/buddy_icon.png"));
+			photoPath = KaduPaths::webKitPath(styleHref + QLatin1String("Incoming/buddy_icon.png"));
 	}
 	else if (msg.type() == MessageTypeSent)
 	{
 		result.replace(QString("%messageClasses%"), "message outgoing");
 		const Avatar &avatar = msg.messageChat().chatAccount().accountContact().avatar(true);
 		if (!avatar.isEmpty())
-			photoPath = webKitPath(avatar.filePath());
+			photoPath = KaduPaths::webKitPath(avatar.smallFilePath());
 		else
-			photoPath = webKitPath(styleHref + QLatin1String("Outgoing/buddy_icon.png"));
+			photoPath = KaduPaths::webKitPath(styleHref + QLatin1String("Outgoing/buddy_icon.png"));
 	}
 	else
 		result.remove(QString("%messageClasses%"));

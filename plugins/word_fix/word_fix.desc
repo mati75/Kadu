@@ -1,7 +1,10 @@
 [Module]
-Description=Automatic word replacement
-Description[pl]=Automatyczna zamiana s��w
+DisplayName=Word replacement
+DisplayName[pl]=Zamiana słów
+Description=Replaces words in sent messages
+Description[pl]=Zamienia słowa w wysyłanych wiadomościach
 Author=PK Team, Dorregaray
 LoadByDefault=false
 Version=core
 Plugin=true
+Category=Chat

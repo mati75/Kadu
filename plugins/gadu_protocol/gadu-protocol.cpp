@@ -65,7 +65,6 @@
 
 #include "server/gadu-servers-manager.h"
 #include "socket-notifiers/gadu-protocol-socket-notifiers.h"
-#include "socket-notifiers/gadu-pubdir-socket-notifiers.h"
 
 #include "helpers/gadu-importer.h"
 #include "helpers/gadu-protocol-helper.h"
@@ -120,7 +119,7 @@ GaduProtocol::~GaduProtocol()
 {
 	kdebugf();
 
-	disconnect(account(), SIGNAL(updated()), this, SLOT(accountUpdated()));
+	disconnect(account(), 0, this, 0);
 
 	kdebugf2();
 }
@@ -146,7 +145,7 @@ void GaduProtocol::setStatusFlags()
 
 void GaduProtocol::sendStatusToServer()
 {
-	if (!isConnected())
+	if (!isConnected() && !isDisconnecting())
 		return;
 
 	if (!GaduSession)
@@ -161,10 +160,12 @@ void GaduProtocol::sendStatusToServer()
 
 	setStatusFlags();
 
+	disableSocketNotifiers();
 	if (hasDescription)
 		gg_change_status_descr(GaduSession, type | friends, newStatus.description().toUtf8().constData());
 	else
 		gg_change_status(GaduSession, type | friends);
+	enableSocketNotifiers();
 
 	account().accountContact().setCurrentStatus(status());
 }
@@ -188,7 +189,9 @@ void GaduProtocol::everyMinuteActions()
 {
 	kdebugf();
 
+	disableSocketNotifiers();
 	gg_ping(GaduSession);
+	enableSocketNotifiers();
 	CurrentChatImageService->resetSendImageRequests();
 }
 
@@ -298,20 +301,20 @@ void GaduProtocol::afterLoggedIn()
 	setUpFileTransferService();
 
 	// we do not need to wait for "rosterReady" signal in GaduGadu
-	rosterService()->prepareRoster();
+	rosterService()->prepareRoster(ContactManager::instance()->contacts(account(), ContactManager::ExcludeAnonymous));
 	sendStatusToServer();
 }
 
 void GaduProtocol::logout()
 {
-	kdebugf();
-
-	// we need to change status manually in gadu
+	// we need to changestatus manually in gadu
 	// status is offline
 	sendStatusToServer();
-	gg_logoff(GaduSession);
+	// Kadu bug #2542
+	// gg_logoff(GaduSession);
 
-	loggedOut();
+	// TODO: it never gets called when unloading gadu_protocol and causes memory and resource leak
+	QTimer::singleShot(0, this, SLOT(loggedOut()));
 }
 
 void GaduProtocol::disconnectedCleanup()
@@ -353,14 +356,14 @@ void GaduProtocol::setupLoginParams()
 		return;
 
 	GaduLoginParams.uin = account().id().toULong();
-	GaduLoginParams.password = strdup(account().password().toAscii().constData());
+	GaduLoginParams.password = qstrdup(account().password().toAscii().constData());
 
 	GaduLoginParams.async = 1;
 
 	GaduLoginParams.status = (GaduProtocolHelper::gaduStatusFromStatus(loginStatus()) | (account().privateStatus() ? GG_STATUS_FRIENDS_MASK : 0));
 
 	if (!loginStatus().description().isEmpty())
-		GaduLoginParams.status_descr = strdup(loginStatus().description().toUtf8().constData());
+		GaduLoginParams.status_descr = qstrdup(loginStatus().description().toUtf8().constData());
 
 	GaduLoginParams.tls = gaduAccountDetails->tlsEncryption() ? GG_SSL_ENABLED : GG_SSL_DISABLED;
 
@@ -380,7 +383,7 @@ void GaduProtocol::setupLoginParams()
 	GaduLoginParams.external_port = gaduAccountDetails->externalPort();
 
 	GaduLoginParams.protocol_version = GG_DEFAULT_PROTOCOL_VERSION;
-	GaduLoginParams.client_version = strdup(Core::nameWithVersion().toUtf8().constData());
+	GaduLoginParams.client_version = qstrdup(Core::nameWithVersion().toUtf8().constData());
 	GaduLoginParams.protocol_features =
 			GG_FEATURE_UNKNOWN_4 | // GG_FEATURE_STATUS80
 			GG_FEATURE_DND_FFC |
@@ -404,18 +407,18 @@ void GaduProtocol::setupLoginParams()
 
 void GaduProtocol::cleanUpLoginParams()
 {
-	memset(GaduLoginParams.password, 0, strlen(GaduLoginParams.password));
-	free(GaduLoginParams.password);
-	GaduLoginParams.password = 0;
+	if (GaduLoginParams.password)
+	{
+		memset(GaduLoginParams.password, 0, qstrlen(GaduLoginParams.password));
+		delete [] GaduLoginParams.password;
+		GaduLoginParams.password = 0;
+	}
 
-	free(GaduLoginParams.client_version);
+	delete [] GaduLoginParams.client_version;
 	GaduLoginParams.client_version = 0;
 
-	if (GaduLoginParams.status_descr)
-	{
-		free(GaduLoginParams.status_descr);
-		GaduLoginParams.status_descr = 0;
-	}
+	delete [] GaduLoginParams.status_descr;
+	GaduLoginParams.status_descr = 0;
 }
 
 void GaduProtocol::startFileTransferService()
@@ -541,6 +544,18 @@ void GaduProtocol::disconnectedFromServer()
 QString GaduProtocol::statusPixmapPath()
 {
 	return QLatin1String("gadu-gadu");
+}
+
+void GaduProtocol::disableSocketNotifiers()
+{
+	if (SocketNotifiers)
+		SocketNotifiers->disable();
+}
+
+void GaduProtocol::enableSocketNotifiers()
+{
+	if (SocketNotifiers)
+		SocketNotifiers->enable();
 }
 
 void GaduProtocol::configurationUpdated()

@@ -30,11 +30,11 @@
 #include "contacts/contact.h"
 #include "core/core.h"
 #include "misc/misc.h"
+#include "protocols/services/roster/roster-entry.h"
 #include "debug.h"
 
 #include "helpers/gadu-list-helper.h"
 #include "services/gadu-contact-list-state-machine.h"
-#include "socket-notifiers/gadu-protocol-socket-notifiers.h"
 #include "gadu-account-details.h"
 #include "gadu-protocol.h"
 
@@ -139,7 +139,7 @@ void GaduContactListService::handleEventUserlist100PutReply(struct gg_event *e)
 			// there is potential possibility that something changed after we sent request but before getting reply
 			// TODO: fix it
 			foreach (const Contact &contact, ContactManager::instance()->dirtyContacts(Protocol->account()))
-				contact.setDirty(false);
+				contact.rosterEntry()->setState(RosterEntrySynchronized);
 
 			emit stateMachineSucceededExporting();
 
@@ -203,7 +203,11 @@ void GaduContactListService::importContactList()
 {
 	ContactListService::importContactList();
 
-	if (-1 == gg_userlist100_request(Protocol->gaduSession(), GG_USERLIST100_GET, 0, GG_USERLIST100_FORMAT_TYPE_GG70, 0))
+	static_cast<GaduProtocol *>(protocol())->disableSocketNotifiers();
+	int ret = gg_userlist100_request(Protocol->gaduSession(), GG_USERLIST100_GET, 0, GG_USERLIST100_FORMAT_TYPE_GG70, 0);
+	static_cast<GaduProtocol *>(protocol())->enableSocketNotifiers();
+
+	if (-1 == ret)
 	{
 		emit stateMachineInternalError();
 		emit contactListImported(false, BuddyList());
@@ -222,9 +226,18 @@ void GaduContactListService::exportContactList(const BuddyList &buddies)
 	kdebugmf(KDEBUG_NETWORK|KDEBUG_INFO, "\n%s\n", contacts.constData());
 
 	GaduAccountDetails *accountDetails = dynamic_cast<GaduAccountDetails *>(Protocol->account().details());
-	if (!accountDetails || -1 == gg_userlist100_request(
-			Protocol->gaduSession(), GG_USERLIST100_PUT, accountDetails->userlistVersion(),
-			GG_USERLIST100_FORMAT_TYPE_GG70, contacts.constData()))
+	if (!accountDetails)
+	{
+		emit stateMachineInternalError();
+		return;
+	}
+
+	static_cast<GaduProtocol *>(protocol())->disableSocketNotifiers();
+	int ret = gg_userlist100_request(Protocol->gaduSession(),
+			GG_USERLIST100_PUT, accountDetails->userlistVersion(), GG_USERLIST100_FORMAT_TYPE_GG70, contacts.constData());
+	static_cast<GaduProtocol *>(protocol())->enableSocketNotifiers();
+
+	if (-1 == ret)
 		emit stateMachineInternalError();
 }
 

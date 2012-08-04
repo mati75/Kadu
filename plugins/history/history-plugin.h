@@ -36,6 +36,7 @@ class HistoryPlugin : public QObject, public GenericPlugin
 	Q_INTERFACES(GenericPlugin)
 
 public:
+	HistoryPlugin();
 	virtual ~HistoryPlugin();
 
 	virtual int init(bool firstLoad);

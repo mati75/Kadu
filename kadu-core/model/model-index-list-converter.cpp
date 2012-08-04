@@ -19,6 +19,8 @@
 
 #include "buddies/buddy-preferred-manager.h"
 #include "chat/chat-manager.h"
+#include "chat/type/chat-type-contact.h"
+#include "chat/type/chat-type-contact-set.h"
 #include "message/message-manager.h"
 #include "model/roles.h"
 
@@ -84,7 +86,13 @@ Chat ModelIndexListConverter::chatFromIndex(const QModelIndex &index) const
 	switch (index.data(ItemTypeRole).toInt())
 	{
 		case ChatRole:
-			return index.data(ChatRole).value<Chat>();
+		{
+			Chat chat = index.data(ChatRole).value<Chat>();
+			if (chat.chatAccount())
+				return chat;
+			else
+				return Chat::null;
+		}
 		case BuddyRole:
 			return MessageManager::instance()->unreadMessageForBuddy(index.data(BuddyRole).value<Buddy>()).messageChat();
 		case ContactRole:
@@ -100,7 +108,13 @@ Chat ModelIndexListConverter::chatFromBuddies() const
 	foreach (const QModelIndex &index, ModelIndexList)
 		buddies.insert(index.data(BuddyRole).value<Buddy>());
 
-	return ChatManager::instance()->findChat(buddies, true);
+	if (0 == buddies.size())
+		return Chat::null;
+
+	if (1 == buddies.size())
+		return ChatTypeContact::findChat(BuddyPreferredManager::instance()->preferredContact2(*buddies.begin()), ActionCreateAndAdd);
+	else
+		return ChatTypeContactSet::findChat(BuddyPreferredManager::instance()->preferredContacts(buddies), ActionCreateAndAdd);
 }
 
 Chat ModelIndexListConverter::chatFromContacts(const Account &account) const
@@ -118,7 +132,11 @@ Chat ModelIndexListConverter::chatFromContacts(const Account &account) const
 		contacts.insert(contact);
 	}
 
-	return ChatManager::instance()->findChat(contacts, true);
+	if (contacts.isEmpty())
+		return Chat::null;
+	return 1 == contacts.size()
+			? ChatTypeContact::findChat(*contacts.constBegin(), ActionCreateAndAdd)
+			: ChatTypeContactSet::findChat(contacts, ActionCreateAndAdd);
 }
 
 Account ModelIndexListConverter::commonAccount() const

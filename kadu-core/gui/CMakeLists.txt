@@ -1,5 +1,6 @@
 set (gui_SRCS
 	actions/chat/add-conference-action.cpp
+	actions/chat/add-room-chat-action.cpp
 	actions/chat/leave-chat-action.cpp
 
 	actions/action.cpp
@@ -10,6 +11,8 @@ set (gui_SRCS
 	actions/default-proxy-action.cpp
 	actions/delete-talkable-action.cpp
 	actions/edit-talkable-action.cpp
+
+	model/checkbox-styled-item-delegate.cpp
 
 	widgets/account-buddy-list-widget.cpp
 	widgets/account-avatar-widget.cpp
@@ -27,9 +30,12 @@ set (gui_SRCS
 	widgets/buddy-personal-info-configuration-widget.cpp
 	widgets/buddy-options-configuration-widget.cpp
 	widgets/buddy-info-panel.cpp
+	widgets/categorized-list-view.cpp
+	widgets/categorized-list-view-painter.cpp
 	widgets/chat-edit-box.cpp
 	widgets/chat-edit-box-size-manager.cpp
 	widgets/chat-messages-view.cpp
+	widgets/chat-room-edit-widget.cpp
 	widgets/chat-view-network-access-manager.cpp
 	widgets/chat-widget.cpp
 	widgets/chat-widget-actions.cpp
@@ -48,6 +54,7 @@ set (gui_SRCS
 	widgets/group-tab-bar.cpp
 	widgets/groups-combo-box.cpp
 	widgets/identities-combo-box.cpp
+	widgets/kadu-text-edit.cpp
 	widgets/kadu-tree-view.cpp
 	widgets/kadu-tree-view-delegate.cpp
 	widgets/kadu-web-view.cpp
@@ -56,6 +63,10 @@ set (gui_SRCS
 	widgets/modal-configuration-widget.cpp
 	widgets/path-edit.cpp
 	widgets/path-list-edit.cpp
+	widgets/plugin-list-widget.cpp
+	widgets/plugin-list-view-delegate.cpp
+	widgets/plugin-list-view-delegate-widgets.cpp
+	widgets/plugin-list-widget-item-delegate.cpp
 	widgets/progress-icon.cpp
 	widgets/progress-label.cpp
 	widgets/protocols-combo-box.cpp
@@ -114,12 +125,13 @@ set (gui_SRCS
 	windows/about.cpp
 	windows/add-buddy-window.cpp
 	windows/add-conference-window.cpp
+	windows/add-room-chat-window.cpp
 	windows/buddy-data-window.cpp
 	windows/buddy-data-window-aware-object.cpp
 	windows/buddy-delete-window.cpp
 	windows/chat-data-window.cpp
+	windows/chat-data-window-aware-object.cpp
 	windows/chat-window.cpp
-	windows/choose-description.cpp
 	windows/configuration-window.cpp
 	windows/file-transfer-window.cpp
 	windows/group-properties-window.cpp
@@ -129,7 +141,7 @@ set (gui_SRCS
 	windows/main-window.cpp
 	windows/merge-buddies-window.cpp
 	windows/message-dialog.cpp
-	windows/modules-window.cpp
+	windows/plugins-window.cpp
 	windows/multilogon-window.cpp
 	windows/password-window.cpp
 	windows/plugin-error-dialog.cpp
@@ -139,8 +151,11 @@ set (gui_SRCS
 	windows/proxy-edit-window.cpp
 	windows/search-window.cpp
 	windows/search-window-actions.cpp
+	windows/status-window.cpp
+	windows/status-window-description-proxy-model.cpp
 	windows/subscription-window.cpp
 	windows/syntax-editor-window.cpp
+	windows/token-window.cpp
 	windows/updates-dialog.cpp
 	windows/window-notifier-window.cpp
 	windows/your-accounts.cpp
@@ -152,10 +167,12 @@ set (gui_SRCS
 	hot-key.cpp
 	status-icon.cpp
 	web-view-highlighter.cpp
+	window-manager.cpp
 )
 
 set (gui_MOC_SRCS
 	actions/chat/add-conference-action.h
+	actions/chat/add-room-chat-action.h
 	actions/chat/leave-chat-action.h
 
 	actions/action.h
@@ -167,6 +184,8 @@ set (gui_MOC_SRCS
 	actions/delete-talkable-action.h
 	actions/default-proxy-action.h
 	actions/edit-talkable-action.h
+
+	model/checkbox-styled-item-delegate.h
 
 	widgets/account-add-widget.h
 	widgets/account-avatar-widget.h
@@ -186,9 +205,13 @@ set (gui_MOC_SRCS
 	widgets/buddy-personal-info-configuration-widget.h
 	widgets/buddy-options-configuration-widget.h
 	widgets/buddy-info-panel.h
+	widgets/categorized-list-view.h
+	widgets/categorized-list-view-painter.h
 	widgets/chat-edit-box.h
 	widgets/chat-edit-box-size-manager.h
+	widgets/chat-edit-widget.h
 	widgets/chat-messages-view.h
+	widgets/chat-room-edit-widget.h
 	widgets/chat-view-network-access-manager.h
 	widgets/chat-widget.h
 	widgets/chat-widget-actions.h
@@ -206,6 +229,7 @@ set (gui_MOC_SRCS
 	widgets/group-tab-bar.h
 	widgets/groups-combo-box.h
 	widgets/identities-combo-box.h
+	widgets/kadu-text-edit.h
 	widgets/kadu-tree-view.h
 	widgets/kadu-tree-view-delegate.h
 	widgets/kadu-web-view.h
@@ -214,6 +238,9 @@ set (gui_MOC_SRCS
 	widgets/modal-configuration-widget.h
 	widgets/path-edit.h
 	widgets/path-list-edit.h
+	widgets/plugin-list-widget.h
+	widgets/plugin-list-view-delegate.h
+	widgets/plugin-list-widget-item-delegate.h
 	widgets/preview.h
 	widgets/proxy-combo-box.h
 	widgets/progress-icon.h
@@ -269,11 +296,11 @@ set (gui_MOC_SRCS
 	windows/about.h
 	windows/add-buddy-window.h
 	windows/add-conference-window.h
+	windows/add-room-chat-window.h
 	windows/buddy-data-window.h
 	windows/buddy-delete-window.h
 	windows/chat-data-window.h
 	windows/chat-window.h
-	windows/choose-description.h
 	windows/configuration-window.h
 	windows/file-transfer-window.h
 	windows/group-properties-window.h
@@ -282,7 +309,7 @@ set (gui_MOC_SRCS
 	windows/main-configuration-window.h
 	windows/main-window.h
 	windows/merge-buddies-window.h
-	windows/modules-window.h
+	windows/plugins-window.h
 	windows/multilogon-window.h
 	windows/password-window.h
 	windows/plugin-error-dialog.h
@@ -292,8 +319,11 @@ set (gui_MOC_SRCS
 	windows/proxy-edit-window.h
 	windows/search-window.h
 	windows/search-window-actions.h
+	windows/status-window.h
+	windows/status-window-description-proxy-model.h
 	windows/subscription-window.h
 	windows/syntax-editor-window.h
+	windows/token-window.h
 	windows/updates-dialog.h
 	windows/window-notifier-window.h
 	windows/your-accounts.h
@@ -304,6 +334,7 @@ set (gui_MOC_SRCS
 	hot-key.h
 	status-icon.h
 	web-view-highlighter.h
+	window-manager.h
 )
 
 if (MINGW)

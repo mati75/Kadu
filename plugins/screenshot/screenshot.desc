@@ -1,6 +1,8 @@
 [Module]
-Description=Simple ScreenShots module for Kadu
-Description[pl]=Modu≥ prostych zrzutÛw ekranu dla Kadu
+DisplayName=Screenshots
+DisplayName[pl]=Zrzuty ekranu
+Description=Allows to capture and send screenshots via Kadu
+Description[pl]=Umo≈ºliwia tworzenie i przesy≈Çanie zrzut√≥w ekranu poprzez Kadu
 Author=Googie
 Provides=
 Conflicts=

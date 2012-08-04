@@ -48,6 +48,7 @@ Nowa funkcjonalnosc - Dorregaray
 #include "accounts/account.h"
 #include "buddies/buddy-manager.h"
 #include "chat/chat-manager.h"
+#include "chat/type/chat-type-contact.h"
 #include "configuration/configuration-file.h"
 #include "core/core.h"
 #include "gui/widgets/chat-widget-manager.h"
@@ -62,7 +63,6 @@ Nowa funkcjonalnosc - Dorregaray
 #include "status/status-container.h"
 #include "debug.h"
 
-#include "buddy-firewall-data.h"
 #include "firewall-notification.h"
 
 #include "firewall.h"
@@ -133,19 +133,15 @@ void Firewall::accountRegistered(Account account)
 
 void Firewall::accountUnregistered(Account account)
 {
+	disconnect(account, 0, this, 0);
+
 	Protocol *protocol = account.protocolHandler();
 	if (!protocol)
 		return;
 
 	ChatService *chatService = protocol->chatService();
-	if (!chatService)
-		return;
-
-	disconnect(chatService, SIGNAL(filterIncomingMessage(Chat, Contact, QString &, bool &)),
-			this, SLOT(filterIncomingMessage(Chat, Contact, QString &, bool &)));
-	disconnect(chatService, SIGNAL(filterOutgoingMessage(Chat, QString &, bool &)),
-			this, SLOT(filterOutgoingMessage(Chat, QString &, bool &)));
-	disconnect(account, SIGNAL(connected()), this, SLOT(accountConnected()));
+	if (chatService)
+		disconnect(chatService, 0, this, 0);
 }
 
 void Firewall::filterIncomingMessage(Chat chat, Contact sender, QString &message, bool &ignore)
@@ -283,8 +279,8 @@ bool Firewall::checkChat(const Chat &chat, const Contact &sender, const QString 
 	{
 		if (sender.currentStatus().isDisconnected())
 		{
-			QDateTime *dateTime = chat.chatAccount().data()->moduleData<QDateTime>("firewall-account-connected");
-			if (dateTime && (*dateTime < QDateTime::currentDateTime()))
+			QDateTime dateTime = chat.chatAccount().property("firewall:firewall-account-connected", QDateTime()).toDateTime();
+			if (dateTime.isValid() && dateTime < QDateTime::currentDateTime())
 			{
 				Protocol *protocol = chat.chatAccount().protocolHandler();
 				if (!protocol)
@@ -354,9 +350,8 @@ bool Firewall::checkChat(const Chat &chat, const Contact &sender, const QString 
 
 		kdebugm(KDEBUG_INFO, "%s\n", qPrintable(message));
 
-		QDateTime *dateTime = chat.chatAccount().data()->moduleData<QDateTime>("firewall-account-connected");
-
-		if (dateTime && (*dateTime < QDateTime::currentDateTime()))
+		QDateTime dateTime = chat.chatAccount().property("firewall:firewall-account-connected", QDateTime()).toDateTime();
+		if (dateTime.isValid() && dateTime < QDateTime::currentDateTime())
 		{
 			Protocol *protocol = chat.chatAccount().protocolHandler();
 			if (!protocol)
@@ -430,8 +425,7 @@ void Firewall::accountConnected()
 	if (!account)
 		return;
 
-	QDateTime *dateTime = account.data()->moduleData<QDateTime>("firewall-account-connected", true);
-	*dateTime = QDateTime::currentDateTime().addMSecs(4000);
+	account.addProperty("firewall:firewall-account-connected", QDateTime::currentDateTime().addMSecs(4000), CustomProperties::NonStorable);
 
 	kdebugf2();
 }
@@ -456,7 +450,7 @@ void Firewall::filterOutgoingMessage(Chat chat, QString &msg, bool &stop)
 
 	foreach (const Contact &contact, chat.contacts())
 	{
-		Chat chat = ChatManager::instance()->findChat(ContactSet(contact), false);
+		Chat chat = ChatTypeContact::findChat(contact, ActionReturnNull);
 		if (!chat)
 			continue;
 
@@ -472,9 +466,7 @@ void Firewall::filterOutgoingMessage(Chat chat, QString &msg, bool &stop)
 
 			if (buddy)
 			{
-				BuddyFirewallData *bfd = buddy.data()->moduleStorableData<BuddyFirewallData>("firewall-secured-sending", Firewall::instance(), false);
-
-				if (!bfd || !bfd->securedSending())
+				if (!buddy.property("firewall-secured-sending:FirewallSecuredSending", false).toBool())
 					return;
 			}
 
@@ -537,9 +529,7 @@ void Firewall::import_0_6_5_configuration()
 		if (buddy.isNull() || buddy.isAnonymous())
 			continue;
 
-		BuddyFirewallData *bfd = buddy.data()->moduleStorableData<BuddyFirewallData>("firewall-secured-sending", Firewall::instance(), true);
-		bfd->setSecuredSending(true);
-		bfd->ensureStored();
+		buddy.addProperty("firewall-secured-sending:FirewallSecuredSending", true, CustomProperties::Storable);
 	}
 
 	config_file.removeVariable("Firewall", "Secured_list");
@@ -552,7 +542,7 @@ void Firewall::configurationUpdated()
 	CheckFloodingEmoticons = config_file.readBoolEntry("Firewall", "dos_emoticons", true);
 	EmoticonsAllowKnown = config_file.readBoolEntry("Firewall", "emoticons_allow_known", false);
 	WriteLog = config_file.readBoolEntry("Firewall", "write_log", true);
-	LogFilePath = config_file.readEntry("Firewall", "logFile", profilePath("firewall.log"));
+	LogFilePath = config_file.readEntry("Firewall", "logFile", KaduPaths::instance()->profilePath() + QLatin1String("firewall.log"));
 	CheckDos = config_file.readBoolEntry("Firewall", "dos", true);
 	CheckChats = config_file.readBoolEntry("Firewall", "chats", true);
 	IgnoreConferences = config_file.readBoolEntry("Firewall", "ignore_conferences", true);
@@ -593,5 +583,5 @@ void Firewall::createDefaultConfiguration()
 	config_file.addVariable("Firewall", "emoticons_allow_known", false);
 	config_file.addVariable("Firewall", "safe_sending", false);
 	config_file.addVariable("Firewall", "write_log", true);
-	config_file.addVariable("Firewall", "logFile", profilePath("firewall.log"));
+	config_file.addVariable("Firewall", "logFile", KaduPaths::instance()->profilePath() + QLatin1String("firewall.log"));
 }

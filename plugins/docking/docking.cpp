@@ -121,11 +121,13 @@ DockingManager::DockingManager() :
 	connect(IconsManager::instance(), SIGNAL(themeChanged()), this, SLOT(iconThemeChanged()));
 
 	DockMenu = new QMenu();
+	DockMenu->setSeparatorsCollapsible(true);
 	connect(DockMenu, SIGNAL(aboutToShow()), this, SLOT(contextMenuAboutToBeShown()));
 
 #ifdef Q_OS_MAC
 	MacDockMenu = new QMenu();
 	qt_mac_set_dock_menu(MacDockMenu);
+	MacDockMenu->setSeparatorsCollapsible(true);
 #endif
 
 #ifdef Q_WS_X11
@@ -148,14 +150,7 @@ DockingManager::~DockingManager()
 {
 	kdebugf();
 
-	disconnect(MessageManager::instance(), SIGNAL(unreadMessageAdded(Message)),
-	           this, SLOT(unreadMessageAdded()));
-	disconnect(MessageManager::instance(), SIGNAL(unreadMessageRemoved(Message)),
-	           this, SLOT(unreadMessageRemoved()));
-
-//	disconnect(kadu, SIGNAL(searchingForTrayPosition(QPoint&)), this, SIGNAL(searchingForTrayPosition(QPoint&)));
-
-	disconnect(icon_timer, SIGNAL(timeout()), this, SLOT(changeIcon()));
+	icon_timer->stop();
 
 	delete DockMenu;
 	DockMenu = 0;
@@ -175,7 +170,7 @@ void DockingManager::changeIcon()
 	{
 		case AnimatedEnvelope:
 			if (CurrentDocker)
-				CurrentDocker->changeTrayMovie(KaduIcon("protocols/common/16x16/message_anim.gif").fullPath());
+				CurrentDocker->changeTrayMovie(KaduIcon("protocols/common/message_anim", "16x16").fullPath());
 			break;
 		case StaticEnvelope:
 			if (CurrentDocker)
@@ -424,11 +419,13 @@ void DockingManager::doUpdateContextMenu()
 
 	if (!ModulesActions.isEmpty())
 	{
+		DockMenu->addSeparator();
+
 		foreach (QAction *action, ModulesActions)
 			DockMenu->addAction(action);
-
-		DockMenu->addSeparator();
 	}
+
+	DockMenu->addSeparator();
 
 #ifdef Q_WS_X11
 	KaduWindowLastTimeVisible = Core::instance()->kaduWindow()->window()->isVisible();

@@ -19,6 +19,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <QtGui/QIcon>
 #include <QtGui/QMovie>
 
 #include "icons/kadu-icon.h"
@@ -28,7 +29,7 @@
 ProgressIcon::ProgressIcon(QWidget *parent) :
 		QLabel(parent), State(StateFinished)
 {
-	ProgressMovie = new QMovie(KaduIcon("kadu_icons/16x16/please-wait.gif").fullPath(),
+	ProgressMovie = new QMovie(KaduIcon("kadu_icons/please-wait", "16x16").fullPath(),
 			QByteArray(), this);
 
 	setState(StateInProgress);

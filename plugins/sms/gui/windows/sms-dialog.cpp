@@ -26,23 +26,25 @@
 #include <QtGui/QFormLayout>
 #include <QtGui/QHBoxLayout>
 #include <QtGui/QKeyEvent>
+#include <QtGui/QLabel>
 #include <QtGui/QLineEdit>
 #include <QtGui/QPushButton>
 #include <QtGui/QTextEdit>
 #include <QtGui/QVBoxLayout>
 
 #include "buddies/buddy-manager.h"
-#include "buddies/model/buddies-model.h"
+#include "buddies/model/buddy-list-model.h"
+#include "buddies/model/buddy-manager-adapter.h"
 #include "configuration/configuration-file.h"
 #include "gui/widgets/select-talkable-combo-box.h"
 #include "gui/windows/message-dialog.h"
+#include "gui/windows/progress-window2.h"
 #include "icons/kadu-icon.h"
 #include "misc/misc.h"
 #include "plugins/plugins-manager.h"
 #include "talkable/filter/mobile-talkable-filter.h"
 #include "debug.h"
 
-#include "gui/windows/sms-progress-window.h"
 #include "mobile-number-manager.h"
 #include "sms-external-sender.h"
 #include "sms-gateway.h"
@@ -103,7 +105,11 @@ void SmsDialog::createGui()
 
 	RecipientComboBox = new SelectTalkableComboBox(this);
 	RecipientComboBox->addBeforeAction(new QAction(tr(" - Select recipient - "), RecipientComboBox));
-	RecipientComboBox->setBaseModel(new BuddiesModel(RecipientComboBox));
+
+	BuddyListModel *buddyListModel = new BuddyListModel(RecipientComboBox);
+	new BuddyManagerAdapter(buddyListModel);
+
+	RecipientComboBox->setBaseModel(buddyListModel);
 	RecipientComboBox->addFilter(new MobileTalkableFilter(RecipientComboBox));
 
 	connect(RecipientComboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(recipientBuddyChanged()));
@@ -143,6 +149,7 @@ void SmsDialog::createGui()
 	formLayout->addRow(0, SaveInHistoryCheckBox);
 
 	QDialogButtonBox *buttons = new QDialogButtonBox(this);
+	mainLayout->addSpacing(16);
 	mainLayout->addWidget(buttons);
 
 	SendButton = new QPushButton(this);
@@ -155,12 +162,12 @@ void SmsDialog::createGui()
 	QPushButton *closeButton = new QPushButton(qApp->style()->standardIcon(QStyle::SP_DialogCloseButton), tr("Close"));
 	connect(closeButton, SIGNAL(clicked(bool)), this, SLOT(close()));
 
-	QPushButton *clearButton = new QPushButton(qApp->style()->standardIcon(QStyle::SP_DialogDiscardButton), tr("Clear"));
+	QPushButton *clearButton = new QPushButton(qApp->style()->standardIcon(QStyle::SP_DialogResetButton), tr("Clear"));
 	connect(clearButton, SIGNAL(clicked(bool)), this, SLOT(clear()));
 
 	buttons->addButton(SendButton, QDialogButtonBox::ApplyRole);
-	buttons->addButton(clearButton, QDialogButtonBox::ResetRole);
-	buttons->addButton(closeButton, QDialogButtonBox::DestructiveRole);
+	buttons->addButton(closeButton, QDialogButtonBox::RejectRole);
+	buttons->addButton(clearButton, QDialogButtonBox::DestructiveRole);
 
 	resize(400, 250);
 }
@@ -284,8 +291,15 @@ void SmsDialog::sendSms()
 	connect(sender, SIGNAL(gatewayAssigned(QString, QString)), this, SLOT(gatewayAssigned(QString, QString)));
 	sender->setSignature(SignatureEdit->text());
 
-	SmsProgressWindow *window = new SmsProgressWindow(sender);
+	ProgressWindow2 *window = new ProgressWindow2(tr("Sending SMS..."));
+	window->setCancellable(true);
 	window->show();
+
+	connect(window, SIGNAL(canceled()), sender, SLOT(cancel()));
+	connect(sender, SIGNAL(canceled()), window, SLOT(reject()));
+
+	connect(sender, SIGNAL(progress(QString,QString)), window, SLOT(addProgressEntry(QString,QString)));
+	connect(sender, SIGNAL(finished(bool,QString,QString)), window, SLOT(progressFinished(bool,QString,QString)));
 
 	sender->sendMessage(ContentEdit->toPlainText());
 

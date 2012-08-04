@@ -235,9 +235,10 @@ Buddy Buddy::dummy()
 	Account account = Account::create("");
 	account.setAccountIdentity(identity);
 
-	Contact contact = Contact::create("999999");
+	Contact contact = Contact::create();
 	contact.setContactAccount(account);
 	contact.setOwnerBuddy(example);
+	contact.setId("999999");
 	contact.setCurrentStatus(Status(StatusTypeAway, example.data()->tr("Example description")));
 	contact.setAddress(QHostAddress(2130706433));
 	contact.setPort(80);
@@ -271,6 +272,7 @@ KaduSharedBase_PropertyDef(Buddy, BuddyGender, gender, Gender, GenderUnknown)
 KaduSharedBase_PropertyDefCRW(Buddy, QSet<Group>, groups, Groups, QSet<Group>())
 KaduSharedBase_PropertyDef(Buddy, bool, preferHigherStatuses, PreferHigherStatuses, true)
 KaduSharedBase_PropertyBoolDef(Buddy, Anonymous, true)
+KaduSharedBase_PropertyBoolDef(Buddy, Temporary, false)
 KaduSharedBase_PropertyBoolDef(Buddy, Blocked, false)
 KaduSharedBase_PropertyBoolDef(Buddy, OfflineTo, false)
 KaduSharedBase_PropertyReadDef(Buddy, quint16, unreadMessagesCount, UnreadMessagesCount, 0)

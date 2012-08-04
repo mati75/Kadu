@@ -28,7 +28,7 @@
 #include <QtGui/QPushButton>
 #include <QtGui/QVBoxLayout>
 
-#include "chat/aggregate-chat-manager.h"
+#include "chat/buddy-chat-manager.h"
 #include "core/core.h"
 #include "gui/windows/message-dialog.h"
 #include "misc/misc.h"
@@ -43,17 +43,22 @@
 
 HistoryWindow * HistoryWindow::Instance = 0;
 
+HistoryWindow * HistoryWindow::instance()
+{
+	return Instance;
+}
+
 void HistoryWindow::show(const Chat &chat)
 {
-	Chat aggregate = AggregateChatManager::instance()->aggregateChat(chat);
-	if (!aggregate)
-		aggregate = chat;
+	Chat buddyChat = BuddyChatManager::instance()->buddyChat(chat);
+	if (!buddyChat)
+		buddyChat = chat;
 
 	if (!Instance)
 		Instance = new HistoryWindow();
 
 	Instance->updateData();
-	Instance->selectChat(aggregate);
+	Instance->selectChat(buddyChat);
 
 	Instance->setVisible(true);
 	_activateWindow(Instance);
@@ -62,8 +67,6 @@ void HistoryWindow::show(const Chat &chat)
 HistoryWindow::HistoryWindow(QWidget *parent) :
 		QDialog(parent), CurrentTab(-1)
 {
-	setProperty("ownWindowIcon", true);
-
 	setWindowRole("kadu-history");
 	setAttribute(Qt::WA_DeleteOnClose);
 
@@ -79,7 +82,7 @@ HistoryWindow::HistoryWindow(QWidget *parent) :
 
 HistoryWindow::~HistoryWindow()
 {
-	disconnect(History::instance(), SIGNAL(storageChanged(HistoryStorage*)), this, SLOT(storageChanged(HistoryStorage*)));
+	disconnect(History::instance(), 0, this, 0);
 
 	saveWindowGeometry(this, "History", "HistoryDialogGeometry");
 

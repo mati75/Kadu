@@ -32,7 +32,8 @@
 #include <QtGui/QVBoxLayout>
 
 #include "buddies/buddy-manager.h"
-#include "buddies/model/buddies-model.h"
+#include "buddies/model/buddy-list-model.h"
+#include "buddies/model/buddy-manager-adapter.h"
 #include "core/core.h"
 #include "gui/widgets/select-talkable-combo-box.h"
 #include "icons/icons-manager.h"
@@ -68,14 +69,19 @@ void MergeBuddiesWindow::createGui()
 	chooseLayout->addWidget(new QLabel(tr("Contact:"), chooseWidget));
 	SelectCombo = new SelectTalkableComboBox(chooseWidget);
 	SelectCombo->addBeforeAction(new QAction(tr(" - Select buddy - "), SelectCombo));
-	SelectCombo->setBaseModel(new BuddiesModel(SelectCombo));
+
+	BuddyListModel *buddyListModel = new BuddyListModel(SelectCombo);
+	new BuddyManagerAdapter(buddyListModel);
+	SelectCombo->setBaseModel(buddyListModel);
 	SelectCombo->addFilter(new ExcludeBuddyTalkableFilter(MyBuddy, SelectCombo));
 	SelectCombo->addFilter(new ExcludeBuddyTalkableFilter(Core::instance()->myself(), SelectCombo));
 	connect(SelectCombo, SIGNAL(currentIndexChanged(int)), this, SLOT(selectedBuddyChanged()));
 	chooseLayout->addWidget(SelectCombo);
 
 	layout->addStretch(100);
+
 	QDialogButtonBox *buttons = new QDialogButtonBox(this);
+	layout->addSpacing(16);
 	layout->addWidget(buttons);
 
 	MergeButton = new QPushButton(qApp->style()->standardIcon(QStyle::SP_DialogOkButton), tr("Merge"), this);

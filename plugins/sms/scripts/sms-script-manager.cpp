@@ -34,9 +34,10 @@
 #include <QtScriptTools/QScriptEngineDebugger>
 #endif
 
-#include "gui/windows/sms-token-reader.h"
-#include "misc/path-conversion.h"
+#include "misc/kadu-paths.h"
+
 #include "scripts/network-access-manager-wrapper.h"
+#include "scripts/sms-translator.h"
 
 #include "sms-script-manager.h"
 
@@ -63,13 +64,9 @@ SmsScriptsManager::SmsScriptsManager()
 {
 	Engine = new QScriptEngine(this);
 	Network = new NetworkAccessManagerWrapper(Engine, this);
-	TokenReader = new SmsTokenReader(this);
 
-	QScriptValue scriptNetwork = Engine->newQObject(Network);
-	QScriptValue tokenReader = Engine->newQObject(TokenReader);
-
-	Engine->globalObject().setProperty("network", scriptNetwork);
-	Engine->globalObject().setProperty("tokenReader", tokenReader);
+	Engine->globalObject().setProperty("network", Engine->newQObject(Network));
+	Engine->globalObject().setProperty("translator", Engine->newQObject(new SmsTranslator(this)));
 }
 
 SmsScriptsManager::~SmsScriptsManager()
@@ -84,20 +81,20 @@ void SmsScriptsManager::init()
  	debugger->standardWindow()->show();
 #endif
 
-	QString scriptPath = profilePath("plugins/data/sms/scripts/gateway.js");
+	QString scriptPath = KaduPaths::instance()->profilePath() + QLatin1String("plugins/data/sms/scripts/gateway.js");
 	if (QFile::exists(scriptPath))
 		loadScript(scriptPath);
 	else
 	{
-		scriptPath = dataPath("plugins/data/sms/scripts/gateway.js");
+		scriptPath = KaduPaths::instance()->dataPath() + QLatin1String("plugins/data/sms/scripts/gateway.js");
 		if (QFile::exists(scriptPath))
 			loadScript(scriptPath);
 		// TODO: maybe we should return here if no gateway.js was found?
 	}
 
 	// scripts from profile path can replace the ones from data path if the file name is the same
-	loadScripts(QDir(profilePath("plugins/data/sms/scripts/")));
-	loadScripts(QDir(dataPath("plugins/data/sms/scripts/")));
+	loadScripts(QDir(KaduPaths::instance()->profilePath() + QLatin1String("plugins/data/sms/scripts")));
+	loadScripts(QDir(KaduPaths::instance()->dataPath() + QLatin1String("plugins/data/sms/scripts")));
 }
 
 void SmsScriptsManager::loadScripts(const QDir &dir)

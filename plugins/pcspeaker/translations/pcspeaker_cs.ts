@@ -5,7 +5,7 @@
     <name>@default</name>
     <message>
         <source>PC Speaker</source>
-        <translation type="unfinished"></translation>
+        <translation>Reproduktor PC</translation>
     </message>
 </context>
 <context>

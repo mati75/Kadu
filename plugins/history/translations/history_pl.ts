@@ -73,29 +73,10 @@
     </message>
 </context>
 <context>
-    <name>BuddyStatusDatesModel</name>
+    <name>ChatHistoryTab</name>
     <message>
-        <source>Date</source>
-        <translation>Data</translation>
-    </message>
-    <message>
-        <source>Length</source>
-        <translation>Długość</translation>
-    </message>
-</context>
-<context>
-    <name>ChatDatesModel</name>
-    <message>
-        <source>Title</source>
-        <translation>Tytuł</translation>
-    </message>
-    <message>
-        <source>Date</source>
-        <translation>Data</translation>
-    </message>
-    <message>
-        <source>Length</source>
-        <translation>Długość</translation>
+        <source>&amp;Clear Chat History</source>
+        <translation>&amp;Wyczyść historię rozmów</translation>
     </message>
 </context>
 <context>
@@ -110,14 +91,55 @@
     </message>
 </context>
 <context>
-    <name>HistoryChatsModel</name>
+    <name>HistoryBuddyDataWindowAddons</name>
     <message>
-        <source>Statuses</source>
-        <translation>Statusy</translation>
+        <source>Store history</source>
+        <translation>Zapisuj historię</translation>
+    </message>
+</context>
+<context>
+    <name>HistoryChatDataWindowAddons</name>
+    <message>
+        <source>Store history</source>
+        <translation>Zapisuj historię</translation>
+    </message>
+</context>
+<context>
+    <name>HistoryMessagesTab</name>
+    <message>
+        <source>&amp;Remove entries</source>
+        <translation>&amp;Usuń wpisy</translation>
     </message>
     <message>
-        <source>SMSes</source>
-        <translation>SMSy</translation>
+        <source>Filter</source>
+        <translation>Filtruj</translation>
+    </message>
+    <message>
+        <source>Kadu</source>
+        <translation>Kadu</translation>
+    </message>
+    <message>
+        <source>Do you really want to delete history?</source>
+        <translation>Na prawdę chcesz usunąć historię?</translation>
+    </message>
+</context>
+<context>
+    <name>HistoryQueryResultsModel</name>
+    <message>
+        <source>Chat</source>
+        <translation>Rozmowa</translation>
+    </message>
+    <message>
+        <source>Length</source>
+        <translation>Długość</translation>
+    </message>
+    <message>
+        <source>Date</source>
+        <translation>Data</translation>
+    </message>
+    <message>
+        <source>Title</source>
+        <translation>Tytuł</translation>
     </message>
 </context>
 <context>
@@ -127,28 +149,8 @@
         <translation>Historia</translation>
     </message>
     <message>
-        <source>&amp;Remove entries</source>
-        <translation>&amp;Usuń wpisy</translation>
-    </message>
-    <message>
         <source>Search</source>
         <translation>Szukaj</translation>
-    </message>
-    <message>
-        <source>by date</source>
-        <translation>Po dacie</translation>
-    </message>
-    <message>
-        <source>From</source>
-        <translation>od</translation>
-    </message>
-    <message>
-        <source>To</source>
-        <translation>do</translation>
-    </message>
-    <message>
-        <source>&amp;Clear Chat History</source>
-        <translation>&amp;Wyczyść historię rozmów</translation>
     </message>
     <message>
         <source>&amp;Clear Status History</source>
@@ -159,12 +161,16 @@
         <translation>&amp;Wyczyść historię SMSów</translation>
     </message>
     <message>
-        <source>Kadu</source>
-        <translation>Kadu</translation>
+        <source>Chats</source>
+        <translation>Rozmowy</translation>
     </message>
     <message>
-        <source>There is no history storage plugin loaded!</source>
-        <translation>Żaden plugin przechowywania historii nie jest załadowany.</translation>
+        <source>Statuses</source>
+        <translation>Statusy</translation>
+    </message>
+    <message>
+        <source>SMS</source>
+        <translation>SMS</translation>
     </message>
 </context>
 <context>
@@ -172,6 +178,65 @@
     <message>
         <source>Chat history</source>
         <translation>Historia rozmów</translation>
+    </message>
+</context>
+<context>
+    <name>SearchTab</name>
+    <message>
+        <source>Search for:</source>
+        <translation>Szukaj:</translation>
+    </message>
+    <message>
+        <source>Chats</source>
+        <translation>Rozmowy</translation>
+    </message>
+    <message>
+        <source> - All chats - </source>
+        <translation> - Wszystkie rozmowy - </translation>
+    </message>
+    <message>
+        <source>Statuses</source>
+        <translation>Statusy</translation>
+    </message>
+    <message>
+        <source> - All buddies - </source>
+        <translation> - Wszyscy znajomi - </translation>
+    </message>
+    <message>
+        <source>Smses</source>
+        <translation>Smsy</translation>
+    </message>
+    <message>
+        <source> - All recipients - </source>
+        <translation> - Wszyscy odbiorcy - </translation>
+    </message>
+    <message>
+        <source>By date</source>
+        <translation>Wg. daty</translation>
+    </message>
+    <message>
+        <source>to</source>
+        <translation>do</translation>
+    </message>
+    <message>
+        <source>Search</source>
+        <translation>Szukaj</translation>
+    </message>
+    <message>
+        <source>Found</source>
+        <translation>Znaleziono</translation>
+    </message>
+    <message>
+        <source>Chat</source>
+        <translation>Rozmowa</translation>
+    </message>
+    <message>
+        <source>Buddy</source>
+        <translation>Znajomy</translation>
+    </message>
+    <message>
+        <source>Recipient</source>
+        <translation>Odbiorca</translation>
     </message>
 </context>
 <context>
@@ -199,17 +264,6 @@
     <message>
         <source>Show whole history</source>
         <translation>Wyświetl całą historię</translation>
-    </message>
-</context>
-<context>
-    <name>SmsDatesModel</name>
-    <message>
-        <source>Date</source>
-        <translation>Data</translation>
-    </message>
-    <message>
-        <source>Length</source>
-        <translation>Długość</translation>
     </message>
 </context>
 </TS>

@@ -27,7 +27,8 @@
 #include <QtCore/QTimer>
 #include <QtGui/QTextDocument>
 
-#include "chat/chat-manager.h"
+#include "chat/type/chat-type-contact.h"
+#include "chat/type/chat-type-contact-set.h"
 #include "configuration/configuration-file.h"
 #include "contacts/contact-manager.h"
 #include "contacts/contact-set.h"
@@ -75,7 +76,15 @@ bool GaduChatService::sendMessage(const Chat &chat, const QString &message, bool
 		return false;
 
 	QTextDocument document;
-	document.setHtml(message);
+	/*
+	 * If message does not contain < then we can assume that this is plain text. Some plugins, like
+	 * encryption_ng, are using sendMessage() method to pass messages (like public keys). We want
+	 * these messages to have proper lines and paragraphs.
+	 */
+	if (message.contains('<'))
+		document.setHtml(message);
+	else
+		document.setPlainText(message);
 
 	FormattedMessage formattedMessage = FormattedMessage::parse(&document);
 
@@ -101,15 +110,16 @@ bool GaduChatService::sendMessage(const Chat &chat, const QString &message, bool
 		return false;
 	}
 
-	if (data.length() >= 2000)
+	if (data.length() >= 10000)
 	{
-		MessageDialog::show(KaduIcon("dialog-warning"), tr("Kadu"), tr("Filtered message too long (%1>=%2)").arg(data.length()).arg(2000));
+		MessageDialog::show(KaduIcon("dialog-warning"), tr("Kadu"), tr("Filtered message too long (%1>=%2)").arg(data.length()).arg(10000));
 		kdebugmf(KDEBUG_FUNCTION_END, "end: filtered message too long\n");
 		return false;
 	}
 
 	uinsCount = contacts.count();
 
+	static_cast<GaduProtocol *>(protocol())->disableSocketNotifiers();
 	int messageId = -1;
 	if (uinsCount > 1)
 	{
@@ -137,6 +147,7 @@ bool GaduChatService::sendMessage(const Chat &chat, const QString &message, bool
 			messageId = gg_send_message(
 					GaduSession, GG_CLASS_CHAT, GaduProtocolHelper::uin(contacts.at(0)), (const unsigned char *)data.constData());
 	}
+	static_cast<GaduProtocol *>(protocol())->enableSocketNotifiers();
 
 	if (-1 == messageId)
 		return false;
@@ -251,7 +262,13 @@ void GaduChatService::handleMsg(Contact sender, ContactSet recipients, MessageTy
 	ContactSet chatContacts = conference;
 	chatContacts.remove(account().accountContact());
 
-	Chat chat = ChatManager::instance()->findChat(chatContacts);
+	if (chatContacts.isEmpty())
+		return;
+
+	Chat chat = 1 == chatContacts.size()
+			? ChatTypeContact::findChat(*chatContacts.constBegin(), ActionCreateAndAdd)
+			: ChatTypeContactSet::findChat(chatContacts, ActionCreateAndAdd);
+
 	// create=true in our call for findChat(), but chat might be null for example if chatContacts was empty
 	if (!chat || chat.isIgnoreAllMessages())
 		return;

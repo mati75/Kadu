@@ -67,15 +67,16 @@ ChatMessagesView::ChatMessagesView(const Chat &chat, bool supportTransparency, Q
 	page()->setPalette(p);
 	setAttribute(Qt::WA_OpaquePaintEvent, false);
 
+	page()->currentFrame()->evaluateJavaScript(
+		"XMLHttpRequest.prototype.open = function() { return false; };"
+		"XMLHttpRequest.prototype.send = function() { return false; };"
+	);
+
 	configurationUpdated();
 
 	connectChat();
 
 	connect(this->page()->mainFrame(), SIGNAL(contentsSizeChanged(const QSize &)), this, SLOT(scrollToBottom()));
-
-	if (chat.chatAccount().protocolHandler() && chat.chatAccount().protocolHandler()->chatService())
-		connect(chat.chatAccount().protocolHandler()->chatService(), SIGNAL(sentMessageStatusChanged(const Message &)),
-		        this, SLOT(sentMessageStatusChanged(const Message &)));
 
 	ChatStylesManager::instance()->chatViewCreated(this);
 }
@@ -123,20 +124,31 @@ void ChatMessagesView::connectChat()
 	if (chatImageService)
 		connect(chatImageService, SIGNAL(imageReceived(const QString &, const QString &)),
 				this, SLOT(imageReceived(const QString &, const QString &)));
+
+	ChatService *chatService = CurrentChat.chatAccount().protocolHandler()->chatService();
+	if (chatService)
+		connect(chatService, SIGNAL(sentMessageStatusChanged(const Message &)),
+		        this, SLOT(sentMessageStatusChanged(const Message &)));
 }
 
 void ChatMessagesView::disconnectChat()
 {
-	if (CurrentChat.isNull() || CurrentChat.chatAccount().isNull() || !CurrentChat.chatAccount().protocolHandler())
+	if (CurrentChat.isNull())
 		return;
 
 	foreach (const Contact &contact, CurrentChat.contacts())
-		disconnect(contact, SIGNAL(buddyUpdated()), this, SLOT(repaintMessages()));
+		disconnect(contact, 0, this, 0);
+
+	if (CurrentChat.chatAccount().isNull() || !CurrentChat.chatAccount().protocolHandler())
+		return;
 
 	ChatImageService *chatImageService = CurrentChat.chatAccount().protocolHandler()->chatImageService();
 	if (chatImageService)
-		disconnect(chatImageService, SIGNAL(imageReceived(const QString &, const QString &)),
-				this, SLOT(imageReceived(const QString &, const QString &)));
+		disconnect(chatImageService, 0, this, 0);
+
+	ChatService *chatService = CurrentChat.chatAccount().protocolHandler()->chatService();
+	if (chatService)
+		disconnect(chatService, 0, this, 0);
 }
 
 void ChatMessagesView::setChat(const Chat &chat)

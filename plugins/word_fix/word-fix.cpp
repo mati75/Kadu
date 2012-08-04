@@ -67,7 +67,7 @@ WordFix::WordFix(QObject *parent) :
 	QString data = config_file.readEntry("word_fix", "WordFix_list");
 	if (data.isEmpty())
 	{
-		QFile defList(dataPath("plugins/data/word_fix/wf_default_list.data"));
+		QFile defList(KaduPaths::instance()->dataPath() + QLatin1String("plugins/data/word_fix/wf_default_list.data"));
 		if (defList.open(QIODevice::ReadOnly))
 		{
 			QTextStream s(&defList);
@@ -107,10 +107,7 @@ WordFix::WordFix(QObject *parent) :
 WordFix::~WordFix()
 {
 	kdebugf();
-	disconnect(ChatWidgetManager::instance(), SIGNAL(chatWidgetCreated(ChatWidget *)),
-		this, SLOT(chatCreated(ChatWidget *)));
-	disconnect(ChatWidgetManager::instance(), SIGNAL(chatWidgetDestroying(ChatWidget *)),
-		this, SLOT(chatDestroying(ChatWidget *)));
+	disconnect(ChatWidgetManager::instance(), 0, this, 0);
 
 	foreach (ChatWidget *chat, ChatWidgetManager::instance()->chats())
 		disconnectFromChat(chat);
@@ -123,7 +120,7 @@ int WordFix::init(bool firstLoad)
 	Q_UNUSED(firstLoad)
 
 	kdebugf();
-	MainConfigurationWindow::registerUiFile(dataPath("plugins/configuration/word_fix.ui"));
+	MainConfigurationWindow::registerUiFile(KaduPaths::instance()->dataPath() + QLatin1String("plugins/configuration/word_fix.ui"));
 	MainConfigurationWindow::registerUiHandler(this);
 	kdebugf2();
 	return 0;
@@ -133,7 +130,7 @@ void WordFix::done()
 {
 	kdebugf();
 	MainConfigurationWindow::unregisterUiHandler(this);
-	MainConfigurationWindow::unregisterUiFile(dataPath("plugins/configuration/word_fix.ui"));
+	MainConfigurationWindow::unregisterUiFile(KaduPaths::instance()->dataPath() + QLatin1String("plugins/configuration/word_fix.ui"));
 	kdebugf2();
 }
 
@@ -157,7 +154,7 @@ void WordFix::connectToChat(const ChatWidget *chat)
 void WordFix::disconnectFromChat(const ChatWidget *chat)
 {
 	kdebugf();
-	disconnect(chat, SIGNAL(messageSendRequested(ChatWidget*)), this, SLOT(sendRequest(ChatWidget*)));
+	disconnect(chat, 0, this, 0);
 	kdebugf2();
 }
 

@@ -13,7 +13,7 @@
     </message>
     <message>
         <source>Desktop Docking</source>
-        <translation type="unfinished"></translation>
+        <translation>Desktop Docking</translation>
     </message>
     <message>
         <source>Horizontal position</source>

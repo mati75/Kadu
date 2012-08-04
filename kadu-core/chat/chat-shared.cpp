@@ -33,6 +33,7 @@
 #include "chat/type/chat-type-manager.h"
 #include "configuration/configuration-file.h"
 #include "contacts/contact-set.h"
+#include "misc/change-notifier.h"
 #include "parser/parser.h"
 #include "debug.h"
 
@@ -73,9 +74,11 @@ ChatShared * ChatShared::loadFromStorage(const QSharedPointer<StoragePoint> &sto
  * created.
  */
 ChatShared::ChatShared(const QUuid &uuid) :
-		Shared(uuid), Details(0), IgnoreAllMessages(false), UnreadMessagesCount(0)
+		Shared(uuid), Details(0), IgnoreAllMessages(false), UnreadMessagesCount(0), Open(false)
 {
 	ChatAccount = new Account();
+
+	connect(changeNotifier(), SIGNAL(changed()), this, SIGNAL(updated()));
 }
 
 /**
@@ -160,6 +163,15 @@ void ChatShared::load()
 	Display = loadValue<QString>("Display");
 	Type = loadValue<QString>("Type");
 
+	// import from alias to new name of chat type
+	ChatType *chatType = ChatTypeManager::instance()->chatType(Type);
+	if (chatType)
+		Type = chatType->name();
+
+	// we should not have display names for Contact chats
+	if (Type == "Contact")
+		Display.clear();
+
 	triggerAllChatTypesRegistered();
 }
 
@@ -183,6 +195,12 @@ void ChatShared::store()
 
 	storeValue("Account", ChatAccount->uuid().toString());
 	storeValue("Display", Display);
+
+	// import from alias to new name of chat type
+	ChatType *chatType = ChatTypeManager::instance()->chatType(Type);
+	if (chatType)
+		Type = chatType->name();
+
 	storeValue("Type", Type);
 
 	if (!Groups.isEmpty())
@@ -200,20 +218,29 @@ void ChatShared::store()
 
 /**
  * @author Rafal 'Vogel' Malinowski
- * @short Returns true if object should be stored (is valid).
- * @return true if object should be stored (is valid)
+ * @short Returns true if object should be stored.
+ * @return true if object should be stored
  *
- * Returns true if object shoudl be stored (data is valid). When account is not set
- * or details class is loaded and is invalid chat data is removed from storage (it
- * is unusable after all).
+ * Chat is only stored when it is valid and has either any custom property or display name set.
  */
 bool ChatShared::shouldStore()
 {
 	ensureLoaded();
 
+	if (type().isEmpty())
+		return false;
+
+	// we dont need data for non-roster contacts only from 4 version of sql schema
+	if (config_file.readNumEntry("History", "Schema", 0) < 4)
+		return true;
+
+	if (customProperties()->shouldStore())
+		return true;
+
 	return UuidStorableObject::shouldStore()
 			&& !ChatAccount->uuid().isNull()
-			&& (!Details || Details->shouldStore());
+			&& (!Details || Details->shouldStore())
+			&& (!Display.isEmpty() && type() != "Contact");
 }
 
 /**
@@ -238,18 +265,6 @@ void ChatShared::aboutToBeRemoved()
 
 /**
  * @author Rafal 'Vogel' Malinowski
- * @short Called after any chat data was changed.
- *
- * Method is called after any chat data was changed and signal emiting is non blocked.
- * Informs any object about chat data change.
- */
-void ChatShared::emitUpdated()
-{
-	emit updated();
-}
-
-/**
- * @author Rafal 'Vogel' Malinowski
  * @short Called after new chat type was registered.
  *
  * If no details class is loaded and registered chat type is valid for this chat
@@ -264,6 +279,13 @@ void ChatShared::chatTypeRegistered(ChatType *chatType)
 	{
 		Details = chatType->createChatDetails(this);
 		Q_ASSERT(Details);
+
+		connect(Details, SIGNAL(connected()), this, SIGNAL(connected()));
+		connect(Details, SIGNAL(disconnected()), this, SIGNAL(disconnected()));
+		connect(Details, SIGNAL(contactAboutToBeAdded(Contact)), this, SIGNAL(contactAboutToBeAdded(Contact)));
+		connect(Details, SIGNAL(contactAdded(Contact)), this, SIGNAL(contactAdded(Contact)));
+		connect(Details, SIGNAL(contactAboutToBeRemoved(Contact)), this, SIGNAL(contactAboutToBeRemoved(Contact)));
+		connect(Details, SIGNAL(contactRemoved(Contact)), this, SIGNAL(contactRemoved(Contact)));
 
 		Details->ensureLoaded();
 	}
@@ -362,7 +384,7 @@ void ChatShared::setGroups(const QSet<Group> &groups)
 	foreach (const Group &group, groupsToRemove)
 		doRemoveFromGroup(group);
 
-	dataUpdated();
+	changeNotifier()->notify();
 }
 
 bool ChatShared::isInGroup(const Group &group)
@@ -399,7 +421,7 @@ bool ChatShared::doRemoveFromGroup(const Group &group)
 	if (!Groups.remove(group))
 		return false;
 
-	disconnect(group, SIGNAL(groupAboutToBeRemoved()), this, SLOT(groupAboutToBeRemoved()));
+	disconnect(group, 0, this, 0);
 
 	return true;
 }
@@ -409,7 +431,7 @@ void ChatShared::addToGroup(const Group &group)
 	ensureLoaded();
 
 	if (doAddToGroup(group))
-		dataUpdated();
+		changeNotifier()->notify();
 }
 
 void ChatShared::removeFromGroup(const Group &group)
@@ -417,7 +439,7 @@ void ChatShared::removeFromGroup(const Group &group)
 	ensureLoaded();
 
 	if (doRemoveFromGroup(group))
-		dataUpdated();
+		changeNotifier()->notify();
 }
 
 void ChatShared::groupAboutToBeRemoved()
@@ -428,3 +450,28 @@ void ChatShared::groupAboutToBeRemoved()
 }
 
 KaduShared_PropertyPtrDefCRW(ChatShared, Account, chatAccount, ChatAccount);
+
+bool ChatShared::isConnected() const
+{
+	if (!Details)
+		return false;
+
+	return Details->isConnected();
+}
+
+bool ChatShared::isOpen() const
+{
+	return Open;
+}
+
+void ChatShared::setOpen(bool open)
+{
+	if (Open == open)
+		return;
+
+	Open = open;
+	if (Open)
+		emit opened();
+	else
+		emit closed();
+}

@@ -43,7 +43,7 @@ KaduChatStyleEngine::KaduChatStyleEngine(QObject *parent) :
 {
 	EngineName = "Kadu";
 	syntaxList = QSharedPointer<SyntaxList>(new SyntaxList("chat"));
-	QFile file(dataPath() + "/scripts/chat-scripts.js");
+	QFile file(KaduPaths::instance()->dataPath() + QLatin1String("scripts/chat-scripts.js"));
 	if (file.open(QIODevice::ReadOnly | QIODevice::Text))
 		jsCode = file.readAll();
 }
@@ -87,9 +87,9 @@ void KaduChatStyleEngine::appendMessage(HtmlMessagesRenderer *renderer, MessageR
 	html.replace('\\', QLatin1String("\\\\"));
 	html.replace('\'', QLatin1String("\\'"));
 	if (!message->message().id().isEmpty())
-		html.prepend(QString("<span id=\"message_%1\">").arg(message->message().id()));
+		html.prepend(QString("<span class=\"kadu_message\" id=\"message_%1\">").arg(message->message().id()));
 	else
-		html.prepend("<span>");
+		html.prepend("<span class=\"kadu_message\">");
 	html.append("</span>");
 
 	renderer->webPage()->mainFrame()->evaluateJavaScript("kadu_appendMessage('" + html + "')");
@@ -161,6 +161,9 @@ QString KaduChatStyleEngine::formatMessage(MessageRenderInfo *message, MessageRe
 		if (after && !includeHeader)
 		{
 			Message aft = after->message();
+			if (msg.receiveDate().toTime_t() < aft.receiveDate().toTime_t())
+				qWarning("New message has earlier date than last message");
+
 			includeHeader =
 				(aft.type() == MessageTypeSystem) ||
 				((msg.receiveDate().toTime_t() - aft.receiveDate().toTime_t() > (ChatStylesManager::instance()->cfgNoHeaderInterval() * 60)) ||
@@ -210,9 +213,9 @@ void KaduChatStyleEngine::repaintMessages(HtmlMessagesRenderer *renderer)
 	{
 		QString messageText;
 		if (!message->message().id().isEmpty())
-			messageText = QString("<span id=\"message_%1\">%2</span>").arg(message->message().id()).arg(formatMessage(message, prevMessage));
+			messageText = QString("<span class=\"kadu_message\" id=\"message_%1\">%2</span>").arg(message->message().id()).arg(formatMessage(message, prevMessage));
 		else
-			messageText = QString("<span>%1</span>").arg(formatMessage(message, prevMessage));
+			messageText = QString("<span class=\"kadu_message\">%1</span>").arg(formatMessage(message, prevMessage));
 		messageText = scriptsAtEnd(messageText);
 		text += messageText;
 		prevMessage = message;

@@ -164,19 +164,10 @@ namespace XMPP
 		/* Someone on our contact list had a resource go offline. */
 		void slotResourceUnavailable(const Jid &, const Resource &);
 
-		/* Incoming message. */
-		void slotReceivedMessage(const Message &);
-
 		/* Called from Psi: debug messages from the backend. */
 		void slotPsiDebug(const QString &msg);
 		void slotIncomingXML(const QString &msg);
 		void slotOutgoingXML(const QString &msg);
-
-		/* Slots for handling groupchats. */
-		void slotGroupChatJoined(const Jid &jid);
-		void slotGroupChatLeft(const Jid &jid);
-		void slotGroupChatPresence(const Jid &jid, const Status &status);
-		void slotGroupChatError(const Jid &jid, int error, const QString &reason);
 
 		/* Incoming subscription request. */
 		void slotSubscription(const Jid &jid, const QString &type, const QString &nick);
@@ -437,40 +428,6 @@ namespace XMPP
 		 * you want to start.
 		 */
 		XMPP::Task *rootTask() const { return client() ? client()->rootTask() : 0; }
-
-		/**
-		 * Join a groupchat.
-		 * @param host Node to join the room at.
-		 * @param room Name of room to join.
-		 * @param nick Nick name you want to join with.
-		 */
-		void joinGroupChat(const QString &host, const QString &room, const QString &nick);
-
-		/**
-		 * Join a groupchat that require a password.
-		 * @param host Node to join the room at.
-		 * @param room Name of room to join.
-		 * @param nick Nick name you want to join with.
-		 * @param password The password to join the room.
-		 */
-		void joinGroupChat(const QString &host, const QString &room, const QString &nick, const QString &password);
-
-		/**
-		 * Leave a groupchat.
-		 * @param host Node to leave room at.
-		 * @param room Name of room to leave.
-		 */
-		void leaveGroupChat(const QString &host, const QString &room);
-
-		/**
-		 * change the status of a groupchat
-		 */
-		void setGroupChatStatus(const QString &host, const QString &room, const XMPP::Status &);
-
-		/**
-		 * change the nick in a groupchat
-		 */
-		void changeGroupChatNick(const QString &host, const QString &room, const QString &nick, const XMPP::Status &status =XMPP::Status());
 
 		/**
 		 * Send raw packet to the server.

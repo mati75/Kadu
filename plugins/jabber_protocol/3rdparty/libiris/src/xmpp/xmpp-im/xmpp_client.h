@@ -13,7 +13,7 @@
  *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  *
  */
 
@@ -129,7 +129,8 @@ namespace XMPP
 		bool groupChatJoin(const QString &host, const QString &room, const QString &nick, const QString& password = QString(), int maxchars = -1, int maxstanzas = -1, int seconds = -1, const Status& = Status());
 		void groupChatSetStatus(const QString &host, const QString &room, const Status &);
 		void groupChatChangeNick(const QString &host, const QString &room, const QString &nick, const Status &);
-		void groupChatLeave(const QString &host, const QString &room);
+		void groupChatLeave(const QString &host, const QString &room, const QString &statusStr = QString());
+		void groupChatLeaveAll(const QString &statusStr = QString());
 		QString groupChatNick(const QString &host, const QString &room) const;
 
 	signals:

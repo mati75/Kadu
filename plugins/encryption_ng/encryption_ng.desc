@@ -1,7 +1,10 @@
 [Module]
-Description=Chat encryption module
-Description[pl]=Modu≥ obs≥ugi szyfrowania rozmÛw
+DisplayName=Chat encryption
+DisplayName[pl]=Szyfrowanie rozm√≥w
+Description=Provides chat encryption
+Description[pl]=Umo≈ºliwia szyfrowanie rozm√≥w
 Author=Kadu Team
 LoadByDefault=true
 Version=core
 Plugin=true
+Category=Privacy

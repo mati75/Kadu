@@ -23,8 +23,6 @@
 
 #include "action-filter-proxy-model.h"
 
-Q_DECLARE_METATYPE(QAction *)
-
 ActionFilterProxyModel::ActionFilterProxyModel(QObject *parent) :
 		QSortFilterProxyModel(parent), Size(0), Model(0)
 {
@@ -37,10 +35,7 @@ ActionFilterProxyModel::~ActionFilterProxyModel()
 void ActionFilterProxyModel::setModel(QAbstractItemModel *model)
 {
 	if (Model)
-	{
-		disconnect(Model, SIGNAL(rowsInserted(QModelIndex,int,int)), this, SLOT(updateSize()));
-		disconnect(Model, SIGNAL(rowsRemoved(QModelIndex,int,int)), this, SLOT(updateSize()));
-	}
+		disconnect(Model, 0, this, 0);
 
 	Model = model;
 

@@ -23,8 +23,6 @@
 #include <QtGui/QScrollBar>
 #include <QtGui/QStackedWidget>
 
-#include "buddies/model/buddies-model.h"
-#include "chat/model/chats-model.h"
 #include "configuration/configuration-file.h"
 #include "gui/widgets/filter-widget.h"
 #include "gui/widgets/filtered-tree-view.h"
@@ -34,7 +32,8 @@
 #include "model/model-chain.h"
 #include "talkable/filter/group-talkable-filter.h"
 #include "talkable/filter/hide-anonymous-talkable-filter.h"
-#include "talkable/filter/hide-simple-chats-talkable-filter.h"
+#include "talkable/filter/hide-contact-chats-talkable-filter.h"
+#include "talkable/filter/hide-temporary-talkable-filter.h"
 #include "talkable/filter/name-talkable-filter.h"
 #include "talkable/filter/unread-messages-talkable-filter.h"
 #include "talkable/model/talkable-model-factory.h"
@@ -171,7 +170,8 @@ ModelChain * RosterWidget::createModelChain()
 	chain->setBaseModel(TalkableModelFactory::createInstance(chain));
 
 	ProxyModel = new TalkableProxyModel(chain);
-	ProxyModel->addFilter(new HideSimpleChatsTalkableFilter(ProxyModel));
+	ProxyModel->addFilter(new HideContactChatsTalkableFilter(ProxyModel));
+	ProxyModel->addFilter(new HideTemporaryTalkableFilter(ProxyModel));
 	ProxyModel->addFilter(new UnreadMessagesTalkableFilter(ProxyModel));
 	ProxyModel->addFilter(new HideAnonymousTalkableFilter(ProxyModel));
 

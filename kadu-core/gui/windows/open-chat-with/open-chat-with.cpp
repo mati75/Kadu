@@ -25,6 +25,7 @@
 #include <QtGui/QDesktopWidget>
 #include <QtGui/QDialogButtonBox>
 #include <QtGui/QKeyEvent>
+#include <QtGui/QLabel>
 #include <QtGui/QPushButton>
 #include <QtGui/QVBoxLayout>
 
@@ -34,6 +35,8 @@
 #include "buddies/buddy-set.h"
 #include "buddies/model/buddy-list-model.h"
 #include "chat/chat-manager.h"
+#include "chat/type/chat-type-contact.h"
+#include "chat/type/chat-type-contact-set.h"
 #include "configuration/xml-configuration-file.h"
 #include "contacts/contact-manager.h"
 #include "contacts/contact-set.h"
@@ -47,6 +50,7 @@
 #include "misc/misc.h"
 #include "model/model-chain.h"
 #include "os/generic/url-opener.h"
+#include "protocols/services/roster/roster-entry.h"
 #include "talkable/model/talkable-proxy-model.h"
 
 #include "activate.h"
@@ -68,7 +72,7 @@ OpenChatWith * OpenChatWith::instance()
 }
 
 OpenChatWith::OpenChatWith() :
-	QWidget(0, Qt::Window), DesktopAwareObject(this), IsTyping(false), ListModel(0), Chain(0)
+	QWidget(0, Qt::Window), DesktopAwareObject(this), IsTyping(false)
 {
 	kdebugf();
 
@@ -83,17 +87,30 @@ OpenChatWith::OpenChatWith() :
 	setWindowGeometry(this, rect);
 
 	MainLayout = new QVBoxLayout(this);
-	MainLayout->setMargin(0);
-	MainLayout->setSpacing(0);
+
+	QWidget *idWidget = new QWidget(this);
+
+	QHBoxLayout *idLayout = new QHBoxLayout(idWidget);
+	idLayout->setMargin(0);
+	idLayout->addWidget(new QLabel(tr("User name:"), idWidget));
 
 	ContactID = new LineEditWithClearButton(this);
 	ContactID->installEventFilter(this);
 	connect(ContactID, SIGNAL(textChanged(const QString &)), this, SLOT(inputChanged(const QString &)));
-	MainLayout->addWidget(ContactID);
+	idLayout->addWidget(ContactID);
 
 	BuddiesWidget = new TalkableTreeView(this);
 	connect(BuddiesWidget, SIGNAL(talkableActivated(Talkable)), this, SLOT(openChat()));
+
+	MainLayout->addWidget(idWidget);
 	MainLayout->addWidget(BuddiesWidget);
+
+	ModelChain *chain = new ModelChain(this);
+	ListModel = new BuddyListModel(chain);
+	chain->setBaseModel(ListModel);
+	chain->addProxyModel(new TalkableProxyModel(chain));
+
+	BuddiesWidget->setChain(chain);
 
 	QDialogButtonBox *buttons = new QDialogButtonBox(Qt::Horizontal, this);
 
@@ -105,6 +122,7 @@ OpenChatWith::OpenChatWith() :
 	connect(okButton, SIGNAL(clicked(bool)), this, SLOT(inputAccepted()));
 	connect(cancelButton, SIGNAL(clicked(bool)), this, SLOT(close()));
 
+	MainLayout->addSpacing(16);
 	MainLayout->addWidget(buttons);
 
 	OpenChatRunner = new OpenChatWithContactListRunner();
@@ -120,9 +138,6 @@ OpenChatWith::~OpenChatWith()
 
 	delete OpenChatRunner;
 	OpenChatRunner = 0;
-
-	delete Chain;
-	Chain = 0;
 }
 
 bool OpenChatWith::eventFilter(QObject *obj, QEvent *e)
@@ -188,16 +203,7 @@ void OpenChatWith::inputChanged(const QString &text)
 			? BuddyList()
 			: OpenChatWithRunnerManager::instance()->matchingContacts(text);
 
-	delete Chain; // it deletes ListModel too
-
-	Chain = new ModelChain(this);
-	ListModel = new BuddyListModel(Chain);
 	ListModel->setBuddyList(matchingContacts);
-	Chain->setBaseModel(ListModel);
-	TalkableProxyModel *proxyModel = new TalkableProxyModel(Chain);
-	Chain->addProxyModel(proxyModel);
-
-	BuddiesWidget->setChain(Chain);
 
 	if (!text.isEmpty())
 	{
@@ -237,7 +243,7 @@ void OpenChatWith::openChat()
 		}
 		else
 		{
-			it->setDirty(false);
+			it->rosterEntry()->setState(RosterEntrySynchronized);
 			ContactManager::instance()->addItem(*it);
 			++it;
 		}
@@ -247,7 +253,9 @@ void OpenChatWith::openChat()
 
 	BuddySet buddies = contacts.toBuddySet();
 
-	const Chat &chat = ChatManager::instance()->findChat(contacts);
+	const Chat &chat = 1 == contacts.size()
+			? ChatTypeContact::findChat(*contacts.constBegin(), ActionCreateAndAdd)
+	 		: ChatTypeContactSet::findChat(contacts, ActionCreateAndAdd);
 	if (chat)
 	{
 		ChatWidget * const chatWidget = ChatWidgetManager::instance()->byChat(chat, true);

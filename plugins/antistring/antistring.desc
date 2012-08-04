@@ -1,7 +1,10 @@
 [Module]
-Description=Antistring
-Description[pl]=Ochrona przed �a�cuszkami
+DisplayName=Chain messages prevention
+DisplayName[pl]=Ochrona przed łańcuszkami
+Description=Detects and blocks chain messages
+Description[pl]=Wykrywa i blokuje łańcuszki internetowe
 Author=PK Team, Dorregaray
 LoadByDefault=false
 Version=core
 Plugin=true
+Category=Privacy

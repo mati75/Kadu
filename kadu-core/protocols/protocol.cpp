@@ -8,6 +8,7 @@
  * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2007 Dawid Stawiarski (neeo@kadu.net)
  * Copyright 2004, 2005, 2006, 2007 Marcin Ślusarz (joi@kadu.net)
+ * Copyright 2012 Piotr Dąbrowski (ultr@ultr.pl)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -28,8 +29,6 @@
 
 #include "accounts/account-manager.h"
 #include "buddies/buddy-manager.h"
-#include "chat/chat-details-conference.h"
-#include "chat/chat-details-simple.h"
 #include "chat/chat-manager.h"
 #include "contacts/contact-manager.h"
 #include "contacts/contact-set.h"
@@ -39,7 +38,10 @@
 #include "icons/kadu-icon.h"
 #include "protocols/protocol-factory.h"
 #include "protocols/protocol-state-machine.h"
+#include "services/chat-service.h"
+#include "services/chat-state-service.h"
 #include "services/roster-service.h"
+#include "status/status-adapter.h"
 #include "status/status-type-manager.h"
 #include "status/status.h"
 #include "debug.h"
@@ -47,8 +49,7 @@
 #include "protocol.h"
 
 Protocol::Protocol(Account account, ProtocolFactory *factory) :
-		Factory(factory), CurrentAccount(account),
-		CurrentChatService(0), CurrentChatStateService(0), CurrentRosterService(0)
+		Factory(factory), CurrentAccount(account)
 {
 	Machine = new ProtocolStateMachine(this);
 	/*
@@ -121,15 +122,19 @@ void Protocol::disconnectedCleanup()
 	setAllOffline();
 }
 
-void Protocol::setStatus(Status status)
+void Protocol::setStatus(Status status, StatusChangeSource source)
 {
-	LoginStatus = status;
-	doSetStatus(status);
+	if (SourceStatusChanger == source && !account().hasPassword())
+		return;
+
+	LoginStatus = protocolFactory()->statusAdapter()->adapt(status);
+	doSetStatus(LoginStatus);
 }
 
 void Protocol::doSetStatus(Status status)
 {
 	CurrentStatus = status;
+
 	if (!CurrentStatus.isDisconnected())
 	{
 		emit statusChanged(CurrentAccount, CurrentStatus);
@@ -277,6 +282,11 @@ bool Protocol::isConnected()
 bool Protocol::isConnecting()
 {
 	return Machine->isLoggingIn();
+}
+
+bool Protocol::isDisconnecting()
+{
+	return Machine->isLoggingOut();
 }
 
 void Protocol::setChatService(ChatService * const chatService)

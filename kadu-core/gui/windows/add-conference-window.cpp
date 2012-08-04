@@ -24,10 +24,12 @@
 #include <QtGui/QVBoxLayout>
 
 #include "accounts/filter/protocol-filter.h"
-#include "buddies/model/buddies-model.h"
+#include "buddies/model/buddy-list-model.h"
+#include "buddies/model/buddy-manager-adapter.h"
 // will be used when Qt 4.8 .is required
 // #include "buddies/model/checkable-buddies-proxy-model.h"
 #include "chat/chat-manager.h"
+#include "chat/type/chat-type-contact-set.h"
 #include "gui/widgets/accounts-combo-box.h"
 #include "gui/widgets/account-buddy-list-widget.h"
 #include "gui/widgets/chat-widget.h"
@@ -101,8 +103,8 @@ void AddConferenceWindow::createGui()
 
 	ModelChain *chain = new ModelChain(this);
 
-	Model = new BuddiesModel(chain);
-	Model->setIncludeMyself(false);
+	Model = new BuddyListModel(chain);
+	new BuddyManagerAdapter(Model);
 
 	// will be removed when Qt 4.8 .is required
 	Model->setCheckable(true);
@@ -236,7 +238,7 @@ Chat AddConferenceWindow::computeChat() const
 	foreach (const Buddy &buddy, conferenceBuddies)
 		conferenceContacts.insert(buddy.contacts(account).first());
 
-	return ChatManager::instance()->findChat(conferenceContacts, true);
+	return ChatTypeContactSet::findChat(conferenceContacts, ActionCreateAndAdd);
 }
 
 // we need to filter by account here because CheckableBuddiesProxyModel does not do filtering at all

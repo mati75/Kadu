@@ -40,6 +40,7 @@ class KADUAPI IdentityShared : public StorableStatusContainer, public Shared
 protected:
 	virtual void load();
 	virtual void store();
+	virtual bool shouldStore();
 
 public:
 	static IdentityShared * loadStubFromStorage(const QSharedPointer<StoragePoint> &accountStoragePoint);
@@ -67,7 +68,7 @@ public:
 	virtual QString statusContainerName()  { return name(); }
 
 	virtual Status status();
-	virtual void setStatus(Status status);
+	virtual void setStatus(Status status, StatusChangeSource source);
 	virtual bool isStatusSettingInProgress();
 	virtual int maxDescriptionLength();
 

@@ -47,13 +47,13 @@
 #include "buddies/buddy-set.h"
 #include "buddies/buddy.h"
 #include "buddies/model/buddy-list-model.h"
-#include "chat/chat-geometry-data.h"
 #include "chat/chat-manager.h"
 #include "chat/type/chat-type-manager.h"
 #include "configuration/chat-configuration-holder.h"
 #include "configuration/configuration-file.h"
 #include "contacts/contact-set.h"
 #include "contacts/contact.h"
+#include "contacts/model/chat-adapter.h"
 #include "contacts/model/contact-data-extractor.h"
 #include "contacts/model/contact-list-model.h"
 #include "core/core.h"
@@ -141,6 +141,8 @@ ChatWidget::ChatWidget(const Chat &chat, QWidget *parent) :
 
 	connect(IconsManager::instance(), SIGNAL(themeChanged()), this, SIGNAL(iconChanged()));
 
+	CurrentChat.setOpen(true);
+
 	kdebugf2();
 }
 
@@ -149,10 +151,12 @@ ChatWidget::~ChatWidget()
 	kdebugf();
 	ComposingTimer.stop();
 
-	emit widgetDestroyed();
+	emit widgetDestroyed(this);
 
 	if (currentProtocol() && currentProtocol()->chatStateService() && chat().contacts().toContact())
 		currentProtocol()->chatStateService()->sendState(chat().contacts().toContact(), ChatStateService::StateGone);
+
+	CurrentChat.setOpen(false);
 
 	kdebugmf(KDEBUG_FUNCTION_END, "chat destroyed\n");
 }
@@ -216,7 +220,6 @@ void ChatWidget::createGui()
 
 	shortcut = new QShortcut(QKeySequence(Qt::Key_PageDown + Qt::SHIFT), this);
 	connect(shortcut, SIGNAL(activated()), MessagesView, SLOT(pageDown()));
-	HorizontalSplitter->addWidget(frame);
 
 	shortcut = new QShortcut(QKeySequence(Qt::Key_PageUp + Qt::ControlModifier), this);
 	connect(shortcut, SIGNAL(activated()), MessagesView, SLOT(pageUp()));
@@ -231,7 +234,8 @@ void ChatWidget::createGui()
 
 	messagesSearchBar->setSearchWidget(InputBox->inputBox());
 
-	if (CurrentChat.contacts().count() > 1)
+	ChatType *chatType = ChatTypeManager::instance()->chatType(CurrentChat.type());
+	if (chatType && chatType->name() != "Contact")
 		createContactsList();
 
 	VerticalSplitter->addWidget(HorizontalSplitter);
@@ -260,7 +264,9 @@ void ChatWidget::createContactsList()
 	view->setItemsExpandable(false);
 
 	ModelChain *chain = new ModelChain(this);
-	chain->setBaseModel(new ContactListModel(CurrentChat.contacts().toContactVector(), chain));
+	ContactListModel *contactListModel = new ContactListModel(chain);
+	new ChatAdapter(contactListModel, CurrentChat);
+	chain->setBaseModel(contactListModel);
 	ProxyModel = new TalkableProxyModel(chain);
 
 	NameTalkableFilter *nameFilter = new NameTalkableFilter(NameTalkableFilter::UndecidedMatching, ProxyModel);
@@ -448,7 +454,7 @@ QIcon ChatWidget::icon()
 			return ContactDataExtractor::data(contact, Qt::DecorationRole, false).value<QIcon>();
 	}
 	else if (contactsCount > 1)
-		return ChatTypeManager::instance()->chatType("Conference")->icon().icon();
+		return ChatTypeManager::instance()->chatType("ContactSet")->icon().icon();
 
 	return KaduIcon("internet-group-chat").icon();
 }
@@ -538,12 +544,13 @@ void ChatWidget::sendMessage()
 
 	emit messageSendRequested(this);
 
-	if (!currentProtocol())
-		return;
-
-	if (!currentProtocol()->isConnected())
+	if (!CurrentChat.isConnected())
 	{
-		MessageDialog::show(KaduIcon("dialog-error"), tr("Kadu"), tr("Cannot send message while being offline.") + tr("Account:") + chat().chatAccount().id(),
+		MessageDialog::show(KaduIcon("dialog-error"), tr("Kadu"),
+				QString("%1\n%2%3")
+						.arg(tr("Cannot send message while being offline."))
+						.arg(tr("Account:"))
+						.arg(chat().chatAccount().id()),
 				QMessageBox::Ok, this);
 		kdebugmf(KDEBUG_FUNCTION_END, "not connected!\n");
 		return;
@@ -674,11 +681,7 @@ void ChatWidget::kaduRestoreGeometry()
 	if (!chat())
 		return;
 
-	ChatGeometryData *cgd = chat().data()->moduleStorableData<ChatGeometryData>("chat-geometry", ChatWidgetManager::instance(), false);
-	if (!cgd)
-		return;
-
-	QList<int> horizSizes = cgd->widgetHorizontalSizes();
+	QList<int> horizSizes = stringToIntList(chat().property("chat-geometry:WidgetHorizontalSizes", QString()).toString());
 	if (!horizSizes.isEmpty())
 		HorizontalSplitter->setSizes(horizSizes);
 }
@@ -691,9 +694,8 @@ void ChatWidget::kaduStoreGeometry()
 	if (!chat())
 		return;
 
-	ChatGeometryData *cgd = chat().data()->moduleStorableData<ChatGeometryData>("chat-geometry", ChatWidgetManager::instance(), true);
-	cgd->setWidgetHorizontalSizes(HorizontalSplitter->sizes());
-	cgd->ensureStored();
+	chat().addProperty("chat-geometry:WidgetHorizontalSizes", intListToString(HorizontalSplitter->sizes()),
+			CustomProperties::Storable);
 }
 
 void ChatWidget::showEvent(QShowEvent *e)
@@ -829,9 +831,9 @@ void ChatWidget::keyPressedSlot(QKeyEvent *e, CustomInput *input, bool &handled)
 {
 	Q_UNUSED(input)
 
-	if (e->key() == Qt::Key_Home && e->modifiers() == Qt::ControlModifier)
+	if (e->key() == Qt::Key_Home && e->modifiers() == Qt::AltModifier)
 		MessagesView->scrollToTop();
-	else if (e->key() == Qt::Key_End && e->modifiers() == Qt::ControlModifier)
+	else if (e->key() == Qt::Key_End && e->modifiers() == Qt::AltModifier)
 		MessagesView->forceScrollToBottom();
 
 	if (handled)

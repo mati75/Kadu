@@ -27,17 +27,17 @@
 
 #include "configuration/configuration-file.h"
 #include "gui/windows/message-dialog.h"
-#include "misc/token-reader.h"
 #include "debug.h"
 
 #include "scripts/sms-script-manager.h"
 #include "sms-gateway-manager.h"
 #include "sms-gateway-query.h"
+#include "sms-token-read-job.h"
 
 #include "sms-internal-sender.h"
 
 SmsInternalSender::SmsInternalSender(const QString &number, const SmsGateway &gateway, QObject *parent) :
-		SmsSender(number, parent), Gateway(gateway)
+		SmsSender(number, parent), Gateway(gateway), TokenJob(0)
 {
 }
 
@@ -51,7 +51,7 @@ void SmsInternalSender::sendMessage(const QString &message)
 
 	if (Gateway.signatureRequired() && !validateSignature())
 	{
-		emit failed(tr("Signature can't be empty"));
+		emit finished(false, "dialog-error", tr("Signature can't be empty."));
 		kdebugf2();
 		return;
 	}
@@ -64,64 +64,54 @@ void SmsInternalSender::sendMessage(const QString &message)
 
 void SmsInternalSender::queryForGateway()
 {
+	emit progress("dialog-information", tr("Detecting gateway..."));
+
 	SmsGatewayQuery *query = new SmsGatewayQuery(this);
 	connect(query, SIGNAL(finished(const QString &)), this, SLOT(gatewayQueryDone(const QString &)));
 	query->process(number());
+}
+
+void SmsInternalSender::jobFinished(bool ok, const QString &entryIcon, const QString &entryMessage)
+{
+	if (!ok)
+	{
+		emit finished(ok, entryIcon, entryMessage);
+		emit canceled();
+		deleteLater();
+	}
+	else
+		emit progress(entryIcon, entryMessage);
+
+	TokenJob = 0;
+}
+
+void SmsInternalSender::readToken(const QString &tokenImageUrl, QScriptValue callbackObject, QScriptValue callbackMethod)
+{
+	TokenJob = new SmsTokenReadJob(this);
+
+	TokenJob->setCallback(callbackObject, callbackMethod);
+	TokenJob->setTokenImageUrl(tokenImageUrl);
+
+	connect(TokenJob, SIGNAL(progress(QString,QString)), this, SIGNAL(progress(QString,QString)));
+	connect(TokenJob, SIGNAL(finished(bool,QString,QString)), this, SLOT(jobFinished(bool,QString,QString)));
+
+	TokenJob->exec();
 }
 
 void SmsInternalSender::gatewayQueryDone(const QString &gatewayId)
 {
 	if (gatewayId.isEmpty())
 	{
-		emit failed(tr("Automatic gateway selection is not available. Please select SMS gateway manually."));
+		emit finished(false, "dialog-error", tr("Automatic gateway selection is not available. Please select SMS gateway manually."));
 		kdebugf2();
 		return;
 	}
 
 	Gateway = SmsGatewayManager::instance()->byId(gatewayId);
 
+	emit progress("dialog-information", tr("Detected gateway: %1.").arg(Gateway.name()));
+
 	sendSms();
-}
-
-void SmsInternalSender::readToken(const QString &tokenImageUrl, QScriptValue callbackObject, QScriptValue callbackMethod)
-{
-	if (!tokenReader())
-	{
-		failure("Cannot read token value");
-		return;
-	}
-
-	TokenCallbackObject = callbackObject;
-	TokenCallbackMethod = callbackMethod;
-
-	QNetworkAccessManager *network = new QNetworkAccessManager(this);
-	TokenReply = network->get(QNetworkRequest(tokenImageUrl));
-	connect(TokenReply, SIGNAL(finished()), this, SLOT(tokenImageDownloaded()));
-}
-
-void SmsInternalSender::tokenImageDownloaded()
-{
-	if (QNetworkReply::NoError != TokenReply->error())
-	{
-		failure("Cannot download token image");
-		return;
-	}
-
-	QPixmap image;
-	if (!image.loadFromData(TokenReply->readAll()))
-	{
-		failure("Cannot display token image");
-		return;
-	}
-
-	tokenReader()->readTokenAsync(image, this);
-}
-
-void SmsInternalSender::tokenRead(const QString &tokenValue)
-{
-	QScriptValueList arguments;
-	arguments.append(tokenValue);
-	TokenCallbackMethod.call(TokenCallbackObject, arguments);
 }
 
 QScriptValue SmsInternalSender::readFromConfiguration(const QString &group, const QString &name, const QString &defaultValue)
@@ -132,6 +122,8 @@ QScriptValue SmsInternalSender::readFromConfiguration(const QString &group, cons
 void SmsInternalSender::sendSms()
 {
 	emit gatewayAssigned(number(), Gateway.id());
+
+	emit progress("dialog-information", tr("Sending SMS..."));
 
 	QScriptEngine *engine = SmsScriptsManager::instance()->engine();
 
@@ -147,12 +139,28 @@ void SmsInternalSender::sendSms()
 	jsSendSms.call(jsGatewayManagerObject, arguments);
 }
 
+void SmsInternalSender::cancel()
+{
+	if (TokenJob)
+	{
+		disconnect(TokenJob, 0, this, 0);
+		TokenJob->cancel(); // it will destroy job
+		TokenJob = 0;
+	}
+
+	deleteLater();
+}
+
 void SmsInternalSender::result()
 {
-	emit succeed(Message);
+	emit finished(true, "dialog-information", tr("SMS sent"));
+
+	deleteLater();
 }
 
 void SmsInternalSender::failure(const QString &errorMessage)
 {
-	emit failed(errorMessage);
+	emit finished(false, "dialog-error", errorMessage);
+
+	deleteLater();
 }

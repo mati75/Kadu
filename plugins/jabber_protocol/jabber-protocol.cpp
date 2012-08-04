@@ -115,7 +115,7 @@ void JabberProtocol::initializeJabberClient()
 {
 	JabberClient = new XMPP::JabberClient(this, this);
 
-	connect(JabberClient, SIGNAL(csDisconnected()), this, SLOT(disconnectedFromServer()));
+	connect(JabberClient->client(), SIGNAL(disconnected()), this, SLOT(connectionError()));
 	connect(JabberClient, SIGNAL(connected()), this, SLOT(connectedToServer()));
 
 	connect(JabberClient, SIGNAL(resourceAvailable(const XMPP::Jid &, const XMPP::Resource &)),
@@ -255,7 +255,9 @@ void JabberProtocol::connectedToServer()
 
 void JabberProtocol::afterLoggedIn()
 {
-	rosterService()->prepareRoster();
+	connect(JabberClient, SIGNAL(csDisconnected()), this, SLOT(disconnectedFromServer()));
+
+	rosterService()->prepareRoster(ContactManager::instance()->contacts(account(), ContactManager::ExcludeAnonymous));
 }
 
 void JabberProtocol::disconnectedFromServer()
@@ -263,6 +265,8 @@ void JabberProtocol::disconnectedFromServer()
 	kdebugf();
 
 	loggedOut();
+
+	disconnect(JabberClient, SIGNAL(csDisconnected()), this, SLOT(disconnectedFromServer()));
 
 	kdebugf2();
 }
@@ -275,7 +279,7 @@ void JabberProtocol::logout()
 
 void JabberProtocol::sendStatusToServer()
 {
-	if (!isConnected())
+	if (!isConnected() && !isDisconnecting())
 		return;
 
 	JabberClient->setPresence(IrisStatusAdapter::toIrisStatus(status()));

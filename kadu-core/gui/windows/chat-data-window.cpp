@@ -32,8 +32,12 @@
 
 #include "buddies/group.h"
 #include "chat/chat-manager.h"
+#include "chat/type/chat-type-manager.h"
+#include "gui/widgets/chat-edit-widget.h"
 #include "gui/widgets/group-list.h"
+#include "gui/windows/chat-data-window-aware-object.h"
 #include "icons/icons-manager.h"
+#include "misc/change-notifier.h"
 #include "misc/misc.h"
 #include "activate.h"
 
@@ -51,7 +55,7 @@ ChatDataWindow * ChatDataWindow::instance(const Chat &chat, QWidget *parent)
 }
 
 ChatDataWindow::ChatDataWindow(const Chat &chat, QWidget *parent) :
-		QWidget(parent, Qt::Dialog), MyChat(chat)
+		QWidget(parent, Qt::Dialog), MyChat(chat), EditWidget(0)
 {
 	Instances.insert(MyChat, this);
 
@@ -66,10 +70,14 @@ ChatDataWindow::ChatDataWindow(const Chat &chat, QWidget *parent) :
 
 	connect(ChatManager::instance(), SIGNAL(chatRemoved(Chat)),
 			this, SLOT(chatRemoved(Chat)));
+
+	ChatDataWindowAwareObject::notifyChatDataWindowCreated(this);
 }
 
 ChatDataWindow::~ChatDataWindow()
 {
+	ChatDataWindowAwareObject::notifyChatDataWindowDestroyed(this);
+
 	Instances.remove(MyChat);
 
 	saveWindowGeometry(this, "General", "ChatDataWindowGeometry");
@@ -85,6 +93,11 @@ void ChatDataWindow::show()
 void ChatDataWindow::createGui()
 {
 	QVBoxLayout *layout = new QVBoxLayout(this);
+
+	TabWidget = new QTabWidget(this);
+
+	GeneralTab = new QWidget(TabWidget);
+	QVBoxLayout *generalLayout = new QVBoxLayout(GeneralTab);
 
 	QWidget *nameWidget = new QWidget(this);
 
@@ -104,16 +117,31 @@ void ChatDataWindow::createGui()
 	ChatGroupList = new GroupList(this);
 	ChatGroupList->setCheckedGroups(MyChat.groups());
 
-	layout->addWidget(nameWidget);
-	layout->addWidget(groupsLabel);
-	layout->addWidget(ChatGroupList);
+	generalLayout->addWidget(nameWidget);
+	generalLayout->addWidget(groupsLabel);
+	generalLayout->addWidget(ChatGroupList);
+
+	TabWidget->addTab(GeneralTab, tr("General"));
+
+	ChatType *chatType = ChatTypeManager::instance()->chatType(MyChat.type());
+	if (chatType)
+	{
+		EditWidget = chatType->createEditWidget(MyChat, TabWidget);
+		if (EditWidget)
+		{
+			TabWidget->addTab(EditWidget, tr("Chat"));
+			connect(EditWidget, SIGNAL(stateChanged(ModalConfigurationWidgetState)), this, SLOT(editChatStateChanged(ModalConfigurationWidgetState)));
+		}
+	}
+
+	layout->addWidget(TabWidget);
 
 	createButtons(layout);
 
 	connect(DisplayEdit, SIGNAL(textChanged(QString)), this, SLOT(updateButtons()));
 }
 
-void ChatDataWindow::createButtons(QLayout *layout)
+void ChatDataWindow::createButtons(QVBoxLayout *layout)
 {
 	QDialogButtonBox *buttons = new QDialogButtonBox(Qt::Horizontal, this);
 
@@ -130,17 +158,25 @@ void ChatDataWindow::createButtons(QLayout *layout)
 	connect(ApplyButton, SIGNAL(clicked(bool)), this, SLOT(updateChat()));
 	connect(cancelButton, SIGNAL(clicked(bool)), this, SLOT(close()));
 
+	layout->addSpacing(16);
 	layout->addWidget(buttons);
 }
 
 void ChatDataWindow::updateChat()
 {
-	MyChat.blockUpdatedSignal();
+	if (MyChat)
+		MyChat.changeNotifier()->block();
+
+	if (EditWidget)
+		EditWidget->apply();
 
 	MyChat.setDisplay(DisplayEdit->text());
 	MyChat.setGroups(ChatGroupList->checkedGroups());
 
-	MyChat.unblockUpdatedSignal();
+	emit save();
+
+	if (MyChat)
+		MyChat.changeNotifier()->unblock();
 }
 
 void ChatDataWindow::updateChatAndClose()
@@ -153,6 +189,12 @@ void ChatDataWindow::chatRemoved(const Chat &chat)
 {
 	if (chat == MyChat)
 		close();
+}
+
+void ChatDataWindow::editChatStateChanged(ModalConfigurationWidgetState state)
+{
+	OkButton->setEnabled(state != StateChangedDataInvalid);
+	ApplyButton->setEnabled(state != StateChangedDataInvalid);
 }
 
 void ChatDataWindow::keyPressEvent(QKeyEvent *event)

@@ -59,8 +59,10 @@ void GaduRosterService::setGaduSession(gg_session *gaduSession)
 	GaduSession = gaduSession;
 }
 
-void GaduRosterService::prepareRoster()
+void GaduRosterService::prepareRoster(const QVector<Contact> &contacts)
 {
+	RosterService::prepareRoster(contacts);
+
 	Q_ASSERT(StateNonInitialized == state());
 	Q_ASSERT(GaduSession);
 
@@ -75,7 +77,9 @@ void GaduRosterService::prepareRoster()
 
 	if (sendList.isEmpty())
 	{
+		static_cast<GaduProtocol *>(protocol())->disableSocketNotifiers();
 		gg_notify_ex(GaduSession, 0, 0, 0);
+		static_cast<GaduProtocol *>(protocol())->enableSocketNotifiers();
 		kdebugmf(KDEBUG_NETWORK|KDEBUG_INFO, "Userlist is empty\n");
 
 		setState(StateInitialized);
@@ -103,7 +107,9 @@ void GaduRosterService::prepareRoster()
 		++i;
 	}
 
+	static_cast<GaduProtocol *>(protocol())->disableSocketNotifiers();
 	gg_notify_ex(static_cast<GaduProtocol *>(protocol())->gaduSession(), uins.data(), types.data(), count);
+	static_cast<GaduProtocol *>(protocol())->enableSocketNotifiers();
 	kdebugmf(KDEBUG_NETWORK|KDEBUG_INFO, "Userlist sent\n");
 
 	setState(StateInitialized);
@@ -135,59 +141,28 @@ void GaduRosterService::sendNewFlags(const Contact &contact, int newFlags) const
 
 	details->setGaduFlags(newFlags);
 
+	static_cast<GaduProtocol *>(protocol())->disableSocketNotifiers();
 	updateFlag(uin, newFlags, oldFlags, 0x01);
 	updateFlag(uin, newFlags, oldFlags, 0x02);
 	updateFlag(uin, newFlags, oldFlags, 0x04);
+	static_cast<GaduProtocol *>(protocol())->enableSocketNotifiers();
 }
 
-bool GaduRosterService::addContact(const Contact &contact)
+void GaduRosterService::executeTask(const RosterTask &task)
 {
-	if (!canPerformLocalUpdate() ||
-	        account() != contact.contactAccount() ||
-	        account().accountContact() == contact)
-		return false;
-
 	Q_ASSERT(StateInitialized == state());
 
-	if (!RosterService::addContact(contact))
-		return false;
-
-	setState(StateProcessingLocalUpdate);
-	sendNewFlags(contact, notifyTypeFromContact(contact));
-	setState(StateInitialized);
-
-	return true;
-}
-
-bool GaduRosterService::removeContact(const Contact &contact)
-{
-	if (!canPerformLocalUpdate() ||
-	        account() != contact.contactAccount() ||
-	        account().accountContact() == contact)
-		return false;
-
-	Q_ASSERT(StateInitialized == state());
-
-	if (!RosterService::removeContact(contact))
-		return false;
-
-	setState(StateProcessingLocalUpdate);
-	sendNewFlags(contact, 0);
-	setState(StateInitialized);
-
-	return true;
-}
-
-void GaduRosterService::updateContact(const Contact &contact)
-{
-	if (!canPerformLocalUpdate() ||
-	        account() != contact.contactAccount() ||
-	        account().accountContact() == contact)
-		return;
-
-	Q_ASSERT(StateInitialized == state());
-
-	setState(StateProcessingLocalUpdate);
-	sendNewFlags(contact, notifyTypeFromContact(contact));
-	setState(StateInitialized);
+	Contact contact = ContactManager::instance()->byId(account(), task.id(), ActionReturnNull);
+	switch (task.type())
+	{
+		case RosterTaskAdd:
+		case RosterTaskUpdate:
+			sendNewFlags(contact, notifyTypeFromContact(contact));
+			break;
+		case RosterTaskDelete:
+			sendNewFlags(contact, 0);
+			break;
+		default:
+			break;
+	}
 }

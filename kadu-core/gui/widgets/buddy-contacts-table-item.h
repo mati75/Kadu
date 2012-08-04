@@ -35,7 +35,7 @@ class BuddyContactsTableItem : public QObject
 
 public:
 	enum ItemAction {
-		ItemView,
+		ItemEdit,
 		ItemAdd,
 		ItemDetach,
 		ItemRemove
@@ -46,10 +46,12 @@ private:
 	int ItemContactPriority;
 	Account ItemAccount;
 	QString Id;
+	bool RosterDetached;
 	ItemAction Action;
 	QString DetachedBuddyName;
 
 	bool isAddValid() const;
+	bool isEditValid() const;
 
 public:
 	explicit BuddyContactsTableItem(Contact contact = Contact::null, QObject *parent = 0);
@@ -65,6 +67,9 @@ public:
 
 	const QString & id() const { return Id; }
 	void setId(const QString &id);
+
+	bool rosterDetached() const { return RosterDetached; }
+	void setRosterDetached(bool rosterDetached);
 
 	ItemAction action() const { return Action; }
 	void setAction(ItemAction action);

@@ -119,7 +119,7 @@ void KaduWebView::contextMenuEvent(QContextMenuEvent *e)
 	QAction *copy = pageAction(QWebPage::Copy);
 	copy->setText(tr("Copy"));
 	QAction *copyLink = pageAction(QWebPage::CopyLinkToClipboard);
-	copyLink->setText(tr("Copy Link"));
+	copyLink->setText(tr("Copy Link Address"));
 	copyLink->setEnabled(isLink);
 	QAction *copyImage = pageAction(QWebPage::CopyImageToClipboard);
 	copyImage->setText(tr("Copy Image"));
@@ -384,11 +384,14 @@ void KaduWebView::convertClipboardHtml(QClipboard::Mode mode)
 			pos += matchedLength;
 	}
 
-	QTextDocument htmlToPlainTextConverter;
-	htmlToPlainTextConverter.setHtml(html);
+	QTextDocument document;
+	document.setHtml(html);
 	QMimeData *data = new QMimeData();
 	data->setHtml(html);
-	data->setText(htmlToPlainTextConverter.toPlainText());
+
+	// remove OBJECT REPLACEMENT CHARACTER
+	// see http://www.kadu.im/redmine/issues/2490
+	data->setText(document.toPlainText().remove(QChar(0xfffc)));
 	QApplication::clipboard()->setMimeData(data, mode);
 }
 

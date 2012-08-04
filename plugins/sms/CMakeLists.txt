@@ -17,12 +17,10 @@ include (FindKadu)
 
 set (SOURCES
 	gui/windows/sms-dialog.cpp
-	gui/windows/sms-image-dialog.cpp
-	gui/windows/sms-progress-window.cpp
-	gui/windows/sms-token-reader.cpp
 	scripts/network-access-manager-wrapper.cpp
 	scripts/network-reply-wrapper.cpp
 	scripts/sms-script-manager.cpp
+	scripts/sms-translator.cpp
 
 	mobile-number.cpp
 	mobile-number-manager.cpp
@@ -35,16 +33,15 @@ set (SOURCES
 	sms-internal-sender.cpp
 	sms-plugin.cpp
 	sms-sender.cpp
+	sms-token-read-job.cpp
 )
 
 set (MOC_SOURCES
 	gui/windows/sms-dialog.h
-	gui/windows/sms-image-dialog.h
-	gui/windows/sms-progress-window.h
-	gui/windows/sms-token-reader.h
 	scripts/network-access-manager-wrapper.h
 	scripts/network-reply-wrapper.h
 	scripts/sms-script-manager.h
+	scripts/sms-translator.h
 
 	sms-actions.h
 	sms-configuration-ui-handler.h
@@ -53,6 +50,7 @@ set (MOC_SOURCES
 	sms-internal-sender.h
 	sms-plugin.h
 	sms-sender.h
+	sms-token-read-job.h
 )
 
 set (DATA_DIRECTORY

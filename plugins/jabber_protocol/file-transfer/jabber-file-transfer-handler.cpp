@@ -56,14 +56,8 @@ void JabberFileTransferHandler::connectJabberTransfer()
 
 void JabberFileTransferHandler::disconnectJabberTransfer()
 {
-	if (!JabberTransfer)
-		return;
-
-	disconnect(JabberTransfer, SIGNAL(accepted()), this, SLOT(fileTransferAccepted()));
-	disconnect(JabberTransfer, SIGNAL(connected()), this, SLOT(fileTransferConnected()));
-	disconnect(JabberTransfer, SIGNAL(readyRead(const QByteArray &)), this, SLOT(fileTransferReadyRead(const QByteArray &)));
-	disconnect(JabberTransfer, SIGNAL(bytesWritten(int)), this, SLOT(fileTransferBytesWritten(int)));
-	disconnect(JabberTransfer, SIGNAL(error(int)), this, SLOT(fileTransferError(int)));
+	if (JabberTransfer)
+		disconnect(JabberTransfer, 0, this, 0);
 }
 
 void JabberFileTransferHandler::setJTransfer(XMPP::FileTransfer *jTransfer)
@@ -106,7 +100,8 @@ void JabberFileTransferHandler::send()
 	if (InProgress) // already sending/receiving
 		return;
 
-	transfer().setRemoteFileName(transfer().localFileName());
+	QFileInfo localFile(transfer().localFileName());
+	transfer().setRemoteFileName(localFile.fileName());
 
 	QFileInfo fileInfo(transfer().localFileName());
 	transfer().setFileSize(fileInfo.size());
@@ -155,7 +150,7 @@ void JabberFileTransferHandler::send()
 	transfer().setTransferStatus(StatusWaitingForAccept);
 	InProgress = true;
 
-	JabberTransfer->sendFile(PeerJid, transfer().localFileName(), transfer().fileSize(), QString());
+	JabberTransfer->sendFile(PeerJid, transfer().remoteFileName(), transfer().fileSize(), QString());
 }
 
 void JabberFileTransferHandler::stop()

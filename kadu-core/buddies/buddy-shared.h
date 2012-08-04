@@ -37,12 +37,13 @@
 #include <QtXml/QDomElement>
 
 #include "buddies/buddy-gender.h"
+#include "misc/change-notifier.h"
 #include "storage/shared.h"
 
 #include "exports.h"
 
 #define BuddyShared_PropertyDirtyWrite(type, name, capitalized_name) \
-	void set##capitalized_name(type name) { ensureLoaded(); if (capitalized_name != name) { capitalized_name = name; dataUpdated(); markContactsDirty(); } }
+	void set##capitalized_name(type name) { ensureLoaded(); if (capitalized_name != name) { capitalized_name = name; changeNotifier()->notify(); markContactsDirty(); } }
 
 #define BuddyShared_PropertyDirty(type, name, capitalized_name) \
 	KaduShared_PropertyRead(type, name, capitalized_name) \
@@ -52,10 +53,10 @@
 	bool is##capitalized_name() { ensureLoaded(); return capitalized_name; }
 
 #define BuddyShared_PropertySubscriptionWrite(capitalized_name) \
-	void set##capitalized_name(bool name) { ensureLoaded(); if (capitalized_name != name) { capitalized_name = name;  buddySubscriptionChanged(); dataUpdated(); } }
+	void set##capitalized_name(bool name) { ensureLoaded(); if (capitalized_name != name) { capitalized_name = name;  buddySubscriptionChanged(); changeNotifier()->notify(); } }
 
 #define BuddyShared_PropertySubscriptionDirtyWrite(capitalized_name) \
-	void set##capitalized_name(bool name) { ensureLoaded(); if (capitalized_name != name) { capitalized_name = name;  buddySubscriptionChanged(); dataUpdated(); markContactsDirty(); } }
+	void set##capitalized_name(bool name) { ensureLoaded(); if (capitalized_name != name) { capitalized_name = name;  buddySubscriptionChanged(); changeNotifier()->notify(); markContactsDirty(); } }
 
 #define BuddyShared_PropertySubscription(capitalized_name) \
 	BuddyShared_PropertySubscriptionRead(capitalized_name) \
@@ -99,6 +100,7 @@ class KADUAPI BuddyShared : public QObject, public Shared
 	bool PreferHigherStatuses;
 
 	bool Anonymous;
+	bool Temporary;
 	bool Blocked;
 	bool OfflineTo;
 
@@ -118,7 +120,6 @@ protected:
 	virtual void load();
 	virtual void store();
 	virtual bool shouldStore();
-	virtual void emitUpdated();
 
 public:
 	static BuddyShared * loadStubFromStorage(const QSharedPointer<StoragePoint> &buddyStoragePoint);
@@ -178,6 +179,7 @@ public:
 	KaduShared_Property(BuddyGender, gender, Gender)
 	KaduShared_Property(bool, preferHigherStatuses, PreferHigherStatuses)
 	BuddyShared_PropertySubscription(Anonymous)
+	KaduShared_PropertyBool(Temporary)
 	BuddyShared_PropertySubscriptionDirty(Blocked)
 	BuddyShared_PropertySubscriptionDirty(OfflineTo)
 

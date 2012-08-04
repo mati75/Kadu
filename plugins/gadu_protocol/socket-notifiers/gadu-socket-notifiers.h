@@ -37,8 +37,6 @@ class GaduSocketNotifiers : public QObject
 	QSocketNotifier *WriteNotifier;
 	QTimer *TimeoutTimer;
 
-	bool Lock;
-
 	void createSocketNotifiers();
 	void deleteSocketNotifiers();
 
@@ -49,11 +47,6 @@ private slots:
 
 protected:
 	void watchFor(int socket);
-	void disable();
-	void enable();
-
-	void lock();
-	void unlock();
 
 	virtual bool checkRead() = 0;
 	virtual bool checkWrite() = 0;
@@ -65,6 +58,9 @@ protected:
 public:
 	GaduSocketNotifiers(QObject *parent = 0);
 	virtual ~GaduSocketNotifiers();
+
+	void disable();
+	void enable();
 
 };
 

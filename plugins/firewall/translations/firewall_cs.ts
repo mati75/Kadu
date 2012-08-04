@@ -136,12 +136,12 @@
         </translation>
     </message>
     <message>
-        <source>Module will ask the question typed below, if someone wants talk to you and you do not have him on your list.</source>
-        <translation type="unfinished"></translation>
+        <source>Message was firewalled</source>
+        <translation>Zpráva byla zadržena ohnivou zdí</translation>
     </message>
     <message>
-        <source>Message was firewalled</source>
-        <translation type="unfinished"></translation>
+        <source>Module will ask the question typed below, if someone wants talk to you and you do not have him on your list.</source>
+        <translation>Modul položí otázku napsanou níže, když s vámi bude chtít někdo mluvit, ale vy jej nemáte zapsaného ve svém seznamu.</translation>
     </message>
 </context>
 <context>

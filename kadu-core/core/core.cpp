@@ -60,10 +60,14 @@
 #include "plugins/plugins-manager.h"
 #include "protocols/protocol-factory.h"
 #include "protocols/protocol.h"
+#include "provider/default-provider.h"
+#include "provider/simple-provider.h"
 #include "status/status-container-manager.h"
 #include "status/status-setter.h"
 #include "status/status-type-manager.h"
 #include "status/status-type.h"
+#include "themes/emoticon-theme-manager.h"
+#include "themes/icon-theme-manager.h"
 #include "url-handlers/url-handler-manager.h"
 #include "activate.h"
 #include "debug.h"
@@ -96,7 +100,7 @@ QString Core::name()
 
 QString Core::version()
 {
-	return QLatin1String(VERSION);
+	return QLatin1String(KADU_VERSION);
 }
 
 QString Core::nameWithVersion()
@@ -110,7 +114,10 @@ KaduApplication * Core::application()
 }
 
 Core::Core() :
-		Myself(Buddy::create()), Window(0), IsClosing(false),
+		KaduWindowProvider(new SimpleProvider<QWidget *>(0)),
+		MainWindowProvider(new DefaultProvider<QWidget *>(KaduWindowProvider)),
+		Window(0),
+		Myself(Buddy::create()), IsClosing(false),
 		ShowMainWindowOnStart(true), QcaInit(new QCA::Initializer())
 {
 	connect(qApp, SIGNAL(aboutToQuit()), this, SLOT(quit()));
@@ -140,9 +147,10 @@ Core::~Core()
 	PluginsManager::instance()->deactivatePlugins();
 
 #ifdef Q_OS_MAC
-	setIcon(KaduIcon("kadu_icons/kadu"));
+	QApplication::setWindowIcon(KaduIcon("kadu_icons/kadu").icon());
 #endif // Q_OS_MAC
 
+	KaduWindowProvider->provideValue(0);
 	QWidget *hiddenParent = Window->parentWidget();
 	delete Window;
 	Window = 0;
@@ -152,19 +160,11 @@ Core::~Core()
 
 	triggerAllAccountsUnregistered();
 
-	xml_config_file->sync();
-
 	// Sometimes it causes crash which I don't understand. For me 100% reproducible
 	// if Kadu was compiled with Clang and we logged in to a jabber account. --beevvy
 	// TODO: fix it
 	// delete QcaInit;
 	// QcaInit = 0;
-
-	delete xml_config_file;
-	delete config_file_ptr;
-
-	xml_config_file = 0;
-	config_file_ptr = 0;
 }
 
 void Core::import_0_6_5_configuration()
@@ -190,11 +190,7 @@ void Core::createDefaultConfiguration()
 	config_file.addVariable("Chat", "EmoticonsPaths", QString());
 	config_file.addVariable("Chat", "EmoticonsStyle", EmoticonsStyleAnimated);
 	config_file.addVariable("Chat", "EmoticonsScaling", EmoticonsScalingStatic);
-#ifdef Q_WS_X11
-	config_file.addVariable("Chat", "EmoticonsTheme", "penguins");
-#else
-	config_file.addVariable("Chat", "EmoticonsTheme", "tango");
-#endif
+	config_file.addVariable("Chat", "EmoticonsTheme", EmoticonThemeManager::defaultTheme());
 	config_file.addVariable("Chat", "FoldLink", true);
 	config_file.addVariable("Chat", "LinkFoldTreshold", 50);
 	config_file.addVariable("Chat", "IgnoreAnonymousRichtext", true);
@@ -301,11 +297,10 @@ void Core::createDefaultConfiguration()
 	config_file.addVariable("Look", "ParagraphSeparator", 4);
 #ifdef Q_WS_MAEMO_5
 	config_file.addVariable("Look", "ShowAvatars", false);
-	config_file.addVariable("Look", "IconTheme", "glass22");
 #else
 	config_file.addVariable("Look", "ShowAvatars", true);
-	config_file.addVariable("Look", "IconTheme", "default");
 #endif
+	config_file.addVariable("Look", "IconTheme", IconThemeManager::defaultTheme());
 	config_file.addVariable("Look", "ShowGroupAll", true);
 	config_file.addVariable("Look", "ShowBold", true);
 	config_file.addVariable("Look", "ShowDesc", true);
@@ -400,12 +395,10 @@ void Core::init()
 	Myself.setAnonymous(false);
 	Myself.setDisplay(config_file.readEntry("General", "Nick", tr("Me")));
 
-	connect(StatusContainerManager::instance(), SIGNAL(statusUpdated()), this, SLOT(statusUpdated()));
-
 	new Updates(this);
 
-	setIcon(KaduIcon(QLatin1String("protocols/common/offline")));
-	connect(IconsManager::instance(), SIGNAL(themeChanged()), this, SLOT(statusUpdated()));
+	QApplication::setWindowIcon(KaduIcon("kadu_icons/kadu").icon());
+	connect(IconsManager::instance(), SIGNAL(themeChanged()), this, SLOT(updateIcon()));
 	QTimer::singleShot(15000, this, SLOT(deleteOldConfigurationFiles()));
 
 	// TODO: add some life-cycle management
@@ -440,34 +433,40 @@ void Core::deleteOldConfigurationFiles()
 {
 	kdebugf();
 
-	QDir oldConfigs2(profilePath(), "kadu-0.6.6.conf.xml.backup.*", QDir::Name, QDir::Files);
+	QDir oldConfigs(KaduPaths::instance()->profilePath(), "kadu-0.12.conf.xml.backup.*", QDir::Name, QDir::Files);
+	if (oldConfigs.count() > 20)
+		for (unsigned int i = 0, max = oldConfigs.count() - 20; i < max; ++i)
+			QFile::remove(KaduPaths::instance()->profilePath() + oldConfigs[i]);
+
+	QDir oldConfigs2(KaduPaths::instance()->profilePath(), "kadu-0.6.6.conf.xml.backup.*", QDir::Name, QDir::Files);
 	if (oldConfigs2.count() > 20)
 		for (unsigned int i = 0, max = oldConfigs2.count() - 20; i < max; ++i)
-			QFile::remove(profilePath(oldConfigs2[i]));
+			QFile::remove(KaduPaths::instance()->profilePath() + oldConfigs2[i]);
 
-	QDir oldBacktraces(profilePath(), "kadu.backtrace.*", QDir::Name, QDir::Files);
+	QDir oldBacktraces(KaduPaths::instance()->profilePath(), "kadu.backtrace.*", QDir::Name, QDir::Files);
 	if (oldBacktraces.count() > 20)
 		for (unsigned int i = 0, max = oldBacktraces.count() - 20; i < max; ++i)
-			QFile::remove(profilePath(oldBacktraces[i]));
+			QFile::remove(KaduPaths::instance()->profilePath() + oldBacktraces[i]);
 
-	QDir oldDebugs(profilePath(), "kadu.log.*", QDir::Name, QDir::Files);
+	QDir oldDebugs(KaduPaths::instance()->profilePath(), "kadu.log.*", QDir::Name, QDir::Files);
 	if (oldDebugs.count() > 20)
 		for (unsigned int i = 0, max = oldDebugs.count() - 20; i < max; ++i)
-			QFile::remove(profilePath(oldDebugs[i]));
+			QFile::remove(KaduPaths::instance()->profilePath() + oldDebugs[i]);
 
 	kdebugf2();
 }
 
-void Core::statusUpdated()
+void Core::updateIcon()
 {
 	if (isClosing())
 		return;
 
-	setIcon(StatusContainerManager::instance()->statusIcon());
+	QApplication::setWindowIcon(KaduIcon("kadu_icons/kadu").icon());
 }
 
 void Core::kaduWindowDestroyed()
 {
+	KaduWindowProvider->provideValue(0);
 	Window = 0;
 }
 
@@ -487,11 +486,7 @@ void Core::accountUnregistered(Account account)
 	Protocol *protocol = account.protocolHandler();
 
 	if (protocol)
-	{
-		disconnect(protocol, SIGNAL(connecting(Account)), this, SIGNAL(connecting()));
-		disconnect(protocol, SIGNAL(connected(Account)), this, SIGNAL(connected()));
-		disconnect(protocol, SIGNAL(disconnected(Account)), this, SIGNAL(disconnected()));
-	}
+		disconnect(protocol, 0, this, 0);
 }
 
 void Core::configurationUpdated()
@@ -517,6 +512,7 @@ void Core::createGui()
 {
 	Window = new KaduWindow();
 	connect(Window, SIGNAL(destroyed()), this, SLOT(kaduWindowDestroyed()));
+	KaduWindowProvider->provideValue(Window);
 
 	// initialize file transfers
 	FileTransferManager::instance();
@@ -525,9 +521,9 @@ void Core::createGui()
 void Core::showMainWindow()
 {
 	if (ShowMainWindowOnStart)
-		Window->show();
+		MainWindowProvider->provide()->show();
 
-	// after first call which has to be placed in main(), this method should always show Window
+	// after first call which has to be placed in main(), this method should always show main window
 	ShowMainWindowOnStart = true;
 }
 
@@ -541,28 +537,15 @@ KaduWindow * Core::kaduWindow()
 	return Window;
 }
 
-void Core::setIcon(const KaduIcon &icon)
+const QSharedPointer<DefaultProvider<QWidget *> > & Core::mainWindowProvider() const
 {
-	bool blocked = false;
-	emit settingMainIconBlocked(blocked);
-
-	if (!blocked)
-	{
-		QApplication::setWindowIcon(icon.icon());
-		foreach (QWidget *window, QApplication::topLevelWidgets())
-			if (window->property("ownWindowIcon").toBool() == false)
-				window->setWindowIcon(icon.icon());
-		if (Window && !Window->isWindow())
-			Window->setWindowIcon(icon.icon());
-
-		emit mainIconChanged(icon);
-	}
+	return MainWindowProvider;
 }
 
 void Core::receivedSignal(const QString &signal)
 {
 	if ("activate" == signal)
-		_activateWindow(Window);
+		_activateWindow(MainWindowProvider->provide());
 	else
 		UrlHandlerManager::instance()->openUrl(signal.toUtf8(), true);
 }

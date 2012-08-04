@@ -27,7 +27,7 @@
 #include "core/core.h"
 #include "gui/widgets/configuration/configuration-widget.h"
 #include "gui/windows/kadu-window.h"
-#include "misc/path-conversion.h"
+#include "misc/kadu-paths.h"
 
 #include "plugins/idle/idle-plugin.h"
 #include "plugins/idle/idle.h"
@@ -44,14 +44,13 @@ AutoHide::AutoHide(QObject *parent) :
 
 AutoHide::~AutoHide()
 {
-	Timer.stop();
 }
 
 int AutoHide::init(bool firstLoad)
 {
 	Q_UNUSED(firstLoad)
 
-	MainConfigurationWindow::registerUiFile(dataPath("plugins/configuration/auto_hide.ui"));
+	MainConfigurationWindow::registerUiFile(KaduPaths::instance()->dataPath() + QLatin1String("plugins/configuration/auto_hide.ui"));
 	MainConfigurationWindow::registerUiHandler(this);
 
 	return 0;
@@ -59,8 +58,10 @@ int AutoHide::init(bool firstLoad)
 
 void AutoHide::done()
 {
+	Timer.stop();
+
 	MainConfigurationWindow::unregisterUiHandler(this);
-	MainConfigurationWindow::unregisterUiFile(dataPath("plugins/configuration/auto_hide.ui"));
+	MainConfigurationWindow::unregisterUiFile(KaduPaths::instance()->dataPath() + QLatin1String("plugins/configuration/auto_hide.ui"));
 }
 
 void AutoHide::timerTimeoutSlot()

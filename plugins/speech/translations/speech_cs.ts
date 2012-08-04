@@ -85,7 +85,7 @@
     </message>
     <message>
         <source>Read a text</source>
-        <translation type="unfinished"></translation>
+        <translation>Číst text</translation>
     </message>
 </context>
 <context>

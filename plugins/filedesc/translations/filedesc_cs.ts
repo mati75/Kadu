@@ -33,7 +33,7 @@
     </message>
     <message>
         <source>Allows you to set some custom description manualy, until file contents does not change</source>
-        <translation type="unfinished"></translation>
+        <translation>Umožní vám nastavit některé vlastní popisy ručně, dokud se obsah souboru nezmění</translation>
     </message>
 </context>
 </TS>

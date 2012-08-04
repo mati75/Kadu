@@ -44,7 +44,7 @@
     <name>MPDMediaPlayer</name>
     <message>
         <source>Unknown</source>
-        <translation type="unfinished"></translation>
+        <translation>Neznámý</translation>
     </message>
 </context>
 </TS>

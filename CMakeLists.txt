@@ -6,10 +6,6 @@ set (CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
 cmake_minimum_required (VERSION 2.8.0 FATAL_ERROR)
 
-if (WIN32 AND NOT BUILD_DESCRIPTION)
-	set (BUILD_DESCRIPTION "Compiled from sources" CACHE STRING "Build description" FORCE)
-endif (WIN32 AND NOT BUILD_DESCRIPTION)
-
 if (COMMAND cmake_policy)
 	cmake_policy (SET CMP0003 NEW)
 
@@ -18,12 +14,20 @@ if (COMMAND cmake_policy)
 	endif (${CMAKE_VERSION} VERSION_GREATER 2.8.0)
 endif (COMMAND cmake_policy)
 
-include (FindPkgConfig)
-include (CheckIncludeFiles)
-include (CheckFunctionExists)
-
 if (NOT KADU_VERSION)
-	find_program (GIT_EXECUTABLE git DOC "git command line client")
+	if (WIN32)
+		set (guessed_paths
+			"C:/Program Files/Git/bin"
+			"C:/Program Files (x86)/Git/bin"
+		)
+	else (WIN32)
+		set (guessed_paths)
+	endif (WIN32)
+
+	find_program (GIT_EXECUTABLE git
+		PATHS ${guessed_paths}
+		DOC "git command line client"
+	)
 	if (GIT_EXECUTABLE)
 		execute_process (COMMAND ${GIT_EXECUTABLE} describe --tags HEAD
 			WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
@@ -40,8 +44,11 @@ endif (NOT KADU_VERSION)
 
 if (WIN32)
 	# Add more version info to files
-	string (REGEX REPLACE "(.+)\\.(.+)\\.(.+)[.-].*" "\\1, \\2, \\3, 0" NUMERIC_VERSION ${KADU_VERSION})
+	string (REGEX REPLACE "([^\\.]+)\\.([^\\.]+)\\.([^\\.-]+)[\\.-].*" "\\1, \\2, \\3, 0" KADU_NUMERIC_VERSION ${KADU_VERSION})
 	set (PACKAGE_VERSION ${KADU_VERSION})
+	if (KADU_VERSION MATCHES ".*-.*")
+		set (KADU_PRERELEASE 1)
+	endif (KADU_VERSION MATCHES ".*-.*")
 
 	# package
 	set (CPACK_GENERATOR "ZIP")
@@ -50,9 +57,13 @@ if (WIN32)
 endif (WIN32)
 
 if (NOT WIN32)
+	include (CheckIncludeFiles)
+
 	# TODO: Add libexecinfo support
 	check_include_files ("execinfo.h" HAVE_EXECINFO)
 	if (HAVE_EXECINFO)
+		include (CheckFunctionExists)
+
 		check_function_exists ("backtrace" HAVE_EXECINFO)
 	endif (HAVE_EXECINFO)
 
@@ -65,12 +76,12 @@ set (KADU_INSTALLS_SDK TRUE)
 include (FindKadu)
 include_directories (${CMAKE_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/kadu-core ${QT_INCLUDES})
 
+configure_file (${CMAKE_SOURCE_DIR}/kadu-config.h.cmake ${CMAKE_BINARY_DIR}/kadu-config.h)
+
 if (INSTALL_SDK)
 	install (FILES cmake/FindKadu.cmake DESTINATION ${KADU_CMAKE_MODULES_DIR})
+	install (FILES ${CMAKE_BINARY_DIR}/kadu-config.h DESTINATION ${KADU_SDK_DIR})
 endif (INSTALL_SDK)
-
-# build
-configure_file (${CMAKE_SOURCE_DIR}/kadu-config.h.cmake ${CMAKE_BINARY_DIR}/kadu-config.h)
 
 configure_file (${CMAKE_CURRENT_SOURCE_DIR}/cmake_uninstall.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake IMMEDIATE @ONLY)
 
@@ -88,5 +99,8 @@ message (STATUS "Kadu (version: ${KADU_VERSION}) will be built:")
 message (STATUS " * install prefix: ${CMAKE_INSTALL_PREFIX}")
 message (STATUS " * build type: ${CMAKE_BUILD_TYPE}")
 
-# install data files
-install (FILES AUTHORS HISTORY README THANKS ChangeLog ChangeLog.OLD-PL COPYING DESTINATION "${KADU_DATADIR}")
+install (FILES AUTHORS HISTORY README THANKS ChangeLog ChangeLog.OLD-PL DESTINATION "${KADU_DATADIR}")
+# For Win32 we use GPL3, and this COPYING is GPL2
+if (NOT WIN32)
+	install (FILES COPYING DESTINATION "${KADU_DATADIR}")
+endif (NOT WIN32)

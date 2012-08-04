@@ -1,4 +1,79 @@
-﻿+++ version 0.12.0-alpha1
+﻿+++ version 0.12.0
+* gui: better preview in configuration window (Vogel)
+
++++ version 0.12.0-rc1
+* network: #2523 fixed: try to connect from time to time even if system tells us we are offline (Vogel)
+* tabs: #2118 fixed: add open recent chats button to tabswindow (kelmain)
+* sms: #2538 fixed: removed unsupported multibox gateway (Vogel)
+* gui: #2588 fixed: in status menu check action of desired status not active one (ultr)
+
++++ version 0.12.0-beta2
+* core: #2403 fixed: start conference with preferred contacts of each buddy instead of first ones (ultr)
+* core: #2434 done: account password is now forgotten after offline status is set and 'Remember password' option is disabled (Juzef)
+* chat styles: #1866 fixed: use small version of avatars in chat window (Vogel)
+* emoticons: #2475 fixed: accept non-latin characters in emoticons (Vogel)
+* gui: #1948 fixed: sometimes size of infopanel was lost from configuration (Vogel)
+* core: #2436 fixed: do not ask for password for accounts with no passwords after saving configuration (Vogel)
+* gui: #2556 fixed: don't clear filter field's focus when its text is erased (ultr)
+* gui: #2507 fixed: link folding option is respected before restarting kadu (marseel)
+* jabber: #2476 fixed: transfer of files between Kadu and Pidgin works now (Vogel)
+* freedesktop_notify: #2356 fixed: forgot about notifications only when server asks for it (Vogel)
+* gui: #2555 fixed: identities should use common status icons when needed (ultr)
+* chat styles: #2565 fixed: no css style in chat window with one message after updating settings (marseel)
+* history: #2550 fixed: ask user for removing history (marseel)
+* gui: #953 done: use directory selection dialog in screenshot plugin (mazlik)
+* gui: #2574 fixed: do not crash Kadu after deletion of currently used chat syntax (Vogel)
+* screenshot: #2558 fixed: activate and focus screenshot window properly, handle Esc and Return keys (ultr)
+* tabs: #2005 fixed: support for alt+[0-9] shurtcuts in tabs window (mazlik)
+* build: by default compile with optimizations turned on (RelWithDebInfo instead of Debug) (beevvy)
+* spellchecker: switch default backend from aspell to enchant (aspell is still available) (beevvy)
+* gui: #2581 fixed: properly ignore non-existing avatars (Vogel)
+* core: #2559 fixed: StatusContainer::status() should return actual status instead of desired one (ultr)
+* gui: #2069 fixed: toggle checkboxes when the items are clicked in Delete Buddy window (ultr)
+* gui: #2447 fixed: after pressing tilde and a character in chat window, a message was mistakenly being sent (beevvy)
+* themes: #2541 fixed: store emoticon and icon themes in configuration only by name (beevvy)
+
++++ version 0.12.0-beta1
+* tabs: "Close all tabs but active one" action added (Juzef)
+* last_seen: #1430 done: added context menu in Last Seen window (Vogel)
+* configuration: #2529 fixed: prevent loss of XML nodes with same tags in one parent node (ultr)
+* tabs: #2098, #2497 fixed: respect blocking window closing settings (Vogel)
+* gui: #2479 fixed: information panel didn't display anything for chats (Vogel)
+* gui: #2472 fixed: use common status icons in Status Window when changing status for all accounts (Vogel)
+* single_window: #2470 fixed: "Start Docked" didn't work for Single Window plugin (Vogel)
+* gui: #1916 fixed: use Kadu icon for all non-chat windows (Vogel)
+* core: #2312 fixed: properly remove all contacts and chats when removing account (Vogel)
+* gui: #1785 fixed: invalid parsing of some URLs (Vogel)
+* gui: #1838 fixed: use system highlight color in emoticons selector (Vogel)
+* notify: #2355 done: implement fullscreen apps detection option for Windows (mziab, beevvy)
+* gui: #2491 done: disable toolbar borders on Windows (beevvy)
+* jabber: #2000 fixed: not allowed to change buddy's name for GMail contacts (Vogel)
+
++++ version 0.12.0-alpha4
+* sql_history: #2484 done: removed uuids from history file, now history can be moved between instances (Vogel)
+* buddies: #2489 done: removed BuddiesModel and BuddiesModelBase classes (Vogel)
+* chat styles: #2499 fixed: keep message borders for long content (ultr)
+* jabber: #2141 done: MUC support added (Vogel)
+* sms: #359 done: more detailed process of sending SMS with possibility of cancelation in any moment (Vogel)
+* sms: #2466 fixed: messages from JavaScript are now translatable (Vogel)
+* history: #2526 fixed: display history for unknown chats and unknown contacts (Vogel)
+* history: #1586 fixed: history was not available for removed accounts (Vogel)
+
++++ version 0.12.0-alpha3
+* core: configuration file renamed to kadu-0.12.conf.xml as format will be changed (Vogel)
+* encryption_ng: #2505 done: removed "Encrypt by default" option, it is now always set to true (Vogel)
+* gui: #2122 fixed: do not move contact to the end of list when changing its account in Buddy Data Window (Vogel)
+* gui: #370 fixed: do not display emoticons in middle of word (Vogel)
+* gui: #598 fixed: added icons preview to Configuration Window (Vogel)
+* configuration: #2496 done: support custom icons for plugins in configuration sections (beevvy)
+* gui: new and improved plugins configuration window (Juzef)
+
++++ version 0.12.0-alpha2
+* gui: #2153 done: new and improved window for changing account status and description (Juzef)
+* history: #2440 done: auto-recovery for corrupted history databases (Vogel)
+* history: #2365 done: history can be disabled per chat and per buddy (Vogel)
+
++++ version 0.12.0-alpha1
 * history: #2450 done, #2300 fixed: new, polished history window (Vogel)
 * history: #2415 done: per-contact history (Vogel)
 * gui: #2277 fixed: status subscription window has proper meaning (Juzef)
@@ -6,15 +81,37 @@
 * jabber: redesigned SSL certificate error dialog (Juzef)
 * jabber: do not ask user for removing contact which revoked status subscription (Juzef)
 * gui: #2454 fixed: fix memory leak in emoticons selector (Juzef)
-* gui: #2435 & #2437 fixed: View File Transfers action always shows & activates file transfer window (Juzef)
-* jabber: #2176 fixed: do not try to fetch personal info when account is disconnected (Juzef)
 * gui: #2458 done: added search bar to chat widgets and history window (Vogel)
 * gui: #2465 done: added Ctrl+Home/End/PageUp/PageDown shortcuts to chat windows - to scroll to top/bottom/up/down of chat (Vogel)
 * core: #2457 fixed: actually respect custom KADU_BINDIR, KADU_DATADIR and KADU_PLUGINS_LIBDIR directories (beevvy)
 * core: semi-official portable installation support on all platforms by creating file named "portable" in Kadu data directory (beevvy)
 
++++ version 0.11.3
+* history: #2539 fixed: improper import of 0.6.5 history in some cases (Vogel)
+* gui: #2335 fixed: fixed QPalette::HighlightedText and QPalette::Highlight Windows workaround to always work properly (beevvy)
+* gadu: #2542 fixed: setting proper description on shutdown (Vogel)
+
++++ version 0.11.2
+* url-handlers: #2485 fixed: do not treat strings beginning with "ftp." as http links (beevvy)
+* gadu: fixed rare problem which have been causing inability to send any messages (beevvy)
+* gadu: fixed possible application hangs, especially when trying to connect on unstable Internet connection (beevvy)
+* chat styles: fixed issues with contact activity icon not being displayed in old message styles (beevvy)
+* history: #2527 fixed: sort messages in history correctly (ultr)
+* sms: fixed gateway code (Vogel)
+* history: #2517 fixed: statuses were always stored as Offline (Vogel)
+* chat styles: #2518 fixed: text in system messages was overflowing time (Vogel)
+* gui: #2534 fixed: first incoming message was being displayed twice when "Open chat window on new message" option was enabled (beevvy)
+
 +++ version 0.11.1
 * gui: #2464 fixed: Clear Chat button was not properly activated after reading messages from history (Vogel)
+* gui: #2477 fixed: remove expired recent chats at Kadu startup (ultr)
+* gui: #2435 & #2437 fixed: View File Transfers action always shows & activates file transfer window (Juzef)
+* jabber: #2176 fixed: do not try to fetch personal info when account is disconnected (Juzef)
+* chat: fixed a bug in Adium chat styles engine causing messages to be often doubled when opening a chat widget (beevvy)
+* history: #2480 probably fixed: crash when loading last day/week/month history into chat widget on 32bit systems (Vogel)
+* history: various security improvements pointed by Mateusz Goik from http://www.aliantsoft.pl (Vogel)
+* history_migration: #2503 fixed: crashes during history import from Kadu 0.6.5 (Vogel)
+* spellchecker: #2319 done: better and smaller aspell Polish dictionary on Windows (beevvy)
 
 +++ version 0.11.0
 * gui: #2454 fixed: memory leak in emoticons selector (Juzef)
@@ -100,7 +197,7 @@
 * gadu: #1737 fixed: added per-account "Receive URLs from anonymous" option (Vogel)
 * jabber: #2074 fixed: support socks5 proxy (Juzef)
 * gui: #2070 fixed: proper link to online help in help menu (Vogel)
-* jabber: #2080 fixed: do not crash when chaning password (Vogel)
+* jabber: #2080 fixed: do not crash when changing password (Vogel)
 * gadu: #2364 fixed: updated avatar upload code to match current GG implementation (Vogel)
 * core: #2288 fixed: mark all contacts as offline after network error (Vogel)
 

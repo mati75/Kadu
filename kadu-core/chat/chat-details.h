@@ -32,6 +32,7 @@
 class BuddySet;
 class Chat;
 class ChatType;
+class Contact;
 class ContactSet;
 
 /**
@@ -93,6 +94,63 @@ public:
 	 * or list of names of contacts.
 	 */
 	virtual QString name() const = 0;
+
+	/**
+	 * @author Rafal 'Vogel' Malinowski
+	 * @short Return true when chat is connected.
+	 * @return true when chat is connected
+	 *
+	 * Chat messages can only be send to/received from connected chat.
+	 *
+	 * For example, simple Contact and ContactSet chats are connected when an account is connected.
+	 * MUC chats in XMPP are connected when account is connected and given group chat is joined.
+	 */
+	virtual bool isConnected() const = 0;
+
+signals:
+	/**
+	 * @author Rafal 'Vogel' Malinowski
+	 * @short Signal emited when given chat has connected.
+	 *
+	 * Chat messages can only be send to/received from connected chat.
+	 */
+	void connected();
+
+	/**
+	 * @author Rafal 'Vogel' Malinowski
+	 * @short Signal emited when given chat has disconnected.
+	 *
+	 * Chat messages can only be send to/received from connected chat.
+	 */
+	void disconnected();
+
+	/**
+	 * @author Rafal 'Vogel' Malinowski
+	 * @short Signal emited before a new contact is added to @link Chat @endlink represented by these details.
+	 * @param contact added contact
+	 */
+	void contactAboutToBeAdded(const Contact &contact);
+
+	/**
+	 * @author Rafal 'Vogel' Malinowski
+	 * @short Signal emited when a new contact was added to @link Chat @endlink represented by these details.
+	 * @param contact just added contact
+	 */
+	void contactAdded(const Contact &contact);
+
+	/**
+	 * @author Rafal 'Vogel' Malinowski
+	 * @short Signal emited before a contact is removed from @link Chat @endlink represented by these details.
+	 * @param contact just removed contact
+	 */
+	void contactAboutToBeRemoved(const Contact &contact);
+
+	/**
+	 * @author Rafal 'Vogel' Malinowski
+	 * @short Signal emited when a contact was removed from @link Chat @endlink represented by these details.
+	 * @param contact just removed contact
+	 */
+	void contactRemoved(const Contact &contact);
 
 };
 

@@ -32,6 +32,7 @@
 
 #include "accounts/account-manager.h"
 #include "configuration/configuration-file.h"
+#include "icons/kadu-icon.h"
 #include "misc/misc.h"
 #include "protocols/protocol.h"
 #include "themes/icon-theme-manager.h"
@@ -59,7 +60,7 @@ IconsManager::IconsManager()
 	ThemeManager->setCurrentTheme(config_file.readEntry("Look", "IconTheme"));
 	configurationUpdated();
 
-	config_file.writeEntry("Look", "IconTheme", ThemeManager->currentTheme().path());
+	config_file.writeEntry("Look", "IconTheme", ThemeManager->currentTheme().name());
 
 	// TODO: localized protocol
 	localProtocolPath = "gadu-gadu";
@@ -72,89 +73,52 @@ IconThemeManager * IconsManager::themeManager() const
 	return ThemeManager;
 }
 
-QString IconsManager::iconPathAllowEmpty(const QString &path, const QString &size, const QString &name) const
+QString IconsManager::iconPath(const KaduIcon &icon, IconsManager::AllowEmpty allowEmpty) const
 {
-	QFileInfo fileInfo;
+	QString path = icon.path();
+	QString size = icon.size();
 
-	fileInfo.setFile(ThemeManager->currentTheme().path() + path + '/' + size + '/' + name + ".png" );
+	QFileInfo fileInfo(path);
+	QString themePath = icon.themePath().isEmpty() ? ThemeManager->currentTheme().path() : icon.themePath();
+	QString name = fileInfo.fileName();
+	QString realPath = fileInfo.path();
+
+	fileInfo.setFile(themePath + realPath + '/' + size + '/' + name + ".png" );
 	if (fileInfo.isFile() && fileInfo.isReadable())
 		return fileInfo.canonicalFilePath();
 
-	fileInfo.setFile(ThemeManager->currentTheme().path() + path + "/svg/" + name + ".svg" );
+	fileInfo.setFile(themePath + realPath + '/' + size + '/' + name + ".gif" );
 	if (fileInfo.isFile() && fileInfo.isReadable())
 		return fileInfo.canonicalFilePath();
 
-	fileInfo.setFile(ThemeManager->currentTheme().path() + path + "/svg/" + name + ".svgz" );
+	fileInfo.setFile(themePath + realPath + "/svg/" + name + ".svg" );
 	if (fileInfo.isFile() && fileInfo.isReadable())
 		return fileInfo.canonicalFilePath();
 
-	if (path == QLatin1String("protocols/common"))
+	fileInfo.setFile(themePath + realPath + "/svg/" + name + ".svgz" );
+	if (fileInfo.isFile() && fileInfo.isReadable())
+		return fileInfo.canonicalFilePath();
+
+	if (realPath == QLatin1String("protocols/common"))
 	{
-		QString protocolpath;
+		QString protocolPath;
 		if (AccountManager::instance()->defaultAccount().protocolHandler())
-			protocolpath = AccountManager::instance()->defaultAccount().protocolHandler()->statusPixmapPath();
+			protocolPath = AccountManager::instance()->defaultAccount().protocolHandler()->statusPixmapPath();
 		else
-			protocolpath = localProtocolPath;
-		QString path2 = QString("protocols/%1").arg(protocolpath);
-		return iconPathAllowEmpty(path2, size, name);
+			protocolPath = localProtocolPath;
+
+		KaduIcon protocolPathIcon = icon;
+		protocolPathIcon.setPath(QString("protocols/%1/%2").arg(protocolPath).arg(name));
+		return iconPath(protocolPathIcon, allowEmpty);
 	}
 
-	return QString();
-}
-
-QString IconsManager::iconPathAllowEmpty(const QString &path, const QString &size) const
-{
-	QString realPath;
-	QString iconName;
-
-	int lastHash = path.lastIndexOf('/');
-	if (-1 != lastHash)
-	{
-		realPath = path.left(lastHash);
-		iconName = path.mid(lastHash + 1);
-	}
-	else
-		iconName = path;
-
-	return iconPathAllowEmpty(realPath, size, iconName);
-}
-
-QString IconsManager::iconPathAllowEmpty(const QString &path) const
-{
-	QString fileName = ThemeManager->currentTheme().path() + path;
-
-	QFileInfo fileInfo(fileName);
-	if (!fileInfo.isFile() || !fileInfo.isReadable())
+	if (EmptyAllowed == allowEmpty)
 		return QString();
-
-	return fileInfo.canonicalFilePath();
+	else
+		return iconPath(KaduIcon("kadu_icons/0", size), EmptyAllowed);
 }
 
-QString IconsManager::iconPath(const QString &path, const QString &size, const QString &name) const
-{
-	QString result = iconPathAllowEmpty(path, size, name);
-	if (!result.isEmpty())
-		return result;
-	return iconPathAllowEmpty("kadu_icons", size, "0");
-}
-
-QString IconsManager::iconPath(const QString &path, const QString &size) const
-{
-	QString result = iconPathAllowEmpty(path, size);
-	if (!result.isEmpty())
-		return result;
-	return iconPathAllowEmpty("kadu_icons/0", size);
-}
-
-QString IconsManager::iconPath(const QString &path) const
-{
-	QString result = iconPathAllowEmpty(path);
-	if (!result.isEmpty())
-		return result;
-	return iconPathAllowEmpty("kadu_icons/64x64/0");
-}
-
-QIcon IconsManager::buildPngIcon(const QString &path)
+QIcon IconsManager::buildPngIcon(const QString &themePath, const QString &path)
 {
 	static QLatin1String sizes [] = {
 		QLatin1String("16x16"),
@@ -168,7 +132,10 @@ QIcon IconsManager::buildPngIcon(const QString &path)
 	QIcon icon;
 	for (int i = 0; i < sizes_count; i++)
 	{
-		QString fullPath = iconPathAllowEmpty(path, sizes[i]);
+		KaduIcon kaduIcon(path, sizes[i]);
+		kaduIcon.setThemePath(themePath);
+
+		QString fullPath = iconPath(kaduIcon, EmptyAllowed);
 		if (!fullPath.isEmpty())
 			icon.addFile(fullPath);
 	}
@@ -176,9 +143,10 @@ QIcon IconsManager::buildPngIcon(const QString &path)
 	return icon;
 }
 
-QIcon IconsManager::buildSvgIcon(const QString& path)
+QIcon IconsManager::buildSvgIcon(const QString &themePath, const QString& path)
 {
 	QIcon icon;
+	QString theme = themePath.isEmpty() ? ThemeManager->currentTheme().path() : themePath;
 	QString realPath;
 	QString iconName;
 
@@ -192,12 +160,12 @@ QIcon IconsManager::buildSvgIcon(const QString& path)
 		iconName = path;
 
 	QFileInfo fileInfo;
-	fileInfo.setFile(ThemeManager->currentTheme().path() + realPath + "/svg/" + iconName + ".svgz" );
+	fileInfo.setFile(theme + realPath + "/svg/" + iconName + ".svgz" );
 	if (fileInfo.isFile() && fileInfo.isReadable())
 		icon.addFile(fileInfo.canonicalFilePath());
 	else
 	{
-		fileInfo.setFile(ThemeManager->currentTheme().path() + realPath + "/svg/" + iconName + ".svg" );
+		fileInfo.setFile(theme + realPath + "/svg/" + iconName + ".svg" );
 		if (fileInfo.isFile() && fileInfo.isReadable())
 			icon.addFile(fileInfo.canonicalFilePath());
 	}
@@ -205,9 +173,9 @@ QIcon IconsManager::buildSvgIcon(const QString& path)
 	return icon;
 }
 
-const QIcon & IconsManager::iconByPath(const QString &path, bool allowEmpty)
+QIcon IconsManager::iconByPath(const QString &themePath, const QString &path, AllowEmpty allowEmpty)
 {
-	if (!IconCache.contains(path))
+	if (!IconCache.contains(themePath + path))
 	{
 		QIcon icon;
 
@@ -216,10 +184,10 @@ const QIcon & IconsManager::iconByPath(const QString &path, bool allowEmpty)
 			icon.addFile(path);
 		else
 		{
-			icon = buildSvgIcon(path);
+			icon = buildSvgIcon(themePath, path);
 
 			if (icon.isNull())
-				icon = buildPngIcon(path);
+				icon = buildPngIcon(themePath, path);
 
 			if (icon.isNull())
 			{
@@ -231,23 +199,22 @@ const QIcon & IconsManager::iconByPath(const QString &path, bool allowEmpty)
 						protocolpath = AccountManager::instance()->defaultAccount().protocolHandler()->statusPixmapPath();
 					else
 						protocolpath = localProtocolPath;
-					QString path2 = QString("protocols/%1/%2").arg(protocolpath, commonRegexp.cap(1));
-					return iconByPath(path2);
+					return iconByPath(themePath, QString("protocols/%1/%2").arg(protocolpath, commonRegexp.cap(1)));
 				}
 			}
 
-			if (icon.isNull() && !allowEmpty)
-				icon = buildSvgIcon("kadu_icons/0");
+			if (icon.isNull() && EmptyNotAllowed == allowEmpty)
+				icon = buildSvgIcon(themePath, "kadu_icons/0");
 
-			if (icon.isNull() && !allowEmpty)
-				icon = buildPngIcon("kadu_icons/0");
+			if (icon.isNull() && EmptyNotAllowed == allowEmpty)
+				icon = buildPngIcon(themePath, "kadu_icons/0");
 
 		}
 
-		IconCache.insert(path, icon);
+		IconCache.insert(themePath + path, icon);
 	}
 
-	return IconCache[path];
+	return IconCache.value(themePath + path);
 }
 
 void IconsManager::clearCache()
@@ -257,12 +224,12 @@ void IconsManager::clearCache()
 
 void IconsManager::configurationUpdated()
 {
-	bool themeWasChanged = config_file.readEntry("Look", "IconTheme") != ThemeManager->currentTheme().path();
+	bool themeWasChanged = config_file.readEntry("Look", "IconTheme") != ThemeManager->currentTheme().name();
 	if (themeWasChanged)
 	{
 		clearCache();
 		ThemeManager->setCurrentTheme(config_file.readEntry("Look", "IconTheme"));
-		config_file.writeEntry("Look", "IconTheme", ThemeManager->currentTheme().path());
+		config_file.writeEntry("Look", "IconTheme", ThemeManager->currentTheme().name());
 
 		emit themeChanged();
 	}

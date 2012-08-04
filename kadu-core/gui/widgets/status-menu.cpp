@@ -26,7 +26,8 @@
 #include <QtGui/QMenu>
 
 #include "core/core.h"
-#include "gui/windows/choose-description.h"
+#include "gui/windows/status-window.h"
+#include "gui/window-manager.h"
 #include "protocols/protocol.h"
 #include "status/status-actions.h"
 #include "status/status-container.h"
@@ -37,7 +38,7 @@
 #include "status-menu.h"
 
 StatusMenu::StatusMenu(StatusContainer *statusContainer, bool includePrefix, QMenu *menu) :
-		QObject(menu), Menu(menu), StatusContainers(statusContainer->subStatusContainers())
+		QObject(menu), Menu(menu), Container(statusContainer)
 {
 	Actions = new StatusActions(statusContainer, includePrefix, this);
 
@@ -70,7 +71,7 @@ void StatusMenu::changeStatus(QAction *action)
 {
 	StatusType statusType = action->data().value<StatusType>();
 
-	foreach (StatusContainer *container, StatusContainers)
+	foreach (StatusContainer *container, Container->subStatusContainers())
 	{
 		Status status(StatusSetter::instance()->manuallySetStatus(container));
 		status.setType(statusType);
@@ -82,5 +83,6 @@ void StatusMenu::changeStatus(QAction *action)
 
 void StatusMenu::changeDescription()
 {
-	ChooseDescription::showDialog(StatusContainers, MousePositionBeforeMenuHide, Menu);
+	QWidget *statusWindow = StatusWindow::showDialog(Container, Menu);
+	WindowManager::instance()->moveToPosition(statusWindow, MousePositionBeforeMenuHide);
 }

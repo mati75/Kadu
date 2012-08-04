@@ -1,6 +1,9 @@
 [Module]
-Description=Checker of spelling mistakes
-Description[pl]=Sprawdza b��dy pisowni
+DisplayName=Spelling correction
+DisplayName[pl]=Sprawdzanie pisowni
+Description=Checks sent messages for spelling mistakes
+Description[pl]=Sprawdza wysyłane wiadomości pod kątem błędów pisowni
 Author=nazgul,Googie,Kadu Team
 Version=core
 Plugin=true
+Category=Chat

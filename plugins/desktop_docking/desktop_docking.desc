@@ -1,9 +1,12 @@
 [Module]
-Description=Desktop docking module
-Description[pl]=Modu³ dokowania w dowolnym punkcie ekranu
+DisplayName=Docking on desktop
+DisplayName[pl]=Dokowanie na pulpicie
+Description=Allows docking Kadu in any place on the desktop
+Description[pl]=Pozwala zadokowaÄ‡ Kadu w dowolnym miejscu pulpitu
 Author=Dorregaray
 Dependencies=docking
 Provides=docking_method 
 Conflicts=docking_method
 Version=core
 Plugin=true
+Category=Desktop

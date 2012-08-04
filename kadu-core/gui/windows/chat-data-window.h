@@ -29,24 +29,36 @@
 #include <QtGui/QWidget>
 
 #include "chat/chat.h"
+#include "gui/widgets/modal-configuration-widget.h"
 
 #include "exports.h"
 
 class QLineEdit;
 class QPushButton;
+class QTabWidget;
+class QVBoxLayout;
 
+class ChatEditWidget;
 class GroupList;
 
 class KADUAPI ChatDataWindow : public QWidget
 {
 	Q_OBJECT
 
+	friend class ChatDataWindowAwareObject;
+
 	static QMap<Chat, ChatDataWindow *> Instances;
+	static const QMap<Chat, ChatDataWindow *> & instances() { return Instances; }
 
 	Chat MyChat;
 
+	QTabWidget *TabWidget;
+	QWidget *GeneralTab;
+
 	QLineEdit *DisplayEdit;
 	GroupList *ChatGroupList;
+
+	ChatEditWidget *EditWidget;
 
 	QPushButton *OkButton;
 	QPushButton *ApplyButton;
@@ -55,7 +67,7 @@ class KADUAPI ChatDataWindow : public QWidget
 	virtual ~ChatDataWindow();
 
 	void createGui();
-	void createButtons(QLayout *layout);
+	void createButtons(QVBoxLayout *layout);
 
 	bool isValid();
 
@@ -64,6 +76,7 @@ private slots:
 	void updateChat();
 	void updateChatAndClose();
 	void chatRemoved(const Chat &buddy);
+	void editChatStateChanged(ModalConfigurationWidgetState state);
 
 protected:
 	virtual void keyPressEvent(QKeyEvent *event);
@@ -74,6 +87,11 @@ public:
 	void show();
 
 	Chat chat() const { return MyChat; }
+
+	QWidget * generalTab() const { return GeneralTab; }
+
+signals:
+	void save();
 
 };
 

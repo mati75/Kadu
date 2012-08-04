@@ -105,9 +105,9 @@ void EmotsWalker::insertString(const QString &str, int num)
 
 	// it adds string to prefix tree character after character
 	while (pos < len) {
-		child = findChild(node, str.at(pos));
+		child = findChild(node, extractLetter(str.at(pos)));
 		if (child == NULL)
-			child = insertChild(node, str.at(pos));
+			child = insertChild(node, extractLetter(str.at(pos)));
 		node = child;
 		++pos;
 	}
@@ -116,13 +116,29 @@ void EmotsWalker::insertString(const QString &str, int num)
 		node -> emotIndex = num;
 }
 
+QChar EmotsWalker::extractLetter(QChar c)
+{
+	QString decomposition = c.decomposition();
+	if (decomposition.isEmpty())
+		return c;
+
+	int length = decomposition.length();
+	for (int i = 0; i < length; i++)
+		if (decomposition.at(i).isLetter())
+			return decomposition.at(i);
+
+	return c;
+}
+
 /** return number of emot, which occurre in analyzed text just
     after adding given character (thus ending on this character)
     beginning of text analysis is turned on by 'initWalking()'
     if no emot occurrs, -1 is returned
 */
-int EmotsWalker::checkEmotOccurrence(const QChar &c)
+int EmotsWalker::checkEmotOccurrence(QChar c, bool nextIsLetter)
 {
+	c = extractLetter(c);
+
 	const PrefixNode* next;
 	int result = -1, resultLen = -1;
 
@@ -130,35 +146,44 @@ int EmotsWalker::checkEmotOccurrence(const QChar &c)
 	{
 		lengths[amountPositions] = 0;
 		positions[amountPositions] = root;
-		++amountPositions;
 	}
 	else
 	{
-		++amountPositions;
 		positions.push_back(root);
 		lengths.push_back(0);
 	}
 
-	for (int i = amountPositions - 1; i >= 0; --i) {
-		next = findChild(positions.at(i), c);
-		if (next == NULL) {
-			--amountPositions;
-			lengths[i] = lengths.at(amountPositions);
-			positions[i] = positions.at(amountPositions);
-		}
-		else {
-			positions[i] = next;
-			++lengths[i];
-			if (result == -1 ||
-				(next -> emotIndex >= 0 &&
-				(next -> emotIndex < result || resultLen < lengths.at(i))))
-			{
-				resultLen = lengths.at(i);
-				result = next -> emotIndex;
+	amountPositions++;
+
+	if (!previousWasLetter || !c.isLetter() || amountPositions > 1)
+		for (int i = amountPositions - 1; i >= 0; --i) {
+			next = findChild(positions.at(i), c);
+			if (next == NULL) {
+				--amountPositions;
+				lengths[i] = lengths.at(amountPositions);
+				positions[i] = positions.at(amountPositions);
+			}
+			else {
+				positions[i] = next;
+				++lengths[i];
+				if (result == -1 ||
+					(next -> emotIndex >= 0 &&
+					(next -> emotIndex < result || resultLen < lengths.at(i))))
+				{
+					resultLen = lengths.at(i);
+					result = next -> emotIndex;
+				}
 			}
 		}
-	}
-	return result;
+	else
+		amountPositions = 0;
+
+	previousWasLetter = c.isLetter();
+
+	if (c.isLetter() && nextIsLetter)
+		return -1;
+	else
+		return result;
 }
 
 /** clear internal structures responsible for analyzing text, it allows
@@ -167,4 +192,5 @@ int EmotsWalker::checkEmotOccurrence(const QChar &c)
 void EmotsWalker::initWalking()
 {
 	amountPositions = 0;
+	previousWasLetter = false;
 }

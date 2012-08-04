@@ -94,14 +94,14 @@ FileDescription::FileDescription(QObject *parent) :
 FileDescription::~FileDescription()
 {
 	kdebugf();
-	disconnect(Timer, SIGNAL(timeout()), this, SLOT(checkTitle()));
+	Timer->stop();
 
 	StatusChangerManager::instance()->unregisterStatusChanger(StatusChanger);
 }
 
 void FileDescription::configurationUpdated()
 {
-	File = config_file.readEntry("FileDesc", "file", profilePath("description.txt"));
+	File = config_file.readEntry("FileDesc", "file", KaduPaths::instance()->profilePath() + QLatin1String("description.txt"));
 	ForceDesc = config_file.readBoolEntry("FileDesc", "forceDescr", true);
 	AllowOther = config_file.readBoolEntry("FileDesc", "allowOther", true);
 
@@ -129,7 +129,7 @@ void FileDescription::checkTitle()
 
 void FileDescription::createDefaultConfiguration()
 {
-	config_file.addVariable("FileDesc", "file", profilePath("description.txt"));
+	config_file.addVariable("FileDesc", "file", KaduPaths::instance()->profilePath() + QLatin1String("description.txt"));
 	config_file.addVariable("FileDesc", "forceDescr", true);
 	config_file.addVariable("FileDesc", "allowOther", true);
 }

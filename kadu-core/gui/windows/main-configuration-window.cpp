@@ -52,6 +52,7 @@
 #include "gui/widgets/configuration/config-combo-box.h"
 #include "gui/widgets/configuration/config-group-box.h"
 #include "gui/widgets/configuration/config-line-edit.h"
+#include "gui/widgets/configuration/config-list-widget.h"
 #include "gui/widgets/configuration/config-path-list-edit.h"
 #include "gui/widgets/configuration/config-preview.h"
 #include "gui/widgets/configuration/config-syntax-editor.h"
@@ -76,6 +77,7 @@
 
 #ifdef Q_WS_X11
 #include "os/x11tools.h" // this should be included as last one,
+#undef KeyPress
 #undef Status            // and Status defined by Xlib.h must be undefined
 #endif
 
@@ -173,11 +175,11 @@ void MainConfigurationWindow::instanceCreated()
 }
 
 MainConfigurationWindow::MainConfigurationWindow() :
-		ConfigurationWindow("MainConfiguration", tr("Kadu configuration"), "General", instanceDataManager()), lookChatAdvanced(0)
+		ConfigurationWindow("MainConfiguration", tr("Kadu configuration"), "General", instanceDataManager())
 {
 	setWindowRole("kadu-configuration");
 
-	widget()->appendUiFile(dataPath("configuration/dialog.ui"));
+	widget()->appendUiFile(KaduPaths::instance()->dataPath() + QLatin1String("configuration/dialog.ui"));
 
 #if !defined(DEBUG_ENABLED) || defined(Q_OS_WIN)
 	widget()->widgetById("debug")->hide();
@@ -190,6 +192,9 @@ MainConfigurationWindow::MainConfigurationWindow() :
 
 #ifndef Q_WS_X11
 	widget()->widgetById("windowActivationMethod")->hide();
+#endif
+
+#if !defined(Q_WS_X11) && !defined(Q_WS_WIN)
 	widget()->widgetById("notify/fullscreenSilentMode")->hide();
 #endif
 
@@ -326,22 +331,50 @@ void MainConfigurationWindow::setLanguages()
 
 void MainConfigurationWindow::setIconThemes()
 {
-	ConfigComboBox *iconThemes = static_cast<ConfigComboBox *>(widget()->widgetById("iconThemes"));
+	ConfigListWidget *iconThemes = static_cast<ConfigListWidget *>(widget()->widgetById("iconThemes"));
 	IconsManager::instance()->themeManager()->loadThemes((static_cast<PathListEdit *>(widget()->widgetById("iconPaths")))->pathList());
 
 	(void)QT_TRANSLATE_NOOP("@default", "default");
-	QList<Theme> themes = IconsManager::instance()->themeManager()->themes();
 
 	QStringList values;
 	QStringList captions;
-	foreach (const Theme &theme, themes)
+	foreach (const Theme &theme, IconsManager::instance()->themeManager()->themes())
 	{
-		values.append(theme.path());
+		values.append(theme.name());
 		captions.append(qApp->translate("@default", theme.name().toUtf8().constData()));
 	}
 
 	iconThemes->setItems(values, captions);
-	iconThemes->setCurrentItem(IconsManager::instance()->themeManager()->currentTheme().path());
+	iconThemes->setCurrentItem(IconsManager::instance()->themeManager()->currentTheme().name());
+
+	QStringList iconPaths;
+	iconPaths
+			<< "protocols/xmpp/online"
+			<< "protocols/gadu-gadu/online"
+			<< "protocols/common/message"
+			<< "preferences-other";
+
+	QList<QIcon> icons;
+	foreach (const Theme &theme, IconsManager::instance()->themeManager()->themes())
+	{
+		QPixmap combinedIcon(iconPaths.count() * 36, 36);
+		combinedIcon.fill(Qt::transparent);
+
+		QPainter iconPainter(&combinedIcon);
+
+		for (int i = 0; i < iconPaths.count(); i++)
+		{
+			KaduIcon kaduIcon(iconPaths.at(i));
+			kaduIcon.setThemePath(theme.path());
+			QIcon icon = kaduIcon.icon();
+			icon.paint(&iconPainter, 2 + 36 * i, 2, 32, 32);
+		}
+
+		icons.append(QIcon(combinedIcon));
+	}
+
+	iconThemes->setIconSize(QSize(iconPaths.count() * 36, 36));
+	iconThemes->setIcons(icons);
 }
 
 void MainConfigurationWindow::setEmoticonThemes()
@@ -350,18 +383,17 @@ void MainConfigurationWindow::setEmoticonThemes()
 	EmoticonsManager::instance()->themeManager()->loadThemes((static_cast<PathListEdit *>(widget()->widgetById("emoticonsPaths")))->pathList());
 
 	(void)QT_TRANSLATE_NOOP("@default", "default");
-	QList<Theme> themes = EmoticonsManager::instance()->themeManager()->themes();
 
 	QStringList values;
 	QStringList captions;
-	foreach (const Theme &theme, themes)
+	foreach (const Theme &theme, EmoticonsManager::instance()->themeManager()->themes())
 	{
-		values.append(theme.path());
+		values.append(theme.name());
 		captions.append(qApp->translate("@default", theme.name().toUtf8().constData()));
 	}
 
 	emoticonsThemes->setItems(values, captions);
-	emoticonsThemes->setCurrentItem(EmoticonsManager::instance()->themeManager()->currentTheme().path());
+	emoticonsThemes->setCurrentItem(EmoticonsManager::instance()->themeManager()->currentTheme().name());
 }
 
 void MainConfigurationWindow::setToolTipClasses()
@@ -397,28 +429,21 @@ void MainConfigurationWindow::showLookChatAdvanced()
 	if (!lookChatAdvanced)
 	{
 		lookChatAdvanced = new ConfigurationWindow("LookChatAdvanced", tr("Advanced chat's look configuration"), "General", instanceDataManager());
-		lookChatAdvanced->widget()->appendUiFile(dataPath("configuration/dialog-look-chat-advanced.ui"));
+		lookChatAdvanced.data()->widget()->appendUiFile(KaduPaths::instance()->dataPath() + QLatin1String("configuration/dialog-look-chat-advanced.ui"));
 
-		connect(lookChatAdvanced->widget()->widgetById("removeServerTime"), SIGNAL(toggled(bool)), lookChatAdvanced->widget()->widgetById("maxTimeDifference"), SLOT(setEnabled(bool)));
-		connect(lookChatAdvanced->widget()->widgetById("noHeaderRepeat"), SIGNAL(toggled(bool)), lookChatAdvanced->widget()->widgetById("noHeaderInterval"), SLOT(setEnabled(bool)));
+		connect(lookChatAdvanced.data()->widget()->widgetById("removeServerTime"), SIGNAL(toggled(bool)), lookChatAdvanced.data()->widget()->widgetById("maxTimeDifference"), SLOT(setEnabled(bool)));
+		connect(lookChatAdvanced.data()->widget()->widgetById("noHeaderRepeat"), SIGNAL(toggled(bool)), lookChatAdvanced.data()->widget()->widgetById("noHeaderInterval"), SLOT(setEnabled(bool)));
 
-		lookChatAdvanced->widget()->widgetById("chatSyntax")->setToolTip(qApp->translate("@default", SyntaxText));
-		lookChatAdvanced->widget()->widgetById("conferencePrefix")->setToolTip(qApp->translate("@default", SyntaxText));
-		lookChatAdvanced->widget()->widgetById("conferenceSyntax")->setToolTip(qApp->translate("@default", SyntaxText));
-
-		connect(lookChatAdvanced, SIGNAL(destroyed()), this, SLOT(lookChatAdvancedDestroyed()));
+		lookChatAdvanced.data()->widget()->widgetById("chatSyntax")->setToolTip(qApp->translate("@default", SyntaxText));
+		lookChatAdvanced.data()->widget()->widgetById("conferencePrefix")->setToolTip(qApp->translate("@default", SyntaxText));
+		lookChatAdvanced.data()->widget()->widgetById("conferenceSyntax")->setToolTip(qApp->translate("@default", SyntaxText));
 
 		connect(ChatStylesManager::instance(), SIGNAL(previewSyntaxChanged(QString)), this, SLOT(chatPreviewSyntaxChanged(QString)));
 		if (ChatStylesManager::instance()->syntaxListCombo())
 			chatPreviewSyntaxChanged(ChatStylesManager::instance()->syntaxListCombo()->currentText());
 	}
 
-	lookChatAdvanced->show();
-}
-
-void MainConfigurationWindow::lookChatAdvancedDestroyed()
-{
-	lookChatAdvanced = 0;
+	lookChatAdvanced.data()->show();
 }
 
 void MainConfigurationWindow::chatPreviewSyntaxChanged(const QString &syntaxName)
@@ -429,14 +454,14 @@ void MainConfigurationWindow::chatPreviewSyntaxChanged(const QString &syntaxName
 	StyleInfo styleInfo = ChatStylesManager::instance()->chatStyleInfo(syntaxName);
 	if (!styleInfo.engine)
 	{
-		lookChatAdvanced->deleteLater();
+		lookChatAdvanced.data()->deleteLater();
 		return;
 	}
 
 	bool enableKaduFeatures = styleInfo.engine->engineName() == "Kadu";
 
-	lookChatAdvanced->widget()->widgetById("chatHeaderSeparatorsHeight")->setEnabled(enableKaduFeatures);
-	lookChatAdvanced->widget()->widgetById("messageSeparatorsHeight")->setEnabled(enableKaduFeatures);
-	lookChatAdvanced->widget()->widgetById("removeServerTime")->setEnabled(enableKaduFeatures);
-	lookChatAdvanced->widget()->widgetById("maxTimeDifference")->setEnabled(enableKaduFeatures);
+	lookChatAdvanced.data()->widget()->widgetById("chatHeaderSeparatorsHeight")->setEnabled(enableKaduFeatures);
+	lookChatAdvanced.data()->widget()->widgetById("messageSeparatorsHeight")->setEnabled(enableKaduFeatures);
+	lookChatAdvanced.data()->widget()->widgetById("removeServerTime")->setEnabled(enableKaduFeatures);
+	lookChatAdvanced.data()->widget()->widgetById("maxTimeDifference")->setEnabled(enableKaduFeatures);
 }

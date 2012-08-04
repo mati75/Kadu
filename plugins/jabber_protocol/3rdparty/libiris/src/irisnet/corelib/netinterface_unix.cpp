@@ -26,7 +26,6 @@
 
 #include "irisnetplugin.h"
 
-#include <unistd.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/ioctl.h>
@@ -34,6 +33,7 @@
 #include <net/route.h>
 #include <netinet/in.h>
 #include <errno.h>
+#include <unistd.h>
 
 // for solaris
 #ifndef SIOCGIFCONF

@@ -5,6 +5,7 @@
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
  * Copyright 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2012 Piotr Dąbrowski (ultr@ultr.pl)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -47,19 +48,24 @@ void XmlConfigFile::read()
 {
 	kdebugf();
 	QFile file;
-	QDir backups(profilePath(), "kadu-0.6.6.conf.xml.backup.*", QDir::Name, QDir::Files);
-	QDir oldbackups(profilePath(), "kadu.conf.xml.backup.*", QDir::Name, QDir::Files);
-	QStringList files("kadu-0.6.6.conf.xml");
 
-	files += backups.entryList();
+	QDir backups_0_12(KaduPaths::instance()->profilePath(), "kadu-0.12.conf.xml.backup.*", QDir::Name, QDir::Files);
+	QDir backups_0_6_6(KaduPaths::instance()->profilePath(), "kadu-0.6.6.conf.xml.backup.*", QDir::Name, QDir::Files);
+	QDir backups_0_6_5(KaduPaths::instance()->profilePath(), "kadu.conf.xml.backup.*", QDir::Name, QDir::Files);
+
+	QStringList files("kadu-0.12.conf.xml");
+
+	files += backups_0_12.entryList();
+	files += "kadu-0.6.6.conf.xml";
+	files += backups_0_6_6.entryList();
 	files += "kadu.conf.xml";
-	files += oldbackups.entryList();
+	files += backups_0_6_5.entryList();
 
 	bool fileOpened(false);
 
 	foreach (const QString &fileName, files)
 	{
-		file.setFileName(profilePath(fileName));
+		file.setFileName(KaduPaths::instance()->profilePath() + fileName);
 		fileOpened = file.open(QIODevice::ReadOnly);
 		if (fileOpened && file.size() > 0)
 		{
@@ -102,7 +108,7 @@ void XmlConfigFile::read()
 		QDomElement root = DomDocument.createElement( "Kadu" );
 		DomDocument.appendChild(root);
 	}
-	
+
 	kdebugf2();
 }
 
@@ -114,7 +120,7 @@ void XmlConfigFile::write(const QString& f)
 	QFile file;
 	QString fileName, tmpFileName;
 	if (f.isEmpty())
-		fileName = profilePath("kadu-0.6.6.conf.xml");
+		fileName = KaduPaths::instance()->profilePath() + QLatin1String("kadu-0.12.conf.xml");
 	else
 		fileName = f;
 	tmpFileName = fileName + ".tmp"; // saving to another file to avoid truncation of output file when segfault occurs :|
@@ -154,8 +160,8 @@ void XmlConfigFile::saveTo(const QString &f)
 
 void XmlConfigFile::makeBackup()
 {
-	QString f = QString("kadu-0.6.6.conf.xml.backup.%1").arg(QDateTime::currentDateTime().toString("yyyy.MM.dd.hh.mm.ss"));
-	write(profilePath(f));
+	QString f = QString("kadu-0.12.conf.xml.backup.%1").arg(QDateTime::currentDateTime().toString("yyyy.MM.dd.hh.mm.ss"));
+	write(KaduPaths::instance()->profilePath() + f);
 }
 
 QDomElement XmlConfigFile::rootElement()
@@ -295,7 +301,7 @@ QDomElement XmlConfigFile::getNamedNode(const QString &nodeTagName, const QStrin
 
 QDomElement XmlConfigFile::getUuidNode(const QString &nodeTagName, const QString &nodeUuid, GetNodeMode getMode)
 {
-	return getNamedNode(DomDocument.documentElement(), nodeTagName, nodeUuid, getMode);
+	return getUuidNode(DomDocument.documentElement(), nodeTagName, nodeUuid, getMode);
 }
 
 QDomElement XmlConfigFile::getNode(QDomElement parentNode, const QString &nodeTagName, GetNodeMode getMode)
@@ -324,51 +330,45 @@ QDomElement XmlConfigFile::getNode(QDomElement parentNode, const QString &nodeTa
 
 QDomElement XmlConfigFile::getNamedNode(QDomElement parentNode, const QString &nodeTagName, const QString &nodeName, GetNodeMode getMode)
 {
-	QDomElement result;
-	if (ModeAppend == getMode)
-		return result;
-
 	QVector<QDomElement> nodes = getNodes(parentNode, nodeTagName);
 
 	if (ModeCreate == getMode)
 		removeNamedNodes(parentNode, nodes, nodeName);
 
-	foreach (const QDomElement &element, nodes)
-		if (isElementNamed(element, nodeName))
-			return element;
+	if (ModeGet == getMode || ModeFind == getMode)
+		foreach (const QDomElement &element, nodes)
+			if (isElementNamed(element, nodeName))
+				return element;
 
+	QDomElement result;
 	if (ModeFind != getMode)
 	{
 		result = DomDocument.createElement(nodeTagName);
 		result.setAttribute("name", nodeName);
 		parentNode.appendChild(result);
 	}
-
 	return result;
 }
 
 QDomElement XmlConfigFile::getUuidNode(QDomElement parentNode, const QString &nodeTagName, const QString &nodeUuid, GetNodeMode getMode)
 {
-	QDomElement result;
-	if (ModeAppend == getMode)
-		return result;
-
 	QVector<QDomElement> nodes = getNodes(parentNode, nodeTagName);
 
 	if (ModeCreate == getMode)
 		removeUuidNodes(parentNode, nodes, nodeUuid);
 
-	foreach (const QDomElement &element, nodes)
-		if (isElementUuid(element, nodeUuid))
-			return element;
+	if (ModeGet == getMode || ModeFind == getMode)
+		foreach (const QDomElement &element, nodes)
+			if (isElementUuid(element, nodeUuid))
+				return element;
 
+	QDomElement result;
 	if (ModeFind != getMode)
 	{
 		result = DomDocument.createElement(nodeTagName);
 		result.setAttribute("uuid", nodeUuid);
 		parentNode.appendChild(result);
 	}
-
 	return result;
 }
 

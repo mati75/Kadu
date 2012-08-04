@@ -34,6 +34,7 @@
 
 #include "accounts/account.h"
 #include "chat/chat.h"
+#include "status/status-change-source.h"
 #include "status/status.h"
 
 typedef quint32 UinType;
@@ -71,9 +72,9 @@ class KADUAPI Protocol : public QObject
 	Account CurrentAccount;
 
 	// services
-	ChatService *CurrentChatService;
-	ChatStateService *CurrentChatStateService;
-	RosterService *CurrentRosterService;
+	QWeakPointer<ChatService> CurrentChatService;
+	QWeakPointer<ChatStateService> CurrentChatStateService;
+	QWeakPointer<RosterService> CurrentRosterService;
 
 	// real status, can be offline after connection error
 	Status CurrentStatus;
@@ -128,14 +129,14 @@ public:
 
 	virtual AvatarService * avatarService() { return 0; }
 	virtual ChatImageService * chatImageService() { return 0; }
-	virtual ChatService * chatService() { return CurrentChatService; }
-	virtual ChatStateService * chatStateService() { return CurrentChatStateService; }
+	virtual ChatService * chatService() { return CurrentChatService.data(); }
+	virtual ChatStateService * chatStateService() { return CurrentChatStateService.data(); }
 	virtual ContactPersonalInfoService * contactPersonalInfoService() { return 0; }
 	virtual ContactListService * contactListService() { return 0; }
 	virtual FileTransferService * fileTransferService() { return 0; }
 	virtual MultilogonService * multilogonService() { return 0; }
 	virtual PersonalInfoService * personalInfoService() { return 0; }
-	virtual RosterService * rosterService() const { return CurrentRosterService; }
+	virtual RosterService * rosterService() const { return CurrentRosterService.data(); }
 	virtual SearchService * searchService() { return 0; }
 	virtual SubscriptionService * subscriptionService() { return 0; }
 
@@ -144,9 +145,10 @@ public:
 
 	bool isConnected();
 	bool isConnecting();
+	bool isDisconnecting();
 
 	// method called by user
-	void setStatus(Status status);
+	void setStatus(Status status, StatusChangeSource source);
 	Status status() const;
 	virtual int maxDescriptionLength() { return -1; }
 

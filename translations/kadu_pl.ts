@@ -1135,6 +1135,10 @@ znajomych po połączeniu się z serwerem</translation>
         <source>Select window activation method</source>
         <translation>Metoda aktywacji okna</translation>
     </message>
+    <message>
+        <source>None</source>
+        <translation>Brak</translation>
+    </message>
 </context>
 <context>
     <name>About</name>
@@ -1361,6 +1365,10 @@ znajomych po połączeniu się z serwerem</translation>
         <source>Merge with buddy</source>
         <translation>Połącz z</translation>
     </message>
+    <message>
+        <source> - Select buddy - </source>
+        <translation>- Wybierz znajomego -</translation>
+    </message>
 </context>
 <context>
     <name>AddConferenceAction</name>
@@ -1417,6 +1425,80 @@ znajomych po połączeniu się z serwerem</translation>
     </message>
 </context>
 <context>
+    <name>AddRoomChatAction</name>
+    <message>
+        <source>Join Room...</source>
+        <translation>Dołącz do pokoju...</translation>
+    </message>
+</context>
+<context>
+    <name>AddRoomChatWindow</name>
+    <message>
+        <source>Join Room</source>
+        <translation>Dołącz do pokoju</translation>
+    </message>
+    <message>
+        <source>Account:</source>
+        <translation>Konto:</translation>
+    </message>
+    <message>
+        <source>Visible name:</source>
+        <translation>Nazwa wyświetlana:</translation>
+    </message>
+    <message>
+        <source>Enter a name for this conference if you want to have it on roster</source>
+        <translation>Podaj nazwę dla konferencji jeżeli chcesz, aby była wyświetlana na liście kontaktów</translation>
+    </message>
+    <message>
+        <source>Room:</source>
+        <translation>Pokój:</translation>
+    </message>
+    <message>
+        <source>Nick:</source>
+        <translation>Pseudonim:</translation>
+    </message>
+    <message>
+        <source>Password:</source>
+        <translation>Hasło:</translation>
+    </message>
+    <message>
+        <source>Add Room Chat</source>
+        <translation>Dodaj pokój</translation>
+    </message>
+    <message>
+        <source>Start Room Chat</source>
+        <translation>Rozpocznij rozmowę</translation>
+    </message>
+    <message>
+        <source>Cancel</source>
+        <translation>Anuluj</translation>
+    </message>
+    <message>
+        <source>Account is not selected</source>
+        <translation>Konto nie jest wybrane</translation>
+    </message>
+    <message>
+        <source>Enter room name</source>
+        <translation>Wprowadź nazwę pokoju</translation>
+    </message>
+    <message>
+        <source>Enter nick</source>
+        <translation>Wprowadź pseudonim</translation>
+    </message>
+    <message>
+        <source>Visible name is already used for another chat</source>
+        <translation>Nazwa wyświetlana jest już używana dla innej konferencji</translation>
+    </message>
+    <message>
+        <source>This room chat is already available as &lt;i&gt;%1&lt;/i&gt;</source>
+        <translation>Ten pokój jest już dostępny jako &lt;i&gt;%1&lt;/i&gt;</translation>
+    </message>
+    <message>
+        <source>Enter visible name to add this room chat to roster</source>
+        <translation>Wprowadź nazwę wyświetlaną aby dodać pokój do listy kontaktów</translation>
+    </message>
+</context>
+<context>
     <name>AdiumChatStyleEngine</name>
     <message>
         <source>Conference [%1]</source>
@@ -1447,6 +1529,10 @@ znajomych po połączeniu się z serwerem</translation>
     <message>
         <source>Example description</source>
         <translation>Przykładowy opis</translation>
+    </message>
+    <message>
+        <source>Example identity</source>
+        <translation>Przykładowa toższamość</translation>
     </message>
 </context>
 <context>
@@ -1516,6 +1602,10 @@ znajomych po połączeniu się z serwerem</translation>
     <message>
         <source>Account</source>
         <translation>Konto</translation>
+    </message>
+    <message>
+        <source>Synchronize</source>
+        <translation>Synchronizuj</translation>
     </message>
 </context>
 <context>
@@ -1681,6 +1771,14 @@ znajomych po połączeniu się z serwerem</translation>
         <source>Cancel</source>
         <translation>Anuluj</translation>
     </message>
+    <message>
+        <source>General</source>
+        <translation>Ogólne</translation>
+    </message>
+    <message>
+        <source>Chat</source>
+        <translation>Rozmowa</translation>
+    </message>
 </context>
 <context>
     <name>ChatEditBox</name>
@@ -1741,6 +1839,25 @@ znajomych po połączeniu się z serwerem</translation>
     </message>
 </context>
 <context>
+    <name>ChatRoomEditWidget</name>
+    <message>
+        <source>Account:</source>
+        <translation>Konto:</translation>
+    </message>
+    <message>
+        <source>Room:</source>
+        <translation>Pokój:</translation>
+    </message>
+    <message>
+        <source>Nick:</source>
+        <translation>Pseudonim:</translation>
+    </message>
+    <message>
+        <source>Password:</source>
+        <translation>Hasło:</translation>
+    </message>
+</context>
+<context>
     <name>ChatStylesManager</name>
     <message>
         <source>Edit</source>
@@ -1765,39 +1882,6 @@ znajomych po połączeniu się z serwerem</translation>
     <message>
         <source>Unable to remove style: %1</source>
         <translation>Nie można usunąć stylu %1</translation>
-    </message>
-</context>
-<context>
-    <name>ChatTypeAggregate</name>
-    <message>
-        <source>Aggregate</source>
-        <translation>Połączona</translation>
-    </message>
-    <message>
-        <source>Aggregates</source>
-        <translation>Połączone</translation>
-    </message>
-</context>
-<context>
-    <name>ChatTypeConference</name>
-    <message>
-        <source>Conference</source>
-        <translation>Konferencja</translation>
-    </message>
-    <message>
-        <source>Conferences</source>
-        <translation>Konferencje</translation>
-    </message>
-</context>
-<context>
-    <name>ChatTypeSimple</name>
-    <message>
-        <source>Chat</source>
-        <translation>Rozmowa</translation>
-    </message>
-    <message>
-        <source>Chats</source>
-        <translation>Rozmowy</translation>
     </message>
 </context>
 <context>
@@ -1911,21 +1995,6 @@ znajomych po połączeniu się z serwerem</translation>
     <message>
         <source>Kadu</source>
         <translation>Kadu</translation>
-    </message>
-</context>
-<context>
-    <name>ChooseDescription</name>
-    <message>
-        <source>Select description</source>
-        <translation>Wybierz opis</translation>
-    </message>
-    <message>
-        <source>&amp;OK</source>
-        <translation>&amp;OK</translation>
-    </message>
-    <message>
-        <source>&amp;Cancel</source>
-        <translation>&amp;Anuluj</translation>
     </message>
 </context>
 <context>
@@ -2209,8 +2278,8 @@ Jest to prawdopodobnie dalsza część pliku &lt;b&gt;%5&lt;/b&gt;
         <translation>Wyczyść</translation>
     </message>
     <message>
-        <source>Hide</source>
-        <translation>Ukryj</translation>
+        <source>Close</source>
+        <translation>Zamknij</translation>
     </message>
 </context>
 <context>
@@ -2431,10 +2500,6 @@ Jest to prawdopodobnie dalsza część pliku &lt;b&gt;%5&lt;/b&gt;
         <source>Please enter the name for the new identity:</source>
         <translation>Podaj nazwę dla nowej tożsamości:</translation>
     </message>
-    <message>
-        <source> - Select identity - </source>
-        <translation> - Wybierz tożsamość - </translation>
-    </message>
 </context>
 <context>
     <name>IdentityManager</name>
@@ -2477,8 +2542,8 @@ Jest to prawdopodobnie dalsza część pliku &lt;b&gt;%5&lt;/b&gt;
         <translation>Kopiuj</translation>
     </message>
     <message>
-        <source>Copy Link</source>
-        <translation>Kopiuj link</translation>
+        <source>Copy Link Address</source>
+        <translation>Kopiuj adres linku</translation>
     </message>
     <message>
         <source>Copy Image</source>
@@ -2687,8 +2752,8 @@ zostaną zignorowane. Czy na pewno chcesz opuścić konferencję?</translation>
 <context>
     <name>LineEditWithClearButton</name>
     <message>
-        <source>Clear current text in the line edit.</source>
-        <translation>Wyczyść wprowadzony tekst.</translation>
+        <source>Clear this field</source>
+        <translation>Wyczyść to pole</translation>
     </message>
 </context>
 <context>
@@ -2731,6 +2796,10 @@ zostaną zignorowane. Czy na pewno chcesz opuścić konferencję?</translation>
         <source>Cancel</source>
         <translation>Anuluj</translation>
     </message>
+    <message>
+        <source> - Select buddy - </source>
+        <translation>- Wybierz znajomego -</translation>
+    </message>
 </context>
 <context>
     <name>MessageNotification</name>
@@ -2749,55 +2818,6 @@ zostaną zignorowane. Czy na pewno chcesz opuścić konferencję?</translation>
     <message>
         <source>New message</source>
         <translation>Nowa wiadomość</translation>
-    </message>
-</context>
-<context>
-    <name>ModulesWindow</name>
-    <message>
-        <source>Manage Modules</source>
-        <translation>Zarządca wtyczek</translation>
-    </message>
-    <message>
-        <source>Info</source>
-        <translation>Informacje</translation>
-    </message>
-    <message>
-        <source>Loaded</source>
-        <translation>Załadowany</translation>
-    </message>
-    <message>
-        <source>Module name</source>
-        <translation>Nazwa</translation>
-    </message>
-    <message>
-        <source>State</source>
-        <translation>Stan</translation>
-    </message>
-    <message>
-        <source>&amp;Close</source>
-        <translation>&amp;Zamknij</translation>
-    </message>
-    <message>
-        <source>Not loaded</source>
-        <translation>Nie załadowany</translation>
-    </message>
-    <message>
-        <source>Version</source>
-        <translation>Wersja</translation>
-    </message>
-    <message>
-        <source>&lt;b&gt;Module:&lt;/b&gt;&lt;br/&gt;&lt;b&gt;Depends on:&lt;/b&gt;&lt;br/&gt;&lt;b&gt;Conflicts with:&lt;/b&gt;&lt;br/&gt;&lt;b&gt;Provides:&lt;/b&gt;&lt;br/&gt;&lt;b&gt;Author:&lt;/b&gt;&lt;br/&gt;&lt;b&gt;Version:&lt;/b&gt;&lt;br/&gt;&lt;b&gt;Description:&lt;/b&gt;</source>
-        <translation>&lt;b&gt;Wtyczka:&lt;/b&gt;&lt;br/&gt;&lt;b&gt;Wymaga:&lt;/b&gt;&lt;br/&gt;&lt;b&gt;Konflikt z:&lt;/b&gt;&lt;br/&gt;&lt;b&gt;Dostarcza:&lt;/b&gt;&lt;br/&gt;&lt;b&gt;Autor:&lt;/b&gt;&lt;br/&gt;&lt;b&gt;Wersja:&lt;/b&gt;&lt;br/&gt;&lt;b&gt;Opis:&lt;/b&gt;</translation>
-    </message>
-    <message>
-        <source>&lt;b&gt;Module: &lt;/b&gt;%1&lt;br/&gt;&lt;b&gt;Depends on: &lt;/b&gt;%2&lt;br/&gt;&lt;b&gt;Conflicts with: &lt;/b&gt;%3&lt;br/&gt;&lt;b&gt;Provides: &lt;/b&gt;%4&lt;br/&gt;&lt;b&gt;Author: &lt;/b&gt;%5&lt;br/&gt;&lt;b&gt;Version: &lt;/b&gt;%6&lt;br/&gt;&lt;b&gt;Description: &lt;/b&gt;%7</source>
-        <translation>&lt;b&gt;Wtyczka: &lt;/b&gt;%1&lt;br/&gt;&lt;b&gt;Wymaga: &lt;/b&gt;%2&lt;br/&gt;&lt;b&gt;Konflikt z: &lt;/b&gt;%3&lt;br/&gt;&lt;b&gt;Dostarcza: &lt;/b&gt;%4&lt;br/&gt;&lt;b&gt;Autor: &lt;/b&gt;%5&lt;br/&gt;&lt;b&gt;Wersja: &lt;/b&gt;%6&lt;br/&gt;&lt;b&gt;Opis: &lt;/b&gt;%7</translation>
-    </message>
-    <message>
-        <source>This dialog box allows you to manage installed modules. Modules are responsible for numerous vital features like playing sounds or message encryption.
-You can load (or unload) them by double-clicking on their names.</source>
-        <translation>To okno dialogowe daje możliwość zarządzania zainstalowanymi wtyczkami. Wtyczki są odpowiedzialne za wiele funkcji takich jak odtwarzanie dźwięków lub szyfrowanie wiadomości.
-Jeśli zechcesz włączyć (lub wyłączyć) którąś z nich, wystarczy dwukrotnie kliknąć na jej nazwie.</translation>
     </message>
 </context>
 <context>
@@ -2953,6 +2973,10 @@ Klient: %3</translation>
         <source>&amp;Ok</source>
         <translation>&amp;OK</translation>
     </message>
+    <message>
+        <source>User name:</source>
+        <translation>Nazwa użytkownika:</translation>
+    </message>
 </context>
 <context>
     <name>PasswordWindow</name>
@@ -3010,12 +3034,6 @@ Klient: %3</translation>
 <context>
     <name>Plugin</name>
     <message>
-        <source>Cannot load %1 plugin library.:
-%2</source>
-        <translation>Nie można załadować wtyczki %1.:
-%2</translation>
-    </message>
-    <message>
         <source>Cannot find required object in module %1.
 Maybe it&apos;s not Kadu-compatible plugin.</source>
         <translation>Wtyczka %1 nie zawiera wymaganych funkcji.
@@ -3024,6 +3042,12 @@ Być może nie jest zgodna z Kadu.</translation>
     <message>
         <source>Module initialization routine for %1 failed.</source>
         <translation>Inicjalizacja wtyczki %1 nieudana.</translation>
+    </message>
+    <message>
+        <source>Cannot load %1 plugin library:
+%2</source>
+        <translation>Nie można załadować wtyczki %1:
+%2</translation>
     </message>
 </context>
 <context>
@@ -3035,6 +3059,37 @@ Być może nie jest zgodna z Kadu.</translation>
     <message>
         <source>Try to load this plugin on next Kadu run</source>
         <translation>Próbuj załadować tę wtyczkę przy następnym uruchomieniu Kadu</translation>
+    </message>
+</context>
+<context>
+    <name>PluginListWidgetItemDelegate</name>
+    <message>
+        <source>Plugin name: %1</source>
+        <translation>Nazwa wtyczki: %1</translation>
+    </message>
+    <message>
+        <source>Author: %1</source>
+        <translation>Autor: %1</translation>
+    </message>
+    <message>
+        <source>Version: %1</source>
+        <translation>Wersja: %1</translation>
+    </message>
+    <message>
+        <source>Description: %1</source>
+        <translation>Opis: %1</translation>
+    </message>
+    <message>
+        <source>Dependencies: %1</source>
+        <translation>Zależności: %1</translation>
+    </message>
+    <message>
+        <source>Conflicts: %1</source>
+        <translation>Konflikty: %1</translation>
+    </message>
+    <message>
+        <source>Plugin information</source>
+        <translation>Informacje o wtyczce</translation>
     </message>
 </context>
 <context>
@@ -3057,6 +3112,25 @@ Być może nie jest zgodna z Kadu.</translation>
     </message>
 </context>
 <context>
+    <name>PluginsWindow</name>
+    <message>
+        <source>Configure Plugins</source>
+        <translation>Konfiguruj wtyczki</translation>
+    </message>
+    <message>
+        <source>OK</source>
+        <translation>OK</translation>
+    </message>
+    <message>
+        <source>Apply</source>
+        <translation>Zastosuj</translation>
+    </message>
+    <message>
+        <source>Close</source>
+        <translation>Zamknij</translation>
+    </message>
+</context>
+<context>
     <name>ProgressWindow</name>
     <message>
         <source>Plase wait. New Gadu-Gadu account is being registered.</source>
@@ -3076,6 +3150,14 @@ Być może nie jest zgodna z Kadu.</translation>
     <message>
         <source>Close</source>
         <translation>Zamknij</translation>
+    </message>
+    <message>
+        <source>Progress:</source>
+        <translation>Postęp:</translation>
+    </message>
+    <message>
+        <source>Show details &gt;&gt;&gt;</source>
+        <translation>Pokaż szczegóły &gt;&gt;&gt;</translation>
     </message>
 </context>
 <context>
@@ -3189,6 +3271,21 @@ Być może nie jest zgodna z Kadu.</translation>
     <message>
         <source>You have unsaved changes in current proxy.&lt;br /&gt;This data is invalid, so you will loose all changes.&lt;br /&gt;Do you want to go back to edit them?</source>
         <translation>Aktualne proxy ma niezapisane zmiany.&lt;br/&gt;Dane są nieprawidłowe, więc wszystkie zmiany zostaną utracone.&lt;br/&gt;Powrócić do edycji proxy?</translation>
+    </message>
+</context>
+<context>
+    <name>SearchBar</name>
+    <message>
+        <source>Find:</source>
+        <translation>Znajdź:</translation>
+    </message>
+    <message>
+        <source>Previous</source>
+        <translation>Poprzedni</translation>
+    </message>
+    <message>
+        <source>Next</source>
+        <translation>Następny</translation>
     </message>
 </context>
 <context>
@@ -3350,13 +3447,6 @@ Być może nie jest zgodna z Kadu.</translation>
     </message>
 </context>
 <context>
-    <name>SelectBuddyComboBox</name>
-    <message>
-        <source> - Select buddy - </source>
-        <translation>- Wybierz znajomego -</translation>
-    </message>
-</context>
-<context>
     <name>SelectFile</name>
     <message>
         <source>Insert image</source>
@@ -3381,6 +3471,10 @@ Być może nie jest zgodna z Kadu.</translation>
     <message>
         <source>Audio Files (*.wav *.au *.raw);;All Files (*)</source>
         <translation>Pliki dźwiękowe (*.wav *.au *.raw);;Wszystkie pliki (*)</translation>
+    </message>
+    <message>
+        <source>Select folder</source>
+        <translation>Wybierz katalog</translation>
     </message>
 </context>
 <context>
@@ -3416,31 +3510,54 @@ Być może nie jest zgodna z Kadu.</translation>
     </message>
 </context>
 <context>
+    <name>StatusWindow</name>
+    <message>
+        <source>&amp;Cancel</source>
+        <translation>&amp;Anuluj</translation>
+    </message>
+    <message>
+        <source>Change status</source>
+        <translation>Zmień status</translation>
+    </message>
+    <message>
+        <source>Change account status: %1</source>
+        <translation>Zmień status konta: %1</translation>
+    </message>
+    <message>
+        <source>Status</source>
+        <translation>Status</translation>
+    </message>
+    <message>
+        <source>Select Previously Used Description</source>
+        <translation>Wybierz poprzednio użyty opis</translation>
+    </message>
+    <message>
+        <source>Clear Descriptions History</source>
+        <translation>Wyczyść historię opisów</translation>
+    </message>
+    <message>
+        <source>Description</source>
+        <translation>Opis</translation>
+    </message>
+    <message>
+        <source>Erase Description</source>
+        <translation>Wyczyść opis</translation>
+    </message>
+    <message>
+        <source>&amp;Set status</source>
+        <translation>&amp;Ustaw status</translation>
+    </message>
+    <message>
+        <source>Do you really want to clear the descriptions history?</source>
+        <translation>Czy na pewno chcesz wyczyścić historię opisów?</translation>
+    </message>
+    <message>
+        <source>do not change</source>
+        <translation>nie zmieniaj</translation>
+    </message>
+</context>
+<context>
     <name>SubscriptionWindow</name>
-    <message>
-        <source>New Contact Request</source>
-        <translation>Prośba o dodanie do listy kontaktów</translation>
-    </message>
-    <message>
-        <source>&lt;b&gt;%1&lt;/b&gt; wants to be able to chat with you.</source>
-        <translation>Użytkownik &lt;b&gt;%1&lt;/b&gt; chce porozmawiać z Tobą.</translation>
-    </message>
-    <message>
-        <source>Add in Group</source>
-        <translation>Dodaj do grupy</translation>
-    </message>
-    <message>
-        <source>Visible Name</source>
-        <translation>Nazwa wyświetlana</translation>
-    </message>
-    <message>
-        <source>Enter a name for this contact.</source>
-        <translation>Podaj nazwę dla tego kontaktu.</translation>
-    </message>
-    <message>
-        <source>Merge with an existing contact</source>
-        <translation>Połącz z istniejącym kontaktem</translation>
-    </message>
     <message>
         <source>Allow</source>
         <translation>Zezwól</translation>
@@ -3448,6 +3565,22 @@ Być może nie jest zgodna z Kadu.</translation>
     <message>
         <source>Ignore</source>
         <translation>Ignoruj</translation>
+    </message>
+    <message>
+        <source>Ask For Sharing Status</source>
+        <translation>Poproś o udostępnienie statusu</translation>
+    </message>
+    <message>
+        <source>User &lt;b&gt;%1&lt;/b&gt; wants to add you to his contact list.</source>
+        <translation>Kontakt &lt;b&gt;%1&lt;/b&gt; chce dodać Ciebie do swojej listy kontaktów. </translation>
+    </message>
+    <message>
+        <source>Do you want this person to see your status?</source>
+        <translation>Czy chcesz pozwolić tej osobie widzieć swój status?</translation>
+    </message>
+    <message>
+        <source>Allow and add buddy...</source>
+        <translation>Zezwól i dodaj znajomego...</translation>
     </message>
 </context>
 <context>
@@ -3520,10 +3653,22 @@ Być może nie jest zgodna z Kadu.</translation>
     </message>
 </context>
 <context>
-    <name>ThemeManager</name>
+    <name>TokenWindow</name>
     <message>
-        <source>None</source>
-        <translation>Brak</translation>
+        <source>Enter Token Value</source>
+        <translation>Wprowadź tekst z obrazka</translation>
+    </message>
+    <message>
+        <source>Enter text from the picture:</source>
+        <translation>Wprowadź tekst z obrazka:</translation>
+    </message>
+    <message>
+        <source>Ok</source>
+        <translation>Ok</translation>
+    </message>
+    <message>
+        <source>Cancel</source>
+        <translation>Anuluj</translation>
     </message>
 </context>
 <context>

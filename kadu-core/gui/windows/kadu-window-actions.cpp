@@ -33,7 +33,6 @@
 
 #include "accounts/account-manager.h"
 #include "accounts/account.h"
-#include "buddies/buddy-kadu-data.h"
 #include "buddies/buddy-manager.h"
 #include "buddies/group-manager.h"
 #include "configuration/configuration-file.h"
@@ -43,6 +42,7 @@
 #include "gui/actions/actions.h"
 #include "gui/actions/change-status-action.h"
 #include "gui/actions/chat/add-conference-action.h"
+#include "gui/actions/chat/add-room-chat-action.h"
 #include "gui/actions/default-proxy-action.h"
 #include "gui/actions/delete-talkable-action.h"
 #include "gui/actions/edit-talkable-action.h"
@@ -60,7 +60,7 @@
 #include "gui/windows/main-configuration-window.h"
 #include "gui/windows/merge-buddies-window.h"
 #include "gui/windows/message-dialog.h"
-#include "gui/windows/modules-window.h"
+#include "gui/windows/plugins-window.h"
 #include "gui/windows/multilogon-window.h"
 #include "gui/windows/search-window.h"
 #include "gui/windows/your-accounts.h"
@@ -208,6 +208,7 @@ KaduWindowActions::KaduWindowActions(QObject *parent) : QObject(parent)
 	AddUser->setShortcut("kadu_adduser", Qt::ApplicationShortcut);
 
 	AddConference = new AddConferenceAction(this);
+	AddRoomChat = new AddRoomChatAction(this);
 
 	AddGroup= new ActionDescription(this,
 		ActionDescription::TypeGlobal, "addGroupAction",
@@ -524,7 +525,7 @@ void KaduWindowActions::manageModulesActionActivated(QAction *sender, bool toggl
 	Q_UNUSED(sender)
 	Q_UNUSED(toggled)
 
-	ModulesWindow::show();
+	PluginsWindow::show();
 }
 
 void KaduWindowActions::exitKaduActionActivated(QAction *sender, bool toggled)

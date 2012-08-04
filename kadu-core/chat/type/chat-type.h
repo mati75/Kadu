@@ -29,7 +29,9 @@
 
 #include "exports.h"
 
+class Chat;
 class ChatDetails;
+class ChatEditWidget;
 class ChatShared;
 class KaduIcon;
 
@@ -59,16 +61,6 @@ public:
 
 	/**
 	 * @author Rafal 'Vogel' Malinowski
-	 * @short Sort index for this object.
-	 * @return sort index for this object
-	 *
-	 * Sort index is used for sorting chat types in history window.
-	 * Chats with smaller sort indexes are displayed first.
-	 */
-	virtual int sortIndex() const = 0;
-
-	/**
-	 * @author Rafal 'Vogel' Malinowski
 	 * @short Internal name of chat type.
 	 * @return internal name of chat type
 	 *
@@ -79,23 +71,13 @@ public:
 
 	/**
 	 * @author Rafal 'Vogel' Malinowski
-	 * @short Display name of chat type.
-	 * @return display name of chat type
+	 * @short Internal aliases of chat type.
+	 * @return internal aliases of chat type
 	 *
-	 * Chat type display name. Display name is used in history window. This name
-	 * is translated into national languaes.
+	 * Chat type internal aliases. Used to import from old confirations where Simple was used
+	 * instead of Contact and Conference instead of ContactSet.
 	 */
-	virtual QString displayName() const = 0;
-
-	/**
-	 * @author Piotr 'ultr' Dąbrowski
-	 * @short Display name of chat type in plural form.
-	 * @return display name of chat type in plural form
-	 *
-	 * Plural chat type display name. Display name is used in history window.
-	 * This name is translated into national languaes.
-	 */
-	virtual QString displayNamePlural() const = 0;
+	virtual QStringList aliases() const = 0;
 
 	/**
 	 * @author Rafal 'Vogel' Malinowski
@@ -125,8 +107,16 @@ public:
 	 */
 	virtual ChatDetails * createChatDetails(ChatShared *chatData) const = 0;
 
-	bool operator == (const ChatType &compare) const;
-	bool operator < (const ChatType &compare) const;
+	/**
+	 * @author Rafal 'Vogel' Malinowski
+	 * @short Create new ChatEditWidget for editing given chat.
+	 * @param chat chat to edit
+	 * @param parent QWidget parent of new edit widget
+	 * @return ChatEditWidget for editing given chat
+	 *
+	 * May return null.
+	 */
+	virtual ChatEditWidget * createEditWidget(const Chat &chat, QWidget *parent) const = 0;
 
 };
 

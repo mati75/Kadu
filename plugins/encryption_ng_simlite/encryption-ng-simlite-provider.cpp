@@ -20,6 +20,7 @@
  */
 
 #include "chat/chat-manager.h"
+#include "chat/type/chat-type-contact.h"
 #include "contacts/contact-set.h"
 #include "protocols/protocol.h"
 #include "protocols/services/chat-service.h"
@@ -93,8 +94,7 @@ void EncryptioNgSimliteProvider::accountUnregistered(Account account)
 	if (!chatService)
 		return;
 
-	disconnect(chatService, SIGNAL(filterRawIncomingMessage(Chat,Contact,QByteArray&,bool&)),
-			this, SLOT(filterRawIncomingMessage(Chat,Contact,QByteArray&,bool&)));
+	disconnect(chatService, 0, this, 0);
 }
 
 void EncryptioNgSimliteProvider::filterRawIncomingMessage(Chat chat, Contact sender, QByteArray &message, bool &ignore)
@@ -164,7 +164,7 @@ void EncryptioNgSimliteProvider::releaseEncryptor(const Chat &chat, Encryptor *e
 
 void EncryptioNgSimliteProvider::keyUpdated(Key key)
 {
-	Chat chat = ChatManager::instance()->findChat(ContactSet(key.keyContact()), false);
+	Chat chat = ChatTypeContact::findChat(key.keyContact(), ActionReturnNull);
 	if (!chat)
 		return;
 

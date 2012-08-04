@@ -22,6 +22,7 @@
 #include "gui/actions/action-context.h"
 #include "gui/actions/action.h"
 
+#include "encryption-chat-data.h"
 #include "encryption-manager.h"
 #include "encryption-provider-manager.h"
 
@@ -44,8 +45,7 @@ EnableEncryptionActionDescription::EnableEncryptionActionDescription(QObject *pa
 
 EnableEncryptionActionDescription::~EnableEncryptionActionDescription()
 {
-	disconnect(EncryptionProviderManager::instance(), SIGNAL(canEncryptChanged(Chat)),
-			this, SLOT(canEncryptChanged(Chat)));
+	disconnect(EncryptionProviderManager::instance(), 0, this, 0);
 }
 
 void EnableEncryptionActionDescription::actionTriggered(QAction *sender, bool toggled)
@@ -54,10 +54,13 @@ void EnableEncryptionActionDescription::actionTriggered(QAction *sender, bool to
 	if (!action)
 		return;
 
-	if (!action->context()->chat())
+	Chat chat = action->context()->chat();
+	if (!chat)
 		return;
 
-	if (!EncryptionManager::instance()->setEncryptionEnabled(action->context()->chat(), toggled, true) && toggled)
+	EncryptionManager::instance()->chatEncryption(chat)->setEncrypt(toggled);
+
+	if (!EncryptionManager::instance()->setEncryptionEnabled(action->context()->chat(), toggled) && toggled)
 	{
 		// disable it, we could not enable encryption for this contact
 		sender->setEnabled(false);
@@ -68,7 +71,13 @@ void EnableEncryptionActionDescription::actionTriggered(QAction *sender, bool to
 void EnableEncryptionActionDescription::updateActionState(Action *action)
 {
 	Chat chat = action->context()->chat();
-	action->setEnabled(chat && EncryptionProviderManager::instance()->canEncrypt(chat));
+	// This is needed beacause we may be called before it is called in EncryptionNgPlugin::init().
+	// And EncryptionManager may need EnableEncryptionActionDescription from its c-tor,
+	// so we cannot simply change order in EncryptionNgPlugin::init().
+	EncryptionManager::createInstance();
+	bool canEncrypt = chat && EncryptionProviderManager::instance()->canEncrypt(chat);
+	action->setEnabled(canEncrypt);
+	action->setChecked(canEncrypt && EncryptionManager::instance()->chatEncryption(chat)->encrypt());
 }
 
 void EnableEncryptionActionDescription::canEncryptChanged(const Chat &chat)

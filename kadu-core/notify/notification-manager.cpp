@@ -59,7 +59,6 @@
 #include "message/message.h"
 #include "multilogon/multilogon-session.h"
 #include "notify/account-notification.h"
-#include "notify/buddy-notify-data.h"
 #include "notify/multilogon-notification.h"
 #include "notify/notification.h"
 #include "notify/notifier.h"
@@ -79,7 +78,34 @@
 
 #ifdef Q_WS_X11
 #include "os/x11tools.h" // this should be included as last one,
+#undef KeyPress
 #undef Status            // and Status defined by Xlib.h must be undefined
+#include <storage/custom-properties.h>
+#endif
+
+#ifdef Q_WS_WIN
+#include <windows.h>
+
+static bool win32_checkFullScreen()
+{
+	HWND hWnd = GetForegroundWindow();
+	if (NULL == hWnd)
+		return false;
+
+	int cx = GetSystemMetrics(SM_CXSCREEN);
+	int cy = GetSystemMetrics(SM_CYSCREEN);
+	RECT r;
+	GetWindowRect(hWnd, &r);
+
+	return (r.right - r.left == cx && r.bottom - r.top == cy);
+}
+
+static bool win32_isScreenSaverRunning()
+{
+    BOOL ret;
+    SystemParametersInfo(SPI_GETSCREENSAVERRUNNING, 0, &ret, 0);
+    return (0 != ret);
+}
 #endif
 
 #define FULLSCREENCHECKTIMER_INTERVAL 2000 /*ms*/
@@ -219,9 +245,7 @@ void NotificationManager::notifyAboutUserActionActivated(QAction *sender, bool t
 	foreach (const Buddy &buddy, buddies)
 		if (buddy.data())
 		{
-			BuddyNotifyData *bnd = buddy.data()->moduleStorableData<BuddyNotifyData>("notify", this, false);
-
-			if (!bnd || !bnd->notify())
+			if (!buddy.property("notify:Notify", false).toBool())
 			{
 				on = false;
 				break;
@@ -239,12 +263,10 @@ void NotificationManager::notifyAboutUserActionActivated(QAction *sender, bool t
 		if (buddy.isNull() || buddy.isAnonymous())
 			continue;
 
-		BuddyNotifyData *bnd = buddy.data()->moduleStorableData<BuddyNotifyData>("notify", this, true);
-		if (bnd->notify() == on)
-		{
-			bnd->setNotify(!on);
-			bnd->ensureStored();
-		}
+		if (on)
+			buddy.addProperty("notify:Notify", true, CustomProperties::Storable);
+		else
+			buddy.removeProperty("notify:Notify");
 	}
 
 	foreach (Action *action, notifyAboutUserActionDescription->actions())
@@ -311,18 +333,11 @@ void NotificationManager::accountUnregistered(Account account)
 	if (!protocol)
 		return;
 
-	disconnect(account, SIGNAL(buddyStatusChanged(Contact, Status)),
-			this, SLOT(contactStatusChanged(Contact, Status)));
-	disconnect(account, SIGNAL(connected()), this, SLOT(accountConnected()));
+	disconnect(account, 0, this, 0);
 
 	MultilogonService *multilogonService = protocol->multilogonService();
 	if (multilogonService)
-	{
-		disconnect(multilogonService, SIGNAL(multilogonSessionConnected(MultilogonSession*)),
-				this, SLOT(multilogonSessionConnected(MultilogonSession*)));
-		disconnect(multilogonService, SIGNAL(multilogonSessionDisconnected(MultilogonSession*)),
-				this, SLOT(multilogonSessionDisconnected(MultilogonSession*)));
-	}
+		disconnect(multilogonService, 0, this, 0);
 }
 
 void NotificationManager::accountConnected()
@@ -332,10 +347,7 @@ void NotificationManager::accountConnected()
 		return;
 
 	if (NotifyIgnoreOnConnection)
-	{
-		QDateTime *dateTime = account.data()->moduleData<QDateTime>("notify-account-connected", true);
-		*dateTime = QDateTime::currentDateTime().addSecs(10);
-	}
+		account.addProperty("notify:notify-account-connected", QDateTime::currentDateTime().addSecs(10), CustomProperties::NonStorable);
 }
 
 void NotificationManager::contactStatusChanged(Contact contact, Status oldStatus)
@@ -351,16 +363,13 @@ void NotificationManager::contactStatusChanged(Contact contact, Status oldStatus
 
 	if (NotifyIgnoreOnConnection)
 	{
-		QDateTime *dateTime = contact.contactAccount().data()->moduleData<QDateTime>("notify-account-connected");
-		if (dateTime && (*dateTime >= QDateTime::currentDateTime()))
+		QDateTime dateTime = contact.contactAccount().property("notify:notify-account-connected", QDateTime()).toDateTime();
+		if (dateTime.isValid() && dateTime >= QDateTime::currentDateTime())
 			return;
 	}
 
 	bool notify_contact = true;
-	BuddyNotifyData *bnd = 0;
-	bnd = contact.ownerBuddy().data()->moduleStorableData<BuddyNotifyData>("notify", this, false);
-
-	if (!bnd || !bnd->notify())
+	if (!contact.ownerBuddy().property("notify:Notify", false).toBool())
 		notify_contact = false;
 
 	if (!notify_contact && !NotifyAboutAll)
@@ -563,9 +572,10 @@ void NotificationManager::groupUpdated()
 		if (buddy.isNull() || buddy.isAnonymous() || buddy.groups().contains(group))
 			continue;
 
-		BuddyNotifyData *bnd = buddy.data()->moduleStorableData<BuddyNotifyData>("notify", this, true);
-		bnd->setNotify(notify);
-		bnd->ensureStored();
+		if (notify)
+			buddy.addProperty("notify:Notify", true, CustomProperties::Storable);
+		else
+			buddy.removeProperty("notify:Notify");
 	}
 }
 
@@ -578,7 +588,7 @@ void NotificationManager::configurationUpdated()
 	SilentModeWhenDnD = config_file.readBoolEntry("Notify", "AwaySilentMode", false);
 	SilentModeWhenFullscreen = config_file.readBoolEntry("Notify", "FullscreenSilentMode", false);
 	setSilentMode(config_file.readBoolEntry("Notify", "SilentMode", false));
-#if defined(Q_WS_X11) && !defined(Q_WS_MAEMO_5)
+#if (defined(Q_WS_X11) && !defined(Q_WS_MAEMO_5)) || defined(Q_WS_WIN)
 	if (SilentModeWhenFullscreen)
 		FullScreenCheckTimer.start();
 	else
@@ -623,9 +633,17 @@ ConfigurationUiHandler * NotificationManager::configurationUiHandler()
 
 void NotificationManager::checkFullScreen()
 {
-#if defined(Q_WS_X11) && !defined(Q_WS_MAEMO_5)
+#if (defined(Q_WS_X11) && !defined(Q_WS_MAEMO_5)) || defined(Q_WS_WIN)
 	bool wasSilent = silentMode();
-	IsFullScreen = X11_checkFullScreen(x11display) && (!isScreenSaverRunning());
+
+	IsFullScreen = 
+# if !defined(Q_WS_WIN)
+			X11_checkFullScreen(x11display)
+# else
+			win32_checkFullScreen()
+# endif
+			&& (!isScreenSaverRunning());
+
 	if (silentMode() != wasSilent)
 		emit silentModeToggled(silentMode());
 #endif
@@ -664,6 +682,8 @@ bool NotificationManager::isScreenSaverRunning()
 				return true;
 		}
 	}
+#elif defined(Q_WS_WIN)
+	return win32_isScreenSaverRunning();
 #endif
 	// no screensaver
 	return false;
@@ -679,8 +699,7 @@ void checkNotify(Action *action)
 	foreach (const Buddy &buddy, action->context()->contacts().toBuddySet())
 		if (buddy.data())
 		{
-			BuddyNotifyData *bnd = buddy.data()->moduleStorableData<BuddyNotifyData>("notify", NotificationManager::instance(), false);
-			if (!bnd || !bnd->notify())
+			if (!buddy.data()->customProperties()->property("notify:Notify", false).toBool())
 			{
 				on = false;
 				break;

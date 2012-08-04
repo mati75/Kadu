@@ -27,18 +27,12 @@
 
 #include <QtCore/QObject>
 
-#include "misc/token-acceptor.h"
-
-class TokenReader;
-
-class SmsSender : public QObject, public TokenAcceptor
+class SmsSender : public QObject
 {
 	Q_OBJECT
 
 	QString Number;
 	QString Signature;
-
-	TokenReader *MyTokenReader;
 
 	void fixNumber();
 
@@ -53,20 +47,21 @@ public:
 
 	const QString & number() const { return Number; }
 	const QString & signature() const { return Signature; }
-	TokenReader * tokenReader() { return MyTokenReader; }
 
 	void setSignature(const QString &signature);
 
 	virtual void sendMessage(const QString &message) = 0;
 
-	void setTokenReader(TokenReader *tokenReader);
-
-	virtual void tokenRead(const QString& tokenValue);
+public slots:
+	virtual void cancel() = 0;
 
 signals:
 	void gatewayAssigned(const QString &number, const QString &gatewayId);
-	void succeed(const QString &message);
-	void failed(const QString &errorMessage);
+
+	void progress(const QString &entryIcon, const QString &entryMessage);
+	void finished(bool ok, const QString &entryIcon, const QString &entryMessage);
+	void canceled();
+
 };
 
 #endif // SMS_SENDER_H

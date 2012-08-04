@@ -37,18 +37,20 @@ EncryptionManager * EncryptionManager::Instance = 0;
 
 void EncryptionManager::createInstance()
 {
-	Instance = new EncryptionManager();
+	if (!Instance)
+		new EncryptionManager();
 }
 
 void EncryptionManager::destroyInstance()
 {
 	delete Instance;
-	Instance = 0;
 }
 
 EncryptionManager::EncryptionManager() :
 		Generator(0)
 {
+	Instance = this;
+
 	foreach (ChatWidget *chatWidget, ChatWidgetManager::instance()->chats())
 		chatWidgetCreated(chatWidget);
 
@@ -64,13 +66,12 @@ EncryptionManager::~EncryptionManager()
 {
 	triggerAllAccountsUnregistered();
 
-	disconnect(ChatWidgetManager::instance(), SIGNAL(chatWidgetCreated(ChatWidget*)),
-			this, SLOT(chatWidgetCreated(ChatWidget*)));
-	disconnect(ChatWidgetManager::instance(), SIGNAL(chatWidgetDestroying(ChatWidget*)),
-			this, SLOT(chatWidgetDestroying(ChatWidget*)));
+	disconnect(ChatWidgetManager::instance(), 0, this, 0);
 
 	foreach (ChatWidget *chatWidget, ChatWidgetManager::instance()->chats())
 		chatWidgetDestroying(chatWidget);
+
+	Instance = 0;
 }
 
 void EncryptionManager::accountRegistered(Account account)
@@ -95,18 +96,24 @@ void EncryptionManager::accountUnregistered(Account account)
 
 	ChatService *chatService = account.protocolHandler()->chatService();
 	if (chatService)
-	{
-		disconnect(chatService, SIGNAL(filterRawIncomingMessage(Chat,Contact,QByteArray&,bool&)),
-				this, SLOT(filterRawIncomingMessage(Chat,Contact,QByteArray&,bool&)));
-		disconnect(chatService, SIGNAL(filterRawOutgoingMessage(Chat,QByteArray&,bool&)),
-				this, SLOT(filterRawOutgoingMessage(Chat,QByteArray&,bool&)));
-	}
+		disconnect(chatService, 0, this, 0);
 }
 
-bool EncryptionManager::setEncryptionEnabled(const Chat &chat, bool enable, bool overrideChatDataSetting)
+EncryptionChatData * EncryptionManager::chatEncryption(const Chat &chat)
 {
-	EncryptionChatData *encryptionChatData = chat.data()->moduleStorableData<EncryptionChatData>("encryption-ng", this, true);
-	if (enable)
+	if (!ChatEnryptions.contains(chat))
+		ChatEnryptions.insert(chat, new EncryptionChatData(chat, this));
+
+	return ChatEnryptions.value(chat);
+}
+
+bool EncryptionManager::setEncryptionEnabled(const Chat &chat, bool enabled)
+{
+	if (!chat)
+		return false;
+
+	EncryptionChatData *encryptionChatData = chatEncryption(chat);
+	if (enabled)
 	{
 		Encryptor *encryptor = encryptionChatData->encryptor();
 		bool enableSucceeded;
@@ -123,10 +130,6 @@ bool EncryptionManager::setEncryptionEnabled(const Chat &chat, bool enable, bool
 			enableSucceeded = (0 != encryptor);
 		}
 
-		if (overrideChatDataSetting)
-			encryptionChatData->setEncrypt(enableSucceeded
-					? EncryptionChatData::EncryptStateEnabled
-					: EncryptionChatData::EncryptStateDisabled);
 		EncryptionActions::instance()->checkEnableEncryption(chat, enableSucceeded);
 
 		return enableSucceeded;
@@ -137,8 +140,6 @@ bool EncryptionManager::setEncryptionEnabled(const Chat &chat, bool enable, bool
 		if (encryptor)
 			encryptor->provider()->releaseEncryptor(chat, encryptor);
 		encryptionChatData->setEncryptor(0);
-		if (overrideChatDataSetting)
-			encryptionChatData->setEncrypt(EncryptionChatData::EncryptStateDisabled);
 		EncryptionActions::instance()->checkEnableEncryption(chat, false);
 
 		return true; // we can always disable
@@ -156,7 +157,7 @@ void EncryptionManager::filterRawIncomingMessage(Chat chat, Contact sender, QByt
 	if (!EncryptionProviderManager::instance()->canDecrypt(chat))
 		return;
 
-	EncryptionChatData *encryptionChatData = chat.data()->moduleStorableData<EncryptionChatData>("encryption-ng", this, true);
+	EncryptionChatData *encryptionChatData = chatEncryption(chat);
 	if (!encryptionChatData->decryptor())
 		encryptionChatData->setDecryptor(EncryptionProviderManager::instance()->acquireDecryptor(chat));
 
@@ -164,7 +165,7 @@ void EncryptionManager::filterRawIncomingMessage(Chat chat, Contact sender, QByt
 	message = encryptionChatData->decryptor()->decrypt(message, chat, &decrypted);
 
 	if (decrypted && EncryptionNgConfiguration::instance()->encryptAfterReceiveEncryptedMessage())
-		setEncryptionEnabled(chat, true, false);
+		setEncryptionEnabled(chat, true);
 }
 
 void EncryptionManager::filterRawOutgoingMessage(Chat chat, QByteArray &message, bool &stop)
@@ -174,7 +175,7 @@ void EncryptionManager::filterRawOutgoingMessage(Chat chat, QByteArray &message,
 	if (!chat)
 		return;
 
-	EncryptionChatData *encryptionChatData = chat.data()->moduleStorableData<EncryptionChatData>("encryption-ng", this, false);
+	EncryptionChatData *encryptionChatData = chatEncryption(chat);
 	if (encryptionChatData && encryptionChatData->encryptor())
 		message = encryptionChatData->encryptor()->encrypt(message);
 }
@@ -188,12 +189,7 @@ void EncryptionManager::chatWidgetCreated(ChatWidget *chatWidget)
 	if (!EncryptionProviderManager::instance()->canEncrypt(chat))
 		return;
 
-	EncryptionChatData *encryptionChatData = chat.data()->moduleStorableData<EncryptionChatData>("encryption-ng", this, false);
-	bool encryptFromDefault = (!encryptionChatData || encryptionChatData->encrypt() == EncryptionChatData::EncryptStateDefault)
-			&& EncryptionNgConfiguration::instance()->encryptByDefault();
-
-	if (encryptFromDefault || (encryptionChatData && encryptionChatData->encrypt() == EncryptionChatData::EncryptStateEnabled))
-		setEncryptionEnabled(chat, true, !encryptFromDefault);
+	setEncryptionEnabled(chat, chatEncryption(chat)->encrypt());
 }
 
 void EncryptionManager::chatWidgetDestroying(ChatWidget *chatWidget)
@@ -202,9 +198,7 @@ void EncryptionManager::chatWidgetDestroying(ChatWidget *chatWidget)
 	if (!chat.data())
 		return;
 
-	EncryptionChatData *encryptionChatData = chat.data()->moduleStorableData<EncryptionChatData>("encryption-ng", this, false);
-	if (!encryptionChatData)
-		return;
+	EncryptionChatData *encryptionChatData = chatEncryption(chat);
 
 	// free some memory, these objects will be recreated when needed
 	if (encryptionChatData->decryptor())

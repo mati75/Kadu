@@ -32,7 +32,8 @@ QKeySequence HotKey::shortCutFromFile(const QString &groupname, const QString &n
 
 bool HotKey::shortCut(QKeyEvent *e, const QString &groupname, const QString &name)
 {
-	return config_file.readEntry(groupname, name) == keyEventToString(e);
+	QString config = config_file.readEntry(groupname, name);
+	return !config.isEmpty() && config == keyEventToString(e);
 }
 
 QString HotKey::keyEventToString(QKeyEvent *e)
@@ -61,7 +62,7 @@ QString HotKey::keyEventToString(QKeyEvent *e)
 }
 
 HotKeyEdit::HotKeyEdit(QWidget *parent)
-	: QLineEdit(parent)
+	: LineEditWithClearButton(parent)
 {
 }
 
@@ -98,6 +99,8 @@ void HotKeyEdit::keyReleaseEvent(QKeyEvent *)
 {
 	// sprawdzenie czy ostatnim znakiem jest "+"
 	// jesli tak to nie ma takiego skrotu klawiszowego
+	if (text().isEmpty())
+		return;
 	if (text().at(text().length() - 1) == '+')
 		clear();
 }

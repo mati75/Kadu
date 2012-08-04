@@ -88,7 +88,7 @@ void GaduCreateAccountWidget::createGui(bool showButtons)
 	connect(EMail, SIGNAL(textEdited(const QString &)), this, SLOT(dataChanged()));
 	layout->addRow(tr("E-Mail Address") + ':', EMail);
 
-	IdentityCombo = new IdentitiesComboBox(true, this);
+	IdentityCombo = new IdentitiesComboBox(this);
 	connect(IdentityCombo, SIGNAL(currentIndexChanged(int)), this, SLOT(dataChanged()));
 	layout->addRow(tr("Account Identity") + ':', IdentityCombo);
 
@@ -132,11 +132,11 @@ void GaduCreateAccountWidget::resetGui()
 	ReNewPassword->clear();
 	RememberPassword->setChecked(true);
 	EMail->clear();
-	IdentityCombo->setCurrentIdentity(Identity::null);
+	IdentityManager::instance()->removeUnused();
+	IdentityCombo->setCurrentIndex(0);
 	MyTokenWidget->setTokenValue(QString());
 	RegisterAccountButton->setEnabled(false);
 
-	IdentityManager::instance()->removeUnused();
 	setState(StateNotChanged);
 }
 
@@ -154,7 +154,7 @@ void GaduCreateAccountWidget::dataChanged()
 			&& ReNewPassword->text().isEmpty()
 			&& RememberPassword->isChecked()
 			&& EMail->text().isEmpty()
-			&& !IdentityCombo->currentIdentity()
+			&& 0 == IdentityCombo->currentIndex()
 			&& MyTokenWidget->tokenValue().isEmpty())
 		setState(StateNotChanged);
 	else

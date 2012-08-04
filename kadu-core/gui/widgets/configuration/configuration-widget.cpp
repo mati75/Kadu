@@ -60,6 +60,7 @@
 #include "gui/widgets/configuration/configuration-widget.h"
 #include "gui/windows/configuration-window.h"
 #include "icons/kadu-icon.h"
+#include "misc/kadu-paths.h"
 
 #include "debug.h"
 
@@ -96,8 +97,7 @@ ConfigurationWidget::~ConfigurationWidget()
 	if (SectionsListWidget->currentItem())
 		config_file.writeEntry("General", "ConfigurationWindow_" + Name, SectionsListWidget->currentItem()->text());
 
-	disconnect(SectionsListWidget, SIGNAL(currentTextChanged(const QString &)),
-			this, SLOT(changeSection(const QString &)));
+	disconnect(SectionsListWidget, 0, this, 0);
 
 	// qDeleteAll() won't work here because of connection to destroyed() signal
 	foreach (const ConfigSection *cs, ConfigSections)
@@ -193,7 +193,11 @@ QList<ConfigWidget *> ConfigurationWidget::processUiSectionFromDom(QDomNode sect
 		return result;
 	}
 
-	configSection(KaduIcon(sectionElement.attribute("icon")), qApp->translate("@default", sectionName.toUtf8().constData()), true);
+	QString iconPath = sectionElement.attribute("icon");
+	// Additional slash is needed so that QUrl would treat the rest as _path_, which is desired here.
+	if (iconPath.startsWith("datapath:///"))
+		iconPath = KaduPaths::instance()->dataPath() + iconPath.midRef(qstrlen("datapath:///"));
+	configSection(KaduIcon(iconPath), qApp->translate("@default", sectionName.toUtf8().constData()), true);
 
 	const QDomNodeList children = sectionElement.childNodes();
 	int length = children.length();

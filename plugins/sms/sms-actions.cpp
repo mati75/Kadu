@@ -35,7 +35,6 @@
 #include "debug.h"
 
 #include "gui/windows/sms-dialog.h"
-#include "gui/windows/sms-image-dialog.h"
 
 #include "sms-actions.h"
 
@@ -79,8 +78,7 @@ SmsActions::SmsActions()
 
 SmsActions::~SmsActions()
 {
-	disconnect(Core::instance()->kaduWindow(), SIGNAL(talkableActivated(Talkable)),
-			this, SLOT(talkableActivated(Talkable)));
+	disconnect(Core::instance()->kaduWindow(), 0, this, 0);
 
 	TalkableMenuManager::instance()->removeActionDescription(sendSmsActionDescription);
 	Core::instance()->kaduWindow()->removeMenuActionDescription(sendSmsActionDescription);

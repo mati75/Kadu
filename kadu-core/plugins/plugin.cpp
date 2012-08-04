@@ -27,9 +27,9 @@
 #include <QtGui/QApplication>
 
 #include "configuration/configuration-file.h"
-#include "gui/windows/modules-window.h"
+#include "gui/windows/plugins-window.h"
 #include "gui/windows/plugin-error-dialog.h"
-#include "misc/path-conversion.h"
+#include "misc/kadu-paths.h"
 #include "plugins/generic-plugin.h"
 #include "plugins/plugin-info.h"
 #include "debug.h"
@@ -62,7 +62,7 @@ Plugin::Plugin(const QString &name, QObject *parent) :
 		Name(name), Active(false), State(PluginStateNew), PluginLoader(0), PluginObject(0),
 		Translator(0), UsageCounter(0)
 {
-	QString descFilePath = dataPath("plugins/" + name + ".desc");
+	QString descFilePath = KaduPaths::instance()->dataPath() + QLatin1String("plugins/") + name + QLatin1String(".desc");
 	QFileInfo descFileInfo(descFilePath);
 
 	if (descFileInfo.exists())
@@ -189,15 +189,17 @@ bool Plugin::activate(PluginActivationReason reason)
 
 	ensureLoaded();
 
-	PluginLoader = new QPluginLoader(pluginsLibPath(SO_PREFIX + Name + "." SO_EXT));
+	PluginLoader = new QPluginLoader(KaduPaths::instance()->pluginsLibPath() + QLatin1String(SO_PREFIX) + Name + QLatin1String("." SO_EXT));
 	PluginLoader->setLoadHints(QLibrary::ExportExternalSymbolsHint);
 
 	if (!PluginLoader->load())
 	{
 		QString err = PluginLoader->errorString();
 		kdebugm(KDEBUG_ERROR, "cannot load %s because of: %s\n", qPrintable(Name), qPrintable(err));
+		activationError(tr("Cannot load %1 plugin library:\n%2").arg(Name, err), reason);
 
-		activationError(tr("Cannot load %1 plugin library.:\n%2").arg(Name, err), reason);
+		delete PluginLoader;
+		PluginLoader = 0;
 
 		kdebugf2();
 		return false;
@@ -211,6 +213,9 @@ bool Plugin::activate(PluginActivationReason reason)
 	{
 		activationError(tr("Cannot find required object in module %1.\nMaybe it's not Kadu-compatible plugin.").arg(Name), reason);
 
+		// Refer to deactivate() method for reasons to this.
+		QApplication::sendPostedEvents(0, QEvent::DeferredDelete);
+		PluginLoader->unload();
 		delete PluginLoader;
 		PluginLoader = 0;
 
@@ -226,6 +231,8 @@ bool Plugin::activate(PluginActivationReason reason)
 	{
 		activationError(tr("Module initialization routine for %1 failed.").arg(Name), reason);
 
+		// Refer to deactivate() method for reasons to this.
+		QApplication::sendPostedEvents(0, QEvent::DeferredDelete);
 		PluginLoader->unload();
 		delete PluginLoader;
 		PluginLoader = 0;
@@ -259,8 +266,9 @@ bool Plugin::activate(PluginActivationReason reason)
  * @author Rafał 'Vogel' Malinowski
  * @short Deactivates plugin.
  *
- * If plugin is active, its GenericPlugin::done() method is called and then all data is removed from
- * memory - plugin library file and plugin translations.
+ * If plugin is active, its GenericPlugin::done() method is called. Then all deferred delete
+ * events are sent so that we will not end up trying to delete objects belonging to unloaded
+ * plugins. Finally all data is removed from memory - plugin library file and plugin translations.
  */
 void Plugin::deactivate(PluginDeactivationReason reason)
 {
@@ -269,6 +277,12 @@ void Plugin::deactivate(PluginDeactivationReason reason)
 
 	if (PluginObject)
 		PluginObject->done();
+
+	// We need this because plugins can call deleteLater() just before being
+	// unloaded. In this case control would not return to the event loop before
+	// unloading the plugin and the event loop would try to delete objects
+	// belonging to already unloaded plugins, which can result in segfaults.
+	QApplication::sendPostedEvents(0, QEvent::DeferredDelete);
 
 	if (PluginLoader)
 	{
@@ -299,7 +313,7 @@ void Plugin::loadTranslations()
 	Translator = new QTranslator(this);
 	const QString lang = config_file.readEntry("General", "Language");
 
-	if (Translator->load(Name + '_' + lang, dataPath("plugins/translations/")))
+	if (Translator->load(Name + '_' + lang, KaduPaths::instance()->dataPath() + QLatin1String("plugins/translations")))
 		qApp->installTranslator(Translator);
 	else
 	{
@@ -379,7 +393,7 @@ void Plugin::activationError(const QString &errorMessage, PluginActivationReason
 {
 	bool offerLoadInFutureChoice = (PluginActivationReasonKnownDefault == activationReason);
 
-	PluginErrorDialog *errorDialog = new PluginErrorDialog(errorMessage, offerLoadInFutureChoice, ModulesWindow::instance());
+	PluginErrorDialog *errorDialog = new PluginErrorDialog(errorMessage, offerLoadInFutureChoice, PluginsWindow::instance());
 	if (offerLoadInFutureChoice)
 		connect(errorDialog, SIGNAL(accepted(bool)), this, SLOT(setStateEnabledIfInactive(bool)));
 

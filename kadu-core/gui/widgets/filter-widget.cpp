@@ -118,6 +118,11 @@ QSize FilterWidget::sizeHint (void) const
 }
 #endif
 
+QString FilterWidget::filterText() const
+{
+	return NameFilterEdit->text();
+}
+
 void FilterWidget::updateVisibility()
 {
 #ifndef Q_OS_MAC
@@ -153,12 +158,6 @@ void FilterWidget::filterTextChanged(const QString &s)
 			qSort(selection);
 			View->scrollTo(selection.at(0));
 		}
-		// clearFocus() is needed to ensure that focus on View wiil be restored
-		// even if this function had been called at time KaduWindow was not active
-		clearFocus();
-		// from qdocs: "[It works] if this widget or one of its parents is the active window"
-		View->setFocus(Qt::OtherFocusReason);
-		updateVisibility();
 	}
 	else
 	{
@@ -167,8 +166,9 @@ void FilterWidget::filterTextChanged(const QString &s)
 			View->setCurrentIndex(View->model()->index(0, 0));
 			View->selectionModel()->select(View->model()->index(0, 0), QItemSelectionModel::SelectCurrent);
 		}
-		updateVisibility();
 	}
+
+	updateVisibility();
 }
 
 FilterWidget::FilterWidget(QWidget *parent) :

@@ -119,7 +119,7 @@ void JabberAddAccountWidget::createGui(bool showButtons)
 	RememberPassword = new QCheckBox(tr("Remember Password"), this);
 	layout->addRow(0, RememberPassword);
 
-	Identity = new IdentitiesComboBox(true, this);
+	Identity = new IdentitiesComboBox(this);
 	connect(Identity, SIGNAL(currentIndexChanged(int)), this, SLOT(dataChanged()));
 	layout->addRow(tr("Account Identity") + ':', Identity);
 
@@ -161,7 +161,7 @@ void JabberAddAccountWidget::dataChanged()
 			&& AccountPassword->text().isEmpty()
 			&& RememberPassword->isChecked()
 			&& Domain->currentText() == Factory->defaultServer()
-			&& !Identity->currentIdentity())
+			&& 0 == Identity->currentIndex())
 		setState(StateNotChanged);
 	else
 		setState(valid ? StateChangedDataValid : StateChangedDataInvalid);
@@ -216,10 +216,10 @@ void JabberAddAccountWidget::resetGui()
 	Username->clear();
 	Domain->setEditText(Factory->defaultServer());
 	RememberPassword->setChecked(true);
-	Identity->setCurrentIdentity(Identity::null);
+	IdentityManager::instance()->removeUnused();
+	Identity->setCurrentIndex(0);
 	AddAccountButton->setDisabled(true);
 
-	IdentityManager::instance()->removeUnused();
 	setState(StateNotChanged);
 }
 

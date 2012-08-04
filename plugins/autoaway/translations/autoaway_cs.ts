@@ -93,15 +93,15 @@
     </message>
     <message>
         <source>Do Not Change</source>
-        <translation type="unfinished"></translation>
+        <translation>Neměnit</translation>
     </message>
     <message>
         <source>Add in the Front</source>
-        <translation type="unfinished"></translation>
+        <translation>Přidat dopředu</translation>
     </message>
     <message>
         <source>Add at the Back</source>
-        <translation type="unfinished"></translation>
+        <translation>Přidat dozadu</translation>
     </message>
 </context>
 <context>

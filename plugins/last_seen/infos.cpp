@@ -32,7 +32,7 @@
 #include "core/core.h"
 #include "gui/actions/action-description.h"
 #include "gui/windows/kadu-window.h"
-#include "misc/path-conversion.h"
+#include "misc/kadu-paths.h"
 #include "debug.h"
 #include "exports.h"
 
@@ -46,7 +46,7 @@ Infos::Infos(QObject *parent) :
 
 	triggerAllAccountsRegistered();
 
-	fileName = profilePath("last_seen.data");
+	fileName = KaduPaths::instance()->profilePath() + QLatin1String("last_seen.data");
 
 	if (QFile::exists(fileName))
 	{
@@ -142,11 +142,6 @@ void Infos::onShowInfos()
 void Infos::accountRegistered(Account account)
 {
 	kdebugf();
-	if (!account.protocolHandler())
-	{
-		kdebugf2();
-		return;
-	}
 
 	connect(account, SIGNAL(buddyStatusChanged(Contact, Status)),
 			this, SLOT(contactStatusChanged(Contact, Status)));
@@ -156,14 +151,8 @@ void Infos::accountRegistered(Account account)
 void Infos::accountUnregistered(Account account)
 {
 	kdebugf();
-	if (!account.protocolHandler())
-	{
-		kdebugf2();
-		return;
-	}
 
-	disconnect(account, SIGNAL(buddyStatusChanged(Contact, Status)),
-			this, SLOT(contactStatusChanged(Contact, Status)));
+	disconnect(account, 0, this, 0);
 	kdebugf2();
 }
 

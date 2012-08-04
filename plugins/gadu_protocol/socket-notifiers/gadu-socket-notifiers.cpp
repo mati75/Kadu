@@ -27,7 +27,7 @@
 #include "gadu-socket-notifiers.h"
 
 GaduSocketNotifiers::GaduSocketNotifiers(QObject *parent)
-	: QObject(parent), Socket(0), Started(false), ReadNotifier(0), WriteNotifier(0), Lock(false)
+	: QObject(parent), Socket(-1), Started(false), ReadNotifier(0), WriteNotifier(0), TimeoutTimer(0)
 {
 	kdebugf();
 	kdebugf2();
@@ -46,8 +46,11 @@ void GaduSocketNotifiers::createSocketNotifiers()
 
 	deleteSocketNotifiers();
 
-	if (0 >= Socket)
+	if (-1 == Socket)
 		return;
+
+	// Old code was using 0 instead of -1 for invalid socket. Check whether we didn't forget to fix something.
+	Q_ASSERT(0 != Socket);
 
 	ReadNotifier = new QSocketNotifier(Socket, QSocketNotifier::Read, this);
 	connect(ReadNotifier, SIGNAL(activated(int)), this, SLOT(dataReceived()));
@@ -112,7 +115,7 @@ void GaduSocketNotifiers::enable()
 {
 	kdebugf();
 
-	if (!Started || Lock)
+	if (!Started)
 		return;
 
 	if (checkRead())
@@ -134,21 +137,6 @@ void GaduSocketNotifiers::watchFor(int socket)
 
 	Socket = socket;
 	createSocketNotifiers();
-}
-
-void GaduSocketNotifiers::lock()
-{
-	kdebugf();
-
-	Lock = true;
-}
-
-void GaduSocketNotifiers::unlock()
-{
-	kdebugf();
-
-	Lock = false;
-	enable();
 }
 
 void GaduSocketNotifiers::socketTimeout()

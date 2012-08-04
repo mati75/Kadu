@@ -1,17 +1,19 @@
-if (NOT MSVC)
+include (FindPkgConfig)
+
+if (NOT MSVC AND NOT APPLE)
 	option (FAST_LINKING "Enable for faster linking, optimized for low RAM (works best with GCC and GNU ld)" ON)
-else (NOT MSVC)
+else (NOT MSVC AND NOT APPLE)
 	option (FAST_LINKING "Enable for faster linking, optimized for low RAM (works best with GCC and GNU ld)" OFF)
-endif (NOT MSVC)
+endif (NOT MSVC AND NOT APPLE)
 
 if (FAST_LINKING)
 	message (STATUS "Fast linking enabled")
 endif (FAST_LINKING)
 
-if (UNIX)
+if (NOT WIN32)
 	option (SIG_HANDLING_ENABLED "Define if you want system signals handling" ON)
 
-	if (NOT APPLE)
+	if (UNIX AND NOT APPLE)
 		option (USE_X11_XFIXES "Use X11 XFixes extension (Desktop Linux)" ON)
 
 		pkg_search_module (INDICATEQT indicate-qt)
@@ -22,8 +24,8 @@ if (UNIX)
 			message (STATUS "libindicate-qt devel NOT FOUND. Disabling Ayatana support")
 			option (WITH_LIBINDICATE_QT "Compile with Messaging Menu (Ayatana) support trough libindicate-qt" OFF)
 		endif (INDICATEQT_FOUND)
-	endif (NOT APPLE)
-endif (UNIX)
+	endif (UNIX AND NOT APPLE)
+endif (NOT WIN32)
 
 if (NOT NETWORK_IMPLEMENTATION)
 	include (FindQNtrack)
@@ -47,19 +49,31 @@ set (kadu_SRCS
 	languages-manager.cpp
 	themes.cpp
 	updates.cpp
+
+	os/qtsingleapplication/qtlocalpeer.cpp
+	os/qtsingleapplication/qtlockedfile.cpp
 )
+
+if (WIN32)
+	list (APPEND kadu_SRCS
+		kadu.rc
+
+		os/qtsingleapplication/qtlockedfile_win.cpp
+	)
+else (WIN32)
+	list (APPEND kadu_SRCS
+		main.cpp
+		main_unix.cpp
+
+		os/qtsingleapplication/qtlockedfile_unix.cpp
+	)
+endif (WIN32)
 
 if (UNIX AND NOT APPLE)
 	list (APPEND kadu_SRCS
 		os/x11tools.cpp
 	)
 endif (UNIX AND NOT APPLE)
-if (NOT WIN32)
-	list (APPEND kadu_SRCS
-		os/qtsingleapplication/qtlocalpeer.cpp
-		os/qtsingleapplication/qtlockedfile.cpp
-	)
-endif (NOT WIN32)
 
 set (kadu_MOC_SRCS
 	kadu-application.h
@@ -146,15 +160,17 @@ if (UNIX AND NOT APPLE)
 	include (FindX11)
 	if (X11_FOUND)
 		message (STATUS "Found X11 libraries: ${X11_X11_LIB}")
-	else (X11_Xfixes_FOUND)
+	else (X11_FOUND)
 		message (FATAL_ERROR "Could not find X11 libraries")
 	endif (X11_FOUND)
 
 	include_directories (${X11_INCLUDE_DIR})
+	list (APPEND ADDITIONAL_LIBRARIES ${X11_X11_LIB})
 
 	if (USE_X11_XFIXES)
 		if (X11_Xfixes_FOUND)
 			message (STATUS "Found X11 Xfixes extension: ${X11_Xfixes_LIB}")
+			list (APPEND ADDITIONAL_LIBRARIES ${X11_Xfixes_LIB})
 		else (X11_Xfixes_FOUND)
 			message (FATAL_ERROR "Could not find X11 Xfixes extension")
 		endif (X11_Xfixes_FOUND)
@@ -174,6 +190,10 @@ if (UNIX AND NOT APPLE)
 	)
 endif (UNIX AND NOT APPLE)
 
+if (APPLE)
+	list (APPEND ADDITIONAL_LIBRARIES "-framework carbon")
+endif (APPLE)
+
 macro (kadu_subdirectory SUBDIR SRCS MOC_SRCS ADDITIONAL_INCLUDES)
 	if (FAST_LINKING)
 		set (${SUBDIR}_MOC_FILES "")
@@ -190,12 +210,12 @@ macro (kadu_subdirectory SUBDIR SRCS MOC_SRCS ADDITIONAL_INCLUDES)
 	else (FAST_LINKING)
 		set (tmp "")
 		foreach (SRC ${SRCS})
-			set (tmp "${tmp};${SUBDIR}/${SRC}")
+			list (APPEND tmp "${SUBDIR}/${SRC}")
 		endforeach (SRC)
 
 		set (tmp_moc "")
 		foreach (MOC_SRC ${MOC_SRCS})
-			set (tmp_moc "${tmp_moc};${SUBDIR}/${MOC_SRC}")
+			list (APPEND tmp_moc "${SUBDIR}/${MOC_SRC}")
 		endforeach (MOC_SRC)
 
 		set (${SUBDIR}_SRCS "${tmp}" PARENT_SCOPE)
@@ -214,7 +234,7 @@ macro (kadu_source_subdirectories CURRENT_TARGET)
 				${ARG}
 			)
 		else (FAST_LINKING)
-			list (APPEND kadu_SRCS "${${ARG}_SRCS}")
+			list (APPEND kadu_SUBDIRS_SRCS "${${ARG}_SRCS}")
 			qt4_wrap_cpp (MOC_FILES "${${ARG}_MOC_SRCS}")
 			include_directories (${${ARG}_INCLUDES})
 		endif (FAST_LINKING)
@@ -230,76 +250,52 @@ macro (kadu_source_subdirectories CURRENT_TARGET)
 endmacro (kadu_source_subdirectories)
 
 if (WIN32)
-	list (APPEND kadu_SRCS
-		os/qtsingleapplication/qtlocalpeer.cpp
-		os/qtsingleapplication/qtlockedfile.cpp
-		os/qtsingleapplication/qtlockedfile_win.cpp
-	)
+	set (KADU_MAIN_SOURCES_TARGET kadu_core)
+else (WIN32)
+	set (KADU_MAIN_SOURCES_TARGET kadu)
+endif (WIN32)
 
-	if (NOT FAST_LINKING)
-		kadu_source_subdirectories (kadu_core ${kadu_SUBDIRS})
-	endif (NOT FAST_LINKING)
-	add_library (kadu_core SHARED ${kadu_SRCS} ${MOC_FILES} kadu_core.rc)
-	if (FAST_LINKING)
-		kadu_source_subdirectories (kadu_core ${kadu_SUBDIRS})
-	endif (FAST_LINKING)
+if (NOT FAST_LINKING)
+	kadu_source_subdirectories (${KADU_MAIN_SOURCES_TARGET} ${kadu_SUBDIRS})
+endif (NOT FAST_LINKING)
+if (WIN32)
+	add_library (${KADU_MAIN_SOURCES_TARGET} SHARED ${kadu_SRCS} ${kadu_SUBDIRS_SRCS} ${MOC_FILES})
+else (WIN32)
+	add_executable (${KADU_MAIN_SOURCES_TARGET} ${kadu_SRCS} ${kadu_SUBDIRS_SRCS} ${MOC_FILES})
+endif (WIN32)
+if (FAST_LINKING)
+	kadu_source_subdirectories (${KADU_MAIN_SOURCES_TARGET} ${kadu_SUBDIRS})
+endif (FAST_LINKING)
 
-	set_target_properties (kadu_core PROPERTIES
-		COMPILE_DEFINITIONS KADULIB
-		LINK_INTERFACE_LIBRARIES ""
-	)
-	target_link_libraries (kadu_core ${QT_LIBRARIES} ${QCA2_LIBRARIES} ${ADDITIONAL_LIBRARIES})
+set_target_properties (${KADU_MAIN_SOURCES_TARGET} PROPERTIES
+	ENABLE_EXPORTS ON
+	COMPILE_DEFINITIONS KADULIB
+	LINK_INTERFACE_LIBRARIES ""
+)
 
-	if (MINGW)
-		exec_program (windres ${CMAKE_CURRENT_SOURCE_DIR}
-			ARGS "kadu_mingw.rc kadu_rc.o"
-			OUTPUT_VARIABLE NULL_VAR
-		)
-		add_executable (kadu WIN32 main.cpp main_win32.cpp kadu_rc.o)
-		add_executable (kadu_c main.cpp main_win32.cpp)
-	else (MINGW)
-		add_executable (kadu WIN32 main.cpp main_win32.cpp kadu.rc)
-		add_executable (kadu_c main.cpp main_win32.cpp kadu.rc)
-	endif (MINGW)
+target_link_libraries (${KADU_MAIN_SOURCES_TARGET} ${QT_LIBRARIES} ${QCA2_LIBRARIES} ${ADDITIONAL_LIBRARIES})
+
+if (WIN32)
+	add_executable (kadu WIN32 main.cpp main_win32.cpp kadu.rc)
+	add_executable (kadu_c main.cpp main_win32.cpp kadu.rc)
 
 	set_target_properties (kadu_c PROPERTIES COMPILE_DEFINITIONS KADU_CONSOLE)
 
-	target_link_libraries (kadu kadu_core ${QT_QTMAIN_LIBRARY} ${QT_LIBRARIES} ws2_32)
-	target_link_libraries (kadu_c kadu_core ${QT_LIBRARIES} ws2_32)
+	target_link_libraries (kadu ${KADU_MAIN_SOURCES_TARGET} ${QT_QTMAIN_LIBRARY} ${QT_LIBRARIES} ws2_32)
+	target_link_libraries (kadu_c ${KADU_MAIN_SOURCES_TARGET} ${QT_LIBRARIES} ws2_32)
 
 	if (INSTALL_SDK)
-		install (TARGETS kadu_core
+		install (TARGETS ${KADU_MAIN_SOURCES_TARGET}
 			ARCHIVE DESTINATION ${KADU_SDK_DIR}/lib
 			LIBRARY DESTINATION ${KADU_SDK_DIR}/lib
 		)
 	endif (INSTALL_SDK)
 
-	install (TARGETS kadu_core RUNTIME DESTINATION ${KADU_BINDIR})
+	install (TARGETS ${KADU_MAIN_SOURCES_TARGET} RUNTIME DESTINATION ${KADU_BINDIR})
 	install (TARGETS kadu_c DESTINATION ${KADU_BINDIR})
-else (WIN32)
-	if (NOT FAST_LINKING)
-		kadu_source_subdirectories (kadu ${kadu_SUBDIRS})
-	endif (NOT FAST_LINKING)
-	add_executable (kadu main.cpp main_unix.cpp os/qtsingleapplication/qtlockedfile_unix.cpp ${kadu_SRCS} ${MOC_FILES})
-	if (FAST_LINKING)
-		kadu_source_subdirectories (kadu ${kadu_SUBDIRS})
-	endif (FAST_LINKING)
 
-	set_target_properties (kadu PROPERTIES
-		ENABLE_EXPORTS ON
-		COMPILE_DEFINITIONS KADULIB
-		LINK_INTERFACE_LIBRARIES ""
-	)
-
-	target_link_libraries (kadu ${QT_LIBRARIES} ${QCA2_LIBRARIES} ${CMAKE_DL_LIBS} ${ADDITIONAL_LIBRARIES})
-
-	if (UNIX AND NOT APPLE)
-		target_link_libraries (kadu ${X11_X11_LIB})
-
-		if (USE_X11_XFIXES)
-			target_link_libraries (kadu ${X11_Xfixes_LIB})
-		endif (USE_X11_XFIXES)
-	endif (UNIX AND NOT APPLE)
+	file (WRITE "${CMAKE_BINARY_DIR}/qt.conf" "[Paths]\nPlugins = qt-plugins\nTranslations = translations\n")
+	install (FILES "${CMAKE_BINARY_DIR}/qt.conf" "kadu.ico" DESTINATION "${KADU_BINDIR}")
 endif (WIN32)
 
 install (TARGETS kadu DESTINATION ${KADU_BINDIR})
@@ -321,10 +317,6 @@ if (UNIX AND NOT APPLE)
 endif (UNIX AND NOT APPLE)
 
 install (FILES "chat/style-engines/chat-scripts.js" DESTINATION "${KADU_DATADIR}/scripts")
-
-if (APPLE)
-	target_link_libraries (kadu "-framework carbon")
-endif (APPLE)
 
 # install api headers
 kadu_api_directories (kadu-core
@@ -376,6 +368,7 @@ kadu_api_directories (kadu-core
 	protocols/model
 	protocols/services
 	protocols
+	provider
 	qt
 	status
 	storage

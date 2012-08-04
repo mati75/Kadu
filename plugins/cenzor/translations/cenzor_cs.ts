@@ -33,7 +33,7 @@
     </message>
     <message>
         <source>Message was cenzored</source>
-        <translation type="unfinished">Zpráva byla zcenzůrovaná</translation>
+        <translation>Zpráva byla zcenzůrována</translation>
     </message>
 </context>
 <context>
@@ -48,7 +48,7 @@
     </message>
     <message>
         <source>Cenzor</source>
-        <translation type="unfinished">Cenzor</translation>
+        <translation>Cenzor</translation>
     </message>
 </context>
 <context>

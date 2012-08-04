@@ -22,11 +22,13 @@
 #include "buddies/buddy-manager.h"
 #include "buddies/buddy-preferred-manager.h"
 #include "buddies/buddy-set.h"
-#include "chat/aggregate-chat-manager.h"
+#include "chat/buddy-chat-manager.h"
 #include "chat/chat-manager.h"
 #include "chat/model/chat-data-extractor.h"
+#include "chat/type/chat-type-contact.h"
 #include "contacts/contact-set.h"
 #include "model/roles.h"
+#include "status/status-container.h"
 
 #include "talkable.h"
 
@@ -147,11 +149,11 @@ Chat Talkable::toChat() const
 	{
 		case ItemBuddy:
 		{
-			const Chat &chat = ChatManager::instance()->findChat(BuddySet(MyBuddy), true);
-			const Chat &aggregate = AggregateChatManager::instance()->aggregateChat(chat);
-			return aggregate ? aggregate : chat;
+			const Chat &chat = ChatTypeContact::findChat(BuddyPreferredManager::instance()->preferredContact2(MyBuddy), ActionCreateAndAdd);
+			const Chat &buddyChat = BuddyChatManager::instance()->buddyChat(chat);
+			return buddyChat ? buddyChat : chat;
 		}
-		case ItemContact: return ChatManager::instance()->findChat(ContactSet(MyContact), true);
+		case ItemContact: return ChatTypeContact::findChat(MyContact, ActionCreateAndAdd);
 		case ItemChat: return MyChat;
 		default:
 			return Chat::null;
@@ -216,7 +218,10 @@ QString Talkable::display() const
 
 Status Talkable::currentStatus() const
 {
-	return toContact().currentStatus();
+	if (isValidChat())
+		return MyChat.chatAccount().statusContainer() ? MyChat.chatAccount().statusContainer()->status() : Status();
+	else
+		return toContact().currentStatus();
 }
 
 bool Talkable::isValidChat() const

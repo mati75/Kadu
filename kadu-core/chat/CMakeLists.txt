@@ -1,10 +1,10 @@
 set (chat_SRCS
-	aggregate-chat-manager.cpp
+	buddy-chat-manager.cpp
 	chat.cpp
-	chat-details-aggregate.cpp
-	chat-details-conference.cpp
-	chat-details-simple.cpp
-	chat-geometry-data.cpp
+	chat-details-buddy.cpp
+	chat-details-contact.cpp
+	chat-details-contact-set.cpp
+	chat-details-room.cpp
 	chat-list-mime-data-helper.cpp
 	chat-manager.cpp
 	chat-shared.cpp
@@ -13,8 +13,8 @@ set (chat_SRCS
 	recent-chat-manager.cpp
 
 	model/chat-data-extractor.cpp
-	model/chats-list-model.cpp
-	model/chats-model.cpp
+	model/chat-list-model.cpp
+	model/chat-manager-adapter.cpp
 
 	style-engines/chat-engine-adium/adium-style.cpp
 	style-engines/chat-engine-adium/adium-time-formatter.cpp
@@ -23,38 +23,39 @@ set (chat_SRCS
 	style-engines/chat-engine-kadu/kadu-chat-syntax.cpp
 
 	type/chat-type.cpp
-	type/chat-type-aggregate.cpp
 	type/chat-type-aware-object.cpp
-	type/chat-type-conference.cpp
+	type/chat-type-buddy.cpp
+	type/chat-type-contact.cpp
+	type/chat-type-contact-set.cpp
 	type/chat-type-manager.cpp
-	type/chat-type-simple.cpp
+	type/chat-type-room.cpp
 )
 
 set (chat_MOC_SRCS
+	buddy-chat-manager.h
 	chat-details.h
-	chat-details-aggregate.h
-	chat-details-conference.h
-	chat-details-simple.h
-	chat-geometry-data.h
-
-	aggregate-chat-manager.h
+	chat-details-buddy.h
+	chat-details-contact.h
+	chat-details-contact-set.h
+	chat-details-room.h
 	chat-manager.h
 	chat-shared.h
 	chat-styles-manager.h
 	html-messages-renderer.h
 	recent-chat-manager.h
 
-	model/chats-list-model.h
-	model/chats-model.h
+	model/chat-list-model.h
+	model/chat-manager-adapter.h
 
 	style-engines/chat-engine-adium/chat-engine-adium.h
 	style-engines/chat-engine-kadu/chat-engine-kadu.h
 
 	type/chat-type.h
-	type/chat-type-aggregate.h
-	type/chat-type-conference.h
+	type/chat-type-buddy.h
+	type/chat-type-contact.h
+	type/chat-type-contact-set.h
 	type/chat-type-manager.h
-	type/chat-type-simple.h
+	type/chat-type-room.h
 )
 
 kadu_subdirectory (chat "${chat_SRCS}" "${chat_MOC_SRCS}" "")

@@ -25,6 +25,7 @@
 #include "contacts/contact-manager.h"
 #include "protocols/protocol-factory.h"
 #include "protocols/protocol.h"
+#include "protocols/services/roster/roster-entry.h"
 
 #include "buddy-contacts-table-item.h"
 
@@ -35,7 +36,8 @@ BuddyContactsTableItem::BuddyContactsTableItem(Contact contact, QObject *parent)
 	ItemContactPriority = contact.priority();
 	ItemAccount = contact.contactAccount();
 	Id = contact.id();
-	Action = ItemView;
+	RosterDetached = !contact.isNull() ? contact.rosterEntry()->detached() : false;
+	Action = ItemEdit;
 }
 
 void BuddyContactsTableItem::setItemContactPriority(int itemContactPriority)
@@ -65,6 +67,15 @@ void BuddyContactsTableItem::setId(const QString& id)
 	}
 }
 
+void BuddyContactsTableItem::setRosterDetached(bool rosterDetached)
+{
+	if (RosterDetached != rosterDetached)
+	{
+		RosterDetached = rosterDetached;
+		emit updated(this);
+	}
+}
+
 void BuddyContactsTableItem::setAction(BuddyContactsTableItem::ItemAction action)
 {
 	if (Action != action)
@@ -85,7 +96,7 @@ void BuddyContactsTableItem::setDetachedBuddyName(const QString &detachedBuddyNa
 
 bool BuddyContactsTableItem::isValid() const
 {
-	if (ItemView == Action || ItemRemove == Action)
+	if (ItemRemove == Action)
 		return true;
 
 	if (ItemDetach == Action)
@@ -94,8 +105,7 @@ bool BuddyContactsTableItem::isValid() const
 	if (ItemAdd == Action)
 		return isAddValid();
 
-	Q_ASSERT(false);
-	return false;
+	return isEditValid();
 }
 
 bool BuddyContactsTableItem::isAddValid() const
@@ -119,4 +129,32 @@ bool BuddyContactsTableItem::isAddValid() const
 	// allow contacts without buddy or new ones
 	Contact contact = ContactManager::instance()->byId(ItemAccount, Id, ActionReturnNull);
 	return contact.ownerBuddy().isAnonymous();
+}
+
+bool BuddyContactsTableItem::isEditValid() const
+{
+	if (!ItemContact)
+		return false;
+
+	if (!ItemAccount)
+		return false;
+
+	if (Id.isEmpty())
+		return false;
+
+	Protocol *handler = ItemAccount.protocolHandler();
+	if (!handler)
+		return false;
+
+	if (handler->protocolFactory()->validateId(Id) != QValidator::Acceptable)
+		return false;
+
+	if (ItemAccount != ItemContact.contactAccount() || Id != ItemContact.id())
+	{
+		// allow contacts without buddy or new ones
+		Contact contact = ContactManager::instance()->byId(ItemAccount, Id, ActionReturnNull);
+		return contact.ownerBuddy().isAnonymous();
+	}
+
+	return true;
 }

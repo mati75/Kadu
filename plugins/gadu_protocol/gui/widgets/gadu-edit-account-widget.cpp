@@ -143,7 +143,7 @@ void GaduEditAccountWidget::createGeneralTab(QTabWidget *tabWidget)
 	formLayout->addRow(0, changePasswordLabel);
 	connect(changePasswordLabel, SIGNAL(linkActivated(QString)), this, SLOT(changePasssword()));
 
-	Identities = new IdentitiesComboBox(false, this);
+	Identities = new IdentitiesComboBox(this);
 	connect(Identities, SIGNAL(currentIndexChanged(int)), this, SLOT(dataChanged()));
 	formLayout->addRow(tr("Account Identity") + ':', Identities);
 
@@ -388,9 +388,9 @@ void GaduEditAccountWidget::apply()
 
 	resetState();
 
-	// TODO: 0.11, fix this
+	// TODO: 0.13, fix this
 	// hack, changing details does not trigger this
-	account().data()->emitUpdated();
+	account().data()->forceEmitUpdated();
 }
 
 void GaduEditAccountWidget::cancel()

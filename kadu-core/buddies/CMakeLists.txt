@@ -2,7 +2,6 @@ set (buddies_SRCS
 	buddy.cpp
 	buddy-additional-data-delete-handler.cpp
 	buddy-additional-data-delete-handler-manager.cpp
-	buddy-kadu-data.cpp
 	buddy-list.cpp
 	buddy-list-mime-data-helper.cpp
 	buddy-manager.cpp
@@ -16,8 +15,7 @@ set (buddies_SRCS
 
 	model/buddy-data-extractor.cpp
 	model/buddy-list-model.cpp
-	model/buddies-model.cpp
-	model/buddies-model-base.cpp
+	model/buddy-manager-adapter.cpp
 	# will be used when Qt 4.8 .is required
 	# model/checkable-buddies-proxy-model.cpp
 	model/groups-model.cpp
@@ -25,7 +23,6 @@ set (buddies_SRCS
 
 set (buddies_MOC_SRCS
 	buddy-additional-data-delete-handler-manager.h
-	buddy-kadu-data.h
 	buddy-shared.h
 	buddy-manager.h
 	group-manager.h
@@ -33,8 +30,7 @@ set (buddies_MOC_SRCS
 	group-shared.h
 
 	model/buddy-list-model.h
-	model/buddies-model.h
-	model/buddies-model-base.h
+	model/buddy-manager-adapter.h
 	# will be used when Qt 4.8 .is required
 	# model/checkable-buddies-proxy-model.h
 	model/groups-model.h

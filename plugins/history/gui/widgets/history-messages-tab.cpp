@@ -1,6 +1,7 @@
 /*
  * %kadu copyright begin%
  * Copyright 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2012 Marcel Zięba (marseel@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -17,6 +18,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <QtCore/QScopedPointer>
 #include <QtGui/QAction>
 #include <QtGui/QKeyEvent>
 #include <QtGui/QMenu>
@@ -24,20 +26,24 @@
 #include <QtGui/QTreeView>
 #include <QtGui/QVBoxLayout>
 
-#include "chat/model/chats-list-model.h"
+#include "chat/buddy-chat-manager.h"
+#include "chat/model/chat-list-model.h"
 #include "buddies/model/buddy-list-model.h"
 #include "gui/widgets/chat-messages-view.h"
 #include "gui/widgets/timeline-chat-messages-view.h"
 #include "gui/widgets/wait-overlay.h"
 #include "gui/widgets/filter-widget.h"
 #include "gui/widgets/filtered-tree-view.h"
+#include "gui/widgets/search-bar.h"
 #include "gui/widgets/talkable-delegate-configuration.h"
 #include "gui/widgets/talkable-tree-view.h"
 #include "gui/widgets/talkable-menu-manager.h"
+#include "gui/windows/message-dialog.h"
 #include "icons/kadu-icon.h"
 #include "model/merged-proxy-model-factory.h"
 #include "model/model-chain.h"
 #include "talkable/filter/name-talkable-filter.h"
+#include <talkable/filter/hide-temporary-talkable-filter.h>
 #include "talkable/model/talkable-proxy-model.h"
 
 #include "storage/history-messages-storage.h"
@@ -94,6 +100,8 @@ void HistoryMessagesTab::createGui()
 	FilteredView->setView(TalkableTree);
 
 	TimelineView = new TimelineChatMessagesView(Splitter);
+	TimelineView->searchBar()->setAutoVisibility(false);
+	TimelineView->searchBar()->setSearchWidget(this);
 	TimelineView->timeline()->setContextMenuPolicy(Qt::CustomContextMenu);
 	connect(TimelineView->timeline(), SIGNAL(customContextMenuRequested(QPoint)),
 	        this, SLOT(showTimelinePopupMenu()));
@@ -111,7 +119,7 @@ void HistoryMessagesTab::createGui()
 
 void HistoryMessagesTab::createModelChain()
 {
-	ChatsModel = new ChatsListModel(TalkableTree);
+	ChatsModel = new ChatListModel(TalkableTree);
 	BuddiesModel = new BuddyListModel(TalkableTree);
 
 	QList<KaduAbstractModel *> models;
@@ -124,6 +132,7 @@ void HistoryMessagesTab::createModelChain()
 	TalkableProxyModel *proxyModel = new TalkableProxyModel(Chain);
 	proxyModel->setSortByStatusAndUnreadMessages(false);
 
+	proxyModel->addFilter(new HideTemporaryTalkableFilter(proxyModel));
 	NameTalkableFilter *nameTalkableFilter = new NameTalkableFilter(NameTalkableFilter::AcceptMatching, proxyModel);
 	connect(FilteredView, SIGNAL(filterChanged(QString)), nameTalkableFilter, SLOT(setName(QString)));
 	proxyModel->addFilter(nameTalkableFilter);
@@ -139,7 +148,12 @@ void HistoryMessagesTab::displayTalkable(const Talkable &talkable, bool force)
 		return;
 
 	CurrentTalkable = talkable;
-	TimelineView->messagesView()->setChat(CurrentTalkable.toChat());
+	Chat chat = CurrentTalkable.toChat();
+	// if buddy do not have any contact we have to create chat manually
+	if (!chat)
+		chat = BuddyChatManager::instance()->buddyChat(CurrentTalkable.toBuddy());
+
+	TimelineView->messagesView()->setChat(chat);
 
 	HistoryQuery query;
 	query.setTalkable(CurrentTalkable);
@@ -259,7 +273,12 @@ void HistoryMessagesTab::currentDateChanged()
 	query.setFromDate(date);
 	query.setToDate(date);
 
-	timelineView()->messagesView()->setChat(CurrentTalkable.toChat());
+	Chat chat = CurrentTalkable.toChat();
+	// if buddy do not have any contact we have to create chat manually
+	if (!chat)
+		chat = BuddyChatManager::instance()->buddyChat(CurrentTalkable.toBuddy());
+
+	timelineView()->messagesView()->setChat(chat);
 	TimelineView->setFutureMessages(Storage->messages(query));
 }
 
@@ -270,8 +289,7 @@ void HistoryMessagesTab::setClearHistoryMenuItemTitle(const QString &clearHistor
 
 void HistoryMessagesTab::showTalkablePopupMenu()
 {
-	QScopedPointer<QMenu> menu;
-	menu.reset(TalkableMenuManager::instance()->menu(this, TalkableTree->actionContext()));
+	QScopedPointer<QMenu> menu(TalkableMenuManager::instance()->menu(this, TalkableTree->actionContext()));
 	menu->addSeparator();
 	menu->addAction(KaduIcon("kadu_icons/clear-history").icon(),
 	                ClearHistoryMenuItemTitle, this, SLOT(clearTalkableHistory()));
@@ -288,6 +306,9 @@ void HistoryMessagesTab::clearTalkableHistory()
 
 	const QModelIndexList &selectedIndexes = TalkableTree->selectionModel()->selectedIndexes();
 	QList<Talkable> talkables;
+
+	if (!MessageDialog::ask(KaduIcon("dialog-question"), tr("Kadu"), tr("Do you really want to delete history?")))
+		return;
 
 	foreach (const QModelIndex &selectedIndex, selectedIndexes)
 	{

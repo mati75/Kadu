@@ -28,18 +28,14 @@
 
 #include "sms-sender.h"
 
-class QNetworkReply;
+class SmsTokenReadJob;
 
 class SmsInternalSender : public SmsSender
 {
 	Q_OBJECT
 
 	SmsGateway Gateway;
-
-	QNetworkReply *TokenReply;
-
-	QScriptValue TokenCallbackObject;
-	QScriptValue TokenCallbackMethod;
+	SmsTokenReadJob *TokenJob;
 
 	void queryForGateway();
 	void gatewaySelected();
@@ -47,7 +43,7 @@ class SmsInternalSender : public SmsSender
 	void sendSms();
 
 private slots:
-    void tokenImageDownloaded();
+	void jobFinished(bool ok, const QString &entryIcon, const QString &entryMessage);
 
 public:
 	explicit SmsInternalSender(const QString &number, const SmsGateway &gateway = SmsGateway(), QObject *parent = 0);
@@ -57,13 +53,13 @@ public:
 
 	void findGatewayForNumber(const QString &number);
 
-	virtual void tokenRead(const QString &tokenValue);
-
 public slots:
 	void gatewayQueryDone(const QString &gatewayId);
 	void readToken(const QString &tokenImageUrl, QScriptValue callbackObject, QScriptValue callbackMethod);
 
 	QScriptValue readFromConfiguration(const QString &group, const QString &name, const QString &defaultValue);
+
+	virtual void cancel();
 
 	void result();
 	void failure(const QString &errorMessage);

@@ -30,6 +30,7 @@
 #include "activate.h"
 #include "chat/chat-manager.h"
 #include "chat/chat.h"
+#include "chat/type/chat-type-contact.h"
 #include "configuration/configuration-file.h"
 #include "contacts/contact-set.h"
 #include "core/core.h"
@@ -61,8 +62,7 @@ FileTransferManager * FileTransferManager::instance()
 	return Instance;
 }
 
-FileTransferManager::FileTransferManager() :
-		Window(0)
+FileTransferManager::FileTransferManager()
 {
 	Actions = new FileTransferActions(this);
 	NewFileTransferNotification::registerEvents();
@@ -72,12 +72,7 @@ FileTransferManager::FileTransferManager() :
 
 FileTransferManager::~FileTransferManager()
 {
-	if (Window)
-	{
-		disconnect(Window, SIGNAL(destroyed()), this, SLOT(fileTransferWindowDestroyed()));
-		delete Window;
-		Window = 0;
-	}
+	delete Window.data();
 
 	triggerAllAccountsUnregistered();
 
@@ -108,8 +103,7 @@ void FileTransferManager::removeFileTransferService(Account account)
 	if (!service)
 		return;
 
-	disconnect(service, SIGNAL(incomingFileTransfer(FileTransfer)),
-			this, SLOT(incomingFileTransfer(FileTransfer)));
+	disconnect(service, 0, this, 0);
 }
 
 void FileTransferManager::fileTransferServiceRegistered()
@@ -136,8 +130,7 @@ void FileTransferManager::accountUnregistered(Account account)
 {
 	QMutexLocker locker(&mutex());
 
-	disconnect(account, SIGNAL(fileTransferServiceRegistered()), this, SLOT(fileTransferServiceRegistered()));
-	disconnect(account, SIGNAL(fileTransferServiceUnregistered()), this, SLOT(fileTransferServiceUnregistered()));
+	disconnect(account, 0, this, 0);
 
 	removeFileTransferService(account);
 }
@@ -192,7 +185,7 @@ void FileTransferManager::acceptFileTransfer(FileTransfer transfer)
 		if (!haveFileName && fi.exists())
 		{
 			QWidget *parent = 0;
-			Chat chat = ChatManager::instance()->findChat(ContactSet(transfer.peer()), false);
+			Chat chat = ChatTypeContact::findChat(transfer.peer(), ActionReturnNull);
 			if (chat)
 				parent = ChatWidgetManager::instance()->byChat(chat, false);
 
@@ -251,23 +244,13 @@ void FileTransferManager::rejectFileTransfer(FileTransfer transfer)
 		transfer.handler()->reject();
 }
 
-void FileTransferManager::fileTransferWindowDestroyed()
-{
-	QMutexLocker locker(&mutex());
-
-	Window = 0;
-}
-
 void FileTransferManager::showFileTransferWindow()
 {
 	QMutexLocker locker(&mutex());
 
 	if (!Window)
-	{
 		Window = new FileTransferWindow();
-		connect(Window, SIGNAL(destroyed()), this, SLOT(fileTransferWindowDestroyed()));
-	}
-	_activateWindow(Window);
+	_activateWindow(Window.data());
 }
 
 FileTransfer FileTransferManager::byPeerAndRemoteFileName(Contact peer, const QString &remoteFileName)
@@ -292,7 +275,7 @@ void FileTransferManager::incomingFileTransfer(FileTransfer fileTransfer)
 			fileTransfer.setLocalFileName(alreadyTransferred.localFileName());
 	}
 
-	Chat chat = ChatManager::instance()->findChat(ContactSet(fileTransfer.peer()));
+	Chat chat = ChatTypeContact::findChat(fileTransfer.peer(), ActionCreateAndAdd);
 	NewFileTransferNotification *notification = new NewFileTransferNotification("FileTransfer/IncomingFile", fileTransfer,
 			chat, fileTransfer.localFileName().isEmpty() ? StartNew : StartRestore);
 	notification->setTitle(tr("Incoming transfer"));

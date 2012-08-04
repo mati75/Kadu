@@ -21,7 +21,7 @@
 #include <QtGui/QAction>
 #include <QtGui/QMenu>
 
-#include "chat/aggregate-chat-manager.h"
+#include "chat/buddy-chat-manager.h"
 #include "chat/chat.h"
 #include "configuration/configuration-file.h"
 #include "gui/actions/action.h"
@@ -67,7 +67,7 @@ void ShowHistoryActionDescription::actionInstanceCreated(Action *action)
 	if (!chatEditBox || !chatEditBox->chatWidget())
 		return;
 
-	QVariant chatWidgetData = (qlonglong)chatEditBox->chatWidget();
+	QVariant chatWidgetData = QVariant::fromValue(chatEditBox->chatWidget());
 	action->setData(chatWidgetData);
 
 	// not a menu
@@ -129,7 +129,7 @@ void ShowHistoryActionDescription::showDaysMessages(QAction *action, int days)
 	Action *act = qobject_cast<Action *>(action);
 	Chat actionChat = act ? act->context()->chat() : Chat::null;
 
-	ChatWidget *chatWidget = static_cast<ChatWidget *>((void*)(action->data().toLongLong()));
+	ChatWidget *chatWidget = action->data().value<ChatWidget *>();
 	if (!chatWidget)
 	{
 		HistoryWindow::show(actionChat);
@@ -151,9 +151,12 @@ void ShowHistoryActionDescription::showDaysMessages(QAction *action, int days)
 		return;
 	}
 
-	const Chat &aggregateChat = AggregateChatManager::instance()->aggregateChat(chatWidget->chat());
-	const Chat &messagesChat = aggregateChat ? aggregateChat : chatWidget->chat();
+	const Chat &buddyChat = BuddyChatManager::instance()->buddyChat(chatWidget->chat());
+	const Chat &messagesChat = buddyChat ? buddyChat : chatWidget->chat();
 	HistoryStorage *historyStorage = History::instance()->currentStorage();
+
+	if (!historyStorage)
+		return;
 
 	HistoryQuery query;
 	query.setTalkable(messagesChat);

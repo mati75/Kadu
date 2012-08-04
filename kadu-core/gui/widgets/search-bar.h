@@ -20,7 +20,10 @@
 #ifndef SEARCH_BAR_H
 #define SEARCH_BAR_H
 
+#include <QtCore/QWeakPointer>
 #include <QtGui/QToolBar>
+
+#include "exports.h"
 
 class QEvent;
 class QLineEdit;
@@ -42,21 +45,21 @@ class QLineEdit;
  * Text in line edit can be set by setSearchText() method. If search widget is set by setSearchWidget() method then this search
  * bar will intercept any Ctrl+F keypesses from it and show itself.
  */
-class SearchBar : public QToolBar
+class KADUAPI SearchBar : public QToolBar
 {
 	Q_OBJECT
 
-	QWidget *SearchWidget;
+	QWeakPointer<QWidget> SearchWidget;
+	bool AutoVisibility;
 
 	QLineEdit *FindEdit;
 
 	void createGui();
 
 private slots:
-	void searchWidgetDestroyed();
-
 	void previous();
 	void next();
+	void close();
 
 protected:
 	virtual bool eventFilter(QObject *object, QEvent *event);
@@ -73,6 +76,18 @@ public:
 	 */
 	explicit SearchBar(QWidget *parent = 0);
 	virtual ~SearchBar();
+
+	/**
+	 * @author Rafał 'Vogel' Malinowski
+	 * @short Set auto visibility property.
+	 * @param autoVisibility new value of auto visibility property
+	 *
+	 * If autoVisibility is on, widget will auto hide on Esp and auto show on Ctrl+F, F3 or Shift+F3 shortcuts.
+	 * If autoVisibility is set to false, widget will be visible until hide() is manually called.
+	 *
+	 * Default value of this property is true.
+	 */
+	void setAutoVisibility(bool autoVisibility);
 
 	/**
 	 * @author Rafał 'Vogel' Malinowski

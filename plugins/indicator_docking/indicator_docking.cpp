@@ -30,8 +30,8 @@
 
 #include "avatars/avatar.h"
 #include "buddies/buddy.h"
-#include "chat/aggregate-chat-manager.h"
-#include "chat/chat-details-aggregate.h"
+#include "chat/buddy-chat-manager.h"
+#include "chat/chat-details-buddy.h"
 #include "chat/chat-manager.h"
 #include "chat/chat.h"
 #include "chat/model/chat-data-extractor.h"
@@ -42,7 +42,7 @@
 #include "gui/widgets/chat-widget-manager.h"
 #include "gui/widgets/chat-widget.h"
 #include "message/message-manager.h"
-#include "misc/path-conversion.h"
+#include "misc/kadu-paths.h"
 #include "notify/new-message-notification.h"
 #include "notify/notification-manager.h"
 
@@ -70,11 +70,10 @@ IndicatorDocking * IndicatorDocking::instance()
 }
 
 IndicatorDocking::IndicatorDocking() :
-		Notifier("IndicatorNotify", QT_TRANSLATE_NOOP("@default", "Indicator"), KaduIcon("external_modules/mail-internet-mail")),
-		EventForShowMainWindow(new QMouseEvent(QEvent::MouseButtonPress, QPoint(0, 0), Qt::LeftButton, Qt::LeftButton, Qt::ControlModifier))
+		Notifier("IndicatorNotify", QT_TRANSLATE_NOOP("@default", "Indicator"), KaduIcon("external_modules/mail-internet-mail"))
 {
 	Server = QIndicate::Server::defaultInstance();
-	Server->setDesktopFile(desktopFilePath());
+	Server->setDesktopFile(KaduPaths::instance()->desktopFilePath());
 	Server->setType("message.im");
 	Server->show();
 
@@ -96,15 +95,15 @@ IndicatorDocking::~IndicatorDocking()
 	NotificationManager::instance()->unregisterNotifier(this);
 	DockingManager::instance()->setDocker(0);
 
-	disconnect(Server, SIGNAL(serverDisplay()), this, SLOT(showMainWindow()));
-	disconnect(ChatManager::instance(), SIGNAL(chatUpdated(Chat)), this, SLOT(chatUpdated(Chat)));
-	disconnect(ChatWidgetManager::instance(), SIGNAL(chatWidgetCreated(ChatWidget*)), this, SLOT(chatWidgetCreated(ChatWidget*)));
+	disconnect(Server, 0, this, 0);
+	disconnect(ChatManager::instance(), 0, this, 0);
+	disconnect(ChatWidgetManager::instance(), 0, this, 0);
 
 	QSet<QIndicate::Indicator *> indicatorsToDelete;
 	IndMMap::const_iterator end = IndicatorsMap.constEnd();
 	for (IndMMap::const_iterator it = IndicatorsMap.constBegin(); it != end; ++it)
 	{
-		disconnect(it.value(), SIGNAL(closed(Notification*)), this, SLOT(notificationClosed(Notification*)));
+		disconnect(it.value(), 0, this, 0);
 		it.value()->release();
 		// because it is a multimap, keys may repeat
 		indicatorsToDelete.insert(it.key());
@@ -134,7 +133,8 @@ void IndicatorDocking::silentModeToggled(bool silentMode)
 
 void IndicatorDocking::showMainWindow()
 {
-	DockingManager::instance()->trayMousePressEvent(EventForShowMainWindow.data());
+	QMouseEvent event(QEvent::MouseButtonPress, QPoint(0, 0), Qt::LeftButton, Qt::LeftButton, Qt::ControlModifier);
+	DockingManager::instance()->trayMousePressEvent(&event);
 }
 
 void IndicatorDocking::notify(Notification *notification)
@@ -158,7 +158,7 @@ void IndicatorDocking::notify(Notification *notification)
 	IndMMap::iterator it = iteratorForChat(chat);
 	if (it != IndicatorsMap.end())
 	{
-		disconnect(it.value(), SIGNAL(closed(Notification*)), this, SLOT(notificationClosed(Notification*)));
+		disconnect(it.value(), 0, this, 0);
 		it.value()->release();
 		it.value() = chatNotification;
 		indicator = it.key();
@@ -271,7 +271,7 @@ void IndicatorDocking::removeNotification(ChatNotification *chatNotification)
 		return;
 
 	QIndicate::Indicator *indicator = it.key();
-	disconnect(it.value(), SIGNAL(closed(Notification*)), this, SLOT(notificationClosed(Notification*)));
+	disconnect(it.value(), 0, this, 0);
 	it.value()->release();
 	IndicatorsMap.erase(it);
 
@@ -300,14 +300,14 @@ QList<IndicatorDocking::IndMMap::iterator> IndicatorDocking::iteratorsForAggrega
 	if (!chat)
 		return list;
 
-	Chat aggregateChat = AggregateChatManager::instance()->aggregateChat(chat);
-	ChatDetailsAggregate *aggregateChatDetails = qobject_cast<ChatDetailsAggregate *>(aggregateChat.details());
-	if (!aggregateChatDetails)
+	Chat aggregateChat = BuddyChatManager::instance()->buddyChat(chat);
+	ChatDetailsBuddy *buddyChatDetails = qobject_cast<ChatDetailsBuddy *>(aggregateChat.details());
+	if (!buddyChatDetails)
 		return list;
 
 	IndMMap::iterator end = IndicatorsMap.end();
 	for (IndMMap::iterator it = IndicatorsMap.begin(); it != end; ++it)
-		if (aggregateChatDetails->chats().contains(it.value()->chat()))
+		if (buddyChatDetails->chats().contains(it.value()->chat()))
 			list.append(it);
 
 	return list;

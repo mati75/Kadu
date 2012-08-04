@@ -49,7 +49,7 @@ class AllAccountsStatusContainer;
  *   <li>one status container that contains all active accounts</li>
  * </ul>
  *
- * This class is used by status changing widgets and windows, like StatusMenu and ChooseDescription.
+ * This class is used by status changing widgets and windows, like StatusMenu and StatusWindow.
  *
  * StatusContainerManager is also a status container that delegates all of its getters to default status container (first
  * registered) and setters to all active status containers.
@@ -239,10 +239,11 @@ public:
 	 * @author Rafał 'Vogel' Malinowski
 	 * @short Sets new status on all active status containers.
 	 * @param status new status
+	 * @param source source of status change
 	 *
 	 * Sets new status on all active status containers.
 	 */
-	virtual void setStatus(Status status);
+	virtual void setStatus(Status status, StatusChangeSource source);
 
 	/**
 	 * @author Rafał 'Vogel' Malinowski

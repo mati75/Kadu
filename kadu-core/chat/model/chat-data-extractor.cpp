@@ -20,6 +20,7 @@
  */
 
 #include <QtCore/QVariant>
+#include <QtGui/QIcon>
 
 #include "accounts/account.h"
 #include "chat/chat.h"
@@ -43,7 +44,8 @@ QVariant ChatDataExtractor::data(const Chat &chat, int role)
 				return chat.display();
 			if (!chat.name().isEmpty())
 				return chat.name();
-			return chat.uuid().toString();
+			/// @todo this is a hack, remove it by creating HistoryTalkableProxyModel with different ::data() method
+			return chat.property("sql_history:id", chat.uuid().toString());
 		}
 		case Qt::DecorationRole:
 		{

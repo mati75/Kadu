@@ -22,6 +22,7 @@
 #include "icons/kadu-icon.h"
 #include "message/message-manager.h"
 #include "misc/misc.h"
+#include "provider/default-provider.h"
 #include "activate.h"
 #include "debug.h"
 #include "kadu-application.h"
@@ -29,25 +30,31 @@
 #include "single-window.h"
 
 SingleWindowManager::SingleWindowManager(QObject *parent) :
-		ConfigurationUiHandler(parent)
+		ConfigurationUiHandler(parent),
+		WindowProvider(new SimpleProvider<QWidget *>(0))
 {
 	config_file.addVariable("SingleWindow", "RosterPosition", 0);
 	config_file.addVariable("SingleWindow", "KaduWindowWidth", 205);
-	singleWindow = new SingleWindow();
+
+	Window = new SingleWindow();
+	WindowProvider->provideValue(Window);
+
+	Core::instance()->mainWindowProvider()->installCustomProvider(WindowProvider);
 }
 
 SingleWindowManager::~SingleWindowManager()
 {
-	delete singleWindow;
+	Core::instance()->mainWindowProvider()->removeCustomProvider(WindowProvider);
+
+	WindowProvider->provideValue(0);
+	delete Window;
 }
 
 void SingleWindowManager::configurationUpdated()
 {
 	int newRosterPos = config_file.readNumEntry("SingleWindow", "RosterPosition", 0);
-	if (singleWindow->rosterPosition() != newRosterPos)
-	{
-		singleWindow->changeRosterPos(newRosterPos);
-	}
+	if (Window->rosterPosition() != newRosterPos)
+		Window->changeRosterPos(newRosterPos);
 }
 
 SingleWindow::SingleWindow()
@@ -55,6 +62,8 @@ SingleWindow::SingleWindow()
 	setWindowRole("kadu-single-window");
 
 	KaduWindow *kadu = Core::instance()->kaduWindow();
+	bool visible = kadu->isVisible();
+
 	split = new QSplitter(Qt::Horizontal, this);
 
 	tabs = new QTabWidget(this);
@@ -129,23 +138,21 @@ SingleWindow::SingleWindow()
 	setFocusProxy(kadu);
 	kadu->show();
 	kadu->setFocus();
-	show();
+
+	setVisible(visible);
 }
 
 SingleWindow::~SingleWindow()
 {
 	KaduWindow *kadu = Core::instance()->kaduWindow();
+	bool visible = isVisible();
 
 	saveWindowGeometry(this, "SingleWindow", "WindowGeometry");
 	config_file.writeEntry("SingleWindow", "KaduWindowWidth", kadu->width());
 
-	disconnect(ChatWidgetManager::instance(), SIGNAL(handleNewChatWidget(ChatWidget *,bool &)),
-			this, SLOT(onNewChat(ChatWidget *,bool &)));
-
-	disconnect(tabs, SIGNAL(tabCloseRequested(int)), this, SLOT(closeTab(int)));
-	disconnect(tabs, SIGNAL(currentChanged(int)), this, SLOT(onTabChange(int)));
-
-	disconnect(kadu, SIGNAL(keyPressed(QKeyEvent *)), this, SLOT(onkaduKeyPressed(QKeyEvent *)));
+	disconnect(ChatWidgetManager::instance(), 0, this, 0);
+	disconnect(tabs, 0, this, 0);
+	disconnect(kadu, 0, this, 0);
 
 	if (!Core::instance()->isClosing())
 	{
@@ -160,11 +167,9 @@ SingleWindow::~SingleWindow()
 	}
 
 	kadu->setParent(0);
+	loadWindowGeometry(kadu, "General", "Geometry", 0, 50, 205, 465);
 	if (!Core::instance()->isClosing())
-	{
-		loadWindowGeometry(kadu, "General", "Geometry", 0, 50, 205, 465);
-		kadu->show();
-	}
+		kadu->setVisible(visible);
 }
 
 void SingleWindow::changeEvent(QEvent *event)
@@ -254,12 +259,8 @@ void SingleWindow::closeTab(int index)
 {
 	ChatWidget *chatWidget = static_cast<ChatWidget *>(tabs->widget(index));
 
-	disconnect(chatWidget->edit(), SIGNAL(keyPressed(QKeyEvent *, CustomInput *, bool &)),
-		this, SLOT(onChatKeyPressed(QKeyEvent *, CustomInput *, bool &)));
-	disconnect(chatWidget, SIGNAL(closed()), this, SLOT(closeChat()));
-	disconnect(chatWidget, SIGNAL(iconChanged()), this, SLOT(onIconChanged()));
-	disconnect(chatWidget, SIGNAL(titleChanged(ChatWidget * , const QString &)),
-			this, SLOT(onTitleChanged(ChatWidget *, const QString &)));
+	disconnect(chatWidget->edit(), 0, this, 0);
+	disconnect(chatWidget, 0, this, 0);
 
 	tabs->widget(index)->deleteLater();
 	tabs->removeTab(index);

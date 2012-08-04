@@ -46,17 +46,13 @@
 #include <QtGui/QTreeWidgetItem>
 #include <QtGui/QVBoxLayout>
 
-#ifndef Q_WS_WIN
-#include <dlfcn.h>
-#endif
-
 #include "configuration/configuration-file.h"
 #include "configuration/configuration-manager.h"
 #include "gui/hot-key.h"
 #include "gui/windows/message-dialog.h"
-#include "gui/windows/modules-window.h"
+#include "gui/windows/plugins-window.h"
 #include "icons/icons-manager.h"
-#include "misc/path-conversion.h"
+#include "misc/kadu-paths.h"
 #include "plugins/generic-plugin.h"
 #include "plugins/plugin-info.h"
 #include "plugins/plugin.h"
@@ -124,29 +120,11 @@ void PluginsManager::load()
 
 	StorableObject::load();
 
-	QDomElement itemsNode = storage()->point();
-	if (!itemsNode.isNull())
-	{
-		QVector<QDomElement> pluginElements = storage()->storage()->getNodes(itemsNode, QLatin1String("Plugin"));
-
-		foreach (const QDomElement &pluginElement, pluginElements)
-		{
-			QSharedPointer<StoragePoint> storagePoint(new StoragePoint(storage()->storage(), pluginElement));
-			QString name = storagePoint->point().attribute("name");
-			if (!name.isEmpty() && !Plugins.contains(name))
-			{
-				Plugin *plugin = new Plugin(name, this);
-				Plugins.insert(name, plugin);
-			}
-		}
-	}
-
 	foreach (const QString &pluginName, installedPlugins())
-		if (!Plugins.contains(pluginName))
-		{
-			Plugin *plugin = new Plugin(pluginName, this);
-			Plugins.insert(pluginName, plugin);
-		}
+	{
+		Q_ASSERT(!Plugins.contains(pluginName));
+		Plugins.insert(pluginName, new Plugin(pluginName, this));
+	}
 
 	if (!loadAttribute<bool>("imported_from_09", false))
 	{
@@ -193,11 +171,12 @@ void PluginsManager::importFrom09()
 	QStringList unloadedPlugins = unloaded_str.split(',', QString::SkipEmptyParts);
 
 	QStringList allPlugins = everLoaded + unloadedPlugins; // just in case...
+	QMap<QString, Plugin *> oldPlugins;
 	foreach (const QString &pluginName, allPlugins)
-		if (!Plugins.contains(pluginName))
+		if (!Plugins.contains(pluginName) && !oldPlugins.contains(pluginName))
 		{
 			Plugin *plugin = new Plugin(pluginName, this);
-			Plugins.insert(pluginName, plugin);
+			oldPlugins.insert(pluginName, plugin);
 		}
 
 	if (loadedPlugins.contains("encryption"))
@@ -213,7 +192,7 @@ void PluginsManager::importFrom09()
 			loadedPlugins.append("hints");
 	}
 
-	foreach (Plugin *plugin, Plugins)
+	foreach (Plugin *plugin, Plugins.values() + oldPlugins.values())
 		if (allPlugins.contains(plugin->name()))
 		{
 			if (loadedPlugins.contains(plugin->name()))
@@ -221,6 +200,12 @@ void PluginsManager::importFrom09()
 			else if (everLoaded.contains(plugin->name()))
 				plugin->setState(Plugin::PluginStateDisabled);
 		}
+
+	foreach (Plugin *plugin, oldPlugins)
+	{
+		plugin->ensureStored();
+		plugin->deleteLater();
+	}
 }
 
 /**
@@ -389,13 +374,12 @@ void PluginsManager::incDependenciesUsageCount(Plugin *plugin)
  */
 QStringList PluginsManager::installedPlugins() const
 {
-	QDir dir(dataPath("plugins"), "*.desc");
+	QDir dir(KaduPaths::instance()->dataPath() + QLatin1String("plugins"), "*.desc");
 	dir.setFilter(QDir::Files);
 
 	QStringList installed;
-	QStringList entries = dir.entryList();
-	foreach (const QString &entry, entries)
-		installed.append(entry.left(entry.length() - 5));
+	foreach (const QString &entry, dir.entryList())
+		installed.append(entry.left(entry.length() - qstrlen(".desc")));
 	return installed;
 }
 
@@ -533,7 +517,10 @@ bool PluginsManager::activatePlugin(Plugin *plugin, PluginActivationReason reaso
 		result = activateDependencies(plugin) && plugin->activate(reason);
 
 	if (result)
+	{
+		emit pluginAdded(plugin);
 		incDependenciesUsageCount(plugin);
+	}
 
 	return result;
 }
@@ -558,7 +545,7 @@ bool PluginsManager::deactivatePlugin(Plugin* plugin, PluginDeactivationReason r
 	if (plugin->usageCounter() > 0 && PluginDeactivationReasonExitingForce != reason)
 	{
 		MessageDialog::show(KaduIcon("dialog-error"), tr("Kadu"), tr("Plugin %1 cannot be deactivated because it is being used by the following plugins:%2").arg(plugin->name()).arg(activeDependentPluginNames(plugin->name())),
-				QMessageBox::Ok, ModulesWindow::instance());
+				QMessageBox::Ok, PluginsWindow::instance());
 		kdebugf2();
 		return false;
 	}
@@ -567,6 +554,7 @@ bool PluginsManager::deactivatePlugin(Plugin* plugin, PluginDeactivationReason r
 		releasePlugin(i);
 
 	plugin->deactivate(reason);
+	emit pluginRemoved(plugin);
 	return true;
 }
 

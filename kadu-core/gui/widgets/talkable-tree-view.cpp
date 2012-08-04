@@ -92,7 +92,7 @@ TalkableTreeView::TalkableTreeView(QWidget *parent) :
 
 TalkableTreeView::~TalkableTreeView()
 {
-	disconnect(MainConfigurationHolder::instance(), SIGNAL(setStatusModeChanged()), this, SLOT(updateContext()));
+	disconnect(MainConfigurationHolder::instance(), 0, this, 0);
 
 	delete Context;
 	Context = 0;
@@ -266,7 +266,7 @@ void TalkableTreeView::updateContext()
 
 	ModelIndexListConverter converter(selectedIndexes());
 
-	Context->blockChangedSignal();
+	Context->changeNotifier()->block();
 
 	Context->setRoles(converter.roles());
 	Context->setBuddies(converter.buddies());
@@ -274,7 +274,7 @@ void TalkableTreeView::updateContext()
 	Context->setChat(converter.chat());
 	Context->setStatusContainer(statusContainerForChat(converter.chat()));
 
-	Context->unblockChangedSignal();
+	Context->changeNotifier()->unblock();
 }
 
 ActionContext * TalkableTreeView::actionContext()

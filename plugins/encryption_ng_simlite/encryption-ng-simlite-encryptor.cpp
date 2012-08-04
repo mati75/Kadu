@@ -22,12 +22,13 @@
 
 #include "chat/chat-manager.h"
 #include "chat/chat.h"
+#include "chat/type/chat-type-contact.h"
 #include "misc/coding-conversion.h"
+
 #include "plugins/encryption_ng/keys/key.h"
 #include "plugins/encryption_ng/keys/keys-manager.h"
 #include "plugins/encryption_ng/notify/encryption-ng-notification.h"
 
-#include "encryption-ng-simlite-chat-data.h"
 #include "encryption-ng-simlite-common.h"
 #include "pkcs1_certificate.h"
 
@@ -45,10 +46,7 @@ EncryptioNgSimliteEncryptor::EncryptioNgSimliteEncryptor(const Contact &contact,
 
 EncryptioNgSimliteEncryptor::~EncryptioNgSimliteEncryptor()
 {
-	disconnect(KeysManager::instance(), SIGNAL(keyAdded(Key)), this, SLOT(keyUpdated(Key)));
-	disconnect(KeysManager::instance(), SIGNAL(keyUpdated(Key)), this, SLOT(keyUpdated(Key)));
-	disconnect(KeysManager::instance(), SIGNAL(keyRemoved(Key)), this, SLOT(keyUpdated(Key)));
-
+	disconnect(KeysManager::instance(), 0, this, 0);
 }
 
 void EncryptioNgSimliteEncryptor::keyUpdated(const Key &key)
@@ -140,13 +138,9 @@ QByteArray EncryptioNgSimliteEncryptor::encrypt(const QByteArray &data)
 	}
 
 	bool supportUtf8 = false;
-	Chat chat = ChatManager::instance()->findChat(ContactSet(MyContact), false);
+	Chat chat = ChatTypeContact::findChat(MyContact, ActionReturnNull);
 	if (chat)
-	{
-		EncryptionNgSimliteChatData *encryptionChatData = chat.data()->moduleStorableData<EncryptionNgSimliteChatData>("encryption-ng-simlite", this, false);
-		if (encryptionChatData)
-			supportUtf8 = encryptionChatData->supportUtf();
-	}
+		supportUtf8 = chat.property("encryption-ng-simlite:SupportUtf", false).toBool();
 
 	//create an initialisation vector (8 zeros)
 	QCA::InitializationVector iv(QByteArray(8, '\x00'));

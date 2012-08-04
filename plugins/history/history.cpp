@@ -35,7 +35,6 @@
 
 #include <QtCore/QList>
 #include <QtCore/QMutex>
-#include <QtCore/QScopedPointer>
 #include <QtGui/QGridLayout>
 #include <QtGui/QKeyEvent>
 #include <QtGui/QLabel>
@@ -46,7 +45,7 @@
 #include "accounts/account.h"
 #include "buddies/buddy-manager.h"
 #include "buddies/buddy.h"
-#include "chat/aggregate-chat-manager.h"
+#include "chat/buddy-chat-manager.h"
 #include "chat/chat-manager.h"
 #include "chat/chat.h"
 #include "configuration/configuration-file.h"
@@ -62,9 +61,7 @@
 #include "gui/windows/message-dialog.h"
 #include "message/message-manager.h"
 #include "message/message.h"
-#include "misc/path-conversion.h"
 #include "protocols/services/chat-service.h"
-
 #include "debug.h"
 
 #include "actions/show-history-action-description.h"
@@ -142,8 +139,7 @@ History::~History()
 {
 	kdebugf();
 
-	disconnect(MessageManager::instance(), SIGNAL(messageReceived(Message)),
-		this, SLOT(enqueueMessage(Message)));
+	disconnect(MessageManager::instance(), 0, this, 0);
 
 	stopSaveThread();
 	deleteActionDescriptions();
@@ -210,7 +206,7 @@ void History::chatCreated(ChatWidget *chatWidget)
 	if (!chatMessagesView)
 		return;
 
-	Chat chat = AggregateChatManager::instance()->aggregateChat(chatWidget->chat());
+	Chat chat = BuddyChatManager::instance()->buddyChat(chatWidget->chat());
 
 	HistoryQuery query;
 	query.setTalkable(chat ? chat : chatWidget->chat());
@@ -231,25 +227,52 @@ void History::accountRegistered(Account account)
 
 void History::accountUnregistered(Account account)
 {
+	disconnect(account, 0, this, 0);
+
 	if (!account.protocolHandler())
 		return;
 
-	disconnect(account, SIGNAL(buddyStatusChanged(Contact, Status)),
-			this, SLOT(contactStatusChanged(Contact, Status)));
-
 	ChatService *service = account.protocolHandler()->chatService();
 	if (service)
-		disconnect(service, SIGNAL(messageSent(const Message &)),
-				this, SLOT(enqueueMessage(const Message &)));
+		disconnect(service, 0, this, 0);
+}
+
+bool History::shouldSaveForBuddy(const Buddy &buddy)
+{
+	if (!buddy)
+		return false;
+
+	return buddy.property("history:StoreHistory", true).toBool();
+}
+
+bool History::shouldSaveForChat(const Chat &chat)
+{
+	if (!chat)
+		return false;
+
+	return chat.property("history:StoreHistory", true).toBool();
+}
+
+bool History::shouldEnqueueMessage(const Message &message)
+{
+	if (!SaveChats)
+		return false;
+
+	const int contactCount = message.messageChat().contacts().count();
+	const Contact &contact = message.messageChat().contacts().toContact();
+
+	if (!SaveChatsWithAnonymous && 1 == contactCount && contact.isAnonymous())
+		return false;
+
+	if (1 == contactCount)
+		return shouldSaveForBuddy(contact.ownerBuddy());
+	else
+		return shouldSaveForChat(message.messageChat());
 }
 
 void History::enqueueMessage(const Message &message)
 {
-	if (!CurrentStorage || !SaveChats)
-		return;
-
-	if (!SaveChatsWithAnonymous && message.messageChat().contacts().count() == 1
-		&& (*message.messageChat().contacts().constBegin()).isAnonymous())
+	if (!CurrentStorage || !shouldEnqueueMessage(message))
 		return;
 
 	UnsavedDataMutex.lock();
@@ -268,6 +291,9 @@ void History::contactStatusChanged(Contact contact, Status oldStatus)
 		return;
 
 	if (SaveOnlyStatusesWithDescription && status.description().isEmpty())
+		return;
+
+	if (!shouldSaveForBuddy(contact.ownerBuddy()))
 		return;
 
 	UnsavedDataMutex.lock();

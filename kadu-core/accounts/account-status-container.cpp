@@ -38,10 +38,13 @@ QString AccountStatusContainer::statusContainerName()
 	return Account->Id;
 }
 
-void AccountStatusContainer::setStatus(Status newStatus)
+void AccountStatusContainer::setStatus(Status newStatus, StatusChangeSource source)
 {
 	if (Account->ProtocolHandler)
-		Account->ProtocolHandler->setStatus(newStatus);
+		Account->ProtocolHandler->setStatus(newStatus, source);
+
+	if (newStatus.isDisconnected() && !Account->rememberPassword())
+		Account->setPassword("");
 }
 
 Status AccountStatusContainer::status()

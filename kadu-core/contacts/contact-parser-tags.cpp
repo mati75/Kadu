@@ -23,7 +23,7 @@
 #include "accounts/account.h"
 #include "avatars/avatar.h"
 #include "icons/kadu-icon.h"
-#include "misc/path-conversion.h"
+#include "misc/kadu-paths.h"
 #include "parser/parser.h"
 #include "protocols/protocol.h"
 #include "status/status-container-manager.h"
@@ -34,16 +34,19 @@
 static QString getAvatarPath(Talkable talkable)
 {
 	const Avatar &avatar = talkable.avatar();
-	return webKitPath(avatar.filePath());
+	if (talkable.avatar().pixmap().isNull())
+		return QString();
+	else
+		return KaduPaths::webKitPath(avatar.filePath());
 }
 
 static QString getStatusIconPath(Talkable talkable)
 {
 	if (talkable.isBlocked())
-		return KaduIcon("kadu_icons", "16x16", "blocked").webKitPath();
+		return KaduIcon("kadu_icons/blocked", "16x16").webKitPath();
 
 	if (talkable.isBlocking())
-		return KaduIcon("kadu_icons", "16x16", "blocking").webKitPath();
+		return KaduIcon("kadu_icons/blocking", "16x16").webKitPath();
 
 	const Status &status = talkable.currentStatus();
 

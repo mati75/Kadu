@@ -36,16 +36,20 @@ class KADUAPI AvatarShared : public QObject, public Shared
 	QDateTime LastUpdated;
 	QDateTime NextUpdate;
 	QString FilePath;
+	QString SmallFilePath;
 	QPixmap Pixmap;
 
 	QString AvatarsDir;
+
+	QString filePathToSmallFilePath(const QString &fileName);
+	void ensureSmallPixmapExists();
+	bool isPixmapSmall();
+	void storeSmallPixmap();
 
 protected:
 	virtual void load();
 	virtual void store();
 	virtual bool shouldStore();
-
-	virtual void emitUpdated();
 
 public:
 	static AvatarShared * loadStubFromStorage(const QSharedPointer<StoragePoint> &avatarStoragePoint);
@@ -61,6 +65,7 @@ public:
 	virtual void aboutToBeRemoved();
 
 	QString filePath();
+	QString smallFilePath();
 	void setFilePath(const QString &filePath);
 
 	bool isEmpty();

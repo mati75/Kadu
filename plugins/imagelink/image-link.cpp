@@ -74,7 +74,6 @@ void ImageLink::accountRegistered(Account account)
 		        this, SLOT(filterIncomingMessage(Chat, Contact, QString &, bool &)));
 }
 
-
 void ImageLink::accountUnregistered(Account account)
 {
 	Protocol *protocol = account.protocolHandler();
@@ -85,8 +84,7 @@ void ImageLink::accountUnregistered(Account account)
 	ChatService *chatService = protocol->chatService();
 
 	if (chatService)
-		disconnect(chatService, SIGNAL(filterIncomingMessage(Chat, Contact, QString &, time_t, bool &)),
-		           this, SLOT(filterIncomingMessage(Chat, Contact, QString &, time_t, bool &)));
+		disconnect(chatService, 0, this, 0);
 }
 
 void ImageLink::filterIncomingMessage(Chat chat, Contact sender, QString &message, bool &ignore)

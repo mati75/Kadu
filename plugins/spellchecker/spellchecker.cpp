@@ -29,7 +29,10 @@
 #define ASPELL_STATIC
 #include <aspell.h>
 #elif defined(HAVE_ENCHANT)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverloaded-virtual"
 #include <enchant++.h>
+ #pragma GCC diagnostic pop
 #endif
 
 #include <QtCore/QTextCodec>
@@ -89,17 +92,16 @@ SpellChecker::SpellChecker(QObject *parent) :
 	aspell_config_replace(SpellConfig, "sug-mode", "ultra");
 
 #if defined(Q_OS_WIN32)
-	aspell_config_replace(SpellConfig, "dict-dir", qPrintable(dataPath("aspell/dict")));
-	aspell_config_replace(SpellConfig, "data-dir", qPrintable(dataPath("aspell/data")));
-	aspell_config_replace(SpellConfig, "prefix", qPrintable(profilePath("dicts")));
+	aspell_config_replace(SpellConfig, "dict-dir", qPrintable(KaduPaths::instance()->dataPath() + QLatin1String("aspell")));
+	aspell_config_replace(SpellConfig, "data-dir", qPrintable(KaduPaths::instance()->dataPath() + QLatin1String("aspell")));
+	aspell_config_replace(SpellConfig, "prefix", qPrintable(KaduPaths::instance()->profilePath() + QLatin1String("dicts")));
 #endif // Q_OS_WIN32
 #endif // HAVE_ASPELL
 }
 
 SpellChecker::~SpellChecker()
 {
-	disconnect(ChatWidgetManager::instance(), SIGNAL(chatWidgetCreated(ChatWidget *)),
-			this, SLOT(chatCreated(ChatWidget *)));
+	disconnect(ChatWidgetManager::instance(), 0, this, 0);
 
 	Highlighter::removeAll();
 
@@ -184,7 +186,7 @@ bool SpellChecker::addCheckedLang(const QString &name)
 	if (!ok)
 	{
 		MessageDialog::show(KaduIcon("dialog-error"), tr("Kadu"), tr("Could not find dictionary for %1 language.").arg(name)
-				+ (qstrlen(errorMsg) > 0 ? tr("Details: %1.").arg(errorMsg) : QString()));
+				+ (qstrlen(errorMsg) > 0 ? QString(" %1: %2").arg(tr("Details"), errorMsg) : QString()));
 
 		// remove this checker from configuration
 		configurationWindowApplied();
@@ -351,7 +353,7 @@ bool SpellChecker::checkWord(const QString &word)
 
 	if (MyCheckers.isEmpty())
 		return true;
-	
+
 	if (!word.contains(QRegExp("\\D")))
 		isWordValid = true;
 	else

@@ -19,6 +19,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "model/roles.h"
 #include "status/description-manager.h"
 
 #include "description-model.h"
@@ -38,14 +39,7 @@ DescriptionModel::DescriptionModel(DescriptionManager *manager) :
 
 DescriptionModel::~DescriptionModel()
 {
-	disconnect(Manager, SIGNAL(descriptionAboutToBeAdded(const QString &)),
-			this, SLOT(descriptionAboutToBeAdded(const QString &)));
-	disconnect(Manager, SIGNAL(descriptionAdded(const QString &)),
-			this, SLOT(descriptionAdded(const QString &)));
-	disconnect(Manager, SIGNAL(descriptionAboutToBeRemoved(const QString &)),
-			this, SLOT(descriptionAboutToBeRemoved(const QString &)));
-	disconnect(Manager, SIGNAL(descriptionRemoved(const QString &)),
-			this, SLOT(descriptionRemoved(const QString &)));
+	disconnect(Manager, 0, this, 0);
 }
 
 int DescriptionModel::rowCount(const QModelIndex &parent) const
@@ -60,9 +54,6 @@ Qt::ItemFlags DescriptionModel::flags(const QModelIndex &index) const
 
 QVariant DescriptionModel::data(const QModelIndex &index, int role) const
 {
-	if (Qt::DisplayRole != role)
-		return QVariant();
-
 	if (!index.isValid())
 		return QVariant();
 
@@ -72,7 +63,20 @@ QVariant DescriptionModel::data(const QModelIndex &index, int role) const
 	if (index.row() < 0 || index.row() >= Manager->content().count())
 		return QVariant();
 
-	return Manager->content().at(index.row());
+	switch (role)
+	{
+		case Qt::DisplayRole:
+		{
+			QString text = Manager->content().at(index.row());
+			return text.replace('\n', " / ");
+		}
+
+		case DescriptionRole:
+			return Manager->content().at(index.row());
+
+		default:
+			return QVariant();
+	}
 }
 
 void DescriptionModel::descriptionAboutToBeAdded(const QString &description)

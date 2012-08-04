@@ -23,6 +23,8 @@
 #ifndef CHAT_ENGINE_ADIUM_H
 #define CHAT_ENGINE_ADIUM_H
 
+#include <QtCore/QWeakPointer>
+
 #include "../chat-style-engine.h"
 #include "adium-style.h"
 
@@ -82,8 +84,8 @@ class AdiumChatStyleEngine : public QObject, public ChatStyleEngine
 	friend class PreviewHack;
 
 	AdiumStyle CurrentStyle;
-	QMap<HtmlMessagesRenderer *, RefreshViewHack*> CurrentRefreshHacks;
-	PreviewHack *CurrentPreviewHack;
+	QMap<HtmlMessagesRenderer *, RefreshViewHack *> CurrentRefreshHacks;
+	QWeakPointer<PreviewHack> CurrentPreviewHack;
 
 	QString jsCode;
 
@@ -96,7 +98,6 @@ class AdiumChatStyleEngine : public QObject, public ChatStyleEngine
 
 private slots:
 	void refreshHackFinished(HtmlMessagesRenderer *);
-	void currentPreviewHackDestroyed();
 
 public:
 	explicit AdiumChatStyleEngine(QObject *parent = 0);

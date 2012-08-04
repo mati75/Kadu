@@ -28,7 +28,7 @@
 #include "search-bar.h"
 
 SearchBar::SearchBar(QWidget *parent) :
-		QToolBar(parent), SearchWidget(0)
+		QToolBar(parent), AutoVisibility(true)
 {
 	createGui();
 
@@ -66,20 +66,25 @@ void SearchBar::createGui()
 
 void SearchBar::keyPressEvent(QKeyEvent *event)
 {
+	if (Qt::Key_F == event->key() && Qt::ControlModifier == event->modifiers())
+	{
+		event->accept();
+		close();
+		return;
+	}
+
 	switch (event->key())
 	{
 		case Qt::Key_Escape:
 		{
 			event->accept();
-			emit clearSearch();
-			hide();
-			if (SearchWidget)
-				SearchWidget->setFocus();
+			close();
 			break;
 		}
 
 		case Qt::Key_Enter:
 		case Qt::Key_Return:
+		case Qt::Key_F3:
 		{
 			if (Qt::ShiftModifier == event->modifiers())
 				previous();
@@ -102,34 +107,35 @@ void SearchBar::showEvent(QShowEvent *event)
 void SearchBar::setSearchWidget(QWidget * const widget)
 {
 	if (SearchWidget)
-	{
-		SearchWidget->removeEventFilter(this);
-		disconnect(SearchWidget, SIGNAL(destroyed()), this, SLOT(searchWidgetDestroyed()));
-	}
+		SearchWidget.data()->removeEventFilter(this);
 
 	SearchWidget = widget;
 
 	if (SearchWidget)
-	{
-		SearchWidget->installEventFilter(this);
-		connect(SearchWidget, SIGNAL(destroyed()), this, SLOT(searchWidgetDestroyed()));
-	}
+		SearchWidget.data()->installEventFilter(this);
 }
 
-void SearchBar::searchWidgetDestroyed()
+void SearchBar::setAutoVisibility(bool autoVisibility)
 {
-	SearchWidget = 0;
+	if (AutoVisibility == autoVisibility)
+		return;
+
+	AutoVisibility = autoVisibility;
+	if (!AutoVisibility)
+		show();
 }
 
 bool SearchBar::eventFilter(QObject *object, QEvent *event)
 {
-	Q_ASSERT(object == SearchWidget);
+	Q_UNUSED(object)
+	Q_ASSERT(object == SearchWidget.data());
 
 	if (QEvent::KeyPress != event->type())
 		return false;
 
 	QKeyEvent *keyEvent = static_cast<QKeyEvent *>(event);
-	if (Qt::Key_F == keyEvent->key() && Qt::ControlModifier == keyEvent->modifiers())
+	if ((Qt::Key_F == keyEvent->key() && Qt::ControlModifier == keyEvent->modifiers()) ||
+	    (Qt::Key_F3 == keyEvent->key()))
 	{
 		show();
 		FindEdit->setFocus();
@@ -154,4 +160,16 @@ void SearchBar::next()
 {
 	if (!FindEdit->text().isEmpty())
 		emit searchNext(FindEdit->text());
+}
+
+void SearchBar::close()
+{
+	FindEdit->setText(QString());
+	emit clearSearch();
+
+	if (AutoVisibility)
+		hide();
+
+	if (SearchWidget)
+		SearchWidget.data()->setFocus();
 }

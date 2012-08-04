@@ -1,9 +1,12 @@
 [Module]
-Description=External application sound module
-Description[pl]=Modu³ obs³ugi d¼wiêku przez zewnêtrzn± aplikacjê
+DisplayName=Sound via external application
+DisplayName[pl]=DÅºwiÄ™k przez zewnÄ™trznÄ… aplikacjÄ™
+Description=Delegates sound support to external application
+Description[pl]=UmoÅ¼liwia obsÅ‚ugÄ™ dÅºwiÄ™ku poprzez zewnÄ™trznÄ… aplikacjÄ™
 Author=Kadu Team
 Dependencies=sound
 Provides=sound_driver
 Conflicts=sound_driver
 Version=core
 Plugin=true
+Category=Sound

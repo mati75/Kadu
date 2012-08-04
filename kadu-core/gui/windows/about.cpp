@@ -104,7 +104,7 @@ About::About(QWidget *parent) :
 	about_layout->addWidget(new QLabel(tr("Support:"), wb_about));
 	about_layout->addWidget(new KaduLink("http://www.kadu.im/forum/", wb_about));
 	about_layout->addSpacing(20);
-	about_layout->addWidget(new QLabel("(C) 2001-2011 Kadu Team", wb_about));
+	about_layout->addWidget(new QLabel("(C) 2001-2012 Kadu Team", wb_about));
 	about_layout->addWidget(new KaduLink("http://www.kadu.im/", wb_about));
 	about_layout->addStretch(100);
 
@@ -244,7 +244,7 @@ QString About::loadFile(const QString &name)
 {
 	kdebugf();
 
-	QFile file(dataPath("" + name));
+	QFile file(KaduPaths::instance()->dataPath() + name);
 	if (!file.open(QIODevice::ReadOnly))
 	{
 		kdebugm(KDEBUG_ERROR, "About::loadFile(%s) cannot open file\n", qPrintable(name));

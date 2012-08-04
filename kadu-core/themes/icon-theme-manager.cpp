@@ -27,9 +27,18 @@
 #include <QtCore/QFileInfo>
 #include <QtCore/QStringList>
 
-#include "misc/path-conversion.h"
+#include "misc/kadu-paths.h"
 
 #include "icon-theme-manager.h"
+
+QString IconThemeManager::defaultTheme()
+{
+#ifdef Q_WS_MAEMO_5
+	return QLatin1String("glass");
+#else
+	return QLatin1String("default");
+#endif
+}
 
 IconThemeManager::IconThemeManager(QObject *parent) :
 		ThemeManager(false, parent)
@@ -40,15 +49,21 @@ IconThemeManager::~IconThemeManager()
 {
 }
 
-QStringList IconThemeManager::defaultThemePaths()
+QString IconThemeManager::defaultThemeName() const
 {
-	QStringList result = getSubDirs(dataPath("themes/icons"));
-	result += getSubDirs(profilePath("icons"));
+	return defaultTheme();
+}
+
+QStringList IconThemeManager::defaultThemePaths() const
+{
+	// Allow local themes to override global ones.
+	QStringList result = getSubDirs(KaduPaths::instance()->profilePath() + QLatin1String("icons"));
+	result += getSubDirs(KaduPaths::instance()->dataPath() + QLatin1String("themes/icons"));
 
 	return result;
 }
 
-bool IconThemeManager::isValidThemePath(const QString &themePath)
+bool IconThemeManager::isValidThemePath(const QString &themePath) const
 {
 	QString kaduIconFileName = themePath + "/kadu_icons/64x64/kadu.png";
 	QFileInfo kaduIconFile(kaduIconFileName);

@@ -27,6 +27,7 @@
 #include "avatars/avatar-manager.h"
 #include "buddies/buddy.h"
 #include "contacts/contact.h"
+#include "misc/change-notifier.h"
 #include "misc/misc.h"
 
 #include "avatar-shared.h"
@@ -50,7 +51,9 @@ AvatarShared * AvatarShared::loadFromStorage(const QSharedPointer<StoragePoint> 
 AvatarShared::AvatarShared(const QUuid &uuid) :
 		Shared(uuid)
 {
-	AvatarsDir = profilePath("avatars/");
+	AvatarsDir = KaduPaths::instance()->profilePath() + QLatin1String("avatars/");
+
+	connect(changeNotifier(), SIGNAL(changed()), this, SIGNAL(updated()));
 }
 
 AvatarShared::~AvatarShared()
@@ -73,6 +76,18 @@ QString AvatarShared::filePath()
 	return FilePath.isEmpty() ? AvatarsDir + uuid().toString() : FilePath;
 }
 
+QString AvatarShared::smallFilePath()
+{
+	return SmallFilePath.isEmpty() ? filePath() : SmallFilePath;
+}
+
+void AvatarShared::ensureSmallPixmapExists()
+{
+	QFileInfo file(filePathToSmallFilePath(filePath()));
+	if (!file.exists())
+		storeSmallPixmap();
+}
+
 void AvatarShared::setFilePath(const QString &filePath)
 {
 	if (FilePath != filePath)
@@ -84,7 +99,9 @@ void AvatarShared::setFilePath(const QString &filePath)
 		QImageReader imageReader(filePath);
 		Pixmap = QPixmap::fromImageReader(&imageReader);
 
-		dataUpdated();
+		ensureSmallPixmapExists();
+
+		changeNotifier()->notify();
 		emit pixmapUpdated();
 	}
 }
@@ -101,11 +118,13 @@ void AvatarShared::load()
 
 	QImageReader imageReader(filePath());
 	Pixmap = QPixmap::fromImageReader(&imageReader);
+
+	ensureSmallPixmapExists();
 }
 
 void AvatarShared::store()
 {
-	// do nothing. This dummy method avoid calling of ensureLoade on storing configuration
+	// do nothing. This dummy method avoid calling of ensureLoaded on storing configuration
 }
 
 void AvatarShared::storeAvatar()
@@ -118,14 +137,51 @@ void AvatarShared::storeAvatar()
 	storeValue("LastUpdated", LastUpdated);
 	storeValue("NextUpdate", NextUpdate);
 
-	QDir avatarsDir(profilePath("avatars"));
+	QDir avatarsDir(KaduPaths::instance()->profilePath() + QLatin1String("avatars"));
 	if (!avatarsDir.exists())
-		avatarsDir.mkpath(profilePath("avatars"));
+		avatarsDir.mkpath(QLatin1String("."));
 
 	if (Pixmap.isNull())
 		QFile::remove(filePath());
 	else
 		Pixmap.save(filePath(), "PNG");
+
+	storeSmallPixmap();
+}
+
+QString AvatarShared::filePathToSmallFilePath(const QString &filePath)
+{
+	return filePath + "-small";
+}
+
+bool AvatarShared::isPixmapSmall()
+{
+	if (Pixmap.isNull())
+		return false;
+
+	return Pixmap.width() <= 128 && Pixmap.height() <= 128;
+}
+
+void AvatarShared::storeSmallPixmap()
+{
+	if (!isValidStorage())
+		return;
+
+	QDir avatarsDir(KaduPaths::instance()->profilePath() + QLatin1String("avatars"));
+	if (!avatarsDir.exists())
+		avatarsDir.mkpath(QLatin1String("."));
+
+	SmallFilePath = filePathToSmallFilePath(filePath());
+
+	if (Pixmap.isNull() || isPixmapSmall())
+	{
+		QFile::remove(SmallFilePath);
+		SmallFilePath.clear();
+		return;
+	}
+
+	QPixmap smallPixmap = Pixmap.scaled(128, 128, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+	smallPixmap.save(SmallFilePath, "PNG");
 }
 
 bool AvatarShared::shouldStore()
@@ -161,11 +217,6 @@ void AvatarShared::setPixmap(const QPixmap &pixmap)
 	ensureLoaded();
 
 	Pixmap = pixmap;
-	dataUpdated();
+	changeNotifier()->notify();
 	emit pixmapUpdated();
-}
-
-void AvatarShared::emitUpdated()
-{
-	emit updated();
 }

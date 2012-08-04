@@ -4,6 +4,7 @@
  * Copyright 2009, 2010 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2012 Piotr "ultr" Dąbrowski (ultr@ultr.pl)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -92,6 +93,15 @@ void IdentityShared::store()
 	storeValue("Name", Name);
 }
 
+bool IdentityShared::shouldStore()
+{
+	ensureLoaded();
+
+	return (UuidStorableObject::shouldStore()
+			&& !Name.isEmpty())
+			|| customProperties()->shouldStore();
+}
+
 void IdentityShared::aboutToBeRemoved()
 {
 	Accounts.clear();
@@ -119,7 +129,7 @@ void IdentityShared::removeAccount(const Account &account)
 
 	if (Accounts.removeAll(account) > 0)
 	{
-		disconnect(account.statusContainer(), SIGNAL(statusUpdated()), this, SIGNAL(statusUpdated()));
+		disconnect(account.statusContainer(), 0, this, 0);
 		emit statusUpdated();
 	}
 }
@@ -149,13 +159,13 @@ bool IdentityShared::isEmpty()
 	return Accounts.isEmpty();
 }
 
-void IdentityShared::setStatus(Status status)
+void IdentityShared::setStatus(Status status, StatusChangeSource source)
 {
 	ensureLoaded();
 
 	foreach (const Account &account, Accounts)
 		if (account)
-			account.statusContainer()->setStatus(status);
+			account.statusContainer()->setStatus(status, source);
 }
 
 Status IdentityShared::status()
@@ -177,6 +187,13 @@ KaduIcon IdentityShared::statusIcon()
 
 KaduIcon IdentityShared::statusIcon(const Status &status)
 {
+	QSet<QString> protocols;
+	foreach (const Account &account, Accounts)
+		protocols.insert(account.protocolName());
+
+	if (protocols.count() > 1)
+		return StatusTypeManager::instance()->statusIcon("common", status);
+
 	Account account = AccountManager::bestAccount(Accounts);
 	return account ? account.statusContainer()->statusIcon(status) : KaduIcon();
 }

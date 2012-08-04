@@ -123,15 +123,15 @@ It should be bigger.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Simple shot</source>
+        <source>Simple Shot</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>With chat window hidden</source>
+        <source>With Chat Window Hidden</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Window shot</source>
+        <source>Window Shot</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -149,7 +149,15 @@ It should be bigger.</source>
 <context>
     <name>ScreenshotTaker</name>
     <message>
-        <source>Drag icon to some window</source>
+        <source>Drag this icon onto the desired window</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Window Shot</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Cancel</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

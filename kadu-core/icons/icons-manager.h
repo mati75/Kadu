@@ -37,6 +37,7 @@
 #include "exports.h"
 
 class IconThemeManager;
+class KaduIcon;
 
 class KADUAPI IconsManager : public QObject, public ConfigurationAwareObject
 {
@@ -55,26 +56,25 @@ class KADUAPI IconsManager : public QObject, public ConfigurationAwareObject
 
 	QString localProtocolPath;
 
-	QIcon buildPngIcon(const QString &path);
-	QIcon buildSvgIcon(const QString &path);
+	QIcon buildPngIcon(const QString &themePath, const QString &path);
+	QIcon buildSvgIcon(const QString &themePath, const QString &path);
 
 protected:
 	virtual void configurationUpdated();
 
 public:
+	enum AllowEmpty
+	{
+		EmptyNotAllowed,
+		EmptyAllowed
+	};
+
 	static IconsManager * instance();
 
 	IconThemeManager * themeManager() const;
 
-	QString iconPathAllowEmpty(const QString &path, const QString &size, const QString &name) const;
-	QString iconPathAllowEmpty(const QString &path, const QString &size) const;
-	QString iconPathAllowEmpty(const QString &path) const;
-
-	QString iconPath(const QString &path, const QString &size, const QString &name) const;
-	QString iconPath(const QString &path, const QString &size) const;
-	QString iconPath(const QString &path) const;
-
-	const QIcon & iconByPath(const QString &path, bool allowEmpty = false);
+	QString iconPath(const KaduIcon &icon, AllowEmpty allowEmpty = EmptyNotAllowed) const;
+	QIcon iconByPath(const QString &themePath, const QString &path, AllowEmpty allowEmpty = EmptyNotAllowed);
 
 	QSize getIconsSize();
 

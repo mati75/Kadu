@@ -36,9 +36,13 @@
 #include "chat/chat.h"
 #include "configuration/configuration-aware-object.h"
 #include "icons/kadu-icon.h"
+#include "provider/simple-provider.h"
 #include "status/status.h"
 
 #include "exports.h"
+
+template<class T>
+class DefaultProvider;
 
 namespace QCA
 {
@@ -57,8 +61,12 @@ class KADUAPI Core : public QObject, private AccountsAwareObject, public Configu
 
 	static Core *Instance;
 
-	Buddy Myself;
+	QSharedPointer<SimpleProvider<QWidget *> > KaduWindowProvider;
+	QSharedPointer<DefaultProvider<QWidget *> > MainWindowProvider;
 	KaduWindow *Window;
+
+	Buddy Myself;
+
 	bool IsClosing;
 	bool ShowMainWindowOnStart; // TODO: 0.11.0, it is a hack
 
@@ -80,7 +88,7 @@ class KADUAPI Core : public QObject, private AccountsAwareObject, public Configu
 	void storeConfiguration();
 
 private slots:
-	void statusUpdated();
+	void updateIcon();
 
 	void deleteOldConfigurationFiles();
 	void kaduWindowDestroyed();
@@ -103,11 +111,14 @@ public:
 
 	void createGui();
 	void setShowMainWindowOnStart(bool show);
+	void setMainWindow(QWidget *window);
 	void showMainWindow();
 	KaduWindow * kaduWindow();
 
 	void initialized();
 	void setIcon(const KaduIcon &icon);
+
+	const QSharedPointer<DefaultProvider<QWidget *> > & mainWindowProvider() const;
 
 public slots:
 	void receivedSignal(const QString &signal);
@@ -119,13 +130,8 @@ signals:
 	void connected();
 	void disconnected();
 
-	// TODO: remove
-	void settingMainIconBlocked(bool &blocked);
-
 	//TODO:
 	void searchingForTrayPosition(QPoint &);
-
-	void mainIconChanged(const KaduIcon &);
 
 };
 

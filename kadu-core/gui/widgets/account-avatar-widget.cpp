@@ -38,7 +38,7 @@
 AccountAvatarWidget::AccountAvatarWidget(Account account, QWidget *parent) :
 		QWidget(parent), MyAccount(account), Service(0), WaitMovie(0)
 {
-	WaitMovie = new QMovie(KaduIcon("kadu_icons/16x16/please-wait.gif").fullPath(), QByteArray(), this);
+	WaitMovie = new QMovie(KaduIcon("kadu_icons/please-wait", "16x16").fullPath(), QByteArray(), this);
 
 	createGui();
 
@@ -58,6 +58,7 @@ AccountAvatarWidget::~AccountAvatarWidget()
 void AccountAvatarWidget::serviceDestroyed()
 {
 	Service = 0;
+	setEnabled(false);
 }
 
 void AccountAvatarWidget::createGui()
@@ -100,10 +101,7 @@ void AccountAvatarWidget::protocolRegistered(ProtocolFactory *protocolFactory)
 	Q_UNUSED(protocolFactory)
 
 	if (Service)
-	{
-		disconnect(Service, SIGNAL(destroyed()), this, SLOT(serviceDestroyed()));
-		disconnect(Service, SIGNAL(avatarUploaded(bool, QImage)), this, SLOT(avatarUploaded(bool, QImage)));
-	}
+		disconnect(Service, 0, this, 0);
 
 	Protocol *protocol = MyAccount.protocolHandler();
 	if (!protocol)

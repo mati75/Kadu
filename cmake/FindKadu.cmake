@@ -26,17 +26,15 @@ endif (KADU_INCLUDE_DIR)
 if (NOT KADU_DO_NOT_FIND)
 	find_path (KADU_INCLUDE_DIR
 		kadu-core/kadu-application.h
-		PATHS ${KADU_SEARCH_DIRS} ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/../..
-		PATH_SUFFIXES include/kadu sdk/include
+		PATHS ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/../.. ${KADU_SEARCH_DIRS}
+		PATH_SUFFIXES include/kadu sdk/include include
 	)
 
-	if (WIN32)
-		find_path (KADU_SDK_UTILS_DIR
-			plugver.bat
-			PATHS ${KADU_SEARCH_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}/plugins ${CMAKE_CURRENT_SOURCE_DIR}/..
-			PATH_SUFFIXES sdk
-		)
-	endif (WIN32)
+	find_path (KADU_CURRENT_SDK_DIR
+		translations/plugintsupdate.sh
+		PATHS ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/../.. ${KADU_SEARCH_DIRS}
+		PATH_SUFFIXES sdk
+	)
 
 	if (KADU_INCLUDE_DIR)
 		if (NOT KADU_FIND_QUIETLY)
@@ -51,9 +49,18 @@ if (NOT KADU_DO_NOT_FIND)
     endif (KADU_INCLUDE_DIR)
 endif (NOT KADU_DO_NOT_FIND)
 
-if (NOT CMAKE_BUILD_TYPE)
-	set (CMAKE_BUILD_TYPE Debug CACHE STRING "Choose the type of build, options are: Debug Release RelWithDebInfo." FORCE)
-endif (NOT CMAKE_BUILD_TYPE)
+option (ENABLE_DEVELOPER_BUILD "Turn on some features helpful during development process (has nothing to do with debugging symbols)" OFF)
+if (KADU_INSTALLS_SDK OR WIN32)
+	option (INSTALL_SDK "Install SDK (API headers, CMake modules, MSVC program libraries)" ON)
+endif (KADU_INSTALLS_SDK OR WIN32)
+
+if (NOT MSVC AND NOT XCODE_VERSION AND NOT CMAKE_BUILD_TYPE)
+	if (ENABLE_DEVELOPER_BUILD)
+		set (CMAKE_BUILD_TYPE Debug CACHE STRING "Choose the type of build, options are: Debug Release RelWithDebInfo." FORCE)
+	else (ENABLE_DEVELOPER_BUILD)
+		set (CMAKE_BUILD_TYPE RelWithDebInfo CACHE STRING "Choose the type of build, options are: Debug Release RelWithDebInfo." FORCE)
+	endif (ENABLE_DEVELOPER_BUILD)
+endif (NOT MSVC AND NOT XCODE_VERSION AND NOT CMAKE_BUILD_TYPE)
 
 # never use -O3 on GCC unless explicitly set by the user
 if (CMAKE_COMPILER_IS_GNUCXX)
@@ -61,18 +68,20 @@ if (CMAKE_COMPILER_IS_GNUCXX)
 	string (REPLACE "-O3" "-O2" CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}")
 endif (CMAKE_COMPILER_IS_GNUCXX)
 
-option (ENABLE_DEVELOPER_BUILD "Turn on some features helpful during development process (has nothing to do with debugging symbols)" OFF)
-if (KADU_INSTALLS_SDK OR WIN32)
-	option (INSTALL_SDK "Install SDK (API headers, CMake modules, MSVC program libraries)" ON)
-endif (KADU_INSTALLS_SDK OR WIN32)
-
 if (CMAKE_BUILD_TYPE STREQUAL "Debug" OR ENABLE_DEVELOPER_BUILD OR WIN32)
 	set (DEBUG_ENABLED 1)
 	add_definitions (-DDEBUG_ENABLED)
 endif (CMAKE_BUILD_TYPE STREQUAL "Debug" OR ENABLE_DEVELOPER_BUILD OR WIN32)
 
+if (MINGW AND CMAKE_BUILD_TYPE STREQUAL "Debug")
+	add_definitions (-D_DEBUG)
+endif (MINGW AND CMAKE_BUILD_TYPE STREQUAL "Debug")
+
+# Qt 4.7
 add_definitions (-DQT_USE_FAST_CONCATENATION)
 add_definitions (-DQT_USE_FAST_OPERATOR_PLUS)
+# Qt 4.8
+add_definitions (-DQT_USE_QSTRINGBUILDER)
 
 if (MINGW)
 	# override cmake bug/feature?
@@ -98,8 +107,8 @@ if (NOT MSVC)
 		set (CMAKE_CXX_FLAGS "-mtune=i686 -pipe ${CMAKE_CXX_FLAGS}")
 	endif (MINGW)
 else (NOT MSVC)
-	set (CMAKE_C_FLAGS "/MP ${CMAKE_C_FLAGS}")
-	set (CMAKE_CXX_FLAGS "/MP ${CMAKE_CXX_FLAGS}")
+	set (CMAKE_C_FLAGS "/MP /Zc:wchar_t- ${CMAKE_C_FLAGS}")
+	set (CMAKE_CXX_FLAGS "/MP /Zc:wchar_t- ${CMAKE_CXX_FLAGS}")
 	add_definitions (/D_CRT_SECURE_NO_WARNINGS=1)
 endif (NOT MSVC)
 
@@ -136,17 +145,9 @@ if (NOT KADU_PLUGINS_DIR STREQUAL "${KADU_DATADIR}/plugins")
 	message (WARNING "Custom KADU_PLUGINS_DIR directories are not supported by Kadu source code. If you really need it, please report a feature request to the Kadu project.")
 endif (NOT KADU_PLUGINS_DIR STREQUAL "${KADU_DATADIR}/plugins")
 
-if (WIN32 AND NOT KADU_SDK_DIR)
+if (NOT KADU_SDK_DIR)
 	set (KADU_SDK_DIR ${CMAKE_INSTALL_PREFIX}/sdk)
-endif (WIN32 AND NOT KADU_SDK_DIR)
-
-if (NOT KADU_PLUGINS_SDK_DIR)
-	if (WIN32)
-		set (KADU_PLUGINS_SDK_DIR ${KADU_SDK_DIR})
-	else (WIN32)
-		set (KADU_PLUGINS_SDK_DIR ${KADU_PLUGINS_DIR}/sdk)
-	endif (WIN32)
-endif (NOT KADU_PLUGINS_SDK_DIR)
+endif (NOT KADU_SDK_DIR)
 
 if (NOT KADU_INSTALL_INCLUDE_DIR)
 	if (WIN32)
@@ -242,14 +243,12 @@ macro (kadu_plugin)
 	endforeach (ARG)
 
 	if (WIN32)
-		include_directories (${CMAKE_SOURCE_DIR}/plugins)
+		include_directories ("${KADU_CURRENT_SDK_DIR}" "${KADU_CURRENT_SDK_DIR}/plugins")
+		link_directories ("${KADU_CURRENT_SDK_DIR}/lib")
 
-		# opisy .desc sa w iso-8859-2
-		set (CMAKE_RC_FLAGS "-c 28592 ${CMAKE_RC_FLAGS}")
-		# wygeneruj plik z wersja modulu
-		set (PLUGIN_SOURCES ${PLUGIN_SOURCES} ${PLUGIN_NAME}.rc)
+		list (APPEND PLUGIN_SOURCES ${PLUGIN_NAME}.rc)
 		add_custom_command (OUTPUT ${PLUGIN_NAME}.rc
-			COMMAND ${KADU_SDK_UTILS_DIR}/plugver.bat
+			COMMAND "${KADU_CURRENT_SDK_DIR}/plugins/pluginrcgen.bat"
 			ARGS ${CMAKE_CURRENT_SOURCE_DIR}/${PLUGIN_NAME}.desc ${CMAKE_CURRENT_BINARY_DIR}/${PLUGIN_NAME}.rc
 			WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
 			DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/${PLUGIN_NAME}.desc
@@ -322,7 +321,7 @@ macro (kadu_plugin)
 			add_custom_target (tsupdate)
 		endif (NOT TARGET tsupdate)
 		add_custom_target (${PLUGIN_NAME}-tsupdate
-			${CMAKE_INSTALL_PREFIX}/${KADU_PLUGINS_DIR}/sdk/plugintsupdate.sh "${CMAKE_CURRENT_SOURCE_DIR}"
+			"${KADU_CURRENT_SDK_DIR}/translations/plugintsupdate.sh" "${CMAKE_CURRENT_SOURCE_DIR}"
 		)
 		add_dependencies (tsupdate ${PLUGIN_NAME}-tsupdate)
 		cmake_policy(SET CMP0002 NEW)

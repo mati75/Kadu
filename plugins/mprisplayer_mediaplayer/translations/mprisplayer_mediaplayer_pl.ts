@@ -38,12 +38,12 @@
 <context>
     <name>MPRISPlayerDialog</name>
     <message>
-        <source>Edit Player</source>
-        <translation>Edytuj odtwarzacz</translation>
-    </message>
-    <message>
         <source>Add Player</source>
         <translation>Dodaj odtwarzacz</translation>
+    </message>
+    <message>
+        <source>Edit Player</source>
+        <translation>Edytuj odtwarzacz</translation>
     </message>
     <message>
         <source>Player:</source>

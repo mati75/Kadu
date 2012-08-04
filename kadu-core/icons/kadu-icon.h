@@ -21,11 +21,10 @@
 #define KADU_ICON_H
 
 #include <QtCore/QString>
-#include <QtGui/QIcon>
 
 #include "exports.h"
 
-class KaduIcon;
+class QIcon;
 
 /**
  * @addtogroup Icons
@@ -33,105 +32,141 @@ class KaduIcon;
  */
 
 /**
- * @class KaduIconThemeChangeWatcher
- * @author Bartosz 'beevvy' Brachaczek
- * @short QObject used to notify KaduIcon about IconsManager::themeChanged() signal.
- * 
- * This class is needed to notify KaduIcon about IconsManager::themeChanged() signal.
- * KaduIcon itself cannot be QObject (QObjects lack copy constructors, etc.).
- */
-class KADUAPI KaduIconThemeChangeWatcher : public QObject
-{
-	Q_OBJECT
-
-	const KaduIcon *Icon;
-
-private slots:
-	void themeChanged() const;
-
-public:
-	explicit KaduIconThemeChangeWatcher(const KaduIcon *icon);
-	virtual ~KaduIconThemeChangeWatcher();
-
-};
-
-/**
  * @class KaduIcon
  * @author Bartosz 'beevvy' Brachaczek
- * @short Object that stores Kadu-specific information about icon and allows for retrieving the icon itself.
- * 
- * Objects of this class store Kadu-specific information about icons and allow for retrieving the icons
- * themselves, as well as their paths and other IconsManager-related parameters (i.e., size and name)
- * and also full system paths and WebKit-friendly paths.
- * 
+ * @author Rafał 'Vogel' Malinowski
+ * @short Object that stores Kadu-specific information about icon and allows to retrieve the icon itself.
+ *
+ * Objects of this class store Kadu-specific information about icons and allow to retrieve the icons
+ * themselves, as well as their paths and sizes and also full system paths and WebKit-friendly paths.
+ * KaduIcon objects can be bound to specific theme or to current one (default behaviour). Use setThemePath()
+ * method to set specific theme.
+ *
  * Creating objects of this class is relatively cheap as no data is verified or additionally retrieved
- * in the constructor. When the user ask for QIcon object or full path to icon file for the first time,
- * that data is retrieved by this time and cached for future use.
- * 
- * KaduIcon is aware of IconsManager::themeChanged() signals and deletes any cache it might have when
- * a them change occurs.
- * 
+ * in the constructor.
+ *
  * It is recommended for use everywhere using icons provided by IconsManager. It saves direct calls to
  * IconsManager and helps managing icons, especially when one wants to store for example both the icon
  * path and QIcon object.
  */
 class KADUAPI KaduIcon
 {
+	QString ThemePath;
 	QString Path;
 	QString IconSize;
-	QString IconName;
-	mutable QString FullPath;
-	mutable QIcon Icon;
-
-	KaduIconThemeChangeWatcher Watcher;
 
 public:
-	KaduIcon();
-	explicit KaduIcon(const QString &path, const QString &size = QString(), const QString &name = QString());
-	KaduIcon(const KaduIcon &copyMe);
+	/**
+	 * @author Bartosz 'beevvy' Brachaczek
+	 * @short Creates null KaduIcon object.
+	 *
+	 * Creates null KaduIcon object. isNull() will return true.
+	 */
+	KaduIcon() {}
 
-	KaduIcon & operator = (const KaduIcon &copyMe);
+	/**
+	 * @author Bartosz 'beevvy' Brachaczek
+	 * @short Creates KaduIcon object.
+	 * @param path path to this icon
+	 * @param size requested size as string formatted as "WIDTHxHEIGHT" or "svg"
+	 *
+	 * Creates KaduIcon object from given path and optionally size and name.
+	 */
+	explicit KaduIcon(const QString &path, const QString &size = QString()) : Path(path), IconSize(size) {}
 
-	bool isNull() const;
+	/**
+	 * @author Bartosz 'beevvy' Brachaczek
+	 * @short Returns true if this object is null.
+	 * @return true if this object is null, false otherwise
+	 *
+	 * Returns true if this object is null. Every object with empty path() is considered null.
+	 */
+	bool isNull() const { return path().isEmpty(); }
 
-	void clearCache() const;
+	/**
+	 * @author Rafał 'Vogel' Malinowski
+	 * @short Return theme path of this icon.
+	 * @return theme path of this icon
+	 *
+	 * If this method returns empty string, then current theme path should be used.
+	 */
+	const QString & themePath() const { return ThemePath; }
+
+	/**
+	 * @author Rafał 'Vogel' Malinowski
+	 * @short Set theme path of this icon.
+	 * @param themePath new theme path of this icon
+	 *
+	 * Empty value of themePath means that current theme path should be used for this icon.
+	 */
+	void setThemePath(const QString &themePath) { ThemePath = themePath; }
 
 	/**
 	 * @author Bartosz 'beevvy' Brachaczek
 	 * @short Returns path to this icon.
 	 * @return path to this icon
-	 * 
-	 * Returns path to this icon. Conforms to the meaning of first paramater
-	 * of IconsManager::iconPath() method.
+	 *
+	 * Returns path to this icon.
 	 */
 	const QString & path() const { return Path; }
-	void setPath(const QString &path);
+
+	/**
+	 * @author Bartosz 'beevvy' Brachaczek
+	 * @short Sets path to this icon and resets all other data.
+	 * @param path path to this icon
+	 *
+	 * Sets path to this icon and resets its size.
+	 *
+	 * @note It resets size and name because new path may contain them.
+	 * @todo Resetting size and name could be avoided if one fixed IconsManager::iconPath() method. (Isn't IconsManager fixed already?)
+	 */
+	void setPath(const QString &path) { Path = path; IconSize.clear(); }
 
 	/**
 	 * @author Bartosz 'beevvy' Brachaczek
 	 * @short Returns requested size of file pointed by fullPath() and webKitPath(), if set.
 	 * @return size as string formatted like "WIDTHxHEIGHT"
-	 * 
+	 *
 	 * Returns requested size of file pointed by fullPath() and webKitPath(), if set.
-	 * Conforms to the meaning of second paramater of IconsManager::iconPath() method.
 	 */
 	const QString & size() const { return IconSize; }
-	void setSize(const QString &size);
 
 	/**
 	 * @author Bartosz 'beevvy' Brachaczek
-	 * @short Returns name of this icon, if it was set separately from path.
-	 * @return name of this icon
-	 * 
-	 * Returns name of this icon, if it was set separately from path. Conforms to the meaning
-	 * of third paramater of IconsManager::iconPath() method.
+	 * @short Sets the requested size of icon file.
+	 * @param size requested size as string formatted as "WIDTHxHEIGHT" or "svg"
+	 *
+	 * Sets the requested size of icon file returned by fullPath() and webKitPath() methods.
 	 */
-	const QString & name() const { return IconName; }
-	void setName(const QString &name);
+	void setSize(const QString &size) { IconSize = size; }
 
-	const QString & fullPath() const;
+	/**
+	* @author Bartosz 'beevvy' Brachaczek
+	* @short Returns full path to the icon file.
+	* @return full path to file
+	*
+	* Returns full path to the icon file.
+	*/
+	QString fullPath() const;
+
+	/**
+	 * @author Bartosz 'beevvy' Brachaczek
+	 * @short Returns WebKit-friendly representation of full path to the icon file.
+	 * @return WebKit-friendly representation of path
+	 *
+	 * Return WebKit-friendly representation of full path to the icon file. Makes use
+	 * of KaduPaths::webKitPath() method.
+	 */
 	QString webKitPath() const;
-	const QIcon & icon() const;
+
+	/**
+	 * @author Bartosz 'beevvy' Brachaczek
+	 * @short Returns QIcon object representing this icon.
+	 * @return QIcon object of this icon
+	 *
+	 * Returns QIcon object representing this icon.
+	 */
+	QIcon icon() const;
 
 };
 

@@ -1,9 +1,12 @@
 [Module]
-Description=GaduGadu protocol support
-Description[pl]=Obs≥uga protoko≥u GaduGadu
+DisplayName=Gadu-Gadu network support
+DisplayName[pl]=Obs≈Çuga sieci Gadu-Gadu
+Description=GaduGadu network support
+Description[pl]=Dostarcza wsparcie dla sieci GaduGadu
 Author=Kadu Team
 LoadByDefault=true
 Version=core
 Dependencies=
 Type=protocol
+Category=Protocols
 Plugin=true

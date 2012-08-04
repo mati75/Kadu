@@ -37,7 +37,7 @@
     </message>
     <message>
         <source>Play a sound</source>
-        <translation type="unfinished"></translation>
+        <translation>Přehrát zvuk</translation>
     </message>
 </context>
 <context>

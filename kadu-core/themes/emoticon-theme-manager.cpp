@@ -28,9 +28,18 @@
 #include <QtCore/QFileInfo>
 #include <QtCore/QStringList>
 
-#include "misc/path-conversion.h"
+#include "misc/kadu-paths.h"
 
 #include "emoticon-theme-manager.h"
+
+QString EmoticonThemeManager::defaultTheme()
+{
+#ifdef Q_WS_X11
+	return QLatin1String("penguins");
+#else
+	return QLatin1String("tango");
+#endif
+}
 
 bool EmoticonThemeManager::containsEmotsTxt(const QString &dir)
 {
@@ -49,15 +58,21 @@ EmoticonThemeManager::~EmoticonThemeManager()
 {
 }
 
-QStringList EmoticonThemeManager::defaultThemePaths()
+QString EmoticonThemeManager::defaultThemeName() const
 {
-	QStringList result = getSubDirs(dataPath("themes/emoticons"));
-	result += getSubDirs(profilePath("icons"));
+	return defaultTheme();
+}
+
+QStringList EmoticonThemeManager::defaultThemePaths() const
+{
+	// Allow local themes to override global ones.
+	QStringList result = getSubDirs(KaduPaths::instance()->profilePath() + QLatin1String("icons"));
+	result += getSubDirs(KaduPaths::instance()->dataPath() + QLatin1String("themes/emoticons"));
 
 	return result;
 }
 
-bool EmoticonThemeManager::isValidThemePath(const QString &themePath)
+bool EmoticonThemeManager::isValidThemePath(const QString &themePath) const
 {
 	if (containsEmotsTxt(themePath))
 		return true;

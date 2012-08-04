@@ -19,7 +19,7 @@
 
 #include "accounts/account.h"
 #include "buddies/buddy-manager.h"
-#include "chat/chat-details-aggregate.h"
+#include "chat/chat-details-buddy.h"
 #include "configuration/xml-configuration-file.h"
 #include "gui/widgets/chat-widget-manager.h"
 #include "gui/widgets/chat-widget.h"
@@ -153,10 +153,7 @@ void MessageManager::accountUnregistered(Account account)
 	if (!chatService)
 		return;
 
-	disconnect(chatService, SIGNAL(messageReceived(const Message &)),
-	        this, SLOT(messageReceivedSlot(const Message &)));
-	disconnect(chatService, SIGNAL(messageSent(const Message &)),
-	        this, SIGNAL(messageSent(const Message &)));
+	disconnect(chatService, 0, this, 0);
 }
 
 void MessageManager::messageReceivedSlot(const Message &message)
@@ -204,10 +201,10 @@ QList<Message> MessageManager::chatUnreadMessages(const Chat &chat) const
 	QSet<Chat> chats;
 
 	ChatDetails *details = chat.details();
-	ChatDetailsAggregate *aggregateDetails = qobject_cast<ChatDetailsAggregate *>(details);
+	ChatDetailsBuddy *chatDetailsBuddy = qobject_cast<ChatDetailsBuddy *>(details);
 
-	if (aggregateDetails)
-		foreach (const Chat &ch, aggregateDetails->chats())
+	if (chatDetailsBuddy)
+		foreach (const Chat &ch, chatDetailsBuddy->chats())
 			chats.insert(ch);
 	else
 		chats.insert(chat);

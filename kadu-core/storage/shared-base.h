@@ -28,6 +28,7 @@
 #include <QtCore/QUuid>
 #include <QtCore/QVariant>
 
+#include "storage/custom-properties.h"
 #include "storage/storable-object.h"
 
 /**
@@ -290,6 +291,8 @@ private:
 	KaduSharedBase_PropertyBoolReadDef(class_name, capitalized_name, default) \
 	KaduSharedBase_PropertyBoolWriteDef(class_name, capitalized_name)
 
+class ChangeNotifier;
+
 /**
  * @class SharedBase
  * @author Rafal 'Vogel' Malinowski
@@ -448,30 +451,6 @@ public:
 
 	/**
 	 * @author Rafal 'Vogel' Malinowski
-	 * @short Delegates blockUpdatedSignal method to Shared object.
-	 *
-	 * @see Shared::blockUpdatedSignal
-	 */
-	void blockUpdatedSignal()
-	{
-		if (!isNull())
-			Data->blockUpdatedSignal();
-	}
-
-	/**
-	 * @author Rafal 'Vogel' Malinowski
-	 * @short Delegates unblockUpdatedSignal method to Shared object.
-	 *
-	 * @see Shared::unblockUpdatedSignal
-	 */
-	void unblockUpdatedSignal()
-	{
-		if (!isNull())
-			Data->unblockUpdatedSignal();
-	}
-
-	/**
-	 * @author Rafal 'Vogel' Malinowski
 	 * @short Delegates ensureStored method to Shared object.
 	 *
 	 * @see Shared::ensureStored
@@ -507,6 +486,76 @@ public:
 	{
 		if (!isNull())
 			Data->removeFromStorage();
+	}
+
+	/**
+	 * @author Rafal 'Vogel' Malinowski
+	 * @short Return true if given property is available.
+	 * @param name name of property
+	 * @return true if given property is available
+	 */
+	bool hasProperty(const QString &name) const
+	{
+		if (!isNull())
+			return Data->customProperties()->hasProperty(name);
+		else
+			return false;
+	}
+
+	/**
+	 * @author Rafal 'Vogel' Malinowski
+	 * @short Add/update property value.
+	 * @param name name of property
+	 * @param value value of property
+	 * @param storability storability parameter of property
+	 *
+	 * If storability is set to @link CustomProperties::Storable @endlink then added property will
+	 * be stored to persistent storage. If not, it will be removed from it.
+	 */
+	void addProperty(const QString &name, const QVariant &value, CustomProperties::Storability storability) const
+	{
+		if (!isNull())
+			Data->customProperties()->addProperty(name, value, storability);
+	}
+
+	/**
+	 * @author Rafal 'Vogel' Malinowski
+	 * @short Remove given property from this object and from persistent storage.
+	 * @param name name of property
+	 */
+	void removeProperty(const QString &name) const
+	{
+		if (!isNull())
+			Data->customProperties()->removeProperty(name);
+	}
+
+	/**
+	 * @author Rafal 'Vogel' Malinowski
+	 * @short Read value of property.
+	 * @param name name of property
+	 * @param defaultValue value returned when property is not available
+	 */
+	QVariant property(const QString &name, const QVariant &defaultValue) const
+	{
+		if (!isNull())
+			return Data->customProperties()->property(name, defaultValue);
+		else
+			return defaultValue;
+	}
+
+	/**
+	 * @author Rafal 'Vogel' Malinowski
+	 * @short Return ChangeNotifier instance for this object.
+	 * @return ChangeNotifier instance for this object
+	 *
+	 * This method can return null value for null object.
+	 */
+	ChangeNotifier * changeNotifier() const
+	{
+		if (!isNull())
+			return Data->changeNotifier();
+		else
+			return 0;
 	}
 
 	KaduSharedBase_Property(QUuid, uuid, Uuid)

@@ -61,11 +61,11 @@ EraGatewaySmsSender.prototype = {
 		this.callbackObject = callbackObject;
 
 		if (!network) {
-			this.failure("Network not available");
+			this.failure(translator.tr("Network not available"));
 			return;
 		}
 
-		var gateway = this.callbackObject.readFromConfiguration("SMS", "EraGateway", "Sponsored")
+		var gateway = this.callbackObject.readFromConfiguration("SMS", "EraGateway", "Sponsored");
 
 		var postUrl = "http://www.eraomnix.pl/msg/api/do/tinker/";
 
@@ -80,8 +80,7 @@ EraGatewaySmsSender.prototype = {
 			postUrl += "sponsored";
 			postData +=	"&number=" + recipient;
 		}
-		else if (gateway == "OmnixMultimedia")
-		{
+		else if (gateway == "OmnixMultimedia") {
 			postUrl += "omnix"
 			postData +=	"&numbers=" + recipient;
 		}
@@ -91,30 +90,31 @@ EraGatewaySmsSender.prototype = {
 		}
 
 		network.setUtf8(false);
+		network.setHeader("Content-Type", "application/x-www-form-urlencoded");
 		this.reply = network.post(postUrl, postData);
 		this.reply.finished.connect(this, this.smsSent);
 	},
 
 	errorToString: function(errorNumber) {
 		switch (errorNumber) {
-			case "0": return "No error";
-			case "1": return "System failure";
-			case "2": return "Unauthorised user";
-			case "3": return "Access forbidden";
-			case "5": return "Syntax error";
-			case "7": return "Limit of the sms run-down";
-			case "8": return "Wrong receiver address";
-			case "9": return "Message too long";
-			case "10": return "You don't have enough tokens";
+			case "0": return translator.tr("No error");
+			case "1": return translator.tr("System failure");
+			case "2": return translator.tr("Unauthorised user");
+			case "3": return translator.tr("Access forbidden");
+			case "5": return translator.tr("Syntax error");
+			case "7": return translator.tr("Limit of the sms run-down");
+			case "8": return translator.tr("Wrong receiver address");
+			case "9": return translator.tr("Message too long");
+			case "10": return translator.tr("You don't have enough tokens");
 		}
 
-		return "Unknown error";
+		return translator.tr("Unknown error");
 	},
 
 	smsSent: function() {
 		var content = this.reply.redirect();
 		if (content.indexOf("error?") >= 0) {
-			var message = "An error occured";
+			var message = translator.tr("An error occured");
 			if (content.match(/error\?X-ERA-error=([0-9]+)/)) {
 				message += ": " + this.errorToString(RegExp.$1);
 			}
@@ -122,7 +122,7 @@ EraGatewaySmsSender.prototype = {
 		} else if (content.indexOf("ok?") >= 0)
 			this.finished();
 		else
-			this.failure("Provider gateway results page looks strange. SMS was probably NOT sent.");
+			this.failure(translator.tr("Provider gateway results page looks strange. SMS was probably NOT sent."));
 	}
 };
 

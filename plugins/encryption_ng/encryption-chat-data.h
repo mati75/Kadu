@@ -25,63 +25,40 @@
 #define ENCRYPTION_CHAT_DATA_H
 
 #include <QtCore/QObject>
+#include <QtCore/QWeakPointer>
 #include <QtGui/QAction>
 
 #include "chat/chat.h"
-#include "storage/module-data.h"
-
-#undef Property
-#define Property(type, name, capitalized_name) \
-	type name() { ensureLoaded(); return capitalized_name; } \
-	void set##capitalized_name(type name) { ensureLoaded(); capitalized_name = name; }
 
 class Decryptor;
 class Encryptor;
 
-class EncryptionChatData : public ModuleData
+class EncryptionChatData : public QObject
 {
 	Q_OBJECT
 
-public:
-	enum EncryptState {
-		EncryptStateDefault,
-		EncryptStateEnabled,
-		EncryptStateDisabled,
-	};
-
 private:
-	Encryptor *ChatEncryptor;
-	Decryptor *ChatDecryptor;
+	Chat MyChat;
+	QWeakPointer<Encryptor> ChatEncryptor;
+	QWeakPointer<Decryptor> ChatDecryptor;
 
-	EncryptState Encrypt;
+	bool Encrypt;
 
-	EncryptState importEncrypt();
-
-private slots:
-	void encryptorDestroyed();
-	void decryptorDestroyed();
-
-protected:
-	virtual void load();
-	virtual void store();
-	virtual bool shouldStore();
+	void importEncrypt();
 
 public:
-	explicit EncryptionChatData(const QString &moduleName, StorableObject *parent, QObject *qobjectParent);
+	explicit EncryptionChatData(const Chat &chat, QObject *parent);
 	virtual ~EncryptionChatData();
 
-	virtual QString name() const;
-
-	Property(EncryptState, encrypt, Encrypt)
+	void setEncrypt(bool encrypt);
+	bool encrypt() const { return Encrypt; }
 
 	void setEncryptor(Encryptor *encryptor);
-	Encryptor * encryptor();
+	Encryptor * encryptor() const { return ChatEncryptor.data(); }
 
 	void setDecryptor(Decryptor *decryptor);
-	Decryptor * decryptor();
+	Decryptor * decryptor() const { return ChatDecryptor.data(); }
 
 };
-
-#undef Property
 
 #endif // ENCRYPTION_CHAT_DATA_H

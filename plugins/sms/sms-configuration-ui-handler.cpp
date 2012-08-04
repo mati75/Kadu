@@ -50,10 +50,9 @@
 #include "icons/icons-manager.h"
 #include "debug.h"
 
-#include "misc/path-conversion.h"
+#include "misc/kadu-paths.h"
 
 #include "gui/windows/sms-dialog.h"
-#include "gui/windows/sms-image-dialog.h"
 
 #include "sms-actions.h"
 
@@ -66,7 +65,7 @@ void SmsConfigurationUiHandler::registerConfigurationUi()
 	if (!Instance)
 	{
 		Instance = new SmsConfigurationUiHandler();
-		MainConfigurationWindow::registerUiFile(dataPath("plugins/configuration/sms.ui"));
+		MainConfigurationWindow::registerUiFile(KaduPaths::instance()->dataPath() + QLatin1String("plugins/configuration/sms.ui"));
 		MainConfigurationWindow::registerUiHandler(Instance);
 	}
 }
@@ -76,7 +75,7 @@ void SmsConfigurationUiHandler::unregisterConfigurationUi()
 	if (Instance)
 	{
 		MainConfigurationWindow::unregisterUiHandler(Instance);
-		MainConfigurationWindow::unregisterUiFile(dataPath("plugins/configuration/sms.ui"));
+		MainConfigurationWindow::unregisterUiFile(KaduPaths::instance()->dataPath() + QLatin1String("plugins/configuration/sms.ui"));
 		delete Instance;
 		Instance = 0;
 	}
@@ -147,12 +146,9 @@ void SmsConfigurationUiHandler::mainConfigurationWindowCreated(MainConfiguration
 	EraSponsoredPassword = static_cast<ConfigLineEdit *>(mainConfigurationWindow->widget()->widgetById("default_sms/sponsoredPassword"));
 	EraOmnixUser = static_cast<ConfigLineEdit *>(mainConfigurationWindow->widget()->widgetById("default_sms/multimediaUser"));
 	EraOmnixPassword = static_cast<ConfigLineEdit *>(mainConfigurationWindow->widget()->widgetById("default_sms/multimediaPassword"));
-	OrangeMultiboxUser = static_cast<ConfigLineEdit *>(mainConfigurationWindow->widget()->widgetById("default_sms/orangeMultiboxUser"));
-	OrangeMultiboxPassword = static_cast<ConfigLineEdit *>(mainConfigurationWindow->widget()->widgetById("default_sms/orangeMultiboxPassword"));
 
 	EraSponsoredPassword->setEchoMode(QLineEdit::Password);
 	EraOmnixPassword->setEchoMode(QLineEdit::Password);
-	OrangeMultiboxPassword->setEchoMode(QLineEdit::Password);
 }
 
 void SmsConfigurationUiHandler::createDefaultConfiguration()

@@ -24,6 +24,7 @@
 #include "accounts/account.h"
 #include "accounts/accounts-aware-object.h"
 #include "buddies/buddy-manager.h"
+#include "chat/chat-manager.h"
 #include "configuration/configuration-file.h"
 #include "configuration/configuration-manager.h"
 #include "configuration/xml-configuration-file.h"
@@ -36,6 +37,7 @@
 #include "protocols/protocol-factory.h"
 #include "protocols/protocol.h"
 #include "protocols/protocols-manager.h"
+#include "protocols/services/roster-service.h"
 #include "debug.h"
 
 #include "account-manager.h"
@@ -118,10 +120,7 @@ void AccountManager::itemAboutToBeUnregisterd(Account item)
 	QMutexLocker locker(&mutex());
 
 	AccountsAwareObject::notifyAccountUnregistered(item);
-	disconnect(item.protocolHandler(), SIGNAL(connectionError(Account, const QString &, const QString &)),
-			this, SLOT(connectionError(Account, const QString &, const QString &)));
-	disconnect(item.protocolHandler(), SIGNAL(invalidPassword(Account)),
-			this, SLOT(providePassword(Account)));
+	disconnect(item.protocolHandler(), 0, this, 0);
 
 	emit accountAboutToBeUnregistered(item);
 }
@@ -130,7 +129,7 @@ void AccountManager::itemUnregistered(Account item)
 {
 	QMutexLocker locker(&mutex());
 
-	disconnect(item, SIGNAL(updated()), this, SLOT(accountDataUpdated()));
+	disconnect(item, 0, this, 0);
 	emit accountUnregistered(item);
 }
 
@@ -217,11 +216,23 @@ void AccountManager::connectionError(Account account, const QString &server, con
 
 void AccountManager::removeAccountAndBuddies(Account account)
 {
+	StatusContainer *statusContainer = account.statusContainer();
+	if (statusContainer)
+		statusContainer->setStatus(Status(), SourceUser); // user removed account
+
+	Protocol *protocolHandler = account.protocolHandler();
+	if (protocolHandler)
+		delete protocolHandler->rosterService();
+
+	removeItem(account);
+
 	QVector<Contact> contacts = ContactManager::instance()->contacts(account);
 	foreach (const Contact &contact, contacts)
 		BuddyManager::instance()->clearOwnerAndRemoveEmptyBuddy(contact);
 
-	removeItem(account);
+	QVector<Chat> chats = ChatManager::instance()->chats(account);
+	foreach (const Chat &chat, chats)
+		chat.setDisplay(QString());
 }
 
 void AccountManager::passwordProvided(const QVariant& data, const QString& password, bool permanent)
