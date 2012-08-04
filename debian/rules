@@ -48,7 +48,6 @@ install-indep:
 	# Remove all thumbnails files
 	find $(INSTALL_DIR) -name Thumbs.db -delete
 	rm -f $(INSTALL_DIR)/usr/share/kadu/themes/sounds/bns/sound.conf~
-	chmod 755 $(INSTALL_DIR)/usr/share/kadu/themes/icons/oxygen/src/rebuild-statuses.sh
 	# Move FindKadu.cmake to proper directory
 	mkdir -p $(INSTALL_DIR)/usr/share/cmake-2.8/Modules/
 	cp $(INSTALL_DIR)/usr/share/cmake/Modules/FindKadu.cmake $(INSTALL_DIR)/usr/share/cmake-2.8/Modules/
