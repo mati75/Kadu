@@ -3,4 +3,4 @@ Description=Mathematical TeX formulas for chat windows
 Description[pl]=Matematyczne formu³y TeX w oknach czat
 Author=Patryk Cisek <patryk@debian.org>
 Plugin=true
-Version=0.12.0-1
+Version=0.12.0-2

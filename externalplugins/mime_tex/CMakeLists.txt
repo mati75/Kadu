@@ -4,6 +4,7 @@ project (mime_tex)
 cmake_minimum_required (VERSION 2.8)
 set (QT_MIN_VERSION "4.7.0")
 set (CMAKE_MIN_VERSION "2.8.0")
+set (CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
 set (KADU_FIND_REQUIRED true)
 include (FindKadu)

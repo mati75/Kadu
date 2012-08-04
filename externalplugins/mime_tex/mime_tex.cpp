@@ -23,7 +23,7 @@
 #include "kadu-core/gui/widgets/chat-widget-manager.h"
 #include "kadu-core/gui/widgets/chat-widget.h"
 #include "kadu-core/gui/windows/main-window.h"
-#include "kadu-core/misc/misc.h"
+#include "kadu-core/misc/kadu-paths.h"
 #include "kadu-core/debug.h"
 
 MimeTeX::MimeTeX * MimeTeX::MimeTeX::Instance = 0;
@@ -58,7 +58,9 @@ MimeTeX::MimeTeX::MimeTeX(QObject *parent)
 			"TeXformulaAction",
 			this,
 			SLOT(TeXActionActivated(QAction *, bool)),
-			KaduIcon(dataPath("plugins/data/mime_tex/mime_tex_icons/tex_icon.png")),
+			KaduIcon(KaduPaths::instance()->dataPath() +
+                            QString(
+                                "plugins/data/mime_tex/mime_tex_icons/tex_icon.png")),
 			tr("Insert TeX formula"));
 	
 	kdebugf2();
@@ -88,9 +90,9 @@ void MimeTeX::MimeTeX::TeXActionActivated(QAction *action, bool)
 {
 	kdebugf();
 
-	ContactSet contacts = qobject_cast<Action *>(action)->context()->contacts();
+	Chat chat = qobject_cast<Action *>(action)->context()->chat();
 
-	ChatWidget *chatWidget = ChatWidgetManager::instance()->byChat(ChatManager::instance()->findChat(contacts), false);
+	ChatWidget *chatWidget = ChatWidgetManager::instance()->byChat(chat, false);
 	if (!chatWidget)
 		return;
 	TeXFormulaDialog *formulaDialog = new TeXFormulaDialog(chatWidget);
