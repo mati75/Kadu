@@ -1,3 +1,7 @@
+2012-02-15  Patryk Cisek <patryk@debian.org>
+
+	* Adjusted source to fit 0.12.0-... API
+
 2011-12-29  Bartosz Brachaczek <b.brachaczek@gmail.com>
 
 	* Plugin made compatible with Kadu 0.11.

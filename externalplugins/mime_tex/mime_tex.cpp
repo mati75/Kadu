@@ -58,7 +58,7 @@ MimeTeX::MimeTeX::MimeTeX(QObject *parent)
 			"TeXformulaAction",
 			this,
 			SLOT(TeXActionActivated(QAction *, bool)),
-			KaduIcon(dataPath("kadu/plugins/data/mime_tex/mime_tex_icons/tex_icon.png")),
+			KaduIcon(dataPath("plugins/data/mime_tex/mime_tex_icons/tex_icon.png")),
 			tr("Insert TeX formula"));
 	
 	kdebugf2();
