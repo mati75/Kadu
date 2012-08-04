@@ -1,3 +1,2 @@
 debian/tmp/usr/include/kadu
 debian/tmp/usr/share/cmake-2.8/Modules/FindKadu.cmake
-debian/tmp/usr/share/kadu/plugins/sdk/

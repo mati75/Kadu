@@ -4,6 +4,8 @@ kadu (0.12.0-1) unstable; urgency=low
   * Updated debian/build_kadu.sh to new branches names (0.12/*)
   * Updated debian/patches/03-about-dialog.patch to make it fit 0.12.0
   * Removed importhistory module, since it's no longer maintained
+  * Removed debian/tmp/usr/share/kadu/plugins/sdk/ from
+    debian/kadu-dev.install
 
  -- Patryk Cisek <patryk@debian.org>  Wed, 15 Feb 2012 19:03:53 +0100
 
