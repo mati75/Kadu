@@ -1,6 +1,6 @@
 <configuration-ui>
 
-	<section name="MimeTeX" icon="kadu/modules/data/mime_tex/mime_tex_32x32.png">
+	<section name="MimeTeX" icon="datapath:///plugins/data/mime_tex/mime_tex_32x32.png">
 
 		<tab name="General">
 

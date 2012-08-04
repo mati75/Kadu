@@ -50,7 +50,7 @@ MimeTeX::MimeTeX::MimeTeX(QObject *parent)
 {
 	kdebugf();
 	
-	config_file.addVariable("MimeTeX", "mimetex_font_size", MimeTeX::MimeTeX::defaultFontSize());
+	config_file.addVariable("MimeTeX", "mimetex_font_size", MimeTeX::defaultFontSize());
 	
 	TeXActionDescription = new ActionDescription(
 			this,
@@ -58,9 +58,7 @@ MimeTeX::MimeTeX::MimeTeX(QObject *parent)
 			"TeXformulaAction",
 			this,
 			SLOT(TeXActionActivated(QAction *, bool)),
-			KaduIcon(KaduPaths::instance()->dataPath() +
-                            QString(
-                                "plugins/data/mime_tex/mime_tex_icons/tex_icon.png")),
+			KaduIcon(KaduPaths::instance()->dataPath() + "plugins/data/mime_tex/mime_tex_icons/tex_icon.png"),
 			tr("Insert TeX formula"));
 	
 	kdebugf2();

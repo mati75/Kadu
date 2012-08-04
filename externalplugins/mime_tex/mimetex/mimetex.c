@@ -402,7 +402,9 @@ header files and macros
 #include <ctype.h>
 #include <math.h>
 #include <time.h>
+#ifndef _MSC_VER		/* MS VC++ defines _environ in stdlib.h */
 extern	char **environ;		/* for \environment directive */
+#endif
 
 /* -------------------------------------------------------------------------
 messages (used mostly by main() and also by rastmessage())
@@ -468,6 +470,16 @@ additional symbols
     /* to show source file and line numbers where memory leaks occur... */
     #define _CRTDBG_MAP_ALLOC	/* ...include this debug macro */
     #include <crtdbg.h>		/* and this debug library */
+  #endif
+  #ifdef _MSC_VER
+    #ifndef setmode
+      #define setmode   _setmode
+    #endif
+    #ifndef fileno
+      #define fileno    _fileno
+    #endif
+    #define strncasecmp _strnicmp
+    #define environ     _environ
   #endif
   #define ISWINDOWS 1
 #else

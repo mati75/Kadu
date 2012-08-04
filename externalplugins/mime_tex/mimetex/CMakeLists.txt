@@ -9,5 +9,7 @@ add_definitions(-DAA)
 STRING(REGEX REPLACE "-Werror(=.*\ )?" " " CMAKE_C_FLAGS ${CMAKE_C_FLAGS})
 
 add_executable(mimetex ${SOURCES})
-target_link_libraries(mimetex m)
+if (NOT MSVC)
+	target_link_libraries(mimetex m)
+endif (NOT MSVC)
 install (TARGETS mimetex DESTINATION ${KADU_PLUGINS_LIBDIR}/bin/mime_tex)
