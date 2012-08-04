@@ -7,6 +7,51 @@ kadu (0.12.0-1) unstable; urgency=low
 
  -- Patryk Cisek <patryk@debian.org>  Wed, 15 Feb 2012 19:03:53 +0100
 
+kadu (0.11.2-1) unstable; urgency=low
+
+  * New upstream release
+  * Removed debian/patches/05-kadu_completion_fix.patch -- fix already
+    included upstream
+  * Added libqt4-svg to kadu's Depends
+
+ -- Patryk Cisek <patryk@debian.org>  Tue, 17 Apr 2012 07:52:47 +0200
+
+kadu (0.11.1-3) unstable; urgency=low
+
+  * Backported the following fix of kadu_completion plugin from upstream
+    repository:
+    git://gitorious.org/mime_tex/kadu_completion.git
+    The backported commit's fix: dfa94a16d3ff51e9bc05996836e4d46627d93d84
+
+ -- Patryk Cisek <patryk@debian.org>  Wed, 04 Apr 2012 15:15:58 +0200
+
+kadu (0.11.1-2) unstable; urgency=low
+
+  * Fixed serious mistake in changelog entry for 0.11.1-1:
+    This upstream versions contains important security issues... ->
+    This upstream versions contains fixes of important security issues
+
+ -- Patryk Cisek <patryk@debian.org>  Tue, 28 Feb 2012 08:15:00 +0100
+
+kadu (0.11.1-1) unstable; urgency=high
+
+  * New upstream release
+  * This upstream versions contains fixes of important security issues
+    introduced in version 0.9.0.
+  * Bumped Standards-Version to 3.9.3
+  * Added kadu_completion plugin to kadu-external-modules
+  * TLS negotiation problem solved upstream (Closes: #634037)
+  * Wide description window problem solved upstream (Closes: #592931)
+
+ -- Patryk Cisek <patryk@debian.org>  Mon, 27 Feb 2012 10:33:53 +0100
+
+kadu (0.11.0-2) unstable; urgency=low
+
+  * Added aspell package to Build-Depends
+  * 0-e
+
+ -- Patryk Cisek <patryk@debian.org>  Sun, 26 Feb 2012 19:54:09 +0100
+
 kadu (0.11.0-1) unstable; urgency=low
 
   * New upstream release
