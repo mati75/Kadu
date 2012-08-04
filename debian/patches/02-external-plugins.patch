@@ -6,10 +6,10 @@ Description: Selects all usable external themes
 Author: Patryk Cisek <patryk@debian.org>
 ---
 diff --git a/Plugins.cmake b/Plugins.cmake
-index 2041287..c20f7da 100644
+index 2041287..9350985 100644
 --- a/Plugins.cmake
 +++ b/Plugins.cmake
-@@ -158,6 +158,50 @@ if (WIN32)
+@@ -158,6 +158,46 @@ if (WIN32)
  	)
  endif (WIN32)
  
@@ -23,10 +23,6 @@ index 2041287..c20f7da 100644
 +    # globalhotkeys
 +        # Adds global hotkeys support to Kadu
 +        globalhotkeys
-+
-+    # importhistory
-+        # Imports history from original Gadu-Gadu client
-+        importhistory
 +
 +    # lednotify
 +        # Notifying using Scroll Loch LED
