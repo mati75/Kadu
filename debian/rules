@@ -1,6 +1,15 @@
 #!/usr/bin/make -f
 export DH_OPTIONS
 
+CPPFLAGS:=$(shell dpkg-buildflags --get CPPFLAGS)
+export CPPFLAGS
+CFLAGS:=$(shell dpkg-buildflags --get CFLAGS) $(CPPFLAGS)
+export CFLAGS
+CXXFLAGS:=$(shell dpkg-buildflags --get CXXFLAGS) $(CPPFLAGS)
+export CXXFLAGS
+LDFLAGS:=$(shell dpkg-buildflags --get LDFLAGS)
+export LDFLAGS
+
 PKG_DIR=$(shell pwd)
 BUILD_DIR=$(CURDIR)/build-dir
 INSTALL_DIR=$(PKG_DIR)/debian/tmp

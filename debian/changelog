@@ -6,8 +6,9 @@ kadu (0.12.0-1) unstable; urgency=low
   * Removed importhistory module, since it's no longer maintained
   * Removed debian/tmp/usr/share/kadu/plugins/sdk/ from
     debian/kadu-dev.install
+  * Using dpkg-buildflags for hardening now
 
- -- Patryk Cisek <patryk@debian.org>  Sun, 05 Aug 2012 10:07:03 +0200
+ -- Patryk Cisek <patryk@debian.org>  Sun, 05 Aug 2012 11:17:10 +0200
 
 kadu (0.11.2-1) unstable; urgency=low
 
