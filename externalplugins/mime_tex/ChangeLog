@@ -1,5 +1,9 @@
 2012-08-05  Patryk Cisek <patryk@debian.org>
 
+	* Removed "-Werror" removal. It's not needed anymore.
+
+2012-08-05  Patryk Cisek <patryk@debian.org>
+
 	* Hardened compilation flags of mimetex
 
 2012-06-19  Bartosz Brachaczek <b.brachaczek@gmail.com>
