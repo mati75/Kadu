@@ -1,0 +1,14 @@
+[Module]
+Plugin=true
+Base=false
+Category=Notifications
+Author=Michał Małek, Piotr "ultr" Dąbrowski
+DisplayName=LedNotify
+Description=Notification plugin using keyboard's LEDs
+Description[pl]=Wtyczka powiadamiania diodami LED klawiatury
+Provides=notify_method
+Dependencies=
+Conflicts=
+Replaces=
+LoadByDefault=false
+Version=0.12-33
