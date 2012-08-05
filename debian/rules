@@ -61,6 +61,7 @@ install-indep:
 	mkdir -p $(INSTALL_DIR)/usr/share/cmake-2.8/Modules/
 	cp $(INSTALL_DIR)/usr/share/cmake/Modules/FindKadu.cmake $(INSTALL_DIR)/usr/share/cmake-2.8/Modules/
 	dh_install -i
+	cp externalthemes/dialog-error.png debian/kadu-common/usr/share/kadu/themes/icons/default/32x32/dialog-error.png
 
 install-arch:
 	dh_testdir
