@@ -7,6 +7,7 @@ kadu (0.12.0-1) unstable; urgency=low
   * Removed debian/tmp/usr/share/kadu/plugins/sdk/ from
     debian/kadu-dev.install
   * Using dpkg-buildflags for hardening now
+  * Removed glass icon theme until directory names get fixed
 
  -- Patryk Cisek <patryk@debian.org>  Sun, 05 Aug 2012 11:17:10 +0200
 

@@ -29,7 +29,7 @@ build: build-arch build-indep
 
 build-arch: build-arch-stamp
 build-arch-stamp: configure-stamp
-	cd $(BUILD_DIR) && $(MAKE)
+	cd $(BUILD_DIR) && $(MAKE) VERBOSE=1
 	touch $@
 
 build-indep: build-indep-stamp
