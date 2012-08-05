@@ -49,6 +49,7 @@ debian/tmp/usr/share/kadu/plugins/data/gadu_protocol
 debian/tmp/usr/share/kadu/plugins/data/mediaplayer
 debian/tmp/usr/share/kadu/plugins/data/mprisplayer_mediaplayer
 debian/tmp/usr/share/kadu/plugins/data/sms
+debian/tmp/usr/share/kadu/plugins/data/sql_history/scripts/history-database-recovery.sh
 debian/tmp/usr/share/kadu/plugins/data/word_fix
 debian/tmp/usr/share/kadu/plugins/desktop_docking.desc
 debian/tmp/usr/share/kadu/plugins/docking.desc
