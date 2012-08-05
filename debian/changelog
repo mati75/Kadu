@@ -7,7 +7,7 @@ kadu (0.12.0-1) unstable; urgency=low
   * Removed debian/tmp/usr/share/kadu/plugins/sdk/ from
     debian/kadu-dev.install
 
- -- Patryk Cisek <patryk@debian.org>  Wed, 15 Feb 2012 19:03:53 +0100
+ -- Patryk Cisek <patryk@debian.org>  Sun, 05 Aug 2012 10:07:03 +0200
 
 kadu (0.11.2-1) unstable; urgency=low
 
