@@ -1,6 +1,7 @@
 kadu (0.12.2-1) UNRELEASED; urgency=low
 
   * New upstream release
+  * Added import_history plugin back
 
  -- Patryk Cisek <patryk@debian.org>  Mon, 03 Sep 2012 11:36:46 +0200
 
