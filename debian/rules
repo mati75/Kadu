@@ -14,6 +14,7 @@ PKG_DIR=$(shell pwd)
 BUILD_DIR=$(CURDIR)/build-dir
 INSTALL_DIR=$(PKG_DIR)/debian/tmp
 DEB_BUILD_ARCH_OS := $(shell dpkg-architecture -qDEB_BUILD_ARCH_OS)
+DEB_HOST_MULTIARCH ?= $(shell dpkg-architecture -qDEB_HOST_MULTIARCH)
 
 configure: configure-stamp
 configure-stamp:
