@@ -28,7 +28,7 @@ if (NOT WIN32)
 endif (NOT WIN32)
 
 if (NOT NETWORK_IMPLEMENTATION)
-	include (FindQNtrack)
+	find_package (QNtrack 010)
 	if (QNTRACK_FOUND)
 		set (NETWORK_IMPLEMENTATION "ntrack" CACHE STRING "Select network-aware implementation (Qt/ntrack/dummy)" FORCE)
 		message (STATUS "No NETWORK_IMPLEMENTATION defined. Autodetected implementation: ntrack")
@@ -37,8 +37,7 @@ if (NOT NETWORK_IMPLEMENTATION)
 		message (STATUS "No NETWORK_IMPLEMENTATION defined. Autodetected implementation: Qt")
 	endif (QNTRACK_FOUND)
 elseif (${NETWORK_IMPLEMENTATION} STREQUAL "ntrack")
-	set (QNtrack_FIND_REQUIRED true)
-	include (FindQNtrack)
+	find_package (QNtrack 010 REQUIRED)
 endif (NOT NETWORK_IMPLEMENTATION)
 
 set (kadu_SRCS
@@ -121,18 +120,13 @@ if (WIN32)
 		message (SEND_ERROR "Pass path to libqca2 -DWIN_QCA_DIR=path")
 	else (NOT WIN_QCA_DIR)
 		set (QCA2_INCLUDE_DIRS ${WIN_QCA_DIR}/include/QtCrypto)
+		set (QCA2_LIBRARIES optimized qca2 debug qcad2)
 
 		if (MSVC)
 			set (QCA2_LIBRARY_DIRS ${WIN_QCA_DIR}/lib)
 		else (MSVC)
 			set (QCA2_LIBRARY_DIRS ${WIN_QCA_DIR}/bin)
 		endif (MSVC)
-
-		if (CMAKE_BUILD_TYPE STREQUAL "Debug")
-			set (QCA2_LIBRARIES qcad2)
-		else (CMAKE_BUILD_TYPE STREQUAL "Debug")
-			set (QCA2_LIBRARIES qca2)
-		endif (CMAKE_BUILD_TYPE STREQUAL "Debug")
 	endif (NOT WIN_QCA_DIR)
 else (WIN32)
 	pkg_search_module (QCA2 REQUIRED qca2)
@@ -304,78 +298,79 @@ install (TARGETS kadu DESTINATION ${KADU_BINDIR})
 if (UNIX AND NOT APPLE)
 	install (FILES ${DESKTOP_ENTRY} DESTINATION ${KADU_DESKTOP_FILE_DIR} RENAME ${KADU_DESKTOP_FILE_NAME})
 
-	# install icons
-	install (FILES hi16-app-kadu.png DESTINATION "share/icons/hicolor/16x16/apps" RENAME kadu.png)
-	install (FILES hi22-app-kadu.png DESTINATION "share/icons/hicolor/22x22/apps" RENAME kadu.png)
-	install (FILES hi24-app-kadu.png DESTINATION "share/icons/hicolor/24x24/apps" RENAME kadu.png)
-	install (FILES hi32-app-kadu.png DESTINATION "share/icons/hicolor/32x32/apps" RENAME kadu.png)
-	install (FILES hi48-app-kadu.png DESTINATION "share/icons/hicolor/48x48/apps" RENAME kadu.png)
-	install (FILES hi64-app-kadu.png DESTINATION "share/icons/hicolor/64x64/apps" RENAME kadu.png)
-	install (FILES hi128-app-kadu.png DESTINATION "share/icons/hicolor/128x128/apps" RENAME kadu.png)
-	# As of icon-theme-0.5 maximum supported pixmap size is 192, for anything larger one should use SVG.
-	#install (FILES hi256-app-kadu.png DESTINATION "share/icons/hicolor/256x256/apps" RENAME kadu.png)
+	install (FILES hi16-app-kadu.png DESTINATION "${CMAKE_INSTALL_DATADIR}/icons/hicolor/16x16/apps" RENAME kadu.png)
+	install (FILES hi22-app-kadu.png DESTINATION "${CMAKE_INSTALL_DATADIR}/icons/hicolor/22x22/apps" RENAME kadu.png)
+	install (FILES hi24-app-kadu.png DESTINATION "${CMAKE_INSTALL_DATADIR}/icons/hicolor/24x24/apps" RENAME kadu.png)
+	install (FILES hi32-app-kadu.png DESTINATION "${CMAKE_INSTALL_DATADIR}/icons/hicolor/32x32/apps" RENAME kadu.png)
+	install (FILES hi48-app-kadu.png DESTINATION "${CMAKE_INSTALL_DATADIR}/icons/hicolor/48x48/apps" RENAME kadu.png)
+	install (FILES hi64-app-kadu.png DESTINATION "${CMAKE_INSTALL_DATADIR}/icons/hicolor/64x64/apps" RENAME kadu.png)
+	install (FILES hi128-app-kadu.png DESTINATION "${CMAKE_INSTALL_DATADIR}/icons/hicolor/128x128/apps" RENAME kadu.png)
+	install (FILES hi256-app-kadu.png DESTINATION "${CMAKE_INSTALL_DATADIR}/icons/hicolor/256x256/apps" RENAME kadu.png)
 endif (UNIX AND NOT APPLE)
 
 install (FILES "chat/style-engines/chat-scripts.js" DESTINATION "${KADU_DATADIR}/scripts")
 
 # install api headers
+# how to get list: find . -name '*.h' -exec dirname {} +|sort|uniq|sed -e 's|\./||' -e 's|^|\t|'
+# TODO: consider using file (GLOB_RECURSE) command here
 kadu_api_directories (kadu-core
+	.
+	accounts
 	accounts/filter
 	accounts/model
-	accounts
 	avatars
-	buddies/filter
-	buddies/model
 	buddies
-	chat/model
-	chat/style-engines/style-engine-adium
-	chat/style-engines/style-engine-kadu
-	chat/style-engines
-	chat/type
+	buddies/model
 	chat
+	chat/model
+	chat/style-engines
+	chat/style-engines/chat-engine-adium
+	chat/style-engines/chat-engine-kadu
+	chat/type
 	configuration
-	contacts/filter
-	contacts/model
 	contacts
+	contacts/model
 	core
 	emoticons
 	file-transfer
-	gui/actions/chat
-	gui/actions
-	gui/widgets/configuration
-	gui/widgets
-	gui/windows/open-chat-with
-	gui/windows
 	gui
+	gui/actions
+	gui/actions/chat
+	gui/model
+	gui/widgets
+	gui/widgets/configuration
+	gui/windows
+	gui/windows/open-chat-with
 	icons
-	identities/model
 	identities
+	identities/model
 	message
 	misc
 	model
-	multilogon/model
 	multilogon
-	network/proxy/model
-	network/proxy
+	multilogon/model
 	network
+	network/proxy
+	network/proxy/model
 	notify
+	os
 	os/generic
 	os/qtsingleapplication
-	os
 	parser
 	plugins
+	plugins/model
+	protocols
 	protocols/filter
 	protocols/model
 	protocols/services
-	protocols
+	protocols/services/roster
 	provider
 	qt
 	status
 	storage
+	talkable
 	talkable/filter
 	talkable/model
-	talkable
 	themes
 	url-handlers
-	.
 )

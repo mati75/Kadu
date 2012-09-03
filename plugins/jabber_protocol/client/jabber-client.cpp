@@ -410,10 +410,11 @@ void JabberClient::slotTLSHandshaken()
 	QByteArray cert = jabberAccountDetails->tlsOverrideCert();
 
 	if (CertificateHelpers::checkCertificate(JabberTLS, JabberTLSHandler, domain,
-		QString("%1: ").arg(Protocol->account().accountIdentity().name()) + tr("security problem"), host, Protocol))
+			QString("%1: ").arg(Protocol->account().accountIdentity().name()) + tr("security problem"), host,
+			false, Protocol, SLOT(reconnect())))
 		JabberTLSHandler->continueAfterHandshake();
 	else
-		Protocol->logout();
+		Protocol->connectionClosed();
 }
 
 void JabberClient::slotCSNeedAuthParams(bool user, bool pass, bool realm)

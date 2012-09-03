@@ -29,14 +29,6 @@ set (MOC_SOURCES
 	encryption-ng-simlite-provider.h
 )
 
-set (TRANSLATION_SOURCES
-	translations/encryption_ng_simlite_cs.ts
-	translations/encryption_ng_simlite_de.ts
-	translations/encryption_ng_simlite_en.ts
-	translations/encryption_ng_simlite_it.ts
-	translations/encryption_ng_simlite_pl.ts
-)
-
 set (CONFIGURATION_FILES
 )
 
@@ -45,18 +37,13 @@ if (WIN32)
 		message (SEND_ERROR "Pass path to libqca2 -DWIN_QCA_DIR=path")
 	else (NOT WIN_QCA_DIR)
 		set (QCA2_INCLUDE_DIRS ${WIN_QCA_DIR}/include/QtCrypto)
+		set (QCA2_LIBRARIES optimized qca2 debug qcad2)
 
 		if (MSVC)
 			set (QCA2_LIBRARY_DIRS ${WIN_QCA_DIR}/lib)
 		else (MSVC)
 			set (QCA2_LIBRARY_DIRS ${WIN_QCA_DIR}/bin)
 		endif (MSVC)
-
-		if (CMAKE_BUILD_TYPE STREQUAL "Debug")
-			set (QCA2_LIBRARIES qcad2)
-		else (CMAKE_BUILD_TYPE STREQUAL "Debug")
-			set (QCA2_LIBRARIES qca2)
-		endif (CMAKE_BUILD_TYPE STREQUAL "Debug")
 	endif (NOT WIN_QCA_DIR)
 else (WIN32)
 	pkg_search_module (QCA2 REQUIRED qca2)
@@ -77,7 +64,6 @@ include_directories (${QCA2_INCLUDE_DIRS})
 kadu_plugin (encryption_ng_simlite
 	PLUGIN_SOURCES ${SOURCES}
 	PLUGIN_MOC_SOURCES ${MOC_SOURCES}
-	PLUGIN_TRANSLATION_SOURCES ${TRANSLATION_SOURCES}
 	PLUGIN_CONFIGURATION_FILES ${CONFIGURATION_FILES}
 	PLUGIN_LIBRARIES ${QCA2_LIBRARIES}
 	PLUGIN_DEPENDENCIES encryption_ng

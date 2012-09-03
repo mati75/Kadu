@@ -19,6 +19,8 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <QtGui/QTextDocument>
+
 #include "multilogon/multilogon-session.h"
 #include "notify/notify-event.h"
 #include "protocols/protocol.h"
@@ -102,24 +104,24 @@ void MultilogonNotification::notifyMultilogonSessionConnected(MultilogonSession 
 {
 	MultilogonNotification *notification = new MultilogonNotification(session, "multilogon/sessionConnected", true);
 	notification->setTitle(tr("Multilogon"));
-	notification->setText(tr("Multilogon session connected from %1 at %2 with %3 for %4 account")
+	notification->setText(Qt::escape(tr("Multilogon session connected from %1 at %2 with %3 for %4 account")
 			.arg(session->remoteAddress().toString())
 			.arg(session->logonTime().toString())
 			.arg(session->name())
-			.arg(session->account().id()));
+			.arg(session->account().id())));
 
 	NotificationManager::instance()->notify(notification);
 }
 
 void MultilogonNotification::notifyMultilogonSessionDisonnected(MultilogonSession *session)
 {
-	MultilogonNotification *notification = new MultilogonNotification(session, "multilogon/sessionConnected", false);
+	MultilogonNotification *notification = new MultilogonNotification(session, "multilogon/sessionDisconnected", false);
 	notification->setTitle(tr("Multilogon"));
-	notification->setText(tr("Multilogon session disconnected from %1 at %2 with %3 for %4 account")
+	notification->setText(Qt::escape(tr("Multilogon session disconnected from %1 at %2 with %3 for %4 account")
 			.arg(session->remoteAddress().toString())
 			.arg(session->logonTime().toString())
 			.arg(session->name())
-			.arg(session->account().id()));
+			.arg(session->account().id())));
 
 	NotificationManager::instance()->notify(notification);
 }
