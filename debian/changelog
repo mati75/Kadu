@@ -1,4 +1,4 @@
-kadu (0.12.2-1) UNRELEASED; urgency=low
+kadu (0.12.2-1) unstable; urgency=low
 
   * New upstream release
   * Added import_history plugin back
@@ -8,7 +8,7 @@ kadu (0.12.2-1) UNRELEASED; urgency=low
   * Added translations to mpd_mediaplayer plugin in debian/kadu-
     common.install
 
- -- Patryk Cisek <patryk@debian.org>  Mon, 03 Sep 2012 11:36:46 +0200
+ -- Patryk Cisek <patryk@debian.org>  Mon, 03 Sep 2012 16:03:29 +0200
 
 kadu (0.12.0-1) unstable; urgency=low
 
