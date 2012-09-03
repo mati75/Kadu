@@ -1,0 +1,42 @@
+0.11-4 => 0.12-5
+* Plugin dostosowany do Kadu 0.12.0.
+
+
+0.11-3 => 0.11-4
+* Poprawka kompilacji z gcc 4.7.
+
+
+0.10-2 => 0.11-3
+* Oznaczenie wersji dla stabilnego wydania Kadu 0.11.0.
+
+
+0.9.x-1 => 0.10-2
+* Moduł przerobiony na plugin.
+
+
+0.9.0-rc1 => 0.9.x-1
+* Dodana opcja usuwania białych znaków z końca linii.
+
+
+0.6.6-beta3 => 0.9.0-rc1
+* Pierwsza wersja kandydująca modułu.
+* Drobne poprawki w tłumaczeniach.
+* Oznaczenie wersji dla stabilnego wydania Kadu 0.9.0.
+
+
+0.6.6-beta2 => 0.6.6-beta3
+* Dodana cykliczne wywoływanie QApplication::processEvents() podczas wysyłania
+  długich wiadomości, dzięki czemu Kadu zachowuje responsywność.
+
+
+0.6.6-beta1 => 0.6.6-beta2
+* Poprawione dzielenie wiadomości zawierających znaki UTF8.
+* Dodana opcja ustalenia opóźnienia pomiędzy częściami wiadomości.
+* Poprawione tłumaczenia.
+
+
+0.6.6-beta1
+* Moduł split_messages napisany od nowa dla Kadu 0.6.6.
+* Inteligentne dzielenie wiadomości na najbliższym wstecz akapicie, linii lub
+  słowie.
+* Obsługa zarówno wiadomości szyfrowanych, jak i zwykłych.
