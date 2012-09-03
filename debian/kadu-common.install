@@ -112,6 +112,7 @@ debian/tmp/usr/share/kadu/plugins/translations/imagelink*
 debian/tmp/usr/share/kadu/plugins/translations/jabber_protocol*
 debian/tmp/usr/share/kadu/plugins/translations/last_seen*
 debian/tmp/usr/share/kadu/plugins/translations/mediaplayer*
+debian/tmp/usr/share/kadu/plugins/translations/mpd_mediaplayer_*
 debian/tmp/usr/share/kadu/plugins/translations/mprisplayer_mediaplayer*
 debian/tmp/usr/share/kadu/plugins/translations/pcspeaker*
 debian/tmp/usr/share/kadu/plugins/translations/profiles_import*

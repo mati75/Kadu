@@ -5,6 +5,8 @@ kadu (0.12.2-1) UNRELEASED; urgency=low
   * Bumped debhelper's version in Build-Depends
   * Added Pre-Depends: ${misc:Pre-Depends} to kadu and
     kadu-external-modules
+  * Added translations to mpd_mediaplayer plugin in debian/kadu-
+    common.install
 
  -- Patryk Cisek <patryk@debian.org>  Mon, 03 Sep 2012 11:36:46 +0200
 
