@@ -1,10 +1,10 @@
-kadu (0.12.2-2) UNRELEASED; urgency=low
+kadu (0.12.2-2) unstable; urgency=low
 
   * Added important fix in debian/patches/05-hotfix_upstream.patch reported
     by upstream
   * Using hardening-wrapper from now on
 
- -- Patryk Cisek <patryk@debian.org>  Wed, 05 Sep 2012 07:59:11 +0200
+ -- Patryk Cisek <patryk@debian.org>  Wed, 05 Sep 2012 09:31:06 +0200
 
 kadu (0.12.2-1) unstable; urgency=low
 
