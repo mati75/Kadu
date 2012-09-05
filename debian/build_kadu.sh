@@ -15,7 +15,8 @@ git reset --hard
 git co 0.12/upstream-kadu
 git br -D 0.12/master || true
 git co -b 0.12/master 0.12/upstream-kadu
-git merge 0.12/upstream-plugins 0.12/upstream-themes 0.12/debian
+git merge -m "Merging 0.12/upstream-plugins 0.12/upstream-themes 0.12/debian" \
+    0.12/upstream-plugins 0.12/upstream-themes 0.12/debian
 
 if [ "$debian_revision" = 1 ]; then
     # Generate orig-external{plugins,themes}.tar.bz2, but only if it's first
