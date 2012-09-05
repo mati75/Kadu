@@ -1,0 +1,11 @@
+<configuration-ui>
+	<section name="Chat">
+		<tab name="Messages">
+			<group-box name="Automatic messages splitting">
+				<spin-box caption="Delay between message parts" config-section="MessagesSplitter" config-item="Delay" min-value="1" max-value="2000" suffix="%n millisecond(s)" id="messagesSplitter/delay" />
+				<check-box caption="Smart messages splitting" config-section="MessagesSplitter" config-item="SmartMessagesSplitting" id="messagesSplitter/smartMessagesSplitting" />
+				<check-box caption="Remove whitespaces at the end of lines" config-section="MessagesSplitter" config-item="RemoveWhitespaces" id="messagesSplitter/removeWhitespaces" />
+			</group-box>
+		</tab>
+	</section>
+</configuration-ui>

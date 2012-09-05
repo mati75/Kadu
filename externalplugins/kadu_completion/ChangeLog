@@ -1,0 +1,20 @@
+2012-06-19  Bartosz Brachaczek <b.brachaczek@gmail.com>
+
+	* Made the plugin compatible with Kadu 0.12.0.
+	* Removed bundled copy of FindKadu.cmake.
+	* Fixed build on MSVC.
+
+2012-04-03  Patryk Cisek <patryk@debian.org>
+
+	* Bugfix -- for the following scenarios:
+	  1) Plugin unload, when there is at least one chat widget opened
+	  2) Chat Widget close, when plugin is loaded
+	  segfault occured. Now CompletionContext is deleted when either of
+	  the above.
+
+2012-02-27  Patryk Cisek <patryk@debian.org>
+
+        * Added LoadByDefault=true to make it loaded by default when Kadu
+          starts.
+        * Fixed character encoding in plugin's description in
+          kadu_completion.desc
