@@ -1,3 +1,10 @@
+kadu (0.12.2-2) UNRELEASED; urgency=low
+
+  * Added importat fix in debian/patches/05-hotfix_upstream.patch reported by
+    upstream
+
+ -- Patryk Cisek <patryk@debian.org>  Wed, 05 Sep 2012 07:59:11 +0200
+
 kadu (0.12.2-1) unstable; urgency=low
 
   * New upstream release
