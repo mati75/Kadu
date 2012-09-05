@@ -1,14 +1,7 @@
 #!/usr/bin/make -f
 export DH_OPTIONS
 
-CPPFLAGS:=$(shell dpkg-buildflags --get CPPFLAGS)
-export CPPFLAGS
-CFLAGS:=$(shell dpkg-buildflags --get CFLAGS) $(CPPFLAGS)
-export CFLAGS
-CXXFLAGS:=$(shell dpkg-buildflags --get CXXFLAGS) $(CPPFLAGS)
-export CXXFLAGS
-LDFLAGS:=$(shell dpkg-buildflags --get LDFLAGS)
-export LDFLAGS
+export DEB_BUILD_HARDENING=1
 
 PKG_DIR=$(shell pwd)
 BUILD_DIR=$(CURDIR)/build-dir
