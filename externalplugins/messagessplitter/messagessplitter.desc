@@ -1,0 +1,14 @@
+[Module]
+Plugin=true
+Base=false
+Category=Chat
+Author=Piotr "ultr" Dąbrowski
+DisplayName=MessagesSplitter
+Description=Automatically splits too long messages
+Description[pl]=Automatycznie dzieli zbyt długie wiadomości
+Provides=
+Dependencies=gadu_protocol encryption_ng
+Conflicts=
+Replaces=
+LoadByDefault=false
+Version=0.12-5
