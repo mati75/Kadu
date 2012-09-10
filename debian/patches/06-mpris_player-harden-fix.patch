@@ -1,0 +1,28 @@
+Description: [PATCH] mprisplayer_mediaplayer: Do not declare non-existing
+ method
+ .
+ Try running Kadu with LD_BIND_NOW=1 environment variable or just link it
+ with -z now (-Wl,-z,now in gcc command line) and the plugin will refuse
+ to load without this change. Debian hardened build does so.
+Author: Bartosz Brachaczek <b.brachaczek@gmail.com>
+---
+ plugins/mprisplayer_mediaplayer/mpris_controller.h |    3 ---
+ 1 file changed, 3 deletions(-)
+
+diff --git a/plugins/mprisplayer_mediaplayer/mpris_controller.h b/plugins/mprisplayer_mediaplayer/mpris_controller.h
+index 99f0913..96aaf85 100644
+--- a/plugins/mprisplayer_mediaplayer/mpris_controller.h
++++ b/plugins/mprisplayer_mediaplayer/mpris_controller.h
+@@ -94,9 +94,6 @@ public:
+ 
+ 	QList<TrackInfo> getTrackList() const;
+ 
+-public slots:
+-	void trackChanged(const QVariantMap &map);
+-
+ };
+ 
+ #endif
+-- 
+1.7.10
+

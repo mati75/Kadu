@@ -1,3 +1,10 @@
+kadu (0.12.2-3) unstable; urgency=low
+
+  * Added debian/patches/06-mpris_player-harden-fix.patch which fixes
+    loading mpris_player plugin on Debian hardened build.
+
+ -- Patryk Cisek <patryk@debian.org>  Mon, 10 Sep 2012 07:26:01 +0200
+
 kadu (0.12.2-2) unstable; urgency=low
 
   * Added important fix in debian/patches/05-hotfix_upstream.patch reported

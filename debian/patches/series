@@ -3,3 +3,4 @@
 03-about-dialog.patch
 04-lowered_expectant_libgadu_version.patch
 05-hotfix_upstream.patch
+06-mpris_player-harden-fix.patch
