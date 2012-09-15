@@ -31,9 +31,7 @@
 #ifdef Q_OS_WIN
 # include <winsock2.h>
 # include <ws2tcpip.h>
-#endif
-
-#ifdef Q_OS_UNIX
+#else
 # include <sys/time.h>
 # include <sys/types.h>
 # include <sys/socket.h>

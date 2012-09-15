@@ -27,8 +27,7 @@ namespace XMPP {
 // built-in providers
 #ifdef Q_OS_WIN
 extern IrisNetProvider *irisnet_createWinNetProvider();
-#endif
-#ifdef Q_OS_UNIX
+#else
 extern IrisNetProvider *irisnet_createUnixNetProvider();
 #endif
 extern IrisNetProvider *irisnet_createJDnsProvider();
@@ -182,8 +181,7 @@ public:
 		{
 #ifdef Q_OS_WIN
 			addBuiltIn(irisnet_createWinNetProvider());
-#endif
-#ifdef Q_OS_UNIX
+#else
 			addBuiltIn(irisnet_createUnixNetProvider());
 #endif
 			addBuiltIn(irisnet_createJDnsProvider());

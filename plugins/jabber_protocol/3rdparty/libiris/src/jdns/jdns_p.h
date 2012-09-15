@@ -44,6 +44,8 @@
 # define JDNS_OS_SOLARIS
 #elif defined(__APPLE__) && (defined(__GNUC__) || defined(__xlC__) || defined(__xlc__))
 # define JDNS_OS_MAC
+#elif defined(__OS2__) || defined(__EMX__)
+# define JDNS_OS_OS2
 #endif
 
 #ifdef JDNS_OS_WIN

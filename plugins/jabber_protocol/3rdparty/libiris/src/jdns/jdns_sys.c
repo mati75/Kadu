@@ -644,7 +644,11 @@ static jdns_dnsparams_t *dnsparams_get_unixfiles()
 
 	params = jdns_dnsparams_new();
 
+#ifndef JDNS_OS_OS2
 	f = jdns_fopen("/etc/resolv.conf", "r");
+#else
+	f = jdns_fopen("\\MPTN\\ETC\\RESOLV2", "r");
+#endif
 	if(!f)
 		return params;
 	while(1)
@@ -752,6 +756,7 @@ static jdns_dnsparams_t *dnsparams_get_unixsys()
 	if(n == -1)
 		return params;
 
+#ifndef JDNS_OS_OS2
 	// nameservers - ipv6
 	for(n = 0; n < MAXNS && n < RESVAR._u._ext.nscount; ++n)
 	{
@@ -775,6 +780,7 @@ static jdns_dnsparams_t *dnsparams_get_unixsys()
 		jdns_dnsparams_append_nameserver(params, addr, JDNS_UNICAST_PORT);
 		jdns_address_delete(addr);
 	}
+#endif
 
 	// nameservers - ipv4
 	for(n = 0; n < MAXNS && n < RESVAR.nscount; ++n)

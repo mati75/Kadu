@@ -27,16 +27,11 @@
 #include <qsocketnotifier.h>
 #include <QByteArray>
 
-#ifdef Q_OS_UNIX
-#include <sys/types.h>
-#include <netinet/in.h>
-#endif
-
 #ifdef Q_OS_WIN32
 #include <windows.h>
-#endif
-
-#ifdef Q_OS_UNIX
+#else
+#include <sys/types.h>
+#include <netinet/in.h>
 #include <unistd.h>
 #include <fcntl.h>
 #endif

@@ -97,8 +97,10 @@ static QList<UnixIface> get_sioc_ifaces()
 
 		if(((struct sockaddr *)&ifr->ifr_addr)->sa_family == AF_INET) {
 			sockaddr_len = sizeof(struct sockaddr_in);
+#if defined(AF_INET6) && !defined(__OS2__)
 		} else if(((struct sockaddr *)&ifr->ifr_addr)->sa_family == AF_INET6) {
 			sockaddr_len = sizeof(struct sockaddr_in6);
+#endif
 		} else {
 			sockaddr_len = sizeof(struct sockaddr);
 		}
