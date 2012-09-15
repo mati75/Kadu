@@ -1,0 +1,14 @@
+[Module]
+Plugin=true
+Base=false
+Category=Misc
+Author=Piotr "ultr" Dąbrowski
+DisplayName=NetworkPing
+Description=Periodically checks the network state
+Description[pl]=Sprawdza okresowo stan sieci
+Provides=
+Dependencies=
+Conflicts=
+Replaces=
+LoadByDefault=false
+Version=0.12-4

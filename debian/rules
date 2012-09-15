@@ -1,0 +1,101 @@
+#!/usr/bin/make -f
+export DH_OPTIONS
+
+export DEB_BUILD_HARDENING=1
+
+PKG_DIR=$(shell pwd)
+BUILD_DIR=$(CURDIR)/build-dir
+INSTALL_DIR=$(PKG_DIR)/debian/tmp
+DEB_BUILD_ARCH_OS := $(shell dpkg-architecture -qDEB_BUILD_ARCH_OS)
+DEB_HOST_MULTIARCH ?= $(shell dpkg-architecture -qDEB_HOST_MULTIARCH)
+
+configure: configure-stamp
+configure-stamp:
+	dh_testdir
+	mkdir $(BUILD_DIR)
+	find . -name '*.o' -delete
+	bash debian/handle_external.sh copy
+	cd $(BUILD_DIR) && cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr $(PKG_DIR)
+	touch configure-stamp
+
+#Architecture
+build: build-arch build-indep
+
+build-arch: build-arch-stamp
+build-arch-stamp: configure-stamp
+	cd $(BUILD_DIR) && $(MAKE) VERBOSE=1
+	touch $@
+
+build-indep: build-indep-stamp
+build-indep-stamp: configure-stamp
+	touch $@
+
+clean: 
+	dh_testdir
+	dh_testroot
+	rm -f build-arch-stamp build-indep-stamp configure-stamp
+	test -d $(BUILD_DIR) && cd $(BUILD_DIR) && $(MAKE) clean || true
+	rm -rf $(BUILD_DIR)
+	bash debian/handle_external.sh remove
+	dh_clean 
+
+install: install-indep install-arch
+install-indep:
+	dh_testdir
+	dh_testroot
+	dh_prep -i 
+	dh_installdirs -i
+	cd $(BUILD_DIR) && $(MAKE) DESTDIR=$(INSTALL_DIR) install
+	# Remove all license files
+	find $(INSTALL_DIR) -name '[lL][iI][cC][eE][nN][sS][eE].txt' -delete
+	# Remove all thumbnails files
+	find $(INSTALL_DIR) -name Thumbs.db -delete
+	rm -f $(INSTALL_DIR)/usr/share/kadu/themes/sounds/bns/sound.conf~
+	# Move FindKadu.cmake to proper directory
+	mkdir -p $(INSTALL_DIR)/usr/share/cmake-2.8/Modules/
+	cp $(INSTALL_DIR)/usr/share/cmake/Modules/FindKadu.cmake $(INSTALL_DIR)/usr/share/cmake-2.8/Modules/
+	dh_install -i
+	#cp externalthemes/dialog-error.png debian/kadu-common/usr/share/kadu/themes/icons/default/32x32/dialog-error.png
+
+install-arch:
+	dh_testdir
+	dh_testroot
+	dh_prep -s 
+	dh_installdirs -s
+	cd $(BUILD_DIR) && $(MAKE) DESTDIR=$(INSTALL_DIR) install
+	cp $(INSTALL_DIR)/usr/share/kadu/ChangeLog debian/kadu/usr/share/doc/kadu/about-changes-tab.txt
+	rm -f $(INSTALL_DIR)/usr/share/kadu/modules/data/osd_hints/License
+	dh_install -s
+
+# Must not depend on anything. This is to be called by
+# binary-arch/binary-indep
+# in another 'make' thread.
+binary-common:
+	dh_testdir
+	dh_testroot
+	dh_installchangelogs 
+	dh_installdocs
+	dh_installexamples
+	dh_installmenu
+	dh_installman
+	dh_link
+	dh_strip
+	dh_compress -XAUTHORS -XTHANKS -XLICENSE -Xabout-changes-tab.txt
+	dh_fixperms
+	dh_makeshlibs
+	dh_installdeb
+	dh_shlibdeps
+	dh_gencontrol
+	dh_md5sums
+	dh_builddeb
+# Build architecture independant packages using the common target.
+binary-indep: build-indep install-indep
+	$(MAKE) -f debian/rules DH_OPTIONS=-i binary-common
+
+# Build architecture dependant packages using the common target.
+binary-arch: build-arch install-arch
+	$(MAKE) -f debian/rules DH_OPTIONS=-s binary-common
+
+binary: binary-arch binary-indep
+
+.PHONY: build clean binary-indep binary-arch binary install install-indep install-arch configure
