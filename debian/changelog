@@ -1,4 +1,4 @@
-kadu (0.12.3-1) UNRELEASED; urgency=low
+kadu (0.12.3-1) unstable; urgency=low
 
   * New upstream release
   * Removed debian/patches/05-hotfix_upstream.patch and
@@ -8,7 +8,7 @@ kadu (0.12.3-1) UNRELEASED; urgency=low
     corrected
   * Changed build dependency from aspell to enchant (Upstream's suggestion)
 
- -- Patryk Cisek <patryk@debian.org>  Sat, 15 Sep 2012 11:45:38 +0200
+ -- Patryk Cisek <patryk@debian.org>  Sat, 15 Sep 2012 13:02:48 +0200
 
 kadu (0.12.2-3) unstable; urgency=low
 
