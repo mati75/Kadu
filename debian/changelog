@@ -6,6 +6,7 @@ kadu (0.12.3-1) UNRELEASED; urgency=low
     upstream
   * Icon theme glass is installed again, since all icon sizes have been
     corrected
+  * Changed build dependency from aspell to enchant (Upstream's suggestion)
 
  -- Patryk Cisek <patryk@debian.org>  Sat, 15 Sep 2012 11:45:38 +0200
 
