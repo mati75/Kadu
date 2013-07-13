@@ -1,0 +1,18 @@
+0.11-3 => 0.12-4
+* Plugin dostosowany do Kadu 0.12.0.
+
+
+0.10-2 => 0.11-3
+* Oznaczenie wersji dla stabilnego wydania Kadu 0.11.0.
+
+
+0.10-1 => 0.10-2
+* Poprawki w przełączaniu stanu sieci za pomocą detekcji adresu IP.
+
+
+0.10-beta1 => 0.10-1
+* Wydanie wersji stabilnej.
+
+
+0.10-beta1
+* Pierwsze wydanie pluginu.

@@ -1,0 +1,14 @@
+[Module]
+Plugin=true
+Base=false
+Category=Desktop
+Author=Piotr "ultr" Dąbrowski
+DisplayName=PanelKadu
+Description=Makes Kadu look and behave like a panel
+Description[pl]=Sprawia, że Kadu wygląda i zachowuje się jak panel
+Provides=
+Dependencies=
+Conflicts=
+Replaces=
+LoadByDefault=false
+Version=0.12-10

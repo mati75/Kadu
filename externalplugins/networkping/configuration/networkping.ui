@@ -1,0 +1,34 @@
+<configuration-ui>
+	<section name="Kadu">
+		<tab name="Advanced">
+			<group-box name="Network ping">
+				<spin-box caption="Check the network availability every"
+					config-section="NetworkPing" config-item="PingInterval" min-value="1"
+					max-value="300"
+					suffix="[every] %n second(s)" id="networkPing/pingInterval" />
+				<line-edit caption="IP address of host to ping"
+					config-section="NetworkPing" config-item="PingHost"
+					id="networkPing/pingHost" />
+				<spin-box caption="Number of port to ping on"
+					config-section="NetworkPing" config-item="PingPort" min-value="0"
+					max-value="65535" id="networkPing/pingPort" />
+				<spin-box caption="Timeout after" config-section="NetworkPing"
+					config-item="PingTimeout" min-value="1" max-value="300"
+					suffix="[after] %n second(s)" id="networkPing/pingTimeout" />
+				<check-box caption="Detect external IP address changes"
+					config-section="NetworkPing" config-item="CheckIP"
+					id="networkPing/checkIp" />
+				<line-edit parent-item="networkPing/checkIp"
+					caption="External IP address checker" config-section="NetworkPing"
+					config-item="IPAddressChecker" id="networkPing/ipAddressChecker" />
+				<spin-box parent-item="networkPing/checkIp"
+					caption="Check external IP address every" config-section="NetworkPing"
+					config-item="CheckIPInterval" min-value="1" max-value="300"
+					suffix="[every] %n second(s)" id="networkPing/checkIpInterval" />
+				<spin-box caption="Timeout checking after" config-section="NetworkPing"
+					config-item="CheckIPTimeout" min-value="1" max-value="300"
+					suffix="[after] %n second(s)" id="networkPing/checkIpTimeout" />
+			</group-box>
+		</tab>
+	</section>
+</configuration-ui>

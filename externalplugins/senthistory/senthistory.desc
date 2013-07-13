@@ -1,0 +1,14 @@
+[Module]
+Plugin=true
+Base=false
+Category=Chats history
+Author=Piotr "ultr" Dąbrowski
+DisplayName=SentHistory
+Description=Adds history of sent messages to chat windows
+Description[pl]=Dodaje historię wysłanych wiadomości do okien rozmowy
+Provides=
+Dependencies=
+Conflicts=
+Replaces=
+LoadByDefault=false
+Version=0.12-11

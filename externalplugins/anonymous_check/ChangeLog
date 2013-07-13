@@ -1,0 +1,28 @@
+2011-12-28  Bartosz Brachaczek <b.brachaczek@gmail.com>
+
+	* Plugin made compatible with Kadu 0.11.
+
+2011-12-24  Patryk Cisek <patryk@debian.org>
+
+	* Added Debian-like revision to module version -- core part of the
+	  version incates Kadu's version to which plugin applies.
+
+2011-08-23  Piotr Galiszewski <whe@kadu.im>
+
+	* Module updated to Kadu 0.10 API
+
+2010-12-07  Patryk Cisek  <patryk@debian.org>
+
+	* Rewritten module from scratch because of major API changes
+	  between 0.6.6 and older 0.6.5.x versions of Kadu
+
+2008-02-24  Patryk Cisek  <patryk@prezu.one.pl>
+
+	* Added Polish translation
+	* Added background and font color buttons to the config dialog
+	* Version 0.2
+
+
+2008-02-23  Patryk Cisek  <patryk@prezu.one.pl>
+
+	* Initial release (version 0.1)
