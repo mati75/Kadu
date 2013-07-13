@@ -2,6 +2,7 @@ kadu (0.12.3-2) unstable; urgency=low
 
   * debian.install and debian/kadu-external-modules.install are now modified
     so they fit non-linux Debian flavors
+  * Bumped Standards-Version to 3.9.4
 
  -- Patryk Cisek <patryk@debian.org>  Sat, 13 Jul 2013 19:10:55 +0200
 
