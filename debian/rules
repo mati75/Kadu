@@ -15,6 +15,15 @@ configure-stamp:
 	mkdir $(BUILD_DIR)
 	find . -name '*.o' -delete
 	bash debian/handle_external.sh copy
+	# Default to Linux
+	debian/prepare_install_files.sh linux
+	# If kfreebsd or hurd, modify .install files
+ifeq ($(DEB_BUILD_ARCH_OS), kfreebsd)
+		debian/prepare_install_files.sh non-linux
+endif
+ifeq ($(DEB_BUILD_ARCH_OS), hurd)
+		debian/prepare_install_files.sh non-linux
+endif
 	cd $(BUILD_DIR) && cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr $(PKG_DIR)
 	touch configure-stamp
 
@@ -37,6 +46,7 @@ clean:
 	test -d $(BUILD_DIR) && cd $(BUILD_DIR) && $(MAKE) clean || true
 	rm -rf $(BUILD_DIR)
 	bash debian/handle_external.sh remove
+	debian/prepare_install_files.sh linux
 	dh_clean 
 
 install: install-indep install-arch
