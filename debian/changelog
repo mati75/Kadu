@@ -1,9 +1,9 @@
-kadu (0.12.3-3) UNRELEASED; urgency=low
+kadu (0.12.3-3) unstable; urgency=low
 
   * Fixed a build issue. Thanks Mateusz Łukasik for the patch! (Closes:
     #730923)
 
- -- Patryk Cisek <patryk@debian.org>  Fri, 06 Dec 2013 17:13:03 +0100
+ -- Patryk Cisek <patryk@debian.org>  Fri, 06 Dec 2013 20:01:13 +0100
 
 kadu (0.12.3-2) unstable; urgency=low
 
