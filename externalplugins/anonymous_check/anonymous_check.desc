@@ -1,0 +1,9 @@
+[Module]
+Description=Automatic lookup of an interlocutor in public directory
+Description[pl]=Automatyczne wyszukiwanie nieznajomych rozmówców w publicznym katalogu
+Author=Patryk Cisek
+LoadByDefault=true
+Provides=
+Conflicts=
+Plugin=true
+Version=0.11.0-1

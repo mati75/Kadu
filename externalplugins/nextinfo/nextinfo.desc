@@ -1,0 +1,14 @@
+[Module]
+Plugin=true
+Base=false
+Category=Misc
+Author=Piotr "ultr" Dąbrowski
+DisplayName=NExtInfo
+Description=New ext_info module providing extended buddies information support
+Description[pl]=Nowy moduł ext_info wprowadzający obsługę dodatkowych informacji o znajomych
+Provides=
+Dependencies=
+Conflicts=
+Replaces=
+LoadByDefault=false
+Version=0.12-9

@@ -1,0 +1,14 @@
+[Module]
+Plugin=true
+Base=false
+Category=Desktop
+Author=Piotr "ultr" Dąbrowski
+DisplayName=GlobalHotkeys
+Description=Adds global hotkeys support to Kadu
+Description[pl]=Dodaje do Kadu obsługę skrótów globalnych
+Provides=
+Dependencies=history
+Conflicts=
+Replaces=
+LoadByDefault=false
+Version=0.12-32
