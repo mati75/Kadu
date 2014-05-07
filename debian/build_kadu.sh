@@ -12,11 +12,11 @@ debian_revision=$(echo $version | awk -F "-" '{printf $2}')
 
 git clean -d -f -x
 git reset --hard
-git co 0.12/upstream-kadu
-git br -D 0.12/master || true
-git co -b 0.12/master 0.12/upstream-kadu
-git merge -m "Merging 0.12/upstream-plugins 0.12/upstream-themes 0.12/debian" \
-    0.12/upstream-plugins 0.12/upstream-themes 0.12/debian
+git co 1.0/upstream-kadu
+git br -D 1.0/master || true
+git co -b 1.0/master 1.0/upstream-kadu
+git merge -m "Merging 1.0/upstream-plugins 1.0/upstream-themes 1.0/debian" \
+    1.0/upstream-plugins 1.0/upstream-themes 1.0/debian
 
 if [ "$debian_revision" = 1 ]; then
     # Generate orig-external{plugins,themes}.tar.bz2, but only if it's first
