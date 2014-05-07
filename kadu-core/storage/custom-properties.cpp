@@ -1,6 +1,7 @@
 /*
  * %kadu copyright begin%
- * Copyright 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2012, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -19,9 +20,9 @@
 
 #include <QtCore/QVariant>
 
+#include <configuration/xml-configuration-file.h>
 #include "custom-properties.h"
 #include "storage-point.h"
-#include <configuration/xml-configuration-file.h>
 
 CustomProperties::CustomProperties(QObject *parent) :
 		QObject(parent)
@@ -46,10 +47,10 @@ void CustomProperties::loadFromModuleData(const QDomNode &node)
 		return;
 
 	const QDomNodeList &propertyNodes = element.childNodes();
-	const int propertyNodesCount = propertyNodes.length();
-	for (int i = 0; i < propertyNodesCount; i++)
+	const unsigned int propertyNodesCount = propertyNodes.length();
+	for (unsigned int i = 0; i < propertyNodesCount; i++)
 	{
-		const QDomElement &propertyElement = propertyNodes.at(i).toElement();
+		const QDomElement &propertyElement = propertyNodes.at(static_cast<const int>(i)).toElement();
 		if (!propertyElement.isElement())
 			continue;
 
@@ -60,24 +61,24 @@ void CustomProperties::loadFromModuleData(const QDomNode &node)
 	}
 }
 
-void CustomProperties::loadFrom(const QSharedPointer<StoragePoint> &storagePoint)
+void CustomProperties::loadFrom(const std::shared_ptr<StoragePoint> &storagePoint)
 {
 	if (!storagePoint)
 		return;
 
 	QDomElement element = storagePoint->point();
 	const QDomNodeList &moduleDataNodes = element.elementsByTagName("ModuleData");
-	const int moduleDataNodesCount = moduleDataNodes.length();
-	for (int i = 0; i < moduleDataNodesCount; i++)
-		loadFromModuleData(moduleDataNodes.at(i));
-	for (int i = 0; i < moduleDataNodesCount; i++)
-		element.removeChild(moduleDataNodes.at(i));
+	const unsigned int moduleDataNodesCount = moduleDataNodes.length();
+	for (unsigned int i = 0; i < moduleDataNodesCount; i++)
+		loadFromModuleData(moduleDataNodes.at(static_cast<const int>(i)));
+	for (unsigned int i = 0; i < moduleDataNodesCount; i++)
+		element.removeChild(moduleDataNodes.at(static_cast<const int>(i)));
 
 	const QDomNodeList &customProperties = element.elementsByTagName("CustomProperty");
-	const int customPropertiesCount = customProperties.length();
-	for (int i = 0; i < customPropertiesCount; i++)
+	const unsigned int customPropertiesCount = customProperties.length();
+	for (unsigned int i = 0; i < customPropertiesCount; i++)
 	{
-		const QDomElement &propertyElement = customProperties.at(i).toElement();
+		const QDomElement &propertyElement = customProperties.at(static_cast<int>(i)).toElement();
 		if (!propertyElement.isElement())
 			continue;
 
@@ -89,16 +90,16 @@ void CustomProperties::loadFrom(const QSharedPointer<StoragePoint> &storagePoint
 	}
 }
 
-void CustomProperties::storeTo(const QSharedPointer<StoragePoint> &storagePoint) const
+void CustomProperties::storeTo(const std::shared_ptr<StoragePoint> &storagePoint) const
 {
 	if (!storagePoint)
 		return;
 
 	QDomElement element = storagePoint->point();
 	const QDomNodeList &customProperties = element.elementsByTagName("CustomProperty");
-	const int customPropertiesCount = customProperties.length();
-	for (int i = 0; i < customPropertiesCount; i++)
-		element.removeChild(customProperties.at(i));
+	const unsigned int customPropertiesCount = customProperties.length();
+	for (unsigned int i = 0; i < customPropertiesCount; i++)
+		element.removeChild(customProperties.at(static_cast<int>(i)));
 
 	foreach (const QString &propertyName, StorableProperties)
 		storagePoint->storage()->createNamedTextNode(storagePoint->point(), "CustomProperty",
@@ -139,3 +140,5 @@ QVariant CustomProperties::property(const QString &name, const QVariant &default
 	else
 		return defaultValue;
 }
+
+#include "moc_custom-properties.cpp"

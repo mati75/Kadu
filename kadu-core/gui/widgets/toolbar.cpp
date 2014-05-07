@@ -1,13 +1,13 @@
 /*
  * %kadu copyright begin%
  * Copyright 2008, 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2009 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2009, 2009, 2012 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2008, 2010 Tomasz Rostański (rozteck@interia.pl)
  * Copyright 2010 Piotr Dąbrowski (ultr@ultr.pl)
  * Copyright 2009 Michał Podsiadlik (michal@kadu.net)
  * Copyright 2005, 2006 Adrian Smarzewski (adrian@kadu.net)
- * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2007, 2008, 2009, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2007, 2008 Dawid Stawiarski (neeo@kadu.net)
  * Copyright 2005, 2006, 2007 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
@@ -26,8 +26,8 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <QtCore/QMimeData>
 #include <QtCore/QTextStream>
-#include <QtCore/QTimer>
 #include <QtGui/QContextMenuEvent>
 #include <QtGui/QCursor>
 #include <QtGui/QDragEnterEvent>
@@ -44,6 +44,7 @@
 #include "icons/icons-manager.h"
 #include "icons/kadu-icon.h"
 #include "misc/change-notifier.h"
+#include "misc/change-notifier-lock.h"
 #include "misc/misc.h"
 #include "debug.h"
 
@@ -96,19 +97,17 @@ DisabledActionsWatcher *watcher = 0;
 QMap< QString, QList<ToolBar::ToolBarAction> > ToolBar::DefaultActions;
 
 ToolBar::ToolBar(QWidget *parent) :
-		QToolBar(parent), MyChangeNotifier(new ChangeNotifier(this)),  XOffset(0), YOffset(0)
+		QToolBar(parent), XOffset(0), YOffset(0)
 {
 	kdebugf();
 
-	connect(MyChangeNotifier, SIGNAL(changed()), this, SIGNAL(updated()));
+	connect(&MyChangeNotifier, SIGNAL(changed()), this, SIGNAL(updated()));
 
 	dragging = false;
 	dropmarker.visible = false;
 
 	setAcceptDrops(true);
 	setIconSize(IconsManager::instance()->getIconsSize());
-
-	setAttribute(Qt::WA_PaintOutsidePaintEvent, true);
 
 	if (!watcher)
 		watcher = new DisabledActionsWatcher();
@@ -240,7 +239,7 @@ void ToolBar::addAction(const QString &actionName, Qt::ToolButtonStyle style, QA
 	else
 		ToolBarActions.insert(beforeIndex, newAction);
 
-	MyChangeNotifier->notify();
+	MyChangeNotifier.notify();
 }
 
 void ToolBar::moveAction(const QString &actionName, Qt::ToolButtonStyle style, QAction *before)
@@ -384,7 +383,7 @@ bool ToolBar::event(QEvent *event)
 
 	// this is for toolbar dragging
 	if (result && QEvent::MouseButtonRelease == event->type() && static_cast<QMouseEvent *>(event)->button() == Qt::LeftButton)
-		MyChangeNotifier->notify();
+		MyChangeNotifier.notify();
 
 	return result;
 }
@@ -622,7 +621,7 @@ void ToolBar::loadFromConfig(const QDomElement &toolbar_element)
 {
 	kdebugf();
 
-	MyChangeNotifier->block();
+	ChangeNotifierLock lock(MyChangeNotifier, ChangeNotifierLock::ModeForget);
 
 //	QString align = toolbar_element.attribute("align");
 //	if (align == "right")
@@ -684,9 +683,6 @@ void ToolBar::loadFromConfig(const QDomElement &toolbar_element)
 
 		addAction(actionName, buttonStyle, 0);
 	}
-
-	MyChangeNotifier->forget();
-	MyChangeNotifier->unblock();
 
 	kdebugf2();
 }
@@ -820,7 +816,12 @@ void ToolBar::addSpacerClicked()
 void ToolBar::removeToolbar()
 {
 	kdebugf();
-	if (MessageDialog::ask(KaduIcon("dialog-warning"), tr("Kadu"), tr("Do you really want to remove selected toolbar?"), this))
+
+	MessageDialog *dialog = MessageDialog::create(KaduIcon("dialog-warning"), tr("Kadu"), tr("Do you really want to remove this toolbar?"), this);
+	dialog->addButton(QMessageBox::Yes, tr("Remove toolbar"));
+	dialog->addButton(QMessageBox::No, tr("Cancel"));
+
+	if (dialog->ask())
 		emit removed(this); // parent window will remove this toolbar
 	kdebugf2();
 }
@@ -856,7 +857,7 @@ void ToolBar::removeButton()
 			removeAction(toolBarAction.action);
 			ToolBarActions.removeOne(toolBarAction);
 			currentWidget = 0;
-			MyChangeNotifier->notify();
+			MyChangeNotifier.notify();
 			return;
 		}
 }
@@ -872,7 +873,7 @@ void ToolBar::removeSeparator()
 			removeAction(toolBarAction.action);
 			ToolBarActions.removeOne(toolBarAction);
 			currentWidget = 0;
-			MyChangeNotifier->notify();
+			MyChangeNotifier.notify();
 			return;
 		}
 }
@@ -888,7 +889,7 @@ void ToolBar::removeSpacer()
 			removeAction(toolBarAction.action);
 			ToolBarActions.removeOne(toolBarAction);
 			currentWidget = 0;
-			MyChangeNotifier->notify();
+			MyChangeNotifier.notify();
 			return;
 		}
 }
@@ -900,7 +901,7 @@ void ToolBar::deleteAction(const QString &actionName)
 		{
 			removeAction(toolBarAction.action);
 			ToolBarActions.removeOne(toolBarAction);
-			MyChangeNotifier->notify();
+			MyChangeNotifier.notify();
 			return;
 		}
 
@@ -919,7 +920,7 @@ void ToolBar::slotContextIcons()
 		{
 			(*toolBarAction).style = Qt::ToolButtonIconOnly;
 			currentButton->setToolButtonStyle(Qt::ToolButtonIconOnly);
-			MyChangeNotifier->notify();
+			MyChangeNotifier.notify();
 			return;
 		}
 	}
@@ -938,7 +939,7 @@ void ToolBar::slotContextText()
 		{
 			(*toolBarAction).style = Qt::ToolButtonTextOnly;
 			currentButton->setToolButtonStyle(Qt::ToolButtonTextOnly);
-			MyChangeNotifier->notify();
+			MyChangeNotifier.notify();
 			return;
 		}
 	}
@@ -957,7 +958,7 @@ void ToolBar::slotContextTextUnder()
 		{
 			(*toolBarAction).style = Qt::ToolButtonTextUnderIcon;
 			currentButton->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
-			MyChangeNotifier->notify();
+			MyChangeNotifier.notify();
 			return;
 		}
 	}
@@ -976,7 +977,7 @@ void ToolBar::slotContextTextRight()
 		{
 			(*toolBarAction).style = Qt::ToolButtonTextBesideIcon;
 			currentButton->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
-			MyChangeNotifier->notify();
+			MyChangeNotifier.notify();
 			return;
 		}
 	}
@@ -1082,7 +1083,7 @@ void ToolBar::paintEvent(QPaintEvent *event)
 {
 	QToolBar::paintEvent(event);
 	if (dropmarker.visible)
-		QTimer::singleShot(0, this, SLOT(paintDropMarker()));
+		paintDropMarker();
 }
 
 void ToolBar::paintDropMarker()
@@ -1210,3 +1211,5 @@ int ToolBarSpacer::token()
 	++Token;
 	return Token;
 }
+
+#include "moc_toolbar.cpp"

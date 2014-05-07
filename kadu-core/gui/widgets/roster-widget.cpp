@@ -1,6 +1,8 @@
 /*
  * %kadu copyright begin%
- * Copyright 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -26,7 +28,8 @@
 #include "configuration/configuration-file.h"
 #include "gui/widgets/filter-widget.h"
 #include "gui/widgets/filtered-tree-view.h"
-#include "gui/widgets/group-tab-bar.h"
+#include "gui/widgets/group-tab-bar/group-tab-bar.h"
+#include "gui/widgets/group-tab-bar/group-tab-bar-configurator.h"
 #include "gui/widgets/talkable-tree-view.h"
 #include "gui/windows/proxy-action-context.h"
 #include "model/model-chain.h"
@@ -48,13 +51,15 @@ RosterWidget::RosterWidget(QWidget *parent) :
 	createGui();
 
 	Context->setForwardActionContext(TalkableTree->actionContext());
-	GroupFilter->setGroup(GroupBar->group());
+	MyGroupFilter->setGroupFilter(GroupBar->groupFilter());
 
 	configurationUpdated();
 }
 
 RosterWidget::~RosterWidget()
 {
+	storeConfiguration();
+
 	delete Context;
 	Context = 0;
 }
@@ -66,6 +71,9 @@ void RosterWidget::createGui()
 	layout->setSpacing(0);
 
 	GroupBar = new GroupTabBar(this);
+	TabBarConfigurator.reset(new GroupTabBarConfigurator());
+	TabBarConfigurator->setGroupTabBar(GroupBar);
+
 	createTalkableWidget(this);
 
 	layout->addWidget(GroupBar);
@@ -119,12 +127,13 @@ void RosterWidget::configurationUpdated()
 		TalkableTree->setBackground(bgColor, alternateBgColor);
 	}
 
-	triggerCompositingStateChanged();
+	triggerCompositingStateChanged();;
+}
 
-	if (config_file.readBoolEntry("Look", "DisplayGroupTabs", true))
-		GroupFilter->setAllGroupShown(config_file.readBoolEntry("Look", "ShowGroupAll", true));
-	else
-		GroupFilter->setAllGroupShown(true);
+void RosterWidget::storeConfiguration()
+{
+	if (TabBarConfigurator)
+		TabBarConfigurator->storeConfiguration();
 }
 
 void RosterWidget::compositingEnabled()
@@ -179,9 +188,9 @@ ModelChain * RosterWidget::createModelChain()
 	connect(TalkableWidget, SIGNAL(filterChanged(QString)), nameTalkableFilter, SLOT(setName(QString)));
 	ProxyModel->addFilter(nameTalkableFilter);
 
-	GroupFilter = new GroupTalkableFilter(ProxyModel);
-	connect(GroupBar, SIGNAL(currentGroupChanged(Group)), GroupFilter, SLOT(setGroup(Group)));
-	ProxyModel->addFilter(GroupFilter);
+	MyGroupFilter = new GroupTalkableFilter(ProxyModel);
+	connect(GroupBar, SIGNAL(currentGroupFilterChanged(GroupFilter)), MyGroupFilter, SLOT(setGroupFilter(GroupFilter)));
+	ProxyModel->addFilter(MyGroupFilter);
 
 	chain->addProxyModel(ProxyModel);
 
@@ -222,3 +231,5 @@ void RosterWidget::clearFilter()
 {
 	TalkableWidget->filterWidget()->setFilter(QString());
 }
+
+#include "moc_roster-widget.cpp"

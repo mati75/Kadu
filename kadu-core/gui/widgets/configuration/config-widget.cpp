@@ -1,6 +1,7 @@
 /*
  * %kadu copyright begin%
  * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2012 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
  * Copyright 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
@@ -41,6 +42,10 @@ ConfigWidget::ConfigWidget(const QString &widgetCaption, const QString &toolTip,
 bool ConfigWidget::fromDomElement(QDomElement domElement)
 {
 	widgetCaption = domElement.attribute("caption");
+
+	CurrentWidgetId = domElement.attribute("id");
+	ParentWidgetId = domElement.attribute("parent-widget");
+	StateDependency = domElement.attribute("state-dependency");
 
 	if (widgetCaption.isEmpty())
 		return false;

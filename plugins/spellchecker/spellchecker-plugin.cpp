@@ -4,7 +4,7 @@
  * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2011 Sławomir Stępień (s.stepien@interia.pl)
  * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -21,6 +21,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "core/core.h"
 #include "misc/kadu-paths.h"
 
 #include "configuration/spellchecker-configuration.h"
@@ -41,17 +42,19 @@ SpellCheckerPlugin::~SpellCheckerPlugin()
 	Instance = 0;
 }
 
-int SpellCheckerPlugin::init(bool firstLoad)
+bool SpellCheckerPlugin::init(bool firstLoad)
 {
 	Q_UNUSED(firstLoad)
 
 	SpellCheckerInstance = new SpellChecker(this);
+	SpellCheckerInstance->setChatWidgetRepository(Core::instance()->chatWidgetRepository());
+
 	SpellcheckerConfiguration::createInstance();
 
 	MainConfigurationWindow::registerUiFile(KaduPaths::instance()->dataPath() + QLatin1String("plugins/configuration/spellchecker.ui"));
 	MainConfigurationWindow::registerUiHandler(SpellCheckerInstance);
 
-	return 0;
+	return true;
 }
 
 void SpellCheckerPlugin::done()
@@ -67,3 +70,5 @@ void SpellCheckerPlugin::done()
 }
 
 Q_EXPORT_PLUGIN2(spellchecker, SpellCheckerPlugin)
+
+#include "moc_spellchecker-plugin.cpp"

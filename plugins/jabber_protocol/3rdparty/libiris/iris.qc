@@ -13,6 +13,9 @@
  <dep type='universal'>
   <required/>
  </dep>
+ <dep type='idn'>
+  <required/>
+ </dep>
  <dep type='qca'>
   <required/>
  </dep>
@@ -20,6 +23,9 @@
   <required/>
  </dep>
  <dep type='extra'>
+  <required/>
+ </dep>
+ <dep type='qjdns'>
   <required/>
  </dep>
 </qconf>

@@ -11,8 +11,8 @@
  * Copyright 2005 Paweł Płuciennik (pawel_p@kadu.net)
  * Copyright 2002, 2003 Tomasz Chiliński (chilek@chilan.com)
  * Copyright 2010 badboy (badboy@gen2.org)
- * Copyright 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2008, 2009, 2010, 2011, 2012, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2006, 2007, 2008, 2009 Dawid Stawiarski (neeo@kadu.net)
  * Copyright 2004, 2005, 2006, 2007 Marcin Ślusarz (joi@kadu.net)
  * Copyright 2002, 2003 Dariusz Jagodzik (mast3r@kadu.net)
@@ -36,6 +36,7 @@
 #include <QtCore/QString>
 #include <QtCore/QTextStream>
 #include <QtCore/QUrl>
+#include <QtGui/QApplication>
 #include <QtGui/QHBoxLayout>
 #include <QtGui/QKeyEvent>
 #include <QtGui/QMouseEvent>
@@ -46,13 +47,15 @@
 #include <QtGui/QTextEdit>
 #include <QtGui/QVBoxLayout>
 
+#include "configuration/config-file-variant-wrapper.h"
 #include "core/core.h"
+#include "dom/dom-processor-service.h"
 #include "icons/kadu-icon.h"
-#include "misc/misc.h"
+#include "misc/kadu-paths.h"
 #include "os/generic/url-opener.h"
-#include "url-handlers/mail-url-handler.h"
+#include "os/generic/window-geometry-manager.h"
+#include "url-handlers/url-handler-manager.h"
 #include "debug.h"
-#include "html_document.h"
 
 #include "about.h"
 
@@ -115,21 +118,13 @@ About::About(QWidget *parent) :
 	tb_authors->setFrameStyle(QFrame::NoFrame);
 	tb_authors->viewport()->setAutoFillBackground(false);
 	tb_authors->setTextInteractionFlags(Qt::TextBrowserInteraction);
-	QString authors = loadFile("AUTHORS");
-	authors.remove(QRegExp("[<>]"));
-	authors = Qt::escape(authors);
+	QString authors = loadFile("AUTHORS.html");
+	authors.remove(QRegExp("[\\[\\]]"));
 	// convert the email addresses
 	authors.replace(" (at) ", "@");
 	authors.replace(" (dot) ", ".");
-	authors.prepend("<b>");
-	authors.replace("\n   ", "</b><br/>&nbsp;&nbsp;&nbsp;");
-	authors.replace('\n', QLatin1String("</b><br/><b>"));
-	HtmlDocument authors_html;
-	authors_html.parseHtml(authors);
-	MailUrlHandler *handler = new MailUrlHandler;
-	handler->convertUrlsToHtml(authors_html, true);
-	delete handler;
-	tb_authors->setHtml(authors_html.generateHtml());
+	authors = Core::instance()->domProcessorService()->process(authors);
+	tb_authors->setHtml(authors);
 
 	// people to thank
 	QTextEdit *tb_thanks = new QTextEdit(tw_about);
@@ -140,9 +135,7 @@ About::About(QWidget *parent) :
 	thanks.prepend("<b>");
 	thanks.replace("\n\n", QLatin1String("</b><br/><br/>"));
 	thanks.replace("\n   ", "<br/>&nbsp;&nbsp;&nbsp;");
-	HtmlDocument thanks_html;
-	thanks_html.parseHtml(thanks);
-	tb_thanks->setHtml(thanks_html.generateHtml());
+	tb_thanks->setHtml(thanks);
 
 	// license
 	QTextEdit *tb_license = new QTextEdit(tw_about);
@@ -160,9 +153,6 @@ About::About(QWidget *parent) :
 	tb_changelog->viewport()->setAutoFillBackground(false);
 	QString changelog = Qt::escape(loadFile("ChangeLog"));
 	changelog.replace('\n', "<br/>");
-	HtmlDocument changelog_html;
-	changelog_html.parseHtml(changelog);
-	changelog = changelog_html.generateHtml();
 	// #bug_no -> Redmine URL
 	changelog.replace(QRegExp("#(\\d+)"), "<a href=\"http://www.kadu.im/redmine/issues/\\1\">#\\1</a>");
 	// bold headers with green "+++"
@@ -209,7 +199,7 @@ About::About(QWidget *parent) :
 	//slayout->addWidget(left);
 	layout->addWidget(center);
 
-	loadWindowGeometry(this, "General", "AboutGeometry", 0, 50, 480, 380);
+	new WindowGeometryManager(new ConfigFileVariantWrapper("General", "AboutGeometry"), QRect(0, 50, 480, 380), this);
 
 	kdebugf2();
 }
@@ -217,8 +207,6 @@ About::About(QWidget *parent) :
 About::~About()
 {
 	kdebugf();
-
- 	saveWindowGeometry(this, "General", "AboutGeometry");
 
 	kdebugf2();
 }
@@ -278,3 +266,5 @@ void KaduLink::mousePressEvent(QMouseEvent *)
 {
 	UrlOpener::openUrl(Link);
 }
+
+#include "moc_about.cpp"

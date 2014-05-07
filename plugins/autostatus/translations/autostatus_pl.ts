@@ -6,14 +6,6 @@
         <translation>Status</translation>
     </message>
     <message>
-        <source>Autostatus</source>
-        <translation>Automatyczny status</translation>
-    </message>
-    <message>
-        <source>General</source>
-        <translation>Ogólne</translation>
-    </message>
-    <message>
         <source>Autostatus file</source>
         <translation>Plik z automatycznymi statusami</translation>
     </message>
@@ -36,6 +28,18 @@
     <message>
         <source>Invisible</source>
         <translation>Niewidoczny</translation>
+    </message>
+    <message>
+        <source>Behaviour</source>
+        <translation>Zachowanie</translation>
+    </message>
+    <message>
+        <source>Description</source>
+        <translation>Opis</translation>
+    </message>
+    <message>
+        <source>AutoStatus</source>
+        <translation>Automatyczny status</translation>
     </message>
 </context>
 <context>

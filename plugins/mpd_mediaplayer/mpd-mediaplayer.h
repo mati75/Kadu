@@ -27,17 +27,18 @@
 
 #include <mpd/client.h>
 
-#include "plugins/generic-plugin.h"
+#include "plugin/plugin-root-component.h"
 
 #include "plugins/mediaplayer/player_commands.h"
 #include "plugins/mediaplayer/player_info.h"
 
 #include "mpd-config.h"
 
-class MPDMediaPlayer : public PlayerCommands, PlayerInfo, GenericPlugin
+class MPDMediaPlayer : public PlayerCommands, PlayerInfo, PluginRootComponent
 {
 	Q_OBJECT
-	Q_INTERFACES(GenericPlugin)
+	Q_INTERFACES(PluginRootComponent)
+	Q_PLUGIN_METADATA(IID "im.kadu.PluginRootComponent")
 
 	MPDConfig Config;
 
@@ -45,7 +46,7 @@ public:
 	explicit MPDMediaPlayer(QObject *parent = 0);
 	virtual ~MPDMediaPlayer();
 
-	virtual int init(bool firstLoad);
+	virtual bool init(bool firstLoad);
 	virtual void done();
 
 	mpd_connection * mpdConnect();

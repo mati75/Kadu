@@ -1,7 +1,7 @@
 /*
  * %kadu copyright begin%
  * Copyright 2008, 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2009, 2012 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2009, 2009 Bartłomiej Zimoń (uzi18@o2.pl)
  * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
@@ -21,8 +21,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef TABS_TABS_H
-#define TABS_TABS_H
+#pragma once
 
 /*
  * autor
@@ -40,12 +39,15 @@
 #include "misc/misc.h"
 #include "storage/storable-object.h"
 
-#include "tabwidget.h"
+#include "gui/widgets/tab-widget.h"
 
 class QAction;
 class QMenu;
+
 class Action;
 class ActionDescription;
+class ChatWidget;
+class ChatWidgetRepository;
 
 class TabsManager : public ConfigurationUiHandler, ConfigurationAwareObject, StorableObject
 {
@@ -55,17 +57,17 @@ class TabsManager : public ConfigurationUiHandler, ConfigurationAwareObject, Sto
 	// that one more friend class wont do a difference
 	friend class TabWidget;
 
+	QPointer<ChatWidgetRepository> m_chatWidgetRepository;
+
 	void createDefaultConfiguration();
 
 	ActionDescription *OpenInNewTabActionDescription;
 	ActionDescription *AttachToTabsActionDescription;
 	TabWidget *TabDialog;
 	QTimer Timer;
-	QList<ChatWidget *> ChatsWithNewMessages;
 	QList<ChatWidget *> NewChats;
 	QList<ChatWidget *> DetachedChats;
-	bool NoTabs;
-	bool ForceTabs;
+	QList<Chat> ClosedChats;
 
 	int TargetTabs;
 	void insertTab(ChatWidget *chatWidget);
@@ -75,6 +77,7 @@ class TabsManager : public ConfigurationUiHandler, ConfigurationAwareObject, Sto
 	QAction *DetachTabMenuAction;
 	QAction *CloseTabMenuAction;
 	QAction *CloseOtherTabsMenuAction;
+	QAction *ReopenClosedTabMenuAction;
 
 	void updateTabName(ChatWidget *chatWidget);
 	void updateTabIcon(ChatWidget *chatWidget);
@@ -89,6 +92,11 @@ class TabsManager : public ConfigurationUiHandler, ConfigurationAwareObject, Sto
 	bool ConfigBlinkChatTitle;
 	bool ConfigShowNewMessagesNum;
 
+	ChatWidget * chatWidgetWithUnreadMessage() const;
+
+	QString defaultChatTitle(const Chat &chat) const;
+	QString shortChatTitle(const QString &chatTitle) const;
+
 private slots:
 	void onTimer();
 	void onContextMenu(QWidget *w, const QPoint &pos);
@@ -97,6 +105,7 @@ private slots:
 	void onMenuActionClose();
 	void onMenuActionCloseAll();
 	void onMenuActionCloseAllButActive();
+	void reopenClosedChat();
 
 protected:
 	virtual void configurationUpdated();
@@ -108,20 +117,27 @@ public:
 	explicit TabsManager(QObject *parent = 0);
 	virtual ~TabsManager();
 
+	TabWidget * tabWidget() { return TabDialog; }
+
+	void openStoredChatTabs();
+	void storeOpenedChatTabs();
+
+	void setChatWidgetRepository(ChatWidgetRepository *chatWidgetRepository);
+
 	virtual void mainConfigurationWindowCreated(MainConfigurationWindow *mainConfigurationWindow);
 
-	bool detachChat(ChatWidget *chatWidget);
+	void detachChat(ChatWidget *chatWidget);
 
 	virtual StorableObject * storageParent() { return 0; }
 	virtual QString storageNodeName() { return QLatin1String("ModuleTabs"); }
 
-	void setTabTextAndTooltipIfDiffer(int index, const QString &text, const QString &tooltip);
+	void updateTabTextAndTooltip(int index, const QString &text, const QString &tooltip);
 
-	void addChatWidgetToChatWidgetsWithMessage(ChatWidget *chatWidget);
-	void removeChatWidgetFromChatWidgetsWithMessage(ChatWidget *chatWidget);
+	bool acceptChatWidget(ChatWidget *chatWidget) const;
+	void addChatWidget(ChatWidget *chatWidget);
+	void removeChatWidget(ChatWidget *chatWidget);
 
 public slots:
-	void onNewChat(ChatWidget *chatWidget, bool &handled);
 	void onDestroyingChat(ChatWidget *chatWidget);
 	void onIconChanged();
 	void onTitleChanged(ChatWidget *chatWidget, const QString &newTitle);
@@ -130,14 +146,15 @@ public slots:
 
 	void onNewTab(QAction *sender, bool toggled);
 
-	void openTabWith(QStringList altnicks, int index);
-
 	void onTabAttach(QAction *sender, bool toggled);
 
 	void attachToTabsActionCreated(Action *action);
 
 	void closeChat();
+	void unreadMessagesCountChanged(ChatWidget *chatWidget);
+
+signals:
+	void chatWidgetActivated(ChatWidget *chatWidget);
+	void chatWidgetAcceptanceChanged(ChatWidget *chatWidget);
 
 };
-
-#endif // TABS_TABS_H

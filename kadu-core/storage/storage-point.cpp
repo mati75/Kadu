@@ -3,7 +3,7 @@
  * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
  * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
- * Copyright 2007, 2008, 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
@@ -42,7 +42,7 @@ StoragePoint::StoragePoint(XmlConfigFile *storage, QDomElement point)
  *
  * Returns pointer to current XML storage file.
  */
-XmlConfigFile * StoragePoint::storage()
+XmlConfigFile * StoragePoint::storage() const
 {
 	return Storage;
 }
@@ -53,7 +53,27 @@ XmlConfigFile * StoragePoint::storage()
  *
  * Returns current parent DOM Node for this object.
  */
-QDomElement StoragePoint::point()
+QDomElement StoragePoint::point() const
 {
 	return Point;
+}
+
+void StoragePoint::storeValue(const QString &name, const QVariant value)
+{
+	Storage->createTextNode(Point, name, value.toString());
+}
+
+void StoragePoint::storeAttribute(const QString &name, const QVariant value)
+{
+	Point.setAttribute(name, value.toString());
+}
+
+void StoragePoint::removeValue(const QString& name)
+{
+	Storage->removeNode(Point, name);
+}
+
+void StoragePoint::removeAttribute(const QString& name)
+{
+	Point.removeAttribute(name);
 }

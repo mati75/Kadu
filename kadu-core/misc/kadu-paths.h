@@ -1,8 +1,6 @@
 /*
  * %kadu copyright begin%
- * Copyright 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -41,7 +39,7 @@ class KADUAPI KaduPaths
 
 	static KaduPaths *Instance;
 
-#ifdef Q_WS_X11
+#if defined(Q_OS_UNIX) && !defined(Q_OS_MAC)
 	QString DesktopFilePath;
 #endif
 	QString ProfilePath;
@@ -78,7 +76,7 @@ public:
 	 */
 	static QString webKitPath(const QString &path);
 
-#ifdef Q_WS_X11
+#if defined(Q_OS_UNIX) && !defined(Q_OS_MAC)
 	/**
 	 * @short Returns absolute path to the .desktop file owned by Kadu.
 	 * @return absolute path to the .desktop file owned by Kadu
@@ -108,7 +106,7 @@ public:
 	 *
 	 * Default data path is $CMAKE_INSTALL_FULL_DATADIR/kadu on X11 and
 	 * $CMAKE_INSTALL_PREFIX on Windows. It can be overwritten by
-	 * KADU_DATADIR CMake argument.
+	 * KADU_INSTALL_DATA_DIR CMake argument.
 	 */
 	const QString & dataPath() const { return DataPath; }
 
@@ -124,7 +122,7 @@ public:
 	 *
 	 * Default library path for plugins is $CMAKE_INSTALL_FULL_LIBDIR/kadu/plugins
 	 * on X11 and $CMAKE_INSTALL_PREFIX/plugins on Windows. It can be overwritten by
-	 * KADU_PLUGINS_LIBDIR CMake argument.
+	 * KADU_INSTALL_PLUGINS_LIB_DIR CMake argument.
 	 */ 
 	const QString & pluginsLibPath() const { return PluginsLibPath; }
 

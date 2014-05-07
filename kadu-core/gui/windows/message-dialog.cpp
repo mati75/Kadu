@@ -1,15 +1,15 @@
 /*
  * %kadu copyright begin%
  * Copyright 2008, 2009, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2010 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2009, 2010, 2012 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2010 Tomasz Rostański (rozteck@interia.pl)
  * Copyright 2010 Piotr Dąbrowski (ultr@ultr.pl)
  * Copyright 2004 Tomasz Jarzynka (tomee@cpi.pl)
  * Copyright 2009 Michał Podsiadlik (michal@kadu.net)
  * Copyright 2003, 2005 Adrian Smarzewski (adrian@kadu.net)
  * Copyright 2003 Tomasz Chiliński (chilek@chilan.com)
- * Copyright 2007, 2008, 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2007, 2008 Dawid Stawiarski (neeo@kadu.net)
  * Copyright 2004, 2005, 2006, 2007 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
@@ -33,40 +33,59 @@
 
 #include "message-dialog.h"
 
-namespace MessageDialog
-{
 
-static QMessageBox * createMessageBox(const KaduIcon &icon, const QString &title, const QString &text,
-		QMessageBox::StandardButtons buttons, QWidget *parent, Qt::WindowFlags f)
+MessageDialog * MessageDialog::create(const KaduIcon &icon, const QString &title, const QString &text, QWidget *parent, Qt::WindowFlags f)
 {
-	QMessageBox *mb = new QMessageBox(QMessageBox::NoIcon, title, text, buttons, parent, f);
-	mb->setAttribute(Qt::WA_DeleteOnClose, true);
+	return new MessageDialog(icon, title, text, QMessageBox::NoButton, parent, f);
+}
 
-	int iconSize = mb->style()->pixelMetric(QStyle::PM_MessageBoxIconSize, 0, mb);
+void MessageDialog::show(const KaduIcon &icon, const QString &title, const QString &text, QMessageBox::StandardButtons buttons, QWidget *parent, Qt::WindowFlags f)
+{
+	auto dialog = new MessageDialog(icon, title, text, buttons, parent, f);
+	dialog->exec();
+}
+
+MessageDialog::MessageDialog(const KaduIcon &icon, const QString &title, const QString &text, QMessageBox::StandardButtons buttons, QWidget *parent, Qt::WindowFlags f)
+{
+	Box = new QMessageBox(QMessageBox::NoIcon, title, text, buttons, parent, f);
+	connect(Box, SIGNAL(finished(int)), this, SLOT(messageBoxFinished(int)));
+	Box->setAttribute(Qt::WA_DeleteOnClose, true);
+
+	int iconSize = Box->style()->pixelMetric(QStyle::PM_MessageBoxIconSize, 0, Box);
 	QPixmap pixmap(icon.icon().pixmap(iconSize, iconSize));
 	if (!pixmap.isNull())
-		mb->setIconPixmap(pixmap);
-
-	return mb;
+		Box->setIconPixmap(pixmap);
 }
 
-void show(const KaduIcon &icon, const QString &title, const QString &text,
-		QMessageBox::StandardButtons buttons, QWidget *parent, Qt::WindowFlags f)
+void MessageDialog::messageBoxFinished(int result)
 {
-	QMessageBox *mb = createMessageBox(icon, title, text, buttons, parent, f);
-	mb->show();
+	Q_UNUSED(result)
+
+	deleteLater();
 }
 
-int exec(const KaduIcon &icon, const QString &title, const QString &text,
-		QMessageBox::StandardButtons buttons, QWidget *parent, Qt::WindowFlags f)
+MessageDialog * MessageDialog::addButton(QMessageBox::StandardButton button, const QString &text)
 {
-	QMessageBox *mb = createMessageBox(icon, title, text, buttons, parent, f);
-	return mb->exec();
+	Box->addButton(button);
+	if (!text.isEmpty())
+		Box->setButtonText(button, text);
+
+	return this;
 }
 
-bool ask(const KaduIcon &icon, const QString &title, const QString &text, QWidget *parent, Qt::WindowFlags f)
+void MessageDialog::setDefaultButton(QMessageBox::StandardButton button)
 {
-	return QMessageBox::Yes == exec(icon, title, text, QMessageBox::Yes | QMessageBox::No, parent, f);
+	Box->setDefaultButton(button);
 }
 
-} // namespace
+int MessageDialog::exec()
+{
+	return Box->exec();
+}
+
+bool MessageDialog::ask()
+{
+	return QMessageBox::Yes == Box->exec();
+}
+
+#include "moc_message-dialog.cpp"

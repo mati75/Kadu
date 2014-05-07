@@ -5,8 +5,8 @@
  * Copyright 2011 Piotr Dąbrowski (ultr@ultr.pl)
  * Copyright 2008, 2009 Michał Podsiadlik (michal@kadu.net)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
- * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2007, 2008, 2009, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2012 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2007, 2008 Dawid Stawiarski (neeo@kadu.net)
  * %kadu copyright end%
  *
@@ -28,45 +28,93 @@
 #define GADU_CHAT_IMAGE_SERVICE
 
 #include "protocols/protocol.h"
+#include "protocols/services/chat-image.h"
 
 #include "protocols/services/chat-image-service.h"
 
-class GaduProtocol;
+class GaduChatService;
+class GaduConnection;
 
+/**
+ * @addtogroup Gadu
+ * @{
+ */
+
+/**
+ * @class GaduChatImageService
+ * @short Service for downloading and uploading avatars in Gadu-Gadu protocol.
+ * @author Rafał 'Vogel' Malinowski
+ *
+ * This service requries proper GaduConnection instance to work. Set it using setConnection() method.
+ *
+ * This service will only allow for some number of images sent by peers per minute to disable DOS attacks.
+ * To manually re-enable receiving images in given minute call resetSendImageRequests().
+ */
 class GaduChatImageService : public ChatImageService
 {
 	Q_OBJECT
 
-	struct ImageToSend
-	{
-		QString fileName;
-		QDateTime lastSent;
-		QByteArray content;
-		quint32 crc32;
-	};
-	QMap<QPair<quint32, quint32>, ImageToSend> ImagesToSend;
+	static const qint64 RECOMMENDED_MAXIMUM_SIZE = 255 * 1024;
 
-	GaduProtocol *Protocol;
-	unsigned int CurrentMinuteSendImageRequests;
+	QMap<ChatImage, QByteArray> ChatImages;
 
-	QString saveImage(UinType sender, quint32 size, quint32 crc32, const char *data);
-	void loadImageContent(ImageToSend &image);
+	QPointer<GaduConnection> Connection;
+	QPointer<GaduChatService> CurrentChatService;
+
+	bool ReceiveImages;
 
 	friend class GaduProtocolSocketNotifiers;
 	void handleEventImageRequest(struct gg_event *e);
 	void handleEventImageReply(struct gg_event *e);
 
+	ChatImage chatImageFromSizeCrc32(quint32 size, quint32 crc32) const;
+
+private slots:
+	void chatImageKeyReceivedSlot(const QString &id, const ChatImage &chatImage);
+
 public:
-	GaduChatImageService(GaduProtocol *protocol);
+	/**
+	 * @short Create new instance of GaduChatImageService.
+	 * @author Rafał 'Vogel' Malinowski
+	 * @param account account bounded to this service
+	 * @param parent QObject parent
+	 */
+	explicit GaduChatImageService(Account account, QObject *parent = 0);
+	virtual ~GaduChatImageService();
 
-	void resetSendImageRequests() { CurrentMinuteSendImageRequests = 0; }
-	bool sendImageRequest(Contact contact, int size, quint32 crc32);
-	void prepareImageToSend(const QString &imageFileName, quint32 &size, quint32 &crc32);
+	/**
+	 * @short Set connection for this service.
+	 * @author Rafał 'Vogel' Malinowski
+	 * @param connection connection for this service
+	 */
+	void setConnection(GaduConnection *connection);
 
-	virtual qint64 softSizeLimit();
-	virtual qint64 hardSizeLimit();
-	virtual bool showSoftSizeWarning(Account account);
+	/**
+	 * @short Set chat service for this service.
+	 * @author Rafał 'Vogel' Malinowski
+	 * @param gaduChatService chat service for this service
+	 *
+	 * This service is used to get information about received image keys.
+	 */
+	void setGaduChatService(GaduChatService *gaduChatService);
+
+	/**
+	 * @short Enable or disable receiving images.
+	 * @author Rafał 'Vogel' Malinowski
+	 * @param receiveImages new value of receiveImages property
+	 *
+	 * Default value of receiveImages is false. Set it to true to receive images.
+	 */
+	void setReceiveImages(bool receiveImages);
+
+	virtual Error checkImageSize(qint64 size) const;
+	virtual ChatImage prepareImageToBeSent(const QByteArray &imageData);
+	virtual void requestChatImage(const QString &id, const ChatImage &chatImage);
 
 };
+
+/**
+ * @}
+ */
 
 #endif // GADU_CHAT_IMAGE_SERVICE

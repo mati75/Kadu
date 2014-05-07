@@ -150,20 +150,12 @@
         <translation>64px</translation>
     </message>
     <message>
-        <source>Show buttons only when necessary</source>
-        <translation>Ukázat tlačítka, jen pokud je to nutné</translation>
-    </message>
-    <message>
         <source>New Chat/Message</source>
         <translation>Nový rozhovor/zpráva</translation>
     </message>
     <message>
         <source>Advanced</source>
         <translation>Pokročilé</translation>
-    </message>
-    <message>
-        <source>Advanced...</source>
-        <translation>Pokročilé...</translation>
     </message>
     <message>
         <source> px</source>
@@ -224,6 +216,14 @@
     <message>
         <source>&lt;b&gt;Here&lt;/b&gt; you can see the preview</source>
         <translation>&lt;b&gt;Zde&lt;/b&gt; si můžete prohlédnout náhled</translation>
+    </message>
+    <message>
+        <source>Show buttons only if notification requires user&apos;s action</source>
+        <translation>Ukázat tlačítka, jen když oznámení vyžaduje činnost uživatele</translation>
+    </message>
+    <message>
+        <source>Hints size and position...</source>
+        <translation>Velikost a umístění rad...</translation>
     </message>
 </context>
 <context>

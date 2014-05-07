@@ -4,8 +4,8 @@
  * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
  * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
- * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2007, 2008, 2009, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
@@ -68,12 +68,34 @@ void EncryptionChatData::setEncrypt(bool encrypt)
 		MyChat.removeProperty("encryption-ng:Encrypt");
 }
 
+void EncryptionChatData::setLastEncryptionProviderName(const QString &lastEncryptionProviderName)
+{
+	MyChat.addProperty("encryption-ng:LastEncryptionProviderName", lastEncryptionProviderName, CustomProperties::Storable);
+}
+
+QString EncryptionChatData::lastEncryptionProviderName() const
+{
+	return MyChat.property("encryption-ng:LastEncryptionProviderName", QString()).toString();
+}
+
 void EncryptionChatData::setEncryptor(Encryptor *encryptor)
 {
 	ChatEncryptor = encryptor;
+}
+
+Encryptor * EncryptionChatData::encryptor() const
+{
+	return ChatEncryptor.data();
 }
 
 void EncryptionChatData::setDecryptor(Decryptor *decryptor)
 {
 	ChatDecryptor = decryptor;
 }
+
+Decryptor * EncryptionChatData::decryptor() const
+{
+	return ChatDecryptor.data();
+}
+
+#include "moc_encryption-chat-data.cpp"

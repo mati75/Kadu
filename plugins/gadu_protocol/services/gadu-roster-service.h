@@ -2,7 +2,7 @@
  * %kadu copyright begin%
  * Copyright 2008, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2008 Michał Podsiadlik (michal@kadu.net)
- * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2007, 2008, 2009, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2007, 2008 Dawid Stawiarski (neeo@kadu.net)
  * %kadu copyright end%
@@ -24,17 +24,19 @@
 #ifndef GADU_USERLIST_HANDLER_H
 #define GADU_USERLIST_HANDLER_H
 
-#include <libgadu.h>
+#include "protocols/services/roster/roster-service.h"
 
-#include "protocols/services/roster-service.h"
+struct gg_session;
+
+class GaduConnection;
 
 class GaduRosterService : public RosterService
 {
 	Q_OBJECT
 
-	gg_session *GaduSession;
+	QPointer<GaduConnection> Connection;
 
-	void updateFlag(int uin, int newFlags, int oldFlags, int flag) const;
+	void updateFlag(gg_session *session, int uin, int newFlags, int oldFlags, int flag) const;
 	void sendNewFlags(const Contact &contact, int newFlags) const;
 
 protected:
@@ -43,13 +45,12 @@ protected:
 public:
 	static int notifyTypeFromContact(const Contact &contact);
 
-	explicit GaduRosterService(Protocol *protocol);
+	explicit GaduRosterService(Account account, QObject *parent = 0);
 	virtual ~GaduRosterService();
 
-	virtual void prepareRoster(const QVector<Contact> &contacts);
+	void setConnection(GaduConnection *connection);
 
-public slots:
-	void setGaduSession(gg_session *gaduSession);
+	virtual void prepareRoster(const QVector<Contact> &contacts);
 
 };
 

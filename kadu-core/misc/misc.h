@@ -8,8 +8,8 @@
  * Copyright 2002, 2003, 2004 Adrian Smarzewski (adrian@kadu.net)
  * Copyright 2003, 2004, 2005 Paweł Płuciennik (pawel_p@kadu.net)
  * Copyright 2002, 2003, 2004 Tomasz Chiliński (chilek@chilan.com)
- * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2007, 2008, 2009, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2007, 2008 Dawid Stawiarski (neeo@kadu.net)
  * Copyright 2004, 2005, 2006, 2007 Marcin Ślusarz (joi@kadu.net)
  * Copyright 2003 Dariusz Jagodzik (mast3r@kadu.net)
@@ -32,14 +32,13 @@
 #ifndef KADU_MISC_H
 #define KADU_MISC_H
 
-#include <QtGui/QApplication>
+#include "exports.h"
 
-#include "coding-conversion.h"
-#include "date-time.h"
-#include "kadu-paths.h"
-
+class QChar;
 class QRect;
+class QString;
 class QWidget;
+template<typename T> class QList;
 
 KADUAPI QString replacedNewLine(const QString &text, const QString &newLineText);
 
@@ -47,18 +46,14 @@ KADUAPI QString pwHash(const QString &text);
 
 KADUAPI QRect properGeometry(const QRect &rect);
 
-KADUAPI QRect windowGeometry(const QWidget *w);
-void KADUAPI setWindowGeometry(QWidget *w, const QRect &geometry);
-
-void KADUAPI saveWindowGeometry(const QWidget *w, const QString &section, const QString &name);
-void KADUAPI loadWindowGeometry(QWidget *w, const QString &section, const QString &name, int defaultX, int defaultY, int defaultWidth, int defaultHeight);
-
-QRect stringToRect(const QString &value, const QRect *def = NULL);
+QRect stringToRect(const QString &value, const QRect *def = 0);
 QString rectToString(const QRect& rect);
 
 QList<int> stringToIntList(const QString &in);
 QString intListToString(const QList<int> &in);
 
-QString fixFileName(const QString &path, const QString &fn);
+KADUAPI QString fixFileName(const QString &path, const QString &fn);
+
+KADUAPI QChar extractLetter(QChar c);
 
 #endif // MISC_H

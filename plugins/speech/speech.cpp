@@ -1,8 +1,9 @@
 /*
  * %kadu copyright begin%
  * Copyright 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2012 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2010, 2011, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -20,11 +21,12 @@
  */
 
 #include <QtCore/QProcess>
+#include <QtGui/QTextDocument>
 
 #include "configuration/configuration-file.h"
-#include "notify/chat-notification.h"
 #include "notify/notification-manager.h"
-#include "notify/notification.h"
+#include "notify/notification/chat-notification.h"
+#include "notify/notification/notification.h"
 #include "parser/parser.h"
 #include "debug.h"
 #include "speech-configuration-widget.h"
@@ -241,7 +243,7 @@ void Speech::notify(Notification *notification)
 		text = notification->text();
 	else
 	{
-		QString details = notification->details();
+		QString details = notification->details().join(QLatin1String("\n"));
 		if (details.length() > config_file.readNumEntry("Speech", "MaxLength"))
 			syntax = config_file.readEntry("Speech", "MsgTooLong" + sex);
 
@@ -250,18 +252,15 @@ void Speech::notify(Notification *notification)
 		if (chat)
 		{
 			Contact contact = *chat.contacts().begin();
-			text = Parser::parse(syntax, Talkable(contact), notification);
+			text = Parser::parse(syntax, Talkable(contact), notification, ParserEscape::HtmlEscape);
 		}
 		else
-			text= Parser::parse(syntax, notification);
+			text= Parser::parse(syntax, notification, ParserEscape::HtmlEscape);
 	}
 
-	text.replace("&nbsp;", " ");
-	text.replace("&lt;", "<");
-	text.replace("&gt;", ">");
-	text.replace("&amp;", "&");
-
-	say(text);
+	QTextDocument document;
+	document.setHtml(text);
+	say(document.toPlainText());
 	lastSpeech.restart();
 
 	kdebugf2();
@@ -274,3 +273,5 @@ NotifierConfigurationWidget * Speech::createConfigurationWidget(QWidget *parent)
 
 
 /** @} */
+
+#include "moc_speech.cpp"

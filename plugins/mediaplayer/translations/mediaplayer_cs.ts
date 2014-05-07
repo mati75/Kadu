@@ -17,16 +17,8 @@
         <translation>Nepravé zobrazení textu na obrazovce (OSD) pro MediaPlayer</translation>
     </message>
     <message>
-        <source>MediaPlayer</source>
-        <translation>MediaPlayer</translation>
-    </message>
-    <message>
         <source>General</source>
         <translation>Obecné</translation>
-    </message>
-    <message>
-        <source>MediaPlayer message format for chat windows</source>
-        <translation>Formát zprávy MediaPlayeru pro okno s rozhovorem</translation>
     </message>
     <message>
         <source>MediaPlayer statuses in description</source>
@@ -43,10 +35,6 @@
     <message>
         <source>Here specify format which will replace &apos;#{player}&apos; tag when you will use it in description while setting status.</source>
         <translation>Zde zadejte formátování, které nahradí značku &apos;#{player}&apos;, když ji použijete v popisu při nastavování stavu.</translation>
-    </message>
-    <message>
-        <source>Enable</source>
-        <translation>Povolit</translation>
     </message>
     <message>
         <source>Signatures to cut</source>
@@ -77,16 +65,8 @@
         <translation>Povolte, když hodláte popisy stavu zapínat a vypínat přes nabídku symbolu v oznamovací oblasti panelu.</translation>
     </message>
     <message>
-        <source>General Settings</source>
-        <translation>Obecná nastavení</translation>
-    </message>
-    <message>
         <source>Signature Cutting</source>
         <translation>Vyjmutí podpisu</translation>
-    </message>
-    <message>
-        <source>Shall I cut this crap?</source>
-        <translation>Mám vyjmout tuhle blbost?</translation>
     </message>
     <message>
         <source>Other Settings</source>
@@ -119,6 +99,26 @@ Win+ Enter/Backspace/Left/Right/Up/Down.</translation>
     <message>
         <source>Replace &apos;#{player}&apos; Tag</source>
         <translation>Nahradit značku &apos;#{player}&apos;</translation>
+    </message>
+    <message>
+        <source>Extras</source>
+        <translation>Navíc</translation>
+    </message>
+    <message>
+        <source>Media Player</source>
+        <translation>Přehrávač</translation>
+    </message>
+    <message>
+        <source>MediaPlayer message format in chat window</source>
+        <translation>Formát zprávy přehrávače v okně pro rozhovor</translation>
+    </message>
+    <message>
+        <source>Enable signature cutting</source>
+        <translation>Povolit oddělení podpisu</translation>
+    </message>
+    <message>
+        <source>Enable removing non-essential stuff from audio file titles</source>
+        <translation>Povolit odstranění nepodstatných věcí z názvů zvukových souborů</translation>
     </message>
 </context>
 <context>
@@ -210,6 +210,18 @@ Win+ Enter/Backspace/Left/Right/Up/Down.</translation>
     <message>
         <source>Player isn&apos;t running!</source>
         <translation>Přehrávač neběží</translation>
+    </message>
+    <message>
+        <source>Send anyway</source>
+        <translation>Poslat tak jako tak</translation>
+    </message>
+    <message>
+        <source>Cancel</source>
+        <translation>Zrušit</translation>
+    </message>
+    <message>
+        <source>Send</source>
+        <translation>Poslat</translation>
     </message>
 </context>
 </TS>

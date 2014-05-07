@@ -1,6 +1,7 @@
 /*
  * %kadu copyright begin%
  * Copyright 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2012 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -17,17 +18,16 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef HISTORY_MESSAGES_PREPENDER_H
-#define HISTORY_MESSAGES_PREPENDER_H
+#pragma once
 
 #include <QtCore/QFuture>
 #include <QtCore/QObject>
-#include <QtCore/QWeakPointer>
+#include <QtCore/QPointer>
 
 #include "message/message.h"
 
-class ChatMessagesView;
-
+class SortedMessages;
+class WebkitMessagesView;
 
 /**
  * @addtogroup History
@@ -40,17 +40,11 @@ class ChatMessagesView;
  * @short Class responsible for prepending history messages to chat messages view.
  *
  * This class is used for asynchronous prepending history messages to chat messages view. It takes care of
- * handling destroyed event of used ChatMessagesView. It also destroys itself after its work is done.
+ * handling destroyed event of used WebkitMessagesView. It also destroys itself after its work is done.
  */
 class HistoryMessagesPrepender : public QObject
 {
 	Q_OBJECT
-
-	QFuture<QVector<Message> > Messages;
-	QWeakPointer<ChatMessagesView> MessagesView;
-
-private slots:
-	void messagesAvailable();
 
 public:
 	/**
@@ -63,13 +57,18 @@ public:
 	 * messages from QFuture are available. If chatMessagesView is destroyed before that, nothing will happen.
 	 * After this class finishes its work (successfully or not) it deletes itself.
 	 */
-	HistoryMessagesPrepender(QFuture<QVector<Message> > messages, ChatMessagesView *chatMessagesView);
+	HistoryMessagesPrepender(QFuture<SortedMessages> messages, WebkitMessagesView *chatMessagesView, QObject *parent = nullptr);
 	virtual ~HistoryMessagesPrepender();
+
+private:
+	QFuture<SortedMessages> m_messages;
+	QPointer<WebkitMessagesView> m_messagesView;
+
+private slots:
+	void messagesAvailable();
 
 };
 
 /**
  * @}
  */
-
-#endif // HISTORY_MESSAGES_PREPENDER_H

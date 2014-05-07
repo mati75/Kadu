@@ -4,7 +4,7 @@
  * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2009 Michał Podsiadlik (michal@kadu.net)
  * Copyright 2009, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2010, 2012 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -25,6 +25,7 @@
 #define CONFIGURATION_MANAGER
 
 #include <QtCore/QList>
+#include <QtCore/QObject>
 #include <QtCore/QUuid>
 
 #include "exports.h"
@@ -32,8 +33,10 @@
 class StorableObject;
 class ToolbarConfigurationManager;
 
-class KADUAPI ConfigurationManager
+class KADUAPI ConfigurationManager : public QObject
 {
+	Q_OBJECT
+
 	static ConfigurationManager *Instance;
 
 	QUuid Uuid;
@@ -41,8 +44,8 @@ class KADUAPI ConfigurationManager
 
 	ToolbarConfigurationManager *ToolbarConfiguration;
 
-	ConfigurationManager();
-	~ConfigurationManager();
+	ConfigurationManager(QObject *parent = 0);
+	virtual ~ConfigurationManager();
 
 	void importConfiguration();
 
@@ -50,8 +53,6 @@ public:
 	static ConfigurationManager * instance();
 
 	void load();
-	void store();
-	void flush();
 
 	const QUuid & uuid() const { return Uuid; }
 
@@ -59,6 +60,9 @@ public:
 	void unregisterStorableObject(StorableObject *object);
 
 	ToolbarConfigurationManager * toolbarConfigurationManager() { return ToolbarConfiguration; }
+
+public slots:
+	void flush();
 
 };
 

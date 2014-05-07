@@ -3,7 +3,7 @@
  * Copyright 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
  * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2011, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
@@ -39,3 +39,5 @@ void ToolbarConfigurationManager::notifyConfigurationUpdated()
 	// do not use '0' here, with '50' there is no flicking
 	QTimer::singleShot(50, this, SIGNAL(configurationUpdated()));
 }
+
+#include "moc_toolbar-configuration-manager.cpp"

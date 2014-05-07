@@ -48,6 +48,9 @@
         <source>KADU AUTORESPONDER:</source>
         <translation>KADU AUTOODPOWIEDŹ:</translation>
     </message>
+</context>
+<context>
+    <name>AutoresponderConfigurator</name>
     <message>
         <source>I am busy.</source>
         <translation>Jestem zajęty.</translation>

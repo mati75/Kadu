@@ -14,14 +14,6 @@
         <translation>Ogólne</translation>
     </message>
     <message>
-        <source>Use sounds</source>
-        <translation>Używaj dźwięków</translation>
-    </message>
-    <message>
-        <source>Theme</source>
-        <translation>Zestaw</translation>
-    </message>
-    <message>
         <source>Sound theme</source>
         <translation>Zestaw dźwięków</translation>
     </message>
@@ -36,6 +28,10 @@
     <message>
         <source>Play a sound</source>
         <translation>Odtwórz dźwięk</translation>
+    </message>
+    <message>
+        <source>Enable sound notifications</source>
+        <translation>Włącz powiadomienia dźwiękowe</translation>
     </message>
 </context>
 <context>

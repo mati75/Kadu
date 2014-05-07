@@ -10,8 +10,8 @@
  * Copyright 2002, 2003, 2004, 2005, 2007 Adrian Smarzewski (adrian@kadu.net)
  * Copyright 2004, 2005 Paweł Płuciennik (pawel_p@kadu.net)
  * Copyright 2002, 2003 Tomasz Chiliński (chilek@chilan.com)
- * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2007, 2008, 2009, 2010, 2011, 2012, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2007, 2008, 2009 Dawid Stawiarski (neeo@kadu.net)
  * Copyright 2004, 2005, 2006, 2007 Marcin Ślusarz (joi@kadu.net)
  * Copyright 2002, 2003 Dariusz Jagodzik (mast3r@kadu.net)
@@ -39,34 +39,35 @@
 #include <QtCore/QTimer>
 #include <QtCore/QTranslator>
 #include <QtGui/QApplication>
+#include <QtGui/QMessageBox>
 
 #include <errno.h>
 #include <time.h>
-#ifndef Q_WS_WIN
-#include <unistd.h>
+#ifndef Q_OS_WIN32
 #include <sys/file.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <pwd.h>
-#else // !Q_WS_WIN
+#include <unistd.h>
+#else // !Q_OS_WIN32
 #include <winsock2.h>
-#endif // !Q_WS_WIN
+#endif // !Q_OS_WIN32
 
 #include "configuration/configuration-file.h"
 #include "configuration/xml-configuration-file.h"
 #include "core/core.h"
 #include "gui/windows/message-dialog.h"
 #include "os/qtsingleapplication/qtlocalpeer.h"
-#include "plugins/plugins-manager.h"
 #include "protocols/protocols-manager.h"
 
 #include "icons/icons-manager.h"
-#include "misc/misc.h"
+#include "misc/date-time.h"
+#include "misc/kadu-paths.h"
 #include "debug.h"
 #include "kadu-application.h"
 #include "kadu-config.h"
 
-#ifndef Q_WS_WIN
+#ifndef Q_OS_WIN32
 #if HAVE_EXECINFO
 #include <execinfo.h>
 #endif
@@ -127,9 +128,9 @@ static void kaduQtMessageHandler(QtMsgType type, const char *msg)
 			break;
 	}
 }
-#endif // Q_WS_WIN
+#endif // !Q_OS_WIN32
 
-#ifdef DEBUG_ENABLED
+#ifdef DEBUG_OUTPUT_ENABLED
 extern KADUAPI bool showTimesInDebug;
 #endif
 
@@ -148,7 +149,7 @@ static void printVersion()
 
 static void printUsage()
 {
-	printf("Usage: kadu [Qt Options] [General Options] [Options]\n\n"
+	printf("Usage: kadu [General Options] [Options]\n\n"
 		"Kadu Instant Messenger\n");
 }
 
@@ -156,8 +157,6 @@ static void printKaduOptions()
 {
 	printf("\nGeneral Options:\n"
 		"  --help                     Print Kadu options\n"
-		"  --help-qt                  Print Qt options\n"
-		"  --help-all                 Print all options\n"
 		"  --version                  Print Kadu and Qt version\n"
 		"\nOptions:\n"
 		"  --debug <mask>             Set debugging mask\n"
@@ -165,54 +164,10 @@ static void printKaduOptions()
 		"                             (overwrites CONFIG_DIR variable)\n");
 }
 
-static void printQtOptions()
-{
-	printf("\nQt Options:\n"
-#if defined(Q_WS_X11)
-		"  -display <displayname>     Use the X-server display 'displayname'\n"
-#elif defined(Q_WS_QWS)
-		"  -display <displayname>     Use the QWS display 'displayname'\n"
-#endif
-		"  -session <sessionId>       Restore the application for the given 'sessionId'\n"
-		"  -cmap                      Causes the application to install a private color\n"
-		"                             map on an 8-bit display\n"
-		"  -ncols <count>             Limits the number of colors allocated in the color\n"
-		"                             cube on an 8-bit display, if the application is\n"
-		"                             using the QApplication::ManyColor color \n"
-		"                             specification\n"
-		"  -nograb                    Tells Qt to never grab the mouse or the keyboard\n"
-		"  -dograb                    Running under a debugger can cause an implicit\n"
-		"                             -nograb, use -dograb to override\n"
-		"  -sync                      Switches to synchronous mode for debugging\n"
-		"  -fn, -font <fontname>      defines the application font\n"
-		"  -bg, -background <color>   Sets the default background color and an\n"
-		"                             application palette (light and dark shades are\n"
-		"                             calculated)\n"
-		"  -fg, -foreground <color>   Sets the default foreground color\n"
-		"  -btn, -button <color>      Sets the default button color\n"
-		"  -name <name>               Sets the application name\n"
-		"  -title <title>             Sets the application title (caption)\n"
-#ifdef Q_WS_X11
-		"  -visual TrueColor          Forces the application to use a TrueColor visual on\n"
-		"                             an 8-bit display\n"
-		"  -inputstyle <inputstyle>   Sets XIM (X Input Method) input style. Possible\n"
-		"                             values are onthespot, overthespot, offthespot and\n"
-		"                             root\n"
-		"  -im <XIM server>           Set XIM server\n"
-		"  -noxim                     Disable XIM\n"
-#endif
-#ifdef Q_WS_QWS
-		"  -qws                       Forces the application to run as QWS Server\n"
-#endif
-		"  -reverse                   Mirrors the whole layout of widgets\n");
-}
-
 int main(int argc, char *argv[])
 {
-	QT_REQUIRE_VERSION(argc, argv, "4.7.0")
-
 	bool ok;
-	int msec;
+	long msec;
 	time_t sec;
 	FILE *logFile = 0;
 	QStringList ids;
@@ -224,7 +179,7 @@ int main(int argc, char *argv[])
 	exitingTime = 0;
 	startTime = (sec % 1000) * 1000 + msec;
 
-#ifndef Q_WS_WIN
+#ifndef Q_OS_WIN32
 	// We want some sensible LC_COLLATE (i.e., not "C", if possible) to make
 	// QString::localeAwareCompare() work as expected.
 	QByteArray langEnv = qgetenv("LANG");
@@ -233,75 +188,56 @@ int main(int argc, char *argv[])
 		qputenv("LC_COLLATE", "en_US");
 	else if (lcAllEnv.isEmpty())
 		qputenv("LC_COLLATE", langEnv);
-#else // !Q_WS_WIN
+#else // !Q_OS_WIN32
 	WSADATA wsaData;
 	if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0)
 		return 2;
-#endif // !Q_WS_WIN
+#endif // !Q_OS_WIN32
 
 	kdebugm(KDEBUG_INFO, "before creation of new KaduApplication\n");
 	new KaduApplication(argc, argv);
 	kdebugm(KDEBUG_INFO, "after creation of new KaduApplication\n");
 
-	for (int i = 1; i < qApp->argc(); ++i)
+	auto arguments = QCoreApplication::arguments();
+	for (auto it = arguments.constBegin(); it != arguments.constEnd(); ++it)
 	{
-		const QString param = qApp->argv()[i];
+		// do not parse program name
+		if (it == arguments.constBegin())
+			continue;
 
-		if (param == "--version")
+		if (*it == QLatin1String("--version"))
 		{
 			printVersion();
 			delete qApp;
-#ifdef Q_WS_WIN
+#ifdef Q_OS_WIN32
 			WSACleanup();
 #endif
 			return 0;
 		}
-		else if (param == "--help")
+		else if (*it == QLatin1String("--help"))
 		{
 			printUsage();
 			printKaduOptions();
 			delete qApp;
-#ifdef Q_WS_WIN
+#ifdef Q_OS_WIN32
 			WSACleanup();
 #endif
 			return 0;
 		}
-		else if (param == "--help-qt")
+		else if (*it == QLatin1String("--debug") && ++it != arguments.constEnd())
 		{
-			printUsage();
-			printQtOptions();
-			delete qApp;
-#ifdef Q_WS_WIN
-			WSACleanup();
-#endif
-			return 0;
-		}
-		else if (param == "--help-all")
-		{
-			printUsage();
-			printKaduOptions();
-			printQtOptions();
-			delete qApp;
-#ifdef Q_WS_WIN
-			WSACleanup();
-#endif
-			return 0;
-		}
-		else if (argc > i + 1 && param == "--debug")
-		{
-			const QByteArray mask(qApp->argv()[++i]);
-			mask.toInt(&ok);
+			it->toInt(&ok);
 			if (ok)
-				qputenv("DEBUG_MASK", mask);
+				qputenv("DEBUG_MASK", it->toUtf8());
 			else
-				fprintf(stderr, "Ignoring invalid debug mask '%s'\n", mask.constData());
+				fprintf(stderr, "Ignoring invalid debug mask '%s'\n", it->toUtf8().constData());
 		}
-		else if (argc > i + 1 && param == "--config-dir")
-			qputenv("CONFIG_DIR", qApp->argv()[++i]);
-		else if (QRegExp("^[a-zA-Z]*:(/){0,3}.*").exactMatch(param))
-			ids.append(param);
+		else if (*it == QLatin1String("--config-dir") && ++it != arguments.constEnd())
+			qputenv("CONFIG_DIR", it->toUtf8());
+		else if (QRegExp("^[a-zA-Z]*:(/){0,3}.*").exactMatch(*it))
+			ids.append(*it);
 		else
-			fprintf(stderr, "Ignoring unknown parameter '%s'\n", qApp->argv()[i]);
+			fprintf(stderr, "Ignoring unknown parameter '%s'\n", it->toUtf8().constData());
 	}
 
 	// It has to be called after putting CONFIG_DIR environment variable.
@@ -317,42 +253,34 @@ int main(int argc, char *argv[])
 			printf("logging all stderr output to file: %s\n", logFilePath.constData());
 	}
 
-#ifndef Q_WS_WIN
+#ifndef Q_OS_WIN32
 	// Qt version is better on win32
 	qInstallMsgHandler(kaduQtMessageHandler);
 #endif
 
 	xml_config_file = new XmlConfigFile();
+	if (!xml_config_file->isUsable())
+	{
+		QString errorMessage = QCoreApplication::translate("@default", "We're sorry, but Kadu cannot be loaded. "
+				"Profile is inaccessible. Please check permissions in the '%1' directory.")
+				.arg(KaduPaths::instance()->profilePath().left(KaduPaths::instance()->profilePath().length() - 1));
+		QMessageBox::critical(0, QCoreApplication::translate("@default", "Profile Inaccessible"), errorMessage, QMessageBox::Abort);
+		qFatal("%s", qPrintable(errorMessage));
+	}
 	config_file_ptr = new ConfigFile(KaduPaths::instance()->profilePath() + QLatin1String("kadu.conf"));
 
-#ifdef DEBUG_ENABLED
+#ifdef DEBUG_OUTPUT_ENABLED
 	showTimesInDebug = (0 != qgetenv("SHOW_TIMES").toInt());
 #endif
 
 	enableSignalHandling();
 
-	if (!QDir(KaduPaths::instance()->dataPath()).isReadable())
-	{
-		fprintf(stderr, "data directory (%s) is NOT readable, exiting...\n", qPrintable(KaduPaths::instance()->dataPath()));
-		fprintf(stderr, "look at: http://www.kadu.im/w/Uprawnienia_do_katalogu_z_danymi\n");
-		fflush(stderr);
-
-		delete xml_config_file;
-		delete config_file_ptr;
-		delete qApp;
-#ifdef Q_WS_WIN
-		WSACleanup();
-#endif
-
-		return 10;
-	}
-
 	const QString lang = config_file.readEntry("General", "Language", QLocale::system().name().left(2));
 	QTranslator qt_qm, kadu_qm;
 	qt_qm.load("qt_" + lang, QLibraryInfo::location(QLibraryInfo::TranslationsPath));
 	kadu_qm.load("kadu_" + lang, KaduPaths::instance()->dataPath() + QLatin1String("translations"));
-	qApp->installTranslator(&qt_qm);
-	qApp->installTranslator(&kadu_qm);
+	QCoreApplication::installTranslator(&qt_qm);
+	QCoreApplication::installTranslator(&kadu_qm);
 
 	QtLocalPeer *peer = new QtLocalPeer(qApp, KaduPaths::instance()->profilePath());
 	if (peer->isClient())
@@ -366,7 +294,7 @@ int main(int argc, char *argv[])
 		delete config_file_ptr;
 		delete xml_config_file;
 		delete qApp;
-#ifdef Q_WS_WIN
+#ifdef Q_OS_WIN32
 		WSACleanup();
 #endif
 
@@ -374,18 +302,11 @@ int main(int argc, char *argv[])
 	}
 
 	Core::instance()->createGui();
+	Core::instance()->runGuiServices();
 	QObject::connect(peer, SIGNAL(messageReceived(const QString &)),
 			Core::instance(), SLOT(receivedSignal(const QString &)));
 
-	PluginsManager::instance()->activatePlugins();
-
-#ifndef Q_WS_WIN
-	// if someone is running Kadu from root account, let's remind him
-	// that it's a "bad thing"(tm) ;) (usually for win32 users)
-	if (geteuid() == 0)
-		MessageDialog::show(KaduIcon("dialog-warning"), qApp->translate("@default", "Kadu"), qApp->translate("@default", "Please do not run Kadu as a root!\n"
-				"It's a high security risk!"));
-#endif
+	Core::instance()->activatePlugins();
 
 	foreach (const QString &id, ids)
 		Core::instance()->receivedSignal(id);
@@ -407,8 +328,6 @@ int main(int argc, char *argv[])
 	int ret = qApp->exec();
 	kdebugm(KDEBUG_INFO, "after exec\n");
 
-	xml_config_file->sync();
-
 	delete xml_config_file;
 	delete config_file_ptr;
 
@@ -420,7 +339,7 @@ int main(int argc, char *argv[])
 	// so it's probably a bug in Qt. Sigh.
 	//delete qApp;
 
-#ifdef Q_WS_WIN
+#ifdef Q_OS_WIN32
 	WSACleanup();
 #endif
 

@@ -4,7 +4,7 @@
  * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2008, 2009 Michał Podsiadlik (michal@kadu.net)
  * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
- * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2007, 2008, 2009, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
@@ -26,7 +26,8 @@
 #ifndef STORABLE_OBJECT_H
 #define STORABLE_OBJECT_H
 
-#include <QtCore/QSharedPointer>
+#include <memory>
+
 #include <QtCore/QVariant>
 
 #include "configuration/xml-configuration-file.h"
@@ -133,7 +134,7 @@ public:
 	};
 
 private:
-	QSharedPointer<StoragePoint> Storage;
+	std::shared_ptr<StoragePoint> Storage;
 	StorableObjectState State;
 	CustomProperties *Properties;
 
@@ -154,7 +155,7 @@ protected:
 	 * If parent is NULL this method will return storage point that is child of
 	 * root node of XML configuration file.
 	 */
-	virtual QSharedPointer<StoragePoint> createStoragePoint();
+	virtual std::shared_ptr<StoragePoint> createStoragePoint();
 
 	/**
 	 * @author Rafal 'Vogel' Malinowski
@@ -230,7 +231,7 @@ public:
 	 * Returns storage point for this object. If the storage point has not been specified
 	 * yet, it calls @link<createStoragePoint> createStoragePoint @endlink to create one.
 	 */
-	const QSharedPointer<StoragePoint> & storage();
+	const std::shared_ptr<StoragePoint> & storage();
 
 	/**
 	 * @author Rafal 'Vogel' Malinowski
@@ -289,7 +290,7 @@ public:
 	 * state of object to StateNotLoaded, so it will be loaded after executing ensureLoaded
 	 * method.
 	 */
-	void setStorage(const QSharedPointer<StoragePoint> &storage);
+	void setStorage(const std::shared_ptr<StoragePoint> &storage);
 
 	/**
 	 * @author Rafal 'Vogel' Malinowski
@@ -312,8 +313,7 @@ public:
 template<class T>
 	T loadAttribute(const QString &name) const
 	{
-		QVariant value = Storage->point().attribute(name);
-		return value.value<T>();
+		return Storage->loadAttribute<T>(name);
 	}
 
 	/**
@@ -328,12 +328,7 @@ template<class T>
 template<class T>
 	T loadValue(const QString &name) const
 	{
-		QVariant value;
-
-		if (Storage->storage()->hasNode(Storage->point(), name))
-			value = Storage->storage()->getTextNode(Storage->point(), name);
-
-		return value.value<T>();
+		return Storage->loadValue<T>(name);
 	}
 
 	/**
@@ -346,7 +341,7 @@ template<class T>
 	 */
 	bool hasValue(const QString &name) const
 	{
-		return Storage->storage()->hasNode(Storage->point(), name);
+		return Storage->hasValue(name);
 	}
 
 	/**
@@ -363,13 +358,7 @@ template<class T>
 template<class T>
 	T loadAttribute(const QString &name, T def) const
 	{
-		if (Storage->point().hasAttribute(name))
-		{
-			QVariant value = Storage->point().attribute(name);
-			return value.value<T>();
-		}
-
-		return def;
+		return Storage->loadAttribute(name, def);
 	}
 
 	/**
@@ -386,13 +375,7 @@ template<class T>
 template<class T>
 	T loadValue(const QString &name, T def) const
 	{
-		if (Storage->storage()->hasNode(Storage->point(), name))
-		{
-			QVariant value = Storage->storage()->getTextNode(Storage->point(), name);
-			return value.value<T>();
-		}
-
-		return def;
+		return Storage->loadValue(name, def);
 	}
 
 	/**

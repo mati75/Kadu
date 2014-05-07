@@ -5,7 +5,7 @@
  * Copyright 2010 Piotr Dąbrowski (ultr@ultr.pl)
  * Copyright 2008 Michał Podsiadlik (michal@kadu.net)
  * Copyright 2005, 2006 Adrian Smarzewski (adrian@kadu.net)
- * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2007, 2008, 2009, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2007, 2008 Dawid Stawiarski (neeo@kadu.net)
  * Copyright 2005, 2006, 2007 Marcin Ślusarz (joi@kadu.net)
@@ -32,6 +32,7 @@
 #include <QtGui/QToolBar>
 
 #include "configuration/configuration-aware-object.h"
+#include "misc/change-notifier.h"
 
 #include "exports.h"
 
@@ -39,7 +40,6 @@ class QDomElement;
 class QMenu;
 class QToolButton;
 
-class ChangeNotifier;
 class ToolBarSeparator;
 class ToolBarSpacer;
 
@@ -77,7 +77,7 @@ class KADUAPI ToolBar : public QToolBar, public ConfigurationAwareObject
 
 	friend class DisabledActionsWatcher;
 
-	ChangeNotifier *MyChangeNotifier;
+	ChangeNotifier MyChangeNotifier;
 
 	// TODO: ugly hack
 	QWidget *currentWidget;
@@ -131,6 +131,8 @@ class KADUAPI ToolBar : public QToolBar, public ConfigurationAwareObject
 
 	QMenu * createContextMenu(QWidget *widget);
 
+	void paintDropMarker();
+
 private slots:
 	/**
 		\fn void addButtonClicked()
@@ -170,8 +172,6 @@ private slots:
 	void slotContextTextRight();
 
 	void slotContextAboutToShow();
-
-	void paintDropMarker();
 
 protected:
 	/**

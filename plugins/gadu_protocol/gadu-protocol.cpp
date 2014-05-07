@@ -2,7 +2,7 @@
  * %kadu copyright begin%
  * Copyright 2011 Tomasz Rostanski (rozteck@interia.pl)
  * Copyright 2008, 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2010, 2010, 2010 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2009, 2010, 2010, 2010, 2012 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2008, 2009, 2010, 2010 Tomasz Rostański (rozteck@interia.pl)
  * Copyright 2011 Piotr Dąbrowski (ultr@ultr.pl)
  * Copyright 2004, 2005, 2008, 2009 Michał Podsiadlik (michal@kadu.net)
@@ -11,8 +11,8 @@
  * Copyright 2003, 2004, 2005 Adrian Smarzewski (adrian@kadu.net)
  * Copyright 2004 Tomasz Chiliński (chilek@chilan.com)
  * Copyright 2004, 2005 Paweł Płuciennik (pawel_p@kadu.net)
- * Copyright 2007, 2008, 2009, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2007, 2008, 2009, 2009, 2010, 2011, 2012, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2006, 2007, 2008 Dawid Stawiarski (neeo@kadu.net)
  * Copyright 2004, 2005, 2006, 2007 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
@@ -50,9 +50,8 @@
 #include "configuration/configuration-file.h"
 #include "contacts/contact-manager.h"
 #include "core/core.h"
+#include "formatted-string/composite-formatted-string.h"
 #include "gui/windows/message-dialog.h"
-#include "gui/windows/password-window.h"
-#include "message/formatted-message.h"
 #include "network/proxy/network-proxy-manager.h"
 #include "qt/long-validator.h"
 #include "status/status-type-manager.h"
@@ -64,11 +63,13 @@
 #include "debug.h"
 
 #include "server/gadu-servers-manager.h"
+#include "server/protocol-gadu-connection.h"
 #include "socket-notifiers/gadu-protocol-socket-notifiers.h"
 
 #include "helpers/gadu-importer.h"
 #include "helpers/gadu-protocol-helper.h"
 #include "helpers/gadu-proxy-helper.h"
+#include "server/gadu-writable-session-token.h"
 #include "services/gadu-roster-service.h"
 #include "gadu-account-details.h"
 #include "gadu-contact-details.h"
@@ -79,36 +80,53 @@ GaduProtocol::GaduProtocol(Account account, ProtocolFactory *factory) :
 		Protocol(account, factory), CurrentFileTransferService(0),
 		ActiveServer(), GaduLoginParams(), GaduSession(0), SocketNotifiers(0), PingTimer(0)
 {
-	kdebugf();
+	Connection = new ProtocolGaduConnection(this);
+	Connection->setConnectionProtocol(this);
 
 	CurrentAvatarService = new GaduAvatarService(account, this);
-	CurrentChatImageService = new GaduChatImageService(this);
-	CurrentChatService = new GaduChatService(this);
-	CurrentContactListService = new GaduContactListService(this);
-	CurrentContactPersonalInfoService = new GaduContactPersonalInfoService(this);
-	CurrentPersonalInfoService = new GaduPersonalInfoService(this);
-	CurrentSearchService = new GaduSearchService(this);
-	CurrentMultilogonService = new GaduMultilogonService(account, this);
 
-	CurrentChatStateService = new GaduChatStateService(this);
+	CurrentChatImageService = new GaduChatImageService(account, this);
+	CurrentChatImageService->setConnection(Connection);
+
+	CurrentChatService = new GaduChatService(account, this);
+	CurrentChatService->setConnection(Connection);
+	CurrentChatService->setFormattedStringFactory(Core::instance()->formattedStringFactory());
+	CurrentChatService->setGaduChatImageService(CurrentChatImageService);
+	CurrentChatService->setImageStorageService(Core::instance()->imageStorageService());
+	CurrentChatService->setRawMessageTransformerService(Core::instance()->rawMessageTransformerService());
+	CurrentChatImageService->setGaduChatService(CurrentChatService);
+
+	CurrentContactListService = new GaduContactListService(account, this);
+	CurrentContactListService->setConnection(Connection);
+	CurrentContactListService->setRosterNotifier(Core::instance()->rosterNotifier());
+
+	CurrentContactPersonalInfoService = new GaduContactPersonalInfoService(account, this);
+	CurrentContactPersonalInfoService->setConnection(Connection);
+
+	CurrentPersonalInfoService = new GaduPersonalInfoService(account, this);
+	CurrentPersonalInfoService->setConnection(Connection);
+
+	CurrentSearchService = new GaduSearchService(account, this);
+	CurrentSearchService->setConnection(Connection);
+
+	CurrentMultilogonService = new GaduMultilogonService(account, this);
+	CurrentMultilogonService->setConnection(Connection);
+
+	CurrentChatStateService = new GaduChatStateService(account, this);
+	CurrentChatStateService->setConnection(Connection);
 
 	connect(CurrentChatService, SIGNAL(messageReceived(Message)),
 	        CurrentChatStateService, SLOT(messageReceived(Message)));
 
-	GaduRosterService *rosterService = new GaduRosterService(this);
+	GaduRosterService *rosterService = new GaduRosterService(account, this);
+	rosterService->setConnection(Connection);
+	rosterService->setProtocol(this);
 
 	setChatService(CurrentChatService);
 	setChatStateService(CurrentChatStateService);
 	setRosterService(rosterService);
 
 	configureServices();
-
-	connect(this, SIGNAL(gaduSessionChanged(gg_session*)),
-	        CurrentChatService, SLOT(setGaduSession(gg_session*)));
-	connect(this, SIGNAL(gaduSessionChanged(gg_session*)),
-	        CurrentChatStateService, SLOT(setGaduSession(gg_session*)));
-	connect(this, SIGNAL(gaduSessionChanged(gg_session*)),
-	        rosterService, SLOT(setGaduSession(gg_session*)));
 
 	connect(account, SIGNAL(updated()), this, SLOT(accountUpdated()));
 
@@ -137,7 +155,7 @@ void GaduProtocol::setStatusFlags()
 	GaduAccountDetails *details = static_cast<GaduAccountDetails *>(account().details());
 
 	int statusFlags = GG_STATUS_FLAG_UNKNOWN;
-	if (details && details->receiveSpam())
+	if (details && !details->receiveSpam())
 		statusFlags = statusFlags | GG_STATUS_FLAG_SPAM;
 
 	gg_change_status_flags(GaduSession, GG_STATUS_FLAG_UNKNOWN | statusFlags);
@@ -151,6 +169,9 @@ void GaduProtocol::sendStatusToServer()
 	if (!GaduSession)
 		return;
 
+	// some services have per-status configuration
+	configureServices();
+
 	Status newStatus = status();
 
 	int friends = account().privateStatus() ? GG_STATUS_FRIENDS_MASK : 0;
@@ -160,12 +181,11 @@ void GaduProtocol::sendStatusToServer()
 
 	setStatusFlags();
 
-	disableSocketNotifiers();
+	auto writableSessionToken = Connection->writableSessionToken();
 	if (hasDescription)
-		gg_change_status_descr(GaduSession, type | friends, newStatus.description().toUtf8().constData());
+		gg_change_status_descr(writableSessionToken.rawSession(), type | friends, newStatus.description().toUtf8().constData());
 	else
-		gg_change_status(GaduSession, type | friends);
-	enableSocketNotifiers();
+		gg_change_status(writableSessionToken.rawSession(), type | friends);
 
 	account().accountContact().setCurrentStatus(status());
 }
@@ -189,10 +209,8 @@ void GaduProtocol::everyMinuteActions()
 {
 	kdebugf();
 
-	disableSocketNotifiers();
-	gg_ping(GaduSession);
-	enableSocketNotifiers();
-	CurrentChatImageService->resetSendImageRequests();
+	auto writableSessionToken = Connection->writableSessionToken();
+	gg_ping(writableSessionToken.rawSession());
 }
 
 void GaduProtocol::configureServices()
@@ -201,8 +219,19 @@ void GaduProtocol::configureServices()
 	if (!gaduAccountDetails)
 		return;
 
-	CurrentChatService->setReceiveImagesDuringInvisibility(gaduAccountDetails->receiveImagesDuringInvisibility());
 	CurrentChatStateService->setSendTypingNotifications(gaduAccountDetails->sendTypingNotification());
+
+	switch (status().group())
+	{
+		case StatusTypeGroupOffline:
+			CurrentChatImageService->setReceiveImages(false);
+			break;
+		case StatusTypeGroupInvisible:
+			CurrentChatImageService->setReceiveImages(gaduAccountDetails->receiveImagesDuringInvisibility());
+			break;
+		default:
+			CurrentChatImageService->setReceiveImages(true);
+	}
 }
 
 void GaduProtocol::accountUpdated()
@@ -233,7 +262,6 @@ void GaduProtocol::login()
 		gg_free_session(GaduSession);
 		GaduSession = 0;
 
-		emit gaduSessionChanged(GaduSession);
 		// here was return... do not re-add it ;)
 	}
 
@@ -257,7 +285,6 @@ void GaduProtocol::login()
 	setupLoginParams();
 
 	GaduSession = gg_login(&GaduLoginParams);
-	emit gaduSessionChanged(GaduSession);
 
 	cleanUpLoginParams();
 
@@ -341,7 +368,6 @@ void GaduProtocol::disconnectedCleanup()
 	{
 		gg_free_session(GaduSession);
 		GaduSession = 0;
-		emit gaduSessionChanged(GaduSession);
 	}
 
 	CurrentMultilogonService->removeAllSessions();
@@ -356,7 +382,7 @@ void GaduProtocol::setupLoginParams()
 		return;
 
 	GaduLoginParams.uin = account().id().toULong();
-	GaduLoginParams.password = qstrdup(account().password().toAscii().constData());
+	GaduLoginParams.password = qstrdup(account().password().toUtf8().constData());
 
 	GaduLoginParams.async = 1;
 
@@ -381,8 +407,7 @@ void GaduProtocol::setupLoginParams()
 	}
 
 	GaduLoginParams.external_port = gaduAccountDetails->externalPort();
-
-	GaduLoginParams.protocol_version = GG_DEFAULT_PROTOCOL_VERSION;
+	GaduLoginParams.protocol_version = 0;
 	GaduLoginParams.client_version = qstrdup(Core::nameWithVersion().toUtf8().constData());
 	GaduLoginParams.protocol_features =
 			GG_FEATURE_UNKNOWN_4 | // GG_FEATURE_STATUS80
@@ -400,7 +425,7 @@ void GaduProtocol::setupLoginParams()
 	GaduLoginParams.has_audio = false;
 	GaduLoginParams.last_sysmsg = config_file.readNumEntry("General", "SystemMsgIndex", 1389);
 
-	GaduLoginParams.image_size = qMax(qMin(gaduAccountDetails->maximumImageSize(), 255), 0);
+	GaduLoginParams.image_size = qMax(qMin(config_file.readNumEntry("Chat", "MaximumImageSizeInKiloBytes", 255), 255), 0);
 
 	setStatusFlags();
 }
@@ -560,8 +585,10 @@ void GaduProtocol::enableSocketNotifiers()
 
 void GaduProtocol::configurationUpdated()
 {
-#ifdef DEBUG_ENABLED
+#ifdef DEBUG_OUTPUT_ENABLED
 	// 8 bits for gadu debug
 	gg_debug_level = debug_mask & 255;
 #endif
 }
+
+#include "moc_gadu-protocol.cpp"

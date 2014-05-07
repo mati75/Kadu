@@ -1,9 +1,10 @@
 /*
  * %kadu copyright begin%
  * Copyright 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2012 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2011 Piotr Dąbrowski (ultr@ultr.pl)
  * Copyright 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2011, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -42,15 +43,17 @@ void ConfigLabel::createWidgets()
 {
 	kdebugf();
 
-	setText(qApp->translate("@default", widgetCaption.toUtf8().constData()));
+	setText(QCoreApplication::translate("@default", widgetCaption.toUtf8().constData()));
 	setWordWrap(true);
 	parentConfigGroupBox->addWidget(this);
 
 	if (!ConfigWidget::toolTip.isEmpty())
-		setToolTip(qApp->translate("@default", ConfigWidget::toolTip.toUtf8().constData()));
+		setToolTip(QCoreApplication::translate("@default", ConfigWidget::toolTip.toUtf8().constData()));
 }
 
 void ConfigLabel::setText(const QString &text, bool defaultFormatting)
 {
-	QLabel::setText((defaultFormatting ? "<font size='-1'><i>" : "") + text + (defaultFormatting ? "</i></font>" : ""));
+	QLabel::setText((defaultFormatting ? "<i>" : "") + text + (defaultFormatting ? "</i>" : ""));
 }
+
+#include "moc_config-label.cpp"

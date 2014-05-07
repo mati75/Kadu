@@ -1,3 +1,52 @@
++++ version 1.0-rc1
+* gadu: #2750 fixed: unable to login when password contains non-ascii characters (Vogel)
+* status: #2655 fixed: set status on new account automatically if status is per-identity or per-all (Vogel)
+* jabber: #2680 fixed: IPv6 was broken (beevvy)
+* icons: Faenza theme added (fademind)
+
++++ version 1.0-alpha5
+* gui: #2614 fixed: problems with displaying unread messages (Vogel)
+
++++ version 1.0-alpha4
+* gadu: #2730 implemented: image sending is done using new version of protocol (Vogel)
+* gadu: #2728 fixed: replace code for registering account/password reminding with WWW calls (Vogel)
+* gadu: require libgadu 1.12.x (Vogel)
+* sms: #2675 fixed: new code for T-Mobile gateway (Vogel)
+* history: #2672 fixed: crash in history (Vogel)
+* history: #2745 implemented: enter in query field performs search (Vogel)
+
++++ version 1.0-alpha3
+* gadu: #2710 fixed: sending images works again (Vogel)
+* message: #2717 fixed: invalid < and > handling (Vogel)
+* plugin: #2706 fixed: smarter loading and unloading plugins (Vogel)
+
++++ version 1.0-alpha2
+* gui: #2621 fixed: lots of Ungroupped tabs could appear in Group Tab Bar (Vogel)
+* chat: #2696 fixed: do not open chat window when message is sent for Gadu-Gadu multilogon (Vogel)
+* gui: #2678 fixed: remove new line characters from window title (Vogel)
+* imagelink: #2676 fixed: improve image links recognition (Vogel)
+* hints: #2677 fixed: allow wrapping text inside tool tip (Vogel)
+* history: #2681 fixed: allow to maximize history windows on all Window Managers (Vogel)
+* tabs: #2646 fixed: content of conversation disappears after detaching tab (Vogel)
+* gadu: #2668, #2709 fixed: roster synchronization problems (Vogel)
+
++++ version 1.0-alpha1
+* core: #2058 fixed: avoid notifications flood on connection error (Juzef, beevvy)
+* gui: do not scale up avatars smaller than 32x32 on buddy list (beevvy)
+* gui: square, rounded avatars on buddy list (Juzef)
+* gui: #2622 fixed: ignoring buddies in buddy options window and using menu option (Juzef)
+* gui: #1726 fixed: silent mode disables chat window auto-opening (Juzef)
+* gui: #2553 done: new tray icon's tooltip (ultr)
+* gui: #2552 done: display description in status button's tooltip (ultr)
+* core: #2623 fixed: silent mode while DnD checks status of proper account, not default one (Juzef)
+* core: #2652 fixed: StatusMenu correctly updated after account is disconnected (Juzef)
+* sms: #2662 fixed: updated check of successful response after sending SMS to Orange network (Juzef)
+* core: #2607 fixed: search bar in chat messages list gets highlighted if the phrase was not found (Juzef)
+* jabber: #2651, #2573 fixed: avoid trying to download avatars after account is disconnected (Juzef)
+* jabber: #2665 fixed: correct handling of chats with contacts on different resources at the same time (Juzef)
+* gui: #2701 fixed: system notification's open chat button works again (Vogel)
+* otr: #2683 done: implemetned OTR encryption (Vogel)
+
 +++ version 0.12.3
 * jabber: fixed Facebook contacts groups being lost when upgrading from 0.10.x/0.11.x (beevvy)
 * build: dropped USE_X11_XFIXES CMake option which had been broken for a long time (beevvy)

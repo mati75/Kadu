@@ -1,6 +1,7 @@
 /*
  * %kadu copyright begin%
- * Copyright 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2012, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2012 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -21,8 +22,8 @@
 
 #include "buddies/buddy-manager.h"
 #include "chat/buddy-chat-manager.h"
-#include "chat/chat.h"
 #include "chat/chat-details-buddy.h"
+#include "chat/chat.h"
 #include "chat/type/chat-type-manager.h"
 #include "contacts/contact-set.h"
 #include "talkable/talkable.h"

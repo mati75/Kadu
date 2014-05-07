@@ -1,6 +1,7 @@
 /*
  * %kadu copyright begin%
  * Copyright 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2012 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -20,7 +21,7 @@
 #ifndef DEFAULT_PROVIDER_H
 #define DEFAULT_PROVIDER_H
 
-#include <QtCore/QSharedPointer>
+#include <memory>
 
 #include "provider/provider.h"
 
@@ -48,8 +49,8 @@
 template<typename T>
 class DefaultProvider : public Provider<T>
 {
-	QSharedPointer<Provider<T> > Default;
-	QSharedPointer<Provider<T> > Custom;
+	std::shared_ptr<Provider<T>> Default;
+	std::shared_ptr<Provider<T>> Custom;
 
 public:
 	/**
@@ -59,7 +60,7 @@ public:
 	 *
 	 * Given defaultProvider parameter must not be null.
 	 */
-	explicit DefaultProvider(const QSharedPointer<Provider<T> > &defaultProvider) : Default(defaultProvider)
+	explicit DefaultProvider(const std::shared_ptr<Provider<T>> &defaultProvider) : Default{defaultProvider}
 	{
 		Q_ASSERT(Default);
 	}
@@ -73,7 +74,7 @@ public:
 	 * This method will take effect only if there is no Custom Provider already set.
 	 * This method will return true if after call given custom Provider is properly installed.
 	 */
-	bool installCustomProvider(const QSharedPointer<Provider<T> > &custom)
+	bool installCustomProvider(const std::shared_ptr<Provider<T>> &custom)
 	{
 		if (Custom)
 			return custom == Custom;
@@ -91,12 +92,12 @@ public:
 	 * This method will take effect only if there is Custom Provider set to value passed as parameter.
 	 * This method will return true if after call no custom Provider is installed.
 	 */
-	bool removeCustomProvider(const QSharedPointer<Provider<T> > &custom)
+	bool removeCustomProvider(const std::shared_ptr<Provider<T>> &custom)
 	{
 		if (!Custom || Custom != custom)
 			return false;
 
-		Custom.clear();
+		Custom.reset();
 		return true;
 	}
 

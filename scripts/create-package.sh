@@ -1,5 +1,23 @@
 #!/bin/bash
 
+# %kadu copyright begin%
+# Copyright 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+# Copyright 2008 Dawid Stawiarski (neeo@kadu.net)
+# %kadu copyright end%
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 2 of
+# the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
+
 VERSION=$1
 
 function usage
@@ -17,13 +35,8 @@ PACKAGE_NAME=kadu-$VERSION
 PACKAGE_DIR=$PACKAGE_NAME
 PACKAGE_FILE=$PACKAGE_NAME.tar.bz2
 
-git clone git@gitorious.org:kadu/kadu.git $PACKAGE_DIR
-pushd $PACKAGE_DIR
-git checkout $VERSION
-git submodule init
-git submodule update
-find -name ".git*" | xargs rm -rf
-popd
+git clone --recursive --depth 1 --branch $VERSION -- git@gitorious.org:kadu/kadu.git $PACKAGE_DIR
+find $PACKAGE_DIR -name ".git*" | xargs rm -rf
 
 tar cjf $PACKAGE_FILE $PACKAGE_DIR
 md5sum $PACKAGE_FILE > $PACKAGE_FILE.md5

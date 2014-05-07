@@ -4,8 +4,8 @@
  * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2008 Tomasz Rostański (rozteck@interia.pl)
  * Copyright 2008 Michał Podsiadlik (michal@kadu.net)
- * Copyright 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2008, 2009, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -22,7 +22,9 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "protocols/services/chat-service.h"
+#include "core/core.h"
+#include "message/message-manager.h"
+#include "services/message-filter-service.h"
 
 #include "notify/cenzor-notification.h"
 
@@ -42,69 +44,38 @@ void Cenzor::destroyInstance()
 	Instance = 0;
 }
 
-
 Cenzor::Cenzor()
 {
-	triggerAllAccountsRegistered();
+	Core::instance()->messageFilterService()->registerMessageFilter(this);
 }
 
 Cenzor::~Cenzor()
 {
-	triggerAllAccountsUnregistered();
+	Core::instance()->messageFilterService()->unregisterMessageFilter(this);
 }
 
-void Cenzor::accountRegistered(Account account)
+bool Cenzor::acceptMessage(const Message &message)
 {
-	Protocol *protocol = account.protocolHandler();
-	if (!protocol)
-		return;
-
-	ChatService *chatService = protocol->chatService();
-	if (!chatService)
-		return;
-
-	connect(chatService, SIGNAL(filterIncomingMessage(Chat,Contact,QString &,bool&)),
-			this, SLOT(filterIncomingMessage(Chat,Contact,QString &,bool&)));
-}
-
-void Cenzor::accountUnregistered(Account account)
-{
-	Protocol *protocol = account.protocolHandler();
-	if (!protocol)
-		return;
-
-	ChatService *chatService = protocol->chatService();
-	if (!chatService)
-		return;
-
-	disconnect(chatService, 0, this, 0);
-}
-
-void Cenzor::filterIncomingMessage(Chat chat, Contact sender, QString &message, bool &ignore)
-{
-	Q_UNUSED(sender)
+	if (MessageTypeSent == message.type())
+		return true;
 
 	if (!Configuration.enabled())
-		return;
+		return true;
 
-	if (!shouldIgnore(message))
-		return;
+	if (!shouldIgnore(message.plainTextContent()))
+		return true;
 
-	ignore = true;
-
-	Account account = chat.chatAccount();
+	Account account = message.messageChat().chatAccount();
 
 	Protocol *protocol = account.protocolHandler();
 	if (!protocol)
-		return;
+		return false;
 
-	ChatService *chatService = protocol->chatService();
-	if (!chatService)
-		return;
 
-	chatService->sendMessage(chat, Configuration.admonition(), true);
+	if (MessageManager::instance()->sendMessage(message.messageChat(), Configuration.admonition(), true))
+		CenzorNotification::notifyCenzored(message.messageChat());
 
-	CenzorNotification::notifyCenzored(chat);
+	return false;
 }
 
 bool Cenzor::shouldIgnore(const QString &message)
@@ -119,7 +90,6 @@ bool Cenzor::shouldIgnore(const QString &message)
 				return true;
 	}
 
-
 	return false;
 }
 
@@ -131,3 +101,5 @@ bool Cenzor::isExclusion(const QString &word)
 
 	return false;
 }
+
+#include "moc_cenzor.cpp"

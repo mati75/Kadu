@@ -4,7 +4,7 @@
  * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2009 Michał Podsiadlik (michal@kadu.net)
  * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2010, 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -192,7 +192,7 @@ int DccSocketNotifiers::timeout()
 {
 	return Socket7
 			? Socket7->timeout * 1000
-			: 0;
+			: -1;
 }
 
 bool DccSocketNotifiers::handleSoftTimeout()
@@ -272,7 +272,7 @@ bool DccSocketNotifiers::acceptFileTransfer(const QString &fileName, bool resume
 		return false;
 
 	Socket7->file_fd = dup(file.handle());
-	Socket7->offset = file.size();
+	Socket7->offset = static_cast<unsigned int>(file.size());
 	disable();
 	gg_dcc7_accept(Socket7, Socket7->offset);
 	if (FileTransferHandler)
@@ -292,3 +292,5 @@ void DccSocketNotifiers::rejectFileTransfer()
 	gg_dcc7_reject(Socket7, GG_DCC7_REJECT_USER);
 	enable();
 }
+
+#include "moc_dcc-socket-notifiers.cpp"

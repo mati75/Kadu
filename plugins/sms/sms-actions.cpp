@@ -1,9 +1,9 @@
 /*
  * %kadu copyright begin%
  * Copyright 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2010 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2010, 2012 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2010, 2011, 2012, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -27,14 +27,15 @@
 #include "core/core.h"
 #include "gui/actions/action-description.h"
 #include "gui/actions/action.h"
+#include "gui/menu/menu-inventory.h"
 #include "gui/widgets/chat-edit-box.h"
-#include "gui/widgets/chat-widget.h"
-#include "gui/widgets/talkable-menu-manager.h"
+#include "gui/widgets/chat-widget/chat-widget.h"
 #include "gui/widgets/talkable-tree-view.h"
 #include "gui/windows/kadu-window.h"
 #include "debug.h"
 
 #include "gui/windows/sms-dialog.h"
+#include "gui/windows/sms-dialog-repository.h"
 
 #include "sms-actions.h"
 
@@ -72,21 +73,42 @@ SmsActions::SmsActions()
 		KaduIcon("phone"), tr("Send SMS...")
 	);
 	sendSmsActionDescription->setShortcut("kadu_sendsms");
-	TalkableMenuManager::instance()->addActionDescription(sendSmsActionDescription, TalkableMenuItem::CategoryActions, 100);
-	Core::instance()->kaduWindow()->insertMenuActionDescription(sendSmsActionDescription, KaduWindow::MenuBuddies, 5);
+
+	MenuInventory::instance()
+		->menu("buddy-list")
+		->addAction(sendSmsActionDescription, KaduMenu::SectionSend, 10)
+		->update();
+	MenuInventory::instance()
+		->menu("buddy")
+		->addAction(sendSmsActionDescription, KaduMenu::SectionBuddies, 5)
+		->update();
 }
 
 SmsActions::~SmsActions()
 {
 	disconnect(Core::instance()->kaduWindow(), 0, this, 0);
 
-	TalkableMenuManager::instance()->removeActionDescription(sendSmsActionDescription);
-	Core::instance()->kaduWindow()->removeMenuActionDescription(sendSmsActionDescription);
+	MenuInventory::instance()
+		->menu("buddy-list")
+		->removeAction(sendSmsActionDescription)
+		->update();
+	MenuInventory::instance()
+		->menu("buddy")
+		->removeAction(sendSmsActionDescription)
+		->update();
+}
+
+void SmsActions::setSmsDialogRepository(SmsDialogRepository *smsDialogRepository)
+{
+	m_smsDialogRepository = smsDialogRepository;
 }
 
 void SmsActions::newSms(const QString &mobile)
 {
 	SmsDialog *smsDialog = new SmsDialog();
+	if (m_smsDialogRepository)
+		m_smsDialogRepository->addDialog(smsDialog);
+
 	smsDialog->setRecipient(mobile);
 	smsDialog->show();
 }
@@ -106,3 +128,5 @@ void SmsActions::sendSmsActionActivated(QAction *sender)
 
 	newSms(action->context()->buddies().toBuddy().mobile());
 }
+
+#include "moc_sms-actions.cpp"

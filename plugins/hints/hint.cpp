@@ -1,13 +1,13 @@
 /*
  * %kadu copyright begin%
  * Copyright 2008, 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2010 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2009, 2010, 2012 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2008, 2009 Tomasz Rostański (rozteck@interia.pl)
  * Copyright 2010, 2011 Piotr Dąbrowski (ultr@ultr.pl)
  * Copyright 2010 Maciej Płaza (plaza.maciej@gmail.com)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
  * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2010, 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2004, 2005, 2006 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
@@ -35,8 +35,9 @@
 #include "configuration/configuration-file.h"
 #include "contacts/contact-set.h"
 #include "icons/icons-manager.h"
-#include "notify/chat-notification.h"
-#include "notify/notification.h"
+#include "notify/notification/aggregate-notification.h"
+#include "notify/notification/chat-notification.h"
+#include "notify/notification/notification.h"
 #include "parser/parser.h"
 #include "debug.h"
 
@@ -55,13 +56,14 @@ Hint::Hint(QWidget *parent, Notification *notification)
 	if (notification->type() == "Preview")
 		requireCallbacks = true;
 
-	notification->acquire();
+	AggregateNotification *aggregateNotification = qobject_cast<AggregateNotification *>(notification);
+	if (aggregateNotification)
+	{
+		notification = aggregateNotification->notifications().first();
+	}
 
 	ChatNotification *chatNotification = qobject_cast<ChatNotification *>(notification);
 	CurrentChat = chatNotification ? chatNotification->chat() : Chat::null;
-
-	if (!notification->details().isEmpty())
-		details.append(notification->details());
 
 	startSecs = secs = config_file.readNumEntry("Hints", "Event_" + notification->key() + "_timeout", 10);
 
@@ -108,7 +110,6 @@ Hint::~Hint()
 	kdebugf();
 
 	disconnect(notification, 0, this, 0);
-	notification->release();
 
 	kdebugf2();
 }
@@ -172,10 +173,10 @@ void Hint::updateText()
 		if (CurrentChat)
 		{
 			Contact contact = *CurrentChat.contacts().constBegin();
-			text = Parser::parse(syntax, Talkable(contact), notification);
+			text = Parser::parse(syntax, Talkable(contact), notification, ParserEscape::HtmlEscape);
 		}
 		else
-			text = Parser::parse(syntax, notification);
+			text = Parser::parse(syntax, notification, ParserEscape::HtmlEscape);
 
 		/* Dorr: the file:// in img tag doesn't generate the image on hint.
 		 * for compatibility with other syntaxes we're allowing to put the file://
@@ -185,6 +186,9 @@ void Hint::updateText()
 
 	if (config_file.readBoolEntry("Hints", "ShowContentMessage"))
 	{
+		QStringList details;
+		if (!notification->details().isEmpty())
+			details = notification->details();
 		int count = details.count();
 
 		if (count)
@@ -201,7 +205,8 @@ void Hint::updateText()
 			QString itemSyntax = config_file.readEntry("Hints", "Event_" + notification->key() + "_detailSyntax", defaultSyntax);
 			for (; i < count; i++)
 			{
-				const QString &message = details[i];
+				const QString &message = details[i].replace("<br/>", QLatin1String(""));
+
 				if (message.length() > citeSign)
 					text += itemSyntax.arg(details[i].left(citeSign) + "...");
 				else
@@ -261,12 +266,8 @@ bool Hint::isDeprecated()
 	return (!requireCallbacks) && startSecs != 0 && secs == 0;
 }
 
-void Hint::addDetail(const QString &detail)
+void Hint::notificationUpdated()
 {
-	details.append(detail);
-	if (details.count() > 5)
-		details.pop_front();
-
 	resetTimeout();
 	updateText();
 }
@@ -314,7 +315,7 @@ void Hint::mouseOut()
 	setStyleSheet(style);
 }
 
-void Hint::getData(QString &text, QPixmap &pixmap, unsigned int &timeout, QFont &font, QColor &fgcolor, QColor &bgcolor)
+void Hint::getData(QString &text, QPixmap &pixmap, int &timeout, QFont &font, QColor &fgcolor, QColor &bgcolor)
 {
 	text = label->text().remove(' ');
 
@@ -341,3 +342,5 @@ void Hint::discardNotification()
 
 /** @} */
 
+
+#include "moc_hint.cpp"

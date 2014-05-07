@@ -1,9 +1,6 @@
 project (sms)
 
-# minimal required versions
 cmake_minimum_required (VERSION 2.8)
-set (QT_MIN_VERSION "4.7.0")
-set (CMAKE_MIN_VERSION "2.8.0")
 
 set (QT_USE_QTXML 1)
 set (QT_USE_QTNETWORK 1)
@@ -12,11 +9,11 @@ set (QT_USE_QTSCRIPT 1)
 # Only needed for script debugger
 #set (QT_USE_QTSCRIPTTOOLS 1)
 
-set (KADU_FIND_REQUIRED true)
-include (FindKadu)
+find_package (Kadu REQUIRED CONFIG)
 
 set (SOURCES
 	gui/windows/sms-dialog.cpp
+	gui/windows/sms-dialog-repository.cpp
 	scripts/network-access-manager-wrapper.cpp
 	scripts/network-reply-wrapper.cpp
 	scripts/sms-script-manager.cpp
@@ -64,9 +61,8 @@ set (CONFIGURATION_FILES
 kadu_plugin (sms
 	PLUGIN_SOURCES ${SOURCES}
 	PLUGIN_MOC_SOURCES ${MOC_SOURCES}
-	PLUGIN_DATA_DIRECTORY ${DATA_DIRECTORY}
+	PLUGIN_DATA_DIRECTORIES ${DATA_DIRECTORY}
 	PLUGIN_CONFIGURATION_FILES ${CONFIGURATION_FILES}
 	PLUGIN_LIBRARIES ${QT_LIBRARIES}
-	PLUGIN_BUILDDEF SMS_BUILD
 	PLUGIN_DEPENDENCIES history
 )

@@ -23,17 +23,17 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CHAT_NOTIFY_PLUGIN_H
-#define CHAT_NOTIFY_PLUGIN_H
+#pragma once
 
-#include "plugins/generic-plugin.h"
+#include "plugin/plugin-root-component.h"
 
 class ChatNotifier;
 
-class ChatNotifyPlugin : public QObject, public GenericPlugin
+class ChatNotifyPlugin : public QObject, public PluginRootComponent
 {
 	Q_OBJECT
-	Q_INTERFACES(GenericPlugin)
+	Q_INTERFACES(PluginRootComponent)
+	Q_PLUGIN_METADATA(IID "im.kadu.PluginRootComponent")
 
 	ChatNotifier *NotifierInstance;
 
@@ -42,9 +42,7 @@ class ChatNotifyPlugin : public QObject, public GenericPlugin
 public:
 	virtual ~ChatNotifyPlugin();
 
-	virtual int init(bool firstLoad);
+	virtual bool init(bool firstLoad);
 	virtual void done();
 
 };
-
-#endif // CHAT_NOTIFY_PLUGIN_H

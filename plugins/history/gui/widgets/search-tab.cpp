@@ -1,6 +1,7 @@
 /*
  * %kadu copyright begin%
  * Copyright 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -32,9 +33,10 @@
 #include <QtGui/QVBoxLayout>
 
 #include "gui/web-view-highlighter.h"
-#include "gui/widgets/chat-messages-view.h"
 #include "gui/widgets/search-bar.h"
+#include "gui/widgets/webkit-messages-view/webkit-messages-view.h"
 #include "icons/kadu-icon.h"
+#include "message/sorted-messages.h"
 #include "misc/misc.h"
 #include "model/roles.h"
 #include "activate.h"
@@ -80,6 +82,8 @@ void SearchTab::createGui()
 	Query = new QLineEdit(queryFormWidget);
 	Query->setMinimumWidth(200);
 	queryFormLayout->addRow(tr("Search for:"), Query);
+
+	connect(Query, SIGNAL(returnPressed()), this, SLOT(performSearch()));
 
 	SearchInChats = new QRadioButton(tr("Chats"), queryFormWidget);
 	SearchInChats->setChecked(true);
@@ -172,9 +176,8 @@ void SearchTab::setChatStorage(HistoryMessagesStorage *storage)
 	if (*SearchedStorage == ChatStorage)
 	{
 		TimelineView->setResults(QVector<HistoryQueryResult>());
-		TimelineView->messagesView()->setChat(Chat::null);
 		TimelineView->messagesView()->clearMessages();
-		TimelineView->messagesView()->refresh();
+		TimelineView->messagesView()->setChat(Chat::null);
 	}
 }
 
@@ -193,9 +196,8 @@ void SearchTab::setStatusStorage(HistoryMessagesStorage *storage)
 	if (*SearchedStorage == StatusStorage)
 	{
 		TimelineView->setResults(QVector<HistoryQueryResult>());
-		TimelineView->messagesView()->setChat(Chat::null);
 		TimelineView->messagesView()->clearMessages();
-		TimelineView->messagesView()->refresh();
+		TimelineView->messagesView()->setChat(Chat::null);
 	}
 }
 
@@ -214,9 +216,8 @@ void SearchTab::setSmsStorage(HistoryMessagesStorage *storage)
 	if (*SearchedStorage == SmsStorage)
 	{
 		TimelineView->setResults(QVector<HistoryQueryResult>());
-		TimelineView->messagesView()->setChat(Chat::null);
 		TimelineView->messagesView()->clearMessages();
-		TimelineView->messagesView()->refresh();
+		TimelineView->messagesView()->setChat(Chat::null);
 	}
 }
 
@@ -312,7 +313,7 @@ void SearchTab::currentDateChanged()
 		TimelineView->setFutureMessages((*SearchedStorage)->messages(query));
 	}
 	else
-		TimelineView->setMessages(QVector<Message>());
+		TimelineView->setMessages(SortedMessages());
 }
 
 void SearchTab::messagesDisplayed()
@@ -338,3 +339,5 @@ void SearchTab::setSizes(const QList<int> &newSizes)
 	Splitter->setSizes(newSizes.mid(0, 2));
 	TimelineView->setSizes(newSizes.mid(2, 2));
 }
+
+#include "moc_search-tab.cpp"

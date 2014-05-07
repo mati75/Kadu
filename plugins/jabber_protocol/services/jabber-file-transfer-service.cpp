@@ -4,7 +4,8 @@
  * Copyright 2009, 2009 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
  * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
- * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2007, 2008, 2009, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
@@ -28,11 +29,12 @@
 
 #include "file-transfer/jabber-file-transfer-handler.h"
 #include "file-transfer/s5b-server-manager.h"
+#include "services/jabber-connection-service.h"
 #include "jabber-protocol.h"
 
 #include "jabber-file-transfer-service.h"
 
-JabberFileTransferService::JabberFileTransferService(JabberProtocol *protocol) :
+JabberFileTransferService::JabberFileTransferService(XMPP::JabberProtocol *protocol) :
 		FileTransferService(protocol), Protocol(protocol)
 {
 	connect(Protocol, SIGNAL(stateMachineLoggedIn()), this, SLOT(loggedIn()));
@@ -59,13 +61,13 @@ FileTransferHandler * JabberFileTransferService::createFileTransferHandler(FileT
 
 void JabberFileTransferService::loggedIn()
 {
-	S5BServerManager::instance()->addAddress(Protocol->client()->localAddress());
+	S5BServerManager::instance()->addAddress(Protocol->connectionService()->localAddress());
 	Protocol->xmppClient()->s5bManager()->setServer(S5BServerManager::instance()->server());
 }
 
 void JabberFileTransferService::loggedOut()
 {
-	S5BServerManager::instance()->removeAddress(Protocol->client()->localAddress());
+	S5BServerManager::instance()->removeAddress(Protocol->connectionService()->localAddress());
 	Protocol->xmppClient()->s5bManager()->setServer(0);
 }
 
@@ -90,3 +92,5 @@ void JabberFileTransferService::incomingFileTransferSlot()
 
 	emit incomingFileTransfer(transfer);
 }
+
+#include "moc_jabber-file-transfer-service.cpp"

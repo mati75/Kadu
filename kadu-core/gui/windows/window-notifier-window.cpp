@@ -1,10 +1,10 @@
 /*
  * %kadu copyright begin%
  * Copyright 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2009, 2012 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2010, 2011 Piotr Dąbrowski (ultr@ultr.pl)
  * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2011, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -26,7 +26,7 @@
 #include <QtGui/QVBoxLayout>
 
 #include "icons/icons-manager.h"
-#include "notify/notification.h"
+#include "notify/notification/notification.h"
 #include "debug.h"
 
 #include "window-notifier-window.h"
@@ -39,8 +39,6 @@ WindowNotifierWindow::WindowNotifierWindow(Notification *notification, QWidget *
 
 	setWindowRole("kadu-window-notifier");
 
-	CurrentNotification->acquire();
-
 	setWindowTitle(CurrentNotification->title());
 	setAttribute(Qt::WA_DeleteOnClose);
 
@@ -49,7 +47,7 @@ WindowNotifierWindow::WindowNotifierWindow(Notification *notification, QWidget *
 
 WindowNotifierWindow::~WindowNotifierWindow()
 {
-	CurrentNotification->release();
+	emit closed(CurrentNotification);
 }
 
 void WindowNotifierWindow::createGui()
@@ -72,7 +70,7 @@ void WindowNotifierWindow::createGui()
 	QLabel *textLabel = new QLabel;
 	QString text = CurrentNotification->text();
 	if (!CurrentNotification->details().isEmpty())
-		text += "<br/> <small>" + CurrentNotification->details() + "</small>";
+		text += "<br/> <small>" + CurrentNotification->details().join("<br/>") + "</small>";
 	textLabel->setText(text);
 
 	labelsLayout->addWidget(textLabel);
@@ -106,3 +104,5 @@ void WindowNotifierWindow::addButton(QWidget *parent, const QString &caption, co
 	connect(button, SIGNAL(clicked()), CurrentNotification, slot);
 	connect(button, SIGNAL(clicked()), CurrentNotification, SLOT(clearDefaultCallback()));
 }
+
+#include "moc_window-notifier-window.cpp"

@@ -2,8 +2,8 @@
  * %kadu copyright begin%
  * Copyright 2008, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2008 Michał Podsiadlik (michal@kadu.net)
- * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2007, 2008, 2009, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011, 2012 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2007, 2008 Dawid Stawiarski (neeo@kadu.net)
  * %kadu copyright end%
  *
@@ -24,9 +24,9 @@
 #ifndef JABBER_ROSTER_SERVICE_H
 #define JABBER_ROSTER_SERVICE_H
 
-#include <QtCore/QWeakPointer>
+#include <QtCore/QPointer>
 
-#include "protocols/services/roster-service.h"
+#include "protocols/services/roster/roster-service.h"
 
 class Buddy;
 class Contact;
@@ -43,7 +43,7 @@ class JabberRosterService : public RosterService
 {
 	Q_OBJECT
 
-	QWeakPointer<Client> XmppClient;
+	QPointer<Client> XmppClient;
 
 	QMap<JT_Roster *, Contact> ContactForTask;
 
@@ -102,7 +102,7 @@ protected:
 	virtual void executeTask(const RosterTask &task);
 
 public:
-	explicit JabberRosterService(JabberProtocol *protocol);
+	explicit JabberRosterService(Account account, QObject *parent = 0);
 	virtual ~JabberRosterService();
 
 	virtual void prepareRoster(const QVector<Contact> &contacts);

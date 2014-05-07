@@ -1,6 +1,6 @@
 /*
  * %kadu copyright begin%
- * Copyright 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -45,6 +45,7 @@ class KADUAPI AllAccountsStatusContainer : public StatusContainer, public Accoun
 	Q_DISABLE_COPY(AllAccountsStatusContainer)
 
 	QList<Account> Accounts;
+	Status LastSetStatus;
 
 protected:
 	/**

@@ -4,7 +4,7 @@
  * Copyright 2008 Michał Podsiadlik (michal@kadu.net)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
  * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
- * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2007, 2008, 2009, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
@@ -31,32 +31,57 @@
 
 #include <iris/xmpp_pubsubitem.h>
 #include <xmpp/jid/jid.h>
+#include <xmpp_vcard.h>
 
 #include "accounts/account.h"
+#include "protocols/services/avatar-uploader.h"
 
-class JabberProtocol;
+namespace XMPP
+{
+	class JabberProtocol;
+	class JabberVCardService;
+}
 
-class JabberAvatarVCardUploader : public QObject
+/**
+ * @addtogroup Jabber
+ * @{
+ */
+
+/**
+ * @class JabberAvatarVCardUploader
+ * @short Uploads avatar to XMPP server using VCard.
+ * @author Rafał 'Vogel' Malinowski
+ *
+ * This class allows for easy upload of avatar to XMPP server. New instance can be created by constructor that requires
+ * XMPP::JabberVCardService argument.
+ */
+class JabberAvatarVCardUploader : public AvatarUploader
 {
 	Q_OBJECT
 
-	Account MyAccount;
-	JabberProtocol *MyProtocol;
+	XMPP::Jid MyJid;
+	QPointer<XMPP::JabberVCardService> VCardService;
 
-	QByteArray UploadedAvatarData;
+	QImage UploadedAvatar;
+
+	void done();
+	void failed();
 
 private slots:
-	void vcardReceived();
-	void vcardUploaded();
+	void vCardUploaded(bool ok);
+	void vCardDownloaded(bool ok, XMPP::VCard vCard);
 
 public:
-	JabberAvatarVCardUploader(Account account, QObject *parent);
+	/**
+	 * @author Rafał 'Vogel' Malinowski
+	 * @short Create instance attached to given XMPP::JabberVCardService.
+	 * @param vcardService instance of XMPP::JabberVCardService
+	 * @param parent QObject parent
+	 */
+	explicit JabberAvatarVCardUploader(XMPP::JabberVCardService *vcardService, QObject *parent = 0);
 	virtual ~JabberAvatarVCardUploader();
 
-	void uploadAvatar(const QByteArray &data);
-
-signals:
-	void avatarUploaded(bool ok);
+	virtual void uploadAvatar(const QString &id, const QString &password, QImage avatar);
 
 };
 

@@ -5,7 +5,8 @@
  * Copyright 2008 Michał Podsiadlik (michal@kadu.net)
  * Copyright 2009, 2009, 2010 Bartłomiej Zimoń (uzi18@o2.pl)
  * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
- * Copyright 2007, 2008, 2009, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2007, 2008, 2009, 2009, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2012 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
@@ -50,6 +51,8 @@ const int ItemTypeRole = KaduRoles + 15;
 const int MultilogonSessionRole = KaduRoles + 16;
 const int NetworkProxyRole = KaduRoles + 17;
 const int TalkableRole = KaduRoles + 18;
+const int AvatarPathRole = KaduRoles + 19;
+const int StatusIconPath = KaduRoles + 20;
 
 typedef QSet<int> RoleSet;
 // needed for ActionRole

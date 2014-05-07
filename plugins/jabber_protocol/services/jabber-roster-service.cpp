@@ -1,9 +1,9 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2010, 2010, 2011, 2012 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2010 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -55,10 +55,9 @@ const QString & JabberRosterService::itemDisplay(const XMPP::RosterItem &item)
 		return item.jid().bare();
 }
 
-JabberRosterService::JabberRosterService(JabberProtocol *protocol) :
-		RosterService(protocol)
+JabberRosterService::JabberRosterService(Account account, QObject *parent) :
+		RosterService(account, parent)
 {
-	Q_ASSERT(protocol);
 }
 
 JabberRosterService::~JabberRosterService()
@@ -109,7 +108,7 @@ JT_Roster * JabberRosterService::createContactTask(const Contact &contact)
 	if (!XmppClient)
 		return 0;
 
-	XMPP::JT_Roster *rosterTask = new XMPP::JT_Roster(XmppClient.data()->rootTask());
+	XMPP::JT_Roster *rosterTask = new XMPP::JT_Roster(XmppClient->rootTask());
 	connect(rosterTask, SIGNAL(finished()), this, SLOT(rosterTaskFinished()));
 	connect(rosterTask, SIGNAL(destroyed(QObject*)), this, SLOT(rosterTaskDeleted(QObject*)));
 
@@ -202,7 +201,7 @@ void JabberRosterService::remoteContactDeleted(const XMPP::RosterItem &item)
 	Contact contact = ContactManager::instance()->byId(account(), item.jid().bare(), ActionReturnNull);
 
 	RosterTaskType rosterTaskType = taskType(contact.id());
-	if (RosterTaskNone == rosterTaskType && RosterTaskDelete == rosterTaskType)
+	if (RosterTaskNone == rosterTaskType || RosterTaskDelete == rosterTaskType)
 	{
 		contact.rosterEntry()->setState(RosterEntrySynchronizing);
 		BuddyManager::instance()->clearOwnerAndRemoveEmptyBuddy(contact);
@@ -255,7 +254,7 @@ void JabberRosterService::markContactsForDeletion()
 		RosterTaskType rosterTaskType = taskType(contact.id());
 
 		if (rosterEntry && (RosterEntrySynchronized == rosterEntry->state())
-				&& (RosterTaskNone == rosterTaskType && RosterTaskDelete == rosterTaskType))
+				&& (RosterTaskNone == rosterTaskType || RosterTaskDelete == rosterTaskType))
 			rosterEntry->setRemotelyDeleted(true);
 	}
 }
@@ -287,7 +286,7 @@ void JabberRosterService::prepareRoster(const QVector<Contact> &contacts)
 	setState(StateInitializing);
 	markContactsForDeletion();
 
-	XmppClient.data()->rosterRequest();
+	XmppClient->rosterRequest();
 }
 
 void JabberRosterService::rosterRequestFinished(bool success)
@@ -353,3 +352,5 @@ void JabberRosterService::executeTask(const RosterTask& task)
 }
 
 }
+
+#include "moc_jabber-roster-service.cpp"

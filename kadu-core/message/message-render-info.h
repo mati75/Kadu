@@ -3,7 +3,7 @@
  * Copyright 2008, 2009, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2008 Michał Podsiadlik (michal@kadu.net)
  * Copyright 2006 Adrian Smarzewski (adrian@kadu.net)
- * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2007, 2008, 2009, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2006, 2007 Dawid Stawiarski (neeo@kadu.net)
  * Copyright 2005, 2006, 2007 Marcin Ślusarz (joi@kadu.net)
@@ -23,64 +23,44 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef MESSAGE_RENDER_INFO
-#define MESSAGE_RENDER_INFO
+#pragma once
 
-#include <QtCore/QDateTime>
-#include <QtCore/QString>
+#include "parser/parser-data.h"
 
 #include "buddies/buddy-list.h"
 #include "buddies/buddy.h"
 #include "message/message.h"
 #include "protocols/protocol.h"
-
 #include "exports.h"
 
-class KADUAPI MessageRenderInfo : public QObject
+#include <QtCore/QString>
+
+class KADUAPI MessageRenderInfo : public ParserData
 {
-	Q_OBJECT
-
-	Message MyMessage;
-	QString HtmlMessageContent;
-
-	QString BackgroundColor;
-	QString FontColor;
-	QString NickColor;
-
-	int SeparatorSize;
-	bool ShowServerTime;
 
 public:
 	static void registerParserTags();
 	static void unregisterParserTags();
 
-	MessageRenderInfo(const Message &msg);
+	MessageRenderInfo(Message message, QString backgroundColor, QString fontColor, QString nickColor,
+			bool includeHeader, int separatorSize, bool showServerTime);
 	virtual ~MessageRenderInfo();
 
-	void replaceLoadingImages(const QString &imageId, const QString &imageFileName);
+	Message message() const;
+	QString backgroundColor() const;
+	QString fontColor() const;
+	QString nickColor() const;
+	bool includeHeader() const;
+	int separatorSize() const;
+	bool showServerTime() const;
 
-	const Message & message() const { return MyMessage; }
-	Message & message() { return MyMessage; }
-
-	const QString & htmlMessageContent() const { return HtmlMessageContent; }
-
-	MessageRenderInfo & setSeparatorSize(int separatorSize);
-	int separatorSize() const { return SeparatorSize; }
-
-	MessageRenderInfo & setShowServerTime(bool noServerTime, int noServerTimeDiff);
-	bool showServerTime() const { return ShowServerTime; }
-
-	MessageRenderInfo & setBackgroundColor(const QString &backgroundColor);
-	const QString & backgroundColor() const { return BackgroundColor; }
-
-	MessageRenderInfo & setFontColor(const QString &fontColor);
-	const QString & fontColor() const { return FontColor; }
-
-	MessageRenderInfo & setNickColor(const QString &nickColor);
-	const QString & nickColor() const { return NickColor; }
+private:
+	Message m_message;
+	QString m_backgroundColor;
+	QString m_fontColor;
+	QString m_nickColor;
+	bool m_includeHeader;
+	int m_separatorSize;
+	bool m_showServerTime;
 
 };
-
-QString formatMessage(const QString &text);
-
-#endif // MESSAGE_RENDER_INFO

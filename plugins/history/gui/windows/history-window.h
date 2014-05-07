@@ -3,7 +3,7 @@
  * Copyright 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009, 2009 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2009 Michał Podsiadlik (michal@kadu.net)
- * Copyright 2008, 2009, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2008, 2009, 2009, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
@@ -24,7 +24,7 @@
 #ifndef HISTORY_WINDOW_H
 #define HISTORY_WINDOW_H
 
-#include <QtGui/QDialog>
+#include <QtGui/QWidget>
 
 class QTabWidget;
 
@@ -38,7 +38,7 @@ class SearchTab;
 \class HistoryWindow
 \author Juzef, Vogel
 */
-class HistoryWindow : public QDialog
+class HistoryWindow : public QWidget
 {
 	Q_OBJECT
 
@@ -64,6 +64,9 @@ class HistoryWindow : public QDialog
 private slots:
 	void currentTabChanged(int newTabIndex);
 	void storageChanged(HistoryStorage *historyStorage);
+
+protected:
+	virtual void keyPressEvent(QKeyEvent *event);
 
 public:
 	static HistoryWindow * instance();

@@ -1,10 +1,10 @@
 /*
  * %kadu copyright begin%
  * Copyright 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2010 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2010, 2011 Piotr Dąbrowski (ultr@ultr.pl)
+ * Copyright 2010, 2012 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2010, 2011, 2012 Piotr Dąbrowski (ultr@ultr.pl)
  * Copyright 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2011, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -46,7 +46,7 @@ StatusActions::StatusActions(StatusContainer *statusContainer, bool includePrefi
 	connect(ChangeStatusActionGroup, SIGNAL(triggered(QAction*)), this, SIGNAL(statusActionTriggered(QAction*)));
 
 	statusUpdated();
-	connect(MyStatusContainer, SIGNAL(statusUpdated()), this, SLOT(statusUpdated()));
+	connect(MyStatusContainer, SIGNAL(statusUpdated(StatusContainer *)), this, SLOT(statusUpdated(StatusContainer *)));
 
 	connect(IconsManager::instance(), SIGNAL(themeChanged()), this, SLOT(iconThemeChanged()));
 }
@@ -137,7 +137,7 @@ void StatusActions::cleanUpActions()
 	ChangeDescription = 0;
 }
 
-void StatusActions::statusUpdated()
+void StatusActions::statusUpdated(StatusContainer *container)
 {
 	if (MyStatusContainer->supportedStatusTypes() != MyStatusTypes)
 	{
@@ -145,7 +145,10 @@ void StatusActions::statusUpdated()
 		createActions();
 	}
 
-	StatusType currentStatusType = StatusSetter::instance()->manuallySetStatus(MyStatusContainer).type();
+	StatusType currentStatusType = container
+		? container->status().type()
+		: StatusSetter::instance()->manuallySetStatus(MyStatusContainer).type();
+
 	if (!MyStatusContainer->supportedStatusTypes().contains(currentStatusType))
 		currentStatusType = MyStatusContainer->status().type();
 
@@ -154,7 +157,6 @@ void StatusActions::statusUpdated()
 		StatusType statusType = action->data().value<StatusType>();
 		if (StatusTypeNone == statusType)
 			continue;
-
 		action->setIcon(MyStatusContainer->statusIcon(statusType).icon());
 
 		if (!MyStatusContainer->isStatusSettingInProgress())
@@ -181,3 +183,5 @@ void StatusActions::iconThemeChanged()
 		action->setIcon(MyStatusContainer->statusIcon(statusType).icon());
 	}
 }
+
+#include "moc_status-actions.cpp"

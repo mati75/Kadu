@@ -3,7 +3,7 @@
  * Copyright 2008, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2010 Tomasz Rostański (rozteck@interia.pl)
  * Copyright 2008 Michał Podsiadlik (michal@kadu.net)
- * Copyright 2007, 2008, 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2007, 2008, 2009, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2007, 2008 Dawid Stawiarski (neeo@kadu.net)
  * %kadu copyright end%
@@ -30,15 +30,17 @@
 #include "buddies/buddy.h"
 #include "exports.h"
 
-class KADUAPI PersonalInfoService : public QObject
+#include "account-service.h"
+
+class KADUAPI PersonalInfoService : public AccountService
 {
 	Q_OBJECT
 
 public:
-	explicit PersonalInfoService(QObject *parent) : QObject(parent) {}
+	explicit PersonalInfoService(Account account, QObject *parent) : AccountService(account, parent) {}
 
-	virtual void updatePersonalInfo(Buddy buddy) = 0;
-	virtual void fetchPersonalInfo() = 0;
+	virtual void updatePersonalInfo(const QString &id, Buddy buddy) = 0;
+	virtual void fetchPersonalInfo(const QString &id) = 0;
 
 signals:
 	void personalInfoAvailable(Buddy buddy);

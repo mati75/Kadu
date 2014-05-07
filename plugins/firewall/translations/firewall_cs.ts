@@ -10,32 +10,12 @@
         <translation>Obecné</translation>
     </message>
     <message>
-        <source>Notify</source>
-        <translation>Oznámit</translation>
-    </message>
-    <message>
         <source>Notification syntax</source>
         <translation>Skladba oznámení</translation>
     </message>
     <message>
         <source>%u - uin, %m - message</source>
         <translation>%u - uin, %m - zpráva</translation>
-    </message>
-    <message>
-        <source>Log</source>
-        <translation>Zápis</translation>
-    </message>
-    <message>
-        <source>Write to history</source>
-        <translation>Zapsat do historie</translation>
-    </message>
-    <message>
-        <source>Write log to file</source>
-        <translation>Zapsat zápis do souboru</translation>
-    </message>
-    <message>
-        <source>Search</source>
-        <translation>Hledat</translation>
     </message>
     <message>
         <source>Search for unknown person in directory and show window with his personal data.</source>
@@ -54,16 +34,8 @@
         <translation>Ochrana před hovory s neznámými účastníky</translation>
     </message>
     <message>
-        <source>When invisible silently drop chats with unknown persons</source>
-        <translation>Když jste neviditelný, zahodit hovory s neznámými - bez nějakého dalšího hlášení</translation>
-    </message>
-    <message>
         <source>Automatic question</source>
         <translation>Automaticky položená otázka</translation>
-    </message>
-    <message>
-        <source>After right answer</source>
-        <translation>Po správné odpovědi</translation>
     </message>
     <message>
         <source>Send confirmation</source>
@@ -72,46 +44,6 @@
     <message>
         <source>Confirmation</source>
         <translation>Potvrzení</translation>
-    </message>
-    <message>
-        <source>DoS attack</source>
-        <translation>Útok typu DoS</translation>
-    </message>
-    <message>
-        <source>Protect against flooding DoS attack</source>
-        <translation>Chránit před přetečením způsobeným zprávami útoku typu DoS</translation>
-    </message>
-    <message>
-        <source>Attack caused by many messages, sent in short time.</source>
-        <translation>Útok zapříčiněný posíláním nespočetných zpráv po krátkou dobu.</translation>
-    </message>
-    <message>
-        <source>Min delay between two messages</source>
-        <translation>Nejmenší odstup mezi dvěma zprávami</translation>
-    </message>
-    <message>
-        <source>Emoticons DoS attack</source>
-        <translation>Útok typu DoS pomocí ksichtíků</translation>
-    </message>
-    <message>
-        <source>Protect against emoticons DoS attack</source>
-        <translation>Chránit před útokem pomocí hordy ksichtů</translation>
-    </message>
-    <message>
-        <source>Attack caused by many emoticons, sent in short time.</source>
-        <translation>Útok zapříčiněný posíláním nespočetných ksichtů po krátkou dobu.</translation>
-    </message>
-    <message>
-        <source>Max number of emoticons in one message</source>
-        <translation>Největší počet symbolů v jedné zprávě</translation>
-    </message>
-    <message>
-        <source>Allow if known contact</source>
-        <translation>Povolit, když je odesílatel zařazen v seznamu spojení</translation>
-    </message>
-    <message>
-        <source>People from your list can send you unlimited number of emoticons</source>
-        <translation>Lidé ve vašem seznamu vám mohou posílat neomezený počet svých obličejíků</translation>
     </message>
     <message>
         <source>Safe sending</source>
@@ -125,17 +57,37 @@
         <source>You must confirm each message sent to these people</source>
         <translation>Musíte potvrdit každou zprávu, kterou chcete těmto lidem poslat</translation>
     </message>
-    <message numerus="yes">
-        <source>%n millisecond(s)</source>
-        <translation><numerusform>1 milisekunda</numerusform><numerusform>%n milisekundy</numerusform><numerusform>%n milisekund</numerusform></translation>
-    </message>
     <message>
         <source>Message was firewalled</source>
         <translation>Zpráva byla zadržena ohnivou zdí</translation>
     </message>
     <message>
-        <source>Module will ask the question typed below, if someone wants talk to you and you do not have him on your list.</source>
-        <translation>Modul položí otázku napsanou níže, když s vámi bude chtít někdo mluvit, ale vy jej nemáte zapsaného ve svém seznamu.</translation>
+        <source>Anonymous chat attempt</source>
+        <translation>Nepodepsaný pokus o rozhovor</translation>
+    </message>
+    <message>
+        <source>Save anonymous chat attempt in history</source>
+        <translation>Uložit nepodepsaný pokus o rozhovor do historie</translation>
+    </message>
+    <message>
+        <source>Save anonymous chat attempt in log file</source>
+        <translation>Uložit nepodepsaný pokus o rozhovor do souboru se zápisem</translation>
+    </message>
+    <message>
+        <source>Log file path</source>
+        <translation>Cesta k souboru se zápisem</translation>
+    </message>
+    <message>
+        <source>Kadu will ask the question typed below, if someone wants talk to you and you do not have him on your list.</source>
+        <translation>Kadu položí otázku napsanou níže, pokud s vámi bude chtít někdo mluvit a vy jej nebudete mít ve svém seznamu.</translation>
+    </message>
+    <message>
+        <source>Drop chats with unknown person when I am invisible/unavailable</source>
+        <translation>Vynechat rozhovory s neznámou osobou, když jsem neviditelný/nedostupný</translation>
+    </message>
+    <message>
+        <source>Reaction on right answer</source>
+        <translation>Reakce na správnou odpověď</translation>
     </message>
 </context>
 <context>

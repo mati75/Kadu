@@ -4,7 +4,7 @@
  * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2009 Tomasz Rostański (rozteck@interia.pl)
  * Copyright 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2010, 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -46,14 +46,14 @@ AutoHide::~AutoHide()
 {
 }
 
-int AutoHide::init(bool firstLoad)
+bool AutoHide::init(bool firstLoad)
 {
 	Q_UNUSED(firstLoad)
 
 	MainConfigurationWindow::registerUiFile(KaduPaths::instance()->dataPath() + QLatin1String("plugins/configuration/auto_hide.ui"));
 	MainConfigurationWindow::registerUiHandler(this);
 
-	return 0;
+	return true;
 }
 
 void AutoHide::done()
@@ -96,3 +96,5 @@ void AutoHide::mainConfigurationWindowCreated(MainConfigurationWindow *mainConfi
 }
 
 Q_EXPORT_PLUGIN2(auto_hide, AutoHide)
+
+#include "moc_auto_hide.cpp"

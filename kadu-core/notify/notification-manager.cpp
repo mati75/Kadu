@@ -1,7 +1,7 @@
 /*
  * %kadu copyright begin%
  * Copyright 2008, 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2009, 2012 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2010 Tomasz Rostański (rozteck@interia.pl)
  * Copyright 2010, 2011 Piotr Dąbrowski (ultr@ultr.pl)
  * Copyright 2004 Tomasz Jarzynka (tomee@cpi.pl)
@@ -9,8 +9,8 @@
  * Copyright 2009, 2009 Bartłomiej Zimoń (uzi18@o2.pl)
  * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
  * Copyright 2005 Paweł Płuciennik (pawel_p@kadu.net)
- * Copyright 2007, 2008, 2009, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2007, 2008, 2009, 2009, 2010, 2011, 2012, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2007, 2008, 2009 Dawid Stawiarski (neeo@kadu.net)
  * Copyright 2004, 2005, 2006, 2007 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
@@ -31,84 +31,17 @@
 
 #include <QtGui/QApplication>
 
-#ifdef Q_WS_X11
-#include <QtDBus/QDBusInterface>
-#include <QtDBus/QDBusReply>
-#include <QtGui/QX11Info>
-#endif
-
-#include "accounts/account-manager.h"
-#include "accounts/account.h"
-#include "buddies/buddy-manager.h"
-#include "buddies/group-manager.h"
-#include "buddies/group.h"
 #include "configuration/configuration-file.h"
-#include "contacts/contact-manager.h"
-#include "contacts/contact.h"
-#include "core/core.h"
-#include "gui/actions/action.h"
-#include "gui/widgets/chat-widget-manager.h"
-#include "gui/widgets/chat-widget.h"
-#include "gui/widgets/custom-input.h"
-#include "gui/widgets/talkable-menu-manager.h"
-#include "gui/windows/kadu-window.h"
-#include "gui/windows/main-configuration-window.h"
-#include "gui/windows/main-window.h"
 #include "gui/windows/message-dialog.h"
-#include "message/message-manager.h"
-#include "message/message.h"
-#include "multilogon/multilogon-session.h"
-#include "notify/account-notification.h"
-#include "notify/multilogon-notification.h"
-#include "notify/notification.h"
+#include "notify/notification/aggregate-notification.h"
 #include "notify/notifier.h"
-#include "notify/notify-configuration-ui-handler.h"
-#include "notify/window-notifier.h"
-#include "protocols/services/multilogon-service.h"
+#include "protocols/connection-error-notification.h"
+#include "protocols/protocol.h"
 #include "status/status-container-manager.h"
-#include "status/status-type-data.h"
-#include "status/status-type-manager.h"
-
-#include "misc/misc.h"
-#include "activate.h"
 #include "debug.h"
 
-#include "new-message-notification.h"
-#include "status-changed-notification.h"
+#include "notify/notification-manager.h"
 
-#ifdef Q_WS_X11
-#include "os/x11tools.h" // this should be included as last one,
-#undef KeyPress
-#undef Status            // and Status defined by Xlib.h must be undefined
-#include <storage/custom-properties.h>
-#endif
-
-#ifdef Q_WS_WIN
-#include <windows.h>
-
-static bool win32_checkFullScreen()
-{
-	HWND hWnd = GetForegroundWindow();
-	if (NULL == hWnd)
-		return false;
-
-	int cx = GetSystemMetrics(SM_CXSCREEN);
-	int cy = GetSystemMetrics(SM_CYSCREEN);
-	RECT r;
-	GetWindowRect(hWnd, &r);
-
-	return (r.right - r.left == cx && r.bottom - r.top == cy);
-}
-
-static bool win32_isScreenSaverRunning()
-{
-    BOOL ret;
-    SystemParametersInfo(SPI_GETSCREENSAVERRUNNING, 0, &ret, 0);
-    return (0 != ret);
-}
-#endif
-
-#define FULLSCREENCHECKTIMER_INTERVAL 2000 /*ms*/
 
 NotificationManager *NotificationManager::Instance = 0;
 
@@ -117,11 +50,9 @@ NotificationManager * NotificationManager::instance()
 	if (!Instance)
 	{
 		Instance = new NotificationManager();
-		Instance->init();
 
-		MessageNotification::registerEvents();
-		StatusChangedNotification::registerEvents();
-		MultilogonNotification::registerEvents();
+		//HACK force creating StatusContainerManager instance so Kadu won't crash at startup
+		StatusContainerManager::instance();
 	}
 
 	return Instance;
@@ -129,298 +60,15 @@ NotificationManager * NotificationManager::instance()
 
 NotificationManager::NotificationManager()
 {
-#if defined(Q_WS_X11) && !defined(Q_WS_MAEMO_5)
-	x11display = XOpenDisplay(0);
-#endif
-}
-
-void NotificationManager::init()
-{
-	kdebugf();
-
-	Notification::registerParserTags();
-	AccountNotification::registerParserTags();
-
-	UiHandler = new NotifyConfigurationUiHandler(this);
-	MainConfigurationWindow::registerUiHandler(UiHandler);
-
-	SilentMode = false;
-
-	FullScreenCheckTimer.setInterval(FULLSCREENCHECKTIMER_INTERVAL);
-	connect(&FullScreenCheckTimer, SIGNAL(timeout()), this, SLOT(checkFullScreen()));
-	IsFullScreen = false;
-
-	createDefaultConfiguration();
-	AutoSilentMode = false;
-	//TODO 0.10.0:
-	//triggerAllAccountsRegistered();
-
-	notifyAboutUserActionDescription = new ActionDescription(this,
-		ActionDescription::TypeUser, "notifyAboutUserAction",
-		this, SLOT(notifyAboutUserActionActivated(QAction *, bool)),
-		KaduIcon("kadu_icons/notify-about-buddy"), tr("Notify About Buddy"), true,
-		checkNotify
-	);
-
-	SilentModeActionDescription = new ActionDescription(this,
-		ActionDescription::TypeGlobal, "silentModeAction",
-		this, SLOT(silentModeActionActivated(QAction *, bool)),
-		KaduIcon("kadu_icons/enable-notifications"), tr("Enable Notifications"), true
-	);
-	configurationUpdated();
-	connect(SilentModeActionDescription, SIGNAL(actionCreated(Action *)), this, SLOT(silentModeActionCreated(Action *)));
-
-	connect(MessageManager::instance(), SIGNAL(messageReceived(Message)), this, SLOT(messageReceived(Message)));
-	connect(StatusContainerManager::instance(), SIGNAL(statusUpdated()), this, SLOT(statusUpdated()));
-
-	foreach (const Group &group, GroupManager::instance()->items())
-		groupAdded(group);
-
-	new WindowNotifier(this);
-	kdebugf2();
 }
 
 NotificationManager::~NotificationManager()
 {
-	kdebugf();
-
-	FullScreenCheckTimer.stop();
-
-	MainConfigurationWindow::unregisterUiHandler(UiHandler);
-
-	StatusChangedNotification::unregisterEvents();
-	MessageNotification::unregisterEvents();
-	MultilogonNotification::unregisterEvents();
-
-	triggerAllAccountsUnregistered();
-
 	while (!Notifiers.isEmpty())
 	{
 		kdebugm(KDEBUG_WARNING, "WARNING: not unregistered notifiers found! (%u)\n", Notifiers.size());
 		unregisterNotifier(Notifiers.at(0));
 	}
-
-	AccountNotification::unregisterParserTags();
-	Notification::unregisterParserTags();
-
-#if defined(Q_WS_X11) && !defined(Q_WS_MAEMO_5)
-	XCloseDisplay(x11display);
-#endif
-
-	kdebugf2();
-}
-
-void NotificationManager::setSilentMode(bool silentMode)
-{
-	if (silentMode != SilentMode)
-	{
-		SilentMode = silentMode;
-		foreach (Action *action, SilentModeActionDescription->actions())
-			action->setChecked(!silentMode);
-
-		config_file.writeEntry("Notify", "SilentMode", SilentMode);
-
-		emit silentModeToggled(SilentMode);
-	}
-}
-
-bool NotificationManager::silentMode()
-{
-	return SilentMode || (IsFullScreen && config_file.readBoolEntry("Notify", "FullscreenSilentMode", false));
-}
-
-void NotificationManager::notifyAboutUserActionActivated(QAction *sender, bool toggled)
-{
-	Q_UNUSED(toggled)
-
-	kdebugf();
-
-	Action *action = qobject_cast<Action *>(sender);
-	if (!action)
-		return;
-
-	const BuddySet &buddies = action->context()->buddies();
-
-	bool on = true;
-	foreach (const Buddy &buddy, buddies)
-		if (buddy.data())
-		{
-			if (!buddy.property("notify:Notify", false).toBool())
-			{
-				on = false;
-				break;
-			}
-		}
-
-	if (NotifyAboutAll)
-	{
-		NotifyAboutAll = false;
-		config_file.writeEntry("Notify", "NotifyAboutAll", false);
-	}
-
-	foreach (const Buddy &buddy, buddies)
-	{
-		if (buddy.isNull() || buddy.isAnonymous())
-			continue;
-
-		if (on)
-			buddy.addProperty("notify:Notify", true, CustomProperties::Storable);
-		else
-			buddy.removeProperty("notify:Notify");
-	}
-
-	foreach (Action *action, notifyAboutUserActionDescription->actions())
-		if (action->context()->contacts().toBuddySet() == buddies)
-			action->setChecked(!on);
-
-	kdebugf2();
-}
-
-void NotificationManager::silentModeActionCreated(Action *action)
-{
-	action->setChecked(!SilentMode);
-}
-
-void NotificationManager::silentModeActionActivated(QAction *sender, bool toggled)
-{
-	Q_UNUSED(sender)
-
-	setSilentMode(!toggled);
-}
-
-void NotificationManager::statusUpdated()
-{
-	if (SilentModeWhenDnD && !silentMode() && StatusContainerManager::instance()->status().type() == StatusTypeDoNotDisturb)
-	{
-		foreach (Action *action, SilentModeActionDescription->actions())
-			action->setChecked(false);
-
-		AutoSilentMode = true;
-	}
-	else if (!silentMode() && AutoSilentMode)
-	{
-		foreach (Action *action, SilentModeActionDescription->actions())
-			action->setChecked(true);
-
-		AutoSilentMode = false;
-	}
-}
-
-void NotificationManager::accountRegistered(Account account)
-{
-	Protocol *protocol = account.protocolHandler();
-	if (!protocol)
-		return;
-
-	connect(account, SIGNAL(buddyStatusChanged(Contact, Status)),
-			this, SLOT(contactStatusChanged(Contact, Status)));
-	connect(account, SIGNAL(connected()), this, SLOT(accountConnected()));
-
-	MultilogonService *multilogonService = protocol->multilogonService();
-	if (multilogonService)
-	{
-		connect(multilogonService, SIGNAL(multilogonSessionConnected(MultilogonSession*)),
-				this, SLOT(multilogonSessionConnected(MultilogonSession*)));
-		connect(multilogonService, SIGNAL(multilogonSessionDisconnected(MultilogonSession*)),
-				this, SLOT(multilogonSessionDisconnected(MultilogonSession*)));
-	}
-}
-
-void NotificationManager::accountUnregistered(Account account)
-{
-	Protocol *protocol = account.protocolHandler();
-
-	if (!protocol)
-		return;
-
-	disconnect(account, 0, this, 0);
-
-	MultilogonService *multilogonService = protocol->multilogonService();
-	if (multilogonService)
-		disconnect(multilogonService, 0, this, 0);
-}
-
-void NotificationManager::accountConnected()
-{
-	Account account(sender());
-	if (!account)
-		return;
-
-	if (NotifyIgnoreOnConnection)
-		account.addProperty("notify:notify-account-connected", QDateTime::currentDateTime().addSecs(10), CustomProperties::NonStorable);
-}
-
-void NotificationManager::contactStatusChanged(Contact contact, Status oldStatus)
-{
-	kdebugf();
-
-	if (contact.isAnonymous() || !contact.contactAccount())
-		return;
-
-	Protocol *protocol = contact.contactAccount().protocolHandler();
-	if (!protocol || !protocol->isConnected())
-		return;
-
-	if (NotifyIgnoreOnConnection)
-	{
-		QDateTime dateTime = contact.contactAccount().property("notify:notify-account-connected", QDateTime()).toDateTime();
-		if (dateTime.isValid() && dateTime >= QDateTime::currentDateTime())
-			return;
-	}
-
-	bool notify_contact = true;
-	if (!contact.ownerBuddy().property("notify:Notify", false).toBool())
-		notify_contact = false;
-
-	if (!notify_contact && !NotifyAboutAll)
-	{
-		kdebugmf(KDEBUG_FUNCTION_END, "end: not notifying user AND not notifying all users\n");
-		return;
-	}
-
-	if (contact == contact.contactAccount().accountContact()) // myself
-		return;
-
-	Status status = contact.currentStatus();
-	if (oldStatus == status)
-		return;
-
-	if (IgnoreOnlineToOnline &&
-			!status.isDisconnected() &&
-			!oldStatus.isDisconnected())
-		return;
-
-	const StatusTypeData &typeData = StatusTypeManager::instance()->statusTypeData(status.type());
-	QString changedTo = "/To" + typeData.name();
-
-	StatusChangedNotification *statusChangedNotification = new StatusChangedNotification(changedTo, contact);
-
-	notify(statusChangedNotification);
-
-	kdebugf2();
-}
-
-void NotificationManager::messageReceived(const Message &message)
-{
-	kdebugf();
-
-	ChatWidget *chatWidget = ChatWidgetManager::instance()->byChat(message.messageChat(), false);
-	if (!chatWidget)
-		notify(new MessageNotification(MessageNotification::NewChat, message));
-	else if (!NewMessageOnlyIfInactive || !_isWindowActiveOrFullyVisible(chatWidget))
-		notify(new MessageNotification(MessageNotification::NewMessage, message));
-
-	kdebugf2();
-}
-
-void NotificationManager::multilogonSessionConnected(MultilogonSession *session)
-{
-	MultilogonNotification::notifyMultilogonSessionConnected(session);
-}
-
-void NotificationManager::multilogonSessionDisconnected(MultilogonSession *session)
-{
-	MultilogonNotification::notifyMultilogonSessionDisonnected(session);
 }
 
 void NotificationManager::registerNotifyEvent(NotifyEvent *notifyEvent)
@@ -487,32 +135,51 @@ const QList<NotifyEvent *> & NotificationManager::notifyEvents() const
 	return NotifyEvents;
 }
 
-bool NotificationManager::ignoreNotifications()
+void NotificationManager::ignoreConnectionErrors(Account account)
 {
-	if (silentMode())
-		return true;
-
-	if (AutoSilentMode)
-		return true;
-
-	return false;
+	IgnoredAccounts.append(account.id());
+	connect(account.protocolHandler(), SIGNAL(connected(Account)), this, SLOT(unignoreConnectionErrors(Account)));
 }
 
-void NotificationManager::notify(Notification *notification)
+void NotificationManager::unignoreConnectionErrors(Account account)
+{
+	IgnoredAccounts.removeAll(account.id());
+}
+
+void NotificationManager::notify(Notification *rawNotification)
 {
 	kdebugf();
 
-	QString notifyType = notification->key();
-	bool foundNotifier = false;
-	bool foundNotifierWithCallbackSupported = !notification->requireCallback();
-
-	if (ignoreNotifications())
+	const ConnectionErrorNotification * const connectionErrorNotification = qobject_cast<const ConnectionErrorNotification * const>(rawNotification);
+	if (connectionErrorNotification)
 	{
-		notification->callbackDiscard();
-		return;
+		Account account = connectionErrorNotification->account();
+
+		if (IgnoredAccounts.contains(account.id()))
+		{
+			rawNotification->close();
+			return;
+		}
 	}
 
-	notification->acquire();
+	if (rawNotification->isPeriodic())
+	{
+		if (PeriodicNotifications.contains(rawNotification->identifier()))
+		{
+			rawNotification->close();
+			return;
+		}
+		else
+		{
+			PeriodicNotifications.insert(rawNotification->identifier(), 0);
+		}
+	}
+
+	Notification *notification = findGroup(rawNotification);
+
+	QString notifyType = rawNotification->key();
+	bool foundNotifier = false;
+	bool foundNotifierWithCallbackSupported = !rawNotification->requireCallback();
 
 	foreach (Notifier *notifier, Notifiers)
 	{
@@ -540,71 +207,49 @@ void NotificationManager::notify(Notification *notification)
 	if (!foundNotifier)
 		notification->callbackDiscard();
 
-	notification->release();
-
 	if (!foundNotifierWithCallbackSupported)
-		MessageDialog::show(KaduIcon("dialog-warning"), tr("Kadu"), tr("Unable to find notifier for %1 event").arg(notification->type()));
+		MessageDialog::show(KaduIcon("dialog-warning"), tr("Kadu"), tr("Unable to find notifier for %1 event").arg(rawNotification->type()));
 
 	kdebugf2();
 }
 
-void NotificationManager::groupAdded(const Group &group)
+Notification * NotificationManager::findGroup(Notification *rawNotification)
 {
-	connect(group, SIGNAL(updated()), this, SLOT(groupUpdated()));
-}
+	AggregateNotification *aggregate = ActiveNotifications.value(rawNotification->identifier());
 
-void NotificationManager::groupUpdated()
-{
-	Group group = sender();
-	if (group.isNull())
-		return;
-
-	bool notify = group.notifyAboutStatusChanges();
-
-	if (NotifyAboutAll && !notify)
+	if (aggregate)
 	{
-		NotifyAboutAll = false;
-		config_file.writeEntry("Notify", "NotifyAboutAll", false);
+		aggregate->addNotification(rawNotification);
 	}
-
-	foreach (const Buddy &buddy, BuddyManager::instance()->items())
-	{
-		if (buddy.isNull() || buddy.isAnonymous() || buddy.groups().contains(group))
-			continue;
-
-		if (notify)
-			buddy.addProperty("notify:Notify", true, CustomProperties::Storable);
-		else
-			buddy.removeProperty("notify:Notify");
-	}
-}
-
-void NotificationManager::configurationUpdated()
-{
-	NotifyAboutAll = config_file.readBoolEntry("Notify", "NotifyAboutAll");
-	NewMessageOnlyIfInactive = config_file.readBoolEntry("Notify", "NewMessageOnlyIfInactive");
-	NotifyIgnoreOnConnection = config_file.readBoolEntry("Notify", "NotifyIgnoreOnConnection");
-	IgnoreOnlineToOnline = config_file.readBoolEntry("Notify", "IgnoreOnlineToOnline");
-	SilentModeWhenDnD = config_file.readBoolEntry("Notify", "AwaySilentMode", false);
-	SilentModeWhenFullscreen = config_file.readBoolEntry("Notify", "FullscreenSilentMode", false);
-	setSilentMode(config_file.readBoolEntry("Notify", "SilentMode", false));
-#if (defined(Q_WS_X11) && !defined(Q_WS_MAEMO_5)) || defined(Q_WS_WIN)
-	if (SilentModeWhenFullscreen)
-		FullScreenCheckTimer.start();
 	else
 	{
-		FullScreenCheckTimer.stop();
-		IsFullScreen = false;
+		aggregate = new AggregateNotification(rawNotification);
+		connect(aggregate, SIGNAL(closed(Notification*)), this, SLOT(removeGrouped(Notification*)));
 	}
-#endif
+
+	ActiveNotifications.insert(aggregate->identifier(), aggregate);
+
+	return aggregate;
 }
 
-void NotificationManager::createDefaultConfiguration()
+void NotificationManager::removeGrouped(Notification *notification)
 {
-	config_file.addVariable("Notify", "IgnoreOnlineToOnline", false);
-	config_file.addVariable("Notify", "NewMessageOnlyIfInactive", true);
-	config_file.addVariable("Notify", "NotifyAboutAll", true);
-	config_file.addVariable("Notify", "NotifyIgnoreOnConnection", true);
+	ActiveNotifications.remove(notification->identifier());
+
+	if (notification->isPeriodic())
+	{
+		QTimer *timer = new QTimer();
+		timer->setInterval(notification->period()*1000);
+		connect(timer, SIGNAL(timeout()), this, SLOT(removePeriodicEntries()));
+		timer->start();
+		PeriodicNotifications.insert(notification->identifier(), timer);
+	}
+}
+
+void NotificationManager::removePeriodicEntries()
+{
+	QTimer *t = qobject_cast<QTimer*>(sender());
+	PeriodicNotifications.remove(PeriodicNotifications.key(t));
 }
 
 QString NotificationManager::notifyConfigurationKey(const QString &eventType)
@@ -626,87 +271,4 @@ QString NotificationManager::notifyConfigurationKey(const QString &eventType)
 	Q_ASSERT(false);
 }
 
-ConfigurationUiHandler * NotificationManager::configurationUiHandler()
-{
-	return UiHandler;
-}
-
-void NotificationManager::checkFullScreen()
-{
-#if (defined(Q_WS_X11) && !defined(Q_WS_MAEMO_5)) || defined(Q_WS_WIN)
-	bool wasSilent = silentMode();
-
-	IsFullScreen = 
-# if !defined(Q_WS_WIN)
-			X11_checkFullScreen(x11display)
-# else
-			win32_checkFullScreen()
-# endif
-			&& (!isScreenSaverRunning());
-
-	if (silentMode() != wasSilent)
-		emit silentModeToggled(silentMode());
-#endif
-}
-
-bool NotificationManager::isScreenSaverRunning()
-{
-#if defined(Q_WS_X11) && !defined(Q_WS_MAEMO_5)
-	// org.freedesktop.ScreenSaver
-	{
-		QDBusInterface dbus("org.freedesktop.ScreenSaver", "/ScreenSaver", "org.freedesktop.ScreenSaver", QDBusConnection::sessionBus());
-		if (dbus.isValid())
-		{
-			QDBusReply<bool> reply = dbus.call("GetActive");
-			if (reply.isValid() && reply.value())
-				return true;
-		}
-	}
-	// org.kde.screensaver
-	{
-		QDBusInterface dbus("org.kde.screensaver", "/ScreenSaver", "org.freedesktop.ScreenSaver", QDBusConnection::sessionBus());
-		if (dbus.isValid())
-		{
-			QDBusReply<bool> reply = dbus.call("GetActive");
-			if (reply.isValid() && reply.value())
-				return true;
-		}
-	}
-	// org.gnome.ScreenSaver
-	{
-		QDBusInterface dbus("org.gnome.ScreenSaver", "/", "org.gnome.ScreenSaver", QDBusConnection::sessionBus());
-		if (dbus.isValid())
-		{
-			QDBusReply<bool> reply = dbus.call("GetActive");
-			if (reply.isValid() && reply.value())
-				return true;
-		}
-	}
-#elif defined(Q_WS_WIN)
-	return win32_isScreenSaverRunning();
-#endif
-	// no screensaver
-	return false;
-}
-
-void checkNotify(Action *action)
-{
-	kdebugf();
-
-	action->setEnabled(!action->context()->buddies().isEmpty());
-
-	bool on = true;
-	foreach (const Buddy &buddy, action->context()->contacts().toBuddySet())
-		if (buddy.data())
-		{
-			if (!buddy.data()->customProperties()->property("notify:Notify", false).toBool())
-			{
-				on = false;
-				break;
-			}
-		}
-
-	action->setChecked(on);
-
-	kdebugf2();
-}
+#include "moc_notification-manager.cpp"

@@ -2,8 +2,8 @@
  * %kadu copyright begin%
  * Copyright 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
- * Copyright 2009, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2009, 2009, 2010, 2011, 2012, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -30,14 +30,14 @@
 #include "contacts/contact-manager.h"
 #include "core/core.h"
 #include "misc/change-notifier.h"
-#include "protocols/protocol.h"
 #include "protocols/protocol-factory.h"
+#include "protocols/protocol.h"
 #include "protocols/protocols-manager.h"
 #include "protocols/services/roster/roster-entry.h"
 
 #include "contact-shared.h"
 
-ContactShared * ContactShared::loadStubFromStorage(const QSharedPointer<StoragePoint> &storagePoint)
+ContactShared * ContactShared::loadStubFromStorage(const std::shared_ptr<StoragePoint> &storagePoint)
 {
 	ContactShared *result = loadFromStorage(storagePoint);
 	result->loadStub();
@@ -45,7 +45,7 @@ ContactShared * ContactShared::loadStubFromStorage(const QSharedPointer<StorageP
 	return result;
 }
 
-ContactShared * ContactShared::loadFromStorage(const QSharedPointer<StoragePoint> &storagePoint)
+ContactShared * ContactShared::loadFromStorage(const std::shared_ptr<StoragePoint> &storagePoint)
 {
 	ContactShared *result = new ContactShared();
 	result->setStorage(storagePoint);
@@ -59,7 +59,7 @@ ContactShared::ContactShared(const QUuid &uuid) :
 		Blocking(false), IgnoreNextStatusChange(false), Port(0)
 {
 	Entry = new RosterEntry(this);
-	connect(Entry->changeNotifier(), SIGNAL(changed()), this, SIGNAL(dirtinessChanged()));
+	connect(&Entry->changeNotifier(), SIGNAL(changed()), this, SIGNAL(dirtinessChanged()));
 
 	ContactAccount = new Account();
 	ContactAvatar = new Avatar();
@@ -70,7 +70,8 @@ ContactShared::ContactShared(const QUuid &uuid) :
 	connect(ProtocolsManager::instance(), SIGNAL(protocolFactoryUnregistered(ProtocolFactory*)),
 	        this, SLOT(protocolFactoryUnregistered(ProtocolFactory*)));
 
-	connect(changeNotifier(), SIGNAL(changed()), this, SIGNAL(updated()));
+	connect(&Entry->changeNotifier(), SIGNAL(changed()), this, SLOT(changeNotifierChanged()));
+	connect(&changeNotifier(), SIGNAL(changed()), this, SLOT(changeNotifierChanged()));
 }
 
 ContactShared::~ContactShared()
@@ -142,7 +143,7 @@ void ContactShared::aboutToBeRemoved()
 
 	deleteDetails();
 
-	changeNotifier()->notify();
+	changeNotifier().notify();
 }
 
 void ContactShared::store()
@@ -220,7 +221,7 @@ void ContactShared::setOwnerBuddy(const Buddy &buddy)
 	addToBuddy();
 
 	Entry->setState(RosterEntryDesynchronized);
-	changeNotifier()->notify();
+	changeNotifier().notify();
 	emit buddyUpdated();
 }
 
@@ -239,7 +240,7 @@ void ContactShared::setContactAccount(const Account &account)
 	if (*ContactAccount && ContactAccount->protocolHandler() && ContactAccount->protocolHandler()->protocolFactory())
 		protocolFactoryRegistered(ContactAccount->protocolHandler()->protocolFactory());
 
-	changeNotifier()->notify();
+	changeNotifier().notify();
 }
 
 void ContactShared::protocolFactoryRegistered(ProtocolFactory *protocolFactory)
@@ -253,11 +254,10 @@ void ContactShared::protocolFactoryRegistered(ProtocolFactory *protocolFactory)
 		return;
 
 	Details = protocolFactory->createContactDetails(this);
-	Q_ASSERT(Details);
+	if (Details)
+		Details->ensureLoaded();
 
-	Details->ensureLoaded();
-
-	changeNotifier()->notify();
+	changeNotifier().notify();
 
 	ContactManager::instance()->registerItem(this);
 	addToBuddy();
@@ -278,7 +278,7 @@ void ContactShared::protocolFactoryUnregistered(ProtocolFactory *protocolFactory
 
 	deleteDetails();
 
-	changeNotifier()->notify();
+	changeNotifier().notify();
 }
 
 void ContactShared::deleteDetails()
@@ -309,7 +309,7 @@ void ContactShared::setId(const QString &id)
 	Id = id;
 
 	Entry->setState(RosterEntryDesynchronized);
-	changeNotifier()->notify();
+	changeNotifier().notify();
 }
 
 RosterEntry * ContactShared::rosterEntry()
@@ -337,7 +337,12 @@ RosterEntry * ContactShared::rosterEntry()
 
 void ContactShared::avatarUpdated()
 {
-	changeNotifier()->notify();
+	changeNotifier().notify();
+}
+
+void ContactShared::changeNotifierChanged()
+{
+	emit updated();
 }
 
 void ContactShared::doSetOwnerBuddy(const Buddy &buddy)
@@ -370,7 +375,7 @@ void ContactShared::setContactAvatar(const Avatar &contactAvatar)
 		return;
 
 	doSetContactAvatar(contactAvatar);
-	changeNotifier()->notify();
+	changeNotifier().notify();
 }
 
 bool ContactShared::isAnonymous()
@@ -409,3 +414,5 @@ Avatar ContactShared::avatar(bool useBuddyData)
 KaduShared_PropertyPtrReadDef(ContactShared, Account, contactAccount, ContactAccount)
 KaduShared_PropertyPtrReadDef(ContactShared, Avatar, contactAvatar, ContactAvatar)
 KaduShared_PropertyPtrReadDef(ContactShared, Buddy, ownerBuddy, OwnerBuddy)
+
+#include "moc_contact-shared.cpp"

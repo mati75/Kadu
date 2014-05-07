@@ -1,8 +1,8 @@
 /*
  * %kadu copyright begin%
  * Copyright 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -19,12 +19,14 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "gui/widgets/chat-widget-manager.h"
-#include "gui/widgets/chat-widget.h"
+#include "core/core.h"
+#include "gui/widgets/chat-widget/chat-widget-repository.h"
+#include "gui/widgets/chat-widget/chat-widget.h"
+#include "message/raw-message.h"
 #include "protocols/protocol.h"
 #include "protocols/services/chat-service.h"
+#include "services/raw-message-transformer-service.h"
 
-#include "configuration/encryption-ng-configuration.h"
 #include "decryptor.h"
 #include "encryption-actions.h"
 #include "encryption-chat-data.h"
@@ -33,154 +35,101 @@
 
 #include "encryption-manager.h"
 
-EncryptionManager * EncryptionManager::Instance = 0;
+EncryptionManager * EncryptionManager::m_instance = 0;
 
 void EncryptionManager::createInstance()
 {
-	if (!Instance)
-		new EncryptionManager();
+	if (!m_instance)
+	{
+		auto manager = new EncryptionManager();
+		manager->setChatWidgetRepository(Core::instance()->chatWidgetRepository());
+	}
 }
 
 void EncryptionManager::destroyInstance()
 {
-	delete Instance;
+	delete m_instance;
 }
 
 EncryptionManager::EncryptionManager() :
-		Generator(0)
+		m_generator(0)
 {
-	Instance = this;
+	m_instance = this;
 
-	foreach (ChatWidget *chatWidget, ChatWidgetManager::instance()->chats())
-		chatWidgetCreated(chatWidget);
-
-	connect(ChatWidgetManager::instance(), SIGNAL(chatWidgetCreated(ChatWidget*)),
-			this, SLOT(chatWidgetCreated(ChatWidget*)));
-	connect(ChatWidgetManager::instance(), SIGNAL(chatWidgetDestroying(ChatWidget*)),
-			this, SLOT(chatWidgetDestroying(ChatWidget*)));
-
-	triggerAllAccountsRegistered();
+	Core::instance()->rawMessageTransformerService()->registerTransformer(this);
 }
 
 EncryptionManager::~EncryptionManager()
 {
-	triggerAllAccountsUnregistered();
+	Core::instance()->rawMessageTransformerService()->unregisterTransformer(this);
 
-	disconnect(ChatWidgetManager::instance(), 0, this, 0);
-
-	foreach (ChatWidget *chatWidget, ChatWidgetManager::instance()->chats())
-		chatWidgetDestroying(chatWidget);
-
-	Instance = 0;
-}
-
-void EncryptionManager::accountRegistered(Account account)
-{
-	if (!account.protocolHandler())
-		return;
-
-	ChatService *chatService = account.protocolHandler()->chatService();
-	if (chatService)
+	if (m_chatWidgetRepository)
 	{
-		connect(chatService, SIGNAL(filterRawIncomingMessage(Chat,Contact,QByteArray&,bool&)),
-				this, SLOT(filterRawIncomingMessage(Chat,Contact,QByteArray&,bool&)));
-		connect(chatService, SIGNAL(filterRawOutgoingMessage(Chat,QByteArray&,bool&)),
-				this, SLOT(filterRawOutgoingMessage(Chat,QByteArray&,bool&)));
+		disconnect(m_chatWidgetRepository.data(), 0, this, 0);
+
+		for (ChatWidget *chatWidget : m_chatWidgetRepository.data())
+			chatWidgetRemoved(chatWidget);
 	}
+
+	m_instance = 0;
 }
 
-void EncryptionManager::accountUnregistered(Account account)
+void EncryptionManager::setChatWidgetRepository(ChatWidgetRepository *chatWidgetRepository)
 {
-	if (!account.protocolHandler())
+	m_chatWidgetRepository = chatWidgetRepository;
+
+	if (!m_chatWidgetRepository)
 		return;
 
-	ChatService *chatService = account.protocolHandler()->chatService();
-	if (chatService)
-		disconnect(chatService, 0, this, 0);
+	for (ChatWidget *chatWidget : m_chatWidgetRepository.data())
+		chatWidgetAdded(chatWidget);
+
+	connect(m_chatWidgetRepository.data(), SIGNAL(chatWidgetAdded(ChatWidget*)),
+			this, SLOT(chatWidgetAdded(ChatWidget*)));
+	connect(m_chatWidgetRepository.data(), SIGNAL(chatWidgetRemoved(ChatWidget*)),
+			this, SLOT(chatWidgetRemoved(ChatWidget*)));
 }
 
 EncryptionChatData * EncryptionManager::chatEncryption(const Chat &chat)
 {
-	if (!ChatEnryptions.contains(chat))
-		ChatEnryptions.insert(chat, new EncryptionChatData(chat, this));
+	if (!m_chatEnryptions.contains(chat))
+		m_chatEnryptions.insert(chat, new EncryptionChatData(chat, this));
 
-	return ChatEnryptions.value(chat);
+	return m_chatEnryptions.value(chat);
 }
 
-bool EncryptionManager::setEncryptionEnabled(const Chat &chat, bool enabled)
+void EncryptionManager::setEncryptionProvider(const Chat &chat, EncryptionProvider *encryptionProvider)
 {
-	if (!chat)
-		return false;
-
-	EncryptionChatData *encryptionChatData = chatEncryption(chat);
-	if (enabled)
-	{
-		Encryptor *encryptor = encryptionChatData->encryptor();
-		bool enableSucceeded;
-
-		if (encryptor && encryptor->provider() == EncryptionProviderManager::instance()->defaultEncryptorProvider(chat))
-			enableSucceeded = true;
-		else
-		{
-			if (encryptor)
-				encryptor->provider()->releaseEncryptor(chat, encryptor);
-
-			encryptor = EncryptionProviderManager::instance()->acquireEncryptor(chat);
-			encryptionChatData->setEncryptor(encryptor);
-			enableSucceeded = (0 != encryptor);
-		}
-
-		EncryptionActions::instance()->checkEnableEncryption(chat, enableSucceeded);
-
-		return enableSucceeded;
-	}
-	else
-	{
-		Encryptor *encryptor = encryptionChatData->encryptor();
-		if (encryptor)
-			encryptor->provider()->releaseEncryptor(chat, encryptor);
-		encryptionChatData->setEncryptor(0);
-		EncryptionActions::instance()->checkEnableEncryption(chat, false);
-
-		return true; // we can always disable
-	}
-}
-
-void EncryptionManager::filterRawIncomingMessage(Chat chat, Contact sender, QByteArray &message, bool &ignore)
-{
-	Q_UNUSED(sender)
-	Q_UNUSED(ignore)
-
-	if (!chat)
-		return;
-
-	if (!EncryptionProviderManager::instance()->canDecrypt(chat))
-		return;
-
-	EncryptionChatData *encryptionChatData = chatEncryption(chat);
-	if (!encryptionChatData->decryptor())
-		encryptionChatData->setDecryptor(EncryptionProviderManager::instance()->acquireDecryptor(chat));
-
-	bool decrypted;
-	message = encryptionChatData->decryptor()->decrypt(message, chat, &decrypted);
-
-	if (decrypted && EncryptionNgConfiguration::instance()->encryptAfterReceiveEncryptedMessage())
-		setEncryptionEnabled(chat, true);
-}
-
-void EncryptionManager::filterRawOutgoingMessage(Chat chat, QByteArray &message, bool &stop)
-{
-	Q_UNUSED(stop)
-
 	if (!chat)
 		return;
 
 	EncryptionChatData *encryptionChatData = chatEncryption(chat);
-	if (encryptionChatData && encryptionChatData->encryptor())
-		message = encryptionChatData->encryptor()->encrypt(message);
+	Encryptor *currentEncryptor = encryptionChatData->encryptor();
+
+	if (currentEncryptor && currentEncryptor->provider() == encryptionProvider)
+		return;
+
+	if (currentEncryptor)
+		currentEncryptor->provider()->releaseEncryptor(chat, currentEncryptor);
+
+	encryptionChatData->setEncryptor(encryptionProvider ? encryptionProvider->acquireEncryptor(chat) : 0);
+	EncryptionActions::instance()->checkEnableEncryption(chat, encryptionChatData->encryptor());
 }
 
-void EncryptionManager::chatWidgetCreated(ChatWidget *chatWidget)
+EncryptionProvider * EncryptionManager::encryptionProvider(const Chat &chat)
+{
+	if (!chat)
+		return 0;
+
+	EncryptionChatData *encryptionChatData = chatEncryption(chat);
+	Encryptor *currentEncryptor = encryptionChatData->encryptor();
+	if (!currentEncryptor)
+		return 0;
+
+	return currentEncryptor->provider();
+}
+
+void EncryptionManager::chatWidgetAdded(ChatWidget *chatWidget)
 {
 	Chat chat = chatWidget->chat();
 	if (!chat.data())
@@ -189,10 +138,14 @@ void EncryptionManager::chatWidgetCreated(ChatWidget *chatWidget)
 	if (!EncryptionProviderManager::instance()->canEncrypt(chat))
 		return;
 
-	setEncryptionEnabled(chat, chatEncryption(chat)->encrypt());
+	if (chatEncryption(chat)->encrypt())
+	{
+		EncryptionProvider *encryptorProvider = EncryptionProviderManager::instance()->defaultEncryptorProvider(chat);
+		EncryptionManager::instance()->setEncryptionProvider(chat, encryptorProvider);
+	}
 }
 
-void EncryptionManager::chatWidgetDestroying(ChatWidget *chatWidget)
+void EncryptionManager::chatWidgetRemoved(ChatWidget *chatWidget)
 {
 	Chat chat = chatWidget->chat();
 	if (!chat.data())
@@ -215,10 +168,53 @@ void EncryptionManager::chatWidgetDestroying(ChatWidget *chatWidget)
 
 void EncryptionManager::setGenerator(KeyGenerator *generator)
 {
-	Generator = generator;
+	m_generator = generator;
 }
 
 KeyGenerator * EncryptionManager::generator()
 {
-	return Generator;
+	return m_generator;
 }
+
+RawMessage EncryptionManager::transformIncomingMessage(const RawMessage &rawMessage, const Message &message)
+{
+	if (!message.messageChat())
+		return rawMessage;
+
+	if (!EncryptionProviderManager::instance()->canDecrypt(message.messageChat()))
+		return rawMessage;
+
+	EncryptionChatData *encryptionChatData = chatEncryption(message.messageChat());
+	if (!encryptionChatData->decryptor())
+		encryptionChatData->setDecryptor(EncryptionProviderManager::instance()->acquireDecryptor(message.messageChat()));
+
+	bool decrypted;
+	return encryptionChatData->decryptor()->decrypt(rawMessage, message.messageChat(), &decrypted);
+}
+
+RawMessage EncryptionManager::transformOutgoingMessage(const RawMessage &rawMessage, const Message &message)
+{
+	if (!message.messageChat())
+		return rawMessage;
+
+	EncryptionChatData *encryptionChatData = chatEncryption(message.messageChat());
+	if (encryptionChatData && encryptionChatData->encryptor())
+		return encryptionChatData->encryptor()->encrypt(rawMessage);
+
+	return rawMessage;
+}
+
+RawMessage EncryptionManager::transform(const RawMessage &rawMessage, const Message& message)
+{
+	switch (message.type())
+	{
+		case MessageTypeSent:
+			return transformOutgoingMessage(rawMessage, message);
+		case MessageTypeReceived:
+			return transformIncomingMessage(rawMessage, message);
+		default:
+			return rawMessage;
+	}
+}
+
+#include "moc_encryption-manager.cpp"

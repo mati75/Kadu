@@ -2,18 +2,6 @@
 <context>
     <name>@default</name>
     <message>
-        <source>Look</source>
-        <translation>Apparence</translation>
-    </message>
-    <message>
-        <source>Simple view</source>
-        <translation>Vue simplifiée</translation>
-    </message>
-    <message>
-        <source>General</source>
-        <translation>Général</translation>
-    </message>
-    <message>
         <source>Keep contact list size</source>
         <translation>Conserver la taille de la liste de contact</translation>
     </message>
@@ -22,8 +10,20 @@
         <translation>Masquer la barre de défilement</translation>
     </message>
     <message>
-        <source>Borderless</source>
-        <translation>Sans bordure</translation>
+        <source>Extras</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <source>Simple View</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <source>Options</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <source>Hide window borders</source>
+        <translation type="unfinished"/>
     </message>
 </context>
 <context>

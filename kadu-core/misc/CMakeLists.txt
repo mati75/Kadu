@@ -1,8 +1,9 @@
 set (misc_SRCS
 	change-notifier.cpp
-	coding-conversion.cpp
+	change-notifier-lock.cpp
 	date-time.cpp
 	date-time-parser-tags.cpp
+	error.cpp
 	misc.cpp
 	kadu-paths.cpp
 	string-utils.cpp

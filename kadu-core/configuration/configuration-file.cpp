@@ -1,13 +1,14 @@
 /*
  * %kadu copyright begin%
  * Copyright 2008, 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2012 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2008 Michał Podsiadlik (michal@kadu.net)
  * Copyright 2004 Roman Krzystyniak (Ron_K@tlen.pl)
  * Copyright 2003, 2004, 2005 Adrian Smarzewski (adrian@kadu.net)
  * Copyright 2003, 2004 Tomasz Chiliński (chilek@chilan.com)
  * Copyright 2003, 2004, 2005 Paweł Płuciennik (pawel_p@kadu.net)
  * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2010, 2011, 2012 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2004, 2005, 2006, 2007 Marcin Ślusarz (joi@kadu.net)
  * Copyright 2003 Dariusz Jagodzik (mast3r@kadu.net)
  * %kadu copyright end%
@@ -124,7 +125,7 @@ void PlainConfigFile::write() const
 	{
 		kdebugm(KDEBUG_INFO, "file opened '%s'\n", qPrintable(file.fileName()));
 		QTextStream stream(&file);
-		stream.setCodec(codec_latin2);
+		stream.setCodec(QTextCodec::codecForName("ISO8859-2"));
 		for (QMap<QString, QMap<QString, QString> >::const_iterator i = groups.constBegin(); i != groups.constEnd(); ++i)
 		{
 //			kdebugm(KDEBUG_DUMP, ">> %s\n", (i.key()));
@@ -238,8 +239,7 @@ void PlainConfigFile::writeEntry(const QString &group,const QString &name, const
 
 void PlainConfigFile::writeEntry(const QString &group,const QString &name, const QRect &value)
 {
-	changeEntry(group, name, QString("%1,%2,%3,%4").arg(value.left()).arg(value.top()).
-				arg(value.width()).arg(value.height()));
+	changeEntry(group, name, rectToString(value));
 }
 
 void PlainConfigFile::writeEntry(const QString &group,const QString &name, const QSize &value)
@@ -325,12 +325,7 @@ bool PlainConfigFile::readBoolEntry(const QString &group,const QString &name, bo
 
 QRect PlainConfigFile::readRectEntry(const QString &group,const QString &name, const QRect *def)
 {
-	QString string = getEntry(group, name);
-
-	if (string.isNull())
-		return def ? *def : QRect(0, 0, 0, 0);
-
-	return stringToRect(string, def);
+	return stringToRect(getEntry(group, name), def);
 }
 
 QSize PlainConfigFile::readSizeEntry(const QString &group,const QString &name, const QSize *def)
@@ -633,31 +628,7 @@ bool ConfigFile::readBoolEntry(const QString &group,const QString &name, bool de
 
 QRect ConfigFile::readRectEntry(const QString &group,const QString &name, const QRect *def) const
 {
-	QString string = getEntry(group, name);
-	QStringList stringlist;
-	QRect rect(0,0,0,0);
-	int l, t, w, h;
-	bool ok;
-
-	if (string.isNull())
-		return def ? *def : rect;
-	stringlist = string.split(',', QString::SkipEmptyParts);
-	if (stringlist.count() != 4)
-		return def ? *def : rect;
-	l = stringlist.at(0).toInt(&ok);
-	if (!ok)
-		return def ? *def : rect;
-	t = stringlist.at(1).toInt(&ok);
-	if (!ok)
-		return def ? *def : rect;
-	w = stringlist.at(2).toInt(&ok);
-	if (!ok)
-		return def ? *def : rect;
-	h = stringlist.at(3).toInt(&ok);
-	if (!ok)
-		return def ? *def : rect;
-	rect.setRect(l, t, w, h);
-	return rect;
+	return stringToRect(getEntry(group, name), def);
 }
 
 QSize ConfigFile::readSizeEntry(const QString &group,const QString &name, const QSize *def) const

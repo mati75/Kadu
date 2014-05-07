@@ -2,8 +2,8 @@
  * %kadu copyright begin%
  * Copyright 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2011 Piotr Dąbrowski (ultr@ultr.pl)
- * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2009, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -20,15 +20,15 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <QtGui/QApplication>
+#include <QtCore/QCoreApplication>
 
 #include "network-manager-ntrack.h"
 
 NetworkManagerNTrack::NetworkManagerNTrack()
 {
 	// fuck QtNtrack
-	int argc = qApp->argc();
-	char **argv = qApp->argv();
+	int argc = QCoreApplication::argc();
+	char **argv = QCoreApplication::argv();
 	QNtrack::instance()->init(&argc, &argv);
 
 	connect(QNtrack::instance(), SIGNAL(stateChanged(QNTrackState,QNTrackState)), this, SLOT(stateChanged(QNTrackState,QNTrackState)));
@@ -61,3 +61,5 @@ void NetworkManagerNTrack::stateChanged(QNTrackState oldState, QNTrackState newS
 	if (wasOnline != nowOnline)
 		onlineStateChanged(nowOnline);
 }
+
+#include "moc_network-manager-ntrack.cpp"

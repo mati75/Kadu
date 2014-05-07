@@ -4,7 +4,7 @@
  * Copyright 2009, 2009 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2009, 2009 Bartłomiej Zimoń (uzi18@o2.pl)
  * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -25,15 +25,25 @@
 #include "debug.h"
 
 #include "helpers/gadu-protocol-helper.h"
+#include "server/gadu-connection.h"
+#include "server/gadu-writable-session-token.h"
 #include "gadu-contact-details.h"
-#include "gadu-protocol.h"
 
 #include "gadu-search-service.h"
 
-GaduSearchService::GaduSearchService(GaduProtocol *protocol) :
-		SearchService(protocol), Protocol(protocol), Query(BuddySearchCriteria()),
+GaduSearchService::GaduSearchService(Account account, QObject *parent) :
+		SearchService(account, parent), Query(BuddySearchCriteria()),
 		SearchSeq(0), From(0), Stopped(false)
 {
+}
+
+GaduSearchService::~GaduSearchService()
+{
+}
+
+void GaduSearchService::setConnection(GaduConnection *connection)
+{
+	Connection = connection;
 }
 
 void GaduSearchService::searchFirst(BuddySearchCriteria criteria)
@@ -45,11 +55,14 @@ void GaduSearchService::searchFirst(BuddySearchCriteria criteria)
 
 void GaduSearchService::searchNext()
 {
+	if (!Connection || !Connection->hasSession())
+		return;
+
 	Stopped = false;
 	gg_pubdir50_t req = gg_pubdir50_new(GG_PUBDIR50_SEARCH);
 
-	if (Query.SearchBuddy.hasContact(Protocol->account()))
-		gg_pubdir50_add(req, GG_PUBDIR50_UIN, Query.SearchBuddy.id(Protocol->account()).toUtf8().constData());
+	if (Query.SearchBuddy.hasContact(account()))
+		gg_pubdir50_add(req, GG_PUBDIR50_UIN, Query.SearchBuddy.id(account()).toUtf8().constData());
 	if (!Query.SearchBuddy.firstName().isEmpty())
 		gg_pubdir50_add(req, GG_PUBDIR50_FIRSTNAME, Query.SearchBuddy.firstName().toUtf8().constData());
 	if (!Query.SearchBuddy.lastName().isEmpty())
@@ -82,9 +95,8 @@ void GaduSearchService::searchNext()
 
 	gg_pubdir50_add(req, GG_PUBDIR50_START, QString::number(From).toUtf8().constData());
 
-	Protocol->disableSocketNotifiers();
-	SearchSeq = gg_pubdir50(Protocol->gaduSession(), req);
-	Protocol->enableSocketNotifiers();
+	auto writableSessionToken = Connection->writableSessionToken();
+	SearchSeq = gg_pubdir50(writableSessionToken.rawSession(), req);
 	gg_pubdir50_free(req);
 }
 
@@ -103,9 +115,11 @@ void GaduSearchService::handleEventPubdir50SearchReply(struct gg_event *e)
 	kdebugmf(KDEBUG_NETWORK|KDEBUG_INFO, "found %d results\n", count);
 
 	for (int i = 0; i < count; i++)
-		results.append(GaduProtocolHelper::searchResultToBuddy(Protocol->account(), res, i));
+		results.append(GaduProtocolHelper::searchResultToBuddy(account(), res, i));
 
 	From = gg_pubdir50_next(res);
 
 	emit newResults(results);
 }
+
+#include "moc_gadu-search-service.cpp"

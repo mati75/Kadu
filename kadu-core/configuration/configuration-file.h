@@ -1,11 +1,13 @@
 /*
  * %kadu copyright begin%
  * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2012 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2008 Michał Podsiadlik (michal@kadu.net)
  * Copyright 2002, 2003, 2005 Adrian Smarzewski (adrian@kadu.net)
  * Copyright 2003, 2005 Paweł Płuciennik (pawel_p@kadu.net)
  * Copyright 2002, 2003 Tomasz Chiliński (chilek@chilan.com)
- * Copyright 2007, 2008, 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2004, 2005, 2006, 2007 Marcin Ślusarz (joi@kadu.net)
  * Copyright 2002, 2003 Dariusz Jagodzik (mast3r@kadu.net)
  * %kadu copyright end%
@@ -41,7 +43,7 @@
 /**
 	Klasa reprezentuj�ca tekstowy plik konfiguracyjny (format INI)
 **/
-class PlainConfigFile
+class KADUAPI PlainConfigFile
 {
 	void write() const;
 	bool changeEntry(const QString &group, const QString &name, const QString &value);
@@ -682,6 +684,7 @@ public:
 
 //TODO: po wydaniu 0.4 trzeba zmieni� nazw� na config_file i wywali� define'a
 //TODO: mamy juz 0.6 ;)
+//TODO pozdrowienia z prawie-1.0
 
 extern KADUAPI ConfigFile *config_file_ptr;
 #define config_file (*config_file_ptr)

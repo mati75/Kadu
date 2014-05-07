@@ -4,7 +4,7 @@
  * Copyright 2004 Michał Podsiadlik (michal@kadu.net)
  * Copyright 2002, 2003, 2004, 2005 Adrian Smarzewski (adrian@kadu.net)
  * Copyright 2002, 2003, 2004 Tomasz Chiliński (chilek@chilan.com)
- * Copyright 2007, 2009, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2007, 2009, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2007 Dawid Stawiarski (neeo@kadu.net)
  * Copyright 2005 Marcin Ślusarz (joi@kadu.net)
@@ -27,18 +27,43 @@
 #ifndef IMAGE_LINK_PLUGIN_H
 #define IMAGE_LINK_PLUGIN_H
 
-#include "plugins/generic-plugin.h"
+#include <QtCore/QScopedPointer>
 
-class ImageLinkPlugin : public QObject, public GenericPlugin
+#include "configuration/image-link-configurator.h"
+#include "image-expander-dom-visitor-provider.h"
+#include "video-expander-dom-visitor-provider.h"
+
+#include "plugin/plugin-root-component.h"
+
+class ImageLinkPlugin : public QObject, public PluginRootComponent
 {
 	Q_OBJECT
-	Q_INTERFACES(GenericPlugin)
+	Q_INTERFACES(PluginRootComponent)
+	Q_PLUGIN_METADATA(IID "im.kadu.PluginRootComponent")
+
+	QScopedPointer<ImageExpanderDomVisitorProvider> ImageExpanderProvider;
+	QScopedPointer<VideoExpanderDomVisitorProvider> VideoExpanderProvider;
+	QScopedPointer<ImageLinkConfigurator> Configurator;
+
+	void registerConfigurationUi();
+	void unregisterConfigurationUi();
+
+	void registerImageExpander();
+	void unregisterImageExpander();
+
+	void registerVideoExpander();
+	void unregisterVideoExpander();
+
+	void startConfigurator();
+	void stopConfigurator();
 
 public:
+	explicit ImageLinkPlugin(QObject *parent = 0);
 	virtual ~ImageLinkPlugin();
 
-	virtual int init(bool firstLoad);
+	virtual bool init(bool firstLoad);
 	virtual void done();
+
 };
 
 #endif // IMAGE_LINK_PLUGIN_H

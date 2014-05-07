@@ -2,8 +2,8 @@
  * %kadu copyright begin%
  * Copyright 2008, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2008 Michał Podsiadlik (michal@kadu.net)
- * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2007, 2008, 2009, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011, 2012 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2007, 2008 Dawid Stawiarski (neeo@kadu.net)
  * %kadu copyright end%
  *
@@ -25,7 +25,7 @@
 #define ENCRYPTION_CHAT_DATA_H
 
 #include <QtCore/QObject>
-#include <QtCore/QWeakPointer>
+#include <QtCore/QPointer>
 #include <QtGui/QAction>
 
 #include "chat/chat.h"
@@ -39,8 +39,8 @@ class EncryptionChatData : public QObject
 
 private:
 	Chat MyChat;
-	QWeakPointer<Encryptor> ChatEncryptor;
-	QWeakPointer<Decryptor> ChatDecryptor;
+	QPointer<Encryptor> ChatEncryptor;
+	QPointer<Decryptor> ChatDecryptor;
 
 	bool Encrypt;
 
@@ -53,11 +53,14 @@ public:
 	void setEncrypt(bool encrypt);
 	bool encrypt() const { return Encrypt; }
 
+	void setLastEncryptionProviderName(const QString &lastEncryptionProviderName);
+	QString lastEncryptionProviderName() const;
+
 	void setEncryptor(Encryptor *encryptor);
-	Encryptor * encryptor() const { return ChatEncryptor.data(); }
+	Encryptor * encryptor() const;
 
 	void setDecryptor(Decryptor *decryptor);
-	Decryptor * decryptor() const { return ChatDecryptor.data(); }
+	Decryptor * decryptor() const;
 
 };
 

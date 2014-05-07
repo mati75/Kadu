@@ -4,7 +4,7 @@
  * Copyright 2010, 2010 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2010 badboy (badboy@gen2.org)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2010, 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -21,6 +21,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <QtGui/QApplication>
 #include <QtGui/QDialogButtonBox>
 #include <QtGui/QFormLayout>
 #include <QtGui/QKeyEvent>
@@ -30,9 +31,10 @@
 #include <QtGui/QStyle>
 #include <QtGui/QVBoxLayout>
 
+#include "configuration/config-file-variant-wrapper.h"
 #include "gui/windows/message-dialog.h"
 #include "icons/icons-manager.h"
-#include "misc/misc.h"
+#include "os/generic/window-geometry-manager.h"
 
 #include "server/jabber-server-change-password.h"
 
@@ -48,12 +50,11 @@ JabberChangePasswordWindow::JabberChangePasswordWindow(Account account, QWidget 
 
 	dataChanged();
 
-	loadWindowGeometry(this, "General", "JabberChangePasswordGeometry", 50, 50, 550, 200);
+	new WindowGeometryManager(new ConfigFileVariantWrapper("General", "JabberChangePasswordGeometry"), QRect(50, 50, 550, 200), this);
 }
 
 JabberChangePasswordWindow::~JabberChangePasswordWindow()
 {
-	saveWindowGeometry(this, "General", "JabberChangePasswordGeometry");
 }
 
 void JabberChangePasswordWindow::createGui()
@@ -162,3 +163,5 @@ void JabberChangePasswordWindow::keyPressEvent(QKeyEvent *e)
 	else
 		QWidget::keyPressEvent(e);
 }
+
+#include "moc_jabber-change-password-window.cpp"

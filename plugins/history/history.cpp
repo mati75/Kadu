@@ -1,7 +1,7 @@
 /*
  * %kadu copyright begin%
  * Copyright 2008, 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2009 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2009, 2009, 2012 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2008, 2010 Tomasz Rostański (rozteck@interia.pl)
  * Copyright 2011 Piotr Dąbrowski (ultr@ultr.pl)
  * Copyright 2004 Tomasz Jarzynka (tomee@cpi.pl)
@@ -11,8 +11,8 @@
  * Copyright 2002, 2003, 2004, 2007 Adrian Smarzewski (adrian@kadu.net)
  * Copyright 2003, 2004, 2005 Paweł Płuciennik (pawel_p@kadu.net)
  * Copyright 2002, 2003, 2004 Tomasz Chiliński (chilek@chilan.com)
- * Copyright 2007, 2008, 2009, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2007, 2008, 2009, 2009, 2010, 2011, 2012, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2006, 2008 Dawid Stawiarski (neeo@kadu.net)
  * Copyright 2004, 2005, 2006, 2007 Marcin Ślusarz (joi@kadu.net)
  * Copyright 2003 Dariusz Jagodzik (mast3r@kadu.net)
@@ -52,22 +52,23 @@
 #include "contacts/contact-set.h"
 #include "core/core.h"
 #include "gui/actions/actions.h"
+#include "gui/menu/menu-inventory.h"
 #include "gui/widgets/chat-edit-box.h"
-#include "gui/widgets/chat-widget-manager.h"
-#include "gui/widgets/chat-widget.h"
+#include "gui/widgets/chat-widget/chat-widget-repository.h"
+#include "gui/widgets/chat-widget/chat-widget.h"
 #include "gui/widgets/configuration/config-group-box.h"
 #include "gui/widgets/configuration/configuration-widget.h"
-#include "gui/windows/kadu-window.h"
 #include "gui/windows/message-dialog.h"
 #include "message/message-manager.h"
 #include "message/message.h"
+#include "message/sorted-messages.h"
 #include "protocols/services/chat-service.h"
 #include "debug.h"
 
 #include "actions/show-history-action-description.h"
 #include "gui/windows/history-window.h"
-#include "history-query.h"
 #include "history-messages-prepender.h"
+#include "history-query.h"
 #include "history-save-thread.h"
 
 #include "history.h"
@@ -100,7 +101,10 @@ History * History::Instance = 0;
 void History::createInstance()
 {
 	if (!Instance)
+	{
 		Instance = new History();
+		Instance->setChatWidgetRepository(Core::instance()->chatWidgetRepository());
+	}
 }
 
 void History::destroyInstance()
@@ -128,8 +132,6 @@ History::History() :
 	connect(MessageManager::instance(), SIGNAL(messageSent(Message)),
 		this, SLOT(enqueueMessage(Message)));
 
-	connect(ChatWidgetManager::instance(), SIGNAL(chatWidgetCreated(ChatWidget *)), this, SLOT(chatCreated(ChatWidget *)));
-
 	createDefaultConfiguration();
 	configurationUpdated();
 	kdebugf2();
@@ -147,14 +149,28 @@ History::~History()
 	kdebugf2();
 }
 
+void History::setChatWidgetRepository(ChatWidgetRepository *chatWidgetRepository)
+{
+	m_chatWidgetRepository = chatWidgetRepository;
+
+	if (m_chatWidgetRepository)
+		connect(m_chatWidgetRepository.data(), SIGNAL(chatWidgetAdded(ChatWidget *)), this, SLOT(chatWidgetAdded(ChatWidget *)));
+}
+
 void History::createActionDescriptions()
 {
 	Actions::instance()->blockSignals();
 
 	ShowHistoryActionDescriptionInstance = new ShowHistoryActionDescription(this);
 
-	TalkableMenuManager::instance()->addActionDescription(ShowHistoryActionDescriptionInstance, TalkableMenuItem::CategoryView, 100);
-	Core::instance()->kaduWindow()->insertMenuActionDescription(ShowHistoryActionDescriptionInstance, KaduWindow::MenuKadu, 5);
+	MenuInventory::instance()
+		->menu("buddy-list")
+		->addAction(ShowHistoryActionDescriptionInstance, KaduMenu::SectionView, 100)
+		->update();
+	MenuInventory::instance()
+		->menu("main")
+		->addAction(ShowHistoryActionDescriptionInstance, KaduMenu::SectionRecentChats)
+		->update();
 
 	// The last ActionDescription will send actionLoaded() signal.
 	Actions::instance()->unblockSignals();
@@ -170,8 +186,14 @@ void History::createActionDescriptions()
 
 void History::deleteActionDescriptions()
 {
-	TalkableMenuManager::instance()->removeActionDescription(ShowHistoryActionDescriptionInstance);
-	Core::instance()->kaduWindow()->removeMenuActionDescription(ShowHistoryActionDescriptionInstance);
+	MenuInventory::instance()
+		->menu("buddy-list")
+		->removeAction(ShowHistoryActionDescriptionInstance)
+		->update();
+	MenuInventory::instance()
+		->menu("main")
+		->removeAction(ShowHistoryActionDescriptionInstance)
+		->update();
 
 	delete ShowHistoryActionDescriptionInstance;
 	ShowHistoryActionDescriptionInstance = 0;
@@ -192,7 +214,7 @@ void History::clearHistoryActionActivated(QAction *sender, bool toggled)
 		CurrentStorage->clearChatHistory(action->context()->chat());
 }
 
-void History::chatCreated(ChatWidget *chatWidget)
+void History::chatWidgetAdded(ChatWidget *chatWidget)
 {
 	kdebugf();
 
@@ -202,7 +224,7 @@ void History::chatCreated(ChatWidget *chatWidget)
 	if (!CurrentStorage)
 		return;
 
-	ChatMessagesView *chatMessagesView = chatWidget->chatMessagesView();
+	WebkitMessagesView *chatMessagesView = chatWidget->chatMessagesView();
 	if (!chatMessagesView)
 		return;
 
@@ -361,22 +383,7 @@ void History::stopSaveThread()
 
 void History::mainConfigurationWindowCreated(MainConfigurationWindow *mainConfigurationWindow)
 {
-	dontCiteOldMessagesLabel = static_cast<QLabel *>(mainConfigurationWindow->widget()->widgetById("history/dontCiteOldMessagesLabel"));
-	QSlider *dontCiteOldMessagesSlider = static_cast<QSlider *>(mainConfigurationWindow->widget()->widgetById("history/dontCiteOldMessages"));
-	updateQuoteTimeLabel(dontCiteOldMessagesSlider->value());
-	connect(dontCiteOldMessagesSlider, SIGNAL(valueChanged(int)),
-		this, SLOT(updateQuoteTimeLabel(int)));
-
-	connect(mainConfigurationWindow->widget()->widgetById("history/save"), SIGNAL(toggled(bool)),
-		mainConfigurationWindow->widget()->widgetById("history/savechatswithanonymous"), SLOT(setEnabled(bool)));
-
-	connect(mainConfigurationWindow->widget()->widgetById("history/savestatuschanges"), SIGNAL(toggled(bool)),
-		mainConfigurationWindow->widget()->widgetById("history/saveonlystatuswithdescription"), SLOT(setEnabled(bool)));
-}
-
-void History::updateQuoteTimeLabel(int value)
-{
-	dontCiteOldMessagesLabel->setText(tr("%1 day(s) %2 hour(s)").arg(-value / 24).arg((-value) % 24));
+	Q_UNUSED(mainConfigurationWindow)
 }
 
 void History::configurationUpdated()
@@ -405,8 +412,9 @@ void History::registerStorage(HistoryStorage *storage)
 
 	startSaveThread();
 
-	foreach (ChatWidget *chat, ChatWidgetManager::instance()->chats())
-		chatCreated(chat);
+	if (m_chatWidgetRepository)
+		for (ChatWidget *chat : m_chatWidgetRepository.data())
+			chatWidgetAdded(chat);
 
 	foreach (const Account &account, AccountManager::instance()->items())
 		accountRegistered(account);
@@ -458,3 +466,5 @@ void History::setSyncEnabled(bool syncEnabled)
 	if (SaveThread)
 		SaveThread->setEnabled(syncEnabled);
 }
+
+#include "moc_history.cpp"

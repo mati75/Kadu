@@ -2,7 +2,7 @@
  * %kadu copyright begin%
  * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2011 Piotr Dąbrowski (ultr@ultr.pl)
- * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2009, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
@@ -29,13 +29,14 @@
 
 #include "open-chat-with-runner.h"
 
+class QDeclarativeView;
 class QLabel;
 class QPushButton;
 class QVBoxLayout;
 
 class BuddyListModel;
 class LineEditWithClearButton;
-class TalkableTreeView;
+class ModelChain;
 
 class KADUAPI OpenChatWith : public QWidget, DesktopAwareObject
 {
@@ -45,19 +46,18 @@ class KADUAPI OpenChatWith : public QWidget, DesktopAwareObject
 
 	explicit OpenChatWith();
 
-	bool IsTyping;
-
-	TalkableTreeView *BuddiesWidget;
+	QDeclarativeView *BuddiesView;
 	LineEditWithClearButton *ContactID;
 	QVBoxLayout *MainLayout;
 	OpenChatWithRunner *OpenChatRunner;
 
 	BuddyListModel *ListModel;
+	ModelChain *Chain;
 
 private slots:
 	void inputAccepted();
 	void inputChanged(const QString &text);
-	void openChat();
+	void itemActivated(int index);
 
 protected:
 	virtual bool eventFilter(QObject *obj, QEvent *e);
@@ -69,6 +69,8 @@ public:
 	virtual ~OpenChatWith();
 
 	void show();
+    void contactIChain ( int index );
+
 };
 
 #endif // OPEN_CHAT_WITH_H

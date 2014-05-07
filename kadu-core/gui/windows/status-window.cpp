@@ -2,9 +2,9 @@
  * %kadu copyright begin%
  * Copyright 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009, 2010, 2012 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2010, 2011, 2012 Piotr Dąbrowski (ultr@ultr.pl)
- * Copyright 2009, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2010, 2010, 2011, 2012 Piotr Dąbrowski (ultr@ultr.pl)
+ * Copyright 2009, 2009, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -295,7 +295,7 @@ void StatusWindow::applyStatus()
 	DescriptionManager::instance()->addDescription(description);
 
 	if (config_file.readBoolEntry("General", "ParseStatus", false))
-		description = Parser::parse(description, Talkable(Core::instance()->myself()), false);
+		description = Parser::parse(description, Talkable(Core::instance()->myself()), ParserEscape::NoEscape);
 
 	foreach (StatusContainer *container, Container->subStatusContainers())
 	{
@@ -391,13 +391,15 @@ void StatusWindow::eraseDescription()
 
 void StatusWindow::clearDescriptionsHistory()
 {
-	bool confirmed = MessageDialog::ask(
+	MessageDialog *dialog = MessageDialog::create(
 		KaduIcon("dialog-warning"),
 		tr("Clear Descriptions History"),
 		tr("Do you really want to clear the descriptions history?"),
 		this);
+	dialog->addButton(QMessageBox::Yes, tr("Clear history"));
+	dialog->addButton(QMessageBox::No, tr("Cancel"));
 
-	if (!confirmed)
+	if (!dialog->ask())
 		return;
 
 	DescriptionManager::instance()->clearDescriptions();
@@ -406,3 +408,5 @@ void StatusWindow::clearDescriptionsHistory()
 	DescriptionSelect->setEnabled(false);
 	ClearDescriptionsHistoryButton->setEnabled(false);
 }
+
+#include "moc_status-window.cpp"

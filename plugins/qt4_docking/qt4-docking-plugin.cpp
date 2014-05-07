@@ -3,6 +3,7 @@
  * Copyright 2008, 2009, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
  * Copyright 2007, 2008, 2009, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
@@ -30,12 +31,12 @@ Qt4DockingPlugin::~Qt4DockingPlugin()
 {
 }
 
-int Qt4DockingPlugin::init(bool firstLoad)
+bool Qt4DockingPlugin::init(bool firstLoad)
 {
 	Q_UNUSED(firstLoad)
 
 	DockingManager::instance()->setDocker(Qt4TrayIcon::createInstance());
-	return 0;
+	return true;
 }
 
 void Qt4DockingPlugin::done()
@@ -46,3 +47,5 @@ void Qt4DockingPlugin::done()
 }
 
 Q_EXPORT_PLUGIN2(qt4_docking, Qt4DockingPlugin)
+
+#include "moc_qt4-docking-plugin.cpp"

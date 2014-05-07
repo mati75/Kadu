@@ -6,7 +6,7 @@
  * Copyright 2010 Piotr Dąbrowski (ultr@ultr.pl)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
  * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
- * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2007, 2008, 2009, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
@@ -63,10 +63,15 @@ public:
 	void registerProvider(EncryptionProvider *provider);
 	void unregisterProvider(EncryptionProvider *provider);
 
-	bool canEncrypt(const Chat &chat);
-	bool canDecrypt(const Chat &chat);
+	EncryptionProvider * byName(const QString &name) const;
 
-	EncryptionProvider * defaultEncryptorProvider(const Chat &chat);
+	bool canEncrypt(const Chat &chat) const;
+	bool canDecrypt(const Chat &chat) const;
+
+	EncryptionProvider * defaultEncryptorProvider(const Chat &chat) const;
+
+	virtual QString name() const;
+	virtual QString displayName() const;
 
 	virtual Encryptor * acquireEncryptor(const Chat &chat);
 	virtual Decryptor * acquireDecryptor(const Chat &chat);

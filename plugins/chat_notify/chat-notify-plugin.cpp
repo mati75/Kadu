@@ -2,7 +2,8 @@
  * %kadu copyright begin%
  * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
- * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2007, 2008, 2009, 2010, 2011, 2012, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
@@ -21,6 +22,7 @@
  */
 
 #include "configuration/configuration-file.h"
+#include "core/core.h"
 #include "notify/notification-manager.h"
 
 #include "chat-notifier.h"
@@ -31,15 +33,18 @@ ChatNotifyPlugin::~ChatNotifyPlugin()
 {
 }
 
-int ChatNotifyPlugin::init(bool firstLoad)
+bool ChatNotifyPlugin::init(bool firstLoad)
 {
 	if (firstLoad)
 		createDefaultConfiguration();
 
 	NotifierInstance = new ChatNotifier(this);
+	NotifierInstance->setChatWidgetRepository(Core::instance()->chatWidgetRepository());
+	NotifierInstance->setFormattedStringFactory(Core::instance()->formattedStringFactory());
+
 	NotificationManager::instance()->registerNotifier(NotifierInstance);
 
-	return 0;
+	return true;
 }
 
 void ChatNotifyPlugin::done()
@@ -58,6 +63,9 @@ void ChatNotifyPlugin::createDefaultConfiguration()
 	config_file.addVariable("Notify", "StatusChanged/ToNotAvailable_ChatNotifier", true);
 	config_file.addVariable("Notify", "StatusChanged/ToOffline_ChatNotifier", true);
 	config_file.addVariable("Notify", "StatusChanged/ToOnline_ChatNotifier", true);
+	config_file.addVariable("Notify", "OTR_ChatNotifier", true);
 }
 
 Q_EXPORT_PLUGIN2(chat_notify, ChatNotifyPlugin)
+
+#include "moc_chat-notify-plugin.cpp"

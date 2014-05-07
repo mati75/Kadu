@@ -1,7 +1,7 @@
 /*
  * %kadu copyright begin%
  * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2009, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
@@ -88,6 +88,7 @@ public:
 		TypeUserList = 0x0010, //!< actions with TypeUserList type requires access to user list widget
 		TypeHistory  = 0x0020, //!< actions with TypeHistory type requires access to history window
 		TypeMainMenu = 0x0040,
+		TypePrivate  = 0x0080, //!< actions with TypePrivate can not be placed on toolbars by users
 		TypeAll      = 0xFFFF  //!< TypeAll is used to set masks for all types of actions
 	};
 
@@ -224,7 +225,11 @@ protected:
 	 */
 	virtual QMenu * menuForAction(Action *action);
 
+#if QT_VERSION >= 0x050000
+	virtual void connectNotify(const QMetaMethod &signal);
+#else
 	virtual void connectNotify(const char *signal);
+#endif
 	virtual void configurationUpdated();
 
 public:
@@ -295,7 +300,7 @@ public:
 	 * If action does not have default behaviour no method will be called after clicking on method. Reimplementing
 	 * actionTriggered is then not required.
 	 */
-	virtual QToolButton::ToolButtonPopupMode buttonPopupMode()
+	virtual QToolButton::ToolButtonPopupMode buttonPopupMode() const
 	{
 		return QToolButton::MenuButtonPopup;
 	}

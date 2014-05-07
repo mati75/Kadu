@@ -1,11 +1,11 @@
 /*
  * %kadu copyright begin%
  * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2009, 2012 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2011 Piotr Dąbrowski (ultr@ultr.pl)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
- * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2009, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -22,67 +22,43 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <QtCore/QDir>
-#include <QtCore/QFile>
-#include <QtCore/QFileInfo>
-
-#include "configuration/configuration-file.h"
+#include "misc/error.h"
 #include "debug.h"
 
-#include "helpers/gadu-formatter.h"
-#include "helpers/gadu-protocol-helper.h"
+#include "server/gadu-connection.h"
+#include "server/gadu-writable-session-token.h"
 #include "gadu-account-details.h"
-#include "gadu-protocol.h"
 
 #include "gadu-chat-image-service.h"
 
-GaduChatImageService::GaduChatImageService(GaduProtocol *protocol)
-	: ChatImageService(protocol), Protocol(protocol), CurrentMinuteSendImageRequests(0)
+GaduChatImageService::GaduChatImageService(Account account, QObject *parent) :
+		ChatImageService(account, parent), ReceiveImages(false)
 {
 }
 
-QString GaduChatImageService::saveImage(UinType sender, quint32 size, quint32 crc32, const char *data)
+GaduChatImageService::~GaduChatImageService()
 {
-	kdebugf();
-
-	QString path = ChatImageService::imagesPath();
-	if (!QFileInfo(path).isDir() && !QDir().mkdir(path))
-	{
-		kdebugm(KDEBUG_INFO, "Failed creating directory: %s\n", qPrintable(path));
-		return QString();
-	}
-
-	QString fileName = GaduFormatter::createImageId(sender, size, crc32);
-	QFile file(path + fileName);
-	if (!file.open(QIODevice::WriteOnly))
-		return QString();
-
-	file.write(data, size);
-	file.close();
-	return fileName;
 }
 
-void GaduChatImageService::loadImageContent(ImageToSend &image)
+void GaduChatImageService::setConnection(GaduConnection *connection)
 {
-	QFile imageFile(image.fileName);
-	if (!imageFile.open(QIODevice::ReadOnly))
-	{
-		image.content.clear();
-		kdebugm(KDEBUG_ERROR, "Error opening file\n");
-		return;
-	}
+	Connection = connection;
+}
 
-	QByteArray data = imageFile.readAll();
-	imageFile.close();
+void GaduChatImageService::setGaduChatService(GaduChatService *gaduChatService)
+{
+	if (CurrentChatService)
+		disconnect(CurrentChatService.data(), 0, this, 0);
 
-	if (data.length() != imageFile.size())
-	{
-		image.content.clear();
-		kdebugm(KDEBUG_ERROR, "Error reading file\n");
-		return;
-	}
+	CurrentChatService = gaduChatService;
+	if (CurrentChatService)
+		connect(CurrentChatService.data(), SIGNAL(chatImageKeyReceived(QString,ChatImage)),
+		        this, SLOT(chatImageKeyReceivedSlot(QString,ChatImage)));
+}
 
-	image.content = data;
+void GaduChatImageService::setReceiveImages(bool receiveImages)
+{
+	ReceiveImages = receiveImages;
 }
 
 void GaduChatImageService::handleEventImageRequest(struct gg_event *e)
@@ -90,29 +66,20 @@ void GaduChatImageService::handleEventImageRequest(struct gg_event *e)
 	kdebugm(KDEBUG_INFO, "%s", qPrintable(QString("Received image request. sender: %1, size: %2, crc32: %3\n")
 		.arg(e->event.image_request.sender).arg(e->event.image_request.size).arg(e->event.image_request.crc32)));
 
-	quint32 size = e->event.image_request.size;
-	quint32 crc32 = e->event.image_request.crc32;
-
-	if (!ImagesToSend.contains(qMakePair(size, crc32)))
-	{
-		kdebugm(KDEBUG_WARNING, "Image data not found\n");
+	if (!Connection || !Connection.data()->hasSession())
 		return;
-	}
 
-	ImageToSend &image = ImagesToSend[qMakePair(size, crc32)];
-	if (image.content.isNull())
-	{
-		loadImageContent(image);
-		if (image.content.isNull())
-			return;
-	}
+	auto image = chatImageFromSizeCrc32(e->event.image_request.size, e->event.image_request.crc32);
+	if (!ChatImages.contains(image))
+		return;
 
-	Protocol->disableSocketNotifiers();
-	gg_image_reply(Protocol->gaduSession(), e->event.image_request.sender, image.fileName.toUtf8().constData(), image.content.constData(), image.content.length());
-	Protocol->enableSocketNotifiers();
+	QByteArray content = ChatImages.value(image);
+	if (content.isEmpty())
+		return;
 
-	image.content.clear();
-	image.lastSent = QDateTime::currentDateTime();
+	auto writableSessionToken = Connection.data()->writableSessionToken();
+	gg_image_reply(writableSessionToken.rawSession(), e->event.image_request.sender, image.key().toUtf8().constData(),
+			content.constData(), content.length());
 }
 
 void GaduChatImageService::handleEventImageReply(struct gg_event *e)
@@ -121,67 +88,69 @@ void GaduChatImageService::handleEventImageReply(struct gg_event *e)
 			.arg(e->event.image_reply.sender).arg(e->event.image_reply.size)
 			.arg(e->event.image_reply.crc32).arg(e->event.image_reply.filename)));
 
-	QString fileName = saveImage(e->event.image_reply.sender,
-			e->event.image_reply.size, e->event.image_reply.crc32,
-			/*e->event.image_reply.filename, */e->event.image_reply.image);
+	auto image = chatImageFromSizeCrc32(e->event.image_reply.size, e->event.image_reply.crc32);
+	QByteArray imageData(e->event.image_reply.image, e->event.image_reply.size);
 
-	if (fileName.isEmpty())
+	if (image.isNull() || imageData.isEmpty())
 		return;
 
-	emit imageReceived(GaduFormatter::createImageId(e->event.image_reply.sender,
-			e->event.image_reply.size, e->event.image_reply.crc32), fileName);
+	emit chatImageAvailable(image, imageData);
 }
 
-bool GaduChatImageService::sendImageRequest(Contact contact, int size, quint32 crc32)
+ChatImage GaduChatImageService::chatImageFromSizeCrc32(quint32 size, quint32 crc32) const
 {
-	kdebugf();
-	GaduAccountDetails *gaduAccountDetails = dynamic_cast<GaduAccountDetails *>(Protocol->account().details());
+	auto key = (static_cast<uint64_t>(crc32) << 32) | size;
+	auto stringKey = QString{"%1"}.arg(key, 16, 16);
 
-	if (contact.isNull() ||
-			(CurrentMinuteSendImageRequests > (unsigned int)gaduAccountDetails->maximumImageRequests()))
-		return false;
-
-	CurrentMinuteSendImageRequests++;
-	Protocol->disableSocketNotifiers();
-	bool ret = (0 == gg_image_request(Protocol->gaduSession(), GaduProtocolHelper::uin(contact), size, crc32));
-	Protocol->enableSocketNotifiers();
-
-	return ret;
+	return {stringKey, size};
 }
 
-void GaduChatImageService::prepareImageToSend(const QString &imageFileName, quint32 &size, quint32 &crc32)
+void GaduChatImageService::chatImageKeyReceivedSlot(const QString &id, const ChatImage &chatImage)
 {
-	kdebugmf(KDEBUG_INFO, "Using file \"%s\"\n", qPrintable(imageFileName));
+	if (ReceiveImages)
+		emit chatImageKeyReceived(id, chatImage);
+}
 
-	ImageToSend imageToSend;
-	imageToSend.fileName = imageFileName;
-	loadImageContent(imageToSend);
-
-	if (imageToSend.content.isNull())
+void GaduChatImageService::requestChatImage(const QString &id, const ChatImage &chatImage)
+{
+	if (!Connection || !Connection.data()->hasSession())
 		return;
 
-	imageToSend.crc32 = gg_crc32(0, (const unsigned char*)imageToSend.content.constData(), imageToSend.content.length());
+	if (id.isEmpty() || chatImage.key().length() != 16)
+		return;
 
-	size = imageToSend.content.length();
-	crc32 = imageToSend.crc32;
+	bool ok;
+	auto imageKey = chatImage.key().toULongLong(&ok, 16);
+	if (!ok)
+		return;
 
-	ImagesToSend[qMakePair(size, crc32)] = imageToSend;
+	auto crc32 = static_cast<uint32_t>(imageKey >> 32);
+	auto size = static_cast<uint32_t>(imageKey & 0x0000FFFF);
+
+	auto writableSessionToken = Connection.data()->writableSessionToken();
+	gg_image_request(writableSessionToken.rawSession(), id.toUInt(), size, crc32);
 }
 
-qint64 GaduChatImageService::softSizeLimit()
+ChatImage GaduChatImageService::prepareImageToBeSent(const QByteArray &imageData)
 {
-	return 255 * 1024;
+	quint32 crc32 = imageData.isEmpty() ? 0 : gg_crc32(0, (const unsigned char*)imageData.constData(), imageData.length());
+
+	auto result = chatImageFromSizeCrc32(imageData.size(), crc32);
+	ChatImages.insert(result, imageData);
+	return result;
 }
 
-qint64 GaduChatImageService::hardSizeLimit()
+Error GaduChatImageService::checkImageSize(qint64 size) const
 {
-	return ChatImageService::NoSizeLimit;
+	GaduAccountDetails *details = dynamic_cast<GaduAccountDetails *>(account().details());
+	if (!details || !details->chatImageSizeWarning() || size <= RECOMMENDED_MAXIMUM_SIZE)
+		return Error(NoError, QString());
+
+	QString message = tr("This image has %1 KiB and exceeds recommended maximum size of %2 KiB. Some clients may have trouble with too large images.")
+		+ '\n' + tr("Do you really want to send this image?");
+	message = message.arg((size + 1023) / 1024).arg(RECOMMENDED_MAXIMUM_SIZE / 1024);
+
+	return Error(ErrorLow, message);
 }
 
-bool GaduChatImageService::showSoftSizeWarning(Account account)
-{
-	GaduAccountDetails *details = dynamic_cast<GaduAccountDetails *>(account.details());
-	if (!details)
-		return true;
-	return details->chatImageSizeWarning();
-}
+#include "moc_gadu-chat-image-service.cpp"

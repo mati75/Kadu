@@ -1,6 +1,7 @@
 /*
  * %kadu copyright begin%
- * Copyright 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -43,7 +44,7 @@ void ModelChain::setBaseModel(QAbstractItemModel *model)
 		Q_ASSERT(KaduModel);
 	}
 	else
-		KaduModel = 0;
+		KaduModel = nullptr;
 
 	if (!ProxyModels.empty())
 		ProxyModels.at(0)->setSourceModel(Model);
@@ -51,7 +52,8 @@ void ModelChain::setBaseModel(QAbstractItemModel *model)
 
 void ModelChain::addProxyModel(QAbstractProxyModel *proxyModel)
 {
-	Q_ASSERT(proxyModel);
+	if (!proxyModel)
+		return;
 
 	if (ProxyModels.empty())
 		proxyModel->setSourceModel(Model);
@@ -76,10 +78,8 @@ QAbstractItemModel * ModelChain::lastModel() const
 
 QModelIndexList ModelChain::indexListForValue(const QVariant &value) const
 {
-	if (!Model)
+	if (!Model || !KaduModel)
 		return QModelIndexList();
-
-	Q_ASSERT(KaduModel);
 
 	QModelIndexList indexes = KaduModel->indexListForValue(value);
 	QModelIndexList result;
@@ -97,3 +97,5 @@ QModelIndexList ModelChain::indexListForValue(const QVariant &value) const
 
 	return result;
 }
+
+#include "moc_model-chain.cpp"

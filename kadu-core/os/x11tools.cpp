@@ -33,20 +33,20 @@
 
 
 
-bool X11_getCardinalProperty( Display *display, Window window, const char *propertyName, uint32_t *value, unsigned long offset )
+bool X11_getCardinalProperty( Display *display, Window window, const char *propertyName, uint32_t *value, long offset )
 {
 	Atom property = XInternAtom( display, propertyName, False );
 	if( property == None )
 		return false;
-	unsigned char *data = NULL; Atom realtype; int realformat; unsigned long nitems, left;
-	int result = XGetWindowProperty( display, window, property, offset, 1L, False, XA_CARDINAL, &realtype, &realformat, &nitems, &left, &data );
+	uint32_t *data = NULL; Atom realtype; int realformat; unsigned long nitems, left;
+	int result = XGetWindowProperty( display, window, property, offset, 1L, False, XA_CARDINAL, &realtype, &realformat, &nitems, &left, (unsigned char**)&data );
 	if( result == Success )
 	{
 		if( realtype == XA_CARDINAL )
 		{
 			if( nitems > 0 )
 			{
-				*value = ((uint32_t*)data)[0];
+				*value = data[0];
 				XFree( data );
 				return true;
 			}
@@ -62,15 +62,15 @@ bool X11_getFirstPropertyAtom( Display *display, Window window, const char *prop
 	Atom property = XInternAtom( display, propertyName, False );
 	if( property == None )
 		return false;
-	unsigned char *data = NULL; Atom realtype; int realformat; unsigned long nitems, left;
-	int result = XGetWindowProperty( display, window, property, 0L, 1L, False, XA_ATOM, &realtype, &realformat, &nitems, &left, &data );
+	Atom *data = NULL; Atom realtype; int realformat; unsigned long nitems, left;
+	int result = XGetWindowProperty( display, window, property, 0L, 1L, False, XA_ATOM, &realtype, &realformat, &nitems, &left, (unsigned char**)&data );
 	if( result == Success )
 	{
 		if( realtype == XA_ATOM )
 		{
 			if( nitems > 0 )
 			{
-				*value = ((Atom*)data)[0L];
+				*value = data[0L];
 				XFree( data );
 				return true;
 			}
@@ -89,22 +89,21 @@ bool X11_isPropertyAtomSet( Display *display, Window window, const char *propert
 	Atom atom = XInternAtom( display, atomName, False );
 	if( atom == None )
 		return false;
-	unsigned char *data = NULL; Atom realtype; int realformat; unsigned long nitems, left;
-	int result = XGetWindowProperty( display, window, property, 0L, 8192L, False, XA_ATOM, &realtype, &realformat, &nitems, &left, &data );
+	Atom *atoms = NULL; Atom realtype; int realformat; unsigned long nitems, left;
+	int result = XGetWindowProperty( display, window, property, 0L, 8192L, False, XA_ATOM, &realtype, &realformat, &nitems, &left, (unsigned char**)&atoms );
 	if( result != Success )
 		return false;
 	if( realtype != XA_ATOM )
 		return false;
-	Atom *atoms = (Atom*)data;
 	for( unsigned long k = 0; k < nitems; k++ )
 	{
 		if( atoms[k] == atom )
 		{
-			XFree( data );
+			XFree( atoms );
 			return true;
 		}
 	}
-	XFree( data );
+	XFree( atoms );
 	return false;
 }
 
@@ -187,6 +186,8 @@ bool X11_isFreeDesktopCompatible( Display *display )
 	std::pair<int,int> desktopsize = X11_getDesktopSize( display );
 	if( resolution == desktopsize ) // one desktop only, so we don't have to care
 		return true;
+	if (resolution.first == 0)
+		return false;
 	if( ( desktopsize.first % resolution.first != 0 ) || ( desktopsize.second % resolution.second != 0 ) ) // virtual resolution
 		return true;
 	// not FreeDesktop compatible :(
@@ -202,13 +203,13 @@ uint32_t X11_getDesktopsCount( Display *display, bool forceFreeDesktop )
 	{
 		std::pair<int,int> resolution  = X11_getResolution(  display );
 		std::pair<int,int> desktopsize = X11_getDesktopSize( display );
-		return ( desktopsize.second / resolution.second ) * ( desktopsize.first / resolution.first ) ;
+		return static_cast<uint32_t>(( desktopsize.second / resolution.second ) * ( desktopsize.first / resolution.first ));
 	}
 	else
 	{
 		uint32_t value;
 		if( ! X11_getCardinalProperty( display, DefaultRootWindow( display ), "_NET_NUMBER_OF_DESKTOPS", &value ) )
-			return 0;
+			return 1; // 0 desktops doesn't make sense, even Compiz returns 1 ()
 		return value;
 	}
 }
@@ -223,7 +224,9 @@ uint32_t X11_getCurrentDesktop( Display *display, bool forceFreeDesktop )
 		X11_getCardinalProperty( display, DefaultRootWindow( display ), "_NET_DESKTOP_VIEWPORT", &dy, 1 );
 		std::pair<int,int> desktopsize = X11_getDesktopSize( display );
 		std::pair<int,int> resolution = X11_getResolution( display );
-		uint32_t desktop = ( dy / resolution.second ) * ( desktopsize.first / resolution.first ) + ( dx / resolution.first );
+		if (resolution.second == 0)
+			return 0;
+		uint32_t desktop = static_cast<uint32_t>(( static_cast<int>(dy) / resolution.second ) * ( desktopsize.first / resolution.first ) + ( static_cast<int>(dx) / resolution.first ));
 		return desktop;
 	}
 	else
@@ -272,8 +275,8 @@ void X11_setCurrentDesktop( Display *display, uint32_t desktop, bool forceFreeDe
 		{
 			std::pair<int,int> desktopsize = X11_getDesktopSize( display );
 			std::pair<int,int> resolution = X11_getResolution( display );
-			uint32_t dx = ( desktop % ( desktopsize.first / resolution.first ) ) * resolution.first;
-			uint32_t dy = ( desktop / ( desktopsize.first / resolution.first ) ) * resolution.second;
+			uint32_t dx = ( desktop % ( static_cast<uint32_t>(desktopsize.first / resolution.first) ) ) * static_cast<uint32_t>(resolution.first);
+			uint32_t dy = ( desktop / ( static_cast<uint32_t>(desktopsize.first / resolution.first) ) ) * static_cast<uint32_t>(resolution.second);
 			XEvent xev;
 			xev.type                 = ClientMessage;
 			xev.xclient.type         = ClientMessage;
@@ -328,11 +331,12 @@ uint32_t X11_getDesktopOfWindow( Display *display, Window window, bool forceFree
 			pos.second += size.second / 2;
 			pos.second %= desktopsize.second;
 		}
-		uint32_t desktopofwindow = currentdesktop + ( pos.second / resolution.second ) * ( desktopsize.first / resolution.first ) + ( pos.first / resolution.first );
+		uint32_t desktopofwindow = currentdesktop
+			+ static_cast<uint32_t>(( pos.second / resolution.second ) * ( desktopsize.first / resolution.first ) + ( pos.first / resolution.first ));
 		if( pos.first < 0 )
 			desktopofwindow -= 1;
 		if( pos.second < 0 )
-			desktopofwindow -= ( desktopsize.first / resolution.first );
+			desktopofwindow -= static_cast<uint32_t>( desktopsize.first / resolution.first );
 		desktopofwindow %= X11_getDesktopsCount( display, forceFreeDesktop );
 		return desktopofwindow;
 	}
@@ -354,8 +358,8 @@ void X11_moveWindowToDesktop( Display *display, Window window, uint32_t desktop,
 		std::pair<int,int> desktopsize = X11_getDesktopSize( display );
 		std::pair<int,int> resolution = X11_getResolution( display );
 		uint32_t desktopofwindow = X11_getDesktopOfWindow( display, window, forceFreeDesktop );
-		uint32_t ddx = ( desktop % ( desktopsize.first / resolution.first ) ) - ( desktopofwindow % ( desktopsize.first / resolution.first ) );
-		uint32_t ddy = ( desktop / ( desktopsize.first / resolution.first ) ) - ( desktopofwindow / ( desktopsize.first / resolution.first ) );
+		uint32_t ddx = ( desktop % static_cast<uint32_t>( desktopsize.first / resolution.first ) ) - ( desktopofwindow % static_cast<uint32_t>( desktopsize.first / resolution.first ) );
+		uint32_t ddy = ( desktop / static_cast<uint32_t>( desktopsize.first / resolution.first ) ) - ( desktopofwindow / static_cast<uint32_t>( desktopsize.first / resolution.first ) );
 		int newx, newy;
 		if( position )
 		{
@@ -365,13 +369,13 @@ void X11_moveWindowToDesktop( Display *display, Window window, uint32_t desktop,
 			int oldy = pos.second % resolution.second;
 			if( oldy < 0 )
 				oldy += resolution.second;
-			newx = ( pos.first  - oldx + x ) + ddx * resolution.first;
-			newy = ( pos.second - oldy + y ) + ddy * resolution.second;
+			newx = ( pos.first  - oldx + x ) + static_cast<int>(ddx) * resolution.first;
+			newy = ( pos.second - oldy + y ) + static_cast<int>(ddy) * resolution.second;
 		}
 		else
 		{
-			newx = pos.first  + ddx * resolution.first;
-			newy = pos.second + ddy * resolution.second;
+			newx = pos.first  + static_cast<int>(ddx) * resolution.first;
+			newy = pos.second + static_cast<int>(ddy) * resolution.second;
 		}
 		X11_moveWindow( display, window, newx, newy );
 	}
@@ -453,8 +457,8 @@ bool X11_isWindowCovered( Display *display, Window window )
 	XGetGeometry( display, window, &root, &x, &y, &width, &height, &border, &depth );
 	int x1 = x;
 	int y1 = y;
-	int x2 = x + width;
-	int y2 = y + height;
+	int x2 = x + static_cast<int>(width);
+	int y2 = y + static_cast<int>(height);
 	XQueryTree( display, DefaultRootWindow( display ), &root, &parent, &children, &nchildren );
 	if( children != NULL )
 	{
@@ -513,8 +517,10 @@ bool X11_isWindowCovered( Display *display, Window window )
 					XQueryTree( display, w, &root, &parent, &children2, &nchildren2 );
 					if( ( nchildren2 > 0 ) && ( children2 != NULL ) )
 					{
-						for( int k2 = nchildren2 - 1; k2 >= 0; --k2 )
-							windows.push_back( children2[k2] );
+						unsigned int k2 = nchildren2;
+						while (k2 > 0)
+							windows.push_back(children2[--k2]);
+
 						XFree( children2 );
 						children2 = NULL;
 					}
@@ -648,7 +654,7 @@ void X11_centerWindow( Display *display, Window window, uint32_t desktop, bool f
 }
 
 
-void X11_resizeWindow( Display *display, Window window, int width, int height )
+void X11_resizeWindow( Display *display, Window window, unsigned int width, unsigned int height )
 {
 	XResizeWindow( display, window, width, height );
 	XFlush( display );
@@ -673,28 +679,28 @@ void X11_setSizeHintsOfWindow( Display *display, Window window, int minwidth, in
 
 Window X11_getActiveWindow( Display *display )
 {
-	Window window;
 	// _NET_ACTIVE_WINDOW
 	Atom net_active_window = XInternAtom( display, "_NET_ACTIVE_WINDOW", False );
 	if( net_active_window != None )
 	{
-		unsigned char *data = NULL; Atom realtype; int realformat; unsigned long nitems, left;
-		int result = XGetWindowProperty( display, XDefaultRootWindow( display ), net_active_window, 0L, sizeof(Window), False, XA_WINDOW, &realtype, &realformat, &nitems, &left, &data);
+		Window *windowptr = NULL; Atom realtype; int realformat; unsigned long nitems, left;
+		int result = XGetWindowProperty( display, XDefaultRootWindow( display ), net_active_window, 0L, sizeof(Window), False, XA_WINDOW, &realtype, &realformat, &nitems, &left, (unsigned char**)&windowptr);
 		if( result == Success )
 		{
 			if( realtype == XA_WINDOW )
 			{
 				if( nitems > 0 )
 				{
-					window = *(Window*)data;
-					XFree( data );
+					Window window = *windowptr;
+					XFree( windowptr );
 					return window;
 				}
 			}
-			XFree( data );
+			XFree( windowptr );
 		}
 	}
 	// XGetInputFocus
+	Window window;
 	int revertto;
 	XGetInputFocus( display, &window, &revertto );
 	return window;
@@ -745,32 +751,30 @@ Window X11_getTopMostWindow( Display *display )
 	int format_return;
 	unsigned long nitems_return;
 	unsigned long bytesafter_return;
-	unsigned char *data = NULL;
+	Window *windowarray = NULL;
 	// _NET_CLIENT_LIST_STACKING
 	listatom = XInternAtom( display, "_NET_CLIENT_LIST_STACKING", False );
-	if( XGetWindowProperty( display, DefaultRootWindow( display ), listatom, 0L, (~0L), False, XA_WINDOW, &type_return, &format_return, &nitems_return, &bytesafter_return, &data ) == Success )
+	if( XGetWindowProperty( display, DefaultRootWindow( display ), listatom, 0L, (~0L), False, XA_WINDOW, &type_return, &format_return, &nitems_return, &bytesafter_return, (unsigned char**)&windowarray ) == Success )
 	{
 		Window window = None;
-		if( (type_return == XA_WINDOW) && (format_return == 32) && (data) && (nitems_return > 0) )
+		if( (type_return == XA_WINDOW) && (format_return == 32) && (windowarray) && (nitems_return > 0) )
 		{
-			uint *array = (uint*)data;
-			window = (Window) array[nitems_return-1];
+			window = windowarray[nitems_return-1];
 		}
-		XFree( data );
+		XFree( windowarray );
 		if( window != None )
 			return window;
 	}
 	// _NET_CLIENT_LIST
 	listatom = XInternAtom( display, "_NET_CLIENT_LIST" , False );
-	if( XGetWindowProperty( display, DefaultRootWindow( display ), listatom, 0L, (~0L), False, XA_WINDOW, &type_return, &format_return, &nitems_return, &bytesafter_return, &data ) == Success )
+	if( XGetWindowProperty( display, DefaultRootWindow( display ), listatom, 0L, (~0L), False, XA_WINDOW, &type_return, &format_return, &nitems_return, &bytesafter_return, (unsigned char**)&windowarray ) == Success )
 	{
 		Window window = None;
-		if( (type_return == XA_WINDOW) && (format_return == 32) && (data) && (nitems_return > 0) )
+		if( (type_return == XA_WINDOW) && (format_return == 32) && (windowarray) && (nitems_return > 0) )
 		{
-			uint *array = (uint*) data;
-			window = (Window) array[nitems_return-1];
+			window = windowarray[nitems_return-1];
 		}
-		XFree(data);
+		XFree(windowarray);
 		if( window != None )
 			return window;
 	}
@@ -881,7 +885,7 @@ void X11_windowSendXEvent( Display *display, Window window, const char *type, co
 	xev.xclient.message_type = atomtype;
 	xev.xclient.format       = 32;
 	xev.xclient.data.l[0]    = ( set ? 1 : 0 );
-	xev.xclient.data.l[1]    = atommessage;
+	xev.xclient.data.l[1]    = static_cast<long>(atommessage);
 	xev.xclient.data.l[2]    = 0;
 	xev.xclient.data.l[3]    = 0;
 	xev.xclient.data.l[4]    = 0;

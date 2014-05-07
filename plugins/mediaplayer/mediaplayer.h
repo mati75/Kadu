@@ -1,5 +1,4 @@
-#ifndef MEDIA_PLAYER_H
-#define MEDIA_PLAYER_H
+#pragma once
 
 #include "gui/windows/main-configuration-window.h"
 
@@ -11,9 +10,9 @@ class QTimer;
 
 class ActionDescription;
 class ChatWidget;
+class ChatWidgetRepository;
 class CustomInput;
 class PlayerCommands;
-class NotifyEvent;
 class PlayerInfo;
 class ToolBar;
 class ToolButton;
@@ -27,6 +26,8 @@ class MEDIAPLAYERAPI MediaPlayer : public ConfigurationUiHandler, ConfigurationA
 
 	static MediaPlayer *Instance;
 
+	QPointer<ChatWidgetRepository> m_chatWidgetRepository;
+
 	MediaPlayerStatusChanger *Changer;
 	PlayerInfo *playerInfo;
 	PlayerCommands *playerCommands;
@@ -36,8 +37,6 @@ class MEDIAPLAYERAPI MediaPlayer : public ConfigurationUiHandler, ConfigurationA
 	ActionDescription *playAction, *stopAction, *prevAction, *nextAction, *volUpAction, *volDownAction;
 
 	QAction *DockedMediaplayerStatus;
-
-	NotifyEvent *mediaPlayerEvent;
 
 	QTimer *timer;
 	int statusInterval;
@@ -114,12 +113,13 @@ private slots:
 	/*
 		Applies all needed functions to newly created Chat window.
 	*/
-	void chatWidgetCreated(ChatWidget *);
+	void chatWidgetAdded(ChatWidget *);
 
 	/*
 		Removes all needed functions from Chat window being destroyed.
 	*/
-	void chatWidgetDestroying(ChatWidget *);
+	void chatWidgetRemoved(ChatWidget *);
+
 	void checkTitle();
 	void chatKeyPressed(QKeyEvent *, CustomInput *, bool &);
 	void chatKeyReleased(QKeyEvent *, CustomInput *, bool &);
@@ -136,6 +136,8 @@ public:
 	static void destroyInstance();
 
 	static MediaPlayer * instance() { return Instance; }
+
+	void setChatWidgetRepository(ChatWidgetRepository *chatWidgetRepository);
 
 	/*
 		Looks for special tags in string 'str' and replaces it by
@@ -197,11 +199,6 @@ public:
 
 public slots:
 	/**
-		Shows currently played title in hint (Pseudo-OSD).
-	*/
-	void putTitleHint(QString title);
-
-	/**
 	    Helper slots
 	*/
 	void insertFormattedSong();
@@ -211,5 +208,3 @@ public slots:
 	void insertPlaylistFilenames();
 
 };
-
-#endif

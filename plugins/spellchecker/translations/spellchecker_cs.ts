@@ -6,10 +6,6 @@
         <translation>Rozhovor</translation>
     </message>
     <message>
-        <source>SpellChecker</source>
-        <translation>Program na ověření pravopisu</translation>
-    </message>
-    <message>
         <source>Misspelled Words Marking Options</source>
         <translation>Volby pro označení špatně napsaných slov</translation>
     </message>
@@ -48,6 +44,10 @@
     <message>
         <source>Maximum number of suggested words</source>
         <translation>Nejvyšší počet navržených slov</translation>
+    </message>
+    <message>
+        <source>Spelling</source>
+        <translation>Pravopis</translation>
     </message>
 </context>
 <context>

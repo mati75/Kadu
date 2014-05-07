@@ -7,20 +7,21 @@
 
 #include "gui/windows/main-configuration-window.h"
 #include "notify/notifier.h"
-#include "plugins/generic-plugin.h"
+#include "plugin/plugin-root-component.h"
 
 class PCSpeakerConfigurationWidget;
 
-class PCSpeaker : public Notifier, public GenericPlugin
+class PCSpeaker : public Notifier, public PluginRootComponent
 {
 	Q_OBJECT
-	Q_INTERFACES(GenericPlugin)
+	Q_INTERFACES(PluginRootComponent)
+	Q_PLUGIN_METADATA(IID "im.kadu.PluginRootComponent")
 
 	public:
 		PCSpeaker(QObject *parent = NULL);
 		~PCSpeaker();
 
-		virtual int init(bool firstLoad);
+		virtual bool init(bool firstLoad);
 		virtual void done();
 
 		virtual void notify(Notification *notification);

@@ -31,7 +31,6 @@
 
 class QCheckBox;
 class QGridLayout;
-class QLabel;
 class QLineEdit;
 class QPushButton;
 
@@ -44,7 +43,6 @@ class GaduAddAccountWidget : public AccountAddWidget
 	QLineEdit *AccountId;
 	QLineEdit *AccountPassword;
 	QCheckBox *RememberPassword;
-	QLabel *RemindPassword;
 	IdentitiesComboBox *Identity;
 	QPushButton *AddAccountButton;
 
@@ -53,6 +51,9 @@ class GaduAddAccountWidget : public AccountAddWidget
 
 private slots:
 	void dataChanged();
+	void registerAccount();
+	void remindUin();
+	void remindPassword();
 
 public:
 	explicit GaduAddAccountWidget(bool showButtons, QWidget *parent = 0);
@@ -62,7 +63,6 @@ public slots:
 	virtual void apply();
 	virtual void cancel();
 
-	void remindPasssword();
 };
 
 #endif // GADU_ADD_ACCOUNT_WIDGET_H

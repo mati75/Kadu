@@ -1,6 +1,7 @@
 /*
  * %kadu copyright begin%
- * Copyright 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011, 2012, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -26,7 +27,9 @@
 #include "gui/actions/action-context.h"
 #include "gui/actions/action.h"
 #include "gui/windows/add-buddy-window.h"
+#include "gui/windows/buddy-data-window-repository.h"
 #include "gui/windows/buddy-data-window.h"
+#include "gui/windows/chat-data-window-repository.h"
 #include "gui/windows/chat-data-window.h"
 #include "gui/windows/kadu-window.h"
 
@@ -73,7 +76,7 @@ Buddy EditTalkableAction::actionBuddy(ActionContext *context) const
 void EditTalkableAction::setChatActionTitleAndIcon(Action *action)
 {
 	action->setIcon(KaduIcon("x-office-address-book"));
-	action->setText(qApp->translate("KaduWindowActions", "View Chat Properties"));
+	action->setText(QCoreApplication::translate("KaduWindowActions", "View Chat Properties"));
 }
 
 void EditTalkableAction::setBuddyActionTitleAndIcon(Action *action)
@@ -82,12 +85,12 @@ void EditTalkableAction::setBuddyActionTitleAndIcon(Action *action)
 	if (buddy.isAnonymous() && 1 == action->context()->buddies().count())
 	{
 		action->setIcon(KaduIcon("contact-new"));
-		action->setText(qApp->translate("KaduWindowActions", "Add Buddy..."));
+		action->setText(QCoreApplication::translate("KaduWindowActions", "Add Buddy..."));
 	}
 	else
 	{
 		action->setIcon(KaduIcon("x-office-address-book"));
-		action->setText(qApp->translate("KaduWindowActions", "View Buddy Properties"));
+		action->setText(QCoreApplication::translate("KaduWindowActions", "View Buddy Properties"));
 	}
 }
 
@@ -150,7 +153,7 @@ void EditTalkableAction::chatActionTriggered(ActionContext *context)
 	if (!chat)
 		return;
 
-	ChatDataWindow::instance(chat, Core::instance()->kaduWindow())->show();
+	Core::instance()->chatDataWindowRepository()->showChatWindow(chat);
 }
 
 void EditTalkableAction::buddyActionTriggered(ActionContext *context)
@@ -161,7 +164,7 @@ void EditTalkableAction::buddyActionTriggered(ActionContext *context)
 	if (buddy.isAnonymous())
 		(new AddBuddyWindow(Core::instance()->kaduWindow(), buddy, true))->show();
 	else
-		BuddyDataWindow::instance(buddy, Core::instance()->kaduWindow())->show();
+		Core::instance()->buddyDataWindowRepository()->showBuddyWindow(buddy);
 }
 
 void EditTalkableAction::triggered(QWidget *widget, ActionContext *context, bool toggled)
@@ -184,3 +187,5 @@ void EditTalkableAction::trigger(ActionContext *context)
 			break;
 	}
 }
+
+#include "moc_edit-talkable-action.cpp"

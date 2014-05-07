@@ -1,6 +1,7 @@
 /*
  * %kadu copyright begin%
- * Copyright 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -18,8 +19,8 @@
  */
 
 #include "chat/chat.h"
-#include "contacts/contact.h"
 #include "contacts/contact-set.h"
+#include "contacts/contact.h"
 
 #include "blocked-talkable-filter.h"
 
@@ -62,3 +63,5 @@ void BlockedTalkableFilter::setEnabled(bool enabled)
 	Enabled = enabled;
 	emit filterChanged();
 }
+
+#include "moc_blocked-talkable-filter.cpp"

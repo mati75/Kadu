@@ -1,12 +1,8 @@
 project (screenshot)
 
-# minimal required versions
 cmake_minimum_required (VERSION 2.8)
-set (QT_MIN_VERSION "4.7.0")
-set (CMAKE_MIN_VERSION "2.6.0")
 
-set (KADU_FIND_REQUIRED true)
-include (FindKadu)
+find_package (Kadu REQUIRED CONFIG)
 
 set (SOURCES
 	configuration/gui/screenshot-configuration-ui-handler.cpp
@@ -49,13 +45,13 @@ if (UNIX AND NOT APPLE)
 	find_package (X11 REQUIRED COMPONENTS X11 Xext Xshape)
 	if (X11_Xshape_FOUND)
 		message (STATUS "Found required X11 libraries: ${X11_X11_LIB};${X11_Xext_LIB}")
-	else (X11_Xshape_FOUND)
+	else ()
 		message (SEND_ERROR "Could NOT find X11 Xshape")
-	endif (X11_Xshape_FOUND)
+	endif ()
 
 	include_directories (${X11_INCLUDE_DIR})
 	list (APPEND LIBRARIES ${X11_X11_LIB} ${X11_Xext_LIB})
-endif (UNIX AND NOT APPLE)
+endif ()
 
 kadu_plugin (screenshot
 	PLUGIN_SOURCES ${SOURCES}

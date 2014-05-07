@@ -2,8 +2,8 @@
  * %kadu copyright begin%
  * Copyright 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2010 Piotr Dąbrowski (ultr@ultr.pl)
- * Copyright 2008, 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -79,7 +79,7 @@ void ConfigComboBox::createWidgets()
 {
 	kdebugf();
 
-	label = new QLabel(qApp->translate("@default", widgetCaption.toUtf8().constData()) + ':', parentConfigGroupBox->widget());
+	label = new QLabel(QCoreApplication::translate("@default", widgetCaption.toUtf8().constData()) + ':', parentConfigGroupBox->widget());
 	parentConfigGroupBox->addWidgets(label, this);
 
 	clear();
@@ -87,8 +87,8 @@ void ConfigComboBox::createWidgets()
 
 	if (!ConfigWidget::toolTip.isEmpty())
 	{
-		setToolTip(qApp->translate("@default", ConfigWidget::toolTip.toUtf8().constData()));
-		label->setToolTip(qApp->translate("@default", ConfigWidget::toolTip.toUtf8().constData()));
+		setToolTip(QCoreApplication::translate("@default", ConfigWidget::toolTip.toUtf8().constData()));
+		label->setToolTip(QCoreApplication::translate("@default", ConfigWidget::toolTip.toUtf8().constData()));
 	}
 }
 
@@ -132,10 +132,10 @@ bool ConfigComboBox::fromDomElement(QDomElement domElement)
 	saveIndexNotCaption = QVariant(domElement.attribute("save-index", "false")).toBool();
 
 	QDomNodeList children = domElement.childNodes();
-	int length = children.length();
-	for (int i = 0; i < length; i++)
+	uint length = children.length();
+	for (uint i = 0; i < length; i++)
 	{
-		QDomNode node = children.item(i);
+		QDomNode node = children.item(static_cast<int>(i));
 		if (node.isElement())
 		{
 			QDomElement element = node.toElement();
@@ -143,11 +143,13 @@ bool ConfigComboBox::fromDomElement(QDomElement domElement)
 				continue;
 
 			itemValues.append(element.attribute("value"));
-			itemCaptions.append(qApp->translate("@default", element.attribute("caption").toUtf8().constData()));
+			itemCaptions.append(QCoreApplication::translate("@default", element.attribute("caption").toUtf8().constData()));
 
-			addItem(qApp->translate("@default", element.attribute("caption").toUtf8().constData()));
+			addItem(QCoreApplication::translate("@default", element.attribute("caption").toUtf8().constData()));
 		}
 	}
 
 	return ConfigWidgetValue::fromDomElement(domElement);
 }
+
+#include "moc_config-combo-box.cpp"

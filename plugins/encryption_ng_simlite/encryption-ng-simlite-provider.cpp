@@ -1,8 +1,8 @@
 /*
  * %kadu copyright begin%
  * Copyright 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -22,17 +22,14 @@
 #include "chat/chat-manager.h"
 #include "chat/type/chat-type-contact.h"
 #include "contacts/contact-set.h"
-#include "protocols/protocol.h"
-#include "protocols/services/chat-service.h"
 
 #include "plugins/encryption_ng/keys/keys-manager.h"
 
 #include "encryption-ng-simlite-decryptor.h"
 #include "encryption-ng-simlite-encryptor.h"
+#include "encryption-ng-simlite-message-filter.h"
 
 #include "encryption-ng-simlite-provider.h"
-
-#define RSA_PUBLIC_KEY_BEGIN "-----BEGIN RSA PUBLIC KEY-----"
 
 EncryptioNgSimliteProvider * EncryptioNgSimliteProvider::Instance = 0;
 
@@ -61,21 +58,21 @@ EncryptioNgSimliteProvider::~EncryptioNgSimliteProvider()
 	triggerAllAccountsUnregistered();
 }
 
+void EncryptioNgSimliteProvider::setMessageFilter(EncryptionNgSimliteMessageFilter *messageFilter)
+{
+	if (MessageFilter)
+		disconnect(MessageFilter.data(), 0, this, 0);
+
+	MessageFilter = messageFilter;
+
+	if (MessageFilter)
+		connect(MessageFilter.data(), SIGNAL(keyReceived(Contact,QString,QByteArray)), this, SIGNAL(keyReceived(Contact,QString,QByteArray)));
+}
+
 void EncryptioNgSimliteProvider::accountRegistered(Account account)
 {
 	EncryptioNgSimliteDecryptor *accountDecryptor = new EncryptioNgSimliteDecryptor(account, this, this);
 	Decryptors.insert(account, accountDecryptor);
-
-	Protocol *protocol = account.protocolHandler();
-	if (!protocol)
-		return;
-
-	ChatService *chatService = protocol->chatService();
-	if (!chatService)
-		return;
-
-	connect(chatService, SIGNAL(filterRawIncomingMessage(Chat,Contact,QByteArray&,bool&)),
-			this, SLOT(filterRawIncomingMessage(Chat,Contact,QByteArray&,bool&)));
 }
 
 void EncryptioNgSimliteProvider::accountUnregistered(Account account)
@@ -85,29 +82,19 @@ void EncryptioNgSimliteProvider::accountUnregistered(Account account)
 		EncryptioNgSimliteDecryptor *decryptor = Decryptors.take(account);
 		delete decryptor;
 	}
-
-	Protocol *protocol = account.protocolHandler();
-	if (!protocol)
-		return;
-
-	ChatService *chatService = protocol->chatService();
-	if (!chatService)
-		return;
-
-	disconnect(chatService, 0, this, 0);
 }
 
-void EncryptioNgSimliteProvider::filterRawIncomingMessage(Chat chat, Contact sender, QByteArray &message, bool &ignore)
+QString EncryptioNgSimliteProvider::name() const
 {
-	Q_UNUSED(chat)
-	if (!message.startsWith(RSA_PUBLIC_KEY_BEGIN))
-		return;
-
-	emit keyReceived(sender, "simlite", message);
-	ignore = true;
+	return "simlite";
 }
 
-bool EncryptioNgSimliteProvider::canDecrypt(const Chat &chat)
+QString EncryptioNgSimliteProvider::displayName() const
+{
+	return tr("Simlite");
+}
+
+bool EncryptioNgSimliteProvider::canDecrypt(const Chat &chat) const
 {
 	if (1 != chat.contacts().size())
 		return false;
@@ -118,7 +105,7 @@ bool EncryptioNgSimliteProvider::canDecrypt(const Chat &chat)
 	return Decryptors.value(chat.chatAccount())->isValid();
 }
 
-bool EncryptioNgSimliteProvider::canEncrypt(const Chat &chat)
+bool EncryptioNgSimliteProvider::canEncrypt(const Chat &chat) const
 {
 	if (1 != chat.contacts().size())
 		return false;
@@ -170,3 +157,5 @@ void EncryptioNgSimliteProvider::keyUpdated(Key key)
 
 	emit canEncryptChanged(chat);
 }
+
+#include "moc_encryption-ng-simlite-provider.cpp"

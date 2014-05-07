@@ -1,6 +1,7 @@
 /*
  * %kadu copyright begin%
- * Copyright 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2012, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -20,15 +21,15 @@
 #include <QtSql/QSqlQuery>
 
 #include "accounts/account.h"
-#include "contacts/contact.h"
 #include "contacts/contact-manager.h"
+#include "contacts/contact.h"
 
 #include "storage/sql-accounts-mapping.h"
 
 #include "sql-contacts-mapping.h"
 
 SqlContactsMapping::SqlContactsMapping(const QSqlDatabase &database, SqlAccountsMapping *accountsMapping, QObject *parent) :
-		QObject(parent), Database(database), AccountsMapping(accountsMapping)
+		QObject(parent), Database(database), Mutex(QMutex::Recursive), AccountsMapping(accountsMapping)
 {
 	Q_ASSERT(AccountsMapping);
 
@@ -43,6 +44,8 @@ SqlContactsMapping::~SqlContactsMapping()
 
 void SqlContactsMapping::contactUpdated(const Contact &contact)
 {
+	QMutexLocker locker(&Mutex);
+
 	int id = idByContact(contact, false);
 	// not all contacts are mapped
 	if (id <= 0)
@@ -58,12 +61,16 @@ void SqlContactsMapping::contactUpdated(const Contact &contact)
 
 void SqlContactsMapping::addMapping(int id, const Contact &contact)
 {
+	QMutexLocker locker(&Mutex);
+
 	contact.addProperty("sql_history:id", id, CustomProperties::NonStorable);
 	ContactMapping.insert(id, contact);
 }
 
 void SqlContactsMapping::loadMappingsFromDatabase()
 {
+	QMutexLocker locker(&Mutex);
+
 	QSqlQuery query(Database);
 	query.prepare("SELECT id, account_id, contact FROM kadu_contacts");
 
@@ -89,6 +96,8 @@ void SqlContactsMapping::loadMappingsFromDatabase()
 
 Contact SqlContactsMapping::contactById(int sqlId) const
 {
+	QMutexLocker locker(&Mutex);
+
 	if (ContactMapping.contains(sqlId))
 		return ContactMapping.value(sqlId);
 	else
@@ -97,6 +106,8 @@ Contact SqlContactsMapping::contactById(int sqlId) const
 
 int SqlContactsMapping::idByContact(const Contact &contact, bool create)
 {
+	QMutexLocker locker(&Mutex);
+
 	int id = contact.property("sql_history:id", 0).toInt();
 	if (!create || id > 0)
 		return id;
@@ -115,5 +126,9 @@ int SqlContactsMapping::idByContact(const Contact &contact, bool create)
 
 const QMap<int, Contact> & SqlContactsMapping::mapping() const
 {
+	QMutexLocker locker(&Mutex);
+
 	return ContactMapping;
 }
+
+#include "moc_sql-contacts-mapping.cpp"

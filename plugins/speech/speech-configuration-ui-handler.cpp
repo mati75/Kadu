@@ -2,7 +2,7 @@
  * %kadu copyright begin%
  * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -58,7 +58,15 @@ void SpeechConfigurationUiHandler::unregisterUiHandler()
 	}
 }
 
-SpeechConfigurationUiHandler::SpeechConfigurationUiHandler()
+SpeechConfigurationUiHandler::SpeechConfigurationUiHandler() :
+	frequencySlider{},
+	tempoSlider{},
+	baseFrequencySlider{},
+	dspDeviceLineEdit{},
+	klattSyntCheckBox{},
+	melodyCheckBox{},
+	programSelectFile{},
+	soundSystemComboBox{}
 {
 }
 
@@ -92,6 +100,9 @@ void SpeechConfigurationUiHandler::testSpeech()
 {
 	kdebugf();
 
+	if (!programSelectFile)
+		return;
+
 	QString program = programSelectFile->file();
 	// TODO: mo�e u�ywa� jakiego� normalnego tekstu ?
 	QString formatM = config_file.readEntry("Speech", "NewChat_Syntax/Male");
@@ -110,9 +121,11 @@ void SpeechConfigurationUiHandler::testSpeech()
 	kdebugm(KDEBUG_INFO, "%d %d %d\n", frequency, tempo, baseFrequency);
 
 	QString text;
-	text = Parser::parse(formatF, Talkable(Buddy::dummy()));
+	text = Parser::parse(formatF, Talkable(Buddy::dummy()), ParserEscape::HtmlEscape);
 
 	Speech::instance()->say(text.contains("%1") ? text.arg("Test") : QString("Test"), program, klatt, mel, sound_system, device, frequency, tempo, baseFrequency);
 
 	kdebugf2();
 }
+
+#include "moc_speech-configuration-ui-handler.cpp"

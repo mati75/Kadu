@@ -4,7 +4,7 @@
  * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
  * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
- * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2007, 2008, 2009, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
@@ -23,7 +23,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <QtGui/QApplication>
+#include <QtCore/QCoreApplication>
 
 #include "talkable/talkable.h"
 
@@ -65,7 +65,7 @@ QString BuddyHistoryDeleteHandler::name()
 
 QString BuddyHistoryDeleteHandler::displayName()
 {
-	return QApplication::tr("Chat history");
+	return QCoreApplication::translate("BuddyHistoryDeleteHandler", "Chat history");
 }
 
 void BuddyHistoryDeleteHandler::deleteBuddyAdditionalData(Buddy buddy)

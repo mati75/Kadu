@@ -2,13 +2,13 @@
  * %kadu copyright begin%
  * Copyright 2011 Tomasz Rostanski (rozteck@interia.pl)
  * Copyright 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2009, 2012 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2009 Tomasz Rostański (rozteck@interia.pl)
  * Copyright 2011 Sławomir Stępień (s.stepien@interia.pl)
  * Copyright 2009 Michał Podsiadlik (michal@kadu.net)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
- * Copyright 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2008, 2009, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -25,40 +25,34 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#if defined(HAVE_ASPELL)
-#define ASPELL_STATIC
-#include <aspell.h>
-#elif defined(HAVE_ENCHANT)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Woverloaded-virtual"
-#include <enchant++.h>
- #pragma GCC diagnostic pop
-#endif
-
-#include <QtCore/QTextCodec>
 #include <QtGui/QApplication>
 #include <QtGui/QGridLayout>
 #include <QtGui/QLabel>
 #include <QtGui/QListWidget>
 #include <QtGui/QPushButton>
 
-#if defined(Q_WS_MAC)
+#if defined(HAVE_ASPELL)
+#define ASPELL_STATIC
+#include <aspell.h>
+#elif defined(HAVE_ENCHANT)
+#include <enchant.h>
+#elif defined(Q_OS_MAC)
 #include "macspellchecker.h"
 #endif
 
 #include "gui/widgets/chat-edit-box.h"
-#include "gui/widgets/chat-widget-manager.h"
-#include "gui/widgets/chat-widget.h"
+#include "gui/widgets/chat-widget/chat-widget-repository.h"
+#include "gui/widgets/chat-widget/chat-widget.h"
 #include "gui/widgets/configuration/config-group-box.h"
 #include "gui/widgets/configuration/configuration-widget.h"
 #include "gui/widgets/custom-input.h"
 #include "gui/windows/message-dialog.h"
-#include "misc/misc.h"
+#include "misc/kadu-paths.h"
 
+#include "configuration/spellchecker-configuration.h"
 #include "highlighter.h"
 #include "suggester.h"
 
-#include "configuration/spellchecker-configuration.h"
 #include "spellchecker.h"
 
 #if defined(HAVE_ENCHANT)
@@ -80,11 +74,10 @@ static void enchantDictDescribe(const char * const langTag, const char * const p
 #endif
 
 SpellChecker::SpellChecker(QObject *parent) :
-		ConfigurationUiHandler(parent)
+		ConfigurationUiHandler{parent},
+		AvailableLanguagesList{},
+		CheckedLanguagesList{}
 {
-	connect(ChatWidgetManager::instance(), SIGNAL(chatWidgetCreated(ChatWidget *)),
-			this, SLOT(chatCreated(ChatWidget *)));
-
 #if defined(HAVE_ASPELL)
 	// prepare configuration of spellchecker
 	SpellConfig = new_aspell_config();
@@ -95,25 +88,38 @@ SpellChecker::SpellChecker(QObject *parent) :
 	aspell_config_replace(SpellConfig, "dict-dir", qPrintable(KaduPaths::instance()->dataPath() + QLatin1String("aspell")));
 	aspell_config_replace(SpellConfig, "data-dir", qPrintable(KaduPaths::instance()->dataPath() + QLatin1String("aspell")));
 	aspell_config_replace(SpellConfig, "prefix", qPrintable(KaduPaths::instance()->profilePath() + QLatin1String("dicts")));
-#endif // Q_OS_WIN32
-#endif // HAVE_ASPELL
+#endif
+#elif defined(HAVE_ENCHANT)
+	Broker = enchant_broker_init();
+#endif
 }
 
 SpellChecker::~SpellChecker()
 {
-	disconnect(ChatWidgetManager::instance(), 0, this, 0);
+	if (m_chatWidgetRepository)
+		disconnect(m_chatWidgetRepository.data(), 0, this, 0);
 
 	Highlighter::removeAll();
 
 #if defined(HAVE_ASPELL)
-	delete_aspell_config(SpellConfig);
-
 	foreach (AspellSpeller *speller, MyCheckers)
 		delete_aspell_speller(speller);
-#else
+	delete_aspell_config(SpellConfig);
+#elif defined(HAVE_ENCHANT)
+	foreach (EnchantDict *dict, MyCheckers)
+		enchant_broker_free_dict(Broker, dict);
+	enchant_broker_free(Broker);
+#elif defined(Q_OS_MAC)
 	qDeleteAll(MyCheckers);
 #endif
+}
 
+void SpellChecker::setChatWidgetRepository(ChatWidgetRepository *chatWidgetRepository)
+{
+	m_chatWidgetRepository = chatWidgetRepository;
+
+	if (m_chatWidgetRepository)
+		connect(m_chatWidgetRepository.data(), SIGNAL(chatWidgetAdded(ChatWidget *)), this, SLOT(chatWidgetAdded(ChatWidget *)));
 }
 
 QStringList SpellChecker::notCheckedLanguages()
@@ -135,7 +141,7 @@ QStringList SpellChecker::notCheckedLanguages()
 	delete_aspell_dict_info_enumeration(dels);
 #elif defined(HAVE_ENCHANT)
 	DescWrapper aWrapper(&MyCheckers, &result);
-	enchant::Broker::instance()->list_dicts(enchantDictDescribe, &aWrapper);
+	enchant_broker_list_dicts(Broker, enchantDictDescribe, &aWrapper);
 #endif
 
 	return result;
@@ -158,7 +164,7 @@ bool SpellChecker::addCheckedLang(const QString &name)
 	const char *errorMsg = 0;
 
 #if defined(HAVE_ASPELL)
-	aspell_config_replace(SpellConfig, "lang", name.toAscii().constData());
+	aspell_config_replace(SpellConfig, "lang", name.toUtf8().constData());
 
 	// create spell checker using prepared configuration
 	AspellCanHaveError *possibleErr = new_aspell_speller(SpellConfig);
@@ -170,16 +176,15 @@ bool SpellChecker::addCheckedLang(const QString &name)
 		ok = false;
 	}
 #elif defined(HAVE_ENCHANT)
-	try
+	EnchantDict *dict = enchant_broker_request_dict(Broker, name.toUtf8().constData());
+	if (dict)
+		MyCheckers.insert(name, dict);
+	else
 	{
-		MyCheckers.insert(name, enchant::Broker::instance()->request_dict(name.toStdString()));
-	}
-	catch (enchant::Exception &e)
-	{
-		errorMsg = e.what();
+		errorMsg = enchant_broker_get_error(Broker);
 		ok = false;
 	}
-#elif defined(Q_WS_MAC)
+#elif defined(Q_OS_MAC)
 	MyCheckers.insert(name, new MacSpellChecker());
 #endif
 
@@ -193,9 +198,9 @@ bool SpellChecker::addCheckedLang(const QString &name)
 		return false;
 	}
 
-	if (MyCheckers.size() == 1)
-		foreach (ChatWidget *chat, ChatWidgetManager::instance()->chats())
-			chatCreated(chat);
+	if ((MyCheckers.size() == 1) && m_chatWidgetRepository)
+		for (ChatWidget *chatWidget : m_chatWidgetRepository.data())
+			chatWidgetAdded(chatWidget);
 
 	return true;
 }
@@ -207,7 +212,9 @@ void SpellChecker::removeCheckedLang(const QString &name)
 	{
 #if defined(HAVE_ASPELL)
 		delete_aspell_speller(checker.value());
-#else
+#elif defined(HAVE_ENCHANT)
+		enchant_broker_free_dict(Broker, checker.value());
+#elif defined(Q_OS_MAC)
 		delete checker.value();
 #endif
 		MyCheckers.erase(checker);
@@ -219,7 +226,10 @@ void SpellChecker::buildCheckers()
 #if defined(HAVE_ASPELL)
 	foreach (AspellSpeller *speller, MyCheckers)
 		delete_aspell_speller(speller);
-#else
+#elif defined(HAVE_ENCHANT)
+	foreach (EnchantDict *dict, MyCheckers)
+		enchant_broker_free_dict(Broker, dict);
+#elif defined(Q_OS_MAC)
 	qDeleteAll(MyCheckers);
 #endif
 	MyCheckers.clear();
@@ -260,7 +270,7 @@ void SpellChecker::buildMarkTag()
 	Highlighter::rehighlightAll();
 }
 
-void SpellChecker::chatCreated(ChatWidget *chat)
+void SpellChecker::chatWidgetAdded(ChatWidget *chat)
 {
 	if (!MyCheckers.isEmpty())
 	{
@@ -308,7 +318,7 @@ void SpellChecker::mainConfigurationWindowCreated(MainConfigurationWindow *mainC
 	mainConfigurationWindow->widget()->widgetById("spellchecker/ignoreCase")->hide();
 #endif
 
-	ConfigGroupBox *optionsGroupBox = mainConfigurationWindow->widget()->configGroupBox("Chat", "SpellChecker", "Spell Checker Options");
+	ConfigGroupBox *optionsGroupBox = mainConfigurationWindow->widget()->configGroupBox("Chat", "Spelling", "Spell Checker Options");
 
 	QWidget *options = new QWidget(optionsGroupBox->widget());
 	QGridLayout *optionsLayout = new QGridLayout(options);
@@ -358,27 +368,26 @@ bool SpellChecker::checkWord(const QString &word)
 		isWordValid = true;
 	else
 		for (Checkers::const_iterator it = MyCheckers.constBegin(); it != MyCheckers.constEnd(); ++it)
+		{
 #if defined(HAVE_ASPELL)
 			if (aspell_speller_check(it.value(), word.toUtf8().constData(), -1))
 #elif defined(HAVE_ENCHANT)
-			if (it.value()->check(word.toUtf8().constData()))
-#elif defined(Q_WS_MAC)
+			QByteArray utf8Word = word.toUtf8();
+			if (0 == enchant_dict_check(it.value(), utf8Word.constData(), utf8Word.size()))
+#elif defined(Q_OS_MAC)
 			if (it.value()->isCorrect(word.toUtf8().constData()))
 #endif
 			{
 				isWordValid = true;
 				break;
 			}
+		}
 	return isWordValid;
 }
 
 QStringList SpellChecker::buildSuggestList(const QString &word)
 {
 	QStringList suggestWordList;
-
-#if defined(HAVE_ASPELL)
-	QTextCodec *codec = QTextCodec::codecForName("utf-8");
-#endif
 
 	int suggesterWordCount = SpellcheckerConfiguration::instance()->suggesterWordCount();
 	if (MyCheckers.size() > suggesterWordCount)
@@ -400,9 +409,9 @@ QStringList SpellChecker::buildSuggestList(const QString &word)
 			while((!aspell_string_enumeration_at_end(aspellStringEnum)) && wordsForLanguage)
 			{
 				if (MyCheckers.size() > 1)
-					suggestWordList.append(codec->toUnicode(aspell_string_enumeration_next(aspellStringEnum)) + " (" + it.key() + ")");
+					suggestWordList.append(QString::fromUtf8(aspell_string_enumeration_next(aspellStringEnum)) + " (" + it.key() + ")");
 				else
-					suggestWordList.append(codec->toUnicode(aspell_string_enumeration_next(aspellStringEnum)));
+					suggestWordList.append(QString::fromUtf8(aspell_string_enumeration_next(aspellStringEnum)));
 
 				--wordsForLanguage;
 			}
@@ -411,17 +420,13 @@ QStringList SpellChecker::buildSuggestList(const QString &word)
 		}
 #elif defined(HAVE_ENCHANT)
 		size_t numberOfSuggs;
-		EnchantBroker *broker = enchant_broker_init();
-		EnchantDict *dict = enchant_broker_request_dict(broker, it.key().toUtf8().constData());
-		char **suggs = enchant_dict_suggest(dict, word.toUtf8().constData(), word.toUtf8().size(), &numberOfSuggs);
+		QByteArray utf8Word = word.toUtf8();
+		char **suggs = enchant_dict_suggest(it.value(), utf8Word.constData(), utf8Word.size(), &numberOfSuggs);
 
-		if ((suggs) && (numberOfSuggs))
+		if (suggs)
 		{
-			for (size_t i = 0; i < numberOfSuggs; ++i)
+			for (size_t i = 0; i < numberOfSuggs && wordsForLanguage; ++i)
 			{
-				if (!wordsForLanguage)
-					break;
-
 				if (MyCheckers.size() > 1)
 					suggestWordList.append(QString::fromUtf8(suggs[i]) + " (" + it.key() + ")");
 				else
@@ -429,15 +434,15 @@ QStringList SpellChecker::buildSuggestList(const QString &word)
 
 				--wordsForLanguage;
 			}
-		}
 
-		enchant_dict_free_string_list(dict, suggs);
-		enchant_broker_free_dict(broker, dict);
-		enchant_broker_free(broker);
-#elif defined(Q_WS_MAC)
+			enchant_dict_free_string_list(it.value(), suggs);
+		}
+#elif defined(Q_OS_MAC)
 		suggestWordList.append(it.value()->suggestions(word));
 #endif
 	}
 
 	return suggestWordList;
 }
+
+#include "moc_spellchecker.cpp"

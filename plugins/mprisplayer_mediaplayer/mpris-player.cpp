@@ -3,6 +3,7 @@
  * Copyright 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2011 Sławomir Stępień (s.stepien@interia.pl)
  * Copyright 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -22,10 +23,11 @@
 #include <QtCore/QFile>
 
 #include "configuration/configuration-file.h"
+#include "core/core.h"
 #include "gui/windows/main-configuration-window.h"
-#include "plugins/plugin-info.h"
-#include "plugins/plugin.h"
-#include "plugins/plugins-manager.h"
+#include "plugin/metadata/plugin-metadata.h"
+#include "plugin/state/plugin-state.h"
+#include "plugin/state/plugin-state-service.h"
 
 #include "plugins/mediaplayer/mediaplayer.h"
 
@@ -84,15 +86,13 @@ void MPRISPlayer::replacePlugin()
 	replaceMap.insert("vlc_mediaplayer", 		"VLC");
 	replaceMap.insert("xmms2_mediaplayer", 		"XMMS2");
 
-	QMap<QString, Plugin *> plugins = PluginsManager::instance()->plugins();
-
 	foreach (const QString &value, replaceMap)
 	{
 		QString key = replaceMap.key(value);
-		if (plugins.contains(key) && (plugins.value(key)->state() == Plugin::PluginStateEnabled))
+		if (Core::instance()->pluginStateService()->pluginState(key) == PluginState::Enabled)
 		{
 			choosePlayer(key, value);
-			plugins.value(key)->setState(Plugin::PluginStateDisabled);
+			Core::instance()->pluginStateService()->setPluginState(key, PluginState::Disabled);
 			break;
 		}
 	}
@@ -133,3 +133,5 @@ void MPRISPlayer::configurationApplied()
 		MediaPlayer::instance()->registerMediaPlayer(MPRISPlayer::instance(), MPRISPlayer::instance());
 	}
 }
+
+#include "moc_mpris-player.cpp"

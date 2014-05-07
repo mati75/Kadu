@@ -8,8 +8,8 @@
  * Copyright 2003, 2004, 2005 Adrian Smarzewski (adrian@kadu.net)
  * Copyright 2005 Paweł Płuciennik (pawel_p@kadu.net)
  * Copyright 2004 Tomasz Chiliński (chilek@chilan.com)
- * Copyright 2007, 2008, 2009, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2007, 2008, 2009, 2009, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011, 2012 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2006, 2007 Dawid Stawiarski (neeo@kadu.net)
  * Copyright 2004, 2005, 2006, 2007 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
@@ -60,6 +60,7 @@ class DccManager;
 class GaduContactDetails;
 class GaduContactListHandler;
 class GaduProtocolSocketNotifiers;
+class ProtocolGaduConnection;
 
 class GADUAPI GaduProtocol : public Protocol, public ConfigurationAwareObject
 {
@@ -87,6 +88,8 @@ public:
 	typedef unsigned int UinType;
 
 private:
+	ProtocolGaduConnection *Connection;
+
 	GaduAvatarService *CurrentAvatarService;
 	GaduChatImageService *CurrentChatImageService;
 	GaduChatService *CurrentChatService;
@@ -173,8 +176,6 @@ signals:
 		Served sent information about status change for unknown user.
 	**/
 	void userStatusChangeIgnored(Buddy);
-
-	void gaduSessionChanged(gg_session *newSession);
 
 };
 

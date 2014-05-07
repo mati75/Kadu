@@ -20,26 +20,26 @@
 
 /*
   Notes:
-    - For Non-SASL auth (JEP-0078), username and resource fields are required.
+	- For Non-SASL auth (JEP-0078), username and resource fields are required.
 
   TODO:
-    - sasl needParams is totally jacked?  PLAIN requires authzid, etc
-    - server error handling
-      - reply with protocol errors if the client send something wrong
-      - don't necessarily disconnect on protocol error.  prepare for more.
-    - server function
-      - deal with stream 'to' attribute dynamically
-      - flag tls/sasl/binding support dynamically (have the ability to specify extra stream:features)
-      - inform the caller about the user authentication information
-      - sasl security settings
-      - resource-binding interaction
-      - timeouts
-    - allow exchanges of non-standard stanzas
-    - send </stream:stream> even if we close prematurely?
-    - ensure ClientStream and child classes are fully deletable after signals
-    - xml:lang in root (<stream>) element
-    - sasl external
-    - sasl anonymous
+	- sasl needParams is totally jacked?  PLAIN requires authzid, etc
+	- server error handling
+	  - reply with protocol errors if the client send something wrong
+	  - don't necessarily disconnect on protocol error.  prepare for more.
+	- server function
+	  - deal with stream 'to' attribute dynamically
+	  - flag tls/sasl/binding support dynamically (have the ability to specify extra stream:features)
+	  - inform the caller about the user authentication information
+	  - sasl security settings
+	  - resource-binding interaction
+	  - timeouts
+	- allow exchanges of non-standard stanzas
+	- send </stream:stream> even if we close prematurely?
+	- ensure ClientStream and child classes are fully deletable after signals
+	- xml:lang in root (<stream>) element
+	- sasl external
+	- sasl anonymous
 */
 
 #include "xmpp.h"
@@ -262,11 +262,11 @@ ClientStream::ClientStream(const QString &host, const QString &defRealm, ByteStr
 	connect(d->bs, SIGNAL(delayedCloseFinished()), SLOT(bs_delayedCloseFinished()));
 	connect(d->bs, SIGNAL(error(int)), SLOT(bs_error(int)));
 
-	QByteArray spare = d->bs->read();
+	QByteArray spare = d->bs->readAll();
 
 	d->ss = new SecureStream(d->bs);
 	connect(d->ss, SIGNAL(readyRead()), SLOT(ss_readyRead()));
-	connect(d->ss, SIGNAL(bytesWritten(int)), SLOT(ss_bytesWritten(int)));
+	connect(d->ss, SIGNAL(bytesWritten(qint64)), SLOT(ss_bytesWritten(qint64)));
 	connect(d->ss, SIGNAL(tlsHandshaken()), SLOT(ss_tlsHandshaken()));
 	connect(d->ss, SIGNAL(tlsClosed()), SLOT(ss_tlsClosed()));
 	connect(d->ss, SIGNAL(error(int)), SLOT(ss_error(int)));
@@ -433,6 +433,21 @@ void ClientStream::continueAfterParams()
 	}
 }
 
+void ClientStream::setSCRAMStoredSaltedHash(const QString &s) {
+	QCA::SASLContext *context = (QCA::SASLContext *)(d->sasl->context());
+	if (context) {
+		context->setProperty("scram-salted-password-base64", s);
+	}
+}
+
+const QString ClientStream::getSCRAMStoredSaltedHash() {
+	QCA::SASLContext *context = (QCA::SASLContext *)(d->sasl->context());
+	if (context) {
+		return context->property("scram-salted-password-base64").toString();
+	}
+	return QString();
+}
+
 void ClientStream::setResourceBinding(bool b)
 {
 	d->doBinding = b;
@@ -479,7 +494,7 @@ void ClientStream::setLocalAddr(const QHostAddress &addr, quint16 port)
 	d->localPort = port;
 }
 
-void ClientStream::setCompress(bool compress) 
+void ClientStream::setCompress(bool compress)
 {
 	d->doCompress = compress;
 }
@@ -579,11 +594,11 @@ void ClientStream::cr_connected()
 	connect(d->bs, SIGNAL(connectionClosed()), SLOT(bs_connectionClosed()));
 	connect(d->bs, SIGNAL(delayedCloseFinished()), SLOT(bs_delayedCloseFinished()));
 
-	QByteArray spare = d->bs->read();
+	QByteArray spare = d->bs->readAll();
 
 	d->ss = new SecureStream(d->bs);
 	connect(d->ss, SIGNAL(readyRead()), SLOT(ss_readyRead()));
-	connect(d->ss, SIGNAL(bytesWritten(int)), SLOT(ss_bytesWritten(int)));
+	connect(d->ss, SIGNAL(bytesWritten(qint64)), SLOT(ss_bytesWritten(qint64)));
 	connect(d->ss, SIGNAL(tlsHandshaken()), SLOT(ss_tlsHandshaken()));
 	connect(d->ss, SIGNAL(tlsClosed()), SLOT(ss_tlsClosed()));
 	connect(d->ss, SIGNAL(error(int)), SLOT(ss_error(int)));
@@ -606,7 +621,7 @@ void ClientStream::cr_connected()
 	d->client.doBinding = d->doBinding;*/
 
 	QPointer<QObject> self = this;
-	connected();
+	emit connected();
 	if(!self)
 		return;
 
@@ -645,10 +660,10 @@ void ClientStream::bs_error(int)
 
 void ClientStream::ss_readyRead()
 {
-	QByteArray a = d->ss->read();
+	QByteArray a = d->ss->readAll();
 
 #ifdef XMPP_DEBUG
-	fprintf(stderr, "ClientStream: recv: %d [%s]\n", a.size(), a.data());
+	qDebug("ClientStream: recv: %d [%s]\n", a.size(), a.data());
 #endif
 
 	if(d->mode == Client)
@@ -657,13 +672,13 @@ void ClientStream::ss_readyRead()
 		d->srv.addIncomingData(a);
 	if(d->notify & CoreProtocol::NRecv) {
 #ifdef XMPP_DEBUG
-		printf("We needed data, so let's process it\n");
+		qDebug("We needed data, so let's process it\n");
 #endif
 		processNext();
 	}
 }
 
-void ClientStream::ss_bytesWritten(int bytes)
+void ClientStream::ss_bytesWritten(qint64 bytes)
 {
 	if(d->mode == Client)
 		d->client.outgoingDataWritten(bytes);
@@ -672,7 +687,7 @@ void ClientStream::ss_bytesWritten(int bytes)
 
 	if(d->notify & CoreProtocol::NSend) {
 #ifdef XMPP_DEBUG
-		printf("We were waiting for data to be written, so let's process\n");
+		qDebug("We were waiting for data to be written, so let's process\n");
 #endif
 		processNext();
 	}
@@ -729,10 +744,11 @@ void ClientStream::sasl_nextStep(const QByteArray &stepData)
 	processNext();
 }
 
-void ClientStream::sasl_needParams(const QCA::SASL::Params& p) 
+void ClientStream::sasl_needParams(const QCA::SASL::Params& p)
 {
 #ifdef XMPP_DEBUG
-	printf("need params: %d,%d,%d,%d\n", p.user, p.authzid, p.pass, p.realm);
+	qDebug("need params: needUsername: %d, canSendAuthzid: %d, needPassword: %d, canSendRealm: %d\n",
+		   p.needUsername()?1:0, p.canSendAuthzid()? 1:0, p.needPassword()? 1:0, p.canSendRealm()? 1:0);
 #endif
 	/*if(p.authzid && !p.user) {
 		d->sasl->setAuthzid(d->jid.bare());
@@ -749,7 +765,7 @@ void ClientStream::sasl_needParams(const QCA::SASL::Params& p)
 void ClientStream::sasl_authCheck(const QString &user, const QString &)
 {
 //#ifdef XMPP_DEBUG
-//	printf("authcheck: [%s], [%s]\n", user.latin1(), authzid.latin1());
+//	qDebug("authcheck: [%s], [%s]\n", user.latin1(), authzid.latin1());
 //#endif
 	QString u = user;
 	int n = u.indexOf('@');
@@ -762,7 +778,7 @@ void ClientStream::sasl_authCheck(const QString &user, const QString &)
 void ClientStream::sasl_authenticated()
 {
 #ifdef XMPP_DEBUG
-	printf("sasl authed!!\n");
+	qDebug("sasl authed!!\n");
 #endif
 	d->sasl_ssf = d->sasl->ssf();
 
@@ -775,7 +791,7 @@ void ClientStream::sasl_authenticated()
 void ClientStream::sasl_error()
 {
 #ifdef XMPP_DEBUG
-	printf("sasl error: %d\n", d->sasl->authCondition());
+	qDebug("sasl error: %d\n", d->sasl->authCondition());
 #endif
 	// has to be auth error
 	int x = convertedSASLCond();
@@ -788,21 +804,21 @@ void ClientStream::sasl_error()
 void ClientStream::srvProcessNext()
 {
 	while(1) {
-		printf("Processing step...\n");
+		qDebug("Processing step...\n");
 		if(!d->srv.processStep()) {
 			int need = d->srv.need;
 			if(need == CoreProtocol::NNotify) {
 				d->notify = d->srv.notify;
 				if(d->notify & CoreProtocol::NSend)
-					printf("More data needs to be written to process next step\n");
+					qDebug("More data needs to be written to process next step\n");
 				if(d->notify & CoreProtocol::NRecv)
-					printf("More data is needed to process next step\n");
+					qDebug("More data is needed to process next step\n");
 			}
 			else if(need == CoreProtocol::NSASLMechs) {
 				if(!d->sasl) {
 					d->sasl = new QCA::SASL;
-					connect(d->sasl, SIGNAL(authCheck(const QString &, const QString &)), SLOT(sasl_authCheck(const QString &, const QString &)));
-					connect(d->sasl, SIGNAL(nextStep(const QByteArray &)), SLOT(sasl_nextStep(const QByteArray &)));
+					connect(d->sasl, SIGNAL(authCheck(QString,QString)), SLOT(sasl_authCheck(QString,QString)));
+					connect(d->sasl, SIGNAL(nextStep(QByteArray)), SLOT(sasl_nextStep(QByteArray)));
 					connect(d->sasl, SIGNAL(authenticated()), SLOT(sasl_authenticated()));
 					connect(d->sasl, SIGNAL(error()), SLOT(sasl_error()));
 
@@ -821,21 +837,21 @@ void ClientStream::srvProcessNext()
 				continue;
 			}
 			else if(need == CoreProtocol::NStartTLS) {
-				printf("Need StartTLS\n");
+				qDebug("Need StartTLS\n");
 				//if(!d->tls->startServer()) {
 				d->tls->startServer();
 				QByteArray a = d->srv.spare;
 				d->ss->startTLSServer(d->tls, a);
 			}
 			else if(need == CoreProtocol::NSASLFirst) {
-				printf("Need SASL First Step\n");
+				qDebug("Need SASL First Step\n");
 				QByteArray a = d->srv.saslStep();
 				d->sasl->putServerFirstStep(d->srv.saslMech(), a);
 			}
 			else if(need == CoreProtocol::NSASLNext) {
-				printf("Need SASL Next Step\n");
+				qDebug("Need SASL Next Step\n");
 				QByteArray a = d->srv.saslStep();
-				printf("[%s]\n", a.data());
+				qDebug("[%s]\n", a.data());
 				d->sasl->putStep(a);
 			}
 			else if(need == CoreProtocol::NSASLLayer) {
@@ -850,10 +866,10 @@ void ClientStream::srvProcessNext()
 		d->notify = 0;
 
 		int event = d->srv.event;
-		printf("event: %d\n", event);
+		qDebug("event: %d\n", event);
 		switch(event) {
 			case CoreProtocol::EError: {
-				printf("Error! Code=%d\n", d->srv.errorCode);
+				qDebug("Error! Code=%d\n", d->srv.errorCode);
 				reset();
 				error(ErrProtocol);
 				//handleError();
@@ -861,12 +877,12 @@ void ClientStream::srvProcessNext()
 			}
 			case CoreProtocol::ESend: {
 				QByteArray a = d->srv.takeOutgoingData();
-				printf("Need Send: {%s}\n", a.data());
+				qDebug("Need Send: {%s}\n", a.data());
 				d->ss->write(a);
 				break;
 			}
 			case CoreProtocol::ERecvOpen: {
-				printf("Break (RecvOpen)\n");
+				qDebug("Break (RecvOpen)\n");
 
 				// calculate key
 				QByteArray str = QCA::Hash("sha1").hashToString("secret").toUtf8();
@@ -885,7 +901,7 @@ void ClientStream::srvProcessNext()
 				break;
 			}
 			case CoreProtocol::ESASLSuccess: {
-				printf("Break SASL Success\n");
+				qDebug("Break SASL Success\n");
 				disconnect(d->sasl, SIGNAL(error()), this, SLOT(sasl_error()));
 				QByteArray a = d->srv.spare;
 				d->ss->setLayerSASL(d->sasl, a);
@@ -893,7 +909,7 @@ void ClientStream::srvProcessNext()
 			}
 			case CoreProtocol::EPeerClosed: {
 				// TODO: this isn' an error
-				printf("peer closed\n");
+				qDebug("peer closed\n");
 				reset();
 				error(ErrProtocol);
 				return;
@@ -922,12 +938,11 @@ void ClientStream::processNext()
 
 	while(1) {
 #ifdef XMPP_DEBUG
-		printf("Processing step...\n");
+		qDebug("Processing step...\n");
 #endif
 		bool ok = d->client.processStep();
 		// deal with send/received items
-		for(QList<XmlProtocol::TransferItem>::ConstIterator it = d->client.transferItemList.begin(); it != d->client.transferItemList.end(); ++it) {
-			const XmlProtocol::TransferItem &i = *it;
+		foreach (const XmlProtocol::TransferItem &i, d->client.transferItemList) {
 			if(i.isExternal)
 				continue;
 			QString str;
@@ -940,9 +955,9 @@ void ClientStream::processNext()
 			else
 				str = d->client.elementToString(i.elem);
 			if(i.isSent)
-				outgoingXml(str);
+				emit outgoingXml(str);
 			else
-				incomingXml(str);
+				emit incomingXml(str);
 		}
 
 		if(!ok) {
@@ -965,7 +980,7 @@ void ClientStream::processNext()
 		switch(event) {
 			case CoreProtocol::EError: {
 #ifdef XMPP_DEBUG
-				printf("Error! Code=%d\n", d->client.errorCode);
+				qDebug("Error! Code=%d\n", d->client.errorCode);
 #endif
 				handleError();
 				return;
@@ -973,14 +988,14 @@ void ClientStream::processNext()
 			case CoreProtocol::ESend: {
 				QByteArray a = d->client.takeOutgoingData();
 #ifdef XMPP_DEBUG
-				printf("Need Send: {%s}\n", a.data());
+				qDebug("Need Send: {%s}\n", a.data());
 #endif
 				d->ss->write(a);
 				break;
 			}
 			case CoreProtocol::ERecvOpen: {
 #ifdef XMPP_DEBUG
-				printf("Break (RecvOpen)\n");
+				qDebug("Break (RecvOpen)\n");
 #endif
 
 #ifdef XMPP_TEST
@@ -1000,7 +1015,7 @@ void ClientStream::processNext()
 			}
 			case CoreProtocol::EFeatures: {
 #ifdef XMPP_DEBUG
-				printf("Break (Features)\n");
+				qDebug("Break (Features)\n");
 #endif
 				if(!d->tls_warned && !d->using_tls && !d->client.features.tls_supported) {
 					d->tls_warned = true;
@@ -1012,13 +1027,13 @@ void ClientStream::processNext()
 			}
 			case CoreProtocol::ESASLSuccess: {
 #ifdef XMPP_DEBUG
-				printf("Break SASL Success\n");
+				qDebug("Break SASL Success\n");
 #endif
 				break;
 			}
 			case CoreProtocol::EReady: {
 #ifdef XMPP_DEBUG
-				printf("Done!\n");
+				qDebug("Done!\n");
 #endif
 				// grab the JID, in case it changed
 				d->jid = d->client.jid();
@@ -1031,7 +1046,7 @@ void ClientStream::processNext()
 			}
 			case CoreProtocol::EPeerClosed: {
 #ifdef XMPP_DEBUG
-				printf("DocumentClosed\n");
+				qDebug("DocumentClosed\n");
 #endif
 				reset();
 				connectionClosed();
@@ -1039,7 +1054,7 @@ void ClientStream::processNext()
 			}
 			case CoreProtocol::EStanzaReady: {
 #ifdef XMPP_DEBUG
-				printf("StanzaReady\n");
+				qDebug("StanzaReady\n");
 #endif
 				// store the stanza for now, announce after processing all events
 				Stanza s = createStanza(d->client.recvStanza());
@@ -1050,7 +1065,7 @@ void ClientStream::processNext()
 			}
 			case CoreProtocol::EStanzaSent: {
 #ifdef XMPP_DEBUG
-				printf("StanzasSent\n");
+				qDebug("StanzasSent\n");
 #endif
 				stanzaWritten();
 				if(!self)
@@ -1059,7 +1074,7 @@ void ClientStream::processNext()
 			}
 			case CoreProtocol::EClosed: {
 #ifdef XMPP_DEBUG
-				printf("Closed\n");
+				qDebug("Closed\n");
 #endif
 				reset();
 				delayedCloseFinished();
@@ -1069,6 +1084,13 @@ void ClientStream::processNext()
 	}
 }
 
+static void cleanupSimpleSASLProvider()
+{
+#if QCA_VERSION >= 0x020100
+	QCA::unloadProvider("simplesasl");
+#endif
+}
+
 bool ClientStream::handleNeed()
 {
 	int need = d->client.need;
@@ -1076,9 +1098,9 @@ bool ClientStream::handleNeed()
 		d->notify = d->client.notify;
 #ifdef XMPP_DEBUG
 		if(d->notify & CoreProtocol::NSend)
-			printf("More data needs to be written to process next step\n");
+			qDebug("More data needs to be written to process next step\n");
 		if(d->notify & CoreProtocol::NRecv)
-			printf("More data is needed to process next step\n");
+			qDebug("More data is needed to process next step\n");
 #endif
 		return false;
 	}
@@ -1087,7 +1109,7 @@ bool ClientStream::handleNeed()
 	switch(need) {
 		case CoreProtocol::NStartTLS: {
 #ifdef XMPP_DEBUG
-			printf("Need StartTLS\n");
+			qDebug("Need StartTLS\n");
 #endif
 			d->using_tls = true;
 			d->ss->startTLSClient(d->tlsHandler, d->server, d->client.spare);
@@ -1095,14 +1117,14 @@ bool ClientStream::handleNeed()
 		}
 		case CoreProtocol::NCompress: {
 #ifdef XMPP_DEBUG
-			printf("Need compress\n");
+			qDebug("Need compress\n");
 #endif
 			d->ss->setLayerCompress(d->client.spare);
 			return true;
 		}
 		case CoreProtocol::NSASLFirst: {
 #ifdef XMPP_DEBUG
-			printf("Need SASL First Step\n");
+			qDebug("Need SASL First Step\n");
 #endif
 
 			// ensure simplesasl provider is installed
@@ -1115,14 +1137,15 @@ bool ClientStream::handleNeed()
 			}
 			if(!found) {
 				// install with low-priority
-				QCA::insertProvider(createProviderSimpleSASL());
-				QCA::setProviderPriority("simplesasl", 10);
+				if(!QCA::insertProvider(createProviderSimpleSASL(), 10))
+					break;
+				irisNetAddPostRoutine(cleanupSimpleSASLProvider);
 			}
 
 			d->sasl = new QCA::SASL();
-			connect(d->sasl, SIGNAL(clientStarted(bool,const QByteArray&)), SLOT(sasl_clientFirstStep(bool, const QByteArray&)));
-			connect(d->sasl, SIGNAL(nextStep(const QByteArray &)), SLOT(sasl_nextStep(const QByteArray &)));
-			connect(d->sasl, SIGNAL(needParams(const QCA::SASL::Params&)), SLOT(sasl_needParams(const QCA::SASL::Params&)));
+			connect(d->sasl, SIGNAL(clientStarted(bool,QByteArray)), SLOT(sasl_clientFirstStep(bool,QByteArray)));
+			connect(d->sasl, SIGNAL(nextStep(QByteArray)), SLOT(sasl_nextStep(QByteArray)));
+			connect(d->sasl, SIGNAL(needParams(QCA::SASL::Params)), SLOT(sasl_needParams(QCA::SASL::Params)));
 			connect(d->sasl, SIGNAL(authenticated()), SLOT(sasl_authenticated()));
 			connect(d->sasl, SIGNAL(error()), SLOT(sasl_error()));
 
@@ -1159,7 +1182,7 @@ bool ClientStream::handleNeed()
 		}
 		case CoreProtocol::NSASLNext: {
 #ifdef XMPP_DEBUG
-			printf("Need SASL Next Step\n");
+			qDebug("Need SASL Next Step\n");
 #endif
 			QByteArray a = d->client.saslStep();
 			d->sasl->putStep(a);
@@ -1179,7 +1202,7 @@ bool ClientStream::handleNeed()
 		}
 		case CoreProtocol::NPassword: {
 #ifdef XMPP_DEBUG
-			printf("Need Password\n");
+			qDebug("Need Password\n");
 #endif
 			d->state = NeedParams;
 			needAuthParams(false, true, false);
@@ -1210,7 +1233,7 @@ void ClientStream::doNoop()
 {
 	if(d->state == Active) {
 #ifdef XMPP_DEBUG
-		printf("doPing\n");
+		qDebug("doPing\n");
 #endif
 		d->client.sendWhitespace();
 		processNext();
@@ -1221,7 +1244,7 @@ void ClientStream::writeDirect(const QString &s)
 {
 	if(d->state == Active) {
 #ifdef XMPP_DEBUG
-		printf("writeDirect\n");
+		qDebug("writeDirect\n");
 #endif
 		d->client.sendDirect(s);
 		processNext();
@@ -1257,7 +1280,6 @@ void ClientStream::handleError()
 			case CoreProtocol::ImproperAddressing: { break; } // should NOT happen (we aren't a server)
 			case CoreProtocol::InternalServerError: { strErr = InternalServerError;  break; }
 			case CoreProtocol::InvalidFrom: { strErr = InvalidFrom; break; }
-			case CoreProtocol::InvalidId: { break; } // should NOT happen (clients don't specify id)
 			case CoreProtocol::InvalidNamespace: { break; } // should NOT happen (we set the right ns)
 			case CoreProtocol::InvalidXml: { strErr = InvalidXml; break; } // shouldn't happen either, but just in case ...
 			case CoreProtocol::StreamNotAuthorized: { break; } // should NOT happen (we're not stupid)
@@ -1271,7 +1293,7 @@ void ClientStream::handleError()
 			case CoreProtocol::UnsupportedEncoding: { break; } // should NOT happen (we send good encoding)
 			case CoreProtocol::UnsupportedStanzaType: { break; } // should NOT happen (we're not stupid)
 			case CoreProtocol::UnsupportedVersion: { connErr = UnsupportedVersion; break; }
-			case CoreProtocol::XmlNotWellFormed: { strErr = InvalidXml; break; } // group with this one
+			case CoreProtocol::NotWellFormed: { strErr = InvalidXml; break; } // group with this one
 			default: { break; }
 		}
 

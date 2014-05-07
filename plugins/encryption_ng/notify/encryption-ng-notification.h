@@ -2,6 +2,7 @@
  * %kadu copyright begin%
  * Copyright 2011 Tomasz Rostanski (rozteck@interia.pl)
  * Copyright 2008, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2012 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2008 Michał Podsiadlik (michal@kadu.net)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
  * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
@@ -26,7 +27,7 @@
 #ifndef ENCRYPTION_NG_NOTIFICATION_H
 #define ENCRYPTION_NG_NOTIFICATION_H
 
-#include "notify/notification.h"
+#include "notify/notification/notification.h"
 
 #include "../encryption_exports.h"
 
@@ -42,6 +43,8 @@ class ENCRYPTIONAPI EncryptionNgNotification : public Notification
 	static NotifyEvent *PublicKeySendErrorNotification;
 	static NotifyEvent *EncryptionErrorNotification;
 
+	QString Name;
+
 public:
 	static void registerNotifications();
 	static void unregisterNotifications();
@@ -49,6 +52,8 @@ public:
 	static void notifyPublicKeySent(Contact contact);
 	static void notifyPublicKeySendError(Contact contact, const QString &error);
 	static void notifyEncryptionError(const QString &error);
+
+	virtual QString groupKey() const { return Name; }
 
 	explicit EncryptionNgNotification(const QString &name);
 	virtual ~EncryptionNgNotification();

@@ -5,10 +5,6 @@
         <source>Notifications</source>
         <translation>Powiadomienia</translation>
     </message>
-    <message>
-        <source>General</source>
-        <translation>Ogólne</translation>
-    </message>
     <message numerus="yes">
         <source>%n second(s)</source>
         <translation><numerusform>%n sekunda</numerusform><numerusform>%n sekundy</numerusform><numerusform>%n sekund</numerusform></translation>
@@ -36,6 +32,10 @@
     <message>
         <source>Never</source>
         <translation>Nigdy</translation>
+    </message>
+    <message>
+        <source>Options</source>
+        <translation>Opcje</translation>
     </message>
 </context>
 </TS>

@@ -24,35 +24,51 @@
 #include <QtCore/QStateMachine>
 #include <QtCore/QTimer>
 
+class Protocol;
+
 class GaduContactListService;
 
 class GaduContactListStateMachine : public QStateMachine
 {
 	Q_OBJECT
 
-	GaduContactListService *CurrentService;
-
-	QTimer RetryTimer;
-
+	QState *WorkState;
 	QState *OfflineState;
-	QState *AwaitingServerGetResponseState;
-	QState *AwaitingServerPutResponseState;
-	QState *InternalErrorState;
-	QState *NormalState;
+	QState *IdleState;
+	QState *PutState;
+	QState *GetState;
+
+	QState *LocalState;
+	QState *LocalCleanState;
+	QState *LocalDirtyState;
+	QState *LocalCleaningState;
+	QState *LocalCleaningDirtyState;
+	QState *LocalFailedState;
+
+	QState *RemoteState;
+	QState *RemoteCleanState;
+	QState *RemoteDirtyState;
+	QState *RemoteCleaningState;
+	QState *RemoteCleaningDirtyState;
+	QState *RemoteFailedState;
 
 private slots:
+	void checkIfSynchronizationRequired();
 	void printConfiguration();
 
 public:
-	explicit GaduContactListStateMachine(GaduContactListService *service);
+	explicit GaduContactListStateMachine(GaduContactListService *service, Protocol *protocol);
 	virtual ~GaduContactListStateMachine();
 
-	bool awaitingServerGetResponse() const;
-	bool awaitingServerPutResponse() const;
+	bool shouldPerformPut() const;
+	bool isPerformingPut() const;
+
+	bool shouldPerformGet() const;
+	bool isPerformingGet() const;
 
 signals:
-	void awaitingServerGetResponseStateEntered();
-	void awaitingServerPutResponseStateEntered();
+	void performPut();
+	void performGet();
 
 };
 

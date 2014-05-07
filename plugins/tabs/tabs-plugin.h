@@ -28,21 +28,25 @@
 
 #include <QtCore/QObject>
 
-#include "plugins/generic-plugin.h"
+#include "plugin/plugin-root-component.h"
 
+class TabsChatWidgetContainerHandler;
 class TabsManager;
 
-class TabsPlugin : public QObject, public GenericPlugin
+class TabsPlugin : public QObject, public PluginRootComponent
 {
 	Q_OBJECT
-	Q_INTERFACES(GenericPlugin)
+	Q_INTERFACES(PluginRootComponent)
+	Q_PLUGIN_METADATA(IID "im.kadu.PluginRootComponent")
 
 	TabsManager *TabsManagerInstance;
+	QScopedPointer<TabsChatWidgetContainerHandler> ChatWidgetContainerHandler;
 
 public:
+	explicit TabsPlugin(QObject *parent = nullptr);
 	virtual ~TabsPlugin();
 
-	virtual int init(bool firstLoad);
+	virtual bool init(bool firstLoad);
 	virtual void done();
 
 };

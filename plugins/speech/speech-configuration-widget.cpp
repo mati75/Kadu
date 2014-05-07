@@ -1,7 +1,8 @@
 /*
  * %kadu copyright begin%
  * Copyright 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -89,3 +90,5 @@ void SpeechConfigurationWidget::switchToEvent(const QString &event)
 	else
 		femaleLineEdit->setText(config_file.readEntry("Speech", event + "_Syntax/Female"));
 }
+
+#include "moc_speech-configuration-widget.cpp"

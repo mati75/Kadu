@@ -1,6 +1,7 @@
 /*
  * %kadu copyright begin%
  * Copyright 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -17,6 +18,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "message/sorted-messages.h"
 #include "storage/history-sql-storage.h"
 
 #include "sql-messages-sms-storage.h"
@@ -31,17 +33,17 @@ SqlMessagesSmsStorage::~SqlMessagesSmsStorage()
 {
 }
 
-QFuture<QVector<Talkable> > SqlMessagesSmsStorage::talkables()
+QFuture<QVector<Talkable>> SqlMessagesSmsStorage::talkables()
 {
 	return SqlStorage->smsRecipients();
 }
 
-QFuture<QVector<HistoryQueryResult> > SqlMessagesSmsStorage::dates(const HistoryQuery &historyQuery)
+QFuture<QVector<HistoryQueryResult>> SqlMessagesSmsStorage::dates(const HistoryQuery &historyQuery)
 {
 	return SqlStorage->smsRecipientDates(historyQuery);
 }
 
-QFuture<QVector<Message> > SqlMessagesSmsStorage::messages(const HistoryQuery &historyQuery)
+QFuture<SortedMessages> SqlMessagesSmsStorage::messages(const HistoryQuery &historyQuery)
 {
 	return SqlStorage->smses(historyQuery);
 }
@@ -50,3 +52,5 @@ void SqlMessagesSmsStorage::deleteMessages(const Talkable &talkable, const QDate
 {
 	SqlStorage->clearSmsHistory(talkable, date);
 }
+
+#include "moc_sql-messages-sms-storage.cpp"

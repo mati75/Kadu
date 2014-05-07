@@ -2,13 +2,13 @@
  * %kadu copyright begin%
  * Copyright 2008, 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2010, 2010 Przemysław Rudy (prudy1@o2.pl)
- * Copyright 2009, 2009 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2009, 2009, 2012 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2010 Tomasz Rostański (rozteck@interia.pl)
  * Copyright 2010, 2011 Piotr Dąbrowski (ultr@ultr.pl)
  * Copyright 2009, 2009 Bartłomiej Zimoń (uzi18@o2.pl)
  * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
- * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2007, 2008, 2009, 2010, 2011, 2012, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
  * Copyright 2009 Longer (longer89@gmail.com)
  * %kadu copyright end%
@@ -53,15 +53,16 @@
 #include "gui/actions/delete-talkable-action.h"
 #include "gui/actions/edit-talkable-action.h"
 #include "gui/hot-key.h"
-#include "gui/widgets/chat-widget-manager.h"
+#include "gui/menu/menu-inventory.h"
+#include "gui/widgets/chat-widget/chat-widget-manager.h"
 #include "gui/widgets/filtered-tree-view.h"
 #include "gui/widgets/talkable-delegate.h"
-#include "gui/widgets/talkable-menu-manager.h"
 #include "gui/widgets/tool-tip-class-manager.h"
-#include "gui/windows/kadu-window.h"
 #include "gui/windows/kadu-window-actions.h"
+#include "gui/windows/kadu-window.h"
 #include "icons/kadu-icon.h"
 #include "identities/identity.h"
+#include "misc/change-notifier-lock.h"
 #include "model/model-chain.h"
 #include "model/model-index-list-converter.h"
 #include "model/roles.h"
@@ -173,7 +174,9 @@ void TalkableTreeView::contextMenuEvent(QContextMenuEvent *event)
 	if (!ContextMenuEnabled)
 		return;
 
-	QScopedPointer<QMenu> menu(TalkableMenuManager::instance()->menu(this, Context));
+	QScopedPointer<QMenu> menu(new QMenu());
+	MenuInventory::instance()->menu("buddy-list")->attachToMenu(menu.data());
+	MenuInventory::instance()->menu("buddy-list")->applyTo(menu.data(), Context);
 	menu->exec(event->globalPos());
 }
 
@@ -266,15 +269,13 @@ void TalkableTreeView::updateContext()
 
 	ModelIndexListConverter converter(selectedIndexes());
 
-	Context->changeNotifier()->block();
+	ChangeNotifierLock lock(Context->changeNotifier());
 
 	Context->setRoles(converter.roles());
 	Context->setBuddies(converter.buddies());
 	Context->setContacts(converter.contacts());
 	Context->setChat(converter.chat());
 	Context->setStatusContainer(statusContainerForChat(converter.chat()));
-
-	Context->changeNotifier()->unblock();
 }
 
 ActionContext * TalkableTreeView::actionContext()
@@ -342,3 +343,5 @@ void TalkableTreeView::currentChanged(const QModelIndex &current, const QModelIn
 
 	setCurrentTalkable(talkableAt(current));
 }
+
+#include "moc_talkable-tree-view.cpp"

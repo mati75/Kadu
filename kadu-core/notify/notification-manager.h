@@ -1,6 +1,7 @@
 /*
  * %kadu copyright begin%
  * Copyright 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2012 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2010, 2011 Piotr Dąbrowski (ultr@ultr.pl)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
  * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
@@ -24,10 +25,9 @@
 #ifndef NOTIFICATION_MANAGER_H
 #define NOTIFICATION_MANAGER_H
 
+#include <QtCore/QHash>
 #include <QtCore/QTimer>
 #include <QtGui/QGroupBox>
-
-#include <time.h>
 
 #include "accounts/accounts-aware-object.h"
 #include "buddies/buddy-set.h"
@@ -37,15 +37,12 @@
 #include "status/status.h"
 
 class Action;
-class ActionDescription;
-
-class ConfigurationUiHandler;
+class AggregateNotification;
 class Group;
 class Message;
 class MultilogonSession;
 class Notification;
 class Notifier;
-class NotifyConfigurationUiHandler;
 class NotifyEvent;
 
 /**
@@ -53,71 +50,28 @@ class NotifyEvent;
  * @{
  */
 
-class KADUAPI NotificationManager : public QObject, AccountsAwareObject, ConfigurationAwareObject
+class KADUAPI NotificationManager : public QObject
 {
 	Q_OBJECT
 	Q_DISABLE_COPY(NotificationManager)
 
 	static NotificationManager *Instance;
 
-	void init();
-
-	bool NotifyAboutAll;
-	bool NewMessageOnlyIfInactive;
-	bool NotifyIgnoreOnConnection;
-	bool IgnoreOnlineToOnline;
-	bool SilentMode;
-	bool SilentModeWhenDnD;
-	bool SilentModeWhenFullscreen;
-	bool AutoSilentMode;
-
-	ActionDescription *notifyAboutUserActionDescription;
-	ActionDescription *SilentModeActionDescription;
-
-	NotifyConfigurationUiHandler *UiHandler;
-
 	QList<Notifier *> Notifiers;
 	QList<NotifyEvent *> NotifyEvents;
+	QStringList IgnoredAccounts;
 
-	QTimer FullScreenCheckTimer;
-	bool IsFullScreen;
-
-#if defined(Q_WS_X11) && !defined(Q_WS_MAEMO_5)
-	Display *x11display;
-#endif
+	QHash<QString, AggregateNotification*> ActiveNotifications;
+	QHash<QString, QTimer*> PeriodicNotifications;
 
 	NotificationManager();
 	virtual ~NotificationManager();
 
-	void createDefaultConfiguration();
-
-	bool ignoreNotifications();
+	Notification * findGroup(Notification *notification);
 
 private slots:
-	void messageReceived(const Message &message);
-	void multilogonSessionConnected(MultilogonSession *session);
-	void multilogonSessionDisconnected(MultilogonSession *session);
-
-	void statusUpdated();
-	void contactStatusChanged(Contact contact, Status oldStatus);
-
-	void notifyAboutUserActionActivated(QAction *sender, bool toggled);
-	void silentModeActionCreated(Action *action);
-	void silentModeActionActivated(QAction *sender, bool toggled);
-
-	void groupAdded(const Group &group);
-	void groupUpdated();
-
-	void accountConnected();
-
-	void checkFullScreen();
-	bool isScreenSaverRunning();
-
-protected:
-	virtual void accountRegistered(Account account);
-	virtual void accountUnregistered(Account account);
-
-	virtual void configurationUpdated();
+	void removeGrouped(Notification *notification);
+	void removePeriodicEntries();
 
 public:
 	static NotificationManager * instance();
@@ -133,16 +87,11 @@ public:
 	const QList<Notifier *> & notifiers() const;
 	const QList<NotifyEvent *> & notifyEvents() const;
 
-	bool notifyAboutAll() { return NotifyAboutAll; }
-
-	void setSilentMode(bool silentMode);
-	bool silentMode();
-
 	QString notifyConfigurationKey(const QString &eventType);
+	void ignoreConnectionErrors(Account account);
 
-	ConfigurationUiHandler * configurationUiHandler();
-
-	ActionDescription * silentModeActionDescription() { return SilentModeActionDescription; }
+public slots:
+	void unignoreConnectionErrors(Account account);
 
 signals:
 	void notiferRegistered(Notifier *notifier);
@@ -151,11 +100,7 @@ signals:
 	void notifyEventRegistered(NotifyEvent *notifyEvent);
 	void notifyEventUnregistered(NotifyEvent *notifyEvent);
 
-	void silentModeToggled(bool);
-
 };
-
-void checkNotify(Action *);
 
 /** @} */
 

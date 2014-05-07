@@ -1,6 +1,6 @@
 /*
  * %kadu copyright begin%
- * Copyright 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -94,7 +94,7 @@ public:
 	 * Widget will be populated when future value will become available. Thenhis list will be split
 	 * into chats and buddies before displaying. Buddies will be extracted from single-buddy chats.
 	 */
-	void setFutureTalkables(const QFuture<QVector<Talkable> > &talkables);
+	void setFutureTalkables(const QFuture<QVector<Talkable>> &talkables);
 
 };
 

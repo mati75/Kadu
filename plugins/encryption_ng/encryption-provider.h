@@ -6,8 +6,8 @@
  * Copyright 2010 Piotr Dąbrowski (ultr@ultr.pl)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
  * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
- * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2007, 2008, 2009, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
@@ -28,6 +28,7 @@
 #ifndef ENCRYPTION_PROVIDER_H
 #define ENCRYPTION_PROVIDER_H
 
+#include <QtCore/QMetaType>
 #include <QtCore/QObject>
 
 #include "encryption_exports.h"
@@ -44,8 +45,11 @@ class ENCRYPTIONAPI EncryptionProvider : public QObject
 public:
 	virtual ~EncryptionProvider() {}
 
-	virtual bool canEncrypt(const Chat &chat) = 0;
-	virtual bool canDecrypt(const Chat &chat) = 0;
+	virtual QString name() const = 0;
+	virtual QString displayName() const = 0;
+
+	virtual bool canEncrypt(const Chat &chat) const = 0;
+	virtual bool canDecrypt(const Chat &chat) const = 0;
 
 	virtual Encryptor * acquireEncryptor(const Chat &chat) = 0;
 	virtual Decryptor * acquireDecryptor(const Chat &chat) = 0;
@@ -60,8 +64,6 @@ signals:
 
 };
 
-// for MOC
-#include "chat/chat.h"
-#include "contacts/contact.h"
+Q_DECLARE_METATYPE(EncryptionProvider *);
 
 #endif // ENCRYPTION_PROVIDER_H

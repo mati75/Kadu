@@ -5,7 +5,7 @@
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
  * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
  * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
@@ -27,8 +27,9 @@
 
 #include "protocols/protocol.h"
 
+#include "server/gadu-connection.h"
+#include "server/gadu-writable-session-token.h"
 #include "services/multilogon/gadu-multilogon-session.h"
-#include "gadu-protocol.h"
 
 #include "gadu-multilogon-service.h"
 
@@ -42,12 +43,17 @@ static bool operator == (const gg_multilogon_id_t &left, const gg_multilogon_id_
 }
 
 GaduMultilogonService::GaduMultilogonService(Account account, QObject *parent) :
-		MultilogonService(parent), MyAccount(account)
+		MultilogonService(account, parent)
 {
 }
 
 GaduMultilogonService::~GaduMultilogonService()
 {
+}
+
+void GaduMultilogonService::setConnection(GaduConnection *connection)
+{
+	Connection = connection;
 }
 
 const QList<MultilogonSession *> & GaduMultilogonService::sessions() const
@@ -57,19 +63,15 @@ const QList<MultilogonSession *> & GaduMultilogonService::sessions() const
 
 void GaduMultilogonService::killSession(MultilogonSession *session)
 {
-	Q_UNUSED(session)
-
-	GaduProtocol *gaduProtocolHandler = dynamic_cast<GaduProtocol *>(MyAccount.protocolHandler());
-	if (!gaduProtocolHandler || !gaduProtocolHandler->gaduSession())
+	if (!Connection || !Connection->hasSession())
 		return;
 
 	GaduMultilogonSession *gaduSession = dynamic_cast<GaduMultilogonSession *>(session);
 	if (!gaduSession)
 		return;
 
-	gaduProtocolHandler->disableSocketNotifiers();
-	gg_multilogon_disconnect(gaduProtocolHandler->gaduSession(), gaduSession->id());
-	gaduProtocolHandler->enableSocketNotifiers();
+	auto writableSessionToken = Connection->writableSessionToken();
+	gg_multilogon_disconnect(writableSessionToken.rawSession(), gaduSession->id());
 }
 
 bool GaduMultilogonService::containsSession(const gg_multilogon_session &session)
@@ -100,7 +102,7 @@ void GaduMultilogonService::addNewSessions(const gg_event_multilogon_info &multi
 	for (int i = 0; i < multilogonInfo.count; i++)
 		if (!containsSession(multilogonInfo.sessions[i]))
 		{
-			GaduMultilogonSession *session = new GaduMultilogonSession(MyAccount, multilogonInfo.sessions[i]);
+			GaduMultilogonSession *session = new GaduMultilogonSession(account(), multilogonInfo.sessions[i]);
 			emit multilogonSessionAboutToBeConnected(session);
 			Sessions.append(session);
 			emit multilogonSessionConnected(session);
@@ -148,3 +150,5 @@ void GaduMultilogonService::removeAllSessions()
 		delete gaduSession;
 	}
 }
+
+#include "moc_gadu-multilogon-service.cpp"

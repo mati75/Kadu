@@ -1,6 +1,8 @@
 /*
  * %kadu copyright begin%
- * Copyright 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2011, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -23,13 +25,14 @@
 #include <QtGui/QWidget>
 
 #include "configuration/configuration-aware-object.h"
-#include "exports.h"
 #include "gui/actions/action-context-provider.h"
 #include "os/generic/compositing-aware-object.h"
 #include "talkable/talkable.h"
+#include "exports.h"
 
 class FilteredTreeView;
 class GroupTabBar;
+class GroupTabBarConfigurator;
 class GroupTalkableFilter;
 class ProxyActionContext;
 class ModelChain;
@@ -41,9 +44,10 @@ class KADUAPI RosterWidget : public QWidget, public ActionContextProvider, Confi
 	Q_OBJECT
 
 	GroupTabBar *GroupBar;
+	QScopedPointer<GroupTabBarConfigurator> TabBarConfigurator;
 
 	TalkableProxyModel *ProxyModel;
-	GroupTalkableFilter *GroupFilter;
+	GroupTalkableFilter *MyGroupFilter;
 
 	FilteredTreeView *TalkableWidget;
 	TalkableTreeView *TalkableTree;
@@ -56,6 +60,8 @@ class KADUAPI RosterWidget : public QWidget, public ActionContextProvider, Confi
 
 	ModelChain * createModelChain();
 	void createTalkableWidget(QWidget *parent);
+
+	void storeConfiguration();
 
 protected:
 	void configurationUpdated();

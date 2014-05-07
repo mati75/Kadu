@@ -1,7 +1,8 @@
 /*
  * %kadu copyright begin%
- * Copyright 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2012 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
@@ -26,6 +27,8 @@
 #include <libgadu.h>
 
 #include "accounts/account-manager.h"
+#include "core/core.h"
+#include "dom/dom-processor-service.h"
 #include "gui/windows/message-dialog.h"
 #include "protocols/protocols-manager.h"
 #include "url-handlers/url-handler-manager.h"
@@ -35,6 +38,7 @@
 #include "server/gadu-servers-manager.h"
 #include "gadu-id-validator.h"
 #include "gadu-protocol-factory.h"
+#include "gadu-url-dom-visitor-provider.h"
 #include "gadu-url-handler.h"
 
 #include "gadu-protocol-plugin.h"
@@ -43,14 +47,14 @@ GaduProtocolPlugin::~GaduProtocolPlugin()
 {
 }
 
-int GaduProtocolPlugin::init(bool firstLoad)
+bool GaduProtocolPlugin::init(bool firstLoad)
 {
 	Q_UNUSED(firstLoad)
 
 	if (ProtocolsManager::instance()->hasProtocolFactory("gadu"))
-		return 0;
+		return true;
 
-#ifdef DEBUG_ENABLED
+#ifdef DEBUG_OUTPUT_ENABLED
 	// 8 bits for gadu debug
 	gg_debug_level = debug_mask & 255;
 #else
@@ -59,10 +63,10 @@ int GaduProtocolPlugin::init(bool firstLoad)
 
 	if (!gg_libgadu_check_feature(GG_LIBGADU_FEATURE_USERLIST100))
 	{
-		MessageDialog::exec(KaduIcon("dialog-error"), tr("Gadu-Gadu Protocol"),
+		MessageDialog::show(KaduIcon("dialog-error"), tr("Gadu-Gadu Protocol"),
 				tr("Cannot load Gadu-Gadu Protocol plugin. Please compile libgadu with zlib support."));
 
-		return -1;
+		return false;
 	}
 
 	gg_proxy_host = 0;
@@ -78,18 +82,25 @@ int GaduProtocolPlugin::init(bool firstLoad)
 	ProtocolsManager::instance()->registerProtocolFactory(GaduProtocolFactory::instance());
 	UrlHandlerManager::instance()->registerUrlHandler("Gadu", new GaduUrlHandler());
 
+	UrlDomVisitorProvider = new GaduUrlDomVisitorProvider();
+	Core::instance()->domProcessorService()->registerVisitorProvider(UrlDomVisitorProvider, 1000);
+
 	GaduImporter::createInstance();
 
 	if (AccountManager::instance()->allItems().isEmpty())
 		GaduImporter::instance()->importAccounts();
 	GaduImporter::instance()->importContacts();
 
-	return 0;
+	return true;
 }
 
 void GaduProtocolPlugin::done()
 {
 	GaduImporter::destroyInstance();
+
+	Core::instance()->domProcessorService()->unregisterVisitorProvider(UrlDomVisitorProvider);
+	delete UrlDomVisitorProvider;
+	UrlDomVisitorProvider = 0;
 
 	UrlHandlerManager::instance()->unregisterUrlHandler("Gadu");
 	ProtocolsManager::instance()->unregisterProtocolFactory(GaduProtocolFactory::instance());
@@ -101,3 +112,5 @@ void GaduProtocolPlugin::done()
 }
 
 Q_EXPORT_PLUGIN2(gadu_protocol, GaduProtocolPlugin)
+
+#include "moc_gadu-protocol-plugin.cpp"

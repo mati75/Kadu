@@ -2,10 +2,6 @@
 <context>
     <name>@default</name>
     <message>
-        <source>Chat</source>
-        <translation>Rozmowa</translation>
-    </message>
-    <message>
         <source>Encryption</source>
         <translation>Szyfrowanie</translation>
     </message>
@@ -20,21 +16,6 @@
     <message>
         <source>Encryption error has occured</source>
         <translation>Błąd szyfrowania</translation>
-    </message>
-    <message>
-        <source>Messages</source>
-        <translation>Wiadomości</translation>
-    </message>
-    <message>
-        <source>Encrypt after receiving encrypted message</source>
-        <translation>Odszyfruj po otrzymaniu zaszyfrowanej wiadomości</translation>
-    </message>
-</context>
-<context>
-    <name>EnableEncryptionActionDescription</name>
-    <message>
-        <source>Encrypt</source>
-        <translation>Szyfruj</translation>
     </message>
 </context>
 <context>
@@ -79,6 +60,32 @@ Chcesz go zapisać?</translation>
         <source>Encryption</source>
         <translation>Szyfrowanie</translation>
     </message>
+    <message>
+        <source>Save</source>
+        <translation>Zapisz</translation>
+    </message>
+    <message>
+        <source>Ignore</source>
+        <translation>Ignoruj</translation>
+    </message>
+</context>
+<context>
+    <name>EncryptionSetUpActionDescription</name>
+    <message>
+        <source>Encrypt</source>
+        <translation>Szyfruj</translation>
+    </message>
+</context>
+<context>
+    <name>EncryptionSetUpMenu</name>
+    <message>
+        <source>No Encryption</source>
+        <translation>Brak szyfrowania</translation>
+    </message>
+    <message>
+        <source>%1 Encryption</source>
+        <translation>Szyfrowanie %1</translation>
+    </message>
 </context>
 <context>
     <name>GenerateKeysActionDescription</name>
@@ -91,14 +98,6 @@ Chcesz go zapisać?</translation>
         <translation>Szyfrowanie</translation>
     </message>
     <message>
-        <source>Cannot generate keys. Check if encryption_simlite module is loaded</source>
-        <translation>Nie można wygenerować kluczy. Sprawdź czy moduł encryption_simlite jest załadowany</translation>
-    </message>
-    <message>
-        <source>Keys exist. Do you want to overwrite them?</source>
-        <translation>Klucze istnieją. Czy chcesz je nadpisać?</translation>
-    </message>
-    <message>
         <source>Keys have been generated</source>
         <translation>Klucze zostały wygenerowane</translation>
     </message>
@@ -106,16 +105,21 @@ Chcesz go zapisać?</translation>
         <source>Error generating keys</source>
         <translation>Błąd generowania kluczy</translation>
     </message>
-</context>
-<context>
-    <name>SendPublicKeyActionDescription</name>
     <message>
-        <source>Send My Public Key</source>
-        <translation>Wyślij mój klucz publiczny</translation>
+        <source>Cannot generate keys. Check if encryption_ng_simlite plugin is loaded</source>
+        <translation>Nie można wygenerować kluczy. Sprawdź czy wtyczka encryption_simlite jest załadowana</translation>
     </message>
     <message>
-        <source>No public key available</source>
-        <translation>Brak klucza publicznego</translation>
+        <source>Keys already exist. Do you want to overwrite them?</source>
+        <translation>Klucze istnieją. Czy chcesz je nadpisać?</translation>
+    </message>
+    <message>
+        <source>Overwrite keys</source>
+        <translation>Nadpisz klucze</translation>
+    </message>
+    <message>
+        <source>Cancel</source>
+        <translation>Anuluj</translation>
     </message>
 </context>
 </TS>

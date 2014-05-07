@@ -108,6 +108,9 @@ namespace XMPP
 		void setAuthzid(const QString &s);
 		void continueAfterParams();
 
+		void setSCRAMStoredSaltedHash(const QString &s);
+		const QString getSCRAMStoredSaltedHash();
+
 		// SASL information
 		QString saslMechanism() const;
 		int saslSSF() const;
@@ -171,7 +174,7 @@ namespace XMPP
 		void bs_error(int); // server only
 
 		void ss_readyRead();
-		void ss_bytesWritten(int);
+		void ss_bytesWritten(qint64);
 		void ss_tlsHandshaken();
 		void ss_tlsClosed();
 		void ss_error(int);

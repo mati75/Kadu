@@ -3,7 +3,7 @@
  * Copyright 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2011 Piotr Dąbrowski (ultr@ultr.pl)
  * Copyright 2009 Michał Podsiadlik (michal@kadu.net)
- * Copyright 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
@@ -40,9 +40,9 @@ QString printDateTime(const QDateTime &datetime)
 {
 	QString ret;
 	QDateTime current_date;
-	unsigned int delta;
+	int delta;
 
-	current_date.setTime_t(time(NULL));
+	current_date.setTime_t(static_cast<uint>(time(NULL)));
 //	current_date.setTime(QTime(0, 0));
 
 	delta = datetime.daysTo(current_date);
@@ -53,34 +53,34 @@ QString printDateTime(const QDateTime &datetime)
 		if (ChatConfigurationHolder::instance()->niceDateFormat())
 		{
 			if (delta == 1) // 1 day ago
-				ret.prepend(qApp->translate("@default", "Yesterday at "));
+				ret.prepend(QCoreApplication::translate("@default", "Yesterday at "));
 			else if (delta < 7) // less than week ago
 			{
-				ret.prepend(datetime.toString(qApp->translate("@default", "dddd at ")));
+				ret.prepend(datetime.toString(QCoreApplication::translate("@default", "dddd at ")));
 				ret[0] = ret.at(0).toUpper(); // looks ugly lowercase ;)
 			}
-			else if ((delta > 7) && (delta < 14))
+			else if (delta < 14)
 			{
 				int tmp = delta % 7;
 				if (tmp == 0)
-					ret.prepend(qApp->translate("@default", "week ago at "));
+					ret.prepend(QCoreApplication::translate("@default", "week ago at "));
 				else if (tmp == 1)
-					ret.prepend(qApp->translate("@default", "week and day ago at "));
+					ret.prepend(QCoreApplication::translate("@default", "week and day ago at "));
 				else
-					ret.prepend(qApp->translate("@default", "week and %2 days ago at ").arg(delta%7));
+					ret.prepend(QCoreApplication::translate("@default", "week and %2 days ago at ").arg(delta%7));
 			}
 			else if (delta < 6*7)
 			{
 				int tmp = delta % 7;
 				if (tmp == 0)
-					ret.prepend(qApp->translate("@default", "%1 weeks ago at ").arg(delta/7));
+					ret.prepend(QCoreApplication::translate("@default", "%1 weeks ago at ").arg(delta/7));
 				else if (tmp == 1)
-					ret.prepend(qApp->translate("@default", "%1 weeks and day ago at ").arg(delta/7));
+					ret.prepend(QCoreApplication::translate("@default", "%1 weeks and day ago at ").arg(delta/7));
 				else
-					ret.prepend(qApp->translate("@default", "%1 weeks and %2 days ago at ").arg(delta/7).arg(delta%7));
+					ret.prepend(QCoreApplication::translate("@default", "%1 weeks and %2 days ago at ").arg(delta/7).arg(delta%7));
 			}
 			else
-				ret.prepend(datetime.toString(qApp->translate("@default", "d MMMM yyyy at ")));
+				ret.prepend(datetime.toString(QCoreApplication::translate("@default", "d MMMM yyyy at ")));
 		}
 		else
 			ret.append(datetime.toString(" (dd.MM.yyyy)"));
@@ -88,7 +88,7 @@ QString printDateTime(const QDateTime &datetime)
 	return ret;
 }
 
-void getTime(time_t *sec, int *msec)
+void getTime(time_t *sec, long int *msec)
 {
 #ifdef Q_OS_WIN
 	struct _timeb timebuffer;

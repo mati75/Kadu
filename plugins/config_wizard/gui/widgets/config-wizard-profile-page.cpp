@@ -3,7 +3,7 @@
  * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2010 Piotr Dąbrowski (ultr@ultr.pl)
  * Copyright 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2010, 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -55,7 +55,7 @@ void ConfigWizardProfilePage::createGui()
 	setLanguages();
 	formLayout()->addRow(tr("Language") + ':', LanguagesCombo);
 
-	QLabel *restartInfo = new QLabel("<font size='-1'><i>" + (qApp->translate("@default",
+	QLabel *restartInfo = new QLabel("<font size='-1'><i>" + (QCoreApplication::translate("@default",
 			// NOTE: it's the same string as in varia/configuration/dialog.ui
 			"Kadu needs to be restarted before changes to the language settings will take effect.")) +
 			"</i></font>", this);
@@ -90,3 +90,5 @@ void ConfigWizardProfilePage::acceptPage()
 
 	Core::instance()->myself().setDisplay(NickNameEdit->text());
 }
+
+#include "moc_config-wizard-profile-page.cpp"

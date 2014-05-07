@@ -1,12 +1,12 @@
 /*
  * %kadu copyright begin%
  * Copyright 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2010 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2009, 2010, 2012 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2011 Piotr Dąbrowski (ultr@ultr.pl)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
  * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
- * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2007, 2008, 2009, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
@@ -30,6 +30,7 @@
 #include "accounts/account.h"
 #include "core/core.h"
 #include "gui/actions/action.h"
+#include "gui/menu/menu-inventory.h"
 #include "gui/windows/kadu-window.h"
 #include "gui/windows/message-dialog.h"
 #include "identities/identity.h"
@@ -55,13 +56,19 @@ GenerateKeysActionDescription::GenerateKeysActionDescription(QObject *parent) :
 	connect(AccountManager::instance(), SIGNAL(accountUnregistered(Account)),
 			this, SLOT(updateGenerateKeysMenu()));
 
-	Core::instance()->kaduWindow()->insertMenuActionDescription(this, KaduWindow::MenuTools);
+	MenuInventory::instance()
+		->menu("tools")
+		->addAction(this, KaduMenu::SectionTools)
+		->update();
 }
 
 GenerateKeysActionDescription::~GenerateKeysActionDescription()
 {
 	// actions will delete theirs menus
-	Core::instance()->kaduWindow()->removeMenuActionDescription(this);
+	MenuInventory::instance()
+		->menu("tools")
+		->removeAction(this)
+		->update();
 }
 
 void GenerateKeysActionDescription::actionInstanceCreated(Action *action)
@@ -134,16 +141,24 @@ void GenerateKeysActionDescription::menuActionTriggered(QAction *action)
 	KeyGenerator *generator = EncryptionManager::instance()->generator();
 	if (!generator)
 	{
-		MessageDialog::exec(KaduIcon("dialog-error"), tr("Encryption"), tr("Cannot generate keys. Check if encryption_simlite module is loaded"));
+		MessageDialog::show(KaduIcon("dialog-error"), tr("Encryption"), tr("Cannot generate keys. Check if encryption_ng_simlite plugin is loaded"));
 		return;
 	}
 
 	if (generator->hasKeys(account))
-		if (!MessageDialog::ask(KaduIcon("dialog-information"), tr("Encryption"), tr("Keys exist. Do you want to overwrite them?")))
+	{
+		MessageDialog *dialog = MessageDialog::create(KaduIcon("dialog-information"), tr("Encryption"), tr("Keys already exist. Do you want to overwrite them?"));
+		dialog->addButton(QMessageBox::Yes, tr("Overwrite keys"));
+		dialog->addButton(QMessageBox::No, tr("Cancel"));
+
+		if (!dialog->ask())
 			return;
+	}
 
 	if (generator->generateKeys(account))
-		MessageDialog::exec(KaduIcon("dialog-information"), tr("Encryption"), tr("Keys have been generated"));
+		MessageDialog::show(KaduIcon("dialog-information"), tr("Encryption"), tr("Keys have been generated"));
 	else
-		MessageDialog::exec(KaduIcon("dialog-error"), tr("Encryption"), tr("Error generating keys"));
+		MessageDialog::show(KaduIcon("dialog-error"), tr("Encryption"), tr("Error generating keys"));
 }
+
+#include "moc_generate-keys-action-description.cpp"

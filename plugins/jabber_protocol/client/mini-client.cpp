@@ -1,10 +1,10 @@
 /*
  * %kadu copyright begin%
  * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2009, 2010 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2009, 2009, 2010, 2012 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
- * Copyright 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -33,7 +33,7 @@
 #include "debug.h"
 
 #include "certificates/certificate-helpers.h"
-#include "client/jabber-client.h"
+#include "jabber-error-helper.h"
 #include "mini-client.h"
 #include "xmpp_tasks.h"
 
@@ -251,7 +251,7 @@ void MiniClient::cs_error(int err)
 {
 	QString str;
 	bool reconn;
-	JabberClient::getErrorInfo(err, conn, stream, tlsHandler, &str, &reconn);
+	JabberErrorHelper::getErrorInfo(err, conn, stream, tlsHandler, &str, &reconn);
 	close();
 
 	MessageDialog::show(KaduIcon("dialog-error"), tr("Server Error"), tr("There was an error communicating with the Jabber server.\nDetails: %1").arg(str));
@@ -265,3 +265,5 @@ void MiniClient::slotDebug(const QString &text)
 	kdebugm(KDEBUG_WARNING, "Jabber MiniClient debug:  %s\n", qPrintable(text));
 }
 
+
+#include "moc_mini-client.cpp"

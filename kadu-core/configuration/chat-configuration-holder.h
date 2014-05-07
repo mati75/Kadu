@@ -2,7 +2,7 @@
  * %kadu copyright begin%
  * Copyright 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2011 Piotr Dąbrowski (ultr@ultr.pl)
- * Copyright 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
@@ -40,7 +40,6 @@ class ChatConfigurationHolder : public ConfigurationHolder
 
 	bool AutoSend;
 	bool NiceDateFormat;
-	int EmoticonsStyle;
 	bool ChatTextCustomColors;
 	QColor ChatTextBgColor;
 	QColor ChatTextFontColor;
@@ -70,7 +69,6 @@ public:
 
 	bool autoSend() const { return AutoSend; }
 	bool niceDateFormat() const { return NiceDateFormat; }
-	int emoticonsStyle() const { return EmoticonsStyle; }
 	bool chatTextCustomColors() const { return ChatTextCustomColors; }
 	const QColor &chatTextBgColor() const { return ChatTextBgColor; }
 	const QColor &chatTextFontColor() const { return ChatTextFontColor; }

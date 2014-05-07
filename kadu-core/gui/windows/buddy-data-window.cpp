@@ -10,8 +10,8 @@
  * Copyright 2002, 2003, 2004, 2005 Adrian Smarzewski (adrian@kadu.net)
  * Copyright 2004 Paweł Płuciennik (pawel_p@kadu.net)
  * Copyright 2002, 2003, 2004 Tomasz Chiliński (chilek@chilan.com)
- * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2007, 2008, 2009, 2010, 2011, 2012, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2007, 2008 Dawid Stawiarski (neeo@kadu.net)
  * Copyright 2004, 2005, 2006, 2007 Marcin Ślusarz (joi@kadu.net)
  * Copyright 2003, 2004 Dariusz Jagodzik (mast3r@kadu.net)
@@ -32,6 +32,7 @@
  */
 
 #include <QtCore/QTimer>
+#include <QtGui/QApplication>
 #include <QtGui/QCheckBox>
 #include <QtGui/QComboBox>
 #include <QtGui/QDialogButtonBox>
@@ -51,18 +52,24 @@
 #include "buddies/buddy-manager.h"
 #include "buddies/group-manager.h"
 #include "buddies/group.h"
+#include "configuration/config-file-variant-wrapper.h"
 #include "configuration/configuration-file.h"
 #include "configuration/xml-configuration-file.h"
 #include "contacts/contact.h"
 #include "core/core.h"
+#include "gui/widgets/buddy-configuration-widget-factory-repository.h"
+#include "gui/widgets/buddy-configuration-widget-factory.h"
+#include "gui/widgets/buddy-configuration-widget-tab-adapter.h"
+#include "gui/widgets/buddy-configuration-widget.h"
 #include "gui/widgets/buddy-general-configuration-widget.h"
 #include "gui/widgets/buddy-groups-configuration-widget.h"
 #include "gui/widgets/buddy-options-configuration-widget.h"
 #include "gui/widgets/buddy-personal-info-configuration-widget.h"
-#include "gui/windows/buddy-data-window-aware-object.h"
+#include "gui/widgets/composite-configuration-value-state-notifier.h"
 #include "gui/windows/message-dialog.h"
-#include "misc/misc.h"
 #include "misc/change-notifier.h"
+#include "misc/change-notifier-lock.h"
+#include "os/generic/window-geometry-manager.h"
 #include "protocols/protocol-factory.h"
 #include "protocols/protocol.h"
 #include "activate.h"
@@ -72,46 +79,81 @@
 
 #include "buddy-data-window.h"
 
-QMap<Buddy, BuddyDataWindow *> BuddyDataWindow::Instances;
-
-BuddyDataWindow * BuddyDataWindow::instance(const Buddy &buddy, QWidget *parent)
+BuddyDataWindow::BuddyDataWindow(BuddyConfigurationWidgetFactoryRepository *buddyConfigurationWidgetFactoryRepository, const Buddy &buddy) :
+		QWidget(0, Qt::Dialog), MyBuddyConfigurationWidgetFactoryRepository(buddyConfigurationWidgetFactoryRepository), MyBuddy(buddy),
+		ValueStateNotifier(new CompositeConfigurationValueStateNotifier(this))
 {
-	if (Instances.contains(buddy))
-		// TODO: it might be useful someday to reparent in case the new parent is different than the old
-		return Instances.value(buddy);
-	else
-		return new BuddyDataWindow(buddy, parent);
-}
+	Q_ASSERT(MyBuddy != Core::instance()->myself());
 
-BuddyDataWindow::BuddyDataWindow(const Buddy &buddy, QWidget *parent) :
-		QWidget(parent, Qt::Dialog), MyBuddy(buddy)
-{
 	kdebugf();
-
-	Instances.insert(MyBuddy, this);
 
 	setWindowRole("kadu-buddy-data");
 	setAttribute(Qt::WA_DeleteOnClose);
 	setWindowTitle(tr("Buddy Properties - %1").arg(MyBuddy.display()));
 
 	createGui();
-	updateButtons();
 
-	loadWindowGeometry(this, "General", "ManageUsersDialogGeometry", 0, 50, 425, 500);
-
-	BuddyDataWindowAwareObject::notifyBuddyDataWindowCreated(this);
+	new WindowGeometryManager(new ConfigFileVariantWrapper("General", "ManageUsersDialogGeometry"), QRect(0, 50, 425, 500), this);
 
 	connect(BuddyManager::instance(), SIGNAL(buddyRemoved(Buddy)),
 			this, SLOT(buddyRemoved(Buddy)));
+
+	connect(ValueStateNotifier, SIGNAL(stateChanged(ConfigurationValueState)), this, SLOT(stateChangedSlot(ConfigurationValueState)));
+	stateChangedSlot(ValueStateNotifier->state());
+
+	if (MyBuddyConfigurationWidgetFactoryRepository)
+	{
+		connect(MyBuddyConfigurationWidgetFactoryRepository, SIGNAL(factoryRegistered(BuddyConfigurationWidgetFactory*)),
+				this, SLOT(factoryRegistered(BuddyConfigurationWidgetFactory*)));
+		connect(MyBuddyConfigurationWidgetFactoryRepository, SIGNAL(factoryUnregistered(BuddyConfigurationWidgetFactory*)),
+				this, SLOT(factoryUnregistered(BuddyConfigurationWidgetFactory*)));
+
+		foreach (BuddyConfigurationWidgetFactory *factory, MyBuddyConfigurationWidgetFactoryRepository->factories())
+			factoryRegistered(factory);
+	}
 }
 
 BuddyDataWindow::~BuddyDataWindow()
 {
 	kdebugf();
-	saveWindowGeometry(this, "General", "ManageUsersDialogGeometry");
-	BuddyDataWindowAwareObject::notifyBuddyDataWindowDestroyed(this);
-	Instances.remove(MyBuddy);
+	emit destroyed(MyBuddy);
 	kdebugf2();
+}
+
+void BuddyDataWindow::factoryRegistered(BuddyConfigurationWidgetFactory *factory)
+{
+	BuddyConfigurationWidget *widget = factory->createWidget(buddy(), this);
+	if (widget)
+	{
+		if (widget->stateNotifier())
+			ValueStateNotifier->addConfigurationValueStateNotifier(widget->stateNotifier());
+		BuddyConfigurationWidgets.insert(factory, widget);
+		emit widgetAdded(widget);
+	}
+}
+
+void BuddyDataWindow::factoryUnregistered(BuddyConfigurationWidgetFactory *factory)
+{
+	if (BuddyConfigurationWidgets.contains(factory))
+	{
+		BuddyConfigurationWidget *widget = BuddyConfigurationWidgets.value(factory);
+		if (widget->stateNotifier())
+			ValueStateNotifier->removeConfigurationValueStateNotifier(widget->stateNotifier());
+		emit widgetRemoved(widget);
+		widget->deleteLater();
+		BuddyConfigurationWidgets.remove(factory);
+	}
+}
+
+QList<BuddyConfigurationWidget *> BuddyDataWindow::buddyConfigurationWidgets() const
+{
+	return BuddyConfigurationWidgets.values();
+}
+
+void BuddyDataWindow::applyBuddyConfigurationWidgets()
+{
+	foreach (BuddyConfigurationWidget *widget, BuddyConfigurationWidgets)
+		widget->apply();
 }
 
 void BuddyDataWindow::show()
@@ -133,6 +175,8 @@ void BuddyDataWindow::createTabs(QLayout *layout)
 {
 	TabWidget = new QTabWidget(this);
 
+	new BuddyConfigurationWidgetTabAdapter(this, TabWidget, this);
+
 	createGeneralTab(TabWidget);
 	createGroupsTab(TabWidget);
 	createPersonalInfoTab(TabWidget);
@@ -143,7 +187,7 @@ void BuddyDataWindow::createTabs(QLayout *layout)
 void BuddyDataWindow::createGeneralTab(QTabWidget *tabWidget)
 {
 	ContactTab = new BuddyGeneralConfigurationWidget(MyBuddy, this);
-	connect(ContactTab, SIGNAL(validChanged()), this, SLOT(updateButtons()));
+	ValueStateNotifier->addConfigurationValueStateNotifier(ContactTab->valueStateNotifier());
 
 	tabWidget->addTab(ContactTab, tr("General"));
 }
@@ -175,40 +219,40 @@ void BuddyDataWindow::createButtons(QLayout *layout)
 	ApplyButton = new QPushButton(qApp->style()->standardIcon(QStyle::SP_DialogApplyButton), tr("Apply"), this);
 	buttons->addButton(ApplyButton, QDialogButtonBox::ApplyRole);
 
-	QPushButton *cancelButton = new QPushButton(qApp->style()->standardIcon(QStyle::SP_DialogCancelButton), tr("Cancel"), this);
-	buttons->addButton(cancelButton, QDialogButtonBox::RejectRole);
+	CancelButton = new QPushButton(qApp->style()->standardIcon(QStyle::SP_DialogCancelButton), tr("Cancel"), this);
+	buttons->addButton(CancelButton, QDialogButtonBox::RejectRole);
 
 	connect(OkButton, SIGNAL(clicked(bool)), this, SLOT(updateBuddyAndClose()));
 	connect(ApplyButton, SIGNAL(clicked(bool)), this, SLOT(updateBuddy()));
-	connect(cancelButton, SIGNAL(clicked(bool)), this, SLOT(close()));
+	connect(CancelButton, SIGNAL(clicked(bool)), this, SLOT(close()));
 
 	layout->addWidget(buttons);
 }
 
 void BuddyDataWindow::updateBuddy()
 {
-	if (isValid())
-	{
-		if (MyBuddy)
-			MyBuddy.changeNotifier()->block();
+	if (ValueStateNotifier->state() == StateChangedDataInvalid)
+		return;
 
-		ContactTab->save();
-		GroupsTab->save();
-		OptionsTab->save();
-		emit save();
+	if (!MyBuddy)
+		return;
 
-		if (MyBuddy)
-			MyBuddy.changeNotifier()->unblock();
-	}
+	ChangeNotifierLock lock(MyBuddy.changeNotifier());
+
+	applyBuddyConfigurationWidgets();
+
+	ContactTab->save();
+	GroupsTab->save();
+	OptionsTab->save();
 }
 
 void BuddyDataWindow::updateBuddyAndClose()
 {
-	if (isValid())
-	{
-		updateBuddy();
-		close();
-	}
+	if (ValueStateNotifier->state() == StateChangedDataInvalid)
+		return;
+
+	updateBuddy();
+	close();
 }
 
 void BuddyDataWindow::buddyRemoved(const Buddy &buddy)
@@ -228,14 +272,11 @@ void BuddyDataWindow::keyPressEvent(QKeyEvent *event)
 		QWidget::keyPressEvent(event);
 }
 
-bool BuddyDataWindow::isValid()
+void BuddyDataWindow::stateChangedSlot(ConfigurationValueState state)
 {
-	return (MyBuddy != Core::instance()->myself()) && ContactTab->isValid();
+	OkButton->setEnabled(state == StateChangedDataValid);
+	ApplyButton->setEnabled(state == StateChangedDataValid);
+	CancelButton->setEnabled(state != StateNotChanged);
 }
 
-void BuddyDataWindow::updateButtons()
-{
-	bool valid = isValid();
-	OkButton->setEnabled(valid);
-	ApplyButton->setEnabled(valid);
-}
+#include "moc_buddy-data-window.cpp"

@@ -3,8 +3,8 @@
  * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2010 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2010 Tomasz Rostański (rozteck@interia.pl)
- * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2009, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -37,9 +37,6 @@
 Action::Action(ActionDescription *description, ActionContext *context, QObject *parent) :
 		QAction(parent), Description(description), Context(context)
 {
-	Q_ASSERT(0 != description);
-	Q_ASSERT(0 != context);
-
 	setText(Description->Text);
 
 	if (!Description->icon().isNull())
@@ -117,3 +114,5 @@ void disableNoChat(Action *action)
 {
 	action->setEnabled(action->context()->chat());
 }
+
+#include "moc_action.cpp"

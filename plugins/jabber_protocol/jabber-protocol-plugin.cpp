@@ -1,8 +1,8 @@
 /*
  * %kadu copyright begin%
  * Copyright 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -27,14 +27,16 @@
 #include "actions/jabber-actions.h"
 #include "actions/jabber-protocol-menu-manager.h"
 #include "certificates/trusted-certificates-manager.h"
+#include "core/core.h"
+#include "dom/dom-processor-service.h"
 #include "file-transfer/s5b-server-manager.h"
 #include "gui/windows/main-configuration-window.h"
 #include "misc/kadu-paths.h"
-#include "utils/vcard-factory.h"
 #include "facebook-protocol-factory.h"
 #include "gtalk-protocol-factory.h"
 #include "jabber-id-validator.h"
 #include "jabber-protocol-factory.h"
+#include "jabber-url-dom-visitor-provider.h"
 #include "jabber-url-handler.h"
 
 #include "jabber-protocol-plugin.h"
@@ -43,19 +45,18 @@ JabberProtocolPlugin::~JabberProtocolPlugin()
 {
 }
 
-int JabberProtocolPlugin::init(bool firstLoad)
+bool JabberProtocolPlugin::init(bool firstLoad)
 {
 	Q_UNUSED(firstLoad)
 
 	if (ProtocolsManager::instance()->hasProtocolFactory("jabber")
 			|| ProtocolsManager::instance()->hasProtocolFactory("gtalk")
 			|| ProtocolsManager::instance()->hasProtocolFactory("facebook"))
-		return 0;
+		return true;
 
 	S5BServerManager::createInstance();
 
 	JabberIdValidator::createInstance();
-	VCardFactory::createInstance();
 
 	JabberActions::registerActions();
 	JabberProtocolMenuManager::createInstance();
@@ -70,9 +71,13 @@ int JabberProtocolPlugin::init(bool firstLoad)
 
 	UrlHandlerManager::instance()->registerUrlHandler("Jabber", new JabberUrlHandler());
 
+	// install before mail handler
+	UrlDomVisitorProvider = new JabberUrlDomVisitorProvider();
+	Core::instance()->domProcessorService()->registerVisitorProvider(UrlDomVisitorProvider, 200);
+
 	MainConfigurationWindow::registerUiFile(KaduPaths::instance()->dataPath() + QLatin1String("plugins/configuration/jabber_protocol.ui"));
 
-	return 0;
+	return true;
 }
 
 void JabberProtocolPlugin::done()
@@ -80,6 +85,10 @@ void JabberProtocolPlugin::done()
 	MainConfigurationWindow::unregisterUiFile(KaduPaths::instance()->dataPath() + QLatin1String("plugins/configuration/jabber_protocol.ui"));
 
 	UrlHandlerManager::instance()->unregisterUrlHandler("Jabber");
+
+	Core::instance()->domProcessorService()->unregisterVisitorProvider(UrlDomVisitorProvider);
+	delete UrlDomVisitorProvider;
+	UrlDomVisitorProvider = 0;
 
 	ProtocolsManager::instance()->unregisterProtocolFactory(JabberProtocolFactory::instance());
 	ProtocolsManager::instance()->unregisterProtocolFactory(GTalkProtocolFactory::instance());
@@ -92,7 +101,6 @@ void JabberProtocolPlugin::done()
 	JabberProtocolMenuManager::destroyInstance();
 	JabberActions::unregisterActions();
 
-	VCardFactory::destroyInstance();
 	JabberIdValidator::destroyInstance();
 	TrustedCertificatesManager::destroyInstance();
 
@@ -102,3 +110,5 @@ void JabberProtocolPlugin::done()
 }
 
 Q_EXPORT_PLUGIN2(jabber_protocol, JabberProtocolPlugin)
+
+#include "moc_jabber-protocol-plugin.cpp"

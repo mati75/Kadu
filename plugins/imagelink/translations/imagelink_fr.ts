@@ -6,20 +6,20 @@
         <translation>Conversation</translation>
     </message>
     <message>
-        <source>Imagelink</source>
-        <translation>Imagelink</translation>
-    </message>
-    <message>
         <source>Show YouTube movies in chat window</source>
         <translation>Afficher les vidéos YouTube dans le canal de discussion</translation>
     </message>
     <message>
-        <source>Autoplay movies</source>
-        <translation>Lire automatiquement les vidéo</translation>
-    </message>
-    <message>
         <source>Show images in chat window</source>
         <translation>Afficher les images dans le canal de discussion</translation>
+    </message>
+    <message>
+        <source>General</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <source>Messages</source>
+        <translation type="unfinished"/>
     </message>
 </context>
 </TS>

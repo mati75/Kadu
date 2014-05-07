@@ -8,7 +8,7 @@
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
  * Copyright 2010 badboy (badboy@gen2.org)
  * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2010, 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -31,8 +31,9 @@
 #include "accounts/account.h"
 #include "buddies/buddy-preferred-manager.h"
 #include "contacts/contact-manager.h"
+#include "core/core.h"
 #include "gui/widgets/talkable-painter.h"
-#include "message/message-manager.h"
+#include "message/unread-message-repository.h"
 #include "model/kadu-abstract-model.h"
 #include "model/model-chain.h"
 
@@ -43,15 +44,15 @@ TalkableDelegate::TalkableDelegate(TalkableTreeView *parent) :
 {
 	connect(ContactManager::instance(), SIGNAL(contactUpdated(Contact)), this, SLOT(contactUpdated(Contact)));
 	connect(BuddyPreferredManager::instance(), SIGNAL(buddyUpdated(Buddy)), this, SLOT(buddyUpdated(Buddy)));
-	connect(MessageManager::instance(), SIGNAL(unreadMessageAdded(Message)), this, SLOT(messageStatusChanged(Message)));
-	connect(MessageManager::instance(), SIGNAL(unreadMessageRemoved(Message)), this, SLOT(messageStatusChanged(Message)));
+	connect(Core::instance()->unreadMessageRepository(), SIGNAL(unreadMessageAdded(Message)), this, SLOT(messageStatusChanged(Message)));
+	connect(Core::instance()->unreadMessageRepository(), SIGNAL(unreadMessageRemoved(Message)), this, SLOT(messageStatusChanged(Message)));
 }
 
 TalkableDelegate::~TalkableDelegate()
 {
 	disconnect(ContactManager::instance(), 0, this, 0);
 	disconnect(BuddyPreferredManager::instance(), 0, this, 0);
-	disconnect(MessageManager::instance(), 0, this, 0);
+	disconnect(Core::instance()->unreadMessageRepository(), 0, this, 0);
 }
 
 void TalkableDelegate::setChain(ModelChain *chain)
@@ -88,8 +89,8 @@ void TalkableDelegate::messageStatusChanged(Message message)
 bool TalkableDelegate::editorEvent(QEvent *event, QAbstractItemModel *model, const QStyleOptionViewItem &option,
                                    const QModelIndex &index)
 {
-	Q_ASSERT(event);
-	Q_ASSERT(model);
+	if (!event || !model)
+		return false;
 
 	Qt::ItemFlags flags = model->flags(index);
 	if (!(flags & Qt::ItemIsUserCheckable) || !(option.state & QStyle::State_Enabled) || !(flags & Qt::ItemIsEnabled))
@@ -142,3 +143,5 @@ bool TalkableDelegate::editorEvent(QEvent *event, QAbstractItemModel *model, con
 
 	return model->setData(index, state, Qt::CheckStateRole);
 }
+
+#include "moc_talkable-delegate.cpp"

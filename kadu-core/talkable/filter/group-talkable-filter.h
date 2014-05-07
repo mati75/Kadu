@@ -1,6 +1,10 @@
 /*
  * %kadu copyright begin%
+ * Copyright 2010, 2011, 2012 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2009, 2010 Tomasz Rostański (rozteck@interia.pl)
  * Copyright 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -20,7 +24,7 @@
 #ifndef GROUP_TALKABLE_FILTER_H
 #define GROUP_TALKABLE_FILTER_H
 
-#include "buddies/group.h"
+#include "talkable/filter/group-filter.h"
 
 #include "talkable/filter/talkable-filter.h"
 
@@ -46,10 +50,9 @@ class GroupTalkableFilter : public TalkableFilter
 {
 	Q_OBJECT
 
-	Group CurrentGroup;
-	bool AllGroupShown;
+	GroupFilter CurrentGroupFilter;
 
-	bool acceptGroupList(const QSet<Group> &groups, bool showInAllGroup);
+	bool acceptGroupList(const QSet<Group> &groups, bool showInEverybodyGroup);
 
 public:
 	/**
@@ -79,15 +82,18 @@ public:
 public slots:
 	/**
 	 * @author Rafał 'Vogel' Malinowski
-	 * @short Change currently filtered group.
-	 * @param group new group to fitler
+	 * @short Change current group filter
+	 * @param group new group filter
 	 *
-	 * Only items belonging to this new group will be displyed. If AllGroupShown is set to false and group
-	 * is null then all item without any group will be displayed.
+	 * Fitlering depneds on set group filter:
+	 * - if type is @see GroupFilterInvalid - nothing is filtered out
+	 * - if type is @see GroupFilterRegular - chats and buddies not in given group will be filtered out
+	 * - if type is @see GroupFilterEverybody - chats and buddies that are set not to be displayed in everybody group will be filtered out
+	 * - if type is @see GroupFilterUngroupped - chats and buddies not in any group will be filtered out
 	 *
-	 * If new group is not equal to old one then filterChanged() signal will be emited.
+	 * If new group is filter not equal to old one then filterChanged() signal will be emited.
 	 */
-	void setGroup(const Group &group);
+	void setGroupFilter(const GroupFilter &groupFilter);
 
 };
 

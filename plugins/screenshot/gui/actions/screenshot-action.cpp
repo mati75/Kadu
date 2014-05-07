@@ -1,6 +1,9 @@
 /*
  * %kadu copyright begin%
+ * Copyright 2011 Tomasz Rostanski (rozteck@interia.pl)
+ * Copyright 2012 Piotr Dąbrowski (ultr@ultr.pl)
  * Copyright 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -22,7 +25,7 @@
 #include "accounts/account.h"
 #include "gui/actions/action.h"
 #include "gui/widgets/chat-edit-box.h"
-#include "gui/widgets/chat-widget.h"
+#include "gui/widgets/chat-widget/chat-widget.h"
 #include "protocols/protocol.h"
 
 #include "screenshot.h"
@@ -61,7 +64,7 @@ void ScreenshotAction::actionInstanceCreated(Action *action)
 	QMenu *menu = new QMenu();
 	menu->addAction(tr("Simple Shot"), this, SLOT(takeStandardShotSlot()))->setData(chatWidgetData);
 	menu->addAction(tr("With Chat Window Hidden"), this, SLOT(takeShotWithChatWindowHiddenSlot()))->setData(chatWidgetData);
-#ifndef Q_WS_MAC
+#ifndef Q_OS_MAC
 	menu->addAction(tr("Window Shot"), this, SLOT(takeWindowShotSlot()))->setData(chatWidgetData);
 #endif
 	action->setMenu(menu);
@@ -124,3 +127,5 @@ void ScreenshotAction::takeWindowShotSlot()
 	if (chatWidget)
 		(new ScreenShot(chatWidget))->takeWindowShot();
 }
+
+#include "moc_screenshot-action.cpp"

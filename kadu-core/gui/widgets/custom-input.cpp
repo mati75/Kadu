@@ -4,8 +4,8 @@
  * Copyright 2008 Tomasz Rostański (rozteck@interia.pl)
  * Copyright 2011 Piotr Dąbrowski (ultr@ultr.pl)
  * Copyright 2006 Adrian Smarzewski (adrian@kadu.net)
- * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2007, 2008, 2009, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2011 Slawomir Stepien (s.stepien@interia.pl)
  * Copyright 2007 Dawid Stawiarski (neeo@kadu.net)
  * Copyright 2005, 2006, 2007 Marcin Ślusarz (joi@kadu.net)
@@ -28,6 +28,7 @@
 #include <QtCore/QBuffer>
 #include <QtCore/QDir>
 #include <QtCore/QFile>
+#include <QtCore/QMimeData>
 #include <QtCore/QScopedPointer>
 #include <QtCore/QUrl>
 #include <QtGui/QAction>
@@ -35,9 +36,12 @@
 #include <QtGui/QKeyEvent>
 #include <QtGui/QMenu>
 
+#include "core/core.h"
+#include "formatted-string/formatted-string-factory.h"
 #include "gui/hot-key.h"
 #include "protocols/protocol.h"
 #include "protocols/services/chat-image-service.h"
+#include "services/image-storage-service.h"
 #include "debug.h"
 
 #include "custom-input-menu-manager.h"
@@ -56,6 +60,24 @@ CustomInput::CustomInput(Chat chat, QWidget *parent) :
 	connect(this, SIGNAL(cursorPositionChanged()), this, SLOT(cursorPositionChangedSlot()));
 
 	kdebugf2();
+}
+
+void CustomInput::setImageStorageService(ImageStorageService *imageStorageService)
+{
+	CurrentImageStorageService = imageStorageService;
+}
+
+void CustomInput::setFormattedStringFactory(FormattedStringFactory *formattedStringFactory)
+{
+	CurrentFormattedStringFactory = formattedStringFactory;
+}
+
+std::unique_ptr<FormattedString> CustomInput::formattedString() const
+{
+	if (CurrentFormattedStringFactory)
+		return CurrentFormattedStringFactory->fromTextDocument(document());
+	else
+		return 0;
 }
 
 void CustomInput::keyPressEvent(QKeyEvent *e)
@@ -249,9 +271,10 @@ void CustomInput::insertFromMimeData(const QMimeData *source)
 	if (source->hasUrls() && !source->urls().isEmpty())
 	{
 		QUrl url = source->urls().first();
-		if (!url.isEmpty() && url.scheme() == "kaduimg")
-			path = QDir::cleanPath(ChatImageService::imagesPath() + url.path());
-		else if (!url.isEmpty() && url.scheme() == "file")
+		if (CurrentImageStorageService)
+			url = CurrentImageStorageService->toFileUrl(url);
+
+		if (!url.isEmpty() && url.scheme() == "file")
 		{
 			path = QDir::cleanPath(url.path());
 			if (QImage(path).isNull())
@@ -266,7 +289,12 @@ void CustomInput::insertFromMimeData(const QMimeData *source)
 		buffer.open(QIODevice::ReadOnly);
 		QString ext = QImageReader(&buffer).format().toLower();
 		QString filename = "drop" + QString::number(QDateTime::currentDateTime().toTime_t()) + "." + ext;
-		path = QDir::cleanPath(ChatImageService::imagesPath() + filename);
+
+		if (CurrentImageStorageService)
+			path = CurrentImageStorageService->fullPath(filename);
+		else
+			path = filename;
+
 		QFile file(path);
 		if (file.open(QIODevice::WriteOnly | QIODevice::Truncate))
 		{
@@ -279,9 +307,11 @@ void CustomInput::insertFromMimeData(const QMimeData *source)
 
 	if (!path.isEmpty())
 	{
-		insertPlainText(QString("[IMAGE %1]").arg(path));
+		insertHtml(QString("<img src='%1' />").arg(path));
 		return;
 	}
 
 	QTextEdit::insertFromMimeData(source);
 }
+
+#include "moc_custom-input.cpp"

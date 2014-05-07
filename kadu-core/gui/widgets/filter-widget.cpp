@@ -1,10 +1,12 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Tomasz Rostanski (rozteck@interia.pl)
+ * Copyright 2010, 2012 Tomasz Rostanski (rozteck@interia.pl)
  * Copyright 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2012 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2010, 2010 Tomasz Rostański (rozteck@interia.pl)
- * Copyright 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2012 Piotr Dąbrowski (ultr@ultr.pl)
+ * Copyright 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -24,7 +26,7 @@
  * http://th30z.netsons.org/2008/08/qt4-mac-searchbox-wrapper/
  */
 
-#include <QtGui/QApplication>
+#include <QtCore/QCoreApplication>
 #include <QtGui/QHBoxLayout>
 #include <QtGui/QKeyEvent>
 #include <QtGui/QLabel>
@@ -195,9 +197,7 @@ FilterWidget::FilterWidget(QWidget *parent) :
 		GetEventTypeCount(mySFieldEvents), mySFieldEvents,
 		(void *) this, NULL);
 
-#elif !defined(Q_WS_MAEMO_5)
-
-
+#endif
 	QHBoxLayout *layout = new QHBoxLayout(this);
 	layout->setMargin(3);
 
@@ -213,7 +213,6 @@ FilterWidget::FilterWidget(QWidget *parent) :
 			this, SLOT(filterTextChanged(const QString &)));
 
 	updateVisibility();
-#endif
 }
 
 FilterWidget::~FilterWidget()
@@ -226,7 +225,7 @@ FilterWidget::~FilterWidget()
 
 void FilterWidget::setLabel(const QString &label)
 {
-#if defined(Q_OS_MAC) || defined(Q_WS_MAEMO_5)
+#if defined(Q_OS_MAC)
 	Q_UNUSED(label);
 #else
 	Label->setText(label);
@@ -239,10 +238,8 @@ void FilterWidget::setFilter(const QString &filter)
 	if (text().isEmpty())
 		setText(filter);
 	activate();
-#elif !defined(Q_WS_MAEMO_5)
-	NameFilterEdit->setText(filter);
 #else
-	Q_UNUSED(filter);
+	NameFilterEdit->setText(filter);
 #endif
 }
 
@@ -267,7 +264,7 @@ bool FilterWidget::sendKeyEventToView(QKeyEvent *event)
 		case Qt::Key_Up:
 		case Qt::Key_PageDown:
 		case Qt::Key_PageUp:
-			qApp->sendEvent(View, event);
+			QCoreApplication::sendEvent(View, event);
 			return true;
 	}
 
@@ -276,7 +273,6 @@ bool FilterWidget::sendKeyEventToView(QKeyEvent *event)
 
 void FilterWidget::keyPressEvent(QKeyEvent *event)
 {
-#ifndef Q_WS_MAEMO_5
 	if (event->key() == Qt::Key_Escape &&
 #ifdef Q_OS_MAC
 			!text().isEmpty()
@@ -292,7 +288,8 @@ void FilterWidget::keyPressEvent(QKeyEvent *event)
 
 	if (View && sendKeyEventToView(event))
 		return;
-#endif // !Q_WS_MAEMO_5
 
 	QWidget::keyPressEvent(event);
 }
+
+#include "moc_filter-widget.cpp"

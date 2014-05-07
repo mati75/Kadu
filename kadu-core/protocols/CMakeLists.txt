@@ -4,14 +4,17 @@ set (protocols_SRCS
 	model/protocols-model.cpp
 	model/protocols-model-proxy.cpp
 
+	services/account-service.cpp
+	services/avatar-service.cpp
+	services/chat-image.cpp
 	services/chat-image-service.cpp
 	services/chat-service.cpp
 	services/chat-state-service.cpp
 	services/contact-list-service.cpp
-	services/protocol-service.cpp
-	services/roster-service.cpp
 
 	services/roster/roster-entry.cpp
+	services/roster/roster-notifier.cpp
+	services/roster/roster-service.cpp
 	services/roster/roster-task.cpp
 
 	connection-error-notification.cpp
@@ -28,7 +31,10 @@ set (protocols_MOC_SRCS
 	model/protocols-model.h
 	model/protocols-model-proxy.h
 
+	services/account-service.h
+	services/avatar-downloader.h
 	services/avatar-service.h
+	services/avatar-uploader.h
 	services/chat-image-service.h
 	services/chat-service.h
 	services/chat-state-service.h
@@ -37,12 +43,8 @@ set (protocols_MOC_SRCS
 	services/file-transfer-service.h
 	services/multilogon-service.h
 	services/personal-info-service.h
-	services/protocol-service.h
-	services/roster-service.h
 	services/search-service.h
 	services/subscription-service.h
-
-	services/roster/roster-entry.h
 
 	connection-error-notification.h
 	protocol.h

@@ -2,7 +2,7 @@
  * %kadu copyright begin%
  * Copyright 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2010, 2011, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -31,7 +31,7 @@
 #include "gui/widgets/configuration/kadu-scroll-area.h"
 
 ConfigTab::ConfigTab(const QString &name, ConfigSection *configSection, QWidget *mainWidget) :
-		QObject(configSection), MyName(name), MyConfigSection(configSection)
+		QObject(configSection), MyName(name)
 {
 	MyScrollArea = new KaduScrollArea(mainWidget);
 	MyScrollArea->setFrameStyle(QFrame::NoFrame);
@@ -106,3 +106,5 @@ QWidget * ConfigTab::widget() const
 {
 	return MyScrollArea;
 }
+
+#include "moc_config-tab.cpp"

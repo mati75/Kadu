@@ -6,8 +6,8 @@
  * Copyright 2009, 2009 Bartłomiej Zimoń (uzi18@o2.pl)
  * Copyright 2002, 2003, 2004, 2005 Adrian Smarzewski (adrian@kadu.net)
  * Copyright 2002, 2003, 2004 Tomasz Chiliński (chilek@chilan.com)
- * Copyright 2007, 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2007, 2009, 2010, 2011, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011, 2012 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2007 Dawid Stawiarski (neeo@kadu.net)
  * Copyright 2005 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
@@ -42,8 +42,11 @@ class QLineEdit;
 
 class BuddyAvatarWidget;
 class BuddyContactsTable;
+class CompositeConfigurationValueStateNotifier;
+class ConfigurationValueStateNotifier;
 class Contact;
 class ContactManager;
+class SimpleConfigurationValueStateNotifier;
 
 class KADUAPI BuddyGeneralConfigurationWidget : public QWidget
 {
@@ -54,6 +57,9 @@ class KADUAPI BuddyGeneralConfigurationWidget : public QWidget
 	QLineEdit *MobileEdit;
 	QLineEdit *EmailEdit;
 	QLineEdit *WebsiteEdit;
+
+	CompositeConfigurationValueStateNotifier *ValueStateNotifier;
+	SimpleConfigurationValueStateNotifier *SimpleValueStateNotifier;
 
 	BuddyAvatarWidget *AvatarWidget;
 	BuddyContactsTable *ContactsTable;
@@ -66,15 +72,18 @@ class KADUAPI BuddyGeneralConfigurationWidget : public QWidget
 	void removeBuddyAvatar();
 	void setBuddyAvatar(const QPixmap &avatar);
 
+	bool isValid() const;
+
+private slots:
+	void updateStateNotifier();
+
 public:
 	explicit BuddyGeneralConfigurationWidget(const Buddy &buddy, QWidget *parent = 0);
 	virtual ~BuddyGeneralConfigurationWidget();
 
-	bool isValid();
-	void save();
+	const ConfigurationValueStateNotifier * valueStateNotifier() const;
 
-signals:
-	void validChanged();
+	void save();
 
 };
 

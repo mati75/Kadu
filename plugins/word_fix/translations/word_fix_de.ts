@@ -1,11 +1,9 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE TS>
-<TS version="2.0" language="de">
+<?xml version="1.0" ?><!DOCTYPE TS><TS language="de" version="2.0">
 <context>
     <name>@default</name>
     <message>
         <source>Chat</source>
-        <translation type="unfinished"></translation>
+        <translation>Chat</translation>
     </message>
     <message>
         <source>Words fix</source>
@@ -14,6 +12,10 @@
     <message>
         <source>Enable word fix</source>
         <translation>Korrektur einschalten</translation>
+    </message>
+    <message>
+        <source>Spelling</source>
+        <translation type="unfinished"/>
     </message>
 </context>
 <context>

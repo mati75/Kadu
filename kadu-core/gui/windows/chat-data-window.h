@@ -3,7 +3,7 @@
  * Copyright 2004 Michał Podsiadlik (michal@kadu.net)
  * Copyright 2002, 2003, 2004, 2005 Adrian Smarzewski (adrian@kadu.net)
  * Copyright 2002, 2003, 2004 Tomasz Chiliński (chilek@chilan.com)
- * Copyright 2007, 2009, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2007, 2009, 2011, 2012, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2007 Dawid Stawiarski (neeo@kadu.net)
  * Copyright 2005 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
@@ -38,17 +38,23 @@ class QPushButton;
 class QTabWidget;
 class QVBoxLayout;
 
+class ChatConfigurationWidget;
+class ChatConfigurationWidgetFactory;
+class ChatConfigurationWidgetFactoryRepository;
 class ChatEditWidget;
+class CompositeConfigurationValueStateNotifier;
 class GroupList;
+class SimpleConfigurationValueStateNotifier;
 
 class KADUAPI ChatDataWindow : public QWidget
 {
 	Q_OBJECT
 
-	friend class ChatDataWindowAwareObject;
+	ChatConfigurationWidgetFactoryRepository *MyChatConfigurationWidgetFactoryRepository;
+	QMap<ChatConfigurationWidgetFactory *, ChatConfigurationWidget *> ChatConfigurationWidgets;
 
-	static QMap<Chat, ChatDataWindow *> Instances;
-	static const QMap<Chat, ChatDataWindow *> & instances() { return Instances; }
+	CompositeConfigurationValueStateNotifier *ValueStateNotifier;
+	SimpleConfigurationValueStateNotifier *SimpleStateNotifier;
 
 	Chat MyChat;
 
@@ -63,26 +69,30 @@ class KADUAPI ChatDataWindow : public QWidget
 	QPushButton *OkButton;
 	QPushButton *ApplyButton;
 
-	ChatDataWindow(const Chat &chat, QWidget *parent);
-	virtual ~ChatDataWindow();
-
 	void createGui();
 	void createButtons(QVBoxLayout *layout);
 
-	bool isValid();
+	void applyChatConfigurationWidgets();
 
 private slots:
-	void updateButtons();
+	void factoryRegistered(ChatConfigurationWidgetFactory *factory);
+	void factoryUnregistered(ChatConfigurationWidgetFactory *factory);
+
+	void displayEditChanged();
+	void stateChangedSlot(ConfigurationValueState state);
+
 	void updateChat();
 	void updateChatAndClose();
 	void chatRemoved(const Chat &buddy);
-	void editChatStateChanged(ModalConfigurationWidgetState state);
 
 protected:
 	virtual void keyPressEvent(QKeyEvent *event);
 
 public:
-	static ChatDataWindow * instance(const Chat &chat, QWidget *parent = 0);
+	explicit ChatDataWindow(ChatConfigurationWidgetFactoryRepository *chatConfigurationWidgetFactoryRepository, const Chat &chat);
+	virtual ~ChatDataWindow();
+
+	QList<ChatConfigurationWidget *> chatConfigurationWidgets() const;
 
 	void show();
 
@@ -91,6 +101,10 @@ public:
 	QWidget * generalTab() const { return GeneralTab; }
 
 signals:
+	void widgetAdded(ChatConfigurationWidget *widget);
+	void widgetRemoved(ChatConfigurationWidget *widget);
+
+	void destroyed(const Chat &chat);
 	void save();
 
 };

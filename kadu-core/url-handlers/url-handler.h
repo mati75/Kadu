@@ -2,7 +2,7 @@
  * %kadu copyright begin%
  * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2008 Michał Podsiadlik (michal@kadu.net)
- * Copyright 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2009, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
@@ -23,7 +23,8 @@
 #ifndef URL_HANDLER_H
 #define URL_HANDLER_H
 
-#include "html_document.h"
+class QByteArray;
+class QDomDocument;
 
 class UrlHandler
 {
@@ -31,10 +32,8 @@ public:
 	virtual ~UrlHandler() {}
 
 	virtual bool isUrlValid(const QByteArray &url) = 0;
-
-	virtual void convertUrlsToHtml(HtmlDocument &document, bool generateOnlyHrefAttr) = 0;
-
 	virtual void openUrl(const QByteArray &url, bool disableMenu = false) = 0;
+
 };
 
 #endif // URL_HANDLER_H

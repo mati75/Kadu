@@ -38,10 +38,6 @@
         <translation>Raccourcis</translation>
     </message>
     <message>
-        <source>Tabs</source>
-        <translation>Onglets</translation>
-    </message>
-    <message>
         <source>Switch to previous tab</source>
         <translation>Aller à l&apos;onglet précédent</translation>
     </message>
@@ -56,6 +52,10 @@
     <message>
         <source>Switch focus between roster and tabs</source>
         <translation>Basculer le focus entre roster et les onglets</translation>
+    </message>
+    <message>
+        <source>Behaviour</source>
+        <translation type="unfinished"/>
     </message>
 </context>
 <context>

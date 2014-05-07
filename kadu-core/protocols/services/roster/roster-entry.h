@@ -1,6 +1,7 @@
 /*
  * %kadu copyright begin%
- * Copyright 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2012, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2012 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -22,10 +23,9 @@
 
 #include <QtCore/QObject>
 
-#include "exports.h"
+#include "misc/change-notifier.h"
 #include "protocols/services/roster/roster-entry-state.h"
-
-class ChangeNotifier;
+#include "exports.h"
 
 /**
  * @addtogroup Protocol
@@ -49,7 +49,7 @@ class KADUAPI RosterEntry : public QObject
 	RosterEntryState State;
 	bool Detached;
 	bool RemotelyDeleted;
-	ChangeNotifier *MyChangeNotifier;
+	ChangeNotifier MyChangeNotifier;
 
 public:
 	/**
@@ -111,7 +111,7 @@ public:
 	 *
 	 * Each time a property of this object changes returned ChangeNotifier will emit changed() signal.
 	 */
-	ChangeNotifier * changeNotifier() const;
+	ChangeNotifier & changeNotifier();
 
 	/**
 	 * @author Rafał 'Vogel' Malinowski

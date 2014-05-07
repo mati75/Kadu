@@ -2,7 +2,7 @@
  * %kadu copyright begin%
  * Copyright 2009, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009 Michał Podsiadlik (michal@kadu.net)
- * Copyright 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2009, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
@@ -23,35 +23,73 @@
 #ifndef AVATAR_SERVICE_H
 #define AVATAR_SERVICE_H
 
-#include <QtCore/QObject>
-#include <QtGui/QPixmap>
-
-#include "accounts/account.h"
+#include "protocols/services/account-service.h"
 #include "exports.h"
 
-class Contact;
+class Account;
+class AvatarDownloader;
+class AvatarUploader;
 
-class KADUAPI AvatarService : public QObject
+/**
+ * @addtogroup Protocol
+ * @{
+ */
+
+/**
+ * @class AvatarService
+ * @short Service for downloading and uploading avatars.
+ * @author Rafał 'Vogel' Malinowski
+ *
+ * This service can return AvatarDownloader and AvatarUploader instances that can be used to download and upload
+ * avatars. If for some reason these operations are not available, null values will be returned.
+ */
+class KADUAPI AvatarService : public AccountService
 {
 	Q_OBJECT
 
-	Account MyAccount;
+protected:
+	explicit AvatarService(Account account, QObject *parent = 0);
+	virtual ~AvatarService();
 
 public:
-	explicit AvatarService(Account account, QObject *parent) : QObject(parent), MyAccount(account) {}
+	/**
+	 * @short Return avatar service for given account.
+	 * @author Rafał 'Vogel' Malinowski
+	 * @param account account to get avatar service from
+	 * @return avatar service for given account
+	 */
+	static AvatarService * fromAccount(Account account);
 
-	Account account() { return MyAccount; }
+	/**
+	 * @short Get AvatarDownloader for this service.
+	 * @author Rafał 'Vogel' Malinowski
+	 * @return AvatarDownloader for this service
+	 *
+	 * This method will create and return AvatarDownloader class that can be used to download avatar for a contact.
+	 * This method can return null if it is impossible to download an avatar.
+	 *
+	 * Returned instance should be used immediately and should not be stored for future use. Returned object will delete
+	 * itself after one use, so next instance should be created in case first upload fails.
+	 */
+	virtual AvatarDownloader * createAvatarDownloader() = 0;
 
-	virtual void fetchAvatar(Contact contact) = 0;
-	virtual void uploadAvatar(QImage avatar) = 0;
-
-signals:
-	void avatarFetched(Contact contact, bool ok);
-	void avatarUploaded(bool ok, QImage avatar);
+	/**
+	 * @short Get AvatarUploader for this service.
+	 * @author Rafał 'Vogel' Malinowski
+	 * @return AvatarUploader for this service
+	 *
+	 * This method will create and return AvatarUploader class that can be used to upload new avatar for account owner.
+	 * This method can return null if it is impossible to upload an avatar.
+	 *
+	 * Returned instance should be used immediately and should not be stored for future use. Returned object will delete
+	 * itself after one use, so next instance should be created in case first upload fails.
+	 */
+	virtual AvatarUploader * createAvatarUploader() = 0;
 
 };
 
-// for MOC
-#include "contacts/contact.h"
+/**
+ * @}
+ */
 
 #endif // AVATAR_SERVICE_H

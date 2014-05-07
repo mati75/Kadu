@@ -2,12 +2,12 @@
  * %kadu copyright begin%
  * Copyright 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009, 2009, 2010, 2010 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2012 Piotr Dąbrowski (ultr@ultr.pl)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
  * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
  * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
- * Copyright 2012 Piotr Dąbrowski (ultr@ultr.pl)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -38,7 +38,7 @@ class JabberProtocolFactory : public ProtocolFactory
 	static JabberProtocolFactory *Instance;
 	QList<StatusType> SupportedStatusTypes;
 
-	StatusAdapter *MyStatusAdapter;
+	std::unique_ptr<StatusAdapter> MyStatusAdapter;
 
 public:
 	static void createInstance();
@@ -55,9 +55,10 @@ public:
 	virtual QWidget * newContactPersonalInfoWidget(Contact contact, QWidget *parent = 0);
     virtual ProtocolMenuManager * protocolMenuManager();
 	virtual QList<StatusType> supportedStatusTypes();
-	virtual StatusAdapter * statusAdapter() { return MyStatusAdapter; }
+	virtual StatusAdapter * statusAdapter() { return MyStatusAdapter.get(); }
 	virtual QString idLabel();
 	virtual QValidator::State validateId(QString id);
+	virtual bool canRegister();
 	virtual bool allowChangeServer();
 	virtual QString defaultServer();
 	virtual QString whatIsMyUsername() { return QString(); }

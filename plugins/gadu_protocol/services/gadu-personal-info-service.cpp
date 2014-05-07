@@ -3,7 +3,8 @@
  * Copyright 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
- * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2009, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -23,14 +24,24 @@
 #include "misc/misc.h"
 
 #include "helpers/gadu-protocol-helper.h"
+#include "server/gadu-connection.h"
+#include "server/gadu-writable-session-token.h"
 #include "gadu-contact-details.h"
-#include "gadu-protocol.h"
 
 #include "gadu-personal-info-service.h"
 
-GaduPersonalInfoService::GaduPersonalInfoService(GaduProtocol *protocol) :
-		PersonalInfoService(protocol), Protocol(protocol), FetchSeq(0), UpdateSeq(0)
+GaduPersonalInfoService::GaduPersonalInfoService(Account account, QObject *parent) :
+		PersonalInfoService(account, parent), FetchSeq(0), UpdateSeq(0)
 {
+}
+
+GaduPersonalInfoService::~GaduPersonalInfoService()
+{
+}
+
+void GaduPersonalInfoService::setConnection(GaduConnection *connection)
+{
+	Connection = connection;
 }
 
 void GaduPersonalInfoService::handleEventPubdir50Read(struct gg_event *e)
@@ -47,7 +58,7 @@ void GaduPersonalInfoService::handleEventPubdir50Read(struct gg_event *e)
 		return;
 	}
 
-	Buddy result = GaduProtocolHelper::searchResultToBuddy(Protocol->account(), res, 0);
+	Buddy result = GaduProtocolHelper::searchResultToBuddy(account(), res, 0);
 
 	// inverted values for "self" data
 	// this is why gadu protocol suxx
@@ -69,17 +80,27 @@ void GaduPersonalInfoService::handleEventPubdir50Write(struct gg_event *e)
 	emit personalInfoUpdated(true);
 }
 
-void GaduPersonalInfoService::fetchPersonalInfo()
+void GaduPersonalInfoService::fetchPersonalInfo(const QString &id)
 {
+	Q_UNUSED(id)
+
+	if (!Connection || !Connection->hasSession())
+		return;
+
 	gg_pubdir50_t req = gg_pubdir50_new(GG_PUBDIR50_READ);
-	Protocol->disableSocketNotifiers();
-	FetchSeq = gg_pubdir50(Protocol->gaduSession(), req);
-	Protocol->enableSocketNotifiers();
+
+	auto writableSessionToken = Connection->writableSessionToken();
+	FetchSeq = gg_pubdir50(writableSessionToken.rawSession(), req);
 	//gg_pubdir50_free(req);
 }
 
-void GaduPersonalInfoService::updatePersonalInfo(Buddy buddy)
+void GaduPersonalInfoService::updatePersonalInfo(const QString &id, Buddy buddy)
 {
+	Q_UNUSED(id)
+
+	if (!Connection || !Connection->hasSession())
+		return;
+
 	gg_pubdir50_t req = gg_pubdir50_new(GG_PUBDIR50_WRITE);
 
 	if (!buddy.firstName().isEmpty())
@@ -105,8 +126,9 @@ void GaduPersonalInfoService::updatePersonalInfo(Buddy buddy)
 	if (!buddy.familyCity().isEmpty())
 		gg_pubdir50_add(req, GG_PUBDIR50_FAMILYCITY, buddy.familyCity().toUtf8().constData());
 
-	Protocol->disableSocketNotifiers();
-	UpdateSeq = gg_pubdir50(Protocol->gaduSession(), req);
-	Protocol->enableSocketNotifiers();
+	auto writableSessionToken = Connection->writableSessionToken();
+	UpdateSeq = gg_pubdir50(writableSessionToken.rawSession(), req);
 	//gg_pubdir50_free(req);
 }
+
+#include "moc_gadu-personal-info-service.cpp"

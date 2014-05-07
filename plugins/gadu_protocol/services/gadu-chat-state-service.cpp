@@ -1,8 +1,8 @@
 /*
  * %kadu copyright begin%
  * Copyright 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -22,11 +22,13 @@
 #include "contacts/contact-manager.h"
 
 #include "helpers/gadu-protocol-helper.h"
+#include "server/gadu-connection.h"
+#include "server/gadu-writable-session-token.h"
 
 #include "gadu-chat-state-service.h"
 
-GaduChatStateService::GaduChatStateService(Protocol *parent) :
-		ChatStateService(parent), GaduSession(0), SendTypingNotifications(false)
+GaduChatStateService::GaduChatStateService(Account account, QObject *parent) :
+		ChatStateService(account, parent), SendTypingNotifications(false)
 {
 }
 
@@ -34,9 +36,9 @@ GaduChatStateService::~GaduChatStateService()
 {
 }
 
-void GaduChatStateService::setGaduSession(gg_session *gaduSession)
+void GaduChatStateService::setConnection(GaduConnection *connection)
 {
-	GaduSession = gaduSession;
+	Connection = connection;
 }
 
 void GaduChatStateService::setSendTypingNotifications(bool sendTypingNotifications)
@@ -67,21 +69,22 @@ void GaduChatStateService::sendState(const Contact &contact, State state)
 	if (!SendTypingNotifications || !contact)
 		return;
 
-	if (!GaduSession)
+	if (!Connection || !Connection.data()->hasSession())
 		return;
 
-	static_cast<GaduProtocol *>(protocol())->disableSocketNotifiers();
+	auto writableSessionToken = Connection.data()->writableSessionToken();
 	switch (state)
 	{
 		case StateComposing:
-			gg_typing_notification(GaduSession, GaduProtocolHelper::uin(contact), 0x0001);
+			gg_typing_notification(writableSessionToken.rawSession(), GaduProtocolHelper::uin(contact), 0x0001);
 			break;
 		case StatePaused:
 		case StateGone:
-			gg_typing_notification(GaduSession, GaduProtocolHelper::uin(contact), 0x0000);
+			gg_typing_notification(writableSessionToken.rawSession(), GaduProtocolHelper::uin(contact), 0x0000);
 			break;
 		default:
 			break;
 	}
-	static_cast<GaduProtocol *>(protocol())->enableSocketNotifiers();
 }
+
+#include "moc_gadu-chat-state-service.cpp"

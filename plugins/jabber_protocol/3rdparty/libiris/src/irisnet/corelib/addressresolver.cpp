@@ -53,10 +53,10 @@ public:
 		req6(this),
 		req4(this)
 	{
-		connect(&req6, SIGNAL(resultsReady(const QList<XMPP::NameRecord> &)), SLOT(req6_resultsReady(const QList<XMPP::NameRecord> &)));
+		connect(&req6, SIGNAL(resultsReady(QList<XMPP::NameRecord>)), SLOT(req6_resultsReady(QList<XMPP::NameRecord>)));
 		connect(&req6, SIGNAL(error(XMPP::NameResolver::Error)), SLOT(req6_error(XMPP::NameResolver::Error)));
 
-		connect(&req4, SIGNAL(resultsReady(const QList<XMPP::NameRecord> &)), SLOT(req4_resultsReady(const QList<XMPP::NameRecord> &)));
+		connect(&req4, SIGNAL(resultsReady(QList<XMPP::NameRecord>)), SLOT(req4_resultsReady(QList<XMPP::NameRecord>)));
 		connect(&req4, SIGNAL(error(XMPP::NameResolver::Error)), SLOT(req4_error(XMPP::NameResolver::Error)));
 
 		opTimer = new QTimer(this);
@@ -124,7 +124,7 @@ private:
 	{
 		if((done6 && done4) || (state == AddressFirstCome && (done6 || done4)))
 		{
-			QList<QHostAddress> results = addrs4 + addrs6;
+			QList<QHostAddress> results = addrs6 + addrs4;
 			cleanup();
 
 			if(!results.isEmpty())

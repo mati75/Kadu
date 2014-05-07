@@ -1,7 +1,7 @@
 /*
  * %kadu copyright begin%
  * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
@@ -22,6 +22,8 @@
 #include <QtCore/QVector>
 
 #include "storable-string-list.h"
+
+#include "storage/string-list-storage.h"
 
 /**
  * @author Rafal 'Vogel' Malinowski
@@ -49,15 +51,8 @@ void StorableStringList::load()
 
 	StorableObject::load();
 
-	StringList.clear();
-
-	XmlConfigFile *storageFile = storage()->storage();
-	QDomElement point = storage()->point();
-
-	QVector<QDomElement> elements = storageFile->getNodes(point, storageItemNodeName());
-	StringList.reserve(elements.size());
-	foreach (const QDomElement &element, elements)
-		StringList.append(element.text());
+	auto stringListStorage = StringListStorage(storage().get(), storageItemNodeName());
+	StringList = stringListStorage.load();
 }
 
 /**
@@ -72,13 +67,8 @@ void StorableStringList::store()
 	if (!isValidStorage())
 		return;
 
-	XmlConfigFile *storageFile = storage()->storage();
-	QDomElement point = storage()->point();
-
-	storageFile->removeChildren(point);
-
-	foreach (const QString &value, content())
-		storageFile->appendTextNode(point, storageItemNodeName(), value);
+	auto stringListStorage = StringListStorage(storage().get(), storageItemNodeName());
+	stringListStorage.store(content());
 }
 
 /**

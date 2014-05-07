@@ -1,13 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE TS>
-<TS version="2.0" language="tr">
-<context>
-    <name>Infos</name>
-    <message>
-        <source>&amp;Show infos about buddies...</source>
-        <translation>Arkadaşların bilgilerini &amp;gösterir...</translation>
-    </message>
-</context>
+<?xml version="1.0" ?><!DOCTYPE TS><TS language="tr" version="2.0">
 <context>
     <name>InfosDialog</name>
     <message>
@@ -52,7 +43,7 @@
     </message>
     <message>
         <source>Username</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
     </message>
 </context>
 </TS>

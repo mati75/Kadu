@@ -5,7 +5,7 @@
  * Copyright 2010 Tomasz Rostański (rozteck@interia.pl)
  * Copyright 2008, 2009 Michał Podsiadlik (michal@kadu.net)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
- * Copyright 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2009, 2010, 2011, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
@@ -29,38 +29,12 @@
 #include <QtGui/QWidget>
 #include "exports.h"
 
+#include "configuration-value-state-notifier.h"
+
 /**
  * @addtogroup Gui
  * @{
  */
-
-/**
- * @enum ModalConfigurationWidgetState
- * @author Rafal 'Vogel' Malinowski
- * @short State of modal configuration widget.
- *
- * Modal configuration window can be in one of three states:
- * <ul>
- *   <li>no data in widget has been changed</li>
- *   <li>data in widget has been changed and is valid (can be stored)</li>
- *   <li>data in widget has been changed and is invalid (can not be stored)</li>
- * </ul>
- */
-enum ModalConfigurationWidgetState
-{
-	/**
-	 * No data in widget has been changed.
-	 */
-	StateNotChanged,
-	/**
-	 * Data in widget has been changed and is valid (can be stored).
-	 */
-	StateChangedDataValid,
-	/**
-	 * Data in widget has been changed and is invalid (can not be stored).
-	 */
-	StateChangedDataInvalid
-};
 
 /**
  * @class ModalConfigurationWidget
@@ -78,18 +52,6 @@ class KADUAPI ModalConfigurationWidget : public QWidget
 {
 	Q_OBJECT
 
-	ModalConfigurationWidgetState State;
-
-protected:
-	/**
-	 * @author Rafal 'Vogel' Malinowski
-	 * @short Updates state of widget.
-	 *
-	 * Sets new state value. When new value is different from
-	 * old one, stateChanged signal is emitted.
-	 */
-	void setState(ModalConfigurationWidgetState state);
-
 public:
 	/**
 	 * @author Rafal 'Vogel' Malinowski
@@ -103,12 +65,12 @@ public:
 
 	/**
 	 * @author Rafal 'Vogel' Malinowski
-	 * @short Returns state of widget.
-	 * @return state of widget
+	 * @short Returns configuration state notifier for this widget.
+	 * @return configuration state notifier for this widget
 	 *
-	 * Returns state of widget.
+	 * Returns configuration state notifier for this widget.
 	 */
-	ModalConfigurationWidgetState state();
+	virtual const ConfigurationValueStateNotifier * stateNotifier() const = 0;
 
 public slots:
 	/**
@@ -128,16 +90,6 @@ public slots:
 	 * all widget data to oryginal state and marks it as 'unmodified'.
 	 */
 	virtual void cancel() = 0;
-
-signals:
-	/**
-	 * @author Rafal 'Vogel' Malinowski
-	 * @short Emitted when state of data modifiecation in widget has been changed.
-	 *
-	 * Emitted when state of data modifiecation in widget has been changed. For example:
-	 * first bit of data is changed, data is saved, data is restored from saved state.
-	 */
-	void stateChanged(ModalConfigurationWidgetState state);
 
 };
 

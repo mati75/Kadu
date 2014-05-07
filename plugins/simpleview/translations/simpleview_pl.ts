@@ -2,18 +2,6 @@
 <context>
     <name>@default</name>
     <message>
-        <source>Look</source>
-        <translation>Wygląd</translation>
-    </message>
-    <message>
-        <source>Simple view</source>
-        <translation>Widok uproszczony</translation>
-    </message>
-    <message>
-        <source>General</source>
-        <translation>Ogólne</translation>
-    </message>
-    <message>
         <source>Keep contact list size</source>
         <translation>Zachowuj rozmiar listy kontaktów</translation>
     </message>
@@ -22,8 +10,20 @@
         <translation>Ukryj pasek przewijania</translation>
     </message>
     <message>
-        <source>Borderless</source>
-        <translation>Ukryj obramowanie</translation>
+        <source>Extras</source>
+        <translation>Dodatki</translation>
+    </message>
+    <message>
+        <source>Simple View</source>
+        <translation>Widok uproszczony</translation>
+    </message>
+    <message>
+        <source>Options</source>
+        <translation>Opcje</translation>
+    </message>
+    <message>
+        <source>Hide window borders</source>
+        <translation>Ukryj obramowanie okna</translation>
     </message>
 </context>
 <context>

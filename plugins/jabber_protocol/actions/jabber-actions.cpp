@@ -1,8 +1,8 @@
 /*
  * %kadu copyright begin%
  * Copyright 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -105,7 +105,7 @@ Contact JabberActions::contactFromAction(QAction *action)
 
 SubscriptionService * JabberActions::subscriptionServiceFromContact(const Contact &contact)
 {
-	JabberProtocol *jabberProtocolHandler = qobject_cast<JabberProtocol *>(contact.contactAccount().protocolHandler());
+	XMPP::JabberProtocol *jabberProtocolHandler = qobject_cast<XMPP::JabberProtocol *>(contact.contactAccount().protocolHandler());
 	if (!jabberProtocolHandler)
 		return 0;
 
@@ -150,3 +150,5 @@ void JabberActions::askForSubscriptionActionActivated(QAction *sender)
 
 	subscriptionService->requestSubscription(contact);
 }
+
+#include "moc_jabber-actions.cpp"

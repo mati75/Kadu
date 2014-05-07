@@ -1,10 +1,10 @@
 /*
  * %kadu copyright begin%
  * Copyright 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2010 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2010, 2012 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2010 Bartłomiej Zimoń (uzi18@o2.pl)
- * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2009, 2010, 2011, 2012, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -28,10 +28,10 @@
 #include "core/core.h"
 #include "file-transfer/file-transfer-handler.h"
 #include "file-transfer/file-transfer-manager.h"
+#include "gui/actions/action-context.h"
 #include "gui/actions/action-description.h"
 #include "gui/actions/action.h"
-#include "gui/widgets/talkable-menu-manager.h"
-#include "gui/windows/kadu-window.h"
+#include "gui/menu/menu-inventory.h"
 #include "protocols/protocol.h"
 #include "protocols/services/file-transfer-service.h"
 #include "debug.h"
@@ -72,7 +72,6 @@ FileTransferActions::FileTransferActions(QObject *parent)
 		disableNonFileTransferContacts
 	);
 	SendFileActionDescription->setShortcut("kadu_sendfile");
-	TalkableMenuManager::instance()->addActionDescription(SendFileActionDescription, TalkableMenuItem::CategoryActions, 100);
 
 	connect(SendFileActionDescription, SIGNAL(actionCreated(Action*)),
 	        this, SLOT(sendFileActionCreated(Action*)));
@@ -83,13 +82,24 @@ FileTransferActions::FileTransferActions(QObject *parent)
 		KaduIcon("document-send"), tr("View File Transfers")
 	);
 
-	Core::instance()->kaduWindow()->insertMenuActionDescription(FileTransferWindowActionDescription, KaduWindow::MenuTools, 5);
+	MenuInventory::instance()
+		->menu("buddy-list")
+		->addAction(SendFileActionDescription, KaduMenu::SectionSend, 100);
+
+	MenuInventory::instance()
+		->menu("tools")
+		->addAction(FileTransferWindowActionDescription, KaduMenu::SectionTools, 5);
 }
 
 FileTransferActions::~FileTransferActions()
 {
-	TalkableMenuManager::instance()->removeActionDescription(SendFileActionDescription);
-	Core::instance()->kaduWindow()->removeMenuActionDescription(FileTransferWindowActionDescription);
+	MenuInventory::instance()
+		->menu("buddy-list")
+		->removeAction(SendFileActionDescription);
+
+	MenuInventory::instance()
+		->menu("tools")
+		->removeAction(FileTransferWindowActionDescription);
 }
 
 void FileTransferActions::sendFileActionCreated(Action *action)
@@ -170,3 +180,5 @@ void FileTransferActions::selectFilesAndSend(const ContactSet &contacts)
 		}
 	}
 }
+
+#include "moc_file-transfer-actions.cpp"

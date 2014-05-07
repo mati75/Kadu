@@ -3,7 +3,7 @@
  * Copyright 2008, 2009, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2008 Michał Podsiadlik (michal@kadu.net)
- * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2007, 2008, 2009, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2007, 2008 Dawid Stawiarski (neeo@kadu.net)
  * %kadu copyright end%
  *
@@ -28,13 +28,14 @@
 
 #include "protocols/services/personal-info-service.h"
 
-class GaduProtocol;
+class GaduConnection;
 
 class GaduPersonalInfoService : public PersonalInfoService
 {
 	Q_OBJECT
 
-	GaduProtocol *Protocol;
+	QPointer<GaduConnection> Connection;
+
 	unsigned int FetchSeq;
 	unsigned int UpdateSeq;
 
@@ -46,10 +47,13 @@ class GaduPersonalInfoService : public PersonalInfoService
 	void handleEventPubdir50Write(struct gg_event *e);
 
 public:
-	GaduPersonalInfoService(GaduProtocol *protocol);
+	explicit GaduPersonalInfoService(Account account, QObject *parent = 0);
+	virtual ~GaduPersonalInfoService();
 
-	virtual void fetchPersonalInfo();
-	virtual void updatePersonalInfo(Buddy buddy);
+	void setConnection(GaduConnection *connection);
+
+	virtual void fetchPersonalInfo(const QString &id);
+	virtual void updatePersonalInfo(const QString &id, Buddy buddy);
 
 };
 

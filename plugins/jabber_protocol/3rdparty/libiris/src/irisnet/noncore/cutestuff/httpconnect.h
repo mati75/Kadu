@@ -37,12 +37,10 @@ public:
 	void connectToHost(const QString &proxyHost, int proxyPort, const QString &host, int port);
 
 	// from ByteStream
-	bool isOpen() const;
 	void close();
-	void write(const QByteArray &);
-	QByteArray read(int bytes=0);
-	int bytesAvailable() const;
-	int bytesToWrite() const;
+	qint64 bytesToWrite() const;
+protected:
+	qint64 writeData(const char *data, qint64 maxSize);
 
 signals:
 	void connected();
@@ -52,14 +50,14 @@ private slots:
 	void sock_connectionClosed();
 	void sock_delayedCloseFinished();
 	void sock_readyRead();
-	void sock_bytesWritten(int);
+	void sock_bytesWritten(qint64);
 	void sock_error(int);
 
 private:
 	class Private;
 	Private *d;
 
-	void reset(bool clear=false);
+	void resetConnection(bool clear=false);
 };
 
 // CS_NAMESPACE_END

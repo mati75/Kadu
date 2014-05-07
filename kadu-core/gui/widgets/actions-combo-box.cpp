@@ -1,7 +1,7 @@
 /*
  * %kadu copyright begin%
- * Copyright 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2011, 2012, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -22,9 +22,9 @@
 
 #include "model/action-filter-proxy-model.h"
 #include "model/action-list-model.h"
-#include "model/roles.h"
 #include "model/merged-proxy-model-factory.h"
 #include "model/model-chain.h"
+#include "model/roles.h"
 
 #include "actions-combo-box.h"
 
@@ -164,3 +164,5 @@ QAction * ActionsComboBox::currentAction()
 {
 	return model()->index(currentIndex(), modelColumn()).data(ActionRole).value<QAction *>();
 }
+
+#include "moc_actions-combo-box.cpp"

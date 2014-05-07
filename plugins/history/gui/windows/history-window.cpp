@@ -1,13 +1,13 @@
 /*
  * %kadu copyright begin%
  * Copyright 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2009, 2009, 2009 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2009, 2009, 2009, 2009, 2011 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2010, 2010 Tomasz Rostański (rozteck@interia.pl)
  * Copyright 2010, 2011 Piotr Dąbrowski (ultr@ultr.pl)
  * Copyright 2009 Michał Podsiadlik (michal@kadu.net)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
- * Copyright 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2008, 2009, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -29,9 +29,10 @@
 #include <QtGui/QVBoxLayout>
 
 #include "chat/buddy-chat-manager.h"
+#include "configuration/config-file-variant-wrapper.h"
 #include "core/core.h"
 #include "gui/windows/message-dialog.h"
-#include "misc/misc.h"
+#include "os/generic/window-geometry-manager.h"
 #include "activate.h"
 
 #include "gui/widgets/chat-history-tab.h"
@@ -65,7 +66,7 @@ void HistoryWindow::show(const Chat &chat)
 }
 
 HistoryWindow::HistoryWindow(QWidget *parent) :
-		QDialog(parent), CurrentTab(-1)
+		QWidget(parent), CurrentTab(-1)
 {
 	setWindowRole("kadu-history");
 	setAttribute(Qt::WA_DeleteOnClose);
@@ -75,7 +76,7 @@ HistoryWindow::HistoryWindow(QWidget *parent) :
 
 	createGui();
 
-	loadWindowGeometry(this, "History", "HistoryWindowGeometry", 200, 200, 750, 500);
+	new WindowGeometryManager(new ConfigFileVariantWrapper("History", "HistoryWindowGeometry"), QRect(200, 200, 750, 500), this);
 
 	connect(History::instance(), SIGNAL(storageChanged(HistoryStorage*)), this, SLOT(storageChanged(HistoryStorage*)));
 }
@@ -83,8 +84,6 @@ HistoryWindow::HistoryWindow(QWidget *parent) :
 HistoryWindow::~HistoryWindow()
 {
 	disconnect(History::instance(), 0, this, 0);
-
-	saveWindowGeometry(this, "History", "HistoryDialogGeometry");
 
 	Instance = 0;
 }
@@ -131,6 +130,14 @@ void HistoryWindow::createGui()
 	layout->addWidget(buttons);
 
 	ChatTab->setFocus();
+}
+
+void HistoryWindow::keyPressEvent(QKeyEvent *event)
+{
+	QWidget::keyPressEvent(event);
+
+	if (event->key() == Qt::Key_Escape)
+		close();
 }
 
 void HistoryWindow::storageChanged(HistoryStorage *historyStorage)
@@ -186,3 +193,5 @@ void HistoryWindow::currentTabChanged(int newTabIndex)
 
 	currentTab->setSizes(previousTab->sizes());
 }
+
+#include "moc_history-window.cpp"

@@ -1,7 +1,8 @@
 /*
  * %kadu copyright begin%
  * Copyright 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -22,7 +23,7 @@
 #include <QtNetwork/QNetworkReply>
 #include <QtNetwork/QNetworkRequest>
 
-#include "protocols/services/chat-image-service.h"
+#include "services/image-storage-service.h"
 
 #include "chat-view-network-access-manager.h"
 
@@ -35,20 +36,27 @@ ChatViewNetworkAccessManager::ChatViewNetworkAccessManager(QNetworkAccessManager
 	setProxyFactory(manager->proxyFactory());
 }
 
+ChatViewNetworkAccessManager::~ChatViewNetworkAccessManager()
+{
+}
+
+void ChatViewNetworkAccessManager::setImageStorageService(ImageStorageService *imageStorageService)
+{
+	CurrentImageStorageService = imageStorageService;
+}
+
 QNetworkReply * ChatViewNetworkAccessManager::createRequest(QNetworkAccessManager::Operation operation, const QNetworkRequest &request, QIODevice *device)
 {
 	if (QNetworkAccessManager::GetOperation != operation && QNetworkAccessManager::HeadOperation != operation)
 		operation = QNetworkAccessManager::GetOperation;
 
-	if (request.url().scheme() != "kaduimg")
+	if (!CurrentImageStorageService)
 		return QNetworkAccessManager::createRequest(operation, request, device);
 
-	QUrl newUrl(request.url());
-	newUrl.setScheme("file");
-	newUrl.setPath(ChatImageService::imagesPath() + newUrl.path());
-
 	QNetworkRequest newRequest(request);
-	newRequest.setUrl(newUrl);
+	newRequest.setUrl(CurrentImageStorageService.data()->toFileUrl(request.url()));
 
 	return QNetworkAccessManager::createRequest(operation, newRequest, device);
 }
+
+#include "moc_chat-view-network-access-manager.cpp"

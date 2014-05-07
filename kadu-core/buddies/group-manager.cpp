@@ -4,7 +4,7 @@
  * Copyright 2009 Michał Podsiadlik (michal@kadu.net)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
  * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2010, 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -26,8 +26,6 @@
 #include <QtXml/QDomElement>
 
 #include "buddies/buddy-manager.h"
-#include "buddies/group.h"
-#include "configuration/configuration-manager.h"
 #include "configuration/xml-configuration-file.h"
 #include "core/core.h"
 #include "gui/windows/message-dialog.h"
@@ -56,19 +54,17 @@ GroupManager::GroupManager()
 
 GroupManager::~GroupManager()
 {
-	ConfigurationManager::instance()->unregisterStorableObject(this);
 }
 
 void GroupManager::init()
 {
-	ConfigurationManager::instance()->registerStorableObject(this);
 }
 
 void GroupManager::importConfiguration()
 {
 	QMutexLocker locker(&mutex());
 
-	QSharedPointer<StoragePoint> sp(storage());
+	auto sp = storage();
 	if (!sp || !sp->storage())
 		return;
 
@@ -216,3 +212,5 @@ void GroupManager::itemRemoved(Group item)
 	disconnect(item, 0, this, 0);
 	emit groupRemoved(item);
 }
+
+#include "moc_group-manager.cpp"

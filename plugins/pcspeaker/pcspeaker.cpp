@@ -2,10 +2,10 @@
  * %kadu copyright begin%
  * Copyright 2011 Tomasz Rostanski (rozteck@interia.pl)
  * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2009, 2012 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2008, 2010, 2010 Tomasz Rostański (rozteck@interia.pl)
  * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2010, 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -31,12 +31,12 @@
 #include "gui/widgets/configuration/configuration-widget.h"
 #include "misc/misc.h"
 #include "notify/notification-manager.h"
-#include "notify/notification.h"
+#include "notify/notification/notification.h"
 
 #include <QtGui/QLineEdit>
 #include <QtGui/QSlider>
 
-#ifdef Q_WS_WIN
+#ifdef Q_OS_WIN32
 #include <windows.h>
 #endif
 
@@ -69,7 +69,7 @@ int sounds[96] = {
 	29,58,116,233,466,932,1865,3729,
 	31,62,123,245,494,988,1975,3951};
 
-#if defined(Q_WS_WIN)
+#if defined(Q_OS_WIN32)
 void PCSpeaker::beep(int pitch, int duration)
 {
 	if (pitch == 0)
@@ -81,7 +81,7 @@ void PCSpeaker::beep(int pitch, int duration)
 void PCSpeaker::beep(int pitch, int duration)
 {
 	if (pitch == 0)
-		usleep(duration * 200);
+		usleep(static_cast<__useconds_t>(duration * 200));
 	else
 	{
 		XKeyboardState s;			//save previous sound config
@@ -93,10 +93,10 @@ void PCSpeaker::beep(int pitch, int duration)
 		XChangeKeyboardControl(xdisplay, (KBBellPitch | KBBellDuration | KBBellPercent), &v); //set sound config
 		XBell(xdisplay, volume);  		//put sound to buffer
 		XFlush(xdisplay);			//flush buffer (beep)
-		usleep(pitch * 100);			//wait until sound is played
-		v.bell_pitch = s.bell_pitch;		//restore previous sound config
-		v.bell_duration = s.bell_duration;
-		v.bell_percent = s.bell_percent;
+		usleep(static_cast<__useconds_t>(pitch * 100));			//wait until sound is played
+		v.bell_pitch = static_cast<int>(s.bell_pitch);		//restore previous sound config
+		v.bell_duration = static_cast<int>(s.bell_duration);
+		v.bell_percent = static_cast<int>(s.bell_percent);
 		XChangeKeyboardControl(xdisplay, (KBBellPitch | KBBellDuration | KBBellPercent), &v); //set restored sound config
 	}
 }
@@ -108,7 +108,13 @@ void PCSpeaker::beep(int pitch, int duration)
 }
 #endif
 
-PCSpeaker::PCSpeaker(QObject *parent) : Notifier("PC Speaker", QT_TRANSLATE_NOOP("@default", "PC Speaker"), KaduIcon("audio-volume-low"), parent)
+PCSpeaker::PCSpeaker(QObject *parent) :
+		Notifier{"PC Speaker", QT_TRANSLATE_NOOP("@default", "PC Speaker"), KaduIcon("audio-volume-low"), parent},
+#ifdef Q_WS_X11
+		xdisplay{},
+#endif
+		configWidget{},
+		volume{}
 {
 	Instance = this;
 }
@@ -117,14 +123,14 @@ PCSpeaker::~PCSpeaker()
 {
 }
 
-int PCSpeaker::init(bool firstLoad)
+bool PCSpeaker::init(bool firstLoad)
 {
 	Q_UNUSED(firstLoad)
 
 	NotificationManager::instance()->registerNotifier(this);
 	createDefaultConfiguration();
 
-	return 0;
+	return true;
 }
 
 void PCSpeaker::done()
@@ -145,28 +151,28 @@ NotifierConfigurationWidget *PCSpeaker::createConfigurationWidget(QWidget *paren
 void PCSpeaker::notify(Notification *notification)
 {
 	kdebugf();
-	notification->acquire();
+	notification->acquire(this);
 #ifdef Q_OS_MACX
 	SysBeep(1);
 #else
 	parseAndPlay(config_file.readEntry("PC Speaker", notification->type() + "_Sound"));
 #endif
-	notification->release();
+	notification->release(this);
 	kdebugf2();
 }
 
 void PCSpeaker::ParseStringToSound(QString line, int tab[21], int tab2[21])
 {
-	unsigned int length = line.length();
+	int length = line.length();
 	line = line.toUpper();
 	int tmp, k = 0;
 	char znak, tmp3;
-	unsigned int i;
+	int i;
 	if (length > 0)
 	{
 		for (i=0; i<length; ++i)					//for each sound
 		{
-			if (k == 20) break;
+			if (k >= 20) break;
 			znak=line[i].toLatin1();
 			switch (znak) {						//calculate offset in sound table
 				case 'C':  tmp=0;	break;
@@ -197,10 +203,12 @@ void PCSpeaker::ParseStringToSound(QString line, int tab[21], int tab2[21])
 			}
 			if (tmp>=0) {
 				tmp*=8;
+				bool alreadyHalf = false;
 				if (line[i+1]=='#')
 				{						//for halftone
 					tmp+=8;					//set offset
 					++i;					//go forward
+					alreadyHalf = true;
 				}
 				if ((line[i+1]>='0') && (line[i+1]<='7'))
 				{
@@ -209,21 +217,26 @@ void PCSpeaker::ParseStringToSound(QString line, int tab[21], int tab2[21])
 				}
 				if (line[i+1]=='#')
 				{						//for halftone
-					tmp+=8;					//set offset
+					if (!alreadyHalf)
+						tmp+=8;					//set offset
 					++i;					//go forward
 				}
-				tab[k]=sounds[tmp];				//store sound frequency
-				if (line[i+1]=='/')
+
+				if (tmp >= 0 && tmp < 96)
 				{
-						//set duration
-						if (line[i+2]=='F') tmp3=16;
-						else if ((line[i+2]>='1') && (line[i+2]<='8')) tmp3=line[i+2].toLatin1()-48;
-						else tmp3=1;
-						tab2[k]=(1000/tmp3);
-						i+=2;
+					tab[k]=sounds[tmp];				//store sound frequency
+					if (line[i+1]=='/')
+					{
+							//set duration
+							if (line[i+2]=='F') tmp3=16;
+							else if ((line[i+2]>='1') && (line[i+2]<='8')) tmp3=line[i+2].toLatin1()-48;
+							else tmp3=1;
+							tab2[k]=(1000/tmp3);
+							i+=2;
+					}
+					else tab2[k]=1000;				//if not given use 1000
+					++k;						//move to the next sound
 				}
-				else tab2[k]=1000;				//if not given use 1000
-				++k;						//move to the next sound
 			}
 		}
 	}
@@ -264,3 +277,5 @@ void PCSpeaker::createDefaultConfiguration()
 }
 
 Q_EXPORT_PLUGIN2(pcspeaker, PCSpeaker)
+
+#include "moc_pcspeaker.cpp"

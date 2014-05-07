@@ -1,6 +1,7 @@
 /*
  * %kadu copyright begin%
  * Copyright 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -203,3 +204,5 @@ void ChatDetailsRoom::removeContact(const Contact &contact)
 	Contacts.remove(contact);
 	emit contactRemoved(contact);
 }
+
+#include "moc_chat-details-room.cpp"

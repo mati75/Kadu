@@ -6,7 +6,7 @@
  * Copyright 2009 Maciej Płaza (plaza.maciej@gmail.com)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
  * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2010, 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -41,7 +41,7 @@
 #include "gui/widgets/configuration/config-spin-box.h"
 #include "gui/widgets/configuration/configuration-widget.h"
 #include "gui/windows/main-configuration-window.h"
-#include "misc/misc.h"
+#include "misc/kadu-paths.h"
 #include "parser/parser.h"
 
 #include "hint_manager.h"
@@ -154,7 +154,7 @@ void HintOverUserConfigurationWindow::syntaxChanged()
 	if (!hintSyntax->document()->isModified())
 		return;
 
-	QString text = Parser::parse(hintSyntax->toPlainText(), Talkable(ExampleBuddy));
+	QString text = Parser::parse(hintSyntax->toPlainText(), Talkable(ExampleBuddy), ParserEscape::HtmlEscape);
 
 	/* Dorr: the file:// in img tag doesn't generate the image on hint.
 	 * for compatibility with other syntaxes we're allowing to put the file://
@@ -173,3 +173,5 @@ void HintOverUserConfigurationWindow::configurationWindowApplied()
 {
 	config_file.writeEntry("Hints", "MouseOverUserSyntax", hintSyntax->toPlainText());
 }
+
+#include "moc_hint-over-user-configuration-window.cpp"

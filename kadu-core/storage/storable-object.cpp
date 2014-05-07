@@ -3,7 +3,7 @@
  * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
- * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2007, 2008, 2009, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
@@ -24,7 +24,9 @@
 
 #include <QtCore/QtAlgorithms>
 
+#include "core/core.h"
 #include "storage/custom-properties.h"
+#include "storage/storage-point-factory.h"
 
 #include "storable-object.h"
 
@@ -39,24 +41,13 @@ StorableObject::~StorableObject()
 	delete Properties;
 }
 
-QSharedPointer<StoragePoint> StorableObject::createStoragePoint()
+std::shared_ptr<StoragePoint> StorableObject::createStoragePoint()
 {
-	if (storageNodeName().isEmpty())
-		return QSharedPointer<StoragePoint>();
-
-	StorableObject *parent = storageParent();
-	if (!parent)
-		return QSharedPointer<StoragePoint>(new StoragePoint(xml_config_file, xml_config_file->getNode(storageNodeName())));
-
-	QSharedPointer<StoragePoint> parentStoragePoint(storageParent()->storage());
-	if (!parentStoragePoint)
-		return QSharedPointer<StoragePoint>();
-
-	QDomElement node = parentStoragePoint->storage()->getNode(parentStoragePoint->point(), storageNodeName());
-	return QSharedPointer<StoragePoint>(new StoragePoint(parentStoragePoint->storage(), node));
+	auto parent = storageParent();
+	return Core::instance()->storagePointFactory()->createStoragePoint(storageNodeName(), parent ? parent->storage().get() : nullptr);
 }
 
-void StorableObject::setStorage(const QSharedPointer<StoragePoint> &storage)
+void StorableObject::setStorage(const std::shared_ptr<StoragePoint> &storage)
 {
 	State = StateNotLoaded;
 	Storage = storage;
@@ -67,7 +58,7 @@ bool StorableObject::isValidStorage()
 	return storage() && storage()->storage();
 }
 
-const QSharedPointer<StoragePoint> & StorableObject::storage()
+const std::shared_ptr<StoragePoint> & StorableObject::storage()
 {
 	if (!Storage)
 		Storage = createStoragePoint();
@@ -114,27 +105,27 @@ void StorableObject::removeFromStorage()
 		return;
 
 	Storage->point().parentNode().removeChild(Storage->point());
-	Storage.clear();
+	Storage.reset();
 }
 
 void StorableObject::storeValue(const QString &name, const QVariant value)
 {
-	Storage->storage()->createTextNode(Storage->point(), name, value.toString());
+	Storage->storeValue(name, value);
 }
 
 void StorableObject::storeAttribute(const QString &name, const QVariant value)
 {
-	Storage->point().setAttribute(name, value.toString());
+	Storage->storeAttribute(name, value);
 }
 
 void StorableObject::removeValue(const QString& name)
 {
-	Storage->storage()->removeNode(Storage->point(), name);
+	Storage->removeValue(name);
 }
 
 void StorableObject::removeAttribute(const QString& name)
 {
-	Storage->point().removeAttribute(name);
+	Storage->removeAttribute(name);
 }
 
 CustomProperties * StorableObject::customProperties() const

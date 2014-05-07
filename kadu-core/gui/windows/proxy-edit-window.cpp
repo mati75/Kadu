@@ -1,6 +1,8 @@
 /*
  * %kadu copyright begin%
- * Copyright 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2011, 2012, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -17,8 +19,10 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <QtCore/QPointer>
 #include <QtCore/QUrl>
 #include <QtGui/QAction>
+#include <QtGui/QApplication>
 #include <QtGui/QComboBox>
 #include <QtGui/QDialogButtonBox>
 #include <QtGui/QFormLayout>
@@ -30,14 +34,15 @@
 #include <QtGui/QStyle>
 #include <QtGui/QVBoxLayout>
 
-#include "misc/misc.h"
-#include "model/action-list-model.h"
+#include "configuration/config-file-variant-wrapper.h"
 #include "model/action-filter-proxy-model.h"
-#include "model/roles.h"
+#include "model/action-list-model.h"
 #include "model/merged-proxy-model-factory.h"
+#include "model/roles.h"
 #include "network/proxy/model/network-proxy-model.h"
 #include "network/proxy/model/network-proxy-proxy-model.h"
 #include "network/proxy/network-proxy-manager.h"
+#include "os/generic/window-geometry-manager.h"
 #include "activate.h"
 
 #include "proxy-edit-window.h"
@@ -64,13 +69,11 @@ ProxyEditWindow::ProxyEditWindow(QWidget *parent) :
 	createGui();
 	ProxyView->selectionModel()->select(ProxyView->model()->index(0, 0), QItemSelectionModel::ClearAndSelect);
 
-	loadWindowGeometry(this, "General", "ProxyEditWindowGeometry", 200, 200, 750, 500);
+	new WindowGeometryManager(new ConfigFileVariantWrapper("General", "ProxyEditWindowGeometry"), QRect(200, 200, 750, 500), this);
 }
 
 ProxyEditWindow::~ProxyEditWindow()
 {
-	saveWindowGeometry(this, "General", "ProxyEditWindowGeometry");
-
 	Instance = 0;
 }
 
@@ -238,7 +241,7 @@ void ProxyEditWindow::removeButtonClicked()
 
 	NetworkProxy proxy = selection.at(0).data(NetworkProxyRole).value<NetworkProxy>();
 
-	QWeakPointer<QMessageBox> messageBox = new QMessageBox(this);
+	QPointer<QMessageBox> messageBox = new QMessageBox(this);
 	messageBox.data()->setWindowTitle(tr("Confirm proxy removal"));
 	messageBox.data()->setText(tr("Are you sure do you want to remove this proxy?"));
 
@@ -262,13 +265,13 @@ void ProxyEditWindow::saveProxy(NetworkProxy proxy)
 	{
 		proxy.setType(Type->itemData(Type->currentIndex()).toString());
 		proxy.setAddress(Host->text());
-		proxy.setPort(Port->text().toUInt());
+		proxy.setPort(Port->text().toInt());
 		proxy.setUser(User->text());
 		proxy.setPassword(Password->text());
 		proxy.setPollingUrl(PollingUrl->text());
 	}
 	else
-		proxy = NetworkProxyManager::instance()->byConfiguration(Host->text(), Port->text().toUInt(), User->text(), Password->text(),
+		proxy = NetworkProxyManager::instance()->byConfiguration(Host->text(), Port->text().toInt(), User->text(), Password->text(),
 		                                                 ActionCreateAndAdd);
 
 	ForceProxyChange = true;
@@ -276,7 +279,7 @@ void ProxyEditWindow::saveProxy(NetworkProxy proxy)
 	ForceProxyChange = false;
 }
 
-ModalConfigurationWidgetState ProxyEditWindow::state(NetworkProxy proxy)
+ConfigurationValueState ProxyEditWindow::state(NetworkProxy proxy)
 {
 	bool valid = !Host->text().isEmpty()
 			&& !Port->text().isEmpty();
@@ -295,7 +298,7 @@ ModalConfigurationWidgetState ProxyEditWindow::state(NetworkProxy proxy)
 			: StateChangedDataInvalid;
 }
 
-ModalConfigurationWidgetState ProxyEditWindow::state()
+ConfigurationValueState ProxyEditWindow::state()
 {
 	QModelIndexList selection = ProxyView->selectionModel()->selectedIndexes();
 	if (selection.size() != 1)
@@ -319,7 +322,7 @@ bool ProxyEditWindow::canChangeProxy(const QItemSelection &selection)
 	if (ForceProxyChange)
 		return true;
 
-	ModalConfigurationWidgetState currenState = state(proxy);
+	ConfigurationValueState currenState = state(proxy);
 	if (StateNotChanged == currenState)
 		return true;
 
@@ -379,7 +382,7 @@ void ProxyEditWindow::dataChanged()
 {
 	PollingUrl->setEnabled(Type->itemData(Type->currentIndex()).toString() == QLatin1String("poll"));
 
-	ModalConfigurationWidgetState changeState = state();
+	ConfigurationValueState changeState = state();
 	SaveButton->setEnabled(StateChangedDataValid == changeState);
 	CancelButton->setEnabled(StateNotChanged != changeState);
 }
@@ -406,3 +409,5 @@ void ProxyEditWindow::proxySelectionChanged(const QItemSelection &selected, cons
 	ProxyView->selectionModel()->select(deselected, QItemSelectionModel::ClearAndSelect);
 	ForceProxyChange = false;
 }
+
+#include "moc_proxy-edit-window.cpp"

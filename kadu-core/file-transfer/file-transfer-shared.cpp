@@ -1,8 +1,8 @@
 /*
  * %kadu copyright begin%
  * Copyright 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2009, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -31,14 +31,14 @@
 
 #include "file-transfer-shared.h"
 
-FileTransferShared * FileTransferShared::loadStubFromStorage(const QSharedPointer<StoragePoint> &fileTransferStoragePoint)
+FileTransferShared * FileTransferShared::loadStubFromStorage(const std::shared_ptr<StoragePoint> &fileTransferStoragePoint)
 {
 	FileTransferShared *result = loadFromStorage(fileTransferStoragePoint);
 	result->loadStub();
 	return result;
 }
 
-FileTransferShared * FileTransferShared::loadFromStorage(const QSharedPointer<StoragePoint> &fileTransferStoragePoint)
+FileTransferShared * FileTransferShared::loadFromStorage(const std::shared_ptr<StoragePoint> &fileTransferStoragePoint)
 {
 	FileTransferShared *result = new FileTransferShared();
 	result->setStorage(fileTransferStoragePoint);
@@ -53,7 +53,7 @@ FileTransferShared::FileTransferShared(const QUuid &uuid) :
 {
 	Peer = new Contact();
 
-	connect(changeNotifier(), SIGNAL(changed()), this, SIGNAL(updated()));
+	connect(&changeNotifier(), SIGNAL(changed()), this, SIGNAL(updated()));
 }
 
 FileTransferShared::~FileTransferShared()
@@ -115,7 +115,7 @@ void FileTransferShared::setTransferStatus(FileTransferStatus transferStatus)
 
 	TransferStatus = transferStatus;
 	emit statusChanged();
-	changeNotifier()->notify();
+	changeNotifier().notify();
 }
 
 void FileTransferShared::setTransferError(FileTransferError transferError)
@@ -128,7 +128,7 @@ void FileTransferShared::setTransferError(FileTransferError transferError)
 	TransferStatus = StatusNotConnected;
 	TransferError = transferError;
 	emit statusChanged();
-	changeNotifier()->notify();
+	changeNotifier().notify();
 }
 
 void FileTransferShared::setHandler(FileTransferHandler *handler)
@@ -144,7 +144,7 @@ void FileTransferShared::setHandler(FileTransferHandler *handler)
 	if (Handler)
 		connect(Handler, SIGNAL(destroyed()), this, SLOT(handlerDestroyed()));
 
-	changeNotifier()->notify();
+	changeNotifier().notify();
 }
 
 void FileTransferShared::createHandler()
@@ -166,7 +166,9 @@ void FileTransferShared::createHandler()
 void FileTransferShared::handlerDestroyed()
 {
 	Handler = 0;
-	changeNotifier()->notify();
+	changeNotifier().notify();
 }
 
 KaduShared_PropertyPtrDefCRW(FileTransferShared, Contact, peer, Peer)
+
+#include "moc_file-transfer-shared.cpp"

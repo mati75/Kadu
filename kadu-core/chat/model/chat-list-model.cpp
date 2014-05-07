@@ -1,6 +1,7 @@
 /*
  * %kadu copyright begin%
- * Copyright 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -134,7 +135,7 @@ QModelIndex ChatListModel::parent(const QModelIndex &child) const
 	if (-1 == child.internalId())
 		return QModelIndex();
 	else
-		return index(child.internalId(), 0, QModelIndex());
+		return index(static_cast<int>(child.internalId()), 0, QModelIndex());
 }
 
 QVariant ChatListModel::data(const QModelIndex &index, int role) const
@@ -344,3 +345,5 @@ QMimeData * ChatListModel::mimeData(const QModelIndexList &indexes) const
 
 	return ChatListMimeDataHelper::toMimeData(list);
 }
+
+#include "moc_chat-list-model.cpp"

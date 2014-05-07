@@ -40,7 +40,7 @@ extern "C" {
 #include <QtCore/QStringList>
 #include <QtGui/QPixmap>
 
-#include "notify/notification.h"
+#include "notify/notification/notification.h"
 
 #include "growlnotifier.h"
 
@@ -360,3 +360,5 @@ void GrowlNotifier::cleanupAfterGrowl()
 	foreach (const QString &subdir, subdirs)
 		checkDirectory(d.absolutePath() + '/' + subdir);
 }
+
+#include "moc_growlnotifier.cpp"

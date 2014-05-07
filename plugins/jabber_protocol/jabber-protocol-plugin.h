@@ -3,7 +3,7 @@
  * Copyright 2004 Michał Podsiadlik (michal@kadu.net)
  * Copyright 2002, 2003, 2004, 2005 Adrian Smarzewski (adrian@kadu.net)
  * Copyright 2002, 2003, 2004 Tomasz Chiliński (chilek@chilan.com)
- * Copyright 2007, 2009, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2007, 2009, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2007 Dawid Stawiarski (neeo@kadu.net)
  * Copyright 2005 Marcin Ślusarz (joi@kadu.net)
@@ -28,17 +28,22 @@
 
 #include <QtCore/QObject>
 
-#include "plugins/generic-plugin.h"
+#include "plugin/plugin-root-component.h"
 
-class JabberProtocolPlugin : public QObject, public GenericPlugin
+class JabberUrlDomVisitorProvider;
+
+class JabberProtocolPlugin : public QObject, public PluginRootComponent
 {
 	Q_OBJECT
-	Q_INTERFACES(GenericPlugin)
+	Q_INTERFACES(PluginRootComponent)
+	Q_PLUGIN_METADATA(IID "im.kadu.PluginRootComponent")
+
+	JabberUrlDomVisitorProvider *UrlDomVisitorProvider;
 
 public:
 	virtual ~JabberProtocolPlugin();
 
-	virtual int init(bool firstLoad);
+	virtual bool init(bool firstLoad);
 	virtual void done();
 
 };

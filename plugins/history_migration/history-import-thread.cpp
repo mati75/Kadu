@@ -3,8 +3,8 @@
  * Copyright 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009 Michał Podsiadlik (michal@kadu.net)
  * Copyright 2009, 2010 Bartłomiej Zimoń (uzi18@o2.pl)
- * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2009, 2010, 2011, 2012, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -25,11 +25,12 @@
 
 #include "chat/chat-manager.h"
 #include "chat/chat.h"
-#include "chat/type/chat-type-contact.h"
 #include "chat/type/chat-type-contact-set.h"
+#include "chat/type/chat-type-contact.h"
 #include "contacts/contact-manager.h"
 #include "contacts/contact-set.h"
 #include "contacts/contact.h"
+#include "formatted-string/formatted-string-factory.h"
 #include "message/message.h"
 #include "plugins/history/history.h"
 #include "status/status.h"
@@ -38,15 +39,20 @@
 #include "history-importer-manager.h"
 #include "history-migration-helper.h"
 
-HistoryImportThread::HistoryImportThread(Account gaduAccount, const QString &path, const QList<UinsList> &uinsLists, int totalEntries, QObject *parent) :
+HistoryImportThread::HistoryImportThread(Account gaduAccount, const QString &path, const QList<UinsList> &uinsLists, QObject *parent) :
 		QObject(parent), GaduAccount(gaduAccount), Path(path), UinsLists(uinsLists),
-		TotalEntries(totalEntries), ImportedEntries(0), ImportedChats(0), TotalMessages(0),
+		ImportedEntries(0), ImportedChats(0), TotalMessages(0),
 		ImportedMessages(0), Canceled(false), CancelForced(false)
 {
 }
 
 HistoryImportThread::~HistoryImportThread()
 {
+}
+
+void HistoryImportThread::setFormattedStringFactory(FormattedStringFactory *formattedStringFactory)
+{
+	CurrentFormattedStringFactory = formattedStringFactory;
 }
 
 void HistoryImportThread::prepareChats()
@@ -132,6 +138,9 @@ Chat HistoryImportThread::chatFromUinsList(const UinsList &uinsList) const
 
 void HistoryImportThread::importEntry(const Chat &chat, const HistoryEntry &entry)
 {
+	if (!CurrentFormattedStringFactory)
+		return;
+
 	switch (entry.Type)
 	{
 		case HistoryEntry::ChatSend:
@@ -150,7 +159,7 @@ void HistoryImportThread::importEntry(const Chat &chat, const HistoryEntry &entr
 			msg.setMessageSender(outgoing
 					? GaduAccount.accountContact()
 					: ContactManager::instance()->byId(GaduAccount, QString::number(entry.Uin), ActionCreateAndAdd));
-			msg.setContent(entry.Content);
+			msg.setContent(CurrentFormattedStringFactory->fromHtml(entry.Content));
 			msg.setSendDate(entry.SendDate);
 			msg.setReceiveDate(entry.Date);
 			msg.setType(outgoing ? MessageTypeSent : MessageTypeReceived);
@@ -200,3 +209,5 @@ void HistoryImportThread::importEntry(const Chat &chat, const HistoryEntry &entr
 			break;
 	}
 }
+
+#include "moc_history-import-thread.cpp"

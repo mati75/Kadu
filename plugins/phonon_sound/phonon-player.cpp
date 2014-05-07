@@ -4,7 +4,7 @@
  * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2008, 2009 Tomasz Rostański (rozteck@interia.pl)
  * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2010, 2011, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -20,6 +20,9 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
+
+#include <QtCore/QFileInfo>
+#include <QtCore/QUrl>
 
 #include <phonon/audiooutput.h>
 #include <phonon/mediaobject.h>
@@ -89,6 +92,10 @@ void PhononPlayer::playSound(const QString &path)
 {
 	kdebugf();
 
+	auto fileInfo = QFileInfo{path};
+	if (!fileInfo.exists())
+		return;
+
 	if (!Media)
 	{
 		MediaObjectMutex.lock();
@@ -107,8 +114,10 @@ void PhononPlayer::playSound(const QString &path)
 		MediaObjectMutex.unlock();
 	}
 
-	Media->setCurrentSource(path);
+	Media->setCurrentSource(QUrl::fromLocalFile(fileInfo.absoluteFilePath()));
 	Media->play();
 
 	kdebugf2();
 }
+
+#include "moc_phonon-player.cpp"

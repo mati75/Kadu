@@ -1,11 +1,11 @@
 /*
  * %kadu copyright begin%
  * Copyright 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2010 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2010, 2012 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2010 Maciej Płaza (plaza.maciej@gmail.com)
  * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
- * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2007, 2008, 2009, 2010, 2011, 2012, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
@@ -110,9 +110,9 @@ void BuddyContactsTable::createGui()
 	layout->addWidget(buttons);
 }
 
-bool BuddyContactsTable::isValid()
+const ConfigurationValueStateNotifier * BuddyContactsTable::valueStateNotifier() const
 {
-	return Model->isValid();
+	return Model->valueStateNotifier();
 }
 
 void BuddyContactsTable::save()
@@ -217,9 +217,13 @@ void BuddyContactsTable::removeClicked()
 		return;
 	}
 
-	bool sure = MessageDialog::ask(KaduIcon("dialog-warning"), tr("Kadu"),
+	MessageDialog *dialog = MessageDialog::create(KaduIcon("dialog-warning"), tr("Kadu"),
 			tr("Are you sure do you want to delete this contact from buddy <b>%1</b>?").arg(MyBuddy.display()));
+	dialog->addButton(QMessageBox::Yes, tr("Delete contact"));
+	dialog->addButton(QMessageBox::No, tr("Cancel"));
 
-	if (sure)
+	if (dialog->ask())
 		item->setAction(BuddyContactsTableItem::ItemRemove);
 }
+
+#include "moc_buddy-contacts-table.cpp"

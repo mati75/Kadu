@@ -38,10 +38,6 @@
         <translation>Zkratky</translation>
     </message>
     <message>
-        <source>Tabs</source>
-        <translation>Karty</translation>
-    </message>
-    <message>
         <source>Switch to previous tab</source>
         <translation>Přepnout na předchozí kartu</translation>
     </message>
@@ -56,6 +52,10 @@
     <message>
         <source>Switch focus between roster and tabs</source>
         <translation>Přepnout zaměření mezi rozpisem služeb a kartami</translation>
+    </message>
+    <message>
+        <source>Behaviour</source>
+        <translation>Chování</translation>
     </message>
 </context>
 <context>

@@ -3,6 +3,7 @@
  * Copyright 2008 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -62,3 +63,5 @@ bool ChatEditBoxSizeManager::initialized()
 {
 	return 0 != CommonHeight;
 }
+
+#include "moc_chat-edit-box-size-manager.cpp"

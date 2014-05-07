@@ -1,13 +1,8 @@
 project (indicator_docking)
 
-# minimal required versions
 cmake_minimum_required (VERSION 2.8)
-set (QT_MIN_VERSION "4.7.0")
-set (CMAKE_MIN_VERSION "2.6.0")
 
-set (KADU_FIND_REQUIRED true)
-include (FindKadu)
-include (FindPkgConfig)
+find_package (Kadu REQUIRED CONFIG)
 
 set (SOURCES
 	indicator_docking.cpp
@@ -19,10 +14,11 @@ set (MOC_SOURCES
 	indicator_docking-plugin.h
 )
 
-if (NOT WITH_LIBINDICATE_QT)
-	message (SEND_ERROR "You need to compile core with -DWITH_LIBINDICATE_QT=ON. Aborting. If you are compiling outside of Kadu core sources, make sure it is compiled with libindicate-qt support and redefine the required macro here.")
-endif (NOT WITH_LIBINDICATE_QT)
+if (NOT KADU_WITH_LIBINDICATE_QT)
+	message (FATAL_ERROR "You need to compile core with libindicate support (-DWITH_LIBINDICATE_QT=ON)")
+endif ()
 
+find_package (PkgConfig)
 pkg_search_module (LIBINDICATE_QT REQUIRED indicate-qt)
 
 link_directories (${LIBINDICATE_QT_LIBRARY_DIRS})
@@ -39,8 +35,9 @@ kadu_plugin (indicator_docking
 if (NOT INDICATORS_DIR)
 	set (INDICATORS_DIR "${CMAKE_INSTALL_FULL_DATADIR}/indicators/messages/applications")
 	message (STATUS "INDICATORS_DIR not specified. Using default: ${INDICATORS_DIR}")
-endif (NOT INDICATORS_DIR)
+endif ()
 
 # Pin Kadu to Messaging Menu
-file (WRITE ${CMAKE_BINARY_DIR}/kadu "${KADU_DESKTOP_FILE_DIR}/${KADU_DESKTOP_FILE_NAME}\n") 
-install (FILES ${CMAKE_BINARY_DIR}/kadu DESTINATION "${INDICATORS_DIR}")
+get_filename_component (desktop_file_path_absolute "${KADU_DESKTOP_FILE_DIR}/${KADU_DESKTOP_FILE_NAME}" ABSOLUTE)
+file (WRITE ${CMAKE_CURRENT_BINARY_DIR}/kadu "${desktop_file_path_absolute}\n")
+install (FILES ${CMAKE_CURRENT_BINARY_DIR}/kadu DESTINATION "${INDICATORS_DIR}")

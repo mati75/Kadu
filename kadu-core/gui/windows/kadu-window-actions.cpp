@@ -1,13 +1,13 @@
 /*
  * %kadu copyright begin%
  * Copyright 2009, 2010, 2010, 2011, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2009, 2010, 2010 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2009, 2009, 2010, 2010, 2012 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2010, 2011 Piotr Dąbrowski (ultr@ultr.pl)
  * Copyright 2009 Michał Podsiadlik (michal@kadu.net)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
  * Copyright 2010 Radosław Szymczyszyn (lavrin@gmail.com)
- * Copyright 2009, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2009, 2009, 2010, 2011, 2012, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2009 Longer (longer89@gmail.com)
  * %kadu copyright end%
  *
@@ -46,21 +46,23 @@
 #include "gui/actions/default-proxy-action.h"
 #include "gui/actions/delete-talkable-action.h"
 #include "gui/actions/edit-talkable-action.h"
+#include "gui/actions/recent-chats-action.h"
+#include "gui/menu/menu-inventory.h"
 #include "gui/status-icon.h"
 #include "gui/widgets/buddy-info-panel.h"
-#include "gui/widgets/chat-widget-actions.h"
-#include "gui/widgets/chat-widget-manager.h"
+#include "gui/widgets/chat-widget/chat-widget-actions.h"
+#include "gui/widgets/chat-widget/chat-widget-manager.h"
+#include "gui/widgets/dialog/add-group-dialog-widget.h"
+#include "gui/widgets/dialog/merge-buddies-dialog-widget.h"
 #include "gui/widgets/status-menu.h"
 #include "gui/widgets/talkable-delegate-configuration.h"
-#include "gui/widgets/talkable-menu-manager.h"
 #include "gui/widgets/talkable-tree-view.h"
 #include "gui/windows/add-buddy-window.h"
 #include "gui/windows/buddy-delete-window.h"
+#include "gui/windows/kadu-dialog.h"
 #include "gui/windows/kadu-window.h"
 #include "gui/windows/main-configuration-window.h"
-#include "gui/windows/merge-buddies-window.h"
 #include "gui/windows/message-dialog.h"
-#include "gui/windows/plugins-window.h"
 #include "gui/windows/multilogon-window.h"
 #include "gui/windows/search-window.h"
 #include "gui/windows/your-accounts.h"
@@ -144,8 +146,10 @@ void disableNoEMail(Action *action)
 
 void disableIfContactSelected(Action *action)
 {
-	if (action && action->context())
-		action->setEnabled(!action->context()->roles().contains(ContactRole) && !action->context()->buddies().isEmpty());
+	if (!action || action->context())
+		return;
+
+	action->setEnabled(!action->context()->roles().contains(ContactRole) && !action->context()->buddies().isEmpty());
 
 	if (action->context()->buddies().contains(Core::instance()->myself()))
 		action->setEnabled(false);
@@ -168,30 +172,25 @@ KaduWindowActions::KaduWindowActions(QObject *parent) : QObject(parent)
 	Configuration = new ActionDescription(this,
 		ActionDescription::TypeGlobal, "configurationAction",
 		this, SLOT(configurationActionActivated(QAction *, bool)),
-		KaduIcon("preferences-other"), tr("Preferences...")
+		KaduIcon("preferences-other"), tr("Preferences")
 	);
 	Configuration->setShortcut("kadu_configure", Qt::ApplicationShortcut);
 
 	ShowYourAccounts = new ActionDescription(this,
 		ActionDescription::TypeMainMenu, "yourAccountsAction",
 		this, SLOT(yourAccountsActionActivated(QAction *, bool)),
-		KaduIcon("x-office-address-book"), tr("Your Accounts...")
+		KaduIcon("x-office-address-book"), tr("Your Accounts")
 	);
+
+	RecentChats = new RecentChatsAction(this);
 
 	ShowMultilogons = new ActionDescription(this,
 		ActionDescription::TypeMainMenu, "showMultilogonsAction",
 		this, SLOT(showMultilogonsActionActivated(QAction *, bool)),
-		KaduIcon("kadu_icons/multilogon"), tr("Multilogons..."), false,
+		KaduIcon("kadu_icons/multilogon"), tr("Multilogons"), false,
 		hideNoMultilogonAccounts
 	);
 	connect(ShowMultilogons, SIGNAL(actionCreated(Action *)), this, SLOT(showMultilogonsActionCreated(Action *)));
-
-	ManageModules = new ActionDescription(this,
-		ActionDescription::TypeMainMenu, "manageModulesAction",
-		this, SLOT(manageModulesActionActivated(QAction *, bool)),
-		KaduIcon("kadu_icons/plugins"), tr("Plugins...")
-	);
-	ManageModules->setShortcut("kadu_modulesmanager", Qt::ApplicationShortcut);
 
 	ExitKadu = new ActionDescription(this,
 		ActionDescription::TypeMainMenu, "exitKaduAction",
@@ -227,25 +226,25 @@ KaduWindowActions::KaduWindowActions(QObject *parent) : QObject(parent)
 	Help = new ActionDescription(this,
 		ActionDescription::TypeMainMenu, "helpAction",
 		this, SLOT(helpActionActivated(QAction *, bool)),
-		KaduIcon("help-contents"), tr("Getting H&elp...")
+		KaduIcon("help-contents"), tr("Getting H&elp")
 	);
 
 	Bugs = new ActionDescription(this,
 		ActionDescription::TypeMainMenu, "bugsAction",
 		this, SLOT(bugsActionActivated(QAction *, bool)),
-		KaduIcon("kadu_icons/report-a-bug"), tr("Report a Bug...")
+		KaduIcon("kadu_icons/report-a-bug"), tr("Report a Bug")
 	);
 
 	GetInvolved = new ActionDescription(this,
 		ActionDescription::TypeMainMenu, "getInvolvedAction",
 		this, SLOT(getInvolvedActionActivated(QAction *, bool)),
-		KaduIcon("kadu_icons/get-involved"), tr("Get Involved...")
+		KaduIcon("kadu_icons/get-involved"), tr("Get Involved")
 	);
 
 	Translate = new ActionDescription(this,
 		ActionDescription::TypeMainMenu, "translateAction",
 		this, SLOT(translateActionActivated(QAction *, bool)),
-		KaduIcon("kadu_icons/translate-kadu"), tr("Translate Kadu...")
+		KaduIcon("kadu_icons/translate-kadu"), tr("Translate Kadu")
 	);
 
 	About = new ActionDescription(this,
@@ -281,22 +280,28 @@ KaduWindowActions::KaduWindowActions(QObject *parent) : QObject(parent)
 		KaduIcon("edit-copy"), tr("Copy Description"), false,
 		disableNoDescription
 	);
-	TalkableMenuManager::instance()->addListActionDescription(CopyDescription, TalkableMenuItem::CategoryActions, 10);
+	MenuInventory::instance()
+		->menu("buddy-list")
+		->addAction(CopyDescription, KaduMenu::SectionActions, 10);
 
 	CopyPersonalInfo = new ActionDescription(this,
 		ActionDescription::TypeUser, "copyPersonalInfoAction",
 		this, SLOT(copyPersonalInfoActionActivated(QAction *, bool)),
 		KaduIcon("kadu_icons/copy-personal-info"), tr("Copy Personal Info")
 	);
-	TalkableMenuManager::instance()->addListActionDescription(CopyPersonalInfo, TalkableMenuItem::CategoryActions, 20);
+	MenuInventory::instance()
+		->menu("buddy-list")
+		->addAction(CopyPersonalInfo, KaduMenu::SectionActions, 20);
 
 	OpenDescriptionLink = new ActionDescription(this,
 		ActionDescription::TypeUser, "openDescriptionLinkAction",
 		this, SLOT(openDescriptionLinkActionActivated(QAction *, bool)),
-		KaduIcon("go-jump"), tr("Open Description Link in Browser..."), false,
+		KaduIcon("go-jump"), tr("Open Description Link in Browser"), false,
 		disableNoDescriptionUrl
 	);
-	TalkableMenuManager::instance()->addListActionDescription(OpenDescriptionLink, TalkableMenuItem::CategoryActions, 30);
+	MenuInventory::instance()
+		->menu("buddy-list")
+		->addAction(OpenDescriptionLink, KaduMenu::SectionActions, 30);
 
 	WriteEmail = new ActionDescription(this,
 		ActionDescription::TypeUser, "writeEmailAction",
@@ -304,8 +309,11 @@ KaduWindowActions::KaduWindowActions(QObject *parent) : QObject(parent)
 		KaduIcon("mail-message-new"), tr("Send E-Mail"), false,
 		disableNoEMail
 	);
-	TalkableMenuManager::instance()->addActionDescription(WriteEmail, TalkableMenuItem::CategoryActions, 200);
 	connect(WriteEmail, SIGNAL(actionCreated(Action *)), this, SLOT(writeEmailActionCreated(Action *)));
+
+	MenuInventory::instance()
+		->menu("buddy-list")
+		->addAction(WriteEmail, KaduMenu::SectionSend, 200);
 
 	LookupUserInfo = new ActionDescription(this,
 		ActionDescription::TypeUser, "lookupUserInfoAction",
@@ -349,7 +357,10 @@ KaduWindowActions::KaduWindowActions(QObject *parent) : QObject(parent)
 	connect(OnlineAndDescriptionUsers, SIGNAL(actionCreated(Action *)), this, SLOT(onlineAndDescUsersActionCreated(Action *)));
 
 	EditTalkable = new EditTalkableAction(this);
-	TalkableMenuManager::instance()->addActionDescription(EditTalkable, TalkableMenuItem::CategoryView, 0);
+
+	MenuInventory::instance()
+		->menu("buddy-list")
+		->addAction(EditTalkable, KaduMenu::SectionView);
 
 	MergeContact = new ActionDescription(this,
 		ActionDescription::TypeUser, "mergeContactAction",
@@ -357,12 +368,20 @@ KaduWindowActions::KaduWindowActions(QObject *parent) : QObject(parent)
 		KaduIcon("kadu_icons/merge-buddies"), tr("Merge Buddies..."), false,
 		disableMerge
 	);
-	TalkableMenuManager::instance()->addActionDescription(MergeContact, TalkableMenuItem::CategoryManagement, 100);
 
-	TalkableMenuManager::instance()->addActionDescription(ChatWidgetManager::instance()->actions()->blockUser(), TalkableMenuItem::CategoryManagement, 500);
+	MenuInventory::instance()
+		->menu("buddy-list")
+		->addAction(MergeContact, KaduMenu::SectionManagement, 100);
+
+	MenuInventory::instance()
+		->menu("buddy-list")
+		->addAction(Core::instance()->chatWidgetActions()->blockUser(), KaduMenu::SectionManagement, 500);
 
 	DeleteTalkable = new DeleteTalkableAction(this);
-	TalkableMenuManager::instance()->addActionDescription(DeleteTalkable, TalkableMenuItem::CategoryManagement, 1000);
+
+	MenuInventory::instance()
+		->menu("buddy-list")
+		->addAction(DeleteTalkable, KaduMenu::SectionManagement, 1000);
 
 	// The last ActionDescription will send actionLoaded() signal.
 	// TODO It will not reflect all action types (see MainWindow::actionLoadedOrUnloaded() method)
@@ -520,14 +539,6 @@ void KaduWindowActions::showMultilogonsActionActivated(QAction *sender, bool tog
 	MultilogonWindow::instance()->show();
 }
 
-void KaduWindowActions::manageModulesActionActivated(QAction *sender, bool toggled)
-{
-	Q_UNUSED(sender)
-	Q_UNUSED(toggled)
-
-	PluginsWindow::show();
-}
-
 void KaduWindowActions::exitKaduActionActivated(QAction *sender, bool toggled)
 {
 	Q_UNUSED(sender)
@@ -569,11 +580,15 @@ void KaduWindowActions::mergeContactActionActivated(QAction *sender, bool toggle
 		return;
 
 	const Buddy &buddy = action->context()->buddies().toBuddy();
-	if (buddy)
-	{
-		MergeBuddiesWindow *mergeBuddiesWindow = new MergeBuddiesWindow(buddy);
-		mergeBuddiesWindow->show();
-	}
+	if (!buddy)
+		return;
+
+	MergeBuddiesDialogWidget *mergeWidget = new MergeBuddiesDialogWidget(buddy,
+			tr("Choose which buddy would you like to merge with <i>%1</i>")
+			.arg(buddy.display()), sender->parentWidget());
+	KaduDialog *window = new KaduDialog(mergeWidget, sender->parentWidget());
+	window->setAcceptButtonText(tr("Merge"));
+	window->exec();
 
 	kdebugf2();
 }
@@ -582,13 +597,10 @@ void KaduWindowActions::addGroupActionActivated(QAction *sender, bool toggled)
 {
 	Q_UNUSED(toggled)
 
-	bool ok;
-	QString newGroupName = QInputDialog::getText(sender->parentWidget(), tr("New Group"),
-				tr("Please enter the name for the new group:"), QLineEdit::Normal,
-				QString(), &ok);
-
-	if (ok && !newGroupName.isEmpty() && GroupManager::instance()->acceptableGroupName(newGroupName))
-		GroupManager::instance()->byName(newGroupName);
+	AddGroupDialogWidget *groupWidget = new AddGroupDialogWidget(tr("Please enter the name for the new group"), sender->parentWidget());
+	KaduDialog *window = new KaduDialog(groupWidget, sender->parentWidget());
+	window->setAcceptButtonText(tr("Add Group"));
+	window->exec();
 }
 
 void KaduWindowActions::openSearchActionActivated(QAction *sender, bool toggled)
@@ -767,9 +779,13 @@ void KaduWindowActions::copyPersonalInfoActionActivated(QAction *sender, bool to
 	ContactSet contacts = action->context()->contacts();
 
 	QStringList infoList;
-	QString copyPersonalDataSyntax = config_file.readEntry("General", "CopyPersonalDataSyntax", tr("Contact: %a[ (%u)]\n[First name: %f\n][Last name: %r\n][Mobile: %m\n]"));
+	QString defaultSyntax = Parser::escape(tr("Contact:")) + " %a[ (%u)]\n["
+			+ Parser::escape(tr("First name:")) + " %f\n]["
+			+ Parser::escape(tr("Last name:")) + " %r\n]["
+			+ Parser::escape(tr("Mobile:")) + " %m\n]";
+	QString copyPersonalDataSyntax = config_file.readEntry("General", "CopyPersonalDataSyntax", defaultSyntax);
 	foreach (Contact contact, contacts)
-		infoList.append(Parser::parse(copyPersonalDataSyntax, Talkable(contact), false));
+		infoList.append(Parser::parse(copyPersonalDataSyntax, Talkable(contact), ParserEscape::NoEscape));
 
 	QString info = infoList.join("\n");
 	if (info.isEmpty())
@@ -862,3 +878,5 @@ void KaduWindowActions::configurationUpdated()
 	if (ShowMyself->action(context)->isChecked() != config_file.readBoolEntry("General", "ShowMyself"))
 		ShowMyself->action(context)->trigger();
 }
+
+#include "moc_kadu-window-actions.cpp"

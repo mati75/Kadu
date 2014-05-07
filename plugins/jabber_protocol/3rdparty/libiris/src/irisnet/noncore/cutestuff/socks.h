@@ -63,6 +63,8 @@ public:
 	SocksClient(int, QObject *parent=0);
 	~SocksClient();
 
+	virtual QAbstractSocket* abstractSocket() const;
+
 	bool isIncoming() const;
 
 	// outgoing
@@ -77,12 +79,9 @@ public:
 	void grantUDPAssociate(const QString &relayHost, int relayPort);
 
 	// from ByteStream
-	bool isOpen() const;
 	void close();
-	void write(const QByteArray &);
-	QByteArray read(int bytes=0);
-	int bytesAvailable() const;
-	int bytesToWrite() const;
+	qint64 bytesAvailable() const;
+	qint64 bytesToWrite() const;
 
 	// remote address
 	QHostAddress peerAddress() const;
@@ -92,6 +91,10 @@ public:
 	QString udpAddress() const;
 	quint16 udpPort() const;
 	SocksUDP *createUDP(const QString &host, int port, const QHostAddress &routeAddr, int routePort);
+
+protected:
+	qint64 writeData(const char *data, qint64 maxSize);
+	qint64 readData(char *data, qint64 maxSize);
 
 signals:
 	// outgoing
@@ -108,7 +111,7 @@ private slots:
 	void sock_connectionClosed();
 	void sock_delayedCloseFinished();
 	void sock_readyRead();
-	void sock_bytesWritten(int);
+	void sock_bytesWritten(qint64);
 	void sock_error(int);
 	void serve();
 
@@ -117,7 +120,7 @@ private:
 	Private *d;
 
 	void init();
-	void reset(bool clear=false);
+	void resetConnection(bool clear=false);
 	void do_request();
 	void processOutgoing(const QByteArray &);
 	void processIncoming(const QByteArray &);

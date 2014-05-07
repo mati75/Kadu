@@ -4,8 +4,8 @@
  * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2010, 2012 Piotr Dąbrowski (ultr@ultr.pl)
  * Copyright 2009 Michał Podsiadlik (michal@kadu.net)
- * Copyright 2008, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2008, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -22,12 +22,12 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <QtCore/QCoreApplication>
 #include <QtCore/QDateTime>
 #include <QtCore/QDir>
 #include <QtCore/QTimer>
-#include <QtGui/QApplication>
 
-#include "gui/widgets/chat-widget.h"
+#include "gui/widgets/chat-widget/chat-widget.h"
 #include "gui/widgets/custom-input.h"
 #include "gui/windows/message-dialog.h"
 #include "activate.h"
@@ -43,7 +43,9 @@
 #include "screenshot.h"
 
 ScreenShot::ScreenShot(ChatWidget *chatWidget) :
-		MyChatWidget(chatWidget)
+		Mode{},
+		MyScreenshotTaker{},
+		MyChatWidget{chatWidget}
 {
 	kdebugf();
 
@@ -95,7 +97,7 @@ void ScreenShot::screenshotTaken(QPixmap screenshot, bool needsCrop)
 	screenshotWidget->setShotMode(Mode);
 	screenshotWidget->showFullScreen();
 	screenshotWidget->show();
-	QApplication::processEvents(); // ensure window was shown, otherwise it won't be activated
+	QCoreApplication::processEvents(); // ensure window was shown, otherwise it won't be activated
 	_activateWindow(screenshotWidget);
 }
 
@@ -121,7 +123,7 @@ void ScreenShot::screenshotReady(QPixmap p)
 
 void ScreenShot::pasteImageClause(const QString &path)
 {
-	MyChatWidget->edit()->insertPlainText(QString("[IMAGE ") + path + ']');
+	MyChatWidget->edit()->insertHtml(QString("<img src='%1' />").arg(path));
 }
 
 bool ScreenShot::checkImageSize(long int size)
@@ -142,9 +144,9 @@ void ScreenShot::checkShotsSize()
 	if (!ScreenShotConfiguration::instance()->warnAboutDirectorySize())
 		return;
 
-	int size = 0;
+	long size = 0;
 
-	int limit = ScreenShotConfiguration::instance()->directorySizeLimit();
+	long limit = ScreenShotConfiguration::instance()->directorySizeLimit();
 	QDir dir(ScreenShotConfiguration::instance()->imagePath());
 
 	QString prefix = ScreenShotConfiguration::instance()->fileNamePrefix();
@@ -158,3 +160,5 @@ void ScreenShot::checkShotsSize()
 	if (size/1024 >= limit)
 		ScreenshotNotification::notifySizeLimit(size);
 }
+
+#include "moc_screenshot.cpp"

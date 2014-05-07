@@ -5,8 +5,8 @@
  * Copyright 2011 Piotr Dąbrowski (ultr@ultr.pl)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
  * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
- * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2007, 2008, 2009, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
@@ -31,9 +31,8 @@
 #include "identities/identity.h"
 #include "protocols/protocol.h"
 
-#include "actions/enable-encryption-action-description.h"
+#include "actions/encryption-set-up-action-description.h"
 #include "actions/generate-keys-action-description.h"
-#include "actions/send-public-key-action-description.h"
 
 #include "encryption-actions.h"
 
@@ -53,9 +52,8 @@ void EncryptionActions::unregisterActions()
 
 EncryptionActions::EncryptionActions()
 {
-	EnableEncryptionActionDescriptionInstance = new EnableEncryptionActionDescription(this);
+	EncryptionSetUpActionDescriptionInstance = new EncryptionSetUpActionDescription(this);
 	new GenerateKeysActionDescription(this);
-	new SendPublicKeyActionDescription(this);
 }
 
 EncryptionActions::~EncryptionActions()
@@ -67,7 +65,9 @@ void EncryptionActions::checkEnableEncryption(const Chat &chat, bool check)
 	// there is only as much actions as chat windows, so this is not really N^2 when
 	// this slot is called for each chat when new encryption implementation is loaded/unloaded
 	// so no need to optimize it
-	foreach (Action *action, EnableEncryptionActionDescriptionInstance->actions())
+	foreach (Action *action, EncryptionSetUpActionDescriptionInstance->actions())
 		if (action->context()->chat() == chat)
 			action->setChecked(check);
 }
+
+#include "moc_encryption-actions.cpp"

@@ -3,6 +3,7 @@
  * Copyright 2008, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -30,14 +31,14 @@ FiledescPlugin::~FiledescPlugin()
 {
 }
 
-int FiledescPlugin::init(bool firstLoad)
+bool FiledescPlugin::init(bool firstLoad)
 {
 	Q_UNUSED(firstLoad)
 
 	FileDescriptionInstance = new FileDescription(this);
 	MainConfigurationWindow::registerUiFile(KaduPaths::instance()->dataPath() + QLatin1String("plugins/configuration/filedesc.ui"));
 
-	return 0;
+	return true;
 }
 
 void FiledescPlugin::done()
@@ -46,3 +47,5 @@ void FiledescPlugin::done()
 }
 
 Q_EXPORT_PLUGIN2(filedesc, FiledescPlugin)
+
+#include "moc_filedesc-plugin.cpp"

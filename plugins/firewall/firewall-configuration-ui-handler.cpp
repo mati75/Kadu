@@ -1,8 +1,9 @@
 /*
  * %kadu copyright begin%
  * Copyright 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2012 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -61,7 +62,11 @@ void FirewallConfigurationUiHandler::unregisterUiHandler()
 	}
 }
 
-FirewallConfigurationUiHandler::FirewallConfigurationUiHandler()
+FirewallConfigurationUiHandler::FirewallConfigurationUiHandler() :
+		AllList{},
+		SecureList{},
+		QuestionEdit{},
+		AnswerEdit{}
 {
 }
 
@@ -137,24 +142,10 @@ Automatic question GUI
 /*
 End creating Gui
 */
-	connect(mainConfigurationWindow->widget()->widgetById("firewall/write_log"), SIGNAL(toggled(bool)),
-		mainConfigurationWindow->widget()->widgetById("firewall/log_file"), SLOT(setEnabled(bool)));
-
 	connect(mainConfigurationWindow->widget()->widgetById("firewall/chats"), SIGNAL(toggled(bool)),
 		mainConfigurationWindow->widget()->configGroupBox("Firewall", "Unknown chats protection", "Automatic question")->widget(), SLOT(setEnabled(bool)));
 	connect(mainConfigurationWindow->widget()->widgetById("firewall/chats"), SIGNAL(toggled(bool)),
-		mainConfigurationWindow->widget()->configGroupBox("Firewall", "Unknown chats protection", "After right answer")->widget(), SLOT(setEnabled(bool)));
-
-	connect(mainConfigurationWindow->widget()->widgetById("firewall/confirmation"), SIGNAL(toggled(bool)),
-		mainConfigurationWindow->widget()->widgetById("firewall/confirmation_text"), SLOT(setEnabled(bool)));
-
-	connect(mainConfigurationWindow->widget()->widgetById("firewall/dos"), SIGNAL(toggled(bool)),
-		mainConfigurationWindow->widget()->widgetById("firewall/dos_interval"), SLOT(setEnabled(bool)));
-
-	connect(mainConfigurationWindow->widget()->widgetById("firewall/dos_emoticons"), SIGNAL(toggled(bool)),
-		mainConfigurationWindow->widget()->widgetById("firewall/emoticons_max"), SLOT(setEnabled(bool)));
-	connect(mainConfigurationWindow->widget()->widgetById("firewall/dos_emoticons"), SIGNAL(toggled(bool)),
-		mainConfigurationWindow->widget()->widgetById("firewall/emoticons_allow_known"), SLOT(setEnabled(bool)));
+		mainConfigurationWindow->widget()->configGroupBox("Firewall", "Unknown chats protection", "Reaction on right answer")->widget(), SLOT(setEnabled(bool)));
 
 	QWidget *safeSending = mainConfigurationWindow->widget()->widgetById("firewall/safe_sending");
 	connect(safeSending, SIGNAL(toggled(bool)),
@@ -248,3 +239,5 @@ void FirewallConfigurationUiHandler::configurationApplied()
 	config_file.writeEntry("Firewall", "question", QuestionEdit->toPlainText());
 	config_file.writeEntry("Firewall", "answer", AnswerEdit->text());
 }
+
+#include "moc_firewall-configuration-ui-handler.cpp"

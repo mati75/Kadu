@@ -3,7 +3,7 @@
  * %kadu copyright begin%
  * Copyright 2008, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2007, 2008, 2009, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -24,25 +24,45 @@
 
 #include "image-link-configuration.h"
 
-ImageLinkConfiguration::ImageLinkConfiguration()
+ImageLinkConfiguration::ImageLinkConfiguration() :
+		ShowImages(true), ShowVideos(true)
 {
-	configurationUpdated();
+}
+
+ImageLinkConfiguration::ImageLinkConfiguration(const ImageLinkConfiguration &copyMe)
+{
+	ShowImages = copyMe.ShowImages;
+	ShowVideos = copyMe.ShowVideos;
 }
 
 ImageLinkConfiguration::~ImageLinkConfiguration()
 {
 }
 
-void ImageLinkConfiguration::createDefaultConfiguration()
+ImageLinkConfiguration & ImageLinkConfiguration::operator = (const ImageLinkConfiguration &copyMe)
 {
-	config_file.addVariable("Imagelink", "show_yt", true);
-	config_file.addVariable("Imagelink", "show_image", true);
-	config_file.addVariable("Imagelink", "autoplay", true);
+	ShowImages = copyMe.ShowImages;
+	ShowVideos = copyMe.ShowVideos;
+
+	return *this;
 }
 
-void ImageLinkConfiguration::configurationUpdated()
+void ImageLinkConfiguration::setShowImages(bool showImages)
 {
-	ShowVideos = config_file.readBoolEntry("Imagelink", "show_yt", true);
-	AutoStartVideos = config_file.readBoolEntry("Imagelink", "autoplay", true);
-	ShowImages = config_file.readBoolEntry("Imagelink", "show_image", true);
+	ShowImages = showImages;
+}
+
+bool ImageLinkConfiguration::showImages() const
+{
+	return ShowImages;
+}
+
+void ImageLinkConfiguration::setShowVideos(bool showVideos)
+{
+	ShowVideos = showVideos;
+}
+
+bool ImageLinkConfiguration::showVideos() const
+{
+	return ShowVideos;
 }

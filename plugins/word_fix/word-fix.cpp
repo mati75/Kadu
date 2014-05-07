@@ -1,10 +1,10 @@
 /*
  * %kadu copyright begin%
  * Copyright 2008, 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2009, 2012 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2010, 2010 Tomasz Rostański (rozteck@interia.pl)
- * Copyright 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2008, 2009, 2010, 2011, 2012, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -36,32 +36,34 @@
 #include <QtGui/QTreeWidgetItem>
 
 #include "configuration/configuration-file.h"
-#include "gui/widgets/chat-widget-manager.h"
-#include "gui/widgets/chat-widget.h"
+#include "core/core.h"
+#include "formatted-string/formatted-string-html-visitor.h"
+#include "formatted-string/formatted-string.h"
+#include "gui/widgets/chat-widget/chat-widget-repository.h"
+#include "gui/widgets/chat-widget/chat-widget.h"
 #include "gui/widgets/configuration/config-group-box.h"
 #include "gui/widgets/configuration/configuration-widget.h"
 #include "gui/widgets/custom-input.h"
-#include "misc/misc.h"
+#include "misc/kadu-paths.h"
 #include "debug.h"
-#include "html_document.h"
+
+#include "word-fix-formatted-string-visitor.h"
 
 #include "word-fix.h"
 
 
 WordFix::WordFix(QObject *parent) :
-		ConfigurationUiHandler(parent)
+		ConfigurationUiHandler(parent),
+		changeButton{},
+		deleteButton{},
+		addButton{},
+		wordEdit{},
+		valueEdit{},
+		list{}
 {
 	kdebugf();
 
 	ExtractBody.setPattern("<body[^>]*>.*</body>");
-
-	connect(ChatWidgetManager::instance(), SIGNAL(chatWidgetCreated(ChatWidget *)),
-		this, SLOT(chatCreated(ChatWidget *)));
-	connect(ChatWidgetManager::instance(), SIGNAL(chatWidgetDestroying(ChatWidget *)),
-		this, SLOT(chatDestroying(ChatWidget *)));
-
-	foreach (ChatWidget *chat, ChatWidgetManager::instance()->chats())
-		connectToChat(chat);
 
 	// Loading list
 	QString data = config_file.readEntry("word_fix", "WordFix_list");
@@ -107,23 +109,46 @@ WordFix::WordFix(QObject *parent) :
 WordFix::~WordFix()
 {
 	kdebugf();
-	disconnect(ChatWidgetManager::instance(), 0, this, 0);
 
-	foreach (ChatWidget *chat, ChatWidgetManager::instance()->chats())
-		disconnectFromChat(chat);
+	if (chatWidgetRepository)
+	{
+		disconnect(chatWidgetRepository.data(), 0, this, 0);
+
+		for (auto chatWidget : chatWidgetRepository.data())
+			chatWidgetRemoved(chatWidget);
+	}
 
 	kdebugf2();
 }
 
-int WordFix::init(bool firstLoad)
+void WordFix::setChatWidgetRepository(ChatWidgetRepository *chatWidgetRepository)
+{
+	this->chatWidgetRepository = chatWidgetRepository;
+
+	if (this->chatWidgetRepository)
+	{
+		connect(this->chatWidgetRepository.data(), SIGNAL(chatWidgetAdded(ChatWidget *)),
+			this, SLOT(chatWidgetAdded(ChatWidget *)));
+		connect(this->chatWidgetRepository.data(), SIGNAL(chatWidgetRemoved(ChatWidget*)),
+			this, SLOT(chatWidgetRemoved(ChatWidget *)));
+
+		for (auto chatWidget : this->chatWidgetRepository.data())
+			chatWidgetAdded(chatWidget);
+	}
+}
+
+bool WordFix::init(bool firstLoad)
 {
 	Q_UNUSED(firstLoad)
 
 	kdebugf();
 	MainConfigurationWindow::registerUiFile(KaduPaths::instance()->dataPath() + QLatin1String("plugins/configuration/word_fix.ui"));
 	MainConfigurationWindow::registerUiHandler(this);
+
+	setChatWidgetRepository(Core::instance()->chatWidgetRepository());
+
 	kdebugf2();
-	return 0;
+	return true;
 }
 
 void WordFix::done()
@@ -134,108 +159,30 @@ void WordFix::done()
 	kdebugf2();
 }
 
-void WordFix::chatCreated(ChatWidget *chat)
+void WordFix::chatWidgetAdded(ChatWidget *chatWidget)
 {
-	connectToChat(chat);
+	connect(chatWidget, SIGNAL(messageSendRequested(ChatWidget*)), this, SLOT(sendRequest(ChatWidget*)));
 }
 
-void WordFix::chatDestroying(ChatWidget *chat)
+void WordFix::chatWidgetRemoved(ChatWidget *chatWidget)
 {
-	disconnectFromChat(chat);
-}
-
-void WordFix::connectToChat(const ChatWidget *chat)
-{
-	kdebugf();
-	connect(chat, SIGNAL(messageSendRequested(ChatWidget*)), this, SLOT(sendRequest(ChatWidget*)));
-	kdebugf2();
-}
-
-void WordFix::disconnectFromChat(const ChatWidget *chat)
-{
-	kdebugf();
-	disconnect(chat, 0, this, 0);
-	kdebugf2();
+	disconnect(chatWidget, 0, this, 0);
 }
 
 void WordFix::sendRequest(ChatWidget* chat)
 {
-	kdebugf();
-
 	if (!config_file.readBoolEntry("PowerKadu", "enable_word_fix", false))
 		return;
 
-	// Reading chat input to html document.
-	QString html = chat->edit()->toHtml();
-	QString body;
+	auto formattedString = chat->edit()->formattedString();
+	WordFixFormattedStringVisitor fixVisitor(wordsList);
+	formattedString->accept(&fixVisitor);
 
-	int pos = ExtractBody.indexIn(html);
-	if (pos >= 0)
-		body = ExtractBody.cap();
-	else
-		body = html;
+	auto fixedString = fixVisitor.result();
+	FormattedStringHtmlVisitor htmlVisitor;
+	fixedString->accept(&htmlVisitor);
 
-	HtmlDocument doc;
-	doc.parseHtml(body);
-
-	// Parsing and replacing.
-	for (int i = 0; i < doc.countElements(); i++)
-	{
-		if (!doc.isTagElement(i))
-			doReplace(doc.elementText(i));
-	}
-
-	// Putting back corrected text.
-	if (pos >= 0)
-		chat->edit()->setText(html.replace(pos, body.length(), doc.generateHtml()));
-	else
-		chat->edit()->setText(doc.generateHtml());
-
-	kdebugf2();
-}
-
-void WordFix::doReplace(QString &text)
-{
-	kdebugf();
-
-	for (QMap<QString, QString>::const_iterator i = wordsList.constBegin(); i != wordsList.constEnd(); ++i)
-	{
-		const int keyLength = i.key().length();
-		int pos = 0;
-		while ((pos = text.indexOf(i.key(), pos)) != -1)
-		{
-			bool beginsWord = (pos == 0);
-			if (!beginsWord)
-			{
-				const QChar ch(text.at(pos - 1));
-				beginsWord = !ch.isLetterOrNumber() && !ch.isMark() && ch != QLatin1Char('_');
-
-				if (!beginsWord)
-				{
-					pos += keyLength;
-					continue;
-				}
-			}
-
-			bool endsWord = (pos + keyLength == text.length());
-			if (!endsWord)
-			{
-				const QChar ch(text.at(pos + keyLength));
-				endsWord = !ch.isLetterOrNumber() && !ch.isMark() && ch != QLatin1Char('_');
-
-				if (!endsWord)
-				{
-					pos += keyLength;
-					continue;
-				}
-			}
-
-			text.replace(pos, keyLength, i.value());
-			pos += i.value().length();
-		}
-	}
-
-	kdebugf2();
+	chat->edit()->setHtml(htmlVisitor.result());
 }
 
 void WordFix::wordSelected()
@@ -363,7 +310,7 @@ void WordFix::mainConfigurationWindowCreated(MainConfigurationWindow *mainConfig
 	kdebugf();
 
 	ConfigGroupBox *groupBox = mainConfigurationWindow->widget()->
-		configGroupBox("Chat", "Words fix", "Words fix");
+		configGroupBox("Chat", "Spelling", "Words fix");
 
 	QWidget *widget = new QWidget(groupBox->widget());
 
@@ -473,3 +420,5 @@ void WordFix::saveList()
 }
 
 Q_EXPORT_PLUGIN2(word_fix, WordFix)
+
+#include "moc_word-fix.cpp"

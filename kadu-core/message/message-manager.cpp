@@ -1,6 +1,8 @@
 /*
  * %kadu copyright begin%
- * Copyright 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2011, 2012, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -17,14 +19,12 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "accounts/account.h"
-#include "buddies/buddy-manager.h"
-#include "chat/chat-details-buddy.h"
-#include "configuration/xml-configuration-file.h"
-#include "gui/widgets/chat-widget-manager.h"
-#include "gui/widgets/chat-widget.h"
+#include "formatted-string/composite-formatted-string.h"
+#include "formatted-string/formatted-string-factory.h"
 #include "protocols/protocol.h"
 #include "protocols/services/chat-service.h"
+#include "services/message-filter-service.h"
+#include "services/message-transformer-service.h"
 
 #include "message-manager.h"
 
@@ -33,98 +33,19 @@ MessageManager * MessageManager::Instance = 0;
 MessageManager * MessageManager::instance()
 {
 	if (0 == Instance)
-	{
 		Instance = new MessageManager();
-		Instance->init();
-	}
 
 	return Instance;
 }
 
 MessageManager::MessageManager()
 {
+	triggerAllAccountsRegistered();
 }
 
 MessageManager::~MessageManager()
 {
-	ConfigurationManager::instance()->unregisterStorableObject(this);
-
 	triggerAllAccountsUnregistered();
-}
-
-void MessageManager::init()
-{
-	setState(StateNotLoaded);
-	ConfigurationManager::instance()->registerStorableObject(this);
-
-	triggerAllAccountsRegistered();
-}
-
-bool MessageManager::importFromPendingMessages()
-{
-	QDomElement pendingMessagesNode = xml_config_file->getNode("PendingMessages", XmlConfigFile::ModeFind);
-	if (pendingMessagesNode.isNull())
-		return false;
-
-	QVector<QDomElement> messageElements = xml_config_file->getNodes(pendingMessagesNode, "Message");
-	foreach (const QDomElement &messageElement, messageElements)
-	{
-		QSharedPointer<StoragePoint> storagePoint(new StoragePoint(storage()->storage(), messageElement));
-		QUuid uuid = storagePoint->point().attribute("uuid");
-		if (!uuid.isNull())
-		{
-			Message message = Message::loadStubFromStorage(storagePoint);
-			addUnreadMessage(message);
-
-			// reset storage for message as it will be stored in other place
-			message.data()->setStorage(QSharedPointer<StoragePoint>());
-			message.data()->setState(StateNew);
-		}
-	}
-
-	// PendingMessages is no longer needed
-	pendingMessagesNode.parentNode().removeChild(pendingMessagesNode);
-
-	return true;
-}
-
-void MessageManager::load()
-{
-	StorableObject::load();
-
-	if (importFromPendingMessages())
-	{
-		loaded();
-		return;
-	}
-
-	QDomElement itemsNode = storage()->point();
-	if (itemsNode.isNull())
-		return;
-
-	QVector<QDomElement> itemElements = storage()->storage()->getNodes(itemsNode, "Message");
-	UnreadMessages.reserve(itemElements.count());
-
-	foreach (const QDomElement &itemElement, itemElements)
-	{
-		QSharedPointer<StoragePoint> storagePoint(new StoragePoint(storage()->storage(), itemElement));
-		QUuid uuid = storagePoint->point().attribute("uuid");
-		if (!uuid.isNull())
-		{
-			Message item = Message::loadStubFromStorage(storagePoint);
-			addUnreadMessage(item);
-		}
-	}
-
-	loaded();
-}
-
-void MessageManager::store()
-{
-	ensureLoaded();
-
-	foreach (Message message, UnreadMessages)
-		message.ensureStored();
 }
 
 void MessageManager::accountRegistered(Account account)
@@ -158,113 +79,81 @@ void MessageManager::accountUnregistered(Account account)
 
 void MessageManager::messageReceivedSlot(const Message &message)
 {
-	addUnreadMessage(message);
+	Message transformedMessage = CurrentMessageTransformerService
+			? CurrentMessageTransformerService.data()->transform(message)
+			: message;
 
-	emit messageReceived(message);
+	if (CurrentMessageFilterService)
+		if (!CurrentMessageFilterService.data()->acceptMessage(transformedMessage))
+			return;
+
+	emit messageReceived(transformedMessage);
 }
 
-void MessageManager::addUnreadMessage(const Message &message)
+void MessageManager::setMessageFilterService(MessageFilterService *messageFilterService)
 {
-	// just ensure that owner buddy is managed - we need it to be shown on contact list
-	// todo: rethink this one
-	BuddyManager::instance()->byContact(message.messageSender(), ActionCreateAndAdd);
-
-	ChatWidget *chatWidget = ChatWidgetManager::instance()->byChat(message.messageChat(), false);
-	// message is pending if chat widget is not open
-	if (!chatWidget)
-		message.setPending(true);
-	else if (chatWidget->isActive())
-		return;
-
-	UnreadMessages.append(message);
-	emit unreadMessageAdded(message);
+	CurrentMessageFilterService = messageFilterService;
 }
 
-void MessageManager::removeUnreadMessage(const Message &message)
+void MessageManager::setMessageTransformerService(MessageTransformerService *messageTransformerService)
 {
-	UnreadMessages.removeAll(message);
-
-	message.setPending(false);
-	message.data()->removeFromStorage();
-
-	emit unreadMessageRemoved(message);
+	CurrentMessageTransformerService = messageTransformerService;
 }
 
-const QList<Message> & MessageManager::allUnreadMessages() const
+void MessageManager::setFormattedStringFactory(FormattedStringFactory *formattedStringFactory)
 {
-	return UnreadMessages;
+	CurrentFormattedStringFactory = formattedStringFactory;
 }
 
-QList<Message> MessageManager::chatUnreadMessages(const Chat &chat) const
+bool MessageManager::sendMessage(const Chat &chat, const QString &content, bool silent)
 {
-	QList<Message> result;
-	QSet<Chat> chats;
+	if (!CurrentFormattedStringFactory)
+		return false;
 
-	ChatDetails *details = chat.details();
-	ChatDetailsBuddy *chatDetailsBuddy = qobject_cast<ChatDetailsBuddy *>(details);
-
-	if (chatDetailsBuddy)
-		foreach (const Chat &ch, chatDetailsBuddy->chats())
-			chats.insert(ch);
-	else
-		chats.insert(chat);
-
-	foreach (const Message &message, UnreadMessages)
-		if (chats.contains(message.messageChat()))
-			result.append(message);
-
-	return result;
+	return sendMessage(chat, CurrentFormattedStringFactory.data()->fromText(content), silent);
 }
 
-bool MessageManager::hasUnreadMessages() const
+Message MessageManager::createOutgoingMessage(const Chat &chat, std::unique_ptr<FormattedString> &&content)
 {
-	return !UnreadMessages.isEmpty();
+	Message message = Message::create();
+	message.setMessageChat(chat);
+	message.setType(MessageTypeSent);
+	message.setMessageSender(chat.chatAccount().accountContact());
+	message.setContent(std::move(content));
+	message.setSendDate(QDateTime::currentDateTime());
+	message.setReceiveDate(QDateTime::currentDateTime());
+
+	return message;
 }
 
-quint16 MessageManager::unreadMessagesCount() const
+bool MessageManager::sendMessage(const Chat &chat, std::unique_ptr<FormattedString> &&content, bool silent)
 {
-	return UnreadMessages.count();
+	Protocol *protocol = chat.chatAccount().protocolHandler();
+	if (!protocol || !protocol->chatService())
+		return false;
+
+	Message message = createOutgoingMessage(chat, std::move(content));
+	if (CurrentMessageFilterService && !CurrentMessageFilterService.data()->acceptMessage(message))
+		return false;
+
+	Message transformedMessage = CurrentMessageTransformerService
+			? CurrentMessageTransformerService.data()->transform(message)
+			: message;
+
+	bool sent = protocol->chatService()->sendMessage(transformedMessage);
+	if (sent && !silent)
+		emit messageSent(transformedMessage);
+
+	return sent;
 }
 
-void MessageManager::markAllMessagesAsRead(const Chat &chat)
+bool MessageManager::sendRawMessage(const Chat &chat, const QByteArray &content)
 {
-	const QList<Message> &messages = chatUnreadMessages(chat);
+	Protocol *protocol = chat.chatAccount().protocolHandler();
+	if (!protocol || !protocol->chatService())
+		return false;
 
-	foreach (const Message &message, messages)
-	{
-		UnreadMessages.removeAll(message);
-
-		message.setStatus(MessageStatusRead);
-		message.setPending(false);
-		message.data()->removeFromStorage();
-
-		emit unreadMessageRemoved(message);
-	}
+	return protocol->chatService()->sendRawMessage(chat, content);
 }
 
-Message MessageManager::unreadMessage() const
-{
-	if (UnreadMessages.empty())
-		return Message::null;
-	else
-		return UnreadMessages.at(0);
-}
-
-Message MessageManager::unreadMessageForBuddy(const Buddy &buddy) const
-{
-	const QList<Contact> &contacts = buddy.contacts();
-	foreach (const Message &message, UnreadMessages)
-		if (contacts.contains(message.messageSender()))
-			return message;
-
-	return Message::null;
-}
-
-Message MessageManager::unreadMessageForContact(const Contact &contact) const
-{
-	foreach (const Message &message, UnreadMessages)
-		if (contact == message.messageSender())
-			return message;
-
-	return Message::null;
-}
+#include "moc_message-manager.cpp"

@@ -2,9 +2,10 @@
 #define WORD_FIX_H
 
 #include "gui/windows/main-configuration-window.h"
-#include "plugins/generic-plugin.h"
+#include "plugin/plugin-root-component.h"
 
 class ChatWidget;
+class ChatWidgetRepository;
 class UserGroup;
 class QTreeWidgetItem;
 class QTreeWidget;
@@ -19,10 +20,13 @@ class QLineEdit;
  * \class WordFix
  * \brief Words fixing.
  */
-class WordFix : public ConfigurationUiHandler, GenericPlugin
+class WordFix : public ConfigurationUiHandler, PluginRootComponent
 {
 	Q_OBJECT
-	Q_INTERFACES(GenericPlugin)
+	Q_INTERFACES(PluginRootComponent)
+	Q_PLUGIN_METADATA(IID "im.kadu.PluginRootComponent")
+
+	QPointer<ChatWidgetRepository> chatWidgetRepository;
 
 	/*!
 	 * \var QMap<QString,QString> wordsList
@@ -49,7 +53,7 @@ private slots:
 	 * the object to chat "<i>send message</i>" signal.
 	 * \param chat Pointer to the created chat window.
 	 */
-	void chatCreated(ChatWidget *chat);
+	void chatWidgetAdded(ChatWidget *chat);
 
 	/*!
 	 * \fn void chatDestroying(ChatWidget *chat)
@@ -57,7 +61,7 @@ private slots:
 	 * the object from chat "<i>send message</i>" signal.
 	 * \param chat Pointer to the chat window.
 	 */
-	void chatDestroying(ChatWidget *chat);
+	void chatWidgetRemoved(ChatWidget *chat);
 
 	/*!
 	 * \fn void sendRequest(Chat* chat)
@@ -83,31 +87,12 @@ public:
 	 */
 	virtual ~WordFix();
 
+	void setChatWidgetRepository(ChatWidgetRepository *chatWidgetRepository);
+
 	virtual void mainConfigurationWindowCreated(MainConfigurationWindow *mainConfigurationWindow);
 
-	virtual int init(bool firstLoad);
+	virtual bool init(bool firstLoad);
 	virtual void done();
-
-	/*!
-	 * \fn void connectToChat(const Chat* chat)
-	 * Connects handling slot to given chat signal.
-	 * \param chat Chat to connect slot to.
-	 */
-	void connectToChat(const ChatWidget* chat);
-
-	/*!
-	 * \fn void disconnectFromChat(const Chat* chat)
-	 * Disconnects handling slot from given chat signal.
-	 * \param chat Chat to disconnect slot from.
-	 */
-	void disconnectFromChat(const ChatWidget* chat);
-
-	/*!
-	 * \fn void doReplace(QString &text)
-	 * Does the whole job - replaces wrong words with the right ones.
-	 * \param text To replace. After processing it will contain corrected text.
-	 */
-	void doReplace(QString &text);
 
 public slots:
 	/*!

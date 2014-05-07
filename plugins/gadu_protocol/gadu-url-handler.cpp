@@ -2,8 +2,8 @@
  * %kadu copyright begin%
  * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2010 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -22,7 +22,6 @@
 
 #include <QtGui/QCursor>
 #include <QtGui/QMenu>
-#include <QtGui/QTextDocument>
 
 #include "accounts/account-manager.h"
 #include "accounts/account.h"
@@ -31,8 +30,8 @@
 #include "contacts/contact-manager.h"
 #include "contacts/contact-set.h"
 #include "contacts/contact.h"
-#include "gui/widgets/chat-widget-manager.h"
-#include "gui/widgets/chat-widget.h"
+#include "core/core.h"
+#include "gui/widgets/chat-widget/chat-widget-manager.h"
 #include "icons/kadu-icon.h"
 #include "misc/misc.h"
 #include "status/status-container.h"
@@ -41,34 +40,16 @@
 
 GaduUrlHandler::GaduUrlHandler()
 {
-	GaduRegExp = QRegExp("\\bgg:(/){0,3}[0-9]{1,8}\\b");
+	GaduRegExp = QRegExp("\\bgg:(/){0,3}[0-9]{1,12}\\b");
+}
+
+GaduUrlHandler::~GaduUrlHandler()
+{
 }
 
 bool GaduUrlHandler::isUrlValid(const QByteArray &url)
 {
 	return GaduRegExp.exactMatch(QString::fromUtf8(url));
-}
-
-void GaduUrlHandler::convertUrlsToHtml(HtmlDocument &document, bool generateOnlyHrefAttr)
-{
-	Q_UNUSED(generateOnlyHrefAttr)
-
-	for (int i = 0; i < document.countElements(); ++i)
-	{
-		if (document.isTagElement(i))
-			continue;
-
-		QString text = document.elementText(i);
-		int index = GaduRegExp.indexIn(text);
-		if (index < 0)
-			continue;
-
-		unsigned int length = GaduRegExp.matchedLength();
-		QString gg = Qt::escape(text.mid(index, length));
-
-		document.splitElement(i, index, length);
-		document.setElementValue(i, "<a href=\"" + gg + "\">" + gg + "</a>", true);
-	}
 }
 
 void GaduUrlHandler::openUrl(const QByteArray &url, bool disableMenu)
@@ -90,9 +71,7 @@ void GaduUrlHandler::openUrl(const QByteArray &url, bool disableMenu)
 		const Chat &chat = ChatTypeContact::findChat(contact, ActionCreateAndAdd);
 		if (chat)
 		{
-			ChatWidget * const chatWidget = ChatWidgetManager::instance()->byChat(chat, true);
-			if (chatWidget)
-				chatWidget->activate();
+			Core::instance()->chatWidgetManager()->openChat(chat, OpenChatActivation::Activate);
 			return;
 		}
 	}
@@ -129,7 +108,7 @@ void GaduUrlHandler::accountSelected(QAction *action)
 
 	const Contact &contact = ContactManager::instance()->byId(account, ids[1], ActionCreateAndAdd);
 	const Chat &chat = ChatTypeContact::findChat(contact, ActionCreateAndAdd);
-	ChatWidget * const chatWidget = ChatWidgetManager::instance()->byChat(chat, true);
-	if (chatWidget)
-		chatWidget->activate();
+	Core::instance()->chatWidgetManager()->openChat(chat, OpenChatActivation::Activate);
 }
+
+#include "moc_gadu-url-handler.cpp"

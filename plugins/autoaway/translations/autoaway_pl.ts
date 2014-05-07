@@ -6,36 +6,16 @@
         <translation>Status</translation>
     </message>
     <message>
-        <source>Autoaway</source>
-        <translation>Auto-zajęty</translation>
-    </message>
-    <message>
         <source>Check idle every</source>
         <translation>Sprawdzaj bezczynność co</translation>
     </message>
     <message>
-        <source>Enable autoaway</source>
-        <translation>Włącz auto-zajęty</translation>
-    </message>
-    <message>
         <source>Set status to away after</source>
-        <translation>Ustaw status na &apos;Zajęty&apos; po</translation>
-    </message>
-    <message>
-        <source>Enable autoinvisible</source>
-        <translation>Włącz auto-niewidzialny</translation>
+        <translation>Ustaw status na &apos;zajęty&apos; po</translation>
     </message>
     <message>
         <source>Set status to invisible after</source>
-        <translation>Ustaw status na &apos;Niewidzialny&apos; po</translation>
-    </message>
-    <message>
-        <source>Enable autodisconnect</source>
-        <translation>Włącz auto-rozłączenie</translation>
-    </message>
-    <message>
-        <source>Disconnect after</source>
-        <translation>Rozłącz po</translation>
+        <translation>Ustaw status na &apos;niewidzialny&apos; po</translation>
     </message>
     <message>
         <source>Description</source>
@@ -50,28 +30,8 @@
         <translation>Nowy opis</translation>
     </message>
     <message>
-        <source>Parse AutoStatus</source>
-        <translation>Parsuj AutoStatus</translation>
-    </message>
-    <message>
-        <source>Enable auto extended away</source>
-        <translation>Włącz auto-nieobecny</translation>
-    </message>
-    <message>
         <source>Set status to extended away after</source>
-        <translation>Ustaw status na &apos;Nieobecny&apos; po</translation>
-    </message>
-    <message>
-        <source>Auto refresh status</source>
-        <translation>Automatycznie odświeżaj status</translation>
-    </message>
-    <message numerus="yes">
-        <source>[every] %n second(s)</source>
-        <translation><numerusform>[co] %n sekundę</numerusform><numerusform>[co] %n sekundy</numerusform><numerusform>[co] %n sekund</numerusform></translation>
-    </message>
-    <message numerus="yes">
-        <source>[after] %n second(s)</source>
-        <translation><numerusform>[po] %n sekundzie</numerusform><numerusform>[po] %n sekundach</numerusform><numerusform>[po] %n sekundach</numerusform></translation>
+        <translation>Ustaw status &apos;nieobecny&apos; po</translation>
     </message>
     <message numerus="yes">
         <source>%n second(s)</source>
@@ -82,12 +42,52 @@
         <translation>Nie zmieniaj</translation>
     </message>
     <message>
-        <source>Add in the Front</source>
-        <translation>Dodaj na przodzie</translation>
+        <source>Behaviour</source>
+        <translation>Zachowanie</translation>
     </message>
     <message>
-        <source>Add at the Back</source>
-        <translation>Dodaj z tyłu</translation>
+        <source>Inactivity</source>
+        <translation>Nieaktywność</translation>
+    </message>
+    <message>
+        <source>Refresh status every</source>
+        <translation>Odśwież opis co</translation>
+    </message>
+    <message>
+        <source>Switch to &apos;away&apos;</source>
+        <translation>Ustaw status &apos;zajęty&apos;</translation>
+    </message>
+    <message numerus="yes">
+        <source>%n minute(s)</source>
+        <translation><numerusform>%n minucie</numerusform><numerusform>%n minutach</numerusform><numerusform>%n minutach</numerusform></translation>
+    </message>
+    <message>
+        <source>Switch to &apos;auto extended away&apos;</source>
+        <translation>Ustaw status &apos;nieobecny&apos;</translation>
+    </message>
+    <message>
+        <source>Switch to &apos;invisible&apos;</source>
+        <translation>Ustaw status &apos;niewidzialny&apos;</translation>
+    </message>
+    <message>
+        <source>Switch to &apos;offline&apos;</source>
+        <translation>Ustaw status &apos;niedostępny&apos;</translation>
+    </message>
+    <message>
+        <source>Set status to offline after</source>
+        <translation>Ustaw status &apos;niedostępny&apos; po</translation>
+    </message>
+    <message>
+        <source>Status description when inactive</source>
+        <translation>Opis w czasie nieaktywności</translation>
+    </message>
+    <message>
+        <source>Prepend</source>
+        <translation>Dołącz przed</translation>
+    </message>
+    <message>
+        <source>Append</source>
+        <translation>Dołącz po</translation>
     </message>
 </context>
 <context>

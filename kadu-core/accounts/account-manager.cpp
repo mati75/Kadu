@@ -1,10 +1,11 @@
 /*
  * %kadu copyright begin%
  * Copyright 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2012 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2008 Michał Podsiadlik (michal@kadu.net)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
- * Copyright 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2008, 2009, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -21,23 +22,21 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "accounts/account.h"
 #include "accounts/accounts-aware-object.h"
 #include "buddies/buddy-manager.h"
 #include "chat/chat-manager.h"
 #include "configuration/configuration-file.h"
-#include "configuration/configuration-manager.h"
 #include "configuration/xml-configuration-file.h"
 #include "contacts/contact-manager.h"
 #include "core/core.h"
-#include "gui/windows/password-window.h"
+#include "gui/widgets/dialog/password-dialog-widget.h"
+#include "gui/windows/kadu-dialog.h"
 #include "identities/identity.h"
-#include "notify/notification-manager.h"
 #include "protocols/connection-error-notification.h"
 #include "protocols/protocol-factory.h"
 #include "protocols/protocol.h"
 #include "protocols/protocols-manager.h"
-#include "protocols/services/roster-service.h"
+#include "protocols/services/roster/roster-service.h"
 #include "debug.h"
 
 #include "account-manager.h"
@@ -61,13 +60,10 @@ AccountManager::AccountManager()
 
 AccountManager::~AccountManager()
 {
-	ConfigurationManager::instance()->unregisterStorableObject(this);
 }
 
 void AccountManager::init()
 {
-	ConfigurationManager::instance()->registerStorableObject(this);
-
 	// needed for QueuedConnection
 	qRegisterMetaType<Account>("Account");
 }
@@ -206,12 +202,7 @@ void AccountManager::connectionError(Account account, const QString &server, con
 {
 	QMutexLocker locker(&mutex());
 
-	if (!ConnectionErrorNotification::activeError(account, message))
-	{
-		ConnectionErrorNotification *connectionErrorNotification = new ConnectionErrorNotification(account,
-				server, message);
-		NotificationManager::instance()->notify(connectionErrorNotification);
-	}
+	ConnectionErrorNotification::notifyConnectionError(account, server, message);
 }
 
 void AccountManager::removeAccountAndBuddies(Account account)
@@ -255,10 +246,14 @@ void AccountManager::providePassword(Account account)
 {
 	QMutexLocker locker(&mutex());
 
-	QString message = tr("Please provide valid password for %1 (%2) account")
+	QString message = tr("Please provide password for %1 (%2) account")
 			.arg(account.accountIdentity().name())
 			.arg(account.id());
-	PasswordWindow::getPassword(message, account, this, SLOT(passwordProvided(const QVariant &, const QString &, bool)));
+
+	PasswordDialogWidget *passwordWidget = new PasswordDialogWidget(message, account, 0);
+	connect(passwordWidget, SIGNAL(passwordEntered(const QVariant &, const QString &, bool)), this, SLOT(passwordProvided(const QVariant &, const QString &, bool)));
+	KaduDialog *window = new KaduDialog(passwordWidget, 0);
+	window->exec();
 }
 
 void AccountManager::loaded()
@@ -268,3 +263,5 @@ void AccountManager::loaded()
 	foreach (const Account &account, allItems())
 		account.accountContact().setOwnerBuddy(Core::instance()->myself());
 }
+
+#include "moc_account-manager.cpp"

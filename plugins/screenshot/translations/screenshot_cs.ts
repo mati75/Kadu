@@ -6,16 +6,8 @@
         <translation>Snímek obrazovky</translation>
     </message>
     <message>
-        <source>General</source>
-        <translation>Obecné</translation>
-    </message>
-    <message>
         <source>General Settings</source>
         <translation>Obecná nastavení</translation>
-    </message>
-    <message>
-        <source>File format</source>
-        <translation>Formát souboru</translation>
     </message>
     <message>
         <source>Select image format, which screenshots will be stored and sent in.</source>
@@ -38,14 +30,6 @@
         <translation>-1 pro automatické určení, 0 pro nejlepší zhuštění, 100 pro nejlepší jakost obrázku.</translation>
     </message>
     <message>
-        <source>Paste [IMAGE] clause automatically</source>
-        <translation>Vložit doložku [IMAGE] automaticky</translation>
-    </message>
-    <message>
-        <source>When enabled, module will automatically paste ready to send [IMAGE] clause in chat window.</source>
-        <translation>Když je to povoleno, modul automaticky vloží doložku [IMAGE] připraven k odeslání v okně s rozhovorem.</translation>
-    </message>
-    <message>
         <source>Directory</source>
         <translation>Adresář</translation>
     </message>
@@ -62,16 +46,8 @@
         <translation>Povolit ovládání velikosti adresáře</translation>
     </message>
     <message>
-        <source>When enabled, module will check for shots directory size and warn you if it gets size specified below.</source>
-        <translation>Když je to povoleno, modul bude ověřovat velikost adresáře se snímky a bude vás varovat, dosáhne-li velikosti stanovené níže.</translation>
-    </message>
-    <message>
         <source>Maximum directory size</source>
         <translation>Největší velikost adresáře</translation>
-    </message>
-    <message>
-        <source>Define, how many kbytes can shots take in the directory before module will warn you.</source>
-        <translation>Určete, kolik kilobajtů mohou snímky v adresáři mít předtím, než vás bude modul varovat.</translation>
     </message>
     <message>
         <source> kB</source>
@@ -80,6 +56,30 @@
     <message>
         <source>ScreenShot images size limit</source>
         <translation>Omezení velikosti obrázku se snímkem obrazovky</translation>
+    </message>
+    <message>
+        <source>Extras</source>
+        <translation>Navíc</translation>
+    </message>
+    <message>
+        <source>Screenshot file format</source>
+        <translation>Souborový formát snímku obrazovky</translation>
+    </message>
+    <message>
+        <source>Paste image to chat window automatically</source>
+        <translation>Vložit obrázek do okna pro rozhovor automaticky</translation>
+    </message>
+    <message>
+        <source>When enabled, plugin will automatically paste ready to send [IMAGE] clause in chat window.</source>
+        <translation>Je-li povoleno, přídavný modul do okna pro rozhovor automaticky vloží doložku [OBRÁZEK] připraven k poslání.</translation>
+    </message>
+    <message>
+        <source>When enabled, plugin will check for shots directory size and warn you if it gets size specified below.</source>
+        <translation>Je-li povoleno, přídavný modul přezkouší velikost adresáře se snímky obrazovky a bude vás varovat, pokud bude mít velikost stanovenou níže.</translation>
+    </message>
+    <message>
+        <source>Define, how many kbytes can shots take in the directory before plugin will warn you.</source>
+        <translation>Stanovte, kolik kB může v adresáři být obsazeno snímky obrazovky, předtím než vás přídavný modul bude varovat.</translation>
     </message>
 </context>
 <context>

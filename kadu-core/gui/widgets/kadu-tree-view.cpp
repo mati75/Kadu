@@ -1,8 +1,9 @@
 /*
  * %kadu copyright begin%
- * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2009, 2012 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
- * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2007, 2008, 2009, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
@@ -36,19 +37,14 @@ KaduTreeView::KaduTreeView(QWidget *parent) :
 		BackgroundImageMode(BackgroundNone), BackgroundTemporaryFile(0)
 {
 	setAnimated(true);
-#ifndef Q_WS_MAEMO_5
-	/* Disable as we use kinetic scrolling by default */
 	setDragEnabled(true);
 	setDragDropMode(DragOnly);
-#endif
 	setItemsExpandable(true);
 	setExpandsOnDoubleClick(false);
 	setHeaderHidden(true);
 	setMouseTracking(true);
 	setSelectionMode(QAbstractItemView::ExtendedSelection);
-#ifndef Q_WS_MAEMO_5
 	setUniformRowHeights(false);
-#endif
 	setWordWrap(true);
 
 	configurationUpdated();
@@ -183,3 +179,5 @@ void KaduTreeView::startDrag(Qt::DropActions supportedActions)
 
 	drag->exec(supportedActions, Qt::LinkAction);
 }
+
+#include "moc_kadu-tree-view.cpp"

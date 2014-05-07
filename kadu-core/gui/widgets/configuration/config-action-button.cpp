@@ -1,8 +1,9 @@
 /*
  * %kadu copyright begin%
  * Copyright 2009, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2008, 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2012 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -43,9 +44,11 @@ void ConfigActionButton::createWidgets()
 {
 	kdebugf();
 
-	setText(qApp->translate("@default", widgetCaption.toUtf8().constData()));
-	parentConfigGroupBox->addWidget(this);
+	setText(QCoreApplication::translate("@default", widgetCaption.toUtf8().constData()));
+	parentConfigGroupBox->addWidgets(new QLabel(" "), this);
 
 	if (!ConfigWidget::toolTip.isEmpty())
-		setToolTip(qApp->translate("@default", ConfigWidget::toolTip.toUtf8().constData()));
+		setToolTip(QCoreApplication::translate("@default", ConfigWidget::toolTip.toUtf8().constData()));
 }
+
+#include "moc_config-action-button.cpp"

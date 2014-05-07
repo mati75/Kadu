@@ -1,11 +1,12 @@
 /*
  * %kadu copyright begin%
  * Copyright 2008, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2012 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2008 Michał Podsiadlik (michal@kadu.net)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
  * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
- * Copyright 2007, 2008, 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2007, 2008, 2009, 2010, 2011, 2012, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
@@ -30,12 +31,12 @@
 #include <QtCore/QObject>
 
 #include "themes/theme.h"
+#include "exports.h"
 
-class ThemeManager : public QObject
+class KADUAPI ThemeManager : public QObject
 {
 	Q_OBJECT
 
-	bool IncludeNone;
 	QMap<QString, Theme> Themes;
 	QString CurrentThemeName;
 
@@ -47,10 +48,10 @@ protected:
 	virtual bool isValidThemePath(const QString &themePath) const = 0;
 
 public:
-	explicit ThemeManager(bool includeNone, QObject *parent = 0);
+	explicit ThemeManager(QObject *parent = 0);
 	virtual ~ThemeManager();
 
-	void loadThemes(const QStringList &customThemePaths);
+	void loadThemes();
 
 	const QMap<QString, Theme> & themes() const { return Themes; }
 

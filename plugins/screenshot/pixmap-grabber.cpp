@@ -1,7 +1,8 @@
 /*
  * %kadu copyright begin%
+ * Copyright 2011 Tomasz Rostanski (rozteck@interia.pl)
  * Copyright 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -30,10 +31,10 @@
 #include <QtGui/QApplication>
 #include <QtGui/QDesktopWidget>
 #endif
-#ifdef Q_WS_MAC
+#ifdef Q_OS_MAC
 #include <Carbon/Carbon.h>
 #endif
-#ifdef Q_WS_WIN
+#ifdef Q_OS_WIN32
 #include <QtCore/QLibrary>
 #include <windows.h>
 #undef MessageBox
@@ -105,12 +106,12 @@ Window PixmapGrabber::windowUnderCursor(bool includeDecorations)
 
 QPixmap PixmapGrabber::grabWindow( Window child, int x, int y, uint w, uint h, uint border )
 {
-    QPixmap pm( QPixmap::grabWindow( QX11Info::appRootWindow(), x, y, w, h ) );
+    QPixmap pm( QPixmap::grabWindow( QX11Info::appRootWindow(), x, y, static_cast<int>(w), static_cast<int>(h) ) );
 
     int tmp1, tmp2;
     //Check whether the extension is available
     if ( XShapeQueryExtension( QX11Info::display(), &tmp1, &tmp2 ) ) {
-        QBitmap mask( w, h );
+        QBitmap mask(static_cast<int>(w), static_cast<int>(h));
         //As the first step, get the mask from XShape.
         int count, order;
         XRectangle* rects = XShapeGetRectangles( QX11Info::display(), child,
@@ -128,14 +129,14 @@ QPixmap PixmapGrabber::grabWindow( Window child, int x, int y, uint w, uint h, u
             XFree( rects );
 
             //Create the bounding box.
-            QRegion bbox( 0, 0, w, h );
+            QRegion bbox( 0, 0, static_cast<int>(w), static_cast<int>(h) );
 
             if( border > 0 ) {
                 contents.translate( border, border );
                 contents += QRegion( 0, 0, border, h );
-                contents += QRegion( 0, 0, w, border );
-                contents += QRegion( 0, h - border, w, border );
-                contents += QRegion( w - border, 0, border, h );
+                contents += QRegion( 0, 0, static_cast<int>(w), border );
+                contents += QRegion( 0, static_cast<int>(h) - border, static_cast<int>(w), border );
+                contents += QRegion( static_cast<int>(w) - border, 0, border, static_cast<int>(h) );
             }
 
             //Get the masked away area.
@@ -144,7 +145,7 @@ QPixmap PixmapGrabber::grabWindow( Window child, int x, int y, uint w, uint h, u
 
             //Construct a bitmap mask from the rectangles
             QPainter p(&mask);
-            p.fillRect(0, 0, w, h, Qt::color1);
+            p.fillRect(0, 0, static_cast<int>(w), static_cast<int>(h), Qt::color1);
             for (int pos = 0; pos < maskedAwayRects.count(); pos++)
                     p.fillRect(maskedAwayRects[pos], Qt::color0);
             p.end();
@@ -226,7 +227,7 @@ Window PixmapGrabber::findRealWindow( Window w, int depth )
 // End of code copied from KSnapShot
 //////////////////////////////////////////////////////////////////
 
-#elif defined Q_WS_WIN
+#elif defined Q_OS_WIN32
 
 QPixmap PixmapGrabber::grabCurrent()
 {
@@ -289,10 +290,10 @@ QPixmap PixmapGrabber::grabCurrent()
 	}
 	else
 		return QPixmap();
-	
+
 }
 
-#elif defined Q_WS_MAC
+#elif defined Q_OS_MAC
 
 QPixmap PixmapGrabber::grabCurrent()
 {
@@ -303,7 +304,7 @@ QPixmap PixmapGrabber::grabCurrent()
 
 	GetGlobalMouse(&mousePos);
 
-	/* This code works only with our application windows. 
+	/* This code works only with our application windows.
 	 * In order to capture other application's windows the private CoreGraphics API must be used.
 	 */
 	err = MacFindWindow(mousePos, &window);

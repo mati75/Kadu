@@ -1,6 +1,7 @@
 /*
  * %kadu copyright begin%
  * Copyright 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -50,7 +51,9 @@ void CenzorConfigurationUiHandler::unregisterConfigurationUi()
 	}
 }
 
-CenzorConfigurationUiHandler::CenzorConfigurationUiHandler()
+CenzorConfigurationUiHandler::CenzorConfigurationUiHandler() :
+		SwearwordsWidget{},
+		ExclusionsWidget{}
 {
 }
 
@@ -80,3 +83,5 @@ void CenzorConfigurationUiHandler::configurationWindowApplied()
 	Cenzor::instance()->configuration().setExclusionList(CenzorConfiguration::toRegExpList(ExclusionsWidget->list()));
 	Cenzor::instance()->configuration().saveConfiguration();
 }
+
+#include "moc_cenzor-configuration-ui-handler.cpp"

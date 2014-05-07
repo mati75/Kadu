@@ -1,6 +1,10 @@
 /*
  * %kadu copyright begin%
- * Copyright 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2012 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
+ * Copyright 2007, 2008, 2009, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -17,6 +21,9 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "accounts/account-manager.h"
+#include "accounts/account.h"
+#include "gui/actions/action.h"
 #include "gui/windows/add-conference-window.h"
 
 #include "add-conference-action.h"
@@ -29,6 +36,13 @@ AddConferenceAction::AddConferenceAction(QObject *parent) :
 	setText(tr("Add Conference..."));
 
 	registerAction();
+
+	connect(AccountManager::instance(), SIGNAL(accountRegistered(Account)),
+	        this, SLOT(updateAddChatMenuItem()));
+	connect(AccountManager::instance(), SIGNAL(accountUnregistered(Account)),
+	        this, SLOT(updateAddChatMenuItem()));
+
+	updateAddChatMenuItem();
 }
 
 AddConferenceAction::~AddConferenceAction()
@@ -42,3 +56,21 @@ void AddConferenceAction::triggered(QWidget *widget, ActionContext *context, boo
 
 	(new AddConferenceWindow(widget))->show();
 }
+
+void AddConferenceAction::updateAddChatMenuItem()
+{
+	bool isConferenceSupported = false;
+
+	foreach (const Account &account, AccountManager::instance()->items())
+	{
+		if (account.protocolName() == "gadu")
+			isConferenceSupported = true;
+	}
+
+	foreach (Action *action, actions())
+	{
+		action->setVisible(isConferenceSupported);
+	}
+}
+
+#include "moc_add-conference-action.cpp"

@@ -1,3 +1,23 @@
+/*
+ * Copyright (C) 2007  Justin Karneges
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+ * 02110-1301  USA
+ *
+ */
+
 #include <qapplication.h>
 #include <qtextedit.h>
 #include <qgroupbox.h>
@@ -418,7 +438,7 @@ private slots:
 		stream->setSSFRange(sb_ssfmin->value(), sb_ssfmax->value());
 		//stream->setOldOnly(true);
 		stream->setCompress(true);
-		
+
 		gb_server->setEnabled(false);
 		pb_go->setText(tr("&Disconnect"));
 		pb_go->setFocus();
@@ -953,10 +973,3 @@ int main(int argc, char **argv)
 
 	return 0;
 }
-
-#ifdef QCA_STATIC
-#include <QtPlugin>
-#ifdef HAVE_OPENSSL
-Q_IMPORT_PLUGIN(qca_openssl)
-#endif
-#endif

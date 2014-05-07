@@ -1,6 +1,7 @@
 /*
  * %kadu copyright begin%
  * Copyright 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -91,3 +92,5 @@ void S5BServerManager::removeAddress(const QString &address)
 	// remove duplicates
 	server()->setHostList(QSet<QString>::fromList(Addresses).toList());
 }
+
+#include "moc_s5b-server-manager.cpp"

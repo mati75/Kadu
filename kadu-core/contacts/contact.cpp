@@ -4,7 +4,7 @@
  * Copyright 2010 Piotr Dąbrowski (ultr@ultr.pl)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
  * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
- * Copyright 2007, 2008, 2009, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2007, 2008, 2009, 2009, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
@@ -43,12 +43,12 @@ Contact Contact::create()
 	return new ContactShared();
 }
 
-Contact Contact::loadStubFromStorage(const QSharedPointer<StoragePoint> &contactStoragePoint)
+Contact Contact::loadStubFromStorage(const std::shared_ptr<StoragePoint> &contactStoragePoint)
 {
 	return ContactShared::loadStubFromStorage(contactStoragePoint);
 }
 
-Contact Contact::loadFromStorage(const QSharedPointer<StoragePoint> &contactStoragePoint)
+Contact Contact::loadFromStorage(const std::shared_ptr<StoragePoint> &contactStoragePoint)
 {
 	return ContactShared::loadFromStorage(contactStoragePoint);
 }
@@ -105,7 +105,7 @@ Contact Contact::contactWithHigherStatus(const Contact &c1, const Contact &c2)
 
 KaduSharedBase_PropertyReadDef(Contact, ContactDetails *, details, Details, 0)
 KaduSharedBase_PropertyReadDef(Contact, QUuid, uuid, Uuid, QUuid())
-KaduSharedBase_PropertyReadDef(Contact, QSharedPointer<StoragePoint>, storage, Storage, QSharedPointer<StoragePoint>())
+KaduSharedBase_PropertyReadDef(Contact, std::shared_ptr<StoragePoint>, storage, Storage, std::shared_ptr<StoragePoint>())
 KaduSharedBase_PropertyDefCRW(Contact, Account, contactAccount, ContactAccount, Account::null)
 KaduSharedBase_PropertyDefCRW(Contact, Avatar, contactAvatar, ContactAvatar, Avatar::null)
 KaduSharedBase_PropertyDefCRW(Contact, Buddy, ownerBuddy, OwnerBuddy, Buddy::null)

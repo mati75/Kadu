@@ -1,8 +1,10 @@
 /*
  * %kadu copyright begin%
  * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2012 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
- * Copyright 2008, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2008, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -40,6 +42,9 @@ class KADUAPI ConfigWidget
 protected:
 	ConfigGroupBox *parentConfigGroupBox;
 	QString widgetCaption;
+	QString CurrentWidgetId;
+	QString ParentWidgetId;
+	QString StateDependency;
 	QString toolTip;
 	ConfigurationWindowDataManager *dataManager;
 
@@ -54,6 +59,10 @@ public:
 	virtual void saveConfiguration() = 0;
 
 	virtual bool fromDomElement(QDomElement domElement);
+
+	QString parentWidgetId() { return ParentWidgetId; }
+	QString currentWidgetId() { return CurrentWidgetId; }
+	bool isStateDependentDirectly() { return StateDependency == "" || StateDependency == "direct"; }
 };
 
 #endif

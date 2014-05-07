@@ -1,6 +1,7 @@
 /*
  * %kadu copyright begin%
  * Copyright 2011 Piotr Dąbrowski (ultr@ultr.pl)
+ * Copyright 2012 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -20,11 +21,12 @@
 #ifndef DESKTOP_AWARE_OBJECT
 #define DESKTOP_AWARE_OBJECT
 
-#include <QtCore/QObject>
-#include <QtGui/QWidget>
-
-#include "os/generic/desktop-aware-object-helper.h"
 #include "aware-object.h"
+#include "exports.h"
+
+class QWidget;
+
+class DesktopAwareObjectHelper;
 
 /**
  * @class DesktopAwareObject

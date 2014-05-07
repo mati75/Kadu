@@ -1,10 +1,10 @@
 /*
  * %kadu copyright begin%
  * Copyright 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2009, 2010, 2010 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2009, 2009, 2010, 2010, 2012 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2009, 2009, 2010 Bartłomiej Zimoń (uzi18@o2.pl)
- * Copyright 2009, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2009, 2009, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -27,7 +27,6 @@
 #include "protocols/protocol.h"
 #include "protocols/services/chat-service.h"
 
-#include "client/jabber-client.h"
 #include "services/jabber-avatar-service.h"
 #include "services/jabber-contact-personal-info-service.h"
 #include "services/jabber-file-transfer-service.h"
@@ -35,9 +34,24 @@
 #include "services/jabber-subscription-service.h"
 #include "jabber-account-details.h"
 
+namespace XMPP
+{
+	class Resource;
+
+	class JabberClientInfoService;
+	class JabberConnectionService;
+	class JabberServerInfoService;
+	class JabberStreamDebugService;
+	class JabberSubscriptionService;
+	class JabberVCardService;
+}
+
 class JabberContactDetails;
+class JabberPepService;
 class JabberResourcePool;
-class JabberSubscriptionService;
+
+namespace XMPP
+{
 
 class JabberProtocol : public Protocol
 {
@@ -47,38 +61,32 @@ class JabberProtocol : public Protocol
 	JabberContactPersonalInfoService *CurrentContactPersonalInfoService;
 	JabberFileTransferService *CurrentFileTransferService;
 	JabberPersonalInfoService *CurrentPersonalInfoService;
-	JabberSubscriptionService *CurrentSubscriptionService;
+	XMPP::JabberSubscriptionService *CurrentSubscriptionService;
+	XMPP::JabberClientInfoService *CurrentClientInfoService;
+	XMPP::JabberServerInfoService *CurrentServerInfoService;
+	XMPP::JabberConnectionService *CurrentConnectionService;
+	JabberPepService *CurrentPepService;
+	XMPP::JabberStreamDebugService *CurrentStreamDebugService;
+	XMPP::JabberVCardService *CurrentVCardService;
 
-	friend class XMPP::JabberClient;
-	XMPP::JabberClient *JabberClient;
-	XMPP::Jid jabberID;
+	XMPP::Client *XmppClient;
 	JabberResourcePool *ResourcePool;
 
-	bool usingSSL;
-	bool confUseSSL;
-	bool doReconnect;
-	bool doAboutRoster;
-
 	bool ContactsListReadOnly;
-
-	void initializeJabberClient();
-
-	XMPP::ClientStream::AllowPlainType plainAuthToXMPP(JabberAccountDetails::AllowPlainType type);
 
 	void notifyAboutPresenceChanged(const XMPP::Jid &jid, const XMPP::Resource &resource);
 
 private slots:
 	void connectedToServer();
-	void disconnectedFromServer();
-	void disconnectFromServer(const XMPP::Status &s = XMPP::Status (QString(), QString(), 0, false));
 	void rosterReady(bool success);
 
-	void clientAvailableResourceReceived(const XMPP::Jid &j, const XMPP::Resource &r);
-	void clientUnavailableResourceReceived(const XMPP::Jid &j, const XMPP::Resource &r);
+	void clientAvailableResourceReceived(const Jid &j, const Resource &r);
+	void clientUnavailableResourceReceived(const Jid &j, const Resource &r);
 
-	void slotClientDebugMessage (const QString &msg);
-
+	void connectionClosedSlot(const QString &message);
 	void connectionErrorSlot(const QString &message);
+
+	void serverInfoUpdated();
 
 protected:
 	virtual void login();
@@ -92,8 +100,7 @@ public:
 	JabberProtocol(Account account, ProtocolFactory *factory);
 	virtual ~JabberProtocol();
 
-	XMPP::JabberClient * client() { return JabberClient; }
-	XMPP::Client * xmppClient() { return JabberClient->client(); }
+	XMPP::Client * xmppClient();
 
 	void setContactsListReadOnly(bool contactsListReadOnly);
 	virtual bool contactsListReadOnly() { return ContactsListReadOnly; }
@@ -105,6 +112,12 @@ public:
 	virtual FileTransferService * fileTransferService() { return CurrentFileTransferService; }
 	virtual PersonalInfoService * personalInfoService() { return CurrentPersonalInfoService; }
 	virtual SubscriptionService * subscriptionService() { return CurrentSubscriptionService; }
+	virtual XMPP::JabberClientInfoService * clientInfoService() { return CurrentClientInfoService; }
+	virtual XMPP::JabberServerInfoService * serverInfoService() { return CurrentServerInfoService; }
+	virtual JabberPepService * pepService() { return CurrentPepService; }
+	virtual XMPP::JabberConnectionService * connectionService() { return CurrentConnectionService; }
+	virtual XMPP::JabberStreamDebugService * streamDebugService() { return CurrentStreamDebugService; }
+	virtual XMPP::JabberVCardService * vcardService() { return CurrentVCardService; }
 
 	JabberResourcePool *resourcePool();
 
@@ -114,5 +127,7 @@ signals:
 	void userStatusChangeIgnored(Buddy);
 
 };
+
+}
 
 #endif //JABBER_PROTOCOL_H

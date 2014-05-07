@@ -1,14 +1,14 @@
 /*
  * %kadu copyright begin%
  * Copyright 2008, 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2009, 2010 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2009, 2009, 2010, 2012 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2004, 2008, 2009 Michał Podsiadlik (michal@kadu.net)
  * Copyright 2011 Maciej Płaza (plaza.maciej@gmail.com)
  * Copyright 2004, 2005, 2006, 2007 Adrian Smarzewski (adrian@kadu.net)
  * Copyright 2005 Paweł Płuciennik (pawel_p@kadu.net)
  * Copyright 2004 Tomasz Chiliński (chilek@chilan.com)
- * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2007, 2008, 2009, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2007 Dawid Stawiarski (neeo@kadu.net)
  * Copyright 2004, 2005, 2006 Marcin Ślusarz (joi@kadu.net)
  * Copyright 2009 Longer (longer89@gmail.com)
@@ -81,7 +81,16 @@ void SmsConfigurationUiHandler::unregisterConfigurationUi()
 	}
 }
 
-SmsConfigurationUiHandler::SmsConfigurationUiHandler()
+SmsConfigurationUiHandler::SmsConfigurationUiHandler() :
+	useBuiltIn{},
+	customApp{},
+	useCustomString{},
+	customString{},
+	EraGatewayComboBox{},
+	EraSponsoredUser{},
+	EraSponsoredPassword{},
+	EraOmnixUser{},
+	EraOmnixPassword{}
 {
 	createDefaultConfiguration();
 }
@@ -136,8 +145,6 @@ void SmsConfigurationUiHandler::mainConfigurationWindowCreated(MainConfiguration
 	customString = static_cast<QLineEdit *>(mainConfigurationWindow->widget()->widgetById("sms/customString"));
 
 	connect(useBuiltIn, SIGNAL(toggled(bool)), this, SLOT(onSmsBuildInCheckToggle(bool)));
-	connect(useBuiltIn, SIGNAL(toggled(bool)), mainConfigurationWindow->widget()->widgetById("sms/proxy"), SLOT(setEnabled(bool)));
-	connect(useCustomString, SIGNAL(toggled(bool)), customString, SLOT(setEnabled(bool)));
 
 	EraGatewayComboBox = static_cast<ConfigComboBox *>(mainConfigurationWindow->widget()->widgetById("default_sms/eraGateway"));
 	connect(EraGatewayComboBox, SIGNAL(activated(int)), this, SLOT(onEraGatewayChanged(int)));
@@ -160,3 +167,5 @@ void SmsConfigurationUiHandler::createDefaultConfiguration()
 
 	config_file.addVariable("ShortCuts", "kadu_sendsms", "Ctrl+S");
 }
+
+#include "moc_sms-configuration-ui-handler.cpp"

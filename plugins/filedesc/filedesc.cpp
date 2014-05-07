@@ -5,7 +5,7 @@
  * Copyright 2008 Michał Podsiadlik (michal@kadu.net)
  * Copyright 2010 Dariusz Markowicz (darom@alari.pl)
  * Copyright 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2010, 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -29,7 +29,7 @@
 #include "accounts/account-manager.h"
 #include "accounts/account.h"
 #include "configuration/configuration-file.h"
-#include "misc/misc.h"
+#include "misc/kadu-paths.h"
 #include "status/status-changer-manager.h"
 #include "debug.h"
 
@@ -133,3 +133,5 @@ void FileDescription::createDefaultConfiguration()
 	config_file.addVariable("FileDesc", "forceDescr", true);
 	config_file.addVariable("FileDesc", "allowOther", true);
 }
+
+#include "moc_filedesc.cpp"

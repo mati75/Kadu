@@ -1,11 +1,11 @@
 /*
  * %kadu copyright begin%
  * Copyright 2008, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2009, 2012 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2008 Tomasz Rostański (rozteck@interia.pl)
  * Copyright 2008 Michał Podsiadlik (michal@kadu.net)
- * Copyright 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2008, 2009, 2010, 2011, 2012, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -51,15 +51,18 @@ Nowa funkcjonalnosc - Dorregaray
 #include "chat/type/chat-type-contact.h"
 #include "configuration/configuration-file.h"
 #include "core/core.h"
-#include "gui/widgets/chat-widget-manager.h"
-#include "gui/widgets/chat-widget.h"
+#include "formatted-string/formatted-string-factory.h"
+#include "gui/widgets/chat-widget/chat-widget-manager.h"
+#include "gui/widgets/chat-widget/chat-widget-repository.h"
+#include "gui/widgets/chat-widget/chat-widget.h"
 #include "gui/windows/kadu-window.h"
 #include "gui/windows/search-window.h"
 #include "icons/icons-manager.h"
-#include "misc/misc.h"
+#include "message/message-manager.h"
+#include "misc/kadu-paths.h"
 #include "notify/notification-manager.h"
-#include "notify/notification.h"
-#include "protocols/services/chat-service.h"
+#include "notify/notification/notification.h"
+#include "services/message-filter-service.h"
 #include "status/status-container.h"
 #include "debug.h"
 
@@ -97,9 +100,11 @@ Firewall::Firewall() :
 	LastMsg.start();
 	LastNotify.start();
 
+	Core::instance()->messageFilterService()->registerMessageFilter(this);
+
 	triggerAllAccountsRegistered();
 
-	connect(ChatWidgetManager::instance(), SIGNAL(chatWidgetDestroying(ChatWidget *)),
+	connect(Core::instance()->chatWidgetRepository(), SIGNAL(chatWidgetRemoved(ChatWidget *)),
 			this, SLOT(chatDestroyed(ChatWidget *)));
 
 	kdebugf2();
@@ -111,65 +116,66 @@ Firewall::~Firewall()
 
 	triggerAllAccountsUnregistered();
 
+	Core::instance()->messageFilterService()->unregisterMessageFilter(this);
+
 	kdebugf2();
+}
+
+void Firewall::setFormattedStringFactory(FormattedStringFactory *formattedStringFactory)
+{
+	CurrentFormattedStringFactory = formattedStringFactory;
 }
 
 void Firewall::accountRegistered(Account account)
 {
-	Protocol *protocol = account.protocolHandler();
-	if (!protocol)
-		return;
-
-	ChatService *chatService = protocol->chatService();
-	if (!chatService)
-		return;
-
-	connect(chatService, SIGNAL(filterIncomingMessage(Chat, Contact, QString &, bool &)),
-			this, SLOT(filterIncomingMessage(Chat, Contact, QString &, bool &)));
-	connect(chatService, SIGNAL(filterOutgoingMessage(Chat, QString &, bool &)),
-			this, SLOT(filterOutgoingMessage(Chat, QString &, bool &)));
 	connect(account, SIGNAL(connected()), this, SLOT(accountConnected()));
 }
 
 void Firewall::accountUnregistered(Account account)
 {
 	disconnect(account, 0, this, 0);
-
-	Protocol *protocol = account.protocolHandler();
-	if (!protocol)
-		return;
-
-	ChatService *chatService = protocol->chatService();
-	if (chatService)
-		disconnect(chatService, 0, this, 0);
 }
 
-void Firewall::filterIncomingMessage(Chat chat, Contact sender, QString &message, bool &ignore)
+bool Firewall::acceptMessage(const Message &message)
 {
-	Account account = chat.chatAccount();
+	switch (message.type())
+	{
+		case MessageTypeReceived:
+			return acceptIncomingMessage(message);
+		case MessageTypeSent:
+			return acceptOutgoingMessage(message);
+		default:
+			return true;
+	}
+}
 
-	Protocol *protocol = account.protocolHandler();
-	if (!protocol)
-		return;
+/**
+ * @todo split into several incoming filers
+ * @todo extract storing to log files to method method
+ * @todo extract notification to separate method
+ */
+bool Firewall::acceptIncomingMessage(const Message &message)
+{
+	bool ignore = false;
 
 // emotikony s� sprawdzane nawet przy ��czeniu
 	const int min_interval_notify = 2000;
 
 	if (CheckFloodingEmoticons)
 	{
-		if ((!EmoticonsAllowKnown || sender.isAnonymous()) && checkEmoticons(message))
+		if ((!EmoticonsAllowKnown || message.messageSender().isAnonymous()) && checkEmoticons(message.plainTextContent()))
 		{
 			ignore = true;
 			if (LastNotify.elapsed() > min_interval_notify)
 			{
-				FirewallNotification::notify(chat, sender, tr("flooding DoS attack with emoticons!"));
+				FirewallNotification::notify(message.messageChat(), message.messageSender(), tr("flooding DoS attack with emoticons!"));
 
-				writeLog(sender, message);
+				writeLog(message.messageSender(), message.plainTextContent());
 
 				LastNotify.restart();
 			}
 			kdebugf2();
-			return;
+			return !ignore;
 		}
 	}
 
@@ -179,40 +185,40 @@ void Firewall::filterIncomingMessage(Chat chat, Contact sender, QString &message
 		ignore = true;
 		if (LastNotify.elapsed() > min_interval_notify)
 		{
-			FirewallNotification::notify(chat, sender, tr("flooding DoS attack!"));
+			FirewallNotification::notify(message.messageChat(), message.messageSender(), tr("flooding DoS attack!"));
 
-			writeLog(sender, message);
+			writeLog(message.messageSender(), message.plainTextContent());
 
 			LastNotify.restart();
 		}
 		kdebugf2();
-		return;
+		return !ignore;
 	}
 
 // ochrona przed anonimami
-	if (checkChat(chat, sender, message, ignore))
+	if (checkChat(message.messageChat(), message.messageSender(), message.plainTextContent(), ignore))
 		ignore = true;
 
 // ochrona przed konferencjami
-	if (checkConference(chat))
+	if (checkConference(message.messageChat()))
 		ignore = true;
 
 // wiadomosc zatrzymana. zapisz do loga i wyswietl dymek
 	if (ignore)
 	{
-		if (message.length() > 50)
-			FirewallNotification::notify(chat, sender, message.left(50).append("..."));
+		if (message.plainTextContent().length() > 50)
+			FirewallNotification::notify(message.messageChat(), message.messageSender(), message.plainTextContent().left(50).append("..."));
 		else
-			FirewallNotification::notify(chat, sender, message);
+			FirewallNotification::notify(message.messageChat(), message.messageSender(), message.plainTextContent());
 
-		writeLog(sender, message);
+		writeLog(message.messageSender(), message.plainTextContent());
 
-		if (WriteInHistory)
+		if (WriteInHistory && CurrentFormattedStringFactory)
 		{
 			if (History::instance()->currentStorage())
 			{
 				Message msg = Message::create();
-				msg.setContent(message);
+				msg.setContent(CurrentFormattedStringFactory.data()->fromHtml(message.htmlContent()));
 				msg.setType(MessageTypeReceived);
 				msg.setReceiveDate(QDateTime::currentDateTime());
 				msg.setSendDate(QDateTime::currentDateTime());
@@ -221,7 +227,7 @@ void Firewall::filterIncomingMessage(Chat chat, Contact sender, QString &message
 		}
 	}
 
-	kdebugf2();
+	return !ignore;
 }
 
 bool Firewall::checkConference(const Chat &chat)
@@ -289,14 +295,7 @@ bool Firewall::checkChat(const Chat &chat, const Contact &sender, const QString 
 					return false;
 				}
 
-				ChatService *chatService = protocol->chatService();
-				if (!chatService)
-				{
-					kdebugf2();
-					return false;
-				}
-
-				chatService->sendMessage(chat, tr("This message has been generated AUTOMATICALLY!\n\nI'm a busy person and I don't have time for stupid chats with the persons hiding itself. If you want to talk with me change the status to Online or Busy first."), true);
+				MessageManager::instance()->sendMessage(chat, tr("This message has been generated AUTOMATICALLY!\n\nI'm a busy person and I don't have time for stupid chats with the persons hiding itself. If you want to talk with me change the status to Online or Busy first."), true);
 			}
 
 			writeLog(sender, tr("Chat with invisible anonim ignored.\n") + "----------------------------------------------------\n");
@@ -319,14 +318,7 @@ bool Firewall::checkChat(const Chat &chat, const Contact &sender, const QString 
 				return false;
 			}
 
-			ChatService *chatService = protocol->chatService();
-			if (!chatService)
-			{
-				kdebugf2();
-				return false;
-			}
-
-			chatService->sendMessage(chat, ConfirmationText, true);
+			MessageManager::instance()->sendMessage(chat, ConfirmationText, true);
 		}
 
 		writeLog(sender, tr("User wrote right answer!\n") + "----------------------------------------------------\n");
@@ -360,14 +352,7 @@ bool Firewall::checkChat(const Chat &chat, const Contact &sender, const QString 
 				return false;
 			}
 
-			ChatService *chatService = protocol->chatService();
-			if (!chatService)
-			{
-				kdebugf2();
-				return false;
-			}
-
-			chatService->sendMessage(chat, ConfirmationQuestion, true);
+			MessageManager::instance()->sendMessage(chat, ConfirmationQuestion, true);
 		}
 
 		kdebugf2();
@@ -443,52 +428,48 @@ void Firewall::chatDestroyed(ChatWidget *chatWidget)
 	kdebugf2();
 }
 
-void Firewall::filterOutgoingMessage(Chat chat, QString &msg, bool &stop)
+bool Firewall::acceptOutgoingMessage(const Message &message)
 {
-	Q_UNUSED(msg)
-	kdebugf();
-
-	foreach (const Contact &contact, chat.contacts())
+	foreach (const Contact &contact, message.messageChat().contacts())
 	{
 		Chat chat = ChatTypeContact::findChat(contact, ActionReturnNull);
 		if (!chat)
 			continue;
 
-		if (contact.isAnonymous() && ChatWidgetManager::instance()->byChat(chat, false))
+		if (contact.isAnonymous() && Core::instance()->chatWidgetRepository()->widgetForChat(chat))
 			Passed.insert(contact);
 	}
 
 	if (SafeSending)
 	{
-		foreach (const Contact &contact, chat.contacts())
+		foreach (const Contact &contact, message.messageChat().contacts())
 		{
 			Buddy buddy = contact.ownerBuddy();
 
 			if (buddy)
 			{
 				if (!buddy.property("firewall-secured-sending:FirewallSecuredSending", false).toBool())
-					return;
+					return true;
 			}
 
 			if (!SecuredTemporaryAllowed.contains(buddy))
 			{
-				switch (QMessageBox::warning(ChatWidgetManager::instance()->byChat(chat, false), "Kadu",
+				switch (QMessageBox::warning(Core::instance()->chatWidgetRepository()->widgetForChat(message.messageChat()), "Kadu",
 						tr("Are you sure you want to send this message?"), tr("&Yes"), tr("Yes and allow until chat closed"), tr("&No"), 2, 2))
 				{
 						default:
-							stop = true;
-							return;
+							return false;
 						case 0:
-							return;
+							return true;
 						case 1:
 							SecuredTemporaryAllowed.insert(buddy);
-							return;
+							return true;
 				}
 			}
 		}
 	}
 
-	kdebugf2();
+	return true;
 }
 
 void Firewall::writeLog(const Contact &contact, const QString &message)
@@ -500,18 +481,19 @@ void Firewall::writeLog(const Contact &contact, const QString &message)
 
 	QFile logFile(LogFilePath);
 
-	if (!logFile.exists())
+	if (!logFile.exists() && logFile.open(QIODevice::WriteOnly))
 	{
-		logFile.open(QIODevice::WriteOnly);
 		QTextStream stream(&logFile);
 		stream << tr("      DATA AND TIME      ::   ID      :: MESSAGE\n") << "----------------------------------------------------\n";
 		logFile.close();
 	}
 
-	logFile.open(QIODevice::WriteOnly | QIODevice::Append);
-	QTextStream stream(&logFile);
-	stream << QDateTime::currentDateTime().toString() << " :: " << contact.display(true) << " :: " << message << "\n";
-	logFile.close();
+	if (logFile.open(QIODevice::WriteOnly | QIODevice::Append))
+	{
+		QTextStream stream(&logFile);
+		stream << QDateTime::currentDateTime().toString() << " :: " << contact.display(true) << " :: " << message << "\n";
+		logFile.close();
+	}
 
 	kdebugf2();
 }
@@ -585,3 +567,5 @@ void Firewall::createDefaultConfiguration()
 	config_file.addVariable("Firewall", "write_log", true);
 	config_file.addVariable("Firewall", "logFile", KaduPaths::instance()->profilePath() + QLatin1String("firewall.log"));
 }
+
+#include "moc_firewall.cpp"

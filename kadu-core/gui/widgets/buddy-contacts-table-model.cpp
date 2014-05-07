@@ -2,8 +2,8 @@
  * %kadu copyright begin%
  * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2010 Piotr Dąbrowski (ultr@ultr.pl)
- * Copyright 2009, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2009, 2009, 2010, 2011, 2012, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -26,6 +26,7 @@
 #include "buddies/buddy-manager.h"
 #include "contacts/contact-manager.h"
 #include "gui/widgets/buddy-contacts-table-item.h"
+#include "gui/widgets/simple-configuration-value-state-notifier.h"
 #include "icons/kadu-icon.h"
 #include "identities/identity.h"
 #include "model/roles.h"
@@ -37,16 +38,23 @@
 #include "buddy-contacts-table-model.h"
 
 BuddyContactsTableModel::BuddyContactsTableModel(Buddy buddy, QObject *parent) :
-		QAbstractTableModel(parent), ModelBuddy(buddy), CurrentMaxPriority(-1)
+		QAbstractTableModel(parent), ModelBuddy(buddy),
+		StateNotifier(new SimpleConfigurationValueStateNotifier(this)), CurrentMaxPriority(-1)
 {
 	contactsFromBuddy();
+	updateStateNotifier();
 }
 
 BuddyContactsTableModel::~BuddyContactsTableModel()
 {
 }
 
-bool BuddyContactsTableModel::isValid()
+const ConfigurationValueStateNotifier * BuddyContactsTableModel::valueStateNotifier() const
+{
+	return StateNotifier;
+}
+
+bool BuddyContactsTableModel::isValid() const
 {
 	foreach (BuddyContactsTableItem *item, Contacts)
 		if (!item->isValid())
@@ -233,8 +241,13 @@ void BuddyContactsTableModel::itemUpdated(BuddyContactsTableItem *item)
 	if (index != -1)
 	{
 		emit dataChanged(createIndex(index, 0), createIndex(index, 1));
-		emit validChanged();
+		updateStateNotifier();
 	}
+}
+
+void BuddyContactsTableModel::updateStateNotifier()
+{
+	StateNotifier->setState(isValid() ? StateChangedDataValid : StateChangedDataInvalid);
 }
 
 int BuddyContactsTableModel::columnCount(const QModelIndex &parent) const
@@ -410,3 +423,5 @@ bool BuddyContactsTableModel::setData(const QModelIndex &index, const QVariant &
 
 	return true;
 }
+
+#include "moc_buddy-contacts-table-model.cpp"

@@ -1,6 +1,7 @@
 set (configuration_SRCS
 	chat-configuration-holder.cpp
 	config-file-data-manager.cpp
+	config-file-variant-wrapper.cpp
 	configuration-aware-object.cpp
 	configuration-file.cpp
 	configuration-holder.cpp
@@ -16,6 +17,7 @@ set (configuration_MOC_SRCS
 	config-file-data-manager.h
 	configuration-holder.h
 	configuration-window-data-manager.h
+	configuration-manager.h
 	main-configuration-holder.h
 	notifier-configuration-data-manager.h
 	toolbar-configuration-manager.h

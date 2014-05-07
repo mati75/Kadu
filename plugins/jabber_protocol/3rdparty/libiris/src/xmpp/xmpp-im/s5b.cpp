@@ -40,8 +40,6 @@
 
 static const char *S5B_NS = "http://jabber.org/protocol/bytestreams";
 
-//#define S5B_DEBUG
-
 namespace XMPP {
 
 static QString makeKey(const QString &sid, const Jid &requester, const Jid &target)
@@ -49,7 +47,7 @@ static QString makeKey(const QString &sid, const Jid &requester, const Jid &targ
 #ifdef S5B_DEBUG
 	qDebug("makeKey: sid=%s requester=%s target=%s %s", qPrintable(sid),
 		   qPrintable(requester.full()), qPrintable(target.full()),
-		   qPrintable(QCA::Hash("sha1").hashToString((sid + requester.full() + target.full()).toUtf8())));
+		   qPrintable(QCA::Hash("sha1").hashToString(QString(sid + requester.full() + target.full()).toUtf8())));
 #endif
 	QString str = sid + requester.full() + target.full();
 	return QCA::Hash("sha1").hashToString(str.toUtf8());
@@ -96,7 +94,7 @@ public:
 	Item(S5BManager *manager);
 	~Item();
 
-	void reset();
+	void resetConnection();
 	void startRequester(const QString &_sid, const Jid &_self, const Jid &_peer, bool fast, bool udp);
 	void startTarget(const QString &_sid, const Jid &_self, const Jid &_peer,
 					 const QString &_dstaddr, const StreamHostList &hosts,
@@ -122,7 +120,7 @@ private slots:
 	void proxy_result(bool b);
 	void proxy_finished();
 	void sc_readyRead();
-	void sc_bytesWritten(int);
+	void sc_bytesWritten(qint64);
 	void sc_error(int);
 
 private:
@@ -203,12 +201,12 @@ S5BConnection::S5BConnection(S5BManager *m, QObject *parent)
 	qDebug("S5BConnection[%d]: constructing, count=%d, %p\n", d->id, num_conn, this);
 #endif
 
-	reset();
+	resetConnection();
 }
 
 S5BConnection::~S5BConnection()
 {
-	reset(true);
+	resetConnection(true);
 
 	--num_conn;
 #ifdef S5B_DEBUG
@@ -218,7 +216,7 @@ S5BConnection::~S5BConnection()
 	delete d;
 }
 
-void S5BConnection::reset(bool clear)
+void S5BConnection::resetConnection(bool clear)
 {
 	d->m->con_unlink(this);
 	if(clear && d->sc) {
@@ -233,6 +231,7 @@ void S5BConnection::reset(bool clear)
 		}
 	}
 	d->state = Idle;
+	setOpenMode(QIODevice::NotOpen);
 	d->peer = Jid();
 	d->sid = QString();
 	d->remote = false;
@@ -253,7 +252,7 @@ void S5BConnection::setProxy(const Jid &proxy)
 
 void S5BConnection::connectToJid(const Jid &peer, const QString &sid, Mode m)
 {
-	reset(true);
+	resetConnection(true);
 	if(!d->m->isAcceptableSID(peer, sid))
 		return;
 
@@ -291,7 +290,7 @@ void S5BConnection::close()
 #ifdef S5B_DEBUG
 	qDebug("S5BConnection[%d]: closing %s [%s]\n", d->id, qPrintable(d->peer.full()), qPrintable(d->sid));
 #endif
-	reset();
+	resetConnection();
 }
 
 Jid S5BConnection::peer() const
@@ -324,29 +323,22 @@ int S5BConnection::state() const
 	return d->state;
 }
 
-bool S5BConnection::isOpen() const
-{
-	if(d->state == Active)
-		return true;
-	else
-		return false;
-}
-
-void S5BConnection::write(const QByteArray &buf)
+qint64 S5BConnection::writeData(const char *data, qint64 maxSize)
 {
 	if(d->state == Active && d->mode == Stream)
-		d->sc->write(buf);
+		return d->sc->write(data, maxSize);
+	return 0;
 }
 
-QByteArray S5BConnection::read(int bytes)
+qint64 S5BConnection::readData(char *data, qint64 maxSize)
 {
 	if(d->sc)
-		return d->sc->read(bytes);
+		return d->sc->read(data, maxSize);
 	else
-		return QByteArray();
+		return 0;
 }
 
-int S5BConnection::bytesAvailable() const
+qint64 S5BConnection::bytesAvailable() const
 {
 	if(d->sc)
 		return d->sc->bytesAvailable();
@@ -354,7 +346,7 @@ int S5BConnection::bytesAvailable() const
 		return 0;
 }
 
-int S5BConnection::bytesToWrite() const
+qint64 S5BConnection::bytesToWrite() const
 {
 	if(d->state == Active)
 		return d->sc->bytesToWrite();
@@ -406,15 +398,16 @@ void S5BConnection::man_clientReady(SocksClient *sc, SocksUDP *sc_udp)
 	connect(d->sc, SIGNAL(connectionClosed()), SLOT(sc_connectionClosed()));
 	connect(d->sc, SIGNAL(delayedCloseFinished()), SLOT(sc_delayedCloseFinished()));
 	connect(d->sc, SIGNAL(readyRead()), SLOT(sc_readyRead()));
-	connect(d->sc, SIGNAL(bytesWritten(int)), SLOT(sc_bytesWritten(int)));
+	connect(d->sc, SIGNAL(bytesWritten(qint64)), SLOT(sc_bytesWritten(qint64)));
 	connect(d->sc, SIGNAL(error(int)), SLOT(sc_error(int)));
 
 	if(sc_udp) {
 		d->su = sc_udp;
-		connect(d->su, SIGNAL(packetReady(const QByteArray &)), SLOT(su_packetReady(const QByteArray &)));
+		connect(d->su, SIGNAL(packetReady(QByteArray)), SLOT(su_packetReady(QByteArray)));
 	}
 
 	d->state = Active;
+	setOpenMode(QIODevice::ReadWrite);
 #ifdef S5B_DEBUG
 	qDebug("S5BConnection[%d]: %s [%s] <<< success >>>\n", d->id, qPrintable(d->peer.full()), qPrintable(d->sid));
 #endif
@@ -422,7 +415,7 @@ void S5BConnection::man_clientReady(SocksClient *sc, SocksUDP *sc_udp)
 	// bytes already in the stream?
 	if(d->sc->bytesAvailable()) {
 #ifdef S5B_DEBUG
-		qDebug("Stream has %d bytes in it.\n", d->sc->bytesAvailable());
+		qDebug("Stream has %d bytes in it.\n", (int)d->sc->bytesAvailable());
 #endif
 		d->notifyRead = true;
 	}
@@ -435,7 +428,7 @@ void S5BConnection::man_clientReady(SocksClient *sc, SocksUDP *sc_udp)
 	}
 	if(d->notifyRead || d->notifyClose)
 		QTimer::singleShot(0, this, SLOT(doPending()));
-	connected();
+	emit connected();
 }
 
 void S5BConnection::doPending()
@@ -456,15 +449,15 @@ void S5BConnection::man_udpReady(const QByteArray &buf)
 
 void S5BConnection::man_failed(int x)
 {
-	reset(true);
+	resetConnection(true);
 	if(x == S5BManager::Item::ErrRefused)
-		error(ErrRefused);
+		setError(ErrRefused);
 	if(x == S5BManager::Item::ErrConnect)
-		error(ErrConnect);
+		setError(ErrConnect);
 	if(x == S5BManager::Item::ErrWrongHost)
-		error(ErrConnect);
+		setError(ErrConnect);
 	if(x == S5BManager::Item::ErrProxy)
-		error(ErrProxy);
+		setError(ErrProxy);
 }
 
 void S5BConnection::sc_connectionClosed()
@@ -478,30 +471,30 @@ void S5BConnection::sc_connectionClosed()
 		return;
 	}
 	d->notifyClose = false;
-	reset();
+	resetConnection();
 	connectionClosed();
 }
 
 void S5BConnection::sc_delayedCloseFinished()
 {
 	// echo
-	delayedCloseFinished();
+	emit delayedCloseFinished();
 }
 
 void S5BConnection::sc_readyRead()
 {
 	if(d->mode == Datagram) {
 		// throw the data away
-		d->sc->read();
+		d->sc->readAll();
 		return;
 	}
 
 	d->notifyRead = false;
 	// echo
-	readyRead();
+	emit readyRead();
 }
 
-void S5BConnection::sc_bytesWritten(int x)
+void S5BConnection::sc_bytesWritten(qint64 x)
 {
 	// echo
 	bytesWritten(x);
@@ -509,8 +502,8 @@ void S5BConnection::sc_bytesWritten(int x)
 
 void S5BConnection::sc_error(int)
 {
-	reset();
-	error(ErrSocket);
+	resetConnection();
+	setError(ErrSocket);
 }
 
 void S5BConnection::su_packetReady(const QByteArray &buf)
@@ -597,9 +590,9 @@ S5BManager::S5BManager(Client *parent)
 	d->serv = 0;
 
 	d->ps = new JT_PushS5B(d->client->rootTask());
-	connect(d->ps, SIGNAL(incoming(const S5BRequest &)), SLOT(ps_incoming(const S5BRequest &)));
-	connect(d->ps, SIGNAL(incomingUDPSuccess(const Jid &, const QString &)), SLOT(ps_incomingUDPSuccess(const Jid &, const QString &)));
-	connect(d->ps, SIGNAL(incomingActivate(const Jid &, const QString &, const Jid &)), SLOT(ps_incomingActivate(const Jid &, const QString &, const Jid &)));
+	connect(d->ps, SIGNAL(incoming(S5BRequest)), SLOT(ps_incoming(S5BRequest)));
+	connect(d->ps, SIGNAL(incomingUDPSuccess(Jid,QString)), SLOT(ps_incomingUDPSuccess(Jid,QString)));
+	connect(d->ps, SIGNAL(incomingActivate(Jid,QString,Jid)), SLOT(ps_incomingActivate(Jid,QString,Jid)));
 }
 
 S5BManager::~S5BManager()
@@ -1007,7 +1000,7 @@ void S5BManager::entryContinue(Entry *e)
 	e->i->proxy = e->proxyInfo;
 
 	connect(e->i, SIGNAL(accepted()), SLOT(item_accepted()));
-	connect(e->i, SIGNAL(tryingHosts(const StreamHostList &)), SLOT(item_tryingHosts(const StreamHostList &)));
+	connect(e->i, SIGNAL(tryingHosts(StreamHostList)), SLOT(item_tryingHosts(StreamHostList)));
 	connect(e->i, SIGNAL(proxyConnect()), SLOT(item_proxyConnect()));
 	connect(e->i, SIGNAL(waitingForActivation()), SLOT(item_waitingForActivation()));
 	connect(e->i, SIGNAL(connected()), SLOT(item_connected()));
@@ -1109,15 +1102,15 @@ S5BManager::Item::Item(S5BManager *manager) : QObject(0)
 	client = 0;
 	client_out_udp = 0;
 	client_out = 0;
-	reset();
+	resetConnection();
 }
 
 S5BManager::Item::~Item()
 {
-	reset();
+	resetConnection();
 }
 
-void S5BManager::Item::reset()
+void S5BManager::Item::resetConnection()
 {
 	delete task;
 	task = 0;
@@ -1223,10 +1216,10 @@ void S5BManager::Item::doOutgoing()
 	S5BServer *serv = m->server();
 	if(serv && serv->isActive() && !haveHost(in_hosts, self)) {
 		QStringList hostList = serv->hostList();
-		for(QStringList::ConstIterator it = hostList.begin(); it != hostList.end(); ++it) {
+		foreach (const QString & it, hostList) {
 			StreamHost h;
 			h.setJid(self);
-			h.setHost(*it);
+			h.setHost(it);
 			h.setPort(serv->port());
 			hosts += h;
 		}
@@ -1261,9 +1254,9 @@ void S5BManager::Item::doIncoming()
 	StreamHostList list;
 	if(lateProxy) {
 		// take just the proxy streamhosts
-		for(StreamHostList::ConstIterator it = in_hosts.begin(); it != in_hosts.end(); ++it) {
-			if((*it).isProxy())
-				list += *it;
+		foreach (const StreamHost& it, in_hosts) {
+			if (it.isProxy())
+				list += it;
 		}
 		lateProxy = false;
 	}
@@ -1272,11 +1265,11 @@ void S5BManager::Item::doIncoming()
 		if((state == Requester || (state == Target && fast)) && !proxy.jid().isValid()) {
 			// take just the non-proxy streamhosts
 			bool hasProxies = false;
-			for(StreamHostList::ConstIterator it = in_hosts.begin(); it != in_hosts.end(); ++it) {
-				if((*it).isProxy())
+			foreach (const StreamHost& it, in_hosts) {
+				if (it.isProxy())
 					hasProxies = true;
 				else
-					list += *it;
+					list += it;
 			}
 			if(hasProxies) {
 				lateProxy = true;
@@ -1308,7 +1301,7 @@ void S5BManager::Item::setIncomingClient(SocksClient *sc)
 #endif
 
 	connect(sc, SIGNAL(readyRead()), SLOT(sc_readyRead()));
-	connect(sc, SIGNAL(bytesWritten(int)), SLOT(sc_bytesWritten(int)));
+	connect(sc, SIGNAL(bytesWritten(qint64)), SLOT(sc_bytesWritten(qint64)));
 	connect(sc, SIGNAL(error(int)), SLOT(sc_error(int)));
 
 	client = sc;
@@ -1372,7 +1365,7 @@ void S5BManager::Item::jt_finished()
 #ifdef S5B_DEBUG
 				qDebug("S5BManager::Item %s claims to have connected to us, but we don't see this\n", qPrintable(peer.full()));
 #endif
-				reset();
+				resetConnection();
 				error(ErrWrongHost);
 			}
 		}
@@ -1402,7 +1395,7 @@ void S5BManager::Item::jt_finished()
 #ifdef S5B_DEBUG
 			qDebug("S5BManager::Item %s claims to have connected to a streamhost we never offered\n", qPrintable(peer.full()));
 #endif
-			reset();
+			resetConnection();
 			error(ErrWrongHost);
 		}
 	}
@@ -1443,7 +1436,7 @@ void S5BManager::Item::conn_result(bool b)
 #endif
 
 		connect(sc, SIGNAL(readyRead()), SLOT(sc_readyRead()));
-		connect(sc, SIGNAL(bytesWritten(int)), SLOT(sc_bytesWritten(int)));
+		connect(sc, SIGNAL(bytesWritten(qint64)), SLOT(sc_bytesWritten(qint64)));
 		connect(sc, SIGNAL(error(int)), SLOT(sc_error(int)));
 
 		m->doSuccess(peer, in_id, h.jid());
@@ -1494,7 +1487,7 @@ void S5BManager::Item::proxy_result(bool b)
 		proxy_conn = 0;
 
 		connect(sc, SIGNAL(readyRead()), SLOT(sc_readyRead()));
-		connect(sc, SIGNAL(bytesWritten(int)), SLOT(sc_bytesWritten(int)));
+		connect(sc, SIGNAL(bytesWritten(qint64)), SLOT(sc_bytesWritten(qint64)));
 		connect(sc, SIGNAL(error(int)), SLOT(sc_error(int)));
 
 		client = sc;
@@ -1512,7 +1505,7 @@ void S5BManager::Item::proxy_result(bool b)
 	else {
 		delete proxy_conn;
 		proxy_conn = 0;
-		reset();
+		resetConnection();
 		error(ErrProxy);
 	}
 }
@@ -1534,7 +1527,7 @@ void S5BManager::Item::proxy_finished()
 			checkForActivation();
 	}
 	else {
-		reset();
+		resetConnection();
 		error(ErrProxy);
 	}
 }
@@ -1549,7 +1542,7 @@ void S5BManager::Item::sc_readyRead()
 		checkForActivation();
 }
 
-void S5BManager::Item::sc_bytesWritten(int)
+void S5BManager::Item::sc_bytesWritten(qint64)
 {
 #ifdef S5B_DEBUG
 	qDebug("sc_bytesWritten\n");
@@ -1563,7 +1556,7 @@ void S5BManager::Item::sc_error(int)
 #ifdef S5B_DEBUG
 	qDebug("sc_error\n");
 #endif
-	reset();
+	resetConnection();
 	error(ErrConnect);
 }
 
@@ -1610,10 +1603,7 @@ void S5BManager::Item::tryActivation()
 			qDebug("sending extra CR\n");
 #endif
 			// must send [CR] to activate target streamhost
-			QByteArray a;
-			a.resize(1);
-			a[0] = '\r';
-			client->write(a);
+			client->write("\r", 1);
 		}
 	}
 }
@@ -1643,9 +1633,9 @@ void S5BManager::Item::checkForActivation()
 #endif
 				if(sc->bytesAvailable() >= 1) {
 					clientList.removeAll(sc);
-					QByteArray a = sc->read(1);
-					if(a[0] != '\r') {
-						delete sc;
+					char c;
+					if(!sc->getChar(&c) || c != '\r') {
+						delete sc; // FIXME breaks S5BManager::Item destructor?
 						return;
 					}
 					ok = true;
@@ -1723,14 +1713,14 @@ void S5BManager::Item::checkFailure()
 
 	if(failed) {
 		if(state == Requester) {
-			reset();
+			resetConnection();
 			if(statusCode == 404)
 				error(ErrConnect);
 			else
 				error(ErrRefused);
 		}
 		else {
-			reset();
+			resetConnection();
 			error(ErrConnect);
 		}
 	}
@@ -1743,7 +1733,7 @@ void S5BManager::Item::finished()
 #ifdef S5B_DEBUG
 	qDebug("S5BManager::Item %s [%s] linked successfully\n", qPrintable(peer.full()), qPrintable(sid));
 #endif
-	connected();
+	emit connected();
 }
 
 //----------------------------------------------------------------------------
@@ -1876,11 +1866,11 @@ S5BConnector::S5BConnector(QObject *parent)
 
 S5BConnector::~S5BConnector()
 {
-	reset();
+	resetConnection();
 	delete d;
 }
 
-void S5BConnector::reset()
+void S5BConnector::resetConnection()
 {
 	d->t.stop();
 	delete d->active_udp;
@@ -1894,7 +1884,7 @@ void S5BConnector::reset()
 
 void S5BConnector::start(const Jid &self, const StreamHostList &hosts, const QString &key, bool udp, int timeout)
 {
-	reset();
+	resetConnection();
 
 #ifdef S5B_DEBUG
 	qDebug("S5BConnector: starting [%p]!\n", this);
@@ -1943,7 +1933,7 @@ void S5BConnector::item_result(bool b)
 #ifdef S5B_DEBUG
 		qDebug("S5BConnector: complete! [%p]\n", this);
 #endif
-		result(true);
+		emit result(true);
 	}
 	else {
 		d->itemList.removeAll(i);
@@ -1953,14 +1943,14 @@ void S5BConnector::item_result(bool b)
 #ifdef S5B_DEBUG
 			qDebug("S5BConnector: failed! [%p]\n", this);
 #endif
-			result(false);
+			emit result(false);
 		}
 	}
 }
 
 void S5BConnector::t_timeout()
 {
-	reset();
+	resetConnection();
 #ifdef S5B_DEBUG
 	qDebug("S5BConnector: failed! (timeout)\n");
 #endif
@@ -1993,7 +1983,7 @@ public:
 	{
 		client = c;
 		connect(client, SIGNAL(incomingMethods(int)), SLOT(sc_incomingMethods(int)));
-		connect(client, SIGNAL(incomingConnectRequest(const QString &, int)), SLOT(sc_incomingConnectRequest(const QString &, int)));
+		connect(client, SIGNAL(incomingConnectRequest(QString,int)), SLOT(sc_incomingConnectRequest(QString,int)));
 		connect(client, SIGNAL(error(int)), SLOT(sc_error(int)));
 
 		connect(&expire, SIGNAL(timeout()), SLOT(doError()));
@@ -2061,7 +2051,7 @@ S5BServer::S5BServer(QObject *parent)
 {
 	d = new Private;
 	connect(&d->serv, SIGNAL(incomingReady()), SLOT(ss_incomingReady()));
-	connect(&d->serv, SIGNAL(incomingUDP(const QString &, int, const QHostAddress &, int, const QByteArray &)), SLOT(ss_incomingUDP(const QString &, int, const QHostAddress &, int, const QByteArray &)));
+	connect(&d->serv, SIGNAL(incomingUDP(QString,int,QHostAddress,int,QByteArray)), SLOT(ss_incomingUDP(QString,int,QHostAddress,int,QByteArray)));
 }
 
 S5BServer::~S5BServer()

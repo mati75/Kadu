@@ -1,6 +1,7 @@
 /*
  * %kadu copyright begin%
  * Copyright 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -34,7 +35,7 @@ CheckboxStyledItemDelegate::~CheckboxStyledItemDelegate()
 QRect CheckboxStyledItemDelegate::getCenteredComboBoxRect(const QStyleOptionViewItem &option) const
 {
 	QSize size = QApplication::style()->sizeFromContents(QStyle::CT_CheckBox, &option, QSize());
-#ifdef Q_WS_WIN
+#ifdef Q_OS_WIN32
 	size.setWidth(size.width() + QApplication::style()->pixelMetric(QStyle::PM_CheckBoxLabelSpacing, &option));
 #endif
 
@@ -100,3 +101,5 @@ void CheckboxStyledItemDelegate::setModelData(QWidget *editor, QAbstractItemMode
 
 	model->setData(index, checkBox->isChecked());
 }
+
+#include "moc_checkbox-styled-item-delegate.cpp"

@@ -3,7 +3,7 @@
  * Copyright 2008, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2011 Piotr Dąbrowski (ultr@ultr.pl)
  * Copyright 2008 Michał Podsiadlik (michal@kadu.net)
- * Copyright 2007, 2008, 2009, 2010, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2007, 2008, 2009, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2007, 2008 Dawid Stawiarski (neeo@kadu.net)
  * %kadu copyright end%
@@ -25,7 +25,7 @@
 #ifndef CHAT_STATE_SERVICE_H
 #define CHAT_STATE_SERVICE_H
 
-#include "protocols/services/protocol-service.h"
+#include "protocols/services/account-service.h"
 
 #include "exports.h"
 
@@ -39,7 +39,7 @@ class Contact;
 
 /**
  * @class ChatStateService
- * @short ChatStateService protocol service allows sending and receiving information about composing state in chats.
+ * @short ChatStateService account service allows sending and receiving information about composing state in chats.
  *
  * This service allows sending and receiving information about composing state in chats. It supports several states
  * defined in ChatStateService::State enum.
@@ -47,7 +47,7 @@ class Contact;
  * One method should be overrided by subclasses: sendState(). It sends our chat state to peer. When peer changes its
  * chats state, peerStateChanged() signal is emited.
  */
-class KADUAPI ChatStateService : public ProtocolService
+class KADUAPI ChatStateService : public AccountService
 {
 	Q_OBJECT
 
@@ -55,7 +55,7 @@ public:
 	/**
 	 * @enum State
 	 * @short This enum represent state of chat.
-	 * @note Values in this enum must be identical with those defined in kadu-core/chat/style-engines/chat-scripts.js
+	 * @note Values in this enum must be identical with those defined in kadu-core/chat-style/engine/chat-scripts.js
 	 */
 	enum State
 	{
@@ -86,10 +86,10 @@ public:
 	};
 
 	/**
-	 * @short Create new instance of ChatStateService bound to given Protocol.
-	 * @param protocol protocol to bound this service to
+	 * @short Create new instance of ChatStateService bound to given Account.
+	 * @param account account to bound this service to
 	 */
-	explicit ChatStateService(Protocol *protocol);
+	explicit ChatStateService(Account account, QObject *parent = 0);
 	virtual ~ChatStateService();
 
 	/**

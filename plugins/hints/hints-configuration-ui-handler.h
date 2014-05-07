@@ -3,6 +3,7 @@
  * Copyright 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2010 Maciej Płaza (plaza.maciej@gmail.com)
  * Copyright 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2012 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -22,7 +23,7 @@
 #ifndef HINTS_CONFIGURATION_UI_HANDLER_H
 #define HINTS_CONFIGURATION_UI_HANDLER_H
 
-#include <QtCore/QWeakPointer>
+#include <QtCore/QPointer>
 
 #include "gui/windows/main-configuration-window.h"
 
@@ -36,7 +37,7 @@ class HintsConfigurationUiHandler : public ConfigurationUiHandler
 	Q_OBJECT
 
 private:
-	QWeakPointer<ConfigurationWindow> AdvancedWindow;
+	QPointer<ConfigurationWindow> AdvancedWindow;
 
 	QFrame *previewHintsFrame;
 	QVBoxLayout *previewHintsLayout;
@@ -51,7 +52,7 @@ private:
 	QComboBox *ownPositionCorner;
 	QComboBox *newHintUnder;
 	
-	QWeakPointer<HintOverUserConfigurationWindow> overUserConfigurationWindow;
+	QPointer<HintOverUserConfigurationWindow> overUserConfigurationWindow;
 	QFrame *overUserConfigurationPreview;
 	QLabel *overUserConfigurationTipLabel;
 	

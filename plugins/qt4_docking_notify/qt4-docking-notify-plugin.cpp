@@ -4,7 +4,7 @@
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
  * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
  * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2011, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
@@ -32,16 +32,16 @@ Qt4DockingNotifyPlugin::~Qt4DockingNotifyPlugin()
 {
 }
 
-int Qt4DockingNotifyPlugin::init(bool firstLoad)
+bool Qt4DockingNotifyPlugin::init(bool firstLoad)
 {
 	Q_UNUSED(firstLoad)
 
 	if (!QSystemTrayIcon::supportsMessages())
-		return 1;
+		return false;
 
 	NotifierInstance = new Qt4Notify(this);
 
-	return 0;
+	return true;
 }
 
 void Qt4DockingNotifyPlugin::done()
@@ -51,3 +51,5 @@ void Qt4DockingNotifyPlugin::done()
 }
 
 Q_EXPORT_PLUGIN2(qt4_docking_notify, Qt4DockingNotifyPlugin)
+
+#include "moc_qt4-docking-notify-plugin.cpp"

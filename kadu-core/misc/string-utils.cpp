@@ -1,6 +1,10 @@
 /*
  * %kadu copyright begin%
+ * Copyright 2009, 2012 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2012 Piotr Dąbrowski (ultr@ultr.pl)
+ * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
+ * Copyright 2007, 2008, 2009, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -26,10 +30,15 @@ namespace StringUtils
 
 QString ellipsis(const QString &text, quint16 length)
 {
-	if (text.length() > length + 2)
-		return text.left(length) + "...";
+	if (text.isEmpty() || length == 0)
+		return QString();
 
-	return text;
+	QString trimmed = text.left(length);
+
+	if (trimmed.length() > 1 && trimmed.length() < text.length())
+		return trimmed + "...";
+
+	return trimmed;
 }
 
 } // namespace

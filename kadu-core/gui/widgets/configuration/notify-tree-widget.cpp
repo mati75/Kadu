@@ -2,7 +2,7 @@
  * %kadu copyright begin%
  * Copyright 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2010, 2011, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -179,7 +179,7 @@ NotifyTreeWidgetItem::NotifyTreeWidgetItem(QTreeWidget *parent, const QString &e
 
 	setData(1, Qt::UserRole, QVariant(ActiveNotifiers));
 	setData(0, Qt::UserRole, QVariant(eventName));
-	setText(0, qApp->translate("@default", name));
+	setText(0, QCoreApplication::translate("@default", name));
 }
 
 NotifyTreeWidgetItem::NotifyTreeWidgetItem(NotifyTreeWidgetItem *parent, const QString &eventName, const char *name, QStringList &notifiers)
@@ -189,7 +189,7 @@ NotifyTreeWidgetItem::NotifyTreeWidgetItem(NotifyTreeWidgetItem *parent, const Q
 
 	setData(1, Qt::UserRole, QVariant(ActiveNotifiers));
 	setData(0, Qt::UserRole, QVariant(eventName));
-	setText(0, qApp->translate("@default", name));
+	setText(0, QCoreApplication::translate("@default", name));
 }
 
 void NotifyTreeWidgetItem::notifierChecked(Notifier *notifier, bool checked)
@@ -202,7 +202,7 @@ void NotifyTreeWidgetItem::notifierChecked(Notifier *notifier, bool checked)
 	setData(1, Qt::UserRole, QVariant(ActiveNotifiers));
 
 	for (int i = 0; i < childCount(); ++i)
-		dynamic_cast<NotifyTreeWidgetItem *>(child(i))->parentNotifierChecked();
+		static_cast<NotifyTreeWidgetItem *>(child(i))->parentNotifierChecked();
 }
 
 void NotifyTreeWidgetItem::useCustomSettingsChecked(bool checked)
@@ -224,3 +224,5 @@ void NotifyTreeWidgetItem::useCustomSettingsChecked(bool checked)
 
 	setData(1, Qt::UserRole, QVariant(dynamic_cast<NotifyTreeWidgetItem *>(parent())->activeNotifiers()));
  }
+
+#include "moc_notify-tree-widget.cpp"

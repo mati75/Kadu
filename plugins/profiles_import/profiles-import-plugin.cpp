@@ -4,7 +4,7 @@
  * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
  * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2011, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
@@ -37,7 +37,7 @@ ProfilesImportPlugin::~ProfilesImportPlugin()
 {
 }
 
-int ProfilesImportPlugin::init(bool firstLoad)
+bool ProfilesImportPlugin::init(bool firstLoad)
 {
 	Q_UNUSED(firstLoad)
 
@@ -46,7 +46,7 @@ int ProfilesImportPlugin::init(bool firstLoad)
 	if (firstLoad && !ProfileDataManager::readProfileData().isEmpty())
 		(new ImportProfilesWindow(Core::instance()->kaduWindow()))->show();
 
-	return 0;
+	return true;
 }
 
 void ProfilesImportPlugin::done()
@@ -55,3 +55,5 @@ void ProfilesImportPlugin::done()
 }
 
 Q_EXPORT_PLUGIN2(profiles_import, ProfilesImportPlugin)
+
+#include "moc_profiles-import-plugin.cpp"

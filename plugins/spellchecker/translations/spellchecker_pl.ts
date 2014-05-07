@@ -6,10 +6,6 @@
         <translation>Rozmowa</translation>
     </message>
     <message>
-        <source>SpellChecker</source>
-        <translation>SpellChecker</translation>
-    </message>
-    <message>
         <source>Misspelled Words Marking Options</source>
         <translation>Opcje zaznaczania błędnych słów</translation>
     </message>
@@ -48,6 +44,10 @@
     <message>
         <source>Maximum number of suggested words</source>
         <translation>Maksymalna ilość sugerowanych słów</translation>
+    </message>
+    <message>
+        <source>Spelling</source>
+        <translation>Sprawdzanie pisowni</translation>
     </message>
 </context>
 <context>

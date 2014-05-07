@@ -4,7 +4,7 @@
  * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2008, 2009 Michał Podsiadlik (michal@kadu.net)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
- * Copyright 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2009, 2010, 2011, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
@@ -32,13 +32,22 @@
 
 #include "exports.h"
 
+class SimpleConfigurationValueStateNotifier;
+
 class KADUAPI AccountAddWidget : public ModalConfigurationWidget
 {
 	Q_OBJECT
 
+	SimpleConfigurationValueStateNotifier *StateNotifier;
+
+protected:
+	SimpleConfigurationValueStateNotifier * simpleStateNotifier() const;
+
 public:
-	explicit AccountAddWidget(QWidget *parent = 0) : ModalConfigurationWidget(parent) {}
-	virtual ~AccountAddWidget() {}
+	explicit AccountAddWidget(QWidget *parent = 0);
+	virtual ~AccountAddWidget();
+
+	virtual const ConfigurationValueStateNotifier * stateNotifier() const;
 
 signals:
 	void accountCreated(Account account);

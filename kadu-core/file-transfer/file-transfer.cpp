@@ -49,12 +49,12 @@ FileTransfer FileTransfer::create()
 	return new FileTransferShared();
 }
 
-FileTransfer FileTransfer::loadStubFromStorage(const QSharedPointer<StoragePoint> &fileTransferStoragePoint)
+FileTransfer FileTransfer::loadStubFromStorage(const std::shared_ptr<StoragePoint> &fileTransferStoragePoint)
 {
 	return FileTransferShared::loadStubFromStorage(fileTransferStoragePoint);
 }
 
-FileTransfer FileTransfer::loadFromStorage(const QSharedPointer<StoragePoint> &fileTransferStoragePoint)
+FileTransfer FileTransfer::loadFromStorage(const std::shared_ptr<StoragePoint> &fileTransferStoragePoint)
 {
 	return FileTransferShared::loadFromStorage(fileTransferStoragePoint);
 }
@@ -93,7 +93,7 @@ void FileTransfer::createHandler()
 unsigned int FileTransfer::percent()
 {
 	if (fileSize() != 0)
-		return (100 * transferredSize()) / fileSize();
+		return static_cast<unsigned int>((100 * transferredSize()) / fileSize());
 	else
 		return 0;
 }

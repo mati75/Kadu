@@ -2,8 +2,8 @@
  * %kadu copyright begin%
  * Copyright 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009, 2009, 2009 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2009, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -169,3 +169,5 @@ Chat BuddyChatManager::buddyChat(const Buddy &buddy)
 	else
 		return createAndInsertBuddyChat(buddy);
 }
+
+#include "moc_buddy-chat-manager.cpp"

@@ -4,7 +4,7 @@
  * Copyright 2008 Tomasz Rostański (rozteck@interia.pl)
  * Copyright 2011 Piotr Dąbrowski (ultr@ultr.pl)
  * Copyright 2006 Adrian Smarzewski (adrian@kadu.net)
- * Copyright 2008, 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2008, 2009, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2005, 2007 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
@@ -26,11 +26,16 @@
 #ifndef KADU_CUSTOM_INPUT_H
 #define KADU_CUSTOM_INPUT_H
 
+#include <QtCore/QPointer>
 #include <QtGui/QTextEdit>
 
 #include "chat/chat.h"
 
 #include "exports.h"
+
+class FormattedString;
+class FormattedStringFactory;
+class ImageStorageService;
 
 /**
 	\class CustomInput
@@ -39,6 +44,9 @@
 class KADUAPI CustomInput : public QTextEdit
 {
 	Q_OBJECT
+
+	QPointer<ImageStorageService> CurrentImageStorageService;
+	QPointer<FormattedStringFactory> CurrentFormattedStringFactory;
 
 	Chat CurrentChat;
 
@@ -92,6 +100,11 @@ public:
 	**/
 	CustomInput(Chat chat, QWidget *parent = 0);
 
+	void setImageStorageService(ImageStorageService *imageStorageService);
+	void setFormattedStringFactory(FormattedStringFactory *formattedStringFactory);
+
+	std::unique_ptr<FormattedString> formattedString() const;
+
 public slots:
 	/**
 		\fn void setAutosend(bool on)
@@ -135,7 +148,7 @@ signals:
 		ze standardow� obs�ug� kontrolek Qt nie powinny by� podj�te.
 	**/
 	void keyReleased(QKeyEvent *e, CustomInput *sender, bool &handled);
-	
+
 	void fontChanged(QFont font);
 
 };

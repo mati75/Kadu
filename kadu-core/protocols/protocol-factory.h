@@ -3,12 +3,12 @@
  * Copyright 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009, 2010, 2010 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2010 Tomasz Rostański (rozteck@interia.pl)
+ * Copyright 2012 Piotr Dąbrowski (ultr@ultr.pl)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
  * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
- * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2007, 2008, 2009, 2010, 2011, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
- * Copyright 2012 Piotr Dąbrowski (ultr@ultr.pl)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -33,8 +33,8 @@
 #include <QtGui/QValidator>
 
 #include "contacts/contact-details.h"
-#include "exports.h"
 #include "status/status-adapter.h"
+#include "exports.h"
 
 class Account;
 class AccountDetails;
@@ -70,7 +70,7 @@ public:
 	virtual StatusAdapter * statusAdapter() = 0;
 	virtual QString idLabel() = 0;
 	virtual QValidator::State validateId(QString id) = 0;
-	virtual bool canRegister() { return true; }
+	virtual bool canRegister() = 0;
 	virtual bool canRemoveAvatar() { return true; } // this is so lame for gadu-gadu, so so lame ...
 
 	virtual QString name() = 0;

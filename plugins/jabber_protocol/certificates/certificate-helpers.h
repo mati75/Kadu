@@ -3,6 +3,7 @@
  * Copyright 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009, 2009, 2010 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2012 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -42,14 +43,13 @@ namespace XMPP
 	class QCATLSHandler;
 }
 
-class CertificateHelpers 
+class CertificateHelpers
 {
 	public:
 		static QCA::CertificateCollection allCertificates(const QStringList& dirs);
 		static QString resultToString(int result, QCA::Validity);
 		static bool checkCertificate(QCA::TLS *tls, XMPP::QCATLSHandler *tlsHandler, QString &tlsOverrideDomain, const QString &title, const QString &host, bool blocking, QObject *receiver, const char *slot);
 		static QStringList getCertificateStoreDirs();
-		static QString getCertificateStoreSaveDir();
 
 	protected:
 		static QString validityToString(QCA::Validity);

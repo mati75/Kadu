@@ -6,16 +6,8 @@
         <translation>Screenshot</translation>
     </message>
     <message>
-        <source>General</source>
-        <translation>Ogólne</translation>
-    </message>
-    <message>
         <source>General Settings</source>
         <translation>Ogólne ustawienia</translation>
-    </message>
-    <message>
-        <source>File format</source>
-        <translation>Format pliku</translation>
     </message>
     <message>
         <source>Select image format, which screenshots will be stored and sent in.</source>
@@ -38,14 +30,6 @@
         <translation>-1 to autodetekcja, 0 to najlepsza kompresja, 100 to najlepsza jakość.</translation>
     </message>
     <message>
-        <source>Paste [IMAGE] clause automatically</source>
-        <translation>Wklejaj polecenie [IMAGE] automatycznie</translation>
-    </message>
-    <message>
-        <source>When enabled, module will automatically paste ready to send [IMAGE] clause in chat window.</source>
-        <translation>Kiedy włączone, moduł automatycznie wklei polecenie [IMAGE] do okna rozmowy, aby było gotowe do wysłania.</translation>
-    </message>
-    <message>
         <source>Directory</source>
         <translation>Katalog</translation>
     </message>
@@ -62,16 +46,8 @@
         <translation>Kontroluj rozmiar katalogu</translation>
     </message>
     <message>
-        <source>When enabled, module will check for shots directory size and warn you if it gets size specified below.</source>
-        <translation>Kiedy włączone, moduł będzie sprawdzał rozmiar katalogu zrzutów i ostrzeże cię, jeśli będzie on większy niż ten podany niżej.</translation>
-    </message>
-    <message>
         <source>Maximum directory size</source>
         <translation>Maksymalny rozmiar katalogu</translation>
-    </message>
-    <message>
-        <source>Define, how many kbytes can shots take in the directory before module will warn you.</source>
-        <translation>Określa, ile kilobajtów mogą zajmować zrzuty w katalogu, zanim moduł cię ostrzeże.</translation>
     </message>
     <message>
         <source> kB</source>
@@ -80,6 +56,30 @@
     <message>
         <source>ScreenShot images size limit</source>
         <translation>Limit rozmiaru katalogu ze zrzutami</translation>
+    </message>
+    <message>
+        <source>Extras</source>
+        <translation>Dodatki</translation>
+    </message>
+    <message>
+        <source>Screenshot file format</source>
+        <translation>Format pliku</translation>
+    </message>
+    <message>
+        <source>Paste image to chat window automatically</source>
+        <translation>Automatycznie wklej obrazek do okna rozmowy</translation>
+    </message>
+    <message>
+        <source>When enabled, plugin will automatically paste ready to send [IMAGE] clause in chat window.</source>
+        <translation>Kiedy włączone, wtyczka automatycznie wklei polecenie [IMAGE] do okna rozmowy, aby było gotowe do wysłania.</translation>
+    </message>
+    <message>
+        <source>When enabled, plugin will check for shots directory size and warn you if it gets size specified below.</source>
+        <translation>Kiedy włączone, wtyczka będzie sprawdzała rozmiar katalogu zrzutów i ostrzeże cię, jeśli będzie on większy niż ten podany niżej.</translation>
+    </message>
+    <message>
+        <source>Define, how many kbytes can shots take in the directory before plugin will warn you.</source>
+        <translation>Określa, ile kilobajtów mogą zajmować zrzuty w katalogu, zanim wtyczka cię ostrzeże.</translation>
     </message>
 </context>
 <context>

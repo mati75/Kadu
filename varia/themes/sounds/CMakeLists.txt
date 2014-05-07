@@ -10,12 +10,12 @@ if (SOUND_THEMES)
 
 	foreach (SOUND_THEME ${SOUND_THEMES})
 		message (STATUS "Sound theme: " ${SOUND_THEME})
-	endforeach (SOUND_THEME)
+	endforeach ()
 
 	install (DIRECTORY ${SOUND_THEMES}
-		DESTINATION "${KADU_DATADIR}/themes/sounds"
+		DESTINATION "${KADU_INSTALL_DATA_DIR}/themes/sounds"
 		FILES_MATCHING
 		PATTERN "*.wav"
 		PATTERN "sound.conf"
 	)
-endif (SOUND_THEMES)
+endif ()

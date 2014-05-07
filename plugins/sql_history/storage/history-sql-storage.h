@@ -1,8 +1,8 @@
 /*
  * %kadu copyright begin%
  * Copyright 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2009, 2009, 2009 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2009, 2009, 2009, 2009, 2011 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2009, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
@@ -24,6 +24,7 @@
 #define HISTORY_SQL_STORAGE_H
 
 #include <QtCore/QMutex>
+#include <QtCore/QPointer>
 #include <QtSql/QSqlDatabase>
 #include <QtSql/QSqlQuery>
 
@@ -31,8 +32,9 @@
 
 class QSqlError;
 
+class FormattedStringFactory;
 class HistoryQuery;
-class ProgressWindow2;
+class ProgressWindow;
 
 class SqlAccountsMapping;
 class SqlChatsMapping;
@@ -47,8 +49,10 @@ class HistorySqlStorage : public HistoryStorage
 {
 	Q_OBJECT
 
+	QPointer<FormattedStringFactory> CurrentFormattedStringFactory;
+
 	QThread *InitializerThread;
-	ProgressWindow2 *ImportProgressWindow;
+	ProgressWindow *ImportProgressWindow;
 
 	QSqlDatabase Database;
 	SqlAccountsMapping *AccountsMapping;
@@ -81,9 +85,9 @@ class HistorySqlStorage : public HistoryStorage
 	static QString stripAllScriptTags(const QString &string);
 
 	void executeQuery(QSqlQuery &query);
-	QVector<Message> messagesFromQuery(QSqlQuery &query);
-	QVector<Message> statusesFromQuery(const Contact &contact, QSqlQuery &query);
-	QVector<Message> smsFromQuery(QSqlQuery &query);
+	SortedMessages messagesFromQuery(QSqlQuery &query);
+	SortedMessages statusesFromQuery(const Contact &contact, QSqlQuery &query);
+	SortedMessages smsFromQuery(QSqlQuery &query);
 
 	bool isDatabaseReady();
 	bool waitForDatabase();
@@ -96,9 +100,9 @@ class HistorySqlStorage : public HistoryStorage
 	QVector<HistoryQueryResult> syncStatusDates(const HistoryQuery &historyQuery);
 	QVector<HistoryQueryResult> syncSmsRecipientDates(const HistoryQuery &historyQuery);
 
-	QVector<Message> syncMessages(const HistoryQuery &historyQuery);
-	QVector<Message> syncStatuses(const HistoryQuery &historyQuery);
-	QVector<Message> syncSmses(const HistoryQuery &historyQuery);
+	SortedMessages syncMessages(const HistoryQuery &historyQuery);
+	SortedMessages syncStatuses(const HistoryQuery &historyQuery);
+	SortedMessages syncSmses(const HistoryQuery &historyQuery);
 
 private slots:
 	virtual void messageReceived(const Message &message);
@@ -113,17 +117,19 @@ public:
 	explicit HistorySqlStorage(QObject *parent = 0);
 	virtual ~HistorySqlStorage();
 
-	virtual QFuture<QVector<Talkable> > chats();
-	virtual QFuture<QVector<Talkable> > statusBuddies();
-	virtual QFuture<QVector<Talkable> > smsRecipients();
+	void setFormattedStringFactory(FormattedStringFactory *formattedStringFactory);
 
-	virtual QFuture<QVector<HistoryQueryResult> > chatDates(const HistoryQuery &historyQuery);
-	virtual QFuture<QVector<HistoryQueryResult> > statusDates(const HistoryQuery &historyQuery);
-	virtual QFuture<QVector<HistoryQueryResult> > smsRecipientDates(const HistoryQuery &historyQuery);
+	virtual QFuture<QVector<Talkable>> chats();
+	virtual QFuture<QVector<Talkable>> statusBuddies();
+	virtual QFuture<QVector<Talkable>> smsRecipients();
 
-	virtual QFuture<QVector<Message> > messages(const HistoryQuery &historyQuery);
-	virtual QFuture<QVector<Message> > statuses(const HistoryQuery &historyQuery);
-	virtual QFuture<QVector<Message> > smses(const HistoryQuery &historyQuery);
+	virtual QFuture<QVector<HistoryQueryResult>> chatDates(const HistoryQuery &historyQuery);
+	virtual QFuture<QVector<HistoryQueryResult>> statusDates(const HistoryQuery &historyQuery);
+	virtual QFuture<QVector<HistoryQueryResult>> smsRecipientDates(const HistoryQuery &historyQuery);
+
+	virtual QFuture<SortedMessages> messages(const HistoryQuery &historyQuery);
+	virtual QFuture<SortedMessages> statuses(const HistoryQuery &historyQuery);
+	virtual QFuture<SortedMessages> smses(const HistoryQuery &historyQuery);
 
 	virtual void appendMessage(const Message &message);
 	virtual void appendStatus(const Contact &contact, const Status &status, const QDateTime &time);

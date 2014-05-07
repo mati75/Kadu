@@ -1,10 +1,10 @@
 /*
  * %kadu copyright begin%
  * Copyright 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2010 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2010, 2011 Piotr Dąbrowski (ultr@ultr.pl)
- * Copyright 2009, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2010, 2012 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2010, 2011, 2012 Piotr Dąbrowski (ultr@ultr.pl)
+ * Copyright 2009, 2009, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -147,9 +147,9 @@ void StatusContainerManager::setDefaultStatusContainer(StatusContainer *defaultS
 		DefaultStatusContainer = 0;
 
 	if (DefaultStatusContainer)
-		connect(DefaultStatusContainer, SIGNAL(statusUpdated()), this, SIGNAL(statusUpdated()));
+		connect(DefaultStatusContainer, SIGNAL(statusUpdated(StatusContainer *)), this, SIGNAL(statusUpdated(StatusContainer *)));
 
-	emit statusUpdated();
+	emit statusUpdated(this);
 }
 
 void StatusContainerManager::setStatusModeChanged()
@@ -173,7 +173,7 @@ void StatusContainerManager::registerStatusContainer(StatusContainer *statusCont
 	emit statusContainerRegistered(statusContainer);
 	StatusContainerAwareObject::notifyStatusContainerRegistered(statusContainer);
 
-	connect(statusContainer, SIGNAL(statusUpdated()), this, SIGNAL(statusUpdated()));
+	connect(statusContainer, SIGNAL(statusUpdated(StatusContainer *)), this, SIGNAL(statusUpdated(StatusContainer *)));
 }
 
 void StatusContainerManager::unregisterStatusContainer(StatusContainer *statusContainer)
@@ -279,3 +279,5 @@ QList<StatusContainer *> StatusContainerManager::subStatusContainers()
 {
 	return StatusContainers;
 }
+
+#include "moc_status-container-manager.cpp"

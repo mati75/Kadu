@@ -1,8 +1,8 @@
 /*
  * %kadu copyright begin%
  * Copyright 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -25,13 +25,13 @@
 #include "contacts/contact-manager.h"
 #include "contacts/contact.h"
 #include "misc/change-notifier.h"
-#include "misc/misc.h"
+#include "misc/kadu-paths.h"
 
 #include "keys/keys-manager.h"
 
 #include "key-shared.h"
 
-KeyShared * KeyShared::loadStubFromStorage(const QSharedPointer<StoragePoint> &storagePoint)
+KeyShared * KeyShared::loadStubFromStorage(const std::shared_ptr<StoragePoint> &storagePoint)
 {
 	KeyShared *result = loadFromStorage(storagePoint);
 	result->loadStub();
@@ -39,7 +39,7 @@ KeyShared * KeyShared::loadStubFromStorage(const QSharedPointer<StoragePoint> &s
 	return result;
 }
 
-KeyShared * KeyShared::loadFromStorage(const QSharedPointer<StoragePoint> &storagePoint)
+KeyShared * KeyShared::loadFromStorage(const std::shared_ptr<StoragePoint> &storagePoint)
 {
 	KeyShared *result = new KeyShared();
 	result->setStorage(storagePoint);
@@ -53,7 +53,7 @@ KeyShared::KeyShared(const QUuid &uuid) :
 	KeysDir = KaduPaths::instance()->profilePath() + QLatin1String("keys/");
 	KeyContact = new Contact();
 
-	connect(changeNotifier(), SIGNAL(changed()), this, SIGNAL(updated()));
+	connect(&changeNotifier(), SIGNAL(changed()), this, SIGNAL(updated()));
 }
 
 KeyShared::~KeyShared()
@@ -154,3 +154,5 @@ bool KeyShared::isEmpty()
 }
 
 KaduShared_PropertyPtrDefCRW(KeyShared, Contact, keyContact, KeyContact)
+
+#include "moc_key-shared.cpp"

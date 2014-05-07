@@ -1,8 +1,9 @@
 /*
  * %kadu copyright begin%
  * Copyright 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2009, 2010, 2010 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2009, 2009, 2010, 2010, 2012 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2010, 2011, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -28,8 +29,8 @@
 #define CERTIFICATE_ERROR_WINDOW_H
 
 #include <QtCore/QString>
-#include <QtCrypto>
 #include <QtGui/QDialog>
+#include <QtCrypto>
 
 class QCheckBox;
 class QPushButton;
@@ -38,26 +39,22 @@ class CertificateErrorWindow : public QDialog
 {
 	Q_OBJECT
 
-	QPushButton *ShowButton;
 	QPushButton *ConnectButton;
 	QPushButton *CancelButton;
 	QCheckBox *RememberCheckbox;
-	QPushButton *ClickedButton;
 
 	QCA::Certificate CurrentCertificate;
 	int Result;
 	QCA::Validity Validity;
 	QString DomainOverride;
 	QString Host;
-	QObject *Parent;
-	QString &TlsOverrideDomain;
 
 private slots:
 	void showCertificate();
 
 public:
 	CertificateErrorWindow(const QString& title, const QString& host, const QCA::Certificate& cert, int result, QCA::Validity validity,
-			       const QString &domainOverride, QString &tlsOverrideDomain_, QObject *receiver, const char *slot);
+			       const QString &domainOverride, QObject *receiver, const char *slot);
 	virtual ~CertificateErrorWindow();
 
 public slots:

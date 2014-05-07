@@ -3,6 +3,7 @@
  * Copyright 2008 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -33,20 +34,20 @@ Qt4SoundPlugin::~Qt4SoundPlugin()
 {
 }
 
-int Qt4SoundPlugin::init(bool firstLoad)
+bool Qt4SoundPlugin::init(bool firstLoad)
 {
 	Q_UNUSED(firstLoad)
 
 	if (!QSound::isAvailable())
 	{
 		MessageDialog::show(KaduIcon("dialog-error"), QObject::tr("Kadu"), QObject::tr("QSound API is not available on this platform"));
-		return 1;
+		return false;
 	}
 
 	QtSound4Player::createInstance();
 	SoundManager::instance()->setPlayer(QtSound4Player::instance());
 
-	return 0;
+	return true;
 }
 
 void Qt4SoundPlugin::done()
@@ -56,3 +57,5 @@ void Qt4SoundPlugin::done()
 }
 
 Q_EXPORT_PLUGIN2(qt4_sound, Qt4SoundPlugin)
+
+#include "moc_qt4-sound-plugin.cpp"

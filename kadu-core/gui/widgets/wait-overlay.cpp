@@ -1,6 +1,7 @@
 /*
  * %kadu copyright begin%
  * Copyright 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -68,3 +69,5 @@ bool WaitOverlay::eventFilter(QObject *object, QEvent *event)
 
 	return QWidget::eventFilter(object, event);
 }
+
+#include "moc_wait-overlay.cpp"

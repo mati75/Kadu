@@ -4,7 +4,7 @@
  * Copyright 2010, 2010 Przemysław Rudy (prudy1@o2.pl)
  * Copyright 2010 Tomasz Rostański (rozteck@interia.pl)
  * Copyright 2008 Michał Podsiadlik (michal@kadu.net)
- * Copyright 2007, 2008, 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2007, 2008 Dawid Stawiarski (neeo@kadu.net)
  * %kadu copyright end%
@@ -33,6 +33,7 @@
 class KADUAPI CompositingAwareObject : public AwareObject<CompositingAwareObject>
 {
 	static bool CompositingEnabled;
+
 protected:
 	virtual void compositingEnabled() = 0;
 	virtual void compositingDisabled() = 0;
@@ -41,6 +42,8 @@ public:
 	static void compositingStateChanged();
 
 	void triggerCompositingStateChanged();
+
+	bool isCompositingEnabled() const;
 
 };
 

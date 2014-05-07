@@ -29,14 +29,15 @@
 
 #include <QtCore/QObject>
 
-#include "plugins/generic-plugin.h"
+#include "plugin/plugin-root-component.h"
 
 class SpellChecker;
 
-class SpellCheckerPlugin : public QObject, GenericPlugin
+class SpellCheckerPlugin : public QObject, PluginRootComponent
 {
 	Q_OBJECT
-	Q_INTERFACES(GenericPlugin)
+	Q_INTERFACES(PluginRootComponent)
+	Q_PLUGIN_METADATA(IID "im.kadu.PluginRootComponent")
 
 	static SpellCheckerPlugin *Instance;
 
@@ -48,7 +49,7 @@ public:
 	explicit SpellCheckerPlugin(QObject *parent = 0);
 	virtual ~SpellCheckerPlugin();
 
-	virtual int init(bool firstLoad);
+	virtual bool init(bool firstLoad);
 	virtual void done();
 
 	SpellChecker * spellChecker() const { return SpellCheckerInstance; }

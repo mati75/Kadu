@@ -1,7 +1,7 @@
 /*
  * %kadu copyright begin%
  * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011, 2012, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
@@ -19,9 +19,12 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <QtGui/QTextDocument>
+#include <QtXml/QDomDocument>
 
+#include "dom/dom-processor.h"
+#include "dom/ignore-links-dom-visitor.h"
 #include "os/generic/url-opener.h"
+#include "url-handlers/mail-url-expander.h"
 
 #include "mail-url-handler.h"
 
@@ -33,33 +36,6 @@ MailUrlHandler::MailUrlHandler()
 bool MailUrlHandler::isUrlValid(const QByteArray &url)
 {
 	return MailRegExp.exactMatch(QString::fromUtf8(url));
-}
-
-void MailUrlHandler::convertUrlsToHtml(HtmlDocument &document, bool generateOnlyHrefAttr)
-{
-	for (int i = 0; i < document.countElements(); ++i)
-	{
-		if (document.isTagElement(i))
-			continue;
-
-		QString text = document.elementText(i);
-		int index = MailRegExp.indexIn(text);
-		if (index < 0)
-			continue;
-
-		unsigned int length = MailRegExp.matchedLength();
-		QString mail = Qt::escape(text.mid(index, length));
-
-		document.splitElement(i, index, length);
-
-		QString anchor;
-		if (generateOnlyHrefAttr)
-			anchor = "<a href=\"mailto:" + mail + "\">" + mail + "</a>";
-		else
-			anchor = "<a href=\"mailto:" + mail + "\" title=\"" + mail +"\">" + mail + "</a>";
-
-		document.setElementValue(i, anchor, true);
-	}
 }
 
 void MailUrlHandler::openUrl(const QByteArray &url, bool disableMenu)

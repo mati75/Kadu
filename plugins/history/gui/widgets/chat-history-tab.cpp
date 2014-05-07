@@ -1,6 +1,7 @@
 /*
  * %kadu copyright begin%
  * Copyright 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -71,3 +72,5 @@ void ChatHistoryTab::selectTalkable(const Talkable &talkable)
 {
 	TalkableToSelect = talkable;
 }
+
+#include "moc_chat-history-tab.cpp"

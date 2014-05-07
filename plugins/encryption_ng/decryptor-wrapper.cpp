@@ -5,7 +5,7 @@
  * Copyright 2002, 2003, 2004, 2005 Adrian Smarzewski (adrian@kadu.net)
  * Copyright 2002, 2003, 2004 Tomasz Chiliński (chilek@chilan.com)
  * Copyright 2007, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2010, 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2007 Dawid Stawiarski (neeo@kadu.net)
  * Copyright 2005 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
@@ -25,6 +25,8 @@
  */
 
 #include "decryptor-wrapper.h"
+
+#include "message/raw-message.h"
 
 DecryptorWrapper::DecryptorWrapper(const Chat &chat, EncryptionProviderManager *providerManager, QObject *parent) :
 		Decryptor(providerManager, parent), MyChat(chat)
@@ -60,9 +62,9 @@ void DecryptorWrapper::decryptorDestroyed(QObject *decryptor)
 	Decryptors.removeAll(static_cast<Decryptor *>(decryptor));
 }
 
-QByteArray DecryptorWrapper::decrypt(const QByteArray &data, Chat chat, bool *ok)
+RawMessage DecryptorWrapper::decrypt(const RawMessage &data, Chat chat, bool *ok)
 {
-	QByteArray decrypted = data;
+	RawMessage decrypted = data;
 
 	if (ok)
 		*ok = false;
@@ -77,3 +79,5 @@ QByteArray DecryptorWrapper::decrypt(const QByteArray &data, Chat chat, bool *ok
 
 	return decrypted;
 }
+
+#include "moc_decryptor-wrapper.cpp"

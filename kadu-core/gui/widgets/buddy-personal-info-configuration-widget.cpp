@@ -7,7 +7,7 @@
  * Copyright 2002, 2003, 2004, 2005 Adrian Smarzewski (adrian@kadu.net)
  * Copyright 2002, 2003, 2004 Tomasz Chiliński (chilek@chilan.com)
  * Copyright 2007, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2010, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2007 Dawid Stawiarski (neeo@kadu.net)
  * Copyright 2005 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
@@ -96,3 +96,5 @@ void BuddyPersonalInfoConfigurationWidget::accountSelectionChanged(int index)
 	InfoWidget = c.contactAccount().protocolHandler()->protocolFactory()->newContactPersonalInfoWidget(c, this);
 	Layout->insertWidget(1, InfoWidget);
 }
+
+#include "moc_buddy-personal-info-configuration-widget.cpp"

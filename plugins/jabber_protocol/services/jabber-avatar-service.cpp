@@ -3,8 +3,8 @@
  * Copyright 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009, 2009, 2010, 2010 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
- * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2009, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -21,29 +21,56 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "server/jabber-avatar-downloader.h"
+#include "server/jabber-avatar-pep-downloader.h"
+#include "server/jabber-avatar-pep-uploader.h"
+#include "server/jabber-avatar-uploader.h"
+#include "server/jabber-avatar-vcard-downloader.h"
+#include "server/jabber-avatar-vcard-uploader.h"
+#include "services/jabber-pep-service.h"
+#include "services/jabber-vcard-service.h"
+
 #include "jabber-avatar-service.h"
 
-#include "server/jabber-avatar-fetcher.h"
-#include "server/jabber-avatar-uploader.h"
-
-
-void JabberAvatarService::fetchAvatar(Contact contact)
+JabberAvatarService::JabberAvatarService(Account account, QObject *parent) :
+		AvatarService(account, parent)
 {
-	if (contact.id().isEmpty())
-		return;
-
-	JabberAvatarFetcher *avatarFetcher = new JabberAvatarFetcher(contact, this);
-	connect(avatarFetcher, SIGNAL(avatarFetched(Contact, bool)),
-			this, SIGNAL(avatarFetched(Contact, bool)));
-	avatarFetcher->fetchAvatar();
 }
 
-void JabberAvatarService::uploadAvatar(QImage avatar)
+JabberAvatarService::~JabberAvatarService()
 {
-	if (account().accountContact().id().isEmpty())
-		return;
-
-	JabberAvatarUploader *avatarUploader = new JabberAvatarUploader(account(), this);
-	connect(avatarUploader, SIGNAL(avatarUploaded(bool, QImage)), this, SIGNAL(avatarUploaded(bool, QImage)));
-	avatarUploader->uploadAvatar(avatar);
 }
+
+void JabberAvatarService::setPepService(JabberPepService *pepService)
+{
+	PepService = pepService;
+}
+
+void JabberAvatarService::setVCardService(XMPP::JabberVCardService *vCardService)
+{
+	VCardService = vCardService;
+}
+
+AvatarDownloader * JabberAvatarService::createAvatarDownloader()
+{
+	if (!PepService.data() && !VCardService.data())
+		return 0;
+	if (PepService.data() && !VCardService.data())
+		return new JabberAvatarPepDownloader(PepService.data(), this);
+	if (!PepService.data() && VCardService.data())
+		return new JabberAvatarVCardDownloader(VCardService.data(), this);
+	return new JabberAvatarDownloader(PepService.data(), VCardService.data(), this);
+}
+
+AvatarUploader * JabberAvatarService::createAvatarUploader()
+{
+	if (!PepService.data() && !VCardService.data())
+		return 0;
+	if (PepService.data() && !VCardService.data())
+		return new JabberAvatarPepUploader(PepService.data(), this);
+	if (!PepService.data() && VCardService.data())
+		return new JabberAvatarVCardUploader(VCardService.data(), this);
+	return new JabberAvatarUploader(PepService.data(), VCardService.data(), this);
+}
+
+#include "moc_jabber-avatar-service.cpp"

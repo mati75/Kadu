@@ -1,6 +1,8 @@
 /*
  * %kadu copyright begin%
- * Copyright 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2012 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -18,9 +20,11 @@
  */
 
 #include "chat/chat.h"
+#include "core/core.h"
 #include "gui/actions/action-context.h"
-#include "gui/widgets/chat-widget-manager.h"
-#include "gui/widgets/chat-widget.h"
+#include "gui/widgets/chat-widget/chat-widget-manager.h"
+#include "gui/widgets/chat-widget/chat-widget-repository.h"
+#include "gui/widgets/chat-widget/chat-widget.h"
 #include "gui/windows/message-dialog.h"
 
 #include "leave-chat-action.h"
@@ -48,13 +52,20 @@ void LeaveChatAction::triggered(QWidget *widget, ActionContext *context, bool to
 	if (!chat)
 		return;
 
-	ChatWidget *chatWidget = ChatWidgetManager::instance()->byChat(chat, false);
+	auto chatWidget = Core::instance()->chatWidgetRepository()->widgetForChat(chat);
 	if (!chatWidget)
 		return;
 
-	if (!MessageDialog::ask(KaduIcon("dialog-warning"), tr("Kadu"), tr("All messages received in this conference will be ignored\nfrom now on. Are you sure you want to leave this conference?"), widget))
+	MessageDialog *dialog = MessageDialog::create(KaduIcon("dialog-warning"), tr("Kadu"),
+						      tr("All messages received in this conference will be ignored\nfrom now on. Are you sure you want to leave this conference?"),
+						      widget);
+	dialog->addButton(QMessageBox::Yes, tr("Leave conference"));
+	dialog->addButton(QMessageBox::No, tr("Cancel"));
+	if (!dialog->ask())
 		return;
 
 	chat.setIgnoreAllMessages(true);
 	chatWidget->close();
 }
+
+#include "moc_leave-chat-action.cpp"

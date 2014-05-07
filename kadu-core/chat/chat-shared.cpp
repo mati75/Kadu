@@ -1,11 +1,11 @@
 /*
  * %kadu copyright begin%
- * Copyright 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2009, 2010, 2010, 2011, 2012 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009, 2010 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2010 Piotr Dąbrowski (ultr@ultr.pl)
  * Copyright 2009, 2010 Bartłomiej Zimoń (uzi18@o2.pl)
- * Copyright 2009, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2009, 2009, 2010, 2011, 2012, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -29,8 +29,8 @@
 #include "buddies/group-manager.h"
 #include "chat/chat-details.h"
 #include "chat/chat-manager.h"
-#include "chat/type/chat-type.h"
 #include "chat/type/chat-type-manager.h"
+#include "chat/type/chat-type.h"
 #include "configuration/configuration-file.h"
 #include "contacts/contact-set.h"
 #include "misc/change-notifier.h"
@@ -39,7 +39,7 @@
 
 #include "chat-shared.h"
 
-ChatShared * ChatShared::loadStubFromStorage(const QSharedPointer<StoragePoint> &storagePoint)
+ChatShared * ChatShared::loadStubFromStorage(const std::shared_ptr<StoragePoint> &storagePoint)
 {
 	ChatShared *result = loadFromStorage(storagePoint);
 	result->loadStub();
@@ -55,7 +55,7 @@ ChatShared * ChatShared::loadStubFromStorage(const QSharedPointer<StoragePoint> 
  * Creates new object of ChatShared type and assigns storagePoint to it.
  * Object is lazy-loaded (it will be loaded when used first time).
  */
-ChatShared * ChatShared::loadFromStorage(const QSharedPointer<StoragePoint> &storagePoint)
+ChatShared * ChatShared::loadFromStorage(const std::shared_ptr<StoragePoint> &storagePoint)
 {
 	ChatShared *result = new ChatShared();
 	result->setStorage(storagePoint);
@@ -78,7 +78,7 @@ ChatShared::ChatShared(const QUuid &uuid) :
 {
 	ChatAccount = new Account();
 
-	connect(changeNotifier(), SIGNAL(changed()), this, SIGNAL(updated()));
+	connect(&changeNotifier(), SIGNAL(changed()), this, SIGNAL(updated()));
 }
 
 /**
@@ -278,7 +278,8 @@ void ChatShared::chatTypeRegistered(ChatType *chatType)
 	if (!Details)
 	{
 		Details = chatType->createChatDetails(this);
-		Q_ASSERT(Details);
+		if (!Details)
+			return;
 
 		connect(Details, SIGNAL(connected()), this, SIGNAL(connected()));
 		connect(Details, SIGNAL(disconnected()), this, SIGNAL(disconnected()));
@@ -384,7 +385,7 @@ void ChatShared::setGroups(const QSet<Group> &groups)
 	foreach (const Group &group, groupsToRemove)
 		doRemoveFromGroup(group);
 
-	changeNotifier()->notify();
+	changeNotifier().notify();
 }
 
 bool ChatShared::isInGroup(const Group &group)
@@ -431,7 +432,7 @@ void ChatShared::addToGroup(const Group &group)
 	ensureLoaded();
 
 	if (doAddToGroup(group))
-		changeNotifier()->notify();
+		changeNotifier().notify();
 }
 
 void ChatShared::removeFromGroup(const Group &group)
@@ -439,7 +440,7 @@ void ChatShared::removeFromGroup(const Group &group)
 	ensureLoaded();
 
 	if (doRemoveFromGroup(group))
-		changeNotifier()->notify();
+		changeNotifier().notify();
 }
 
 void ChatShared::groupAboutToBeRemoved()
@@ -475,3 +476,5 @@ void ChatShared::setOpen(bool open)
 	else
 		emit closed();
 }
+
+#include "moc_chat-shared.cpp"

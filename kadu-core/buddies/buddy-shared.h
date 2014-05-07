@@ -1,12 +1,12 @@
 /*
  * %kadu copyright begin%
- * Copyright 2008, 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2008, 2009, 2010, 2010, 2011, 2012 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009, 2009 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2010 Piotr Dąbrowski (ultr@ultr.pl)
  * Copyright 2008, 2009 Michał Podsiadlik (michal@kadu.net)
  * Copyright 2009, 2009 Bartłomiej Zimoń (uzi18@o2.pl)
- * Copyright 2007, 2008, 2009, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2007, 2008, 2009, 2009, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2007, 2008 Dawid Stawiarski (neeo@kadu.net)
  * %kadu copyright end%
  *
@@ -43,7 +43,7 @@
 #include "exports.h"
 
 #define BuddyShared_PropertyDirtyWrite(type, name, capitalized_name) \
-	void set##capitalized_name(type name) { ensureLoaded(); if (capitalized_name != name) { capitalized_name = name; changeNotifier()->notify(); markContactsDirty(); } }
+	void set##capitalized_name(type name) { ensureLoaded(); if (capitalized_name != name) { capitalized_name = name; changeNotifier().notify(); markContactsDirty(); } }
 
 #define BuddyShared_PropertyDirty(type, name, capitalized_name) \
 	KaduShared_PropertyRead(type, name, capitalized_name) \
@@ -53,10 +53,10 @@
 	bool is##capitalized_name() { ensureLoaded(); return capitalized_name; }
 
 #define BuddyShared_PropertySubscriptionWrite(capitalized_name) \
-	void set##capitalized_name(bool name) { ensureLoaded(); if (capitalized_name != name) { capitalized_name = name;  buddySubscriptionChanged(); changeNotifier()->notify(); } }
+	void set##capitalized_name(bool name) { ensureLoaded(); if (capitalized_name != name) { capitalized_name = name;  buddySubscriptionChanged(); changeNotifier().notify(); } }
 
 #define BuddyShared_PropertySubscriptionDirtyWrite(capitalized_name) \
-	void set##capitalized_name(bool name) { ensureLoaded(); if (capitalized_name != name) { capitalized_name = name;  buddySubscriptionChanged(); changeNotifier()->notify(); markContactsDirty(); } }
+	void set##capitalized_name(bool name) { ensureLoaded(); if (capitalized_name != name) { capitalized_name = name;  buddySubscriptionChanged(); changeNotifier().notify(); markContactsDirty(); } }
 
 #define BuddyShared_PropertySubscription(capitalized_name) \
 	BuddyShared_PropertySubscriptionRead(capitalized_name) \
@@ -115,15 +115,15 @@ private slots:
 	void markContactsDirty();
 
 protected:
-	virtual QSharedPointer<StoragePoint> createStoragePoint();
+	virtual std::shared_ptr<StoragePoint> createStoragePoint();
 
 	virtual void load();
 	virtual void store();
 	virtual bool shouldStore();
 
 public:
-	static BuddyShared * loadStubFromStorage(const QSharedPointer<StoragePoint> &buddyStoragePoint);
-	static BuddyShared * loadFromStorage(const QSharedPointer<StoragePoint> &buddyStoragePoint);
+	static BuddyShared * loadStubFromStorage(const std::shared_ptr<StoragePoint> &buddyStoragePoint);
+	static BuddyShared * loadFromStorage(const std::shared_ptr<StoragePoint> &buddyStoragePoint);
 
 	explicit BuddyShared(const QUuid &uuid = QUuid());
 	virtual ~BuddyShared();
@@ -200,8 +200,5 @@ signals:
 	void buddySubscriptionChanged();
 
 };
-
-// for MOC
-#include "contacts/contact.h"
 
 #endif // BUDDY_SHARED_DATA

@@ -3,8 +3,8 @@
  * Copyright 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2010, 2011 Piotr Dąbrowski (ultr@ultr.pl)
- * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2009, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -21,6 +21,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <QtGui/QApplication>
 #include <QtGui/QCheckBox>
 #include <QtGui/QDialogButtonBox>
 #include <QtGui/QFileDialog>
@@ -34,9 +35,9 @@
 
 #include "buddies/group.h"
 #include "configuration/configuration-file.h"
-
 #include "icons/kadu-icon.h"
 #include "misc/change-notifier.h"
+#include "misc/change-notifier-lock.h"
 #include "misc/misc.h"
 
 #include "group-properties-window.h"
@@ -151,8 +152,7 @@ void GroupPropertiesWindow::selectIcon()
 
 void GroupPropertiesWindow::applyClicked()
 {
-	if (group)
-		group.changeNotifier()->block();
+	ChangeNotifierLock lock(group.changeNotifier());
 
 	group.setShowName(nameCheckBox->isChecked());
 	group.setShowIcon(iconCheckBox->isChecked());
@@ -160,9 +160,6 @@ void GroupPropertiesWindow::applyClicked()
 	group.setNotifyAboutStatusChanges(notifyCheckBox->isChecked());
 	group.setOfflineToGroup(offlineCheckBox->isChecked());
 	group.setShowInAllGroup(allGroupCheckBox->isChecked());
-
-	if (group)
-		group.changeNotifier()->unblock();
 }
 
 void GroupPropertiesWindow::okClicked()
@@ -181,3 +178,5 @@ void GroupPropertiesWindow::keyPressEvent(QKeyEvent *e)
 	else
 		QWidget::keyPressEvent(e);
 }
+
+#include "moc_group-properties-window.cpp"

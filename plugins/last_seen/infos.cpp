@@ -1,11 +1,11 @@
 /*
  * %kadu copyright begin%
  * Copyright 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2009, 2012 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2010 Dariusz Markowicz (darom@alari.pl)
  * Copyright 2010 badboy (badboy@gen2.org)
- * Copyright 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2008, 2009, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -29,9 +29,8 @@
 
 #include "accounts/account-manager.h"
 #include "contacts/contact-manager.h"
-#include "core/core.h"
 #include "gui/actions/action-description.h"
-#include "gui/windows/kadu-window.h"
+#include "gui/menu/menu-inventory.h"
 #include "misc/kadu-paths.h"
 #include "debug.h"
 #include "exports.h"
@@ -40,7 +39,8 @@
 #include "infos_dialog.h"
 
 Infos::Infos(QObject *parent) :
-	QObject(parent)
+		QObject{parent},
+		menuID{}
 {
 	kdebugf();
 
@@ -94,9 +94,13 @@ Infos::Infos(QObject *parent) :
 	lastSeenActionDescription = new ActionDescription(
 		this, ActionDescription::TypeMainMenu, "lastSeenAction",
 		this, SLOT(onShowInfos()),
-		KaduIcon(), tr("&Show infos about buddies...")
+		KaduIcon(), tr("&Show infos about buddies")
 	);
-	Core::instance()->kaduWindow()->insertMenuActionDescription(lastSeenActionDescription, KaduWindow::MenuTools, 3);
+
+	MenuInventory::instance()
+		->menu("tools")
+		->addAction(lastSeenActionDescription, KaduMenu::SectionTools, 3)
+		->update();
 
 	kdebugf2();
 }
@@ -125,7 +129,10 @@ Infos::~Infos()
 		fflush(stderr);
 	}
 
-	Core::instance()->kaduWindow()->removeMenuActionDescription(lastSeenActionDescription);
+	MenuInventory::instance()
+		->menu("tools")
+		->removeAction(lastSeenActionDescription)
+		->update();
 
 	kdebugf2();
 }
@@ -187,3 +194,5 @@ void Infos::updateTimes()
 	}
 	kdebugf2();
 }
+
+#include "moc_infos.cpp"

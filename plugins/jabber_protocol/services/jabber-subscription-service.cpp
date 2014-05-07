@@ -1,9 +1,9 @@
 /*
  * %kadu copyright begin%
  * Copyright 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2010, 2010 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2010, 2010, 2012 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -35,11 +35,14 @@
 
 #include "jabber-subscription-service.h"
 
-JabberSubscriptionService::JabberSubscriptionService(JabberProtocol *protocol) :
-		SubscriptionService(protocol), Protocol(protocol)
+namespace XMPP
 {
-	connect(Protocol->client(), SIGNAL(subscription(const XMPP::Jid &, const QString &, const QString &)),
-		   this, SLOT(subscription(const XMPP::Jid &, const QString &, const QString &)));
+
+JabberSubscriptionService::JabberSubscriptionService(JabberProtocol *protocol) :
+		SubscriptionService(protocol), Protocol(protocol), XmppClient(protocol->xmppClient())
+{
+	connect(XmppClient.data(), SIGNAL(subscription(const Jid &, const QString &, const QString &)),
+		   this, SLOT(subscription(const Jid &, const QString &, const QString &)));
 }
 
 void JabberSubscriptionService::subscription(const XMPP::Jid &jid, const QString &type, const QString &nick)
@@ -56,12 +59,12 @@ void JabberSubscriptionService::subscription(const XMPP::Jid &jid, const QString
 		 * we have for it, as the Jabber server won't signal us
 		 * that the contact is offline now.
 		 */
-		Status offlineStatus;
+		::Status offlineStatus;
 		Contact contact = ContactManager::instance()->byId(Protocol->account(), jid.bare(), ActionReturnNull);
 
 		if (contact)
 		{
-			Status oldStatus = contact.currentStatus();
+			::Status oldStatus = contact.currentStatus();
 			contact.setCurrentStatus(offlineStatus);
 
 			Protocol->emitContactStatusChanged(contact, oldStatus);
@@ -79,34 +82,37 @@ void JabberSubscriptionService::subscription(const XMPP::Jid &jid, const QString
 
 void JabberSubscriptionService::authorizeContact(Contact contact, bool authorized)
 {
-	const XMPP::Jid jid = XMPP::Jid(contact.id());
-
 	if (authorized)
-		Protocol->client()->resendSubscription(jid);
+		resendSubscription(contact);
 	else
-		Protocol->client()->rejectSubscription(jid);
+		removeSubscription(contact);
 }
 
 void JabberSubscriptionService::resendSubscription(const Contact &contact)
 {
-	if (!Protocol || !Protocol->isConnected() || contact.contactAccount() != Protocol->account() || !Protocol->client())
-		return;
-
-	Protocol->client()->resendSubscription(contact.id());
+	sendSubsription(contact, "subscribed");
 }
 
 void JabberSubscriptionService::removeSubscription(const Contact &contact)
 {
-	if (!Protocol || !Protocol->isConnected() || contact.contactAccount() != Protocol->account() || !Protocol->client())
-		return;
-
-	Protocol->client()->rejectSubscription(contact.id());
+	sendSubsription(contact, "unsubscribed");
 }
 
 void JabberSubscriptionService::requestSubscription(const Contact &contact)
 {
-	if (!Protocol || !Protocol->isConnected() || contact.contactAccount() != Protocol->account() || !Protocol->client())
+	sendSubsription(contact, "subscribe");
+}
+
+void JabberSubscriptionService::sendSubsription(const Contact &contact, const QString &subscription)
+{
+	if (!Protocol || !Protocol->isConnected() || contact.contactAccount() != Protocol->account() || !Protocol->xmppClient() || !Protocol->xmppClient()->isActive())
 		return;
 
-	Protocol->client()->requestSubscription(contact.id());
+	XMPP::JT_Presence *task = new XMPP::JT_Presence(Protocol->xmppClient()->rootTask());
+	task->sub(contact.id(), subscription);
+	task->go(true);
 }
+
+}
+
+#include "moc_jabber-subscription-service.cpp"

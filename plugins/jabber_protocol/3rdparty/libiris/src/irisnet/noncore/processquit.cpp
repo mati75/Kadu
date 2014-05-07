@@ -30,7 +30,9 @@
 
 #ifdef Q_OS_WIN
 # include <windows.h>
-#else
+#endif
+
+#ifdef Q_OS_UNIX
 # include <signal.h>
 # include <unistd.h>
 #endif
@@ -105,7 +107,8 @@ public:
 	bool done;
 #ifdef Q_OS_WIN
 	bool use_handler;
-#else
+#endif
+#ifdef Q_OS_UNIX
 	int sig_pipe[2];
 	SafeSocketNotifier *sig_notifier;
 #endif
@@ -117,7 +120,8 @@ public:
 		use_handler = !is_gui_app();
 		if(use_handler)
 			SetConsoleCtrlHandler((PHANDLER_ROUTINE)winHandler, TRUE);
-#else
+#endif
+#ifdef Q_OS_UNIX
 		if(pipe(sig_pipe) == -1)
 		{
 			// no support then
@@ -137,7 +141,8 @@ public:
 #ifdef Q_OS_WIN
 		if(use_handler)
 			SetConsoleCtrlHandler((PHANDLER_ROUTINE)winHandler, FALSE);
-#else
+#endif
+#ifdef Q_OS_UNIX
 		unixWatchRemove(SIGINT);
 		unixWatchRemove(SIGHUP);
 		unixWatchRemove(SIGTERM);
@@ -154,7 +159,9 @@ public:
 		QMetaObject::invokeMethod(g_pq->d, "ctrl_ready", Qt::QueuedConnection);
 		return TRUE;
 	}
-#else
+#endif
+
+#ifdef Q_OS_UNIX
 	static void unixHandler(int sig)
 	{
 		Q_UNUSED(sig);
@@ -205,7 +212,7 @@ public slots:
 
 	void sig_activated(int)
 	{
-#ifndef Q_OS_WIN
+#ifdef Q_OS_UNIX
 		unsigned char c;
 		if(::read(sig_pipe[0], &c, 1) == -1)
 		{

@@ -3,6 +3,7 @@
  * Copyright 2011 Sławomir Stępień (s.stepien@interia.pl)
  * Copyright 2011 Michał Ziąbkowski (mziab@o2.pl)
  * Copyright 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011, 2012 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -22,7 +23,7 @@
 #include "configuration/configuration-file.h"
 
 #include "spellchecker-plugin.h"
-#include "spellchecker.h" 
+#include "spellchecker.h"
 
 #include "spellchecker-configuration.h"
 
@@ -50,7 +51,14 @@ void SpellcheckerConfiguration::destroyInstance()
 }
 
 SpellcheckerConfiguration::SpellcheckerConfiguration() :
-		FullyLoaded(false)
+		FullyLoaded{},
+		Bold{},
+		Italic{},
+		Underline{},
+		Accents{},
+		Case{},
+		Suggester{},
+		SuggesterWordCount{}
 {
 	createDefaultConfiguration();
 }

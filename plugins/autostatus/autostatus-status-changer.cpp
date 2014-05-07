@@ -1,6 +1,7 @@
 /*
  * %kadu copyright begin%
  * Copyright 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -22,7 +23,9 @@
 #include "autostatus-status-changer.h"
 
 AutostatusStatusChanger::AutostatusStatusChanger(QObject *parent) :
-		StatusChanger(200, parent), Enabled(false)
+		StatusChanger{200, parent},
+		Enabled{false},
+		StatusIndex{}
 {
 }
 
@@ -72,3 +75,5 @@ void AutostatusStatusChanger::changeStatus(StatusContainer *container, Status &s
 
 	status.setDescription(Description);
 }
+
+#include "moc_autostatus-status-changer.cpp"

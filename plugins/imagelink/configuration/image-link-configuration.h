@@ -3,7 +3,7 @@
  * %kadu copyright begin%
  * Copyright 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2008, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2008, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -23,26 +23,23 @@
 #ifndef IMAGE_LINK_CONFIGURATION_H
 #define IMAGE_LINK_CONFIGURATION_H
 
-#include "configuration/configuration-aware-object.h"
-
-class ImageLinkConfiguration : public ConfigurationAwareObject
+class ImageLinkConfiguration
 {
-	bool ShowVideos;
-	bool AutoStartVideos;
 	bool ShowImages;
-
-	void createDefaultConfiguration();
-
-protected:
-	virtual void configurationUpdated();
+	bool ShowVideos;
 
 public:
 	ImageLinkConfiguration();
+	ImageLinkConfiguration(const ImageLinkConfiguration &copyMe);
 	~ImageLinkConfiguration();
 
-	bool showVideos() { return ShowVideos; }
-	bool autoStartVideos() { return AutoStartVideos; }
-	bool showImages() { return ShowImages; }
+	ImageLinkConfiguration & operator = (const ImageLinkConfiguration &copyMe);
+
+	void setShowImages(bool showImages);
+	bool showImages() const;
+
+	void setShowVideos(bool showVideos);
+	bool showVideos() const;
 
 };
 

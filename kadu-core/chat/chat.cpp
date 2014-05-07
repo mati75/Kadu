@@ -1,10 +1,10 @@
 /*
  * %kadu copyright begin%
- * Copyright 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2009, 2010, 2011, 2012 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
- * Copyright 2009, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2009, 2009, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -22,12 +22,12 @@
  */
 
 #include "accounts/account.h"
+#include "buddies/group.h"
 #include "chat/chat-details.h"
 #include "chat/chat-manager.h"
 #include "contacts/contact-set.h"
 
 #include "chat.h"
-
 
 KaduSharedBaseClassImpl(Chat)
 
@@ -51,7 +51,7 @@ Chat Chat::create()
 	return new ChatShared();
 }
 
-Chat Chat::loadStubFromStorage(const QSharedPointer<StoragePoint> &chatStoragePoint)
+Chat Chat::loadStubFromStorage(const std::shared_ptr<StoragePoint> &chatStoragePoint)
 {
 	return ChatShared::loadStubFromStorage(chatStoragePoint);
 }
@@ -65,7 +65,7 @@ Chat Chat::loadStubFromStorage(const QSharedPointer<StoragePoint> &chatStoragePo
  * Loads Chat object from storage point and returns it. Real data will be loaded
  * at first usage of Chat object.
  */
-Chat Chat::loadFromStorage(const QSharedPointer<StoragePoint> &chatStoragePoint)
+Chat Chat::loadFromStorage(const std::shared_ptr<StoragePoint> &chatStoragePoint)
 {
 	return ChatShared::loadFromStorage(chatStoragePoint);
 }

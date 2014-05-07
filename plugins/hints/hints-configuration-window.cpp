@@ -4,7 +4,7 @@
  * Copyright 2011 Piotr Dąbrowski (ultr@ultr.pl)
  * Copyright 2009 Maciej Płaza (plaza.maciej@gmail.com)
  * Copyright 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2010, 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -104,3 +104,5 @@ void HintsConfigurationWindow::backgroundColorChanged(const QColor &color)
 	QString style = QString("QWidget {color:%1; background-color:%2}").arg(fcolor.name(), color.name());
 	preview->setStyleSheet(style);
 }
+
+#include "moc_hints-configuration-window.cpp"

@@ -1,52 +1,43 @@
-#ifndef SINGLE_WINDOW_H
-#define SINGLE_WINDOW_H
+#pragma once
 
 #include <QtCore/QList>
-#include <QtGui/QMainWindow>
-#include <QtGui/QSplitter>
-#include <QtGui/QTabWidget>
+#include <QtGui/QWidget>
 
 #include "chat/chat-manager.h"
 #include "configuration/configuration-aware-object.h"
-#include "gui/widgets/chat-widget-container.h"
 #include "gui/widgets/custom-input.h"
 #include "gui/windows/main-configuration-window.h"
 #include "os/generic/compositing-aware-object.h"
 #include "provider/simple-provider.h"
 
-class SingleWindow : public QMainWindow, public ChatWidgetContainer
+class QSplitter;
+class QTabWidget;
+
+class ChatWidget;
+
+class SingleWindow : public QWidget
 {
 	Q_OBJECT
-
-	QSplitter *split;
-	QTabWidget *tabs;
-	QList<int> splitSizes;
-	int rosterPos;
-
-	void updateTabIcon(ChatWidget *chatWidget);
-	void updateTabName(ChatWidget *chatWidget);
-
-protected:
-	void closeEvent(QCloseEvent *event);
-	void keyPressEvent(QKeyEvent *event);
-	void resizeEvent(QResizeEvent *event);
 
 public:
 	SingleWindow();
 	~SingleWindow();
 
+	void addChatWidget(ChatWidget *chatWidget);
+	void removeChatWidget(ChatWidget *chatWidget);
+
 	virtual void changeEvent(QEvent *event);
 
-	virtual void activateChatWidget(ChatWidget *chatWidget);
-	virtual void alertChatWidget(ChatWidget *chatWidget);
-	virtual void closeChatWidget(ChatWidget *chatWidget);
-	virtual bool isChatWidgetActive(ChatWidget *chatWidget);
+	bool isChatWidgetActive(const ChatWidget *chatWidget);
+	void tryActivateChatWidget(ChatWidget *chatWidget);
 
-	int rosterPosition() { return rosterPos; }
+	int rosterPosition() { return m_rosterPos; }
 	void changeRosterPos(int newRosterPos);
 
+signals:
+	void chatWidgetActivated(ChatWidget *chatWidget);
+
 public slots:
-	void onNewChat(ChatWidget *chatWidget, bool &handled);
 	void onTabChange(int index);
 	void onChatKeyPressed(QKeyEvent *e, CustomInput *w, bool &handled);
 	void onkaduKeyPressed(QKeyEvent *e);
@@ -55,17 +46,28 @@ public slots:
 	void onTitleChanged(ChatWidget *chatWidget, const QString &newTitle);
 	void closeChat();
 
+protected:
+	void closeEvent(QCloseEvent *event);
+	void keyPressEvent(QKeyEvent *event);
+	void resizeEvent(QResizeEvent *event);
+
+private:
+	QSplitter *m_split;
+	QTabWidget *m_tabs;
+	QList<int> m_splitSizes;
+	int m_rosterPos;
+
+	void updateTabIcon(ChatWidget *chatWidget);
+	void updateTabName(ChatWidget *chatWidget);
+
+private slots:
+	void unreadMessagesCountChanged(ChatWidget *chatWidget);
+
 };
 
 class SingleWindowManager : public ConfigurationUiHandler, public ConfigurationAwareObject
 {
 	Q_OBJECT
-
-	QSharedPointer<SimpleProvider<QWidget *> > WindowProvider;
-	SingleWindow *Window;
-
-protected:
-	virtual void configurationUpdated();
 
 public:
 	explicit SingleWindowManager(QObject *parent = 0);
@@ -73,6 +75,13 @@ public:
 
 	virtual void mainConfigurationWindowCreated(MainConfigurationWindow * /*mainConfigurationWindow*/) {};
 
-};
+	SingleWindow * window() const { return m_window; }
 
-#endif /* SingleWindow_H */
+protected:
+	virtual void configurationUpdated();
+
+private:
+	std::shared_ptr<SimpleProvider<QWidget *>> m_windowProvider;
+	SingleWindow *m_window;
+
+};

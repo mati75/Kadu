@@ -1,7 +1,8 @@
 /*
  * %kadu copyright begin%
  * Copyright 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2012 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2009, 2009, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
@@ -40,6 +41,7 @@ class DeleteTalkableAction;
 class DefaultProxyAction;
 class EditTalkableAction;
 class MainWindow;
+class RecentChatsAction;
 class StatusContainer;
 
 class KaduWindowActions : QObject, ConfigurationAwareObject
@@ -50,6 +52,7 @@ class KaduWindowActions : QObject, ConfigurationAwareObject
 	ActionDescription *Configuration;
 	ActionDescription *ShowYourAccounts;
 	ActionDescription *ShowMultilogons;
+	RecentChatsAction *RecentChats;
 	ActionDescription *ExitKadu;
 	ActionDescription *AddUser;
 	AddConferenceAction *AddConference;
@@ -57,10 +60,8 @@ class KaduWindowActions : QObject, ConfigurationAwareObject
 	ActionDescription *MergeContact;
 	ActionDescription *AddGroup;
 	ActionDescription *OpenSearch;
-	ActionDescription *ManageModules;
 	ActionDescription *Help;
 	ActionDescription *Bugs;
-	ActionDescription *Support;
 	ActionDescription *GetInvolved;
 	ActionDescription *About;
 	ActionDescription *Translate;
@@ -99,7 +100,6 @@ private slots:
 	void configurationActionActivated(QAction *sender, bool toggled);
 	void yourAccountsActionActivated(QAction *sender, bool toggled);
 	void showMultilogonsActionActivated(QAction *sender, bool toggled);
-	void manageModulesActionActivated(QAction *sender, bool toggled);
 	void exitKaduActionActivated(QAction *sender, bool toggled);
 	void addUserActionActivated(QAction *sender, bool toggled);
 	void mergeContactActionActivated(QAction *sender, bool toggled);

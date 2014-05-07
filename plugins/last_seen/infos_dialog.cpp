@@ -1,12 +1,12 @@
 /*
  * %kadu copyright begin%
  * Copyright 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2009, 2012 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2008 Tomasz Rostański (rozteck@interia.pl)
  * Copyright 2010 Dariusz Markowicz (darom@alari.pl)
  * Copyright 2010 badboy (badboy@gen2.org)
- * Copyright 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2008, 2009, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -24,6 +24,7 @@
  */
 
 #include <QtCore/QStringList>
+#include <QtGui/QApplication>
 #include <QtGui/QDialogButtonBox>
 #include <QtGui/QMenu>
 #include <QtGui/QPushButton>
@@ -32,11 +33,12 @@
 #include <QtNetwork/QHostAddress>
 
 #include "chat/type/chat-type-contact.h"
+#include "configuration/config-file-variant-wrapper.h"
 #include "contacts/contact-manager.h"
 #include "gui/actions/base-action-context.h"
-#include "gui/widgets/talkable-menu-manager.h"
-#include "misc/misc.h"
+#include "gui/menu/menu-inventory.h"
 #include "model/roles.h"
+#include "os/generic/window-geometry-manager.h"
 #include "status/status-type-data.h"
 #include "status/status-type-manager.h"
 #include "debug.h"
@@ -117,7 +119,7 @@ InfosDialog::InfosDialog(const LastSeen &lastSeen, QWidget *parent) :
 
 	connect(closeButton, SIGNAL(clicked()), this, SLOT(close()));
 
-	loadWindowGeometry(this, "LastSeen", "LastSeenWidgetGeometry", 0, 0, 800, 300);
+	new WindowGeometryManager(new ConfigFileVariantWrapper("LastSeen", "LastSeenWidgetGeometry"), QRect(0, 0, 800, 300), this);
 
 	kdebugf2();
 }
@@ -125,8 +127,6 @@ InfosDialog::InfosDialog(const LastSeen &lastSeen, QWidget *parent) :
 InfosDialog::~InfosDialog()
 {
 	kdebugf();
-
-	saveWindowGeometry(this, "LastSeen", "LastSeenWidgetGeometry");
 
 	kdebugf2();
 }
@@ -153,6 +153,11 @@ void InfosDialog::customContextMenuRequested(const QPoint &point)
 	actionContext.setContacts(ContactSet(contact));
 	actionContext.setRoles(RoleSet() << ContactRole);
 
-	QScopedPointer<QMenu> menu(TalkableMenuManager::instance()->menu(this, &actionContext));
+	QScopedPointer<QMenu> menu(new QMenu());
+	MenuInventory::instance()->menu("buddy-list")->attachToMenu(menu.data());
+	MenuInventory::instance()->menu("buddy-list")->applyTo(menu.data(), &actionContext);
+	MenuInventory::instance()->menu("buddy-list")->update();
 	menu->exec(QCursor::pos());
 }
+
+#include "moc_infos_dialog.cpp"

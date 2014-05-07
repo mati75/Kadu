@@ -13,6 +13,10 @@
         <source>Enable word fix</source>
         <translation>Povolit opravu slov</translation>
     </message>
+    <message>
+        <source>Spelling</source>
+        <translation>Pravopis</translation>
+    </message>
 </context>
 <context>
     <name>WordFix</name>

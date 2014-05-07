@@ -39,13 +39,13 @@ class ENCRYPTIONAPI Key : public SharedBase<KeyShared>
 
 public:
 	static Key create();
-	static Key loadStubFromStorage(const QSharedPointer<StoragePoint> &storage);
-	static Key loadFromStorage(const QSharedPointer<StoragePoint> &storage);
+	static Key loadStubFromStorage(const std::shared_ptr<StoragePoint> &storage);
+	static Key loadFromStorage(const std::shared_ptr<StoragePoint> &storage);
 	static Key null;
 
 	Key();
 	Key(KeyShared *data);
-	Key(QObject *data);
+	explicit Key(QObject *data);
 	Key(const Key &copy);
 	virtual ~Key();
 

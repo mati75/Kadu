@@ -4,7 +4,7 @@
  * Copyright 2009, 2009 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2009 Michał Podsiadlik (michal@kadu.net)
  * Copyright 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2011, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -61,18 +61,19 @@ void JabberServerRegisterAccount::sendRegistrationData()
 	if (reg->success()) {
 		XMPP::XData xdata;
 	//TODO: upewnić się, że to to jest potrzebne tak jak jest
+		bool old;
 		if (reg->hasXData()) {
-			isOld_ = false;
+			old = false;
 			xdata = reg->xdata();
 		}
 		else {
-			isOld_ = true;
+			old = true;
 			xdata = convertToXData(reg->form());
 		}
 	//
 		XMPP::JT_Register *reg = new XMPP::JT_Register(Client->client()->rootTask());
 		connect(reg, SIGNAL(finished()), this, SLOT(actionFinished()));
-		if (isOld_) {
+		if (old) {
 			XMPP::Form form = convertFromXData(fields);
 			form.setJid(Server);
 			reg->setForm(form);
@@ -178,3 +179,5 @@ void JabberServerRegisterAccount::performAction()
 	kdebugf2();
 }
 
+
+#include "moc_jabber-server-register-account.cpp"

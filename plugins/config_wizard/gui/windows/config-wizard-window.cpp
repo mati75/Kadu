@@ -8,7 +8,7 @@
  * Copyright 2004, 2005 Adrian Smarzewski (adrian@kadu.net)
  * Copyright 2004 Tomasz Chiliński (chilek@chilan.com)
  * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2011, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2007 Dawid Stawiarski (neeo@kadu.net)
  * Copyright 2004, 2005, 2006, 2007 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
@@ -61,7 +61,7 @@ ConfigWizardWindow::ConfigWizardWindow(QWidget *parent) :
 	 */
 	setWizardStyle(QWizard::ClassicStyle);
 #else
-	#ifdef Q_WS_WIN
+	#ifdef Q_OS_WIN32
 		// NOTE: Workaround for bug #1912.
 		// TODO: Remove this as soon as QTBUG-10478 is fixed in
 		// a release we bundle in the Windows build.
@@ -147,3 +147,5 @@ void ConfigWizardWindow::rejectedSlot()
 }
 
 /** @} */
+
+#include "moc_config-wizard-window.cpp"

@@ -13,6 +13,10 @@
         <source>Enable word fix</source>
         <translation>Włącz korektę słów</translation>
     </message>
+    <message>
+        <source>Spelling</source>
+        <translation>Sprawdzanie pisowni</translation>
+    </message>
 </context>
 <context>
     <name>WordFix</name>

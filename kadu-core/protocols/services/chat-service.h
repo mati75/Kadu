@@ -4,7 +4,7 @@
  * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2011 Piotr Dąbrowski (ultr@ultr.pl)
  * Copyright 2009 Michał Podsiadlik (michal@kadu.net)
- * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2009, 2010, 2011, 2012, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
@@ -28,13 +28,14 @@
 #include "buddies/buddy-list.h"
 
 #include "chat/chat.h"
-#include "message/formatted-message.h"
 
 #include "exports.h"
 
-#include "protocols/services/protocol-service.h"
+#include "protocols/services/account-service.h"
 
+class FormattedString;
 class Message;
+class RawMessageTransformerService;
 
 /**
  * @addtogroup Protocol
@@ -44,101 +45,70 @@ class Message;
 /**
  * @class ChatService
  * @short Chat service allows sending and receiving messages.
+ * @author Rafał 'Vogel' Malinowski
  *
  * This service allows sending and receiving messages. Each message can be modified before sending or after
  * receiving to allow protocol-independent encryption and filtering.
  *
  * One method must be reimplemented by derivered sevices: sendMessage().
  */
-class KADUAPI ChatService : public ProtocolService
+class KADUAPI ChatService : public AccountService
 {
 	Q_OBJECT
 
+	QPointer<RawMessageTransformerService> CurrentRawMessageTransformerService;
+
+protected:
+	explicit ChatService(Account account, QObject *parent = 0);
+	virtual ~ChatService();
+
 public:
 	/**
-	 * @short Create new instance of ChatService bound to given Protocol.
-	 * @param protocol protocol to bound this service to
+	 * @short Set raw message transformer service for this service.
+	 * @author Rafał 'Vogel' Malinowski
+	 * @param rawMessageTransformerService raw message transformer service for this service
 	 */
-	explicit ChatService(Protocol *protocol);
-	virtual ~ChatService();
+	void setRawMessageTransformerService(RawMessageTransformerService *rawMessageTransformerService);
+
+	/**
+	 * @short Return raw message transformer service of this service.
+	 * @author Rafał 'Vogel' Malinowski
+	 * @return raw message transformer service of this service
+	 */
+	RawMessageTransformerService * rawMessageTransformerService() const;
+
+	/**
+	 * @short Return max message length for this implementation.
+	 * @author Rafał 'Vogel' Malinowski
+	 * @return max message length for this implementation
+	 */
+	virtual int maxMessageLength() const = 0;
 
 public slots:
 	/**
 	 * @short Send new message to given chat.
-	 * @param chat chat to send message to
 	 * @param message message to be sent
-	 * @param silent if true, no messageSent signal will be emitted
 	 *
-	 * This methods sends a message to given chat. Message is passed as HTML string. Protocols are
-	 * free to ignore any HTML formatting.
+	 * This methods sends a message. Service is allowed to ignore this requst and to ignore any formatting
+	 * that is present in message.
 	 *
-	 * If silent parameter is true, no messageSent signal will be emitted. This is usefull for plugins
-	 * like firewall or for sending public keys, as messageSent is usually used to add sent message to
-	 * chat view.
+	 * Message can be altered by RawMessageTransformerService to allow any encryption on any protocol.
 	 */
-	virtual bool sendMessage(const Chat &chat, const QString &message, bool silent = false) = 0;
+	virtual bool sendMessage(const Message &message) = 0;
+
+	/**
+	 * @short Send raw message to given chat.
+	 * @param chat chat for the message
+	 * @param message message to be sent
+	 * @param transform is message should be transformed by RawMessageTransformerService
+	 *
+	 * This methods sends a message. Service is allowed to ignore this requst.
+	 *
+	 * This message won't be altered by RawMessageTransformerService.
+	 */
+	virtual bool sendRawMessage(const Chat &chat, const QByteArray &rawMessage) = 0;
 
 signals:
-	/**
-	 * @short Signal emitted before message is sent to peer.
-	 * @param chat chat that will receive this message
-	 * @param message message in raw format
-	 * @param stop flag used to stop sending a message
-	 *
-	 * This signal must be emitted by any implementation of ChatService before message is converted to UTF8 form and
-	 * sent. Objects connected to this signal can modify message in any way (for example, encrypt it) or stop sending
-	 * by setting stop flag to true. This signal is emitted before filterOutgoingMessage().
-	 *
-	 * If sending is stopped, no messageSent() signal can be emitted.
-	 */
-	void filterRawOutgoingMessage(Chat chat, QByteArray &message, bool &stop);
-
-	/**
-	 * @short Signal emitted before message is sent to peer.
-	 * @param chat chat that will receive this message
-	 * @param message message in UTF8 format
-	 * @param stop flag used to stop sending a message
-	 *
-	 * This signal must be emitted by any implementation of ChatService after message is converted to UTF8 form and
-	 * before it is sent. Objects connected to this signal can modify message in any way or stop sending
-	 * by setting stop flag to true. This signal is emitted after filterRawOutgoingMessage().
-	 *
-	 * If sending is stopped, no messageSent() signal can be emitted.
-	 */
-	void filterOutgoingMessage(Chat chat, QString &message, bool &stop);
-
-	/**
-	 * @short Signal emitted after message is received from peer.
-	 * @param chat chat that sent this message
-	 * @param sender contact that sent this message
-	 * @param message message in raw format
-	 * @param ignore flag used to prevent messageReceived signal from being emitted
-	 *
-	 * This signal must be emitted by any implementation of ChatService after message is received from peer but before
-	 * it is converted to UTF8 form and delivered to other parts of application. Objects connected to this signal can
-	 * modify message in any way (for example, decrypt it) or ignore it by setting ignore flag to true. This signal is
-	 * emitted before filterIncomingMessage().
-	 *
-	 * If ignore is set to true, no messageReceived() signal will be emitted.
-	 */
-	void filterRawIncomingMessage(Chat chat, Contact sender, QByteArray &message, bool &ignore);
-
-	/**
-	 * @short Signal emitted after message is received from peer.
-	 * @param chat chat that sent this message
-	 * @param sender contact that sent this message
-	 * @param message message in UTF8 format
-	 * @param ignore flag used to prevent messageReceived signal from being emitted
-	 *
-	 * This signal must be emitted by any implementation of ChatService after message is received from peer and after
-	 * it is converted to UTF8 form but before it is delivered to other parts of application. Objects connected to this
-	 * ignal can modify message in any way  or ignore it by setting ignore flag to true. This signal is emitted after
-	 * filterRawIncomingMessage().
-	 *
-	 * If ignore is set to true, no messageReceived() signal will be emitted.
-	 */
-	void filterIncomingMessage(Chat chat, Contact sender, QString &message, bool &ignore);
-
 	/**
 	 * @short Signal emitted when sent message status has changed.
 	 * @param message message with changed status
@@ -148,11 +118,11 @@ signals:
 	void sentMessageStatusChanged(const Message &message);
 
 	/**
-	 * @short Signal emitted when message is sent.
+	 * @author Rafał 'Vogel' Malinowski
+	 * @short Signal emitted when message was sent.
 	 * @param message sent message
 	 *
-	 * This signal is emitted every message is sent (in non-silent mode). This message can be marked as
-	 * delivered or pending, depending on protocol.
+	 * This signal is emited every time a message is sent trought one of registered acocunts.
 	 */
 	void messageSent(const Message &message);
 

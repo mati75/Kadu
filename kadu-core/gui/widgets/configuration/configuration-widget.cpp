@@ -1,13 +1,13 @@
 /*
  * %kadu copyright begin%
  * Copyright 2008, 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2010 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2009, 2010, 2012 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2010, 2010 Tomasz Rostański (rozteck@interia.pl)
  * Copyright 2010 Piotr Dąbrowski (ultr@ultr.pl)
  * Copyright 2008 Michał Podsiadlik (michal@kadu.net)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
  * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2010, 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2007, 2008 Dawid Stawiarski (neeo@kadu.net)
  * %kadu copyright end%
  *
@@ -120,10 +120,26 @@ QList<ConfigWidget *> ConfigurationWidget::appendUiFile(const QString &fileName,
 {
 	QList<ConfigWidget *> widgets = processUiFile(fileName, true);
 
-	if (load)
-		foreach (ConfigWidget *widget, widgets)
-			if (widget)
-				widget->loadConfiguration();
+	foreach (ConfigWidget *widget, widgets)
+	{
+		if (!widget)
+			continue;
+
+		QWidget *currentWidget = widgetById(widget->currentWidgetId());
+		QWidget *parentWidget = widgetById(widget->parentWidgetId());
+
+		if (parentWidget && currentWidget)
+		{
+			const char* slot = widget->isStateDependentDirectly()
+					? SLOT(setEnabled(bool))
+					: SLOT(setDisabled(bool));
+
+			connect(parentWidget, SIGNAL(toggled(bool)), currentWidget, slot);
+		}
+
+		if (load)
+			widget->loadConfiguration();
+	}
 
 	return widgets;
 }
@@ -141,7 +157,8 @@ QList<ConfigWidget *>  ConfigurationWidget::processUiFile(const QString &fileNam
 	QFile file(fileName);
 
 	QDomDocument uiFile;
-	file.open(QIODevice::ReadOnly);
+	if (!file.open(QIODevice::ReadOnly))
+		return result;
 
 	if (!uiFile.setContent(&file))
 	{
@@ -160,9 +177,9 @@ QList<ConfigWidget *>  ConfigurationWidget::processUiFile(const QString &fileNam
 	}
 
 	QDomNodeList children = kaduConfigurationUi.childNodes();
-	int length = children.length();
-	for (int i = 0; i < length; i++)
-		result += processUiSectionFromDom(children.item(i), append);
+	uint length = children.length();
+	for (uint i = 0; i < length; i++)
+		result += processUiSectionFromDom(children.item(static_cast<int>(i)), append);
 
 	kdebugf2();
 	return result;
@@ -196,13 +213,13 @@ QList<ConfigWidget *> ConfigurationWidget::processUiSectionFromDom(QDomNode sect
 	QString iconPath = sectionElement.attribute("icon");
 	// Additional slash is needed so that QUrl would treat the rest as _path_, which is desired here.
 	if (iconPath.startsWith("datapath:///"))
-		iconPath = KaduPaths::instance()->dataPath() + iconPath.midRef(qstrlen("datapath:///"));
-	configSection(KaduIcon(iconPath), qApp->translate("@default", sectionName.toUtf8().constData()), true);
+		iconPath = KaduPaths::instance()->dataPath() + iconPath.midRef(static_cast<int>(qstrlen("datapath:///")));
+	configSection(KaduIcon(iconPath), QCoreApplication::translate("@default", sectionName.toUtf8().constData()), true);
 
 	const QDomNodeList children = sectionElement.childNodes();
-	int length = children.length();
-	for (int i = 0; i < length; i++)
-		result += processUiTabFromDom(children.item(i), sectionName, append);
+	uint length = children.length();
+	for (uint i = 0; i < length; i++)
+		result += processUiTabFromDom(children.item(static_cast<int>(i)), sectionName, append);
 
 	kdebugf2();
 	return result;
@@ -235,9 +252,9 @@ QList<ConfigWidget *> ConfigurationWidget::processUiTabFromDom(QDomNode tabNode,
 	}
 
 	const QDomNodeList &children = tabElement.childNodes();
-	int length = children.length();
-	for (int i = 0; i < length; i++)
-		result += processUiGroupBoxFromDom(children.item(i), sectionName, tabName, append);
+	uint length = children.length();
+	for (uint i = 0; i < length; i++)
+		result += processUiGroupBoxFromDom(children.item(static_cast<int>(i)), sectionName, tabName, append);
 
 	kdebugf2();
 	return result;
@@ -284,12 +301,12 @@ QList<ConfigWidget *> ConfigurationWidget::processUiGroupBoxFromDom(QDomNode gro
 		Widgets.insert(groupBoxId, configGroupBoxWidget->widget());
 
 	const QDomNodeList &children = groupBoxElement.childNodes();
-	int length = children.length();
-	for (int i = 0; i < length; i++)
+	uint length = children.length();
+	for (uint i = 0; i < length; i++)
 		if (append)
-			result.append(appendUiElementFromDom(children.item(i), configGroupBoxWidget));
+			result.append(appendUiElementFromDom(children.item(static_cast<int>(i)), configGroupBoxWidget));
 		else
-			removeUiElementFromDom(children.item(i), configGroupBoxWidget);
+			removeUiElementFromDom(children.item(static_cast<int>(i)), configGroupBoxWidget);
 
 	// delete unused even if length == 0
 	if (!append)
@@ -412,16 +429,16 @@ QWidget * ConfigurationWidget::widgetById(const QString &id)
 
 ConfigGroupBox * ConfigurationWidget::configGroupBox(const QString &section, const QString &tab, const QString &groupBox, bool create)
 {
-	ConfigSection *s = configSection(qApp->translate("@default", section.toUtf8().constData()));
+	ConfigSection *s = configSection(section);
 	if (!s)
 		return 0;
 
-	return s->configGroupBox(qApp->translate("@default", tab.toUtf8().constData()), qApp->translate("@default", groupBox.toUtf8().constData()), create);
+	return s->configGroupBox(QCoreApplication::translate("@default", tab.toUtf8().constData()), QCoreApplication::translate("@default", groupBox.toUtf8().constData()), create);
 }
 
 ConfigSection * ConfigurationWidget::configSection(const QString &name)
 {
-	return ConfigSections.value(name);
+	return ConfigSections.value(QCoreApplication::translate("@default", name.toUtf8().constData()));
 }
 
 ConfigSection * ConfigurationWidget::configSection(const KaduIcon &icon, const QString &name, bool create)
@@ -524,3 +541,6 @@ void ConfigurationWidget::configSectionDestroyed(QObject *obj)
 	if (CurrentSection == obj)
 		CurrentSection = 0;
 }
+
+
+#include "moc_configuration-widget.cpp"

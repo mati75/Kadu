@@ -5,7 +5,7 @@
  * Copyright 2008 Tomasz Rostański (rozteck@interia.pl)
  * Copyright 2008 Michał Podsiadlik (michal@kadu.net)
  * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2010, 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2007 Dawid Stawiarski (neeo@kadu.net)
  * %kadu copyright end%
  *
@@ -23,6 +23,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <QtGui/QApplication>
 #include <QtGui/QFileDialog>
 #include <QtGui/QGridLayout>
 #include <QtGui/QHBoxLayout>
@@ -30,8 +31,9 @@
 #include <QtGui/QLineEdit>
 #include <QtGui/QListWidget>
 
+#include "configuration/config-file-variant-wrapper.h"
 #include "icons/kadu-icon.h"
-#include "misc/misc.h"
+#include "os/generic/window-geometry-manager.h"
 #include "debug.h"
 
 #include "path-list-edit.h"
@@ -49,7 +51,7 @@ void PathListEdit::showDialog()
 		Dialog = new PathListEditWindow(PathList);
 		connect(Dialog.data(), SIGNAL(changed(const QStringList &)), this, SLOT(pathListChanged(const QStringList &)));
 	}
-	Dialog.data()->show();
+	Dialog->show();
 }
 
 void PathListEdit::pathListChanged(const QStringList &pathList)
@@ -63,7 +65,7 @@ void PathListEdit::setPathList(const QStringList &pathList)
 	PathList = pathList;
 
 	if (Dialog)
-		Dialog.data()->setPathList(PathList);
+		Dialog->setPathList(PathList);
 }
 
 PathListEditWindow::PathListEditWindow(const QStringList &pathList, QWidget *parent)
@@ -112,8 +114,9 @@ PathListEditWindow::PathListEditWindow(const QStringList &pathList, QWidget *par
 	connect(ok, SIGNAL(clicked()), this, SLOT(okClicked()));
 	connect(cancel, SIGNAL(clicked()), this, SLOT(close()));
 
-	loadWindowGeometry(this, "General", "SelectPathDialogGeometry", 0, 50, 330, 330);
 	setPathList(pathList);
+
+	new WindowGeometryManager(new ConfigFileVariantWrapper("General", "SelectPathDialogGeometry"), QRect(0, 50, 330, 330), this);
 }
 
 PathListEditWindow::~PathListEditWindow()
@@ -189,17 +192,11 @@ void PathListEditWindow::okClicked()
 {
 	QStringList result;
 
-	for (unsigned int i = 0, count = PathListWidget->count(); i < count; i++)
+	for (int i = 0, count = PathListWidget->count(); i < count; i++)
 		result.append(PathListWidget->item(i)->text());
 
 	emit changed(result);
 	close();
-}
-
-void PathListEditWindow::closeEvent(QCloseEvent *e)
-{
- 	saveWindowGeometry(this, "General", "SelectPathDialogGeometry");
-	QWidget::closeEvent(e);
 }
 
 void PathListEditWindow::keyPressEvent(QKeyEvent *e)
@@ -217,3 +214,5 @@ void PathListEditWindow::keyPressEvent(QKeyEvent *e)
 	else
 		QWidget::keyPressEvent(e);
 }
+
+#include "moc_path-list-edit.cpp"

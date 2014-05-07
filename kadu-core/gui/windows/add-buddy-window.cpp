@@ -2,12 +2,12 @@
  * %kadu copyright begin%
  * Copyright 2011 Tomasz Rostanski (rozteck@interia.pl)
  * Copyright 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2010 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2010, 2012 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2010, 2011 Piotr Dąbrowski (ultr@ultr.pl)
  * Copyright 2011 Sławomir Stępień (s.stepien@interia.pl)
  * Copyright 2009, 2010 Bartłomiej Zimoń (uzi18@o2.pl)
- * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2009, 2010, 2011, 2012, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -25,6 +25,7 @@
  */
 
 #include <QtGui/QAction>
+#include <QtGui/QApplication>
 #include <QtGui/QCheckBox>
 #include <QtGui/QComboBox>
 #include <QtGui/QDialogButtonBox>
@@ -46,22 +47,24 @@
 #include "buddies/model/buddy-list-model.h"
 #include "buddies/model/buddy-manager-adapter.h"
 #include "buddies/model/groups-model.h"
+#include "configuration/config-file-variant-wrapper.h"
 #include "contacts/contact-manager.h"
 #include "contacts/contact.h"
 #include "core/core.h"
 #include "gui/widgets/accounts-combo-box.h"
 #include "gui/widgets/groups-combo-box.h"
 #include "gui/widgets/select-talkable-combo-box.h"
+#include "gui/scoped-updates-disabler.h"
 #include "icons/kadu-icon.h"
 #include "identities/identity.h"
-#include "misc/misc.h"
 #include "model/roles.h"
+#include "os/generic/window-geometry-manager.h"
 #include "protocols/protocol-factory.h"
 #include "protocols/protocol.h"
 #include "protocols/roster.h"
-#include "protocols/services/roster-service.h"
-#include "talkable/filter/exclude-buddy-talkable-filter.h"
+#include "protocols/services/roster/roster-service.h"
 #include "protocols/services/subscription-service.h"
+#include "talkable/filter/exclude-buddy-talkable-filter.h"
 #include "url-handlers/url-handler-manager.h"
 
 #include "add-buddy-window.h"
@@ -87,17 +90,16 @@ AddBuddyWindow::AddBuddyWindow(QWidget *parent, const Buddy &buddy, bool forceBu
 	createGui();
 	if (!MyBuddy)
 		addFakeAccountsToComboBox();
+
+	new WindowGeometryManager(new ConfigFileVariantWrapper("General", "AddBuddyWindowGeometry"), QRect(0, 50, 425, 430), this);
 }
 
 AddBuddyWindow::~AddBuddyWindow()
 {
-	saveWindowGeometry(this, "General", "AddBuddyWindowGeometry");
 }
 
 void AddBuddyWindow::createGui()
 {
-	loadWindowGeometry(this, "General", "AddBuddyWindowGeometry", 0, 50, 425, 430);
-
 	QVBoxLayout *mainLayout = new QVBoxLayout(this);
 
 	QWidget *mainWidget = new QWidget(this);
@@ -225,7 +227,7 @@ void AddBuddyWindow::createGui()
 	accountChanged();
 	updateGui();
 
-	setFixedHeight(height());
+	// setFixedHeight(height());
 
 	if (MyBuddy)
 		DisplayNameEdit->setFocus();
@@ -340,12 +342,6 @@ void AddBuddyWindow::validateData()
 		return;
 	}
 
-	if (account.protocolHandler()->rosterService() && !account.protocolHandler()->isConnected())
-	{
-		displayErrorMessage(tr("You must be connected to add contacts to this account"));
-		return;
-	}
-
 	if (account.protocolHandler()->protocolFactory()->validateId(UserNameEdit->text()) != QValidator::Acceptable)
 	{
 		if (!UserNameEdit->text().isEmpty())
@@ -452,7 +448,7 @@ void AddBuddyWindow::setAddContactEnabled()
 
 void AddBuddyWindow::mergeToggled(bool toggled)
 {
-	setUpdatesEnabled(false);
+	ScopedUpdatesDisabler updatesDisabler{*this};
 
 	foreach (QWidget *widget, NonMergeWidgets)
 	{
@@ -478,8 +474,6 @@ void AddBuddyWindow::mergeToggled(bool toggled)
 		AddContactButton->setText(tr("Merge with buddy"));
 	else
 		AddContactButton->setText(tr("Add buddy"));
-
-	setUpdatesEnabled(true);
 }
 
 bool AddBuddyWindow::addContact()
@@ -600,3 +594,5 @@ void AddBuddyWindow::sendAuthorization(const Contact &contact)
 
 	account.protocolHandler()->subscriptionService()->resendSubscription(contact);
 }
+
+#include "moc_add-buddy-window.cpp"

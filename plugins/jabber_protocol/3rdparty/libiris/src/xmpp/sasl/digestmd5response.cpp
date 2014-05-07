@@ -1,6 +1,20 @@
 /*
  * Copyright (C) 2008  Remko Troncon
- * See COPYING for license details.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ *
  */
 
 #include "xmpp/sasl/digestmd5response.h"
@@ -31,7 +45,7 @@ DIGESTMD5Response::DIGESTMD5Response(const QByteArray& challenge, const QString&
 	QByteArray a;
 	a.resize(32);
 	for(int n = 0; n < (int)a.size(); ++n) {
-		a[n] = (char) rand.generateNumberBetween(0, 255); 
+		a[n] = (char) rand.generateNumberBetween(0, 255);
 	}
 	QByteArray cnonce = Base64::encode(a).toLatin1();
 

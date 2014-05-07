@@ -2,8 +2,8 @@
  * %kadu copyright begin%
  * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2010, 2011, 2012 Piotr Dąbrowski (ultr@ultr.pl)
- * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2009, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -49,7 +49,8 @@ RecentChatManager * RecentChatManager::instance()
 	return Instance;
 }
 
-RecentChatManager::RecentChatManager()
+RecentChatManager::RecentChatManager() :
+		RecentChatsTimeout{0}
 {
 }
 
@@ -88,7 +89,7 @@ void RecentChatManager::load()
 
 	StorableObject::load();
 
-	QSharedPointer<StoragePoint> point(storage());
+	auto point = storage();
 	QDomNodeList chatElements = point->point().childNodes();
 
 	int count = chatElements.size();
@@ -105,14 +106,10 @@ void RecentChatManager::load()
 			continue;
 
 		QString uuid = element.attribute("uuid");
-		int time = element.attribute("time").toInt();
+		uint time = element.attribute("time").toUInt();
 		Chat chat = ChatManager::instance()->byUuid(uuid);
 		if (chat)
-		{
-			QDateTime datetime;
-			datetime.setTime_t(time);
-			addRecentChat(chat, datetime);
-		}
+			addRecentChat(chat, QDateTime::fromTime_t(time));
 	}
 }
 
@@ -132,7 +129,7 @@ void RecentChatManager::store()
 
 	StorableObject::store();
 
-	QSharedPointer<StoragePoint> point(storage());
+	auto point = storage();
 	QDomElement mainElement = point->point().toElement();
 	if (mainElement.isNull())
 		return;
@@ -279,3 +276,5 @@ void RecentChatManager::onNewMessage(const Message &message)
 {
 	addRecentChat(message.messageChat());
 }
+
+#include "moc_recent-chat-manager.cpp"

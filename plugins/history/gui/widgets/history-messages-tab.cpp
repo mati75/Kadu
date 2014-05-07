@@ -1,7 +1,11 @@
 /*
  * %kadu copyright begin%
- * Copyright 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2012 Marcel Zięba (marseel@gmail.com)
+ * Copyright 2009, 2012 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
+ * Copyright 2007, 2008, 2009, 2010, 2011, 2012, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -26,30 +30,31 @@
 #include <QtGui/QTreeView>
 #include <QtGui/QVBoxLayout>
 
+#include "buddies/model/buddy-list-model.h"
 #include "chat/buddy-chat-manager.h"
 #include "chat/model/chat-list-model.h"
-#include "buddies/model/buddy-list-model.h"
-#include "gui/widgets/chat-messages-view.h"
-#include "gui/widgets/timeline-chat-messages-view.h"
-#include "gui/widgets/wait-overlay.h"
+#include "gui/menu/menu-inventory.h"
 #include "gui/widgets/filter-widget.h"
 #include "gui/widgets/filtered-tree-view.h"
 #include "gui/widgets/search-bar.h"
 #include "gui/widgets/talkable-delegate-configuration.h"
 #include "gui/widgets/talkable-tree-view.h"
-#include "gui/widgets/talkable-menu-manager.h"
+#include "gui/widgets/timeline-chat-messages-view.h"
+#include "gui/widgets/wait-overlay.h"
+#include "gui/widgets/webkit-messages-view/webkit-messages-view.h"
 #include "gui/windows/message-dialog.h"
 #include "icons/kadu-icon.h"
+#include "message/sorted-messages.h"
 #include "model/merged-proxy-model-factory.h"
 #include "model/model-chain.h"
+#include "talkable/filter/hide-temporary-talkable-filter.h"
 #include "talkable/filter/name-talkable-filter.h"
-#include <talkable/filter/hide-temporary-talkable-filter.h>
 #include "talkable/model/talkable-proxy-model.h"
 
 #include "storage/history-messages-storage.h"
 #include "chats-buddies-splitter.h"
-#include "history-query.h"
 #include "history-query-result.h"
+#include "history-query.h"
 
 #include "history-messages-tab.h"
 
@@ -236,7 +241,7 @@ void HistoryMessagesTab::futureTalkablesCanceled()
 	TalkablesFutureWatcher = 0;
 }
 
-void HistoryMessagesTab::setFutureTalkables(const QFuture<QVector<Talkable> > &futureTalkables)
+void HistoryMessagesTab::setFutureTalkables(const QFuture<QVector<Talkable>> &futureTalkables)
 {
 	if (TalkablesFutureWatcher)
 	{
@@ -264,7 +269,7 @@ void HistoryMessagesTab::currentDateChanged()
 
 	if (!Storage || !date.isValid())
 	{
-		TimelineView->setMessages(QVector<Message>());
+		TimelineView->setMessages(SortedMessages());
 		return;
 	}
 
@@ -289,7 +294,11 @@ void HistoryMessagesTab::setClearHistoryMenuItemTitle(const QString &clearHistor
 
 void HistoryMessagesTab::showTalkablePopupMenu()
 {
-	QScopedPointer<QMenu> menu(TalkableMenuManager::instance()->menu(this, TalkableTree->actionContext()));
+	QScopedPointer<QMenu> menu(new QMenu());
+	MenuInventory::instance()->menu("buddy-list")->attachToMenu(menu.data());
+	MenuInventory::instance()->menu("buddy-list")->applyTo(menu.data(), TalkableTree->actionContext());
+	MenuInventory::instance()->menu("buddy-list")->update();
+
 	menu->addSeparator();
 	menu->addAction(KaduIcon("kadu_icons/clear-history").icon(),
 	                ClearHistoryMenuItemTitle, this, SLOT(clearTalkableHistory()));
@@ -307,7 +316,11 @@ void HistoryMessagesTab::clearTalkableHistory()
 	const QModelIndexList &selectedIndexes = TalkableTree->selectionModel()->selectedIndexes();
 	QList<Talkable> talkables;
 
-	if (!MessageDialog::ask(KaduIcon("dialog-question"), tr("Kadu"), tr("Do you really want to delete history?")))
+	MessageDialog *dialog = MessageDialog::create(KaduIcon("dialog-question"), tr("Kadu"), tr("Do you really want to delete history?"));
+	dialog->addButton(QMessageBox::Yes, tr("Delete history"));
+	dialog->addButton(QMessageBox::No, tr("Cancel"));
+
+	if (!dialog->ask())
 		return;
 
 	foreach (const QModelIndex &selectedIndex, selectedIndexes)
@@ -384,3 +397,5 @@ HistoryMessagesStorage * HistoryMessagesTab::historyMessagesStorage() const
 {
 	return Storage;
 }
+
+#include "moc_history-messages-tab.cpp"

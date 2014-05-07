@@ -1,7 +1,7 @@
 /*
  * %kadu copyright begin%
- * Copyright 2008, 2009, 2010, 2010, 2011, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2010 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2008, 2009, 2010, 2010, 2011, 2011, 2012 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2009, 2010, 2012 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2008, 2009 Tomasz Rostański (rozteck@interia.pl)
  * Copyright 2011 Piotr Dąbrowski (ultr@ultr.pl)
  * Copyright 2011 Sławomir Stępień (s.stepien@interia.pl)
@@ -11,8 +11,8 @@
  * Copyright 2004 Roman Krzystyniak (Ron_K@tlen.pl)
  * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
  * Copyright 2005 Paweł Płuciennik (pawel_p@kadu.net)
- * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2007, 2008, 2009, 2010, 2011, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2004, 2005, 2006 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
@@ -30,6 +30,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <QtGui/QApplication>
 #include <QtGui/QDesktopWidget>
 #include <QtGui/QHBoxLayout>
 #include <QtGui/QLabel>
@@ -39,13 +40,14 @@
 #include "configuration/configuration-file.h"
 #include "contacts/contact.h"
 #include "core/core.h"
-#include "gui/widgets/chat-widget-manager.h"
-#include "gui/widgets/chat-widget.h"
+#include "gui/widgets/chat-widget/chat-widget-manager.h"
 #include "gui/widgets/tool-tip-class-manager.h"
 #include "message/message-manager.h"
+#include "message/sorted-messages.h"
+#include "message/unread-message-repository.h"
 #include "misc/misc.h"
-#include "notify/chat-notification.h"
 #include "notify/notification-manager.h"
+#include "notify/notification/chat-notification.h"
 #include "parser/parser.h"
 
 #include "icons/icons-manager.h"
@@ -261,17 +263,15 @@ void HintManager::deleteHint(Hint *hint)
 {
 	kdebugf();
 
+	Notification *notification = hint->getNotification();
+
+	DisplayedNotifications.removeAll(hint->getNotification()->identifier());
 	hints.removeAll(hint);
-	for (QMap<QPair<Chat, QString>, Hint *>::iterator it = linkedHints.begin(); it != linkedHints.end(); )
-	{
-		if (it.value() == hint)
-			it = linkedHints.erase(it);
-		else
-			it++;
-	}
 
 	layout->removeWidget(hint);
+
 	hint->deleteLater();
+	notification->release(this);
 
 	if (hints.isEmpty())
 	{
@@ -323,19 +323,15 @@ void HintManager::processButtonPress(const QString &buttonName, Hint *hint)
 	switch (config_file.readNumEntry("Hints", buttonName))
 	{
 		case 1:
-			openChat(hint);
 			hint->acceptNotification();
 			break;
 
 		case 2:
 			if (hint->chat() && config_file.readBoolEntry("Hints", "DeletePendingMsgWhenHintDeleted"))
 			{
-				QList<Message> unreadMessages = MessageManager::instance()->chatUnreadMessages(hint->chat());
-				foreach (const Message &message, unreadMessages)
-				{
-					message.setStatus(MessageStatusRead);
-					MessageManager::instance()->removeUnreadMessage(message);
-				}
+				auto unreadMessages = Core::instance()->unreadMessageRepository()->unreadMessagesForChat(hint->chat());
+				for (auto const &message : unreadMessages)
+					Core::instance()->unreadMessageRepository()->removeUnreadMessage(message);
 			}
 
 			hint->discardNotification();
@@ -377,9 +373,7 @@ void HintManager::openChat(Hint *hint)
 		if ((hint->getNotification()->type() != "NewChat") && (hint->getNotification()->type() != "NewMessage"))
 			return;
 
-	ChatWidget * const chatWidget = ChatWidgetManager::instance()->byChat(hint->chat(), true);
-	if (chatWidget)
-		chatWidget->activate();
+	Core::instance()->chatWidgetManager()->openChat(hint->chat(), OpenChatActivation::Activate);
 
 	deleteHintAndUpdate(hint);
 
@@ -390,20 +384,6 @@ void HintManager::chatUpdated(const Chat &chat)
 {
 	if (chat.unreadMessagesCount() > 0)
 		return;
-
-	QPair<Chat, QString> newChat = qMakePair(chat, QString("NewChat"));
-	QPair<Chat, QString> newMessage = qMakePair(chat, QString("NewMessage"));
-
-	if (linkedHints.contains(newChat))
-	{
-		Hint *linkedHint = linkedHints.take(newChat);
-		linkedHint->close();
-	}
-	if (linkedHints.contains(newMessage))
-	{
-		Hint *linkedHint = linkedHints.take(newMessage);
-		linkedHint->close();
-	}
 
 	foreach (Hint *h, hints)
 	{
@@ -438,9 +418,22 @@ Hint *HintManager::addHint(Notification *notification)
 {
 	kdebugf();
 
+	if (DisplayedNotifications.contains(notification->identifier()))
+	{
+		for (auto hint : hints)
+			if (hint->getNotification()->identifier() == notification->identifier())
+			{
+				//hope this refreshes this hint
+				hint->notificationUpdated();
+				return hint;
+			}
+	}
+
+	notification->acquire(this);
+
 	connect(notification, SIGNAL(closed(Notification *)), this, SLOT(notificationClosed(Notification *)));
 
-	Hint *hint = new Hint(frame, notification);
+	auto hint = new Hint(frame, notification);
 	hints.append(hint);
 
 	setLayoutDirection();
@@ -456,7 +449,7 @@ Hint *HintManager::addHint(Notification *notification)
 	if (!hint_timer->isActive())
 		hint_timer->start(1000);
 
-	kdebugf2();
+	DisplayedNotifications.append(notification->identifier());
 
 	return hint;
 }
@@ -497,7 +490,7 @@ void HintManager::setLayoutDirection()
 
 void HintManager::prepareOverUserHint(QFrame *tipFrame, QLabel *tipLabel, Talkable talkable)
 {
-	QString text = Parser::parse(config_file.readEntry("Hints", "MouseOverUserSyntax"), talkable);
+	QString text = Parser::parse(config_file.readEntry("Hints", "MouseOverUserSyntax"), talkable, ParserEscape::HtmlEscape);
 
 	/* Dorr: the file:// in img tag doesn't generate the image on hint.
 	 * for compatibility with other syntaxes we're allowing to put the file://
@@ -543,9 +536,10 @@ void HintManager::showToolTip(const QPoint &point, Talkable talkable)
 	lay->setSizeConstraint(QLayout::SetFixedSize);
 
 	QLabel *tipLabel = new QLabel(tipFrame);
-	tipLabel->setTextFormat(Qt::RichText);
 	tipLabel->setAlignment(Qt::AlignVCenter | Qt::AlignLeft);
 	tipLabel->setContentsMargins(10, 10, 10, 10);
+	tipLabel->setTextFormat(Qt::RichText);
+	tipLabel->setWordWrap(true);
 
 	lay->addWidget(tipLabel);
 
@@ -584,38 +578,14 @@ void HintManager::notify(Notification *notification)
 {
 	kdebugf();
 
-	ChatNotification *chatNotification = qobject_cast<ChatNotification *>(notification);
-	//TODO hack
-	if (!chatNotification || notification->type().contains("StatusChanged"))
-	{
-		addHint(notification);
-
-		kdebugf2();
-		return;
-	}
-
-	if (linkedHints.contains(qMakePair(chatNotification->chat(), notification->type())))
-	{
-		Hint *linkedHint = linkedHints.value(qMakePair(chatNotification->chat(), notification->type()));
-		linkedHint->addDetail(notification->details());
-	}
-	else
-	{
-		Hint *linkedHint = addHint(notification);
-		linkedHints.insert(qMakePair(chatNotification->chat(), notification->type()), linkedHint);
-	}
+	addHint(notification);
 
 	kdebugf2();
 }
 
 void HintManager::notificationClosed(Notification *notification)
 {
-	ChatNotification *chatNotification = qobject_cast<ChatNotification *>(notification);
-	if (!chatNotification)
-		return;
-
-	if (linkedHints.contains(qMakePair(chatNotification->chat(), notification->type())))
-		linkedHints.remove(qMakePair(chatNotification->chat(), notification->type()));
+	Q_UNUSED(notification)
 }
 
 void HintManager::realCopyConfiguration(const QString &fromCategory, const QString &fromHint, const QString &toHint)
@@ -697,7 +667,8 @@ void HintManager::import_0_6_5_configuration()
 
 void HintManager::createDefaultConfiguration()
 {
-#if !defined(Q_WS_X11) || defined(Q_WS_MAEMO_5)
+	// TODO: this should be more like: if (plugins.loaded(freedesktop_notify) && this_is_first_time_we_are_loaded_or_whatever)
+#if !defined(Q_WS_X11)
 	config_file.addVariable("Notify", "ConnectionError_Hints", true);
 	config_file.addVariable("Notify", "NewChat_Hints", true);
 	config_file.addVariable("Notify", "NewMessage_Hints", true);
@@ -714,6 +685,10 @@ void HintManager::createDefaultConfiguration()
 	config_file.addVariable("Notify", "multilogon_Hints", true);
 	config_file.addVariable("Notify", "multilogon/sessionConnected_Hints", true);
 	config_file.addVariable("Notify", "multilogon/sessionDisconnected_Hints", true);
+	config_file.addVariable("Notify", "Roster/ImportFailed_UseCustomSettings", true);
+	config_file.addVariable("Notify", "Roster/ImportFailed_Hints", true);
+	config_file.addVariable("Notify", "Roster/ExportFailed_UseCustomSettings", true);
+	config_file.addVariable("Notify", "Roster/ExportFailed_Hints", true);
 #endif
 
 	config_file.addVariable("Hints", "CiteSign", 50);
@@ -764,3 +739,5 @@ void HintManager::createDefaultConfiguration()
 }
 
 HintManager *hint_manager = NULL;
+
+#include "moc_hint_manager.cpp"

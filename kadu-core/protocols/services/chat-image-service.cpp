@@ -2,8 +2,8 @@
  * %kadu copyright begin%
  * Copyright 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2011 Piotr Dąbrowski (ultr@ultr.pl)
- * Copyright 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2009, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -20,34 +20,17 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "misc/kadu-paths.h"
-
 #include "debug.h"
 
 #include "chat-image-service.h"
 
-QString ChatImageService::imagesPath()
-{
-	return KaduPaths::instance()->profilePath() + QLatin1String("images/");
-}
-
-ChatImageService::ChatImageService(QObject *parent) :
-		QObject(parent)
+ChatImageService::ChatImageService(Account account, QObject *parent) :
+		AccountService(account, parent)
 {
 }
 
-bool ChatImageService::fitsHardSizeLimit(qint64 size)
+ChatImageService::~ChatImageService()
 {
-	if (NoSizeLimit == hardSizeLimit())
-		return true;
-	return size <= hardSizeLimit();
 }
 
-bool ChatImageService::fitsSoftSizeLimit(qint64 size)
-{
-	if (!fitsHardSizeLimit(size))
-		return false;
-	if (NoSizeLimit == softSizeLimit())
-		return true;
-	return size <= softSizeLimit();
-}
+#include "moc_chat-image-service.cpp"

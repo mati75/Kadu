@@ -3,6 +3,7 @@
  * Copyright 2008 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -32,7 +33,7 @@ ExtSoundPlugin::~ExtSoundPlugin()
 {
 }
 
-int ExtSoundPlugin::init(bool firstLoad)
+bool ExtSoundPlugin::init(bool firstLoad)
 {
 	Q_UNUSED(firstLoad)
 
@@ -40,7 +41,7 @@ int ExtSoundPlugin::init(bool firstLoad)
 	SoundManager::instance()->setPlayer(ExternalPlayer::instance());
 	MainConfigurationWindow::registerUiFile(KaduPaths::instance()->dataPath() + QLatin1String("plugins/configuration/ext_sound.ui"));
 
-	return 0;
+	return true;
 }
 
 void ExtSoundPlugin::done()
@@ -51,3 +52,5 @@ void ExtSoundPlugin::done()
 }
 
 Q_EXPORT_PLUGIN2(ext_sound, ExtSoundPlugin)
+
+#include "moc_ext-sound-plugin.cpp"

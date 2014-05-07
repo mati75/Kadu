@@ -2,18 +2,6 @@
 <context>
     <name>@default</name>
     <message>
-        <source>Look</source>
-        <translation>Vzhled</translation>
-    </message>
-    <message>
-        <source>Simple view</source>
-        <translation>Jednoduchý pohled</translation>
-    </message>
-    <message>
-        <source>General</source>
-        <translation>Obecné</translation>
-    </message>
-    <message>
         <source>Keep contact list size</source>
         <translation>Zachovat velikost seznamu spojení</translation>
     </message>
@@ -22,8 +10,20 @@
         <translation>Skrýt posuvník</translation>
     </message>
     <message>
-        <source>Borderless</source>
-        <translation>Bez okrajů</translation>
+        <source>Extras</source>
+        <translation>Navíc</translation>
+    </message>
+    <message>
+        <source>Simple View</source>
+        <translation>Jednoduchý pohled</translation>
+    </message>
+    <message>
+        <source>Options</source>
+        <translation>Volby</translation>
+    </message>
+    <message>
+        <source>Hide window borders</source>
+        <translation>Skrýt okraje okna</translation>
     </message>
 </context>
 <context>

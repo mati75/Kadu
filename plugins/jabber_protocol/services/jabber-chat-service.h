@@ -1,9 +1,10 @@
 /*
  * %kadu copyright begin%
  * Copyright 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2009, 2011 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
- * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2009, 2010, 2011, 2012, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2012 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -24,7 +25,7 @@
 #define JABBER_CHAT_SERVICE_H
 
 #include <QtCore/QMap>
-#include <QtCore/QWeakPointer>
+#include <QtCore/QPointer>
 
 #include <im.h>
 #include <xmpp.h>
@@ -33,7 +34,10 @@
 
 class Chat;
 class ChatDetailsRoom;
+class FormattedStringFactory;
 class JabberProtocol;
+
+Q_DECLARE_METATYPE(XMPP::Status)
 
 namespace XMPP
 {
@@ -44,7 +48,8 @@ class JabberChatService : public ChatService
 {
 	Q_OBJECT
 
-	QWeakPointer<Client> XmppClient;
+	QPointer<FormattedStringFactory> CurrentFormattedStringFactory;
+	QPointer<Client> XmppClient;
 
 	QMap<QString, QString> ContactMessageTypes;
 	QMap<QString, Chat> OpenedRoomChats;
@@ -54,6 +59,8 @@ class JabberChatService : public ChatService
 	void disconnectClient();
 
 	ChatDetailsRoom * myRoomChatDetails(const Chat &chat) const;
+	XMPP::Jid chatJid(const Chat &chat);
+	QString chatMessageType(const Chat &chat, const XMPP::Jid &jid);
 
 private slots:
 	void chatOpened(const Chat &chat);
@@ -64,13 +71,18 @@ private slots:
 	void groupChatPresence(const Jid &jid, const Status &status);
 
 public:
-	explicit JabberChatService(JabberProtocol *protocol);
+	explicit JabberChatService(Account account, QObject *parent = 0);
 	virtual ~JabberChatService();
 
-	void setClient(Client *xmppClient);
+	void setFormattedStringFactory(FormattedStringFactory *formattedStringFactory);
+
+	void setXmppClient(Client *xmppClient);
+
+	virtual int maxMessageLength() const;
 
 public slots:
-	virtual bool sendMessage(const Chat &chat, const QString &message, bool silent = false);
+	virtual bool sendMessage(const ::Message &message);
+	virtual bool sendRawMessage(const Chat &chat, const QByteArray &rawMessage);
 
 	void handleReceivedMessage(const Message &msg);
 

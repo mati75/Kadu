@@ -1,18 +1,20 @@
 #ifndef MAIN_CONFIGURATION_WINDOW_H
 #define MAIN_CONFIGURATION_WINDOW_H
 
-#include <QtCore/QWeakPointer>
+#include <QtCore/QPointer>
 
 #include "gui/windows/configuration-window.h"
 #include "os/generic/compositing-aware-object.h"
 #include "exports.h"
 
 class QCheckBox;
+class QLineEdit;
 class QSlider;
 
 class BuddyListBackgroundColorsWidget;
 class ConfigComboBox;
 class ConfigLineEdit;
+class PluginListWidget;
 class Preview;
 class SyntaxEditorWindow;
 
@@ -57,16 +59,16 @@ class KADUAPI MainConfigurationWindow : public ConfigurationWindow, CompositingA
 
 	static void instanceCreated();
 
-	QWeakPointer<ConfigurationWindow> lookChatAdvanced;
+	QPointer<ConfigurationWindow> lookChatAdvanced;
 
 	QCheckBox *onStartupSetLastDescription;
+	QLineEdit *onStartupSetDescription;
 	QCheckBox *userboxTransparency;
+	QLineEdit *disconnectDescription;
 	QSlider *userboxAlpha;
 	QCheckBox *userboxBlur;
-	ConfigComboBox *emoticonsStyleComboBox;
-	ConfigComboBox *emoticonsThemeComboBox;
-	ConfigComboBox *emoticonsScalingComboBox;
 	BuddyListBackgroundColorsWidget *buddyColors;
+	PluginListWidget *PluginList;
 
 	explicit MainConfigurationWindow();
 
@@ -78,18 +80,12 @@ class KADUAPI MainConfigurationWindow : public ConfigurationWindow, CompositingA
 	virtual void compositingDisabled();
 
 private slots:
-	void onChangeEmoticonsTheme(int index);
-
 	void onChangeStartupStatus(int index);
-
+	void onChangeStartupDescription(int index);
+	void onChangeShutdownStatus(int index);
 	void showLookChatAdvanced();
-
-	void onInfoPanelSyntaxEditorWindowCreated(SyntaxEditorWindow *syntaxEditorWindow);
-
+	void installIconTheme();
 	void setIconThemes();
-	void setEmoticonThemes();
-
-	void chatPreviewSyntaxChanged(const QString &syntaxName);
 
 public:
 	static MainConfigurationWindow * instance();

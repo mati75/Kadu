@@ -1,12 +1,12 @@
 /*
  * %kadu copyright begin%
  * Copyright 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2009, 2010, 2010 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2009, 2009, 2010, 2010, 2012 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2010, 2010 Tomasz Rostański (rozteck@interia.pl)
  * Copyright 2010, 2011 Piotr Dąbrowski (ultr@ultr.pl)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
- * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2009, 2010, 2011, 2012, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -24,6 +24,7 @@
  */
 
 #include <QtGui/QAction>
+#include <QtGui/QApplication>
 #include <QtGui/QComboBox>
 #include <QtGui/QDialogButtonBox>
 #include <QtGui/QFormLayout>
@@ -37,12 +38,10 @@
 #include <QtGui/QPushButton>
 #include <QtGui/QStackedWidget>
 #include <QtGui/QVBoxLayout>
-#ifdef Q_WS_MAEMO_5
-#include <QtGui/QScrollArea>
-#endif
 
 #include "accounts/account-manager.h"
 #include "accounts/model/accounts-model.h"
+#include "configuration/config-file-variant-wrapper.h"
 #include "core/core.h"
 #include "gui/widgets/account-add-widget.h"
 #include "gui/widgets/account-create-widget.h"
@@ -51,11 +50,11 @@
 #include "gui/widgets/protocols-combo-box.h"
 #include "gui/windows/message-dialog.h"
 #include "icons/kadu-icon.h"
-#include "misc/misc.h"
 #include "model/action-filter-proxy-model.h"
 #include "model/action-list-model.h"
-#include "model/roles.h"
 #include "model/merged-proxy-model-factory.h"
+#include "model/roles.h"
+#include "os/generic/window-geometry-manager.h"
 #include "protocols/filter/can-register-protocol-filter.h"
 #include "protocols/protocol-factory.h"
 #include "protocols/protocol.h"
@@ -79,13 +78,11 @@ YourAccounts::YourAccounts(QWidget *parent) :
 	createGui();
 	AccountsView->selectionModel()->select(AccountsView->model()->index(0, 0), QItemSelectionModel::ClearAndSelect);
 
-	loadWindowGeometry(this, "General", "YourAccountsWindowGeometry", 0, 50, 700, 500);
+	new WindowGeometryManager(new ConfigFileVariantWrapper("General", "YourAccountsWindowGeometry"), QRect(0, 50, 700, 500), this);
 }
 
 YourAccounts::~YourAccounts()
 {
-	saveWindowGeometry(this, "General", "YourAccountsWindowGeometry");
-
 	Instance = 0;
 }
 
@@ -146,24 +143,14 @@ void YourAccounts::createGui()
 	QDialogButtonBox *buttons = new QDialogButtonBox(Qt::Horizontal, this);
 	mainLayout->addWidget(buttons);
 
-	QPushButton *cancelButton = new QPushButton(qApp->style()->standardIcon(QStyle::SP_DialogCancelButton), tr("Close"), this);
+	QPushButton *cancelButton = new QPushButton(qApp->style()->standardIcon(QStyle::SP_DialogCloseButton), tr("Close"), this);
 
 	connect(cancelButton, SIGNAL(clicked(bool)), this, SLOT(close()));
 	buttons->addButton(cancelButton, QDialogButtonBox::RejectRole);
 
 	MainStack = new QStackedWidget(this);
 
-#ifdef Q_WS_MAEMO_5
-	QScrollArea *scrollArea = new QScrollArea(this);
-	scrollArea->setFrameStyle(QFrame::NoFrame);
-	scrollArea->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
-	scrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
-	scrollArea->setWidget(MainStack);
-	scrollArea->setWidgetResizable(true);
-	contentLayout->addWidget(scrollArea, 100);
-#else
 	contentLayout->addWidget(MainStack, 100);
-#endif
 
 	createAccountWidget();
 	createEditAccountWidget();
@@ -171,10 +158,7 @@ void YourAccounts::createGui()
 
 void YourAccounts::switchToCreateMode()
 {
-#ifndef Q_WS_MAEMO_5
 	MainAccountLabel->setText(tr("<font size='+2'><b>Create New Account</b></font>"));
-	MainAccountGroupBox->setTitle(tr("Create New Account"));
-#endif
 
 	CanRegisterFilter->setEnabled(true);
 
@@ -190,10 +174,7 @@ void YourAccounts::switchToCreateMode()
 
 void YourAccounts::switchToAddMode()
 {
-#ifndef Q_WS_MAEMO_5
 	MainAccountLabel->setText(tr("<font size='+2'><b>Add Existing Account</b></font>"));
-	MainAccountGroupBox->setTitle(tr("Setup an Existing Account"));
-#endif
 
 	CanRegisterFilter->setEnabled(false);
 
@@ -219,22 +200,15 @@ void YourAccounts::createAccountWidget()
 	MainAccountLabel = new QLabel();
 	newAccountLayout->addWidget(MainAccountLabel);
 
-	QGroupBox *selectNetworkGroupbox = new QGroupBox(tr("Choose a network"), CreateAddAccountContainer);
+	QGroupBox *selectNetworkGroupbox = new QGroupBox(CreateAddAccountContainer);
 	selectNetworkGroupbox->setFlat(true);
-#ifdef Q_WS_MAEMO_5
-	selectNetworkGroupbox->setTitle(QString());
-#endif
+
 	QFormLayout *selectNetworkLayout = new QFormLayout(selectNetworkGroupbox);
 
 	QLabel *imNetworkLabel = new QLabel(tr("IM Network") + ':', CreateAddAccountContainer);
 	Protocols = new ProtocolsComboBox(CreateAddAccountContainer);
 	Protocols->addFilter(CanRegisterFilter);
 	selectNetworkLayout->addRow(imNetworkLabel, Protocols);
-
-//#ifndef Q_WS_MAEMO_5
-//	QLabel *protocolComboLabel = new QLabel(tr("<font size='-1'><i>The default network has been selected based on your language settings.</i></font>"));
-//	selectNetworkLayout->addRow(0, protocolComboLabel);
-//#endif
 
 	newAccountLayout->addWidget(selectNetworkGroupbox);
 
@@ -370,21 +344,25 @@ bool YourAccounts::canChangeWidget()
 	if (!CurrentWidget)
 		return true;
 
-	if (StateNotChanged == CurrentWidget->state())
+	if (StateNotChanged == CurrentWidget->stateNotifier()->state())
 		return true;
 
 	if (!IsCurrentWidgetEditAccount)
 	{
-		QMessageBox::StandardButton result = QMessageBox::question(this, tr("Account"),
-				tr("You have unsaved changes in current account.<br />Do you want to return to editing?"),
-				QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
+		MessageDialog *dialog = MessageDialog::create(KaduIcon("dialog-warning"), tr("Unsaved changes"),
+					tr("You have unsaved changes in current account.<br />Do you want to return to edit or discard changes?"));
+		dialog->addButton(QMessageBox::Yes, tr("Return to edit"));
+		dialog->addButton(QMessageBox::Ignore, tr("Discard changes"));
+		dialog->addButton(QMessageBox::Cancel, tr("Cancel"));
+
+		QMessageBox::StandardButton result = (QMessageBox::StandardButton) dialog->exec();
 
 		switch (result)
 		{
 			case QMessageBox::Yes:
 				return false;
 
-			case QMessageBox::No:
+			case QMessageBox::Ignore:
 				CurrentWidget->cancel();
 				return true;
 
@@ -393,19 +371,23 @@ bool YourAccounts::canChangeWidget()
 		}
 	}
 
-	if (StateChangedDataValid == CurrentWidget->state())
+	if (StateChangedDataValid == CurrentWidget->stateNotifier()->state())
 	{
-		QMessageBox::StandardButton result = QMessageBox::question(this, tr("Account"),
-				tr("You have unsaved changes in current account.<br />Do you want to save them?"),
-				QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel, QMessageBox::Yes);
+		MessageDialog *dialog = MessageDialog::create(KaduIcon("dialog-warning"), tr("Unsaved changes"),
+					tr("You have unsaved changes in current account.<br />Do you want to save them?"));
+		dialog->addButton(QMessageBox::Save, tr("Save changes"));
+		dialog->addButton(QMessageBox::Ignore, tr("Discard"));
+		dialog->addButton(QMessageBox::Cancel, tr("Cancel"));
+
+		QMessageBox::StandardButton result = (QMessageBox::StandardButton) dialog->exec();
 
 		switch (result)
 		{
-			case QMessageBox::Yes:
+			case QMessageBox::Save:
 				CurrentWidget->apply();
 				return true;
 
-			case QMessageBox::No:
+			case QMessageBox::Ignore:
 				CurrentWidget->cancel();
 				return true;
 
@@ -414,18 +396,22 @@ bool YourAccounts::canChangeWidget()
 		}
 	}
 
-	if (StateChangedDataInvalid == CurrentWidget->state())
+	if (StateChangedDataInvalid == CurrentWidget->stateNotifier()->state())
 	{
-		QMessageBox::StandardButton result = QMessageBox::question(this, tr("Account"),
-				tr("You have unsaved changes in current account.<br />This data is invalid, so you will loose all changes.<br />Do you want to go back to edit them?"),
-				QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
+		MessageDialog *dialog = MessageDialog::create(KaduIcon("dialog-warning"), tr("Invalid changes"),
+					tr("You have invalid changes in current account, which cannot be saved.<br />Do you want to stay in edit or discard changes?"));
+		dialog->addButton(QMessageBox::Yes, tr("Stay in edit"));
+		dialog->addButton(QMessageBox::Ignore, tr("Discard changes"));
+		dialog->addButton(QMessageBox::Cancel, tr("Cancel"));
+
+		QMessageBox::StandardButton result = (QMessageBox::StandardButton) dialog->exec();
 
 		switch (result)
 		{
 			case QMessageBox::Yes:
 				return false;
 
-			case QMessageBox::No:
+			case QMessageBox::Ignore:
 				CurrentWidget->cancel();
 				return true;
 
@@ -517,3 +503,5 @@ void YourAccounts::keyPressEvent(QKeyEvent *e)
 	else
 		QWidget::keyPressEvent(e);
 }
+
+#include "moc_your-accounts.cpp"

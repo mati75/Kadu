@@ -1,69 +1,67 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE TS>
-<TS version="2.0" language="en_US">
+<?xml version="1.0" ?><!DOCTYPE TS><TS language="en" version="2.0">
 <context>
     <name>@default</name>
     <message>
         <source>Chat</source>
-        <translation type="unfinished"></translation>
+        <translation>Chat</translation>
     </message>
     <message>
         <source>Cenzor</source>
-        <translation type="unfinished"></translation>
+        <translation>Cenzor</translation>
     </message>
     <message>
         <source>General</source>
-        <translation type="unfinished"></translation>
+        <translation>General</translation>
     </message>
     <message>
         <source>Enable cenzor</source>
-        <translation type="unfinished"></translation>
+        <translation>Enable cenzor</translation>
     </message>
     <message>
         <source>Admonition</source>
-        <translation type="unfinished"></translation>
+        <translation>Admonition</translation>
     </message>
     <message>
         <source>Swearwords</source>
-        <translation type="unfinished"></translation>
+        <translation>Swearwords</translation>
     </message>
     <message>
         <source>Exclusions</source>
-        <translation type="unfinished"></translation>
+        <translation>Exclusions</translation>
     </message>
     <message>
         <source>Message was cenzored</source>
-        <translation type="unfinished"></translation>
+        <translation>Message was cenzored</translation>
     </message>
 </context>
 <context>
     <name>CenzorNotification</name>
     <message>
         <source>Message was cenzored</source>
-        <translation type="unfinished"></translation>
+        <translation>Message was cenzored</translation>
     </message>
     <message>
         <source>Your interlocutor used obscene word and became admonished</source>
-        <translation type="unfinished"></translation>
+        <translation>Your interlocutor used obscene word and became admonished</translation>
     </message>
     <message>
         <source>Cenzor</source>
-        <translation type="unfinished"></translation>
+        <translation>Cenzor</translation>
     </message>
 </context>
 <context>
     <name>ListEditWidget</name>
     <message>
         <source>Add</source>
-        <translation type="unfinished"></translation>
+        <translation>Add</translation>
     </message>
     <message>
         <source>Change</source>
-        <translation type="unfinished"></translation>
+        <translation>Change</translation>
     </message>
     <message>
         <source>Delete</source>
-        <translation type="unfinished"></translation>
+        <translation>Delete</translation>
     </message>
 </context>
 </TS>

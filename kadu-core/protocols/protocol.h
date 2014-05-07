@@ -4,8 +4,8 @@
  * Copyright 2009, 2009, 2010, 2010 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2008, 2009 Michał Podsiadlik (michal@kadu.net)
  * Copyright 2009, 2009 Bartłomiej Zimoń (uzi18@o2.pl)
- * Copyright 2007, 2008, 2009, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2007, 2008, 2009, 2009, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011, 2012 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2007 Dawid Stawiarski (neeo@kadu.net)
  * Copyright 2005, 2006, 2007 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
@@ -29,6 +29,7 @@
 
 #include <QtCore/QDateTime>
 #include <QtCore/QObject>
+#include <QtCore/QPointer>
 
 #include "exports.h"
 
@@ -72,9 +73,9 @@ class KADUAPI Protocol : public QObject
 	Account CurrentAccount;
 
 	// services
-	QWeakPointer<ChatService> CurrentChatService;
-	QWeakPointer<ChatStateService> CurrentChatStateService;
-	QWeakPointer<RosterService> CurrentRosterService;
+	QPointer<ChatService> CurrentChatService;
+	QPointer<ChatStateService> CurrentChatStateService;
+	QPointer<RosterService> CurrentRosterService;
 
 	// real status, can be offline after connection error
 	Status CurrentStatus;
@@ -130,14 +131,14 @@ public:
 
 	virtual AvatarService * avatarService() { return 0; }
 	virtual ChatImageService * chatImageService() { return 0; }
-	virtual ChatService * chatService() { return CurrentChatService.data(); }
-	virtual ChatStateService * chatStateService() { return CurrentChatStateService.data(); }
+	virtual ChatService * chatService();
+	virtual ChatStateService * chatStateService();
 	virtual ContactPersonalInfoService * contactPersonalInfoService() { return 0; }
 	virtual ContactListService * contactListService() { return 0; }
 	virtual FileTransferService * fileTransferService() { return 0; }
 	virtual MultilogonService * multilogonService() { return 0; }
 	virtual PersonalInfoService * personalInfoService() { return 0; }
-	virtual RosterService * rosterService() const { return CurrentRosterService.data(); }
+	virtual RosterService * rosterService() const;
 	virtual SearchService * searchService() { return 0; }
 	virtual SubscriptionService * subscriptionService() { return 0; }
 

@@ -1,8 +1,9 @@
 /*
  * %kadu copyright begin%
  * Copyright 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2012 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -22,10 +23,10 @@
 #include "core/core.h"
 #include "gui/actions/action-description.h"
 #include "gui/actions/actions.h"
-#include "gui/windows/kadu-window.h"
-
+#include "gui/menu/menu-inventory.h"
 #include "gui/windows/import-profile-window.h"
 #include "gui/windows/import-profiles-window.h"
+#include "gui/windows/kadu-window.h"
 #include "profile-data-manager.h"
 
 #include "profiles-import-actions.h"
@@ -59,7 +60,11 @@ ProfilesImportActions::ProfilesImportActions() :
 		ImportProfiles = new ActionDescription(this, ActionDescription::TypeGlobal, "import_profiles",
 				this, SLOT(importProfilesActionActivated(QAction*, bool)), KaduIcon(),
 				tr("Import profiles..."), false);
-		Core::instance()->kaduWindow()->insertMenuActionDescription(ImportProfiles, KaduWindow::MenuTools);
+
+		MenuInventory::instance()
+			->menu("tools")
+			->addAction(ImportProfiles, KaduMenu::SectionTools)
+			->update();
 
 		// The last ActionDescription will send actionLoaded() signal.
 		Actions::instance()->unblockSignals();
@@ -68,19 +73,34 @@ ProfilesImportActions::ProfilesImportActions() :
 	ImportExternalProfile = new ActionDescription(this, ActionDescription::TypeGlobal, "import_external_profile",
 			this, SLOT(importExternalProfileActionActivated(QAction*, bool)), KaduIcon(),
 			tr("Import external profile..."), false);
-	Core::instance()->kaduWindow()->insertMenuActionDescription(ImportExternalProfile, KaduWindow::MenuTools);
+
+	MenuInventory::instance()
+		->menu("tools")
+		->addAction(ImportExternalProfile, KaduMenu::SectionTools)
+		->update();
 }
 
 ProfilesImportActions::~ProfilesImportActions()
 {
-	Core::instance()->kaduWindow()->removeMenuActionDescription(ImportProfiles);
-	Core::instance()->kaduWindow()->removeMenuActionDescription(ImportExternalProfile);
+	MenuInventory::instance()
+		->menu("tools")
+		->removeAction(ImportProfiles)
+		->update();
+	MenuInventory::instance()
+		->menu("tools")
+		->removeAction(ImportExternalProfile)
+		->update();
 }
 
 void ProfilesImportActions::updateActions()
 {
 	if (ProfileDataManager::readProfileData().isEmpty())
-		Core::instance()->kaduWindow()->removeMenuActionDescription(ImportProfiles);
+	{
+		MenuInventory::instance()
+			->menu("tools")
+			->removeAction(ImportProfiles)
+			->update();
+	}
 }
 
 void ProfilesImportActions::importProfilesActionActivated(QAction *action, bool toggled)
@@ -98,3 +118,5 @@ void ProfilesImportActions::importExternalProfileActionActivated(QAction *action
 
 	(new ImportProfileWindow(Core::instance()->kaduWindow()))->show();
 }
+
+#include "moc_profiles-import-actions.cpp"

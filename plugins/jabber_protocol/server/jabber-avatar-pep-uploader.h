@@ -2,7 +2,7 @@
  * %kadu copyright begin%
  * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009, 2010, 2010 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2009, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  * Copyright 2010 Wojciech Treter (juzefwt@gmail.com)
@@ -24,21 +24,38 @@
 #ifndef JABBER_AVATAR_PEP_UPLOADER_H
 #define JABBER_AVATAR_PEP_UPLOADER_H
 
-#include <QtGui/QImage>
+#include <QtCore/QPointer>
 
 #include <iris/xmpp_pubsubitem.h>
 #include <xmpp/jid/jid.h>
 
-#include "accounts/account.h"
+#include "protocols/services/avatar-uploader.h"
 
-class JabberProtocol;
+namespace XMPP
+{
+	class JabberProtocol;
+}
 
-class JabberAvatarPepUploader : public QObject
+class JabberPepService;
+
+/**
+ * @addtogroup Jabber
+ * @{
+ */
+
+/**
+ * @class JabberAvatarPepUploader
+ * @short Uploads avatar to XMPP server using PEP.
+ * @author Rafał 'Vogel' Malinowski
+ *
+ * This class allows for easy upload of avatar to XMPP server. New instance can be created by constructor that requires
+ * JabberPepService argument.
+ */
+class JabberAvatarPepUploader : public AvatarUploader
 {
 	Q_OBJECT
 
-	Account MyAccount;
-	JabberProtocol *MyProtocol;
+	QPointer<JabberPepService> PepService;
 
 	QImage UploadedAvatar;
 
@@ -47,19 +64,29 @@ class JabberAvatarPepUploader : public QObject
 	void doUpload(const QByteArray &data);
 	void doRemove();
 
+	void done();
+	void failed();
+
 private slots:
 	void publishSuccess(const QString &ns, const XMPP::PubSubItem &item);
 	void publishError(const QString &ns, const XMPP::PubSubItem &item);
 
 public:
-	JabberAvatarPepUploader(Account account, QObject *parent);
+	/**
+	 * @author Rafał 'Vogel' Malinowski
+	 * @short Create instance attached to given JabberPepService.
+	 * @param pepService instance of JabberPepService
+	 * @param parent QObject parent
+	 */
+	explicit JabberAvatarPepUploader(JabberPepService *pepService, QObject *parent);
 	virtual ~JabberAvatarPepUploader();
 
-	void uploadAvatar(const QImage &avatar, const QByteArray &data);
-
-signals:
-	void avatarUploaded(bool ok);
+	virtual void uploadAvatar(const QString &id, const QString &password, QImage avatar);
 
 };
+
+/**
+ * @}
+ */
 
 #endif // JABBER_AVATAR_UPLOADER_H

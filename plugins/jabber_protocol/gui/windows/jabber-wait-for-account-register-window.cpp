@@ -1,7 +1,7 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -28,7 +28,6 @@
 #include <QtGui/QStyle>
 #include <QtGui/QVBoxLayout>
 
-#include "gui/widgets/progress-label.h"
 #include "icons/icons-manager.h"
 
 #include "server/jabber-server-register-account.h"
@@ -36,12 +35,12 @@
 #include "jabber-wait-for-account-register-window.h"
 
 JabberWaitForAccountRegisterWindow::JabberWaitForAccountRegisterWindow(JabberServerRegisterAccount *jsra, QWidget *parent) :
-		ProgressWindow(parent)
+		ProgressWindow(tr("Registering new XMPP account"), parent)
 {
 	connect(jsra, SIGNAL(finished(JabberServerRegisterAccount *)),
 			this, SLOT(registerNewAccountFinished(JabberServerRegisterAccount *)));
 
-	setState(ProgressIcon::StateInProgress, tr("Plase wait. New XMPP account is being registered."));
+	addProgressEntry("dialog-information", tr("Plase wait. New XMPP account is being registered."));
 	jsra->performAction();
 }
 
@@ -55,17 +54,19 @@ void JabberWaitForAccountRegisterWindow::registerNewAccountFinished(JabberServer
 	{
 		QString message(tr("Registration was successful. Your new XMPP username is %1.\nStore it in a safe place along with the password.\n"
 				   "Now please add your friends to the buddy list."));
-		setState(ProgressIcon::StateFinished, message.arg(jsra->jid()));
+		progressFinished(true, "dialog-information", message.arg(jsra->jid()));
 
 		emit jidRegistered(jsra->jid(), jsra->client()->tlsOverrideDomain());
 	}
 	else
 	{
 		QString message(tr("An error has occurred during registration. Please try again later."));
-		setState(ProgressIcon::StateFailed, message);
+		progressFinished(false, "dialog-error", message);
 
 		emit jidRegistered(QString(), QString());
 	}
 
 	delete jsra;
 }
+
+#include "moc_jabber-wait-for-account-register-window.cpp"

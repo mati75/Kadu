@@ -6,14 +6,6 @@
         <translation>SMS</translation>
     </message>
     <message>
-        <source>General</source>
-        <translation>Général</translation>
-    </message>
-    <message>
-        <source>SMS Nick</source>
-        <translation>Pseudonyme SMS</translation>
-    </message>
-    <message>
         <source>Application</source>
         <translation>Application</translation>
     </message>
@@ -24,14 +16,6 @@
     <message>
         <source>Custom SMS application</source>
         <translation>Application SMS personnalisée</translation>
-    </message>
-    <message>
-        <source>Use SMS custom string</source>
-        <translation>Utiliser une chaîne SMS personnalisée</translation>
-    </message>
-    <message>
-        <source>SMS custom string</source>
-        <translation>Chaîne SMS personnalisée</translation>
     </message>
     <message>
         <source>Gateways</source>
@@ -74,6 +58,26 @@ Les arguments doivent être séparés par des espaces. L&apos;argument %k est co
     <message>
         <source>SMS proxy for built-in application</source>
         <translation>Proxy SMS pour l&apos;application intégrée</translation>
+    </message>
+    <message>
+        <source>Extras</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <source>Your nick for SMS</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <source>Use application custom arguments</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <source>SMS custom arguments</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <source>Behaviour</source>
+        <translation type="unfinished"/>
     </message>
 </context>
 <context>

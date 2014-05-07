@@ -1,9 +1,9 @@
 /*
  * %kadu copyright begin%
  * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2009, 2012 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
- * Copyright 2008, 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
@@ -62,14 +62,14 @@ class KaduIcon;
 	potrzebne żadne 'ręczne' podpinanie się do tych akcji.
 
 	W momencie zapisania konfiguracji wszystkie obiekty w programie będące instancajmi
-	klasy @see ConfigurationAwareObject zostaną o tym poinformowane i będą
+	klasy ConfigurationAwareObject zostaną o tym poinformowane i będą
 	mogły zaktualizować swój stan.
 
 	Widgety w oknie mogą być tworzone na 2 sposoby. Pierwszym z nich jest
-	pobranie GroupBoxa za pomocą funkcji @see configGroupBox i dodawanie
+	pobranie GroupBoxa za pomocą funkcji configGroupBox i dodawanie
 	do niego widgetów za pomocą jego funkcji addWidget i addWidgets.
 	Drugą jest stworzenie plików XML *.ui, które są wczytywane i usuwane dynamicznie
-	z pomocą metod @see appendUiFile i @see removeUiFile.
+	z pomocą metod appendUiFile i removeUiFile.
 
 	W tym drugim przypadku stosuje się pliki *.ui o następującej strukturze:
 
@@ -84,7 +84,7 @@ class KaduIcon;
 	&lt;/configuration-ui&gt;
 
 	Elementy zawierające atrybut id (nie wymagany) - czyli group-box i dowolny widget
-	mogą zostać pobrane przez aplikacje za pomocą metody @see widgetById.
+	mogą zostać pobrane przez aplikacje za pomocą metody widgetById.
 	Widgety z modułów powinny posiadać id w postaci: nazwaModułu/nazwaId.
 
 	Atrybut catpion jest wymagany. Możliwe tagi widget są opisane w dokumentacji
@@ -109,7 +109,6 @@ class KADUAPI ConfigurationWidget : public QWidget
 	void loadConfiguration(QObject *object);
 	void saveConfiguration(QObject *object);
 
-	ConfigSection * configSection(const QString &name);
 	ConfigSection * configSection(const KaduIcon &icon, const QString &name, bool create);
 
 	QList<ConfigWidget *> processUiFile(const QString &fileName, bool append);
@@ -143,7 +142,7 @@ public:
 
 		Jeżeli nie istnieje taki group-box to zostanie on stworzony, gdy create == true.
 		Dla create == false zostanie zwrócony NULL.
-		
+
 		@note Stringi należy podawać w formie oryginalnej, nie przetłumaczonej.
 	 **/
 	ConfigGroupBox * configGroupBox(const QString &section, const QString &tab, const QString &groupBox, bool create = false);
@@ -151,7 +150,7 @@ public:
 	/**
 		Dodaje do okna konfiguracyjnego widgety wczytane z pliku fileName.
 		Gdy load == true wczytuje ich wartości z pliku konfiguracyjnego. W przeciwnym
-		wypadku wczytanie wartości nastąpi po wywołaniu metody @see show.
+		wypadku wczytanie wartości nastąpi po wywołaniu metody show.
 	 **/
 	QList<ConfigWidget *> appendUiFile(const QString &fileName, bool load = true);
 	/**
@@ -164,6 +163,8 @@ public:
 		dowolne widgety konfiguracyjne i elementy group-box.
 	 **/
 	QWidget * widgetById(const QString &id);
+
+	ConfigSection * configSection(const QString &name);
 
 	void init();
 

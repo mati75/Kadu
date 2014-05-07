@@ -6,8 +6,8 @@
  * Copyright 2010, 2010, 2010 Tomasz Rostański (rozteck@interia.pl)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
  * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
- * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2007, 2008, 2009, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
  * Copyright 2009 Longer (longer89@gmail.com)
  * %kadu copyright end%
@@ -39,8 +39,8 @@ bool FilteredTreeView::shouldEventGoToFilter(QKeyEvent *event)
 	return !event->text().trimmed().isEmpty() && event->text().at(0).isPrint();
 }
 
-FilteredTreeView::FilteredTreeView(FilterPosition filterPosition, QWidget *parent) :
-		QWidget(parent), CurrentFilterPosition(filterPosition), View(0)
+FilteredTreeView::FilteredTreeView(FilteredTreeView::FilterPosition filterPosition, QWidget *parent, Qt::WindowFlags f) :
+		QWidget(parent, f), CurrentFilterPosition(filterPosition), View(0)
 {
 	Layout = new QVBoxLayout(this);
 	Layout->setMargin(0);
@@ -106,3 +106,5 @@ void FilteredTreeView::keyPressEvent(QKeyEvent *event)
 
 	QWidget::keyPressEvent(event);
 }
+
+#include "moc_filtered-tree-view.cpp"

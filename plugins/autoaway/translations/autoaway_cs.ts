@@ -6,36 +6,16 @@
         <translation>Stav</translation>
     </message>
     <message>
-        <source>Autoaway</source>
-        <translation>Automatická nepřítomnost</translation>
-    </message>
-    <message>
         <source>Check idle every</source>
         <translation>Prověřit nečinnost každých</translation>
-    </message>
-    <message>
-        <source>Enable autoaway</source>
-        <translation>Povolit automatickou nepřítomnost</translation>
     </message>
     <message>
         <source>Set status to away after</source>
         <translation>Nastavit stav na nepřítomen po</translation>
     </message>
     <message>
-        <source>Enable autoinvisible</source>
-        <translation>Povolit automatickou neviditelnost</translation>
-    </message>
-    <message>
         <source>Set status to invisible after</source>
         <translation>Nastavit stav na neviditelný po</translation>
-    </message>
-    <message>
-        <source>Enable autodisconnect</source>
-        <translation>Povolit automatické odpojení</translation>
-    </message>
-    <message>
-        <source>Disconnect after</source>
-        <translation>Odpojit po</translation>
     </message>
     <message>
         <source>Description</source>
@@ -50,28 +30,8 @@
         <translation>Nový popis</translation>
     </message>
     <message>
-        <source>Parse AutoStatus</source>
-        <translation>Zpracovat automatický stav</translation>
-    </message>
-    <message>
-        <source>Enable auto extended away</source>
-        <translation>Povolit automatickou rozšířenou nepřítomnost</translation>
-    </message>
-    <message>
         <source>Set status to extended away after</source>
         <translation>Nastavit stav na rozšířeně nepřítomen po</translation>
-    </message>
-    <message>
-        <source>Auto refresh status</source>
-        <translation>Obnovit automaticky stav</translation>
-    </message>
-    <message numerus="yes">
-        <source>[every] %n second(s)</source>
-        <translation><numerusform>[každou] 1 sekundu</numerusform><numerusform>[každé] %n sekundy</numerusform><numerusform>[každých] %n sekund</numerusform></translation>
-    </message>
-    <message numerus="yes">
-        <source>[after] %n second(s)</source>
-        <translation><numerusform>[po] 1 sekundě</numerusform><numerusform>[po] %n sekundách</numerusform><numerusform>[po] %n sekundách</numerusform></translation>
     </message>
     <message numerus="yes">
         <source>%n second(s)</source>
@@ -82,12 +42,52 @@
         <translation>Neměnit</translation>
     </message>
     <message>
-        <source>Add in the Front</source>
-        <translation>Přidat dopředu</translation>
+        <source>Behaviour</source>
+        <translation>Chování</translation>
     </message>
     <message>
-        <source>Add at the Back</source>
-        <translation>Přidat dozadu</translation>
+        <source>Inactivity</source>
+        <translation>Nečinnost</translation>
+    </message>
+    <message>
+        <source>Refresh status every</source>
+        <translation>Obnovit stav každých</translation>
+    </message>
+    <message>
+        <source>Switch to &apos;away&apos;</source>
+        <translation>Přepnout na nepřítomen</translation>
+    </message>
+    <message numerus="yes">
+        <source>%n minute(s)</source>
+        <translation><numerusform>%n minuta</numerusform><numerusform>%n minuty</numerusform><numerusform>%n minut</numerusform></translation>
+    </message>
+    <message>
+        <source>Switch to &apos;auto extended away&apos;</source>
+        <translation>Přepnout na automaticky rozšířeně nepřítomen</translation>
+    </message>
+    <message>
+        <source>Switch to &apos;invisible&apos;</source>
+        <translation>Přepnout na neviditelný po</translation>
+    </message>
+    <message>
+        <source>Switch to &apos;offline&apos;</source>
+        <translation>Přepnout na nepřipojen</translation>
+    </message>
+    <message>
+        <source>Set status to offline after</source>
+        <translation>Nastavit stav na nepřipojen po</translation>
+    </message>
+    <message>
+        <source>Status description when inactive</source>
+        <translation>Popis stavu, když nečinný</translation>
+    </message>
+    <message>
+        <source>Prepend</source>
+        <translation>Předřadit</translation>
+    </message>
+    <message>
+        <source>Append</source>
+        <translation>Připojit</translation>
     </message>
 </context>
 <context>

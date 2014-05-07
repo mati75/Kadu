@@ -4,6 +4,7 @@
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
  * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
  * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
@@ -31,14 +32,14 @@ PhononPlugin::~PhononPlugin()
 {
 }
 
-int PhononPlugin::init(bool firstLoad)
+bool PhononPlugin::init(bool firstLoad)
 {
 	Q_UNUSED(firstLoad)
 
 	PhononPlayer::createInstance();
 	SoundManager::instance()->setPlayer(PhononPlayer::instance());
 
-	return 0;
+	return true;
 }
 
 void PhononPlugin::done()
@@ -48,3 +49,5 @@ void PhononPlugin::done()
 }
 
 Q_EXPORT_PLUGIN2(phonon_sound, PhononPlugin)
+
+#include "moc_phonon-plugin.cpp"

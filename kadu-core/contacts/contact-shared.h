@@ -1,8 +1,8 @@
 /*
  * %kadu copyright begin%
  * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2009, 2009, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -74,6 +74,7 @@ private slots:
 	void protocolFactoryUnregistered(ProtocolFactory *protocolFactory);
 
 	void avatarUpdated();
+	void changeNotifierChanged();
 
 protected:
 	virtual void load();
@@ -81,8 +82,8 @@ protected:
 	virtual bool shouldStore();
 
 public:
-	static ContactShared * loadStubFromStorage(const QSharedPointer<StoragePoint> &contactStoragePoint);
-	static ContactShared * loadFromStorage(const QSharedPointer<StoragePoint> &contactStoragePoint);
+	static ContactShared * loadStubFromStorage(const std::shared_ptr<StoragePoint> &contactStoragePoint);
+	static ContactShared * loadFromStorage(const std::shared_ptr<StoragePoint> &contactStoragePoint);
 
 	explicit ContactShared(const QUuid &uuid = QUuid());
 	virtual ~ContactShared();
@@ -134,9 +135,6 @@ signals:
 	void dirtinessChanged();
 
 };
-
-// for MOC
-#include "buddies/buddy.h"
 
 #endif // CONTACT_SHARED_H
 

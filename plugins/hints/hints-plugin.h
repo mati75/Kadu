@@ -28,14 +28,15 @@
 
 #include <QtCore/QObject>
 
-#include "plugins/generic-plugin.h"
+#include "plugin/plugin-root-component.h"
 
 class HintManager;
 
-class HintsPlugin : public QObject, public GenericPlugin
+class HintsPlugin : public QObject, public PluginRootComponent
 {
 	Q_OBJECT
-	Q_INTERFACES(GenericPlugin)
+	Q_INTERFACES(PluginRootComponent)
+	Q_PLUGIN_METADATA(IID "im.kadu.PluginRootComponent")
 
 	static HintsPlugin * Instance;
 
@@ -47,7 +48,7 @@ public:
 	explicit HintsPlugin(QObject *parent = 0);
 	virtual ~HintsPlugin();
 
-	virtual int init(bool firstLoad);
+	virtual bool init(bool firstLoad);
 	virtual void done();
 
 	HintManager * hintsManger() { return HintManagerInstance; }

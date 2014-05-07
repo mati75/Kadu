@@ -1,12 +1,13 @@
 /*
  * %kadu copyright begin%
  * Copyright 2008, 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2012 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2010, 2010 Tomasz Rostański (rozteck@interia.pl)
  * Copyright 2011 Piotr Dąbrowski (ultr@ultr.pl)
  * Copyright 2009 Michał Podsiadlik (michal@kadu.net)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
- * Copyright 2008, 2009, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2008, 2009, 2009, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -37,24 +38,24 @@
 #include "configuration/xml-configuration-file.h"
 #include "contacts/contact-set.h"
 #include "contacts/contact.h"
-#include "emoticons/emoticon-selector.h"
+#include "core/core.h"
 #include "gui/actions/action.h"
 #include "gui/actions/base-action-context.h"
 #include "gui/widgets/chat-edit-box-size-manager.h"
-#include "gui/widgets/chat-widget-actions.h"
-#include "gui/widgets/chat-widget-manager.h"
+#include "gui/widgets/chat-widget/chat-widget.h"
+#include "gui/widgets/chat-widget/chat-widget-actions.h"
 #include "gui/widgets/color-selector.h"
+#include "gui/widgets/custom-input.h"
 #include "gui/widgets/talkable-tree-view.h"
+#include "gui/widgets/toolbar.h"
 #include "gui/windows/message-dialog.h"
 #include "identities/identity.h"
+#include "misc/change-notifier-lock.h"
+#include "misc/error.h"
 #include "protocols/protocol.h"
 #include "protocols/services/chat-image-service.h"
 #include "status/status-container-manager.h"
-
-#include "chat-widget.h"
-#include "custom-input.h"
 #include "debug.h"
-#include "toolbar.h"
 
 #include "chat-edit-box.h"
 
@@ -67,7 +68,7 @@ ChatEditBox::ChatEditBox(const Chat &chat, QWidget *parent) :
 
 	Context = static_cast<BaseActionContext *>(actionContext());
 
-	Context->changeNotifier()->block();;
+	ChangeNotifierLock lock(Context->changeNotifier());
 
 	RoleSet roles;
 	if (CurrentChat.contacts().size() > 1)
@@ -81,15 +82,14 @@ ChatEditBox::ChatEditBox(const Chat &chat, QWidget *parent) :
 	Context->setBuddies(CurrentChat.contacts().toBuddySet());
 	updateContext();
 
-	Context->changeNotifier()->unblock();
-
 	connect(MainConfigurationHolder::instance(), SIGNAL(setStatusModeChanged()), this, SLOT(updateContext()));
 
 	InputBox = new CustomInput(CurrentChat, this);
+	InputBox->setImageStorageService(Core::instance()->imageStorageService());
+	InputBox->setFormattedStringFactory(Core::instance()->formattedStringFactory());
+
 	InputBox->setWordWrapMode(QTextOption::WordWrap);
-#ifdef Q_WS_MAEMO_5
-	InputBox->setMinimumHeight(64);
-#endif
+
 	setCentralWidget(InputBox);
 
 	bool old_top = loadOldToolBarsFromConfig("chatTopDockArea", Qt::TopToolBarArea);
@@ -103,7 +103,7 @@ ChatEditBox::ChatEditBox(const Chat &chat, QWidget *parent) :
 	else
 		loadToolBarsFromConfig(); // load new config
 
-// 	connect(ChatWidgetManager::instance()->actions()->colorSelector(), SIGNAL(actionCreated(Action *)),
+// 	connect(Core::instance()->chatWidgetActions()->colorSelector(), SIGNAL(actionCreated(Action *)),
 // 			this, SLOT(colorSelectorActionCreated(Action *)));
 	connect(InputBox, SIGNAL(keyPressed(QKeyEvent *,CustomInput *, bool &)),
 			this, SIGNAL(keyPressed(QKeyEvent *,CustomInput *,bool &)));
@@ -115,7 +115,7 @@ ChatEditBox::ChatEditBox(const Chat &chat, QWidget *parent) :
 
 ChatEditBox::~ChatEditBox()
 {
-// 	disconnect(ChatWidgetManager::instance()->actions()->colorSelector(), 0, this, 0);
+// 	disconnect(Core::instance()->chatWidgetActions()->colorSelector(), 0, this, 0);
 	disconnect(InputBox, 0, this, 0);
 
 	chatEditBoxes.removeAll(this);
@@ -123,12 +123,12 @@ ChatEditBox::~ChatEditBox()
 
 void ChatEditBox::fontChanged(QFont font)
 {
-	if (ChatWidgetManager::instance()->actions()->bold()->action(actionContext()))
-		ChatWidgetManager::instance()->actions()->bold()->action(actionContext())->setChecked(font.bold());
-	if (ChatWidgetManager::instance()->actions()->italic()->action(actionContext()))
-		ChatWidgetManager::instance()->actions()->italic()->action(actionContext())->setChecked(font.italic());
-	if (ChatWidgetManager::instance()->actions()->underline()->action(actionContext()))
-		ChatWidgetManager::instance()->actions()->underline()->action(actionContext())->setChecked(font.underline());
+	if (Core::instance()->chatWidgetActions()->bold()->action(actionContext()))
+		Core::instance()->chatWidgetActions()->bold()->action(actionContext())->setChecked(font.bold());
+	if (Core::instance()->chatWidgetActions()->italic()->action(actionContext()))
+		Core::instance()->chatWidgetActions()->italic()->action(actionContext())->setChecked(font.italic());
+	if (Core::instance()->chatWidgetActions()->underline()->action(actionContext()))
+		Core::instance()->chatWidgetActions()->underline()->action(actionContext())->setChecked(font.underline());
 }
 
 void ChatEditBox::colorSelectorActionCreated(Action *action)
@@ -204,25 +204,12 @@ void ChatEditBox::createDefaultToolbars(QDomElement toolbarsConfig)
 	addToolButton(toolbarConfig, "autoSendAction");
 	addToolButton(toolbarConfig, "clearChatAction");
 	addToolButton(toolbarConfig, "insertEmoticonAction", Qt::ToolButtonTextBesideIcon);
-
-#ifndef Q_WS_MAEMO_5
 	addToolButton(toolbarConfig, "insertImageAction");
 	addToolButton(toolbarConfig, "showHistoryAction");
 	addToolButton(toolbarConfig, "encryptionAction");
 	addToolButton(toolbarConfig, "editUserAction");
-#endif
-
 	addToolButton(toolbarConfig, "__spacer1", Qt::ToolButtonTextBesideIcon);
 	addToolButton(toolbarConfig, "sendAction", Qt::ToolButtonTextBesideIcon);
-}
-
-void ChatEditBox::openEmoticonSelector(const QWidget *activatingWidget)
-{
-	//emoticons_selector zawsze b�dzie NULLem gdy wchodzimy do tej funkcji
-	//bo EmoticonSelector ma ustawione flagi Qt::WDestructiveClose i Qt::WType_Popup
-	EmoticonSelector *emoticonSelector = new EmoticonSelector(activatingWidget, this);
-	connect(emoticonSelector, SIGNAL(emoticonSelect(const QString &)), this, SLOT(addEmoticon(const QString &)));
-	emoticonSelector->show();
 }
 
 void ChatEditBox::openColorSelector(const QWidget *activatingWidget)
@@ -235,6 +222,10 @@ void ChatEditBox::openColorSelector(const QWidget *activatingWidget)
 
 void ChatEditBox::openInsertImageDialog()
 {
+	ChatImageService *chatImageService = CurrentChat.chatAccount().protocolHandler()->chatImageService();
+	if (!chatImageService)
+		return;
+
 	// QTBUG-849
 	QString selectedFile = QFileDialog::getOpenFileName(this, tr("Insert image"), config_file.readEntry("Chat", "LastImagePath"),
 							tr("Images (*.png *.PNG *.jpg *.JPG *.jpeg *.JPEG *.gif *.GIF *.bmp *.BMP);;All Files (*)"));
@@ -250,28 +241,26 @@ void ChatEditBox::openInsertImageDialog()
 			return;
 		}
 
-		ChatImageService *chatImageService = CurrentChat.chatAccount().protocolHandler()->chatImageService();
-		if (chatImageService)
+		Error imageSizeError = chatImageService->checkImageSize(f.size());
+		if (!imageSizeError.message().isEmpty())
 		{
-			if (!chatImageService->fitsHardSizeLimit(f.size()))
+			MessageDialog *dialog = MessageDialog::create(KaduIcon("dialog-warning"), tr("Kadu"), imageSizeError.message(), this);
+			dialog->addButton(QMessageBox::Yes, tr("Send anyway"));
+			dialog->addButton(QMessageBox::No, tr("Cancel"));
+
+			switch (imageSizeError.severity())
 			{
-				MessageDialog::show(
-						KaduIcon("dialog-error"), tr("Kadu"),
-						tr("This image has %1 KiB and exceeds the protocol limit of %2 KiB.")
-								.arg((f.size() + 1023) / 1024).arg(chatImageService->hardSizeLimit() / 1024),
-						QMessageBox::Ok, this);
-				return;
-			}
-			if (!chatImageService->fitsSoftSizeLimit(f.size()))
-			{
-				if (chatImageService->showSoftSizeWarning(CurrentChat.chatAccount()))
-				{
-					QString message = tr("This image has %1 KiB and exceeds recommended maximum size of %2 KiB.")
-							+ '\n' + tr("Do you really want to send this image?");
-					message = message.arg((f.size() + 1023) / 1024).arg(chatImageService->softSizeLimit() / 1024);
-					if (!MessageDialog::ask(KaduIcon("dialog-warning"), tr("Kadu"), message, this))
+				case NoError:
+					break;
+				case ErrorLow:
+					if (dialog->ask())
 						return;
-				}
+					break;
+				case ErrorHigh:
+					MessageDialog::show(KaduIcon("dialog-error"), tr("Kadu"), imageSizeError.message(), QMessageBox::Ok, this);
+					return;
+				default:
+					break;
 			}
 		}
 
@@ -307,21 +296,14 @@ void ChatEditBox::openInsertImageDialog()
 		if (tooBigCounter > 0 || disconnectedCounter > 0)
 			message += tr("Do you really want to send this image?");
 
-		if (!message.isEmpty() && !MessageDialog::ask(KaduIcon("dialog-question"), tr("Kadu"), message, this))
+		MessageDialog *dialog = MessageDialog::create(KaduIcon("dialog-question"), tr("Kadu"), message, this);
+		dialog->addButton(QMessageBox::Yes, tr("Send anyway"));
+		dialog->addButton(QMessageBox::No, tr("Cancel"));
+
+		if (!message.isEmpty() && !dialog->ask())
 			return;
 
-		InputBox->insertPlainText(QString("[IMAGE %1]").arg(selectedFile));
-	}
-}
-
-void ChatEditBox::addEmoticon(const QString &emot)
-{
-	if (!emot.isEmpty())
-	{
-		QString escaped = emot;
-		escaped = escaped.replace("&lt;", "<");
-		escaped = escaped.replace("&gt;", ">");
-		InputBox->insertPlainText(escaped);
+		InputBox->insertHtml(QString("<img src='%1' />").arg(selectedFile));
 	}
 }
 
@@ -332,7 +314,7 @@ void ChatEditBox::changeColor(const QColor &newColor)
 	QPixmap p(12, 12);
 	p.fill(CurrentColor);
 
-// 	Action *action = ChatWidgetManager::instance()->actions()->colorSelector()->action(this);
+// 	Action *action = Core::instance()->chatWidgetActions()->colorSelector()->action(this);
 // 	if (action)
 // 		action->setIcon(p);
 
@@ -341,9 +323,10 @@ void ChatEditBox::changeColor(const QColor &newColor)
 
 void ChatEditBox::setColorFromCurrentText(bool force)
 {
-// 	Action *action = ChatWidgetManager::instance()->actions()->colorSelector()->action(this);
+	Q_UNUSED(force);
 
-	Action *action = 0;
+/*
+	Action *action = Core::instance()->chatWidgetActions()->colorSelector()->action(this);
 	if (!action || (!force && (InputBox->textColor() == CurrentColor)))
 		return;
 
@@ -361,4 +344,12 @@ void ChatEditBox::setColorFromCurrentText(bool force)
 	p.fill(CurrentColor);
 
 	action->QAction::setIcon(p);
+*/
 }
+
+void ChatEditBox::insertPlainText(const QString &plainText)
+{
+	InputBox->insertPlainText( plainText);
+}
+
+#include "moc_chat-edit-box.cpp"

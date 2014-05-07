@@ -33,9 +33,9 @@
 
 #include <math.h> // trunc on C99 compliant systems
 
+#include <QPaintEvent>
 #include <QPainter>
 #include <QScrollBar>
-#include <QPaintEvent>
 
 #include "gui/widgets/categorized-list-view-painter.h"
 #include "model/categorized-sort-filter-proxy-model.h"
@@ -450,6 +450,9 @@ bool CategorizedListViewPrivate::hasGrid() const
 
 QString CategorizedListViewPrivate::categoryForIndex(const QModelIndex &index) const
 {
+        if (!index.model())
+                return {};
+
         const QModelIndex categoryIndex = index.model()->index(index.row(), proxyModel->sortColumn(), index.parent());
         return categoryIndex.data(CategorizedSortFilterProxyModel::CategoryDisplayRole).toString();
 }
@@ -1218,7 +1221,7 @@ void CategorizedListView::mouseMoveEvent(QMouseEvent *event)
                                 *d->hoveredBlock = block;
                                 d->hoveredCategory = it.key();
                         }
-                        else
+                        else if (d->categoryDrawer)
                         {
                                 d->categoryDrawer->mouseMoved(categoryIndex, option.rect, event);
                         }
@@ -1801,7 +1804,11 @@ void CategorizedListView::currentChanged(const QModelIndex &current,
 }
 
 void CategorizedListView::dataChanged(const QModelIndex &topLeft,
-                                      const QModelIndex &bottomRight)
+                                      const QModelIndex &bottomRight
+#if QT_VERSION >= 0x050000
+                                      , const QVector<int> & = QVector<int>()
+#endif
+                                      )
 {
         QListView::dataChanged(topLeft, bottomRight);
 
@@ -1881,3 +1888,5 @@ void CategorizedListView::slotLayoutChanged()
 //END: Public part
 
 // #include "kcategorizedview.moc"
+
+#include "moc_categorized-list-view.cpp"

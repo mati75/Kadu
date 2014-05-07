@@ -26,23 +26,24 @@
 #ifndef IDLE_PLUGIN_H
 #define IDLE_PLUGIN_H
 
-#include "plugins/generic-plugin.h"
+#include "plugin/plugin-root-component.h"
 
 #include "idle_exports.h"
 
 class Idle;
 
-class IDLEAPI IdlePlugin : public QObject, public GenericPlugin
+class IDLEAPI IdlePlugin : public QObject, public PluginRootComponent
 {
 	Q_OBJECT
-	Q_INTERFACES(GenericPlugin)
+	Q_INTERFACES(PluginRootComponent)
+	Q_PLUGIN_METADATA(IID "im.kadu.PluginRootComponent")
 
 	static Idle *IdleInstance;
 
 public:
 	virtual ~IdlePlugin();
 
-	virtual int init(bool firstLoad);
+	virtual bool init(bool firstLoad);
 	virtual void done();
 
 	static Idle * idle() { return IdleInstance; }

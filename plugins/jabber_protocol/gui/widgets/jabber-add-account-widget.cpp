@@ -1,11 +1,11 @@
 /*
  * %kadu copyright begin%
  * Copyright 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2009, 2010, 2010 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2009, 2009, 2010, 2010, 2011, 2012 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2009 Michał Podsiadlik (michal@kadu.net)
  * Copyright 2009, 2009 Bartłomiej Zimoń (uzi18@o2.pl)
- * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2009, 2010, 2011, 2012, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -36,6 +36,7 @@
 
 #include "accounts/account-manager.h"
 #include "gui/widgets/choose-identity-widget.h"
+#include "gui/widgets/simple-configuration-value-state-notifier.h"
 #include "gui/windows/message-dialog.h"
 #include "icons/icons-manager.h"
 #include "identities/identity-manager.h"
@@ -162,20 +163,23 @@ void JabberAddAccountWidget::dataChanged()
 			&& RememberPassword->isChecked()
 			&& Domain->currentText() == Factory->defaultServer()
 			&& 0 == Identity->currentIndex())
-		setState(StateNotChanged);
+		simpleStateNotifier()->setState(StateNotChanged);
 	else
-		setState(valid ? StateChangedDataValid : StateChangedDataInvalid);
+		simpleStateNotifier()->setState(valid ? StateChangedDataValid : StateChangedDataInvalid);
 }
 
 void JabberAddAccountWidget::apply()
 {
 	Account jabberAccount = Account::create("jabber");
 
-	jabberAccount.setAccountIdentity(Identity->currentIdentity());
 	jabberAccount.setId(Username->text() + '@' + Domain->currentText());
 	jabberAccount.setPassword(AccountPassword->text());
 	jabberAccount.setHasPassword(!AccountPassword->text().isEmpty());
 	jabberAccount.setRememberPassword(RememberPassword->isChecked());
+	// bad code: order of calls is important here
+	// we have to set identity after password
+	// so in cache of identity status container it already knows password and can do status change without asking user for it
+	jabberAccount.setAccountIdentity(Identity->currentIdentity());
 
 	JabberAccountDetails *details = dynamic_cast<JabberAccountDetails *>(jabberAccount.details());
 	if (details)
@@ -183,10 +187,10 @@ void JabberAddAccountWidget::apply()
 		details->setState(StorableObject::StateNew);
 		details->setResource("Kadu");
 		details->setPriority(5);
-		if (!Domain->isVisible())
+		if (!Domain->isVisible()) // hack for facebook
 		{
-			details->setEncryptionMode(JabberAccountDetails::Encryption_No);
-			details->setPlainAuthMode(JabberAccountDetails::NoAllowPlain);
+			details->setEncryptionMode(JabberAccountDetails::Encryption_Auto);
+			details->setPlainAuthMode(JabberAccountDetails::AllowPlainOverTLS);
 		}
 
 		bool isGoogleAppsAccount = Factory->name() == "gmail/google talk" && !Domain->currentText().contains("gmail");
@@ -220,10 +224,12 @@ void JabberAddAccountWidget::resetGui()
 	Identity->setCurrentIndex(0);
 	AddAccountButton->setDisabled(true);
 
-	setState(StateNotChanged);
+	simpleStateNotifier()->setState(StateNotChanged);
 }
 
 void JabberAddAccountWidget::showWhatIsMyUsername()
 {
-	MessageDialog::exec(KaduIcon("dialog-information"), Factory->displayName(), Factory->whatIsMyUsername());
+	MessageDialog::show(KaduIcon("dialog-information"), Factory->displayName(), Factory->whatIsMyUsername());
 }
+
+#include "moc_jabber-add-account-widget.cpp"

@@ -5,7 +5,7 @@
  * Copyright 2009 Maciej Płaza (plaza.maciej@gmail.com)
  * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
  * Copyright 2007, 2008, 2009, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2010, 2011, 2012 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
@@ -23,6 +23,8 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <QtGui/QApplication>
+
 #include "configuration/toolbar-configuration-manager.h"
 #include "configuration/xml-configuration-file.h"
 #include "storage/storable-object.h"
@@ -35,16 +37,20 @@ ConfigurationManager * ConfigurationManager::instance()
 {
 	if (!Instance)
 	{
-		Instance = new ConfigurationManager();
+		Instance = new ConfigurationManager(qApp);
 		Instance->load();
 	}
 
 	return Instance;
 }
 
-ConfigurationManager::ConfigurationManager()
+ConfigurationManager::ConfigurationManager(QObject *parent) :
+		QObject(parent)
 {
 	ToolbarConfiguration = new ToolbarConfigurationManager();
+
+	connect(qApp, SIGNAL(commitDataRequest(QSessionManager&)),
+			this, SLOT(flush()));
 }
 
 ConfigurationManager::~ConfigurationManager()
@@ -64,30 +70,36 @@ void ConfigurationManager::load()
 		Uuid = QUuid::createUuid();
 }
 
-void ConfigurationManager::store()
+void ConfigurationManager::flush()
 {
 	foreach (StorableObject *object, RegisteredStorableObjects)
 		object->ensureStored();
 
 	xml_config_file->rootElement().setAttribute("uuid", Uuid.toString());
-}
-
-void ConfigurationManager::flush()
-{
-	store();
 	xml_config_file->sync();
 }
 
 void ConfigurationManager::registerStorableObject(StorableObject *object)
 {
-	RegisteredStorableObjects.append(object);
+	if (RegisteredStorableObjects.contains(object))
+	{
+		qWarning("Someone tried to register already registered storable object.");
+		return;
+	}
+
+	// Prepend so that store() method calls ensureStored() on objects in reverse order (LIFO).
+	// This way if object A is registered and then object B which depends on A and can
+	// change A's properties is registered, we first call ensureStored() on B, which can
+	// safely change A's properties and they will be stored.
+	RegisteredStorableObjects.prepend(object);
 }
 
 void ConfigurationManager::unregisterStorableObject(StorableObject *object)
 {
 	object->ensureStored();
 
-	RegisteredStorableObjects.removeAll(object);
+	if (RegisteredStorableObjects.removeAll(object) <= 0)
+		qWarning("Someone tried to unregister unregistered storable object.");
 }
 
 void ConfigurationManager::importConfiguration()

@@ -5,7 +5,7 @@
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
  * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
  * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
@@ -26,14 +26,20 @@
 #include "misc/misc.h"
 
 #include "helpers/gadu-protocol-helper.h"
+#include "server/gadu-connection.h"
+#include "server/gadu-writable-session-token.h"
 #include "gadu-contact-details.h"
-#include "gadu-protocol.h"
 
 #include "gadu-contact-personal-info-service.h"
 
-GaduContactPersonalInfoService::GaduContactPersonalInfoService(GaduProtocol *protocol) :
-		ContactPersonalInfoService(protocol), Protocol(protocol), FetchSeq(0)
+GaduContactPersonalInfoService::GaduContactPersonalInfoService(Account account, QObject *parent) :
+		ContactPersonalInfoService(account, parent), FetchSeq(0)
 {
+}
+
+void GaduContactPersonalInfoService::setConnection(GaduConnection *connection)
+{
+	Connection = connection;
 }
 
 void GaduContactPersonalInfoService::handleEventPubdir50Read(struct gg_event *e)
@@ -50,17 +56,22 @@ void GaduContactPersonalInfoService::handleEventPubdir50Read(struct gg_event *e)
 		return;
 	}
 
-	Buddy result = GaduProtocolHelper::searchResultToBuddy(Protocol->account(), res, 0);
+	Buddy result = GaduProtocolHelper::searchResultToBuddy(account(), res, 0);
 	emit personalInfoAvailable(result);
 }
 
 void GaduContactPersonalInfoService::fetchPersonalInfo(Contact contact)
 {
+	if (!Connection || !Connection.data()->hasSession())
+		return;
+
 	Id = contact.id();
 	gg_pubdir50_t req = gg_pubdir50_new(GG_PUBDIR50_SEARCH);
 	gg_pubdir50_add(req, GG_PUBDIR50_UIN, Id.toUtf8().constData());
-	Protocol->disableSocketNotifiers();
-	FetchSeq = gg_pubdir50(Protocol->gaduSession(), req);
-	Protocol->enableSocketNotifiers();
+
+	auto writableSessionToken = Connection.data()->writableSessionToken();
+	FetchSeq = gg_pubdir50(writableSessionToken.rawSession(), req);
 	//gg_pubdir50_free(req);
 }
+
+#include "moc_gadu-contact-personal-info-service.cpp"

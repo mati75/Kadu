@@ -1,6 +1,10 @@
 /*
  * %kadu copyright begin%
- * Copyright 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
+ * Copyright 2007, 2008, 2009, 2010, 2011, 2012, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -24,6 +28,7 @@
 #include "chat/chat-details-room.h"
 #include "chat/type/chat-type-room.h"
 #include "gui/widgets/accounts-combo-box.h"
+#include "gui/widgets/simple-configuration-value-state-notifier.h"
 
 #include "chat-room-edit-widget.h"
 
@@ -83,24 +88,24 @@ void ChatRoomEditWidget::dataChanged()
 			&& NickEdit->text() == RoomDetails->nick()
 			&& PasswordEdit->text() == RoomDetails->password())
 	{
-		setState(StateNotChanged);
+		simpleStateNotifier()->setState(StateNotChanged);
 		return;
 	}
 
 	if (!AccountCombo->currentAccount() || RoomEdit->text().isEmpty() || NickEdit->text().isEmpty())
 	{
-		setState(StateChangedDataInvalid);
+		simpleStateNotifier()->setState(StateChangedDataInvalid);
 		return;
 	}
 
 	Chat sameChat = ChatTypeRoom::findChat(AccountCombo->currentAccount(), RoomEdit->text(), ActionReturnNull);
 	if (sameChat && (sameChat != chat()))
 	{
-		setState(StateChangedDataInvalid);
+		simpleStateNotifier()->setState(StateChangedDataInvalid);
 		return;
 	}
 
-	setState(StateChangedDataValid);
+	simpleStateNotifier()->setState(StateChangedDataValid);
 }
 
 void ChatRoomEditWidget::loadChatData()
@@ -124,12 +129,14 @@ void ChatRoomEditWidget::apply()
 	RoomDetails->setNick(NickEdit->text());
 	RoomDetails->setPassword(PasswordEdit->text());
 
-	setState(StateNotChanged);
+	simpleStateNotifier()->setState(StateNotChanged);
 }
 
 void ChatRoomEditWidget::cancel()
 {
 	loadChatData();
 
-	setState(StateNotChanged);
+	simpleStateNotifier()->setState(StateNotChanged);
 }
+
+#include "moc_chat-room-edit-widget.cpp"

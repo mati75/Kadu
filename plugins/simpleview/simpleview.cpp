@@ -3,7 +3,7 @@
  * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2010, 2011 Przemysław Rudy (prudy1@o2.pl)
  * Copyright 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2010, 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -27,14 +27,13 @@
 #include "core/core.h"
 #include "gui/hot-key.h"
 #include "gui/widgets/buddy-info-panel.h"
-#include "gui/widgets/group-tab-bar.h"
+#include "gui/widgets/group-tab-bar/group-tab-bar.h"
 #include "gui/widgets/roster-widget.h"
 #include "gui/widgets/status-buttons.h"
 #include "gui/widgets/talkable-tree-view.h"
 #include "gui/windows/kadu-window.h"
 #include "gui/windows/main-window.h"
 #include "icons/kadu-icon.h"
-#include "misc/misc.h"
 #include "misc/kadu-paths.h"
 
 #include "plugins/docking/docking.h"
@@ -48,7 +47,7 @@ SimpleView::SimpleView() :
 	SimpleViewActive(false)
 {
 	RosterWidget *roster;
-	
+
 	SimpleViewConfigUi::createInstance();
 
 	MainConfigurationWindow::registerUiFile(KaduPaths::instance()->dataPath() + QLatin1String("plugins/configuration/simpleview.ui"));
@@ -69,7 +68,7 @@ SimpleView::SimpleView() :
 	configurationUpdated();
 
 	DiffRect = config_file.readRectEntry("Look", "SimpleViewGeometry");
-	if (!DiffRect.isNull())
+	if (DiffRect != QRect(0,0,0,0))
 		simpleViewToggle(true);
 }
 
@@ -122,11 +121,11 @@ void SimpleView::simpleViewToggle(bool activate)
 		SimpleViewActive = activate;
 
 		flags = MainWindowHandle->windowFlags();
-		mr = windowGeometry(MainWindowHandle);
+		mr = MainWindowHandle->geometry();
 
 		if (SimpleViewActive)
 		{
-			if (DiffRect.isNull())
+			if (DiffRect == QRect(0,0,0,0))
 			{
 				if (KeepSize)
 				{
@@ -139,7 +138,13 @@ void SimpleView::simpleViewToggle(bool activate)
 				DiffRect.setRect(mr.x() - r.x(), mr.y() - r.y(), mr.width() - r.width(), mr.height() - r.height());
 			}
 			else
-				r.setRect(mr.x() - DiffRect.x(), mr.y() - DiffRect.y(), mr.width() - DiffRect.width(), mr.height() - DiffRect.height());
+				/* Since latest changes main window position is stored into the config
+				 * BEFORE the plugins are done(). It means the modified position is stored
+				 * instead original one.
+				 * r.setRect(mr.x() - DiffRect.x(), mr.y() - DiffRect.y(), mr.width() - DiffRect.width(), mr.height() - DiffRect.height());
+				 * So now simply use unchanged window position.
+				 */
+				 r = mr;
 
 			if (Borderless)
 				BuddiesListViewStyle = TalkableTreeViewHandle->styleSheet();
@@ -177,7 +182,7 @@ void SimpleView::simpleViewToggle(bool activate)
 
 			MainWindowHandle->setWindowFlags(flags | Qt::FramelessWindowHint);
 
-			setWindowGeometry(MainWindowHandle, r);
+			MainWindowHandle->setGeometry(r);
 
 			if (Borderless)
 				TalkableTreeViewHandle->setStyleSheet(QString("QTreeView { border-style: none; }") + BuddiesListViewStyle);
@@ -193,7 +198,7 @@ void SimpleView::simpleViewToggle(bool activate)
 
 			MainWindowHandle->setWindowFlags(flags & ~(Qt::FramelessWindowHint));
 
-			setWindowGeometry(MainWindowHandle, r);
+			MainWindowHandle->setGeometry(r);
 
 			/* Status button */
 			StatusButtonsHandle->setVisible(config_file.readBoolEntry("Look", "ShowStatusButton"));
@@ -253,3 +258,5 @@ void SimpleView::configurationUpdated()
 	Borderless = config_file.readBoolEntry("Look", "SimpleViewBorderless", true);
 
 }
+
+#include "moc_simpleview.cpp"

@@ -4,8 +4,8 @@
  * Copyright 2009, 2009 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2009 Michał Podsiadlik (michal@kadu.net)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
- * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2009, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -73,8 +73,11 @@ void JabberFileTransferHandler::cleanup(FileTransferStatus status)
 
 	transfer().setTransferStatus(status);
 
-	JabberTransfer->deleteLater();
-	JabberTransfer = 0;
+	if (JabberTransfer)
+	{
+		JabberTransfer->deleteLater();
+		JabberTransfer = nullptr;
+	}
 
 	if (LocalFile.isOpen())
 		LocalFile.close();
@@ -114,7 +117,7 @@ void JabberFileTransferHandler::send()
 		return; // TODO: notify
 	}
 
-	JabberProtocol *jabberProtocol = dynamic_cast<JabberProtocol *>(account.protocolHandler());
+	XMPP::JabberProtocol *jabberProtocol = dynamic_cast<XMPP::JabberProtocol *>(account.protocolHandler());
 	if (!jabberProtocol)
 	{
 		transfer().setTransferStatus(StatusNotConnected);
@@ -150,7 +153,7 @@ void JabberFileTransferHandler::send()
 	transfer().setTransferStatus(StatusWaitingForAccept);
 	InProgress = true;
 
-	JabberTransfer->sendFile(PeerJid, transfer().remoteFileName(), transfer().fileSize(), QString());
+	JabberTransfer->sendFile(PeerJid, transfer().remoteFileName(), transfer().fileSize(), QString(), XMPP::FTThumbnail());
 }
 
 void JabberFileTransferHandler::stop()
@@ -296,3 +299,5 @@ void JabberFileTransferHandler::fileTransferError(int error)
 {
 	cleanup(errorToStatus(error));
 }
+
+#include "moc_jabber-file-transfer-handler.cpp"

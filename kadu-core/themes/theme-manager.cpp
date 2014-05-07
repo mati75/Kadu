@@ -1,8 +1,9 @@
 /*
  * %kadu copyright begin%
  * Copyright 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2012 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -25,8 +26,8 @@
 
 #include "theme-manager.h"
 
-ThemeManager::ThemeManager(bool includeNone, QObject *parent) :
-		QObject(parent), IncludeNone(includeNone)
+ThemeManager::ThemeManager(QObject *parent) :
+		QObject(parent)
 {
 }
 
@@ -47,16 +48,11 @@ QStringList ThemeManager::getSubDirs(const QString &dirPath) const
 	return result;
 }
 
-void ThemeManager::loadThemes(const QStringList &customThemePaths)
+void ThemeManager::loadThemes()
 {
 	Themes.clear();
 
-	(void)QT_TRANSLATE_NOOP("@default", "None");
-	if (IncludeNone)
-		Themes.insert("None", Theme(QString(), "None"));
-
-	// Prefer custom theme paths.
-	QStringList themePaths = customThemePaths + defaultThemePaths();
+	QStringList themePaths = defaultThemePaths();
 	foreach (const QString &path, themePaths)
 	{
 		if (!isValidThemePath(path))
@@ -87,10 +83,12 @@ void ThemeManager::setCurrentTheme(const QString &themeName)
 	if (Themes.contains(fixedName))
 		CurrentThemeName = fixedName;
 	else
-		CurrentThemeName = IncludeNone ? "None" : defaultThemeName();
+		CurrentThemeName = defaultThemeName();
 }
 
 Theme ThemeManager::currentTheme() const
 {
 	return Themes.value(CurrentThemeName);
 }
+
+#include "moc_theme-manager.cpp"

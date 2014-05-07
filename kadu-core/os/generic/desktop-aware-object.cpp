@@ -1,7 +1,8 @@
 /*
  * %kadu copyright begin%
  * Copyright 2011 Piotr Dąbrowski (ultr@ultr.pl)
- * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011, 2012 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -18,9 +19,12 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "desktop-aware-object.h"
+#include <QtGui/QWidget>
 
 #include "misc/misc.h"
+#include "os/generic/desktop-aware-object-helper.h"
+
+#include "desktop-aware-object.h"
 
 KADU_AWARE_CLASS(DesktopAwareObject)
 
@@ -60,7 +64,7 @@ void DesktopAwareObject::desktopModified()
 	if (!Widget->isWindow())
 		return;
 
-	QRect rect = windowGeometry(Widget);
+	QRect rect = QRect(Widget->pos(), Widget->size());
 	QRect properRect = properGeometry(rect);
 	if (properRect != rect)
 	{

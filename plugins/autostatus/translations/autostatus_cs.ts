@@ -6,14 +6,6 @@
         <translation>Stav</translation>
     </message>
     <message>
-        <source>Autostatus</source>
-        <translation>Automatický stav</translation>
-    </message>
-    <message>
-        <source>General</source>
-        <translation>Obecné</translation>
-    </message>
-    <message>
         <source>Autostatus file</source>
         <translation>Soubor s automatickým stavem</translation>
     </message>
@@ -36,6 +28,18 @@
     <message>
         <source>Invisible</source>
         <translation>Neviditelný</translation>
+    </message>
+    <message>
+        <source>Behaviour</source>
+        <translation>Chování</translation>
+    </message>
+    <message>
+        <source>Description</source>
+        <translation>Popis</translation>
+    </message>
+    <message>
+        <source>AutoStatus</source>
+        <translation>Automatický stav</translation>
     </message>
 </context>
 <context>

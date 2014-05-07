@@ -18,16 +18,8 @@
         <translation>Pseudo-OSD dla MediaPlayer</translation>
     </message>
     <message>
-        <source>MediaPlayer</source>
-        <translation>MediaPlayer</translation>
-    </message>
-    <message>
         <source>General</source>
         <translation>Ogólne</translation>
-    </message>
-    <message>
-        <source>MediaPlayer message format for chat windows</source>
-        <translation>Format wiadomości dla okien rozmowy</translation>
     </message>
     <message>
         <source>MediaPlayer statuses in description</source>
@@ -44,10 +36,6 @@
     <message>
         <source>Here specify format which will replace &apos;#{player}&apos; tag when you will use it in description while setting status.</source>
         <translation>Podaj format, który zastąpi frazę &apos;#{player}&apos; użytą w statusie opisowym.</translation>
-    </message>
-    <message>
-        <source>Enable</source>
-        <translation>Włącz</translation>
     </message>
     <message>
         <source>Signatures to cut</source>
@@ -78,16 +66,8 @@
         <translation>Dodaj przełącznik statusów MediaPlayer do menu dokowania.</translation>
     </message>
     <message>
-        <source>General Settings</source>
-        <translation>Ogólne ustawienia</translation>
-    </message>
-    <message>
         <source>Signature Cutting</source>
         <translation>Usuwanie sygnatur</translation>
-    </message>
-    <message>
-        <source>Shall I cut this crap?</source>
-        <translation>Czy mam obciąc ten fragment?</translation>
     </message>
     <message>
         <source>Other Settings</source>
@@ -120,6 +100,26 @@ Win+ Enter/Backspace/Left/Right/Up/Down.</translation>
     <message>
         <source>Replace &apos;#{player}&apos; Tag</source>
         <translation>Zastąp znacznik &quot;#{player}&quot;</translation>
+    </message>
+    <message>
+        <source>Extras</source>
+        <translation>Dodatki</translation>
+    </message>
+    <message>
+        <source>Media Player</source>
+        <translation>Odtwarzacz</translation>
+    </message>
+    <message>
+        <source>MediaPlayer message format in chat window</source>
+        <translation>Format wiadomości w oknie rozmowy</translation>
+    </message>
+    <message>
+        <source>Enable signature cutting</source>
+        <translation>Włącz usuwanie sygnatur</translation>
+    </message>
+    <message>
+        <source>Enable removing non-essential stuff from audio file titles</source>
+        <translation>Włącz usuwanie nieistotnych fragmentów z tytułów plików</translation>
     </message>
 </context>
 <context>
@@ -211,6 +211,18 @@ Win+ Enter/Backspace/Left/Right/Up/Down.</translation>
     <message>
         <source>Player isn&apos;t running!</source>
         <translation>Odtwarzacz nie jest uruchomiony!</translation>
+    </message>
+    <message>
+        <source>Send anyway</source>
+        <translation>Wyślij mimo wszystko</translation>
+    </message>
+    <message>
+        <source>Cancel</source>
+        <translation>Anuluj</translation>
+    </message>
+    <message>
+        <source>Send</source>
+        <translation>Wyślij</translation>
     </message>
 </context>
 </TS>

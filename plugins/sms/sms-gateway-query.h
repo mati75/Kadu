@@ -2,14 +2,10 @@
 #define SMS_GATEWAY_QUERY_H
 
 #include <QtCore/QBuffer>
-#include <QtNetwork/QHttp>
 
 class SmsGatewayQuery : public QObject
 {
 	Q_OBJECT
-
-	QHttp *Query;
-	QBuffer *QueryBuffer;
 
 public:
 	explicit SmsGatewayQuery(QObject *parent = 0);

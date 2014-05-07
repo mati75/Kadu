@@ -38,36 +38,59 @@
         <translation>Zapisuj tylko statusy z opisem</translation>
     </message>
     <message>
-        <source>Quotation</source>
-        <translation>Cytowanie</translation>
-    </message>
-    <message>
-        <source>Quote message in chat window</source>
-        <translation>Cytowanie historii w oknie rozmowy</translation>
-    </message>
-    <message>
-        <source>.</source>
-        <translation>.</translation>
-    </message>
-    <message>
         <source>Shortcuts</source>
         <translation>Skróty</translation>
-    </message>
-    <message>
-        <source>General</source>
-        <translation>Ogólne</translation>
     </message>
     <message>
         <source>View history</source>
         <translation>Pokaż historię</translation>
     </message>
     <message>
-        <source>Do not quote messages older than</source>
-        <translation>Nie cytuj wiadomości starszych niż</translation>
+        <source>Save chats in history</source>
+        <translation>Zapisuj historię rozmów</translation>
     </message>
     <message>
-        <source>Kadu</source>
-        <translation>Kadu</translation>
+        <source>History in chat window</source>
+        <translation>Historia w oknie rozmowy</translation>
+    </message>
+    <message>
+        <source>Show messages from history since</source>
+        <translation>Pokaż wiadomości z historii od</translation>
+    </message>
+    <message>
+        <source>Choose time period in which messages can be quoted in chat window</source>
+        <translation>Wybierz okres z którego będą wyświetlone wiadomości w oknie rozmowy</translation>
+    </message>
+    <message>
+        <source>yesterday</source>
+        <translation>wczoraj</translation>
+    </message>
+    <message>
+        <source>last week</source>
+        <translation>ostatniego tygodnia</translation>
+    </message>
+    <message>
+        <source>last month</source>
+        <translation>ostatniego miesiąca</translation>
+    </message>
+    <message>
+        <source>Limit number of messages from history</source>
+        <translation>Limit ilości wiadomości z historii</translation>
+    </message>
+    <message>
+        <source>Behaviour</source>
+        <translation>Zachowanie</translation>
+    </message>
+    <message>
+        <source>Chat window</source>
+        <translation>Okno rozmowy</translation>
+    </message>
+</context>
+<context>
+    <name>BuddyHistoryDeleteHandler</name>
+    <message>
+        <source>Chat history</source>
+        <translation>Historia rozmów</translation>
     </message>
 </context>
 <context>
@@ -83,23 +106,27 @@
         <source>Clear History</source>
         <translation>Wyczyść historię</translation>
     </message>
+</context>
+<context>
+    <name>HistoryBuddyConfigurationWidget</name>
     <message>
-        <source>%1 day(s) %2 hour(s)</source>
-        <translation>%1 dzień(dni) %2 godzina(y)</translation>
+        <source>History</source>
+        <translation>Historia</translation>
+    </message>
+    <message>
+        <source>Store history</source>
+        <translation>Zapisuj historię rozmów</translation>
     </message>
 </context>
 <context>
-    <name>HistoryBuddyDataWindowAddons</name>
+    <name>HistoryChatConfigurationWidget</name>
     <message>
-        <source>Store history</source>
-        <translation>Przechowywanie historii rozmów</translation>
+        <source>History</source>
+        <translation>Historia</translation>
     </message>
-</context>
-<context>
-    <name>HistoryChatDataWindowAddons</name>
     <message>
         <source>Store history</source>
-        <translation>Przechowywanie historii rozmów</translation>
+        <translation>Zapisuj historię rozmów</translation>
     </message>
 </context>
 <context>
@@ -119,6 +146,14 @@
     <message>
         <source>Do you really want to delete history?</source>
         <translation>Czy na pewno chcesz usunąć historię?</translation>
+    </message>
+    <message>
+        <source>Delete history</source>
+        <translation>Usuń historię</translation>
+    </message>
+    <message>
+        <source>Cancel</source>
+        <translation>Anuluj</translation>
     </message>
 </context>
 <context>
@@ -169,13 +204,6 @@
     <message>
         <source>SMS</source>
         <translation>SMS</translation>
-    </message>
-</context>
-<context>
-    <name>QApplication</name>
-    <message>
-        <source>Chat history</source>
-        <translation>Historia rozmów</translation>
     </message>
 </context>
 <context>

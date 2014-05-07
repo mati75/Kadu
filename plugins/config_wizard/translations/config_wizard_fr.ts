@@ -51,8 +51,8 @@
 <context>
     <name>ConfigWizardConfigurationUiHandler</name>
     <message>
-        <source>Start Configuration Wizard...</source>
-        <translation>Lancer l&apos;assistant de configuration...</translation>
+        <source>Start Configuration Wizard</source>
+        <translation>Lancer l&apos;assistant de configuration</translation>
     </message>
 </context>
 <context>

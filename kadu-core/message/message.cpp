@@ -3,7 +3,7 @@
  * Copyright 2008, 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2011 Piotr Dąbrowski (ultr@ultr.pl)
  * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
- * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2007, 2008, 2009, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
@@ -24,6 +24,7 @@
 
 #include "chat/chat.h"
 #include "contacts/contact.h"
+#include "formatted-string/formatted-string.h"
 
 #include "message.h"
 
@@ -36,12 +37,12 @@ Message Message::create()
 	return new MessageShared();
 }
 
-Message Message::loadStubFromStorage(const QSharedPointer<StoragePoint> &messageStoragePoint)
+Message Message::loadStubFromStorage(const std::shared_ptr<StoragePoint> &messageStoragePoint)
 {
 	return MessageShared::loadStubFromStorage(messageStoragePoint);
 }
 
-Message Message::loadFromStorage(const QSharedPointer<StoragePoint> &messageStoragePoint)
+Message Message::loadFromStorage(const std::shared_ptr<StoragePoint> &messageStoragePoint)
 {
 	return MessageShared::loadFromStorage(messageStoragePoint);
 }
@@ -73,10 +74,18 @@ Message::~Message()
 
 KaduSharedBase_PropertyDefCRW(Message, Chat, messageChat, MessageChat, Chat::null)
 KaduSharedBase_PropertyDefCRW(Message, Contact, messageSender, MessageSender, Contact::null)
-KaduSharedBase_PropertyDefCRW(Message, QString, content, Content, QString())
+
+void Message::setContent(std::unique_ptr<FormattedString> &&content) const
+{
+	if (!isNull())
+		data()->setContent(std::move(content));
+}
+
+KaduSharedBase_PropertyReadDef(Message, FormattedString *, content, Content, 0)
+KaduSharedBase_PropertyReadDef(Message, QString, plainTextContent, PlainTextContent, QString())
+KaduSharedBase_PropertyReadDef(Message, QString, htmlContent, HtmlContent, QString())
 KaduSharedBase_PropertyDefCRW(Message, QDateTime, receiveDate, ReceiveDate, QDateTime())
 KaduSharedBase_PropertyDefCRW(Message, QDateTime, sendDate, SendDate, QDateTime())
 KaduSharedBase_PropertyDef(Message, MessageStatus, status, Status, MessageStatusUnknown)
 KaduSharedBase_PropertyDef(Message, MessageType, type, Type, MessageTypeUnknown)
-KaduSharedBase_PropertyBoolDef(Message, Pending, false)
 KaduSharedBase_PropertyDefCRW(Message, QString, id, Id, QString())

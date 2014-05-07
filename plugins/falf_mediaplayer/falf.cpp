@@ -5,7 +5,7 @@
  * Copyright 2009, 2010 Tomasz Rostański (rozteck@interia.pl)
  * Copyright 2010 Bartłomiej Zimoń (uzi18@o2.pl)
  * Copyright 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2011, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -44,12 +44,11 @@ FalfMediaPlayer::~FalfMediaPlayer()
 	kdebugf();
 }
 
-int FalfMediaPlayer::init(bool firstLoad)
+bool FalfMediaPlayer::init(bool firstLoad)
 {
 	Q_UNUSED(firstLoad)
 
-	bool res = MediaPlayer::instance()->registerMediaPlayer(this, 0);
-	return res ? 0 : 1;
+	return MediaPlayer::instance()->registerMediaPlayer(this, 0);
 }
 
 void FalfMediaPlayer::done()
@@ -174,3 +173,5 @@ bool FalfMediaPlayer::isActive()
 }
 
 Q_EXPORT_PLUGIN2(falf_mediaplayer, FalfMediaPlayer)
+
+#include "moc_falf.cpp"

@@ -1,10 +1,10 @@
 /*
  * %kadu copyright begin%
  * Copyright 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2009, 2010, 2010 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2009, 2009, 2010, 2010, 2012 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
  * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -203,7 +203,7 @@ bool CertificateHelpers::checkCertificate(QCA::TLS* tls, XMPP::QCATLSHandler *tl
 
 	if (result == QCA::TLS::Valid)
 		return true;
-		
+
 	if (false == tlsHandler->certMatchesHostname())
 	{
 		QList<QString> subjectInfo = certificate.subjectInfo().values(QCA::CommonName);
@@ -221,7 +221,7 @@ bool CertificateHelpers::checkCertificate(QCA::TLS* tls, XMPP::QCATLSHandler *tl
 	CertificateErrorWindow *errorDialog = new CertificateErrorWindow(
 			title, host, certificate,
 			result, tls->peerCertificateValidity(),
-			overridenHostname, tlsOverrideDomain, receiver, slot);
+			overridenHostname, receiver, slot);
 
 	if (blocking)
 		return QDialog::Accepted == errorDialog->exec();
@@ -235,16 +235,4 @@ QStringList CertificateHelpers::getCertificateStoreDirs()
 	QStringList l;
 	l += KaduPaths::instance()->profilePath() + QLatin1String("certs");
 	return l;
-}
-
-QString CertificateHelpers::getCertificateStoreSaveDir()
-{
-	QDir certsave(KaduPaths::instance()->profilePath() + QLatin1String("certs"));
-	if (!certsave.exists())
-	{
-		QDir home(KaduPaths::instance()->profilePath());
-		home.mkdir("certs");
-	}
-
-	return certsave.path();
 }

@@ -1,6 +1,7 @@
 /*
  * %kadu copyright begin%
  * Copyright 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -42,15 +43,15 @@ void ConfigProxyComboBox::createWidgets()
 {
 	kdebugf();
 
-	Label = new QLabel(qApp->translate("@default", widgetCaption.toUtf8().constData()) + ':', parentConfigGroupBox->widget());
+	Label = new QLabel(QCoreApplication::translate("@default", widgetCaption.toUtf8().constData()) + ':', parentConfigGroupBox->widget());
 	parentConfigGroupBox->addWidgets(Label, this);
 
 	clear();
 
 	if (!ConfigWidget::toolTip.isEmpty())
 	{
-		setToolTip(qApp->translate("@default", ConfigWidget::toolTip.toUtf8().constData()));
-		Label->setToolTip(qApp->translate("@default", ConfigWidget::toolTip.toUtf8().constData()));
+		setToolTip(QCoreApplication::translate("@default", ConfigWidget::toolTip.toUtf8().constData()));
+		Label->setToolTip(QCoreApplication::translate("@default", ConfigWidget::toolTip.toUtf8().constData()));
 	}
 }
 
@@ -102,3 +103,5 @@ bool ConfigProxyComboBox::fromDomElement(QDomElement domElement)
 
 	return ConfigWidgetValue::fromDomElement(domElement);
 }
+
+#include "moc_config-proxy-combo-box.cpp"

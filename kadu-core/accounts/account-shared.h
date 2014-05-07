@@ -3,8 +3,8 @@
  * Copyright 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2010 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
- * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2009, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -92,8 +92,8 @@ protected:
 	void forceEmitUpdated();
 
 public:
-	static AccountShared * loadStubFromStorage(const QSharedPointer<StoragePoint> &storagePoint);
-	static AccountShared * loadFromStorage(const QSharedPointer<StoragePoint> &storagePoint);
+	static AccountShared * loadStubFromStorage(const std::shared_ptr<StoragePoint> &storagePoint);
+	static AccountShared * loadFromStorage(const std::shared_ptr<StoragePoint> &storagePoint);
 
 	explicit AccountShared(const QString &protocolName = QString());
 	virtual ~AccountShared();
@@ -144,9 +144,5 @@ signals:
 	void fileTransferServiceUnregistered();
 
 };
-
-// for MOC
-#include "contacts/contact.h"
-#include "status/status.h"
 
 #endif // ACCOUNT_SHARED_H

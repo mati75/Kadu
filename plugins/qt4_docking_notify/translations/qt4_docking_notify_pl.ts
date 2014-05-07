@@ -2,12 +2,8 @@
 <context>
     <name>@default</name>
     <message>
-        <source>Notify</source>
-        <translation>Powiadom</translation>
-    </message>
-    <message>
         <source>Notification</source>
-        <translation>Powiadomienia</translation>
+        <translation>Powiadomienie</translation>
     </message>
     <message>
         <source>Tray Icon Balloon</source>
@@ -48,6 +44,10 @@
     <message>
         <source>No Icon</source>
         <translation>Brak ikony</translation>
+    </message>
+    <message>
+        <source>Notifications</source>
+        <translation>Powiadomienia</translation>
     </message>
 </context>
 <context>

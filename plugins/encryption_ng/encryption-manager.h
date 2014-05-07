@@ -3,8 +3,8 @@
  * Copyright 2011 Tomasz Rostanski (rozteck@interia.pl)
  * Copyright 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2008, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2008, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -21,64 +21,64 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ENCRYPTION_MANAGER_H
-#define ENCRYPTION_MANAGER_H
+#pragma once
 
 #include <QtCore/QObject>
+#include <QtCore/QPointer>
 #include <QtGui/QAction>
 
-#include "accounts/accounts-aware-object.h"
+#include "protocols/services/raw-message-transformer.h"
 
 #include "encryption_exports.h"
 
 class ActionDescription;
 class Chat;
 class ChatWidget;
+class ChatWidgetRepository;
 class Contact;
 class EncryptionChatData;
+class EncryptionProvider;
 class KeyGenerator;
 
-class ENCRYPTIONAPI EncryptionManager : public QObject, AccountsAwareObject
+class ENCRYPTIONAPI EncryptionManager : public QObject, public RawMessageTransformer
 {
 	Q_OBJECT
 	Q_DISABLE_COPY(EncryptionManager)
-
-	static EncryptionManager *Instance;
-
-	QMap<Chat, EncryptionChatData *> ChatEnryptions;
-	KeyGenerator *Generator;
-
-	EncryptionManager();
-	virtual ~EncryptionManager();
-
-private slots:
-	void filterRawOutgoingMessage(Chat chat, QByteArray &message, bool &stop);
-	void filterRawIncomingMessage(Chat chat, Contact sender, QByteArray &message, bool &ignore);
-
-	void chatWidgetCreated(ChatWidget *chatWidget);
-	void chatWidgetDestroying(ChatWidget *chatWidget);
-
-protected:
-	virtual void accountRegistered(Account account);
-	virtual void accountUnregistered(Account account);
 
 public:
 	static void createInstance();
 	static void destroyInstance();
 
-	static EncryptionManager * instance() { return Instance; }
+	static EncryptionManager * instance() { return m_instance; }
 
 	void setGenerator(KeyGenerator *generator);
 	KeyGenerator * generator();
 
 	EncryptionChatData * chatEncryption(const Chat &chat);
 
-	bool setEncryptionEnabled(const Chat &chat, bool enabled);
+	void setEncryptionProvider(const Chat &chat, EncryptionProvider *encryptionProvider);
+	EncryptionProvider * encryptionProvider(const Chat &chat);
+
+	RawMessage transformIncomingMessage(const RawMessage &rawMessage, const Message &message);
+	RawMessage transformOutgoingMessage(const RawMessage &rawMessage, const Message &message);
+
+	virtual RawMessage transform(const RawMessage &rawMessage, const Message &message);
+
+private:
+	static EncryptionManager *m_instance;
+
+	QPointer<ChatWidgetRepository> m_chatWidgetRepository;
+
+	QMap<Chat, EncryptionChatData *> m_chatEnryptions;
+	KeyGenerator *m_generator;
+
+	EncryptionManager();
+	virtual ~EncryptionManager();
+
+	void setChatWidgetRepository(ChatWidgetRepository *chatWidgetRepository);
+
+private slots:
+	void chatWidgetAdded(ChatWidget *chatWidget);
+	void chatWidgetRemoved(ChatWidget *chatWidget);
 
 };
-
-// for MOC
-#include "chat/chat.h"
-#include "contacts/contact.h"
-
-#endif // ENCRYPTION_MANAGER_H

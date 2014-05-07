@@ -7,7 +7,7 @@
  * Copyright 2002, 2003, 2004, 2005 Adrian Smarzewski (adrian@kadu.net)
  * Copyright 2002, 2003, 2004 Tomasz Chiliński (chilek@chilan.com)
  * Copyright 2007, 2009, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2011, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2007 Dawid Stawiarski (neeo@kadu.net)
  * Copyright 2005 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
@@ -26,7 +26,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "plugins/mediaplayer/mediaplayer.h"
+#include "plugin/mediaplayer/mediaplayer.h"
 
 #include "itunes-player-plugin.h"
 #include "itunes.h"
@@ -36,13 +36,12 @@ ItunesMediaplayerPlugin::~ItunesMediaplayerPlugin()
 
 }
 
-int ItunesMediaplayerPlugin::init(bool firstLoad)
+bool ItunesMediaplayerPlugin::init(bool firstLoad)
 {
 	Q_UNUSED(firstLoad)
 
 	iTunes = new ITunesMediaPlayer();
-	bool res = MediaPlayer::instance()->registerMediaPlayer(iTunes, iTunes);
-	return res ? 0 : 1;
+	return MediaPlayer::instance()->registerMediaPlayer(iTunes, iTunes);
 }
 
 void ItunesMediaplayerPlugin::done()
@@ -52,3 +51,5 @@ void ItunesMediaplayerPlugin::done()
 }
 
 Q_EXPORT_PLUGIN2(itunes_mediaplayer, ItunesMediaplayerPlugin)
+
+#include "moc_itunes-player-plugin.cpp"

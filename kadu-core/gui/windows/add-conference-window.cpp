@@ -1,6 +1,7 @@
 /*
  * %kadu copyright begin%
- * Copyright 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011, 2012, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -17,6 +18,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <QtGui/QApplication>
 #include <QtGui/QDialogButtonBox>
 #include <QtGui/QFormLayout>
 #include <QtGui/QLabel>
@@ -26,24 +28,25 @@
 #include "accounts/filter/protocol-filter.h"
 #include "buddies/model/buddy-list-model.h"
 #include "buddies/model/buddy-manager-adapter.h"
-// will be used when Qt 4.8 .is required
-// #include "buddies/model/checkable-buddies-proxy-model.h"
 #include "chat/chat-manager.h"
 #include "chat/type/chat-type-contact-set.h"
-#include "gui/widgets/accounts-combo-box.h"
+#include "configuration/config-file-variant-wrapper.h"
+#include "core/core.h"
 #include "gui/widgets/account-buddy-list-widget.h"
-#include "gui/widgets/chat-widget.h"
-#include "gui/widgets/chat-widget-manager.h"
+#include "gui/widgets/accounts-combo-box.h"
+#include "gui/widgets/chat-widget/chat-widget-manager.h"
 #include "gui/widgets/filtered-tree-view.h"
 #include "gui/widgets/talkable-tree-view.h"
 #include "icons/kadu-icon.h"
-#include "misc/misc.h"
 #include "model/model-chain.h"
+#include "os/generic/window-geometry-manager.h"
 #include "protocols/protocol.h"
 #include "talkable/filter/account-talkable-filter.h"
 #include "talkable/filter/hide-anonymous-talkable-filter.h"
 #include "talkable/filter/name-talkable-filter.h"
 #include "talkable/model/talkable-proxy-model.h"
+// will be used when Qt 4.8 .is required
+// #include "buddies/model/checkable-buddies-proxy-model.h"
 
 #include "add-conference-window.h"
 
@@ -59,12 +62,11 @@ AddConferenceWindow::AddConferenceWindow(QWidget *parent) :
 	accountChanged();
 	validateData();
 
-	loadWindowGeometry(this, "General", "AddConferenceWindowGeometry", 0, 50, 430, 400);
+	new WindowGeometryManager(new ConfigFileVariantWrapper("General", "AddConferenceWindowGeometry"), QRect(0, 50, 430, 400), this);
 }
 
 AddConferenceWindow::~AddConferenceWindow()
 {
-	saveWindowGeometry(this, "General", "AddConferenceWindowGeometry");
 }
 
 void AddConferenceWindow::createGui()
@@ -275,9 +277,8 @@ void AddConferenceWindow::start()
 	if (!DisplayNameEdit->text().isEmpty())
 		chat.setDisplay(DisplayNameEdit->text());
 
-	ChatWidget * const chatWidget = ChatWidgetManager::instance()->byChat(computeChat(), true);
-	if (chatWidget)
-		chatWidget->activate();
-
+	Core::instance()->chatWidgetManager()->openChat(computeChat(), OpenChatActivation::Activate);
 	QDialog::accept();
 }
+
+#include "moc_add-conference-window.cpp"

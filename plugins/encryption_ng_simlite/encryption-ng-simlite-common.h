@@ -4,7 +4,7 @@
  * Copyright 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
  * Copyright 2007, 2008, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2011, 2012 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
@@ -27,14 +27,8 @@
 #define BEGIN_RSA_PRIVATE_KEY "-----BEGIN RSA PRIVATE KEY-----"
 #define END_RSA_PRIVATE_KEY "-----END RSA PRIVATE KEY-----"
 
-#define BEGIN_RSA_PRIVATE_KEY_LENGTH (qstrlen(BEGIN_RSA_PRIVATE_KEY))
-#define END_RSA_PRIVATE_KEY_LENGTH (qstrlen(END_RSA_PRIVATE_KEY))
-
 #define BEGIN_RSA_PUBLIC_KEY "-----BEGIN RSA PUBLIC KEY-----"
 #define END_RSA_PUBLIC_KEY "-----END RSA PUBLIC KEY-----"
-
-#define BEGIN_RSA_PUBLIC_KEY_LENGTH (qstrlen(BEGIN_RSA_PUBLIC_KEY))
-#define END_RSA_PUBLIC_KEY_LENGTH (qstrlen(END_RSA_PUBLIC_KEY))
 
 #define SIM_MAGIC_V1_1 0x91
 #define SIM_MAGIC_V1_2 0x23

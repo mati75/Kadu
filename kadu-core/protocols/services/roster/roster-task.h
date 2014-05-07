@@ -1,6 +1,7 @@
 /*
  * %kadu copyright begin%
- * Copyright 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2012, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2012 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -22,8 +23,8 @@
 
 #include <QtCore/QString>
 
-#include "exports.h"
 #include "protocols/services/roster/roster-task-type.h"
+#include "exports.h"
 
 /**
  * @addtogroup Protocol

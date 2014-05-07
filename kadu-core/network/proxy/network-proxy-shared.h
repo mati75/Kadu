@@ -1,6 +1,7 @@
 /*
  * %kadu copyright begin%
- * Copyright 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -43,8 +44,8 @@ protected:
 	virtual void store();
 
 public:
-	static NetworkProxyShared * loadStubFromStorage(const QSharedPointer<StoragePoint> &networkProxyStoragePoint);
-	static NetworkProxyShared * loadFromStorage(const QSharedPointer<StoragePoint> &networkProxyStoragePoint);
+	static NetworkProxyShared * loadStubFromStorage(const std::shared_ptr<StoragePoint> &networkProxyStoragePoint);
+	static NetworkProxyShared * loadFromStorage(const std::shared_ptr<StoragePoint> &networkProxyStoragePoint);
 
 	explicit NetworkProxyShared(const QUuid &uuid = QUuid());
 	virtual ~NetworkProxyShared();

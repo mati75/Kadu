@@ -1,6 +1,7 @@
 /*
  * %kadu copyright begin%
  * Copyright 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -94,3 +95,5 @@ bool ActionFilterProxyModel::filterAcceptsRow(int sourceRow, const QModelIndex &
 
 	return true;
 }
+
+#include "moc_action-filter-proxy-model.cpp"

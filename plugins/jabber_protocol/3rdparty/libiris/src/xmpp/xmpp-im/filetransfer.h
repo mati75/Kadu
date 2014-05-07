@@ -30,7 +30,7 @@ namespace XMPP
 	class BytestreamManager;
 	struct FTRequest;
 
-	/*class AbstractFileTransfer 
+	/*class AbstractFileTransfer
 	{
 		public:
 			// Receive
@@ -41,6 +41,24 @@ namespace XMPP
 			virtual bool rangeSupported() const { return false; }
 			virtual void accept(qlonglong offset=0, qlonglong length=0) = 0;
 	};*/
+
+	class FTThumbnail
+	{
+	public:
+		inline FTThumbnail() : width(0), height(0) {}
+		// data - for outgoing it's actual image data. for incoming - cid
+		inline FTThumbnail(const QByteArray &data,
+						   const QString &mimeType = QString::null,
+						   quint32 width = 0, quint32 height = 0) :
+			data(data), mimeType(mimeType),
+			width(width), height(height) { }
+		inline bool isNull() const { return data.isNull(); }
+
+		QByteArray data;
+		QString mimeType;
+		quint32 width;
+		quint32 height;
+	};
 
 	class FileTransfer : public QObject /*, public AbstractFileTransfer */
 	{
@@ -55,11 +73,12 @@ namespace XMPP
 		void setProxy(const Jid &proxy);
 
 		// send
-		void sendFile(const Jid &to, const QString &fname, qlonglong size, const QString &desc);
+		void sendFile(const Jid &to, const QString &fname, qlonglong size, const QString &desc, const FTThumbnail &thumb);
 		qlonglong offset() const;
 		qlonglong length() const;
 		int dataSizeNeeded() const;
 		void writeFileData(const QByteArray &a);
+		const FTThumbnail &thumbnail() const;
 
 		// receive
 		Jid peer() const;
@@ -77,7 +96,7 @@ namespace XMPP
 		void accepted(); // indicates BSConnection has started
 		void connected();
 		void readyRead(const QByteArray &a);
-		void bytesWritten(int);
+		void bytesWritten(qint64);
 		void error(int);
 
 	private slots:
@@ -85,7 +104,7 @@ namespace XMPP
 		void stream_connected();
 		void stream_connectionClosed();
 		void stream_readyRead();
-		void stream_bytesWritten(int);
+		void stream_bytesWritten(qint64);
 		void stream_error(int);
 		void doAccept();
 		void reset();
@@ -144,7 +163,9 @@ namespace XMPP
 		JT_FT(Task *parent);
 		~JT_FT();
 
-		void request(const Jid &to, const QString &id, const QString &fname, qlonglong size, const QString &desc, const QStringList &streamTypes);
+		void request(const Jid &to, const QString &id, const QString &fname,
+					 qlonglong size, const QString &desc,
+					 const QStringList &streamTypes, const FTThumbnail &thumb);
 		qlonglong rangeOffset() const;
 		qlonglong rangeLength() const;
 		QString streamType() const;
@@ -166,6 +187,7 @@ namespace XMPP
 		QString desc;
 		bool rangeSupported;
 		QStringList streamTypes;
+		FTThumbnail thumbnail;
 	};
 	class JT_PushFT : public Task
 	{

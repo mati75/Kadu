@@ -3,7 +3,7 @@
  * Copyright 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
- * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2009, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -29,15 +29,15 @@
 namespace XMPP
 {
 	class S5BServer;
-}
 
-class JabberProtocol;
+	class JabberProtocol;
+}
 
 class JabberFileTransferService : public FileTransferService
 {
 	Q_OBJECT
 
-	JabberProtocol *Protocol;
+	XMPP::JabberProtocol *Protocol;
 
 private slots:
 	void loggedIn();
@@ -46,7 +46,7 @@ private slots:
 	void incomingFileTransferSlot();
 
 public:
-	explicit JabberFileTransferService(JabberProtocol *protocol);
+	explicit JabberFileTransferService(XMPP::JabberProtocol *protocol);
 	virtual ~JabberFileTransferService();
 
 	virtual FileTransferHandler * createFileTransferHandler(FileTransfer fileTransfer);

@@ -1,6 +1,7 @@
 /*
  * %kadu copyright begin%
  * Copyright 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -27,7 +28,8 @@
 #include "sms-token-read-job.h"
 
 SmsTokenReadJob::SmsTokenReadJob(QObject *parent) :
-		QObject(parent)
+		QObject{parent},
+		TokenNetworkReply{}
 {
 }
 
@@ -115,3 +117,5 @@ void SmsTokenReadJob::tokenValueEntered(const QString &tokenValue)
 
 	deleteLater();
 }
+
+#include "moc_sms-token-read-job.cpp"

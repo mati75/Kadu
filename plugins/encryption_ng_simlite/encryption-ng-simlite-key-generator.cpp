@@ -2,6 +2,7 @@
  * Copyright 2007, 2008, 2009 Tomasz Kazmierczak
  * %kadu copyright begin%
  * Copyright 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -19,6 +20,7 @@
  */
 
 #include "accounts/account.h"
+#include "contacts/contact.h"
 
 #include "plugins/encryption_ng/keys/key.h"
 #include "plugins/encryption_ng/keys/keys-manager.h"

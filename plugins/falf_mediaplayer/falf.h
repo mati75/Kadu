@@ -4,14 +4,15 @@
 #include <QtCore/QFile>
 #include <QtCore/QObject>
 
-#include "plugins/generic-plugin.h"
+#include "plugin/plugin-root-component.h"
 
 #include "plugins/mediaplayer/player_info.h"
 
-class FalfMediaPlayer : public QObject, PlayerInfo, GenericPlugin
+class FalfMediaPlayer : public QObject, PlayerInfo, PluginRootComponent
 {
 	Q_OBJECT
-	Q_INTERFACES(GenericPlugin)
+	Q_INTERFACES(PluginRootComponent)
+	Q_PLUGIN_METADATA(IID "im.kadu.PluginRootComponent")
 
 	enum DataType
 	{
@@ -29,7 +30,7 @@ public:
 	explicit FalfMediaPlayer(QObject *parent = 0);
 	virtual ~FalfMediaPlayer();
 
-	virtual int init(bool firstLoad);
+	virtual bool init(bool firstLoad);
 	virtual void done();
 
 	virtual QString getTitle();

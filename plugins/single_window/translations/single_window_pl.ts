@@ -38,10 +38,6 @@
         <translation>Skróty</translation>
     </message>
     <message>
-        <source>Tabs</source>
-        <translation>Zakładki</translation>
-    </message>
-    <message>
         <source>Switch to previous tab</source>
         <translation>Przełącz na poprzednią zakładkę</translation>
     </message>
@@ -56,6 +52,10 @@
     <message>
         <source>Switch focus between roster and tabs</source>
         <translation>Przełącz focus pomiędzy listą kontaktów a zakładkami</translation>
+    </message>
+    <message>
+        <source>Behaviour</source>
+        <translation>Zachowanie</translation>
     </message>
 </context>
 <context>

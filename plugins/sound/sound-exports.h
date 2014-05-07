@@ -3,6 +3,7 @@
  * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
  * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
@@ -20,18 +21,15 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _SOUND_EXPORTS_H
+#ifndef SOUND_EXPORTS_H
+#define SOUND_EXPORTS_H
 
-#include "exports.h"
-#ifdef KADULIB
-#define SOUNDAPI KADU_EXPORT
+#include <QtCore/QtGlobal>
+
+#ifdef sound_EXPORTS
+#define SOUNDAPI Q_DECL_EXPORT
 #else
-#ifdef SOUND_BUILD
-#define SOUNDAPI KADU_EXPORT
-#else
-#define SOUNDAPI KADU_IMPORT
-#endif
+#define SOUNDAPI Q_DECL_IMPORT
 #endif
 
-#define _SOUND_EXPORTS_H
-#endif
+#endif // SOUND_EXPORTS_H

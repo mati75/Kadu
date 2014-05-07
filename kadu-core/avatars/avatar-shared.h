@@ -1,7 +1,7 @@
 /*
  * %kadu copyright begin%
  * Copyright 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2009, 2009, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
@@ -52,8 +52,8 @@ protected:
 	virtual bool shouldStore();
 
 public:
-	static AvatarShared * loadStubFromStorage(const QSharedPointer<StoragePoint> &avatarStoragePoint);
-	static AvatarShared * loadFromStorage(const QSharedPointer<StoragePoint> &avatarStoragePoint);
+	static AvatarShared * loadStubFromStorage(const std::shared_ptr<StoragePoint> &avatarStoragePoint);
+	static AvatarShared * loadFromStorage(const std::shared_ptr<StoragePoint> &avatarStoragePoint);
 
 	explicit AvatarShared(const QUuid &uuid = QUuid());
 	virtual ~AvatarShared();

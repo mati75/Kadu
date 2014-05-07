@@ -1,6 +1,8 @@
 /*
  * %kadu copyright begin%
+ * Copyright 2012 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2012 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -20,7 +22,7 @@
 #ifndef SEARCH_BAR_H
 #define SEARCH_BAR_H
 
-#include <QtCore/QWeakPointer>
+#include <QtCore/QPointer>
 #include <QtGui/QToolBar>
 
 #include "exports.h"
@@ -49,7 +51,7 @@ class KADUAPI SearchBar : public QToolBar
 {
 	Q_OBJECT
 
-	QWeakPointer<QWidget> SearchWidget;
+	QPointer<QWidget> SearchWidget;
 	bool AutoVisibility;
 
 	QLineEdit *FindEdit;
@@ -108,6 +110,10 @@ public slots:
 	 * Calling this method will not emit any signal.
 	 */
 	void setSearchText(const QString &search);
+
+	void somethingFound(bool found);
+
+	void searchTextChanged(const QString &text);
 
 signals:
 	/**

@@ -2,28 +2,28 @@
 <context>
     <name>@default</name>
     <message>
-        <source>Kadu</source>
-        <translation>Kadu</translation>
-    </message>
-    <message>
-        <source>Advanced</source>
-        <translation>Zaawansowane</translation>
-    </message>
-    <message>
-        <source>Kadu&apos;s Main Window Autohide</source>
-        <translation>Autoukrywanie głownego okna Kadu</translation>
-    </message>
-    <message>
-        <source>Use autohide</source>
-        <translation>Włącz autoukrywanie</translation>
-    </message>
-    <message>
         <source>Autohide idle time</source>
         <translation>Czas bezczynności</translation>
     </message>
     <message numerus="yes">
         <source>%n second(s)</source>
         <translation><numerusform>%n sekunda</numerusform><numerusform>%n sekundy</numerusform><numerusform>%n sekund</numerusform></translation>
+    </message>
+    <message>
+        <source>Buddies list</source>
+        <translation>Lista znajomych</translation>
+    </message>
+    <message>
+        <source>General</source>
+        <translation>Ogólne</translation>
+    </message>
+    <message>
+        <source>Buddies window</source>
+        <translation>Okno znajomych</translation>
+    </message>
+    <message>
+        <source>Hide buddy list window when unused</source>
+        <translation>Ukryj okno znajomych, kiedy nie jest używane</translation>
     </message>
 </context>
 <context>

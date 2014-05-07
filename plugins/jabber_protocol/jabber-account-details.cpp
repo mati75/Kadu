@@ -1,7 +1,7 @@
 /*
  * %kadu copyright begin%
  * Copyright 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2009, 2010 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2009, 2009, 2010, 2011, 2012 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2009, 2009 Bartłomiej Zimoń (uzi18@o2.pl)
  * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
@@ -33,8 +33,8 @@
 #include "jabber-account-details.h"
 
 JabberAccountDetails::JabberAccountDetails(AccountShared *data) :
-		AccountDetails(data), AutoResource(false), UseCustomHostPort(false), CustomPort(5222),
-		EncryptionMode(Encryption_Auto), PlainAuthMode(AllowPlainOverTLS), LegacySSLProbe(true),
+		AccountDetails(data), AutoResource(false), Priority{}, UseCustomHostPort(false), CustomPort(5222),
+		EncryptionMode(Encryption_Auto), PlainAuthMode(AllowPlainOverTLS),
 		SendTypingNotification(true), SendGoneNotification(true), PublishSystemInfo(true)
 {
 	OpenChatRunner = new JabberOpenChatWithRunner(data);
@@ -74,7 +74,6 @@ void JabberAccountDetails::load()
 
 	EncryptionMode = (EncryptionFlag)loadValue<int>("EncryptionMode", (int)Encryption_Auto);
 	PlainAuthMode = (AllowPlainType)loadValue<int>("PlainAuthMode", (int)AllowPlainOverTLS);
-	LegacySSLProbe = loadValue<bool>("LegacySSLProbe", true);
 	TlsOverrideCert = XMPP::Base64::decode(loadValue<QByteArray>("TlsOverrideCert"));
 	TlsOverrideDomain = loadValue<QString>("TlsOverrideDomain");
 
@@ -99,7 +98,6 @@ void JabberAccountDetails::store()
 
 	storeValue("EncryptionMode", EncryptionMode);
 	storeValue("PlainAuthMode", PlainAuthMode);
-	storeValue("LegacySSLProbe", LegacySSLProbe);
 	storeValue("TlsOverrideCert", XMPP::Base64::encode(TlsOverrideCert).toAscii());
 	storeValue("TlsOverrideDomain", TlsOverrideDomain);
 

@@ -26,23 +26,20 @@
 #ifndef MESSAGE_COMMON_H
 #define MESSAGE_COMMON_H
 
-// MessageStatus enum vaules identical with those defined in kadu-core/chat/style-engines/chat-scripts.js
+// MessageStatus enum vaules identical with those defined in kadu-core/chat-style/engine/chat-scripts.js
 enum MessageStatus
 {
 	MessageStatusUnknown = 0,
-	MessageStatusReceived = 1,
-	MessageStatusRead = 2,
-	MessageStatusSent = 3,
 	MessageStatusDelivered = 4,
 	MessageStatusWontDeliver = 5
 };
 
 enum MessageType
 {
-	MessageTypeUnknown,
-	MessageTypeReceived,
-	MessageTypeSent,
-	MessageTypeSystem
+	MessageTypeUnknown = 0,
+	MessageTypeReceived = 1,
+	MessageTypeSent = 2,
+	MessageTypeSystem = 3
 };
 
 #endif // MESSAGE_COMMON_H

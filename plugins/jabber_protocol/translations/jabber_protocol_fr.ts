@@ -2,24 +2,192 @@
 <context>
     <name>@default</name>
     <message>
-        <source>Jabber/XMPP</source>
-        <translation>Jabber / XMPP</translation>
-    </message>
-    <message>
-        <source>Connection</source>
-        <translation>Connexion</translation>
-    </message>
-    <message>
-        <source>Data transfers</source>
-        <translation>Transfert de données</translation>
-    </message>
-    <message>
-        <source>Port</source>
-        <translation>Port</translation>
-    </message>
-    <message>
         <source>External address</source>
         <translation>Adresse externe</translation>
+    </message>
+    <message>
+        <source>Disconnected</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <source>XML Parsing Error</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <source>XMPP Protocol Error</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <source>Generic stream error</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <source>Conflict(remote login replacing this one)</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <source>Timed out from inactivity</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <source>Internal server error</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <source>Invalid XML</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <source>Policy violation</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <source>Server out of resources</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <source>Server is shutting down</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <source>XMPP Stream Error: %1</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <source>Unable to connect to server</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <source>Host not found</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <source>Error connecting to proxy</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <source>Error during proxy negotiation</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <source>Proxy authentication failed</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <source>Socket/stream error</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <source>Connection Error: %1</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <source>Host no longer hosted</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <source>Host unknown</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <source>A required remote connection failed</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <source>See other host: %1</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <source>Server does not support proper XMPP version</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <source>Stream Negotiation Error: %1</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <source>Server rejected STARTTLS</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <source>TLS handshake error</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <source>Broken security layer (TLS)</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <source>Unable to login</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <source>No appropriate mechanism available for given security settings(e.g. SASL library too weak, or plaintext authentication not enabled)</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <source>Bad server response</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <source>Server failed mutual authentication</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <source>Encryption required for chosen SASL mechanism</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <source>Invalid account information</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <source>Invalid SASL mechanism</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <source>Invalid realm</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <source>SASL mechanism too weak for this account</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <source>Not authorized</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <source>Temporary auth failure</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <source>Authentication error: %1</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <source>Broken security layer (SASL)</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <source>None</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <source>General</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <source>Advanced</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <source>XMPP/Jabber</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <source>Port for data transfers</source>
+        <translation type="unfinished"/>
     </message>
 </context>
 <context>
@@ -74,7 +242,7 @@
     </message>
     <message>
         <source>Organizational unit:</source>
-        <translation type="unfinished"/>
+        <translation>Unité organisationnelle</translation>
     </message>
     <message>
         <source>Locality:</source>
@@ -258,7 +426,7 @@
     </message>
     <message>
         <source>&lt;font size=&apos;-1&apos;&gt;&lt;i&gt;Select or enter the identity that will be associated with this account.&lt;/i&gt;&lt;/font&gt;</source>
-        <translation type="unfinished"/>
+        <translation>&lt;font size=&apos;-1&apos;&gt;&lt;i&gt;Sélectionner ou saisir l&apos;identifiant qui sera associé à votre compte.&lt;/i&gt;&lt;/font&gt;</translation>
     </message>
     <message>
         <source>Add Account</source>
@@ -373,7 +541,8 @@ Password entered in both fields (&quot;Password&quot; and &quot;Retype password&
     </message>
     <message>
         <source>&lt;font size=&apos;-1&apos;&gt;&lt;i&gt;Select or enter the identity that will be associated with this account.&lt;/i&gt;&lt;/font&gt;</source>
-        <translation type="unfinished"/>
+        <translation>&lt;font size=&apos;-1&apos;&gt;&lt;i&gt;Sélectionner ou saisir l&apos;identifiant qui sera associé à ce compte.&lt;/i&gt;&lt;/font&gt;
+</translation>
     </message>
     <message>
         <source>More options:</source>
@@ -439,7 +608,7 @@ Password entered in both fields (&quot;Password&quot; and &quot;Retype password&
         <source>Invalid data entered in required fields.
 
 Password entered in both fields (&quot;New password&quot; and &quot;Retype password&quot;) must be the same!</source>
-        <translation type="unfinished"/>
+        <translation>Données invalides saisies dans les champs requis. ⏎ ⏎ Mot de passe entré dans les deux champs (&quot;Nouveau mot de passe&quot; et &quot;Confirmer mot de passe&quot;) doit être le même.</translation>
     </message>
 </context>
 <context>
@@ -478,7 +647,7 @@ Password entered in both fields (&quot;New password&quot; and &quot;Retype passw
     </message>
     <message>
         <source>&lt;font size=&apos;-1&apos;&gt;&lt;i&gt;Select or enter the identity that will be associated with this account.&lt;/i&gt;&lt;/font&gt;</source>
-        <translation type="unfinished"/>
+        <translation>&lt;font size=&apos;-1&apos;&gt;&lt;i&gt;Sélectionner ou saisisser l&apos;identifiant qui sera associé à votre compte.&lt;/i&gt;&lt;/font&gt;</translation>
     </message>
     <message>
         <source>General</source>
@@ -493,20 +662,8 @@ Password entered in both fields (&quot;New password&quot; and &quot;Retype passw
         <translation>Connexion</translation>
     </message>
     <message>
-        <source>Manually specify server host/port</source>
-        <translation>Saisir manuellement l&apos;adresse du serveur (hôte/port)</translation>
-    </message>
-    <message>
-        <source>Host</source>
-        <translation>Hôte</translation>
-    </message>
-    <message>
         <source>Port</source>
         <translation>Port</translation>
-    </message>
-    <message>
-        <source>Encrypt connection</source>
-        <translation>Crypter la connexion</translation>
     </message>
     <message>
         <source>Never</source>
@@ -519,14 +676,6 @@ Password entered in both fields (&quot;New password&quot; and &quot;Retype passw
     <message>
         <source>When available</source>
         <translation>Lorsque disponible</translation>
-    </message>
-    <message>
-        <source>Legacy SSL</source>
-        <translation type="unfinished"/>
-    </message>
-    <message>
-        <source>Probe legacy SSL port</source>
-        <translation type="unfinished"/>
     </message>
     <message>
         <source>Allow plaintext authentication</source>
@@ -545,27 +694,11 @@ Password entered in both fields (&quot;New password&quot; and &quot;Retype passw
         <translation>Resource</translation>
     </message>
     <message>
-        <source>Use hostname as a resource</source>
-        <translation>Utiliser le nom de l&apos;hôte comme une ressource</translation>
-    </message>
-    <message>
         <source>Priority</source>
         <translation>Priorité</translation>
     </message>
     <message>
         <source>Data transfer proxy</source>
-        <translation type="unfinished"/>
-    </message>
-    <message>
-        <source>Notifications</source>
-        <translation>Notifications</translation>
-    </message>
-    <message>
-        <source>Send composing events</source>
-        <translation type="unfinished"/>
-    </message>
-    <message>
-        <source>Send inactivity events (end/suspend conversation)</source>
         <translation type="unfinished"/>
     </message>
     <message>
@@ -581,14 +714,6 @@ Password entered in both fields (&quot;New password&quot; and &quot;Retype passw
         <translation type="unfinished"/>
     </message>
     <message>
-        <source>Confirm account removal</source>
-        <translation>Confirmer la suppression de compte</translation>
-    </message>
-    <message>
-        <source>Are you sure you want to remove account %1 (%2)?</source>
-        <translation>Êtes-vous certain de vouloir supprimer le compte %1 (%2) ?</translation>
-    </message>
-    <message>
         <source>Remove account</source>
         <translation>Supprimer un compte</translation>
     </message>
@@ -597,12 +722,64 @@ Password entered in both fields (&quot;New password&quot; and &quot;Retype passw
         <translation>Configuration du proxy</translation>
     </message>
     <message>
-        <source>Privacy</source>
-        <translation>Vie privée</translation>
-    </message>
-    <message>
         <source>Publish system information</source>
         <translation>Publier les informations système</translation>
+    </message>
+    <message>
+        <source>XMPP Server</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <source>Use custom server address/port</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <source>Server address</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <source>Use encrypted connection</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <source>Only in older version</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <source>Network</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <source>Use computer name as a resource</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <source>Enable composing events</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <source>Your interlocutor will be notified when you are typing a message, before it is sent. And vice versa.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <source>Enable chat activity events</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <source>Your interlocutor will be notified when you suspend or end conversation. And vice versa.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <source>Others can see your system name/version</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <source>Confrim Account Removal</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <source>Are you sure do you want to remove account %1 (%2)?</source>
+        <translation type="unfinished"/>
     </message>
 </context>
 <context>
@@ -675,6 +852,10 @@ Maintenant veuillez ajouter vos amis à la liste d&apos;amis.</translation>
     </message>
     <message>
         <source>An error has occurred during registration. Please try again later.</source>
+        <translation>Une erreur est survenue pendant l&apos;enregistrement. Merci de réessayer plus tard. </translation>
+    </message>
+    <message>
+        <source>Registering new XMPP account</source>
         <translation type="unfinished"/>
     </message>
 </context>
@@ -952,9 +1133,17 @@ Veuillez corriger et essayer encore.</translation>
     </message>
 </context>
 <context>
-    <name>XMPP::JabberClient</name>
+    <name>XMPP::JabberConnectionService</name>
     <message>
-        <source>SSL support could not be initialized for account %1. This is most likely because the QCA TLS plugin is not installed on your system.</source>
+        <source>security problem</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <source>TLS certificate not accepted</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <source>Unknown error</source>
         <translation type="unfinished"/>
     </message>
     <message>
@@ -962,181 +1151,18 @@ Veuillez corriger et essayer encore.</translation>
         <translation type="unfinished"/>
     </message>
     <message>
-        <source>There was an error communicating with the server.
+        <source>Connection error.
 Details: %1</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <source>Disconnected</source>
-        <translation>Déconnecté</translation>
-    </message>
-    <message>
-        <source>XML Parsing Error</source>
+        <source>Account disconnected.
+Details: %1</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <source>XMPP Protocol Error</source>
+        <source>SSL support could not be initialized for account %1. This is most likely because the QCA TLS plugin is not installed on your system.</source>
         <translation type="unfinished"/>
-    </message>
-    <message>
-        <source>Generic stream error</source>
-        <translation type="unfinished"/>
-    </message>
-    <message>
-        <source>Conflict(remote login replacing this one)</source>
-        <translation type="unfinished"/>
-    </message>
-    <message>
-        <source>Timed out from inactivity</source>
-        <translation type="unfinished"/>
-    </message>
-    <message>
-        <source>Internal server error</source>
-        <translation>Erreur interne du serveur</translation>
-    </message>
-    <message>
-        <source>Invalid XML</source>
-        <translation type="unfinished"/>
-    </message>
-    <message>
-        <source>Policy violation</source>
-        <translation>Violation de police</translation>
-    </message>
-    <message>
-        <source>Server out of resources</source>
-        <translation type="unfinished"/>
-    </message>
-    <message>
-        <source>Server is shutting down</source>
-        <translation type="unfinished"/>
-    </message>
-    <message>
-        <source>XMPP Stream Error: %1</source>
-        <translation type="unfinished"/>
-    </message>
-    <message>
-        <source>Unable to connect to server</source>
-        <translation type="unfinished"/>
-    </message>
-    <message>
-        <source>Host not found</source>
-        <translation>Hôte introuvable</translation>
-    </message>
-    <message>
-        <source>Error connecting to proxy</source>
-        <translation type="unfinished"/>
-    </message>
-    <message>
-        <source>Error during proxy negotiation</source>
-        <translation type="unfinished"/>
-    </message>
-    <message>
-        <source>Proxy authentication failed</source>
-        <translation type="unfinished"/>
-    </message>
-    <message>
-        <source>Socket/stream error</source>
-        <translation>Erreur de Socket / stream</translation>
-    </message>
-    <message>
-        <source>Connection Error: %1</source>
-        <translation>Erreur de connexion : %1</translation>
-    </message>
-    <message>
-        <source>Host no longer hosted</source>
-        <translation type="unfinished"/>
-    </message>
-    <message>
-        <source>Host unknown</source>
-        <translation>Hôte inconnu</translation>
-    </message>
-    <message>
-        <source>A required remote connection failed</source>
-        <translation type="unfinished"/>
-    </message>
-    <message>
-        <source>See other host: %1</source>
-        <translation type="unfinished"/>
-    </message>
-    <message>
-        <source>Server does not support proper XMPP version</source>
-        <translation type="unfinished"/>
-    </message>
-    <message>
-        <source>Stream Negotiation Error: %1</source>
-        <translation type="unfinished"/>
-    </message>
-    <message>
-        <source>Server rejected STARTTLS</source>
-        <translation>Le serveur a refusé STARTTLS</translation>
-    </message>
-    <message>
-        <source>TLS handshake error</source>
-        <translation>Erreur de négociation TLS</translation>
-    </message>
-    <message>
-        <source>Broken security layer (TLS)</source>
-        <translation>Couche de sécurité brisée (TLS)</translation>
-    </message>
-    <message>
-        <source>Unable to login</source>
-        <translation>Impossible de s&apos;identifier</translation>
-    </message>
-    <message>
-        <source>No appropriate mechanism available for given security settings(e.g. SASL library too weak, or plaintext authentication not enabled)</source>
-        <translation type="unfinished"/>
-    </message>
-    <message>
-        <source>Bad server response</source>
-        <translation>Mauvaise réponse du serveur</translation>
-    </message>
-    <message>
-        <source>Server failed mutual authentication</source>
-        <translation type="unfinished"/>
-    </message>
-    <message>
-        <source>Encryption required for chosen SASL mechanism</source>
-        <translation type="unfinished"/>
-    </message>
-    <message>
-        <source>Invalid account information</source>
-        <translation type="unfinished"/>
-    </message>
-    <message>
-        <source>Invalid SASL mechanism</source>
-        <translation type="unfinished"/>
-    </message>
-    <message>
-        <source>Invalid realm</source>
-        <translation type="unfinished"/>
-    </message>
-    <message>
-        <source>SASL mechanism too weak for this account</source>
-        <translation type="unfinished"/>
-    </message>
-    <message>
-        <source>Not authorized</source>
-        <translation>Non autorisé</translation>
-    </message>
-    <message>
-        <source>Temporary auth failure</source>
-        <translation>Erreur d&apos;authentification temporaire</translation>
-    </message>
-    <message>
-        <source>Authentication error: %1</source>
-        <translation>Erreur d&apos;authentification : %1</translation>
-    </message>
-    <message>
-        <source>Broken security layer (SASL)</source>
-        <translation>Couche de sécurité brisée (SASL)</translation>
-    </message>
-    <message>
-        <source>None</source>
-        <translation>Rien</translation>
-    </message>
-    <message>
-        <source>security problem</source>
-        <translation>problème de sécurité</translation>
     </message>
 </context>
 <context>
@@ -1230,14 +1256,6 @@ Details: %1</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <source>Payment required</source>
-        <translation>Paiement nécessaire</translation>
-    </message>
-    <message>
-        <source>The requesting entity is not authorized to access the requested service because payment is required.</source>
-        <translation type="unfinished"/>
-    </message>
-    <message>
         <source>Recipient unavailable</source>
         <translation>Destinataire indisponible</translation>
     </message>
@@ -1291,7 +1309,7 @@ Details: %1</source>
     </message>
     <message>
         <source>The server or recipient does not currently provide the requested service.</source>
-        <translation type="unfinished"/>
+        <translation>Le serveur ou le receveur ne fournit pas le service demandé.</translation>
     </message>
     <message>
         <source>Subscription required</source>
@@ -1307,7 +1325,7 @@ Details: %1</source>
     </message>
     <message>
         <source>The error condition is not one of those defined by the other conditions in this list.</source>
-        <translation type="unfinished"/>
+        <translation>La condition d&apos;erreur n&apos;est pas une de celles définies par les autres conditions de cette liste.</translation>
     </message>
     <message>
         <source>Unexpected request</source>
@@ -1323,13 +1341,6 @@ Details: %1</source>
     <message>
         <source>Disconnected</source>
         <translation>Déconnecté</translation>
-    </message>
-</context>
-<context>
-    <name>XmlConsole</name>
-    <message>
-        <source>XML Console - %1</source>
-        <translation>Console XML - %1</translation>
     </message>
 </context>
 </TS>

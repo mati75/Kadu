@@ -1,8 +1,9 @@
 /*
  * %kadu copyright begin%
  * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2012 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -58,7 +59,8 @@ void AntistringConfigurationUiHandler::unregisterUiHandler()
 	}
 }
 
-AntistringConfigurationUiHandler::AntistringConfigurationUiHandler()
+AntistringConfigurationUiHandler::AntistringConfigurationUiHandler() :
+		ConditionListWidget{}, ConditionWidget{}, FactorWidget{}
 {
 }
 
@@ -103,10 +105,9 @@ void AntistringConfigurationUiHandler::mainConfigurationWindowCreated(MainConfig
 	connect(changeConditionButton, SIGNAL(clicked()), this, SLOT(changeCondition()));
 	connect(deleteConditionButton, SIGNAL(clicked()), this, SLOT(deleteCondition()));
 
-	connect(mainConfigurationWindow->widget()->widgetById("antistring/enable_log"), SIGNAL(toggled(bool)),
-	        mainConfigurationWindow->widget()->widgetById("antistring/log_file"), SLOT(setEnabled(bool)));
-
 	updateConditionList();
+
+	connect(mainConfigurationWindow, SIGNAL(configurationWindowApplied()), this, SLOT(applyConfiguration()));
 }
 
 void AntistringConfigurationUiHandler::updateConditionList()
@@ -165,6 +166,11 @@ void AntistringConfigurationUiHandler::deleteCondition()
 	updateConditionList();
 }
 
+void AntistringConfigurationUiHandler::applyConfiguration()
+{
+	Antistring::instance()->configuration().storeConditions();
+}
+
 void AntistringConfigurationUiHandler::wordSelected(QListWidgetItem *item)
 {
 	Q_UNUSED(item)
@@ -182,3 +188,5 @@ void AntistringConfigurationUiHandler::wordSelected(QListWidgetItem *item)
 	FactorWidget->setValue(condition.second);
 	ConditionWidget->setText(condition.first);
 }
+
+#include "moc_antistring-configuration-ui-handler.cpp"

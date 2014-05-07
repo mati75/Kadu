@@ -1,12 +1,12 @@
 /*
  * %kadu copyright begin%
  * Copyright 2008, 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2009, 2012 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2011 Piotr Dąbrowski (ultr@ultr.pl)
  * Copyright 2008 Michał Podsiadlik (michal@kadu.net)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
  * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
- * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2007, 2008, 2009, 2010, 2011, 2012, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
@@ -33,7 +33,6 @@
 class QCheckBox;
 class QComboBox;
 class QLineEdit;
-class QPushButton;
 class QSpinBox;
 class QTabWidget;
 class QVBoxLayout;
@@ -53,11 +52,7 @@ class GaduEditAccountWidget : public AccountEditWidget
 	QLineEdit *AccountPassword;
 	QCheckBox *RememberPassword;
 
-	QCheckBox *LimitImageSize;
-	QSpinBox *MaximumImageSize;
-	QCheckBox *ImageSizeAsk;
 	QCheckBox *ReceiveImagesDuringInvisibility;
-	QSpinBox *MaximumImageRequests;
 
 	QCheckBox *ChatImageSizeWarning;
 
@@ -83,6 +78,7 @@ class GaduEditAccountWidget : public AccountEditWidget
 	QPushButton *CancelButton;
 
 	void createGui();
+
 	void createGeneralTab(QTabWidget *);
 	void createGeneralGroupBox(QVBoxLayout *layout);
 	void createPersonalInfoTab(QTabWidget *);
@@ -92,18 +88,16 @@ class GaduEditAccountWidget : public AccountEditWidget
 
 	void loadAccountData();
 
-	void resetState();
-
 private slots:
+	virtual void removeAccount();
 	void dataChanged();
-	void removeAccount();
-	void remindPasssword();
-	void changePasssword();
-	void passwordChanged(const QString &newPassword);
+	void remindUin();
+	void remindPassword();
 	void showStatusToEveryoneToggled(bool toggled);
+	void stateChangedSlot(ConfigurationValueState state);
 
 public:
-	explicit GaduEditAccountWidget(Account account, QWidget *parent = 0);
+	explicit GaduEditAccountWidget(AccountConfigurationWidgetFactoryRepository *accountConfigurationWidgetFactoryRepository, Account account, QWidget *parent = 0);
 	virtual ~GaduEditAccountWidget();
 
 public slots:

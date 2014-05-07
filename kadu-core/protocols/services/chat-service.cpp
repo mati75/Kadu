@@ -3,7 +3,8 @@
  * Copyright 2008, 2009, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
- * Copyright 2007, 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2007, 2009, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
@@ -21,15 +22,29 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <QtGui/QTextDocument>
+#include "services/message-filter-service.h"
+#include "services/message-transformer-service.h"
+#include "services/raw-message-transformer-service.h"
 
 #include "chat-service.h"
 
-ChatService::ChatService(Protocol *protocol) :
-		ProtocolService(protocol)
+ChatService::ChatService(Account account, QObject *parent) :
+		AccountService(account, parent)
 {
 }
 
 ChatService::~ChatService()
 {
 }
+
+void ChatService::setRawMessageTransformerService(RawMessageTransformerService *rawMessageTransformerService)
+{
+	CurrentRawMessageTransformerService = rawMessageTransformerService;
+}
+
+RawMessageTransformerService * ChatService::rawMessageTransformerService() const
+{
+	return CurrentRawMessageTransformerService.data();
+}
+
+#include "moc_chat-service.cpp"

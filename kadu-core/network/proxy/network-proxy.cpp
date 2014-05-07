@@ -1,6 +1,7 @@
 /*
  * %kadu copyright begin%
- * Copyright 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -32,12 +33,12 @@ NetworkProxy NetworkProxy::create()
 	return new NetworkProxyShared();
 }
 
-NetworkProxy NetworkProxy::loadStubFromStorage(const QSharedPointer<StoragePoint> &storagePoint)
+NetworkProxy NetworkProxy::loadStubFromStorage(const std::shared_ptr<StoragePoint> &storagePoint)
 {
 	return NetworkProxyShared::loadStubFromStorage(storagePoint);
 }
 
-NetworkProxy NetworkProxy::loadFromStorage(const QSharedPointer<StoragePoint> &storagePoint)
+NetworkProxy NetworkProxy::loadFromStorage(const std::shared_ptr<StoragePoint> &storagePoint)
 {
 	return NetworkProxyShared::loadFromStorage(storagePoint);
 }

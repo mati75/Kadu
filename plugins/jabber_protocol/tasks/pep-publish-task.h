@@ -6,7 +6,7 @@
  * Copyright 2004 Michał Podsiadlik (michal@kadu.net)
  * Copyright 2002, 2003, 2004, 2005 Adrian Smarzewski (adrian@kadu.net)
  * Copyright 2002, 2003, 2004 Tomasz Chiliński (chilek@chilan.com)
- * Copyright 2007, 2009, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2007, 2009, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2007 Dawid Stawiarski (neeo@kadu.net)
  * Copyright 2005 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
@@ -32,18 +32,18 @@
 
 #include "iris/xmpp_pubsubitem.h"
 #include "iris/xmpp_task.h"
-#include "utils/pep-manager.h"
+#include "services/jabber-pep-service.h"
 
 class PEPPublishTask : public XMPP::Task
 {
 	Q_OBJECT
-	
+
 	QDomElement iq_;
 	QString node_;
 	XMPP::PubSubItem item_;
 
 public:
-	PEPPublishTask(Task *parent, const QString &node, const XMPP::PubSubItem &it, PEPManager::Access access);
+	PEPPublishTask(Task *parent, const QString &node, const XMPP::PubSubItem &it, JabberPepService::Access access);
 	virtual ~PEPPublishTask();
 
 	bool take(const QDomElement &x);

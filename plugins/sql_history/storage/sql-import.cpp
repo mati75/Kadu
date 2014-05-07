@@ -1,6 +1,7 @@
 /*
  * %kadu copyright begin%
- * Copyright 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011, 2012, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  * Copyright 2011 Wojciech Treter (juzefwt@gmail.com)
  *
@@ -24,12 +25,12 @@
 #include <QtSql/QSqlQuery>
 
 #include "accounts/account.h"
-#include "chat/chat.h"
 #include "chat/chat-manager.h"
+#include "chat/chat.h"
 #include "configuration/configuration-file.h"
-#include "contacts/contact.h"
 #include "contacts/contact-manager.h"
 #include "contacts/contact-set.h"
+#include "contacts/contact.h"
 
 #include "storage/sql-accounts-mapping.h"
 #include "storage/sql-chats-mapping.h"
@@ -682,3 +683,5 @@ void SqlImport::performImport(QSqlDatabase &database)
 
 	config_file.writeEntry("History", "Schema", CURRENT_SCHEMA_VERSION);
 }
+
+#include "moc_sql-import.cpp"

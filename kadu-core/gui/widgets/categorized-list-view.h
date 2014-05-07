@@ -46,14 +46,14 @@ class CategorizedListViewPainter;
   * The way it works (if categorization enabled):
   *
   *     - When sorting, it does more things than QListView does. It will ask the model for the
-  *       special role CategorySortRole (@see CategorizedSortFilterProxyModel). This can return
+  *       special role CategorySortRole (see CategorizedSortFilterProxyModel). This can return
   *       a QString or an int in order to tell the view the order of categories. In this sense, for
   *       instance, if we are sorting by name ascending, "A" would be before than "B". If we are
   *       sorting by size ascending, 512 bytes would be before 1024 bytes. This way categories are
   *       also sorted.
   *
   *     - When the view has to paint, it will ask the model with the role CategoryDisplayRole
-  *       (@see CategorizedSortFilterProxyModel). It will for instance return "F" for "foo.pdf" if
+  *       (see CategorizedSortFilterProxyModel). It will for instance return "F" for "foo.pdf" if
   *       we are sorting by name ascending, or "Small" if a certain item has 100 bytes, for example.
   *
   * For drawing categories, CategorizedListViewPainter will be used. You can inherit this class to do your own
@@ -304,7 +304,11 @@ protected:
           * Reimplemented from QAbstractItemView.
           */
         virtual void dataChanged(const QModelIndex &topLeft,
-                                 const QModelIndex &bottomRight);
+                                 const QModelIndex &bottomRight
+#if QT_VERSION >= 0x050000
+                                 , const QVector<int> &
+#endif
+                                 );
 
         /**
           * Reimplemented from QAbstractItemView.

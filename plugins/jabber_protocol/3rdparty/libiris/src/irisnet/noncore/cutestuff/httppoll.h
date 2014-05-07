@@ -23,6 +23,8 @@
 
 #include "bytestream.h"
 
+class QUrl;
+
 // CS_NAMESPACE_BEGIN
 
 class HttpPoll : public ByteStream
@@ -33,9 +35,11 @@ public:
 	HttpPoll(QObject *parent=0);
 	~HttpPoll();
 
+	virtual QAbstractSocket* abstractSocket() const;
+
 	void setAuth(const QString &user, const QString &pass="");
-	void connectToUrl(const QString &url);
-	void connectToHost(const QString &proxyHost, int proxyPort, const QString &url);
+	void connectToUrl(const QUrl &url);
+	void connectToHost(const QString &proxyHost, int proxyPort, const QUrl &url);
 
 	int pollInterval() const;
 	void setPollInterval(int seconds);
@@ -61,7 +65,7 @@ private:
 	class Private;
 	Private *d;
 
-	void reset(bool clear=false);
+	void resetConnection(bool clear=false);
 	QByteArray makePacket(const QString &ident, const QString &key, const QString &newkey, const QByteArray &block);
 	void resetKey();
 	const QString & getKey(bool *);
@@ -75,9 +79,12 @@ public:
 	HttpProxyPost(QObject *parent=0);
 	~HttpProxyPost();
 
+	QAbstractSocket* abstractSocket() const;
+
+	void setUseSsl(bool state);
 	void setAuth(const QString &user, const QString &pass="");
 	bool isActive() const;
-	void post(const QString &proxyHost, int proxyPort, const QString &url, const QByteArray &data, bool asProxy=true);
+	void post(const QString &proxyHost, int proxyPort, const QUrl &url, const QByteArray &data, bool asProxy=true);
 	void stop();
 	QByteArray body() const;
 	QString getHeader(const QString &) const;
@@ -91,12 +98,16 @@ private slots:
 	void sock_connectionClosed();
 	void sock_readyRead();
 	void sock_error(int);
+	void tls_readyRead();
+	void tls_readyReadOutgoing();
+	void tls_error();
 
 private:
 	class Private;
 	Private *d;
 
-	void reset(bool clear=false);
+	void resetConnection(bool clear=false);
+	void processData(const QByteArray &block);
 };
 
 class HttpProxyGetStream : public QObject
@@ -134,7 +145,7 @@ private:
 	class Private;
 	Private *d;
 
-	void reset(bool clear=false);
+	void resetConnection(bool clear=false);
 	void processData(const QByteArray &block);
 };
 

@@ -6,8 +6,8 @@
  * Copyright 2009, 2009 Bartłomiej Zimoń (uzi18@o2.pl)
  * Copyright 2002, 2003, 2004, 2005 Adrian Smarzewski (adrian@kadu.net)
  * Copyright 2002, 2003, 2004 Tomasz Chiliński (chilek@chilan.com)
- * Copyright 2007, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2007, 2009, 2010, 2011, 2012, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2007 Dawid Stawiarski (neeo@kadu.net)
  * Copyright 2005 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
@@ -46,6 +46,9 @@
 #include "contacts/contact.h"
 #include "gui/widgets/buddy-avatar-widget.h"
 #include "gui/widgets/buddy-contacts-table.h"
+#include "gui/widgets/composite-configuration-value-state-notifier.h"
+#include "gui/widgets/simple-configuration-value-state-notifier.h"
+#include "gui/widgets/simple-configuration-value-state-notifier.h"
 #include "gui/windows/message-dialog.h"
 #include "icons/icons-manager.h"
 #include "misc/misc.h"
@@ -55,12 +58,19 @@
 
 #include "buddy-general-configuration-widget.h"
 
-BuddyGeneralConfigurationWidget::BuddyGeneralConfigurationWidget(const Buddy &buddy, QWidget *parent)
-		: QWidget(parent), MyBuddy(buddy)
+BuddyGeneralConfigurationWidget::BuddyGeneralConfigurationWidget(const Buddy &buddy, QWidget *parent) :
+		QWidget(parent),
+		ValueStateNotifier(new CompositeConfigurationValueStateNotifier(this)),
+		SimpleValueStateNotifier(new SimpleConfigurationValueStateNotifier(this)),
+		MyBuddy(buddy)
 {
 	setAttribute(Qt::WA_DeleteOnClose);
 
 	createGui();
+
+	ValueStateNotifier->addConfigurationValueStateNotifier(SimpleValueStateNotifier);
+
+	updateStateNotifier();
 }
 
 BuddyGeneralConfigurationWidget::~BuddyGeneralConfigurationWidget()
@@ -80,7 +90,7 @@ void BuddyGeneralConfigurationWidget::createGui()
 	nameLayout->addWidget(numberLabel);
 
 	DisplayEdit = new QLineEdit(nameWidget);
-	connect(DisplayEdit, SIGNAL(textChanged(QString)), this, SIGNAL(validChanged()));
+	connect(DisplayEdit, SIGNAL(textChanged(QString)), this, SLOT(updateStateNotifier()));
 	DisplayEdit->setText(MyBuddy.display());
 	nameLayout->addWidget(DisplayEdit);
 	if (1 == MyBuddy.contacts().count())
@@ -99,7 +109,7 @@ void BuddyGeneralConfigurationWidget::createGui()
 	QGroupBox *contactsBox = new QGroupBox(tr("Buddy contacts"), this);
 	QVBoxLayout *contactsLayout = new QVBoxLayout(contactsBox);
 	ContactsTable = new BuddyContactsTable(MyBuddy, contactsBox);
-	connect(ContactsTable, SIGNAL(validChanged()), this, SIGNAL(validChanged()));
+	ValueStateNotifier->addConfigurationValueStateNotifier(ContactsTable->valueStateNotifier());
 	contactsLayout->addWidget(ContactsTable);
 
 	PreferHigherStatusCheck = new QCheckBox(tr("Prefer the most available contact"), contactsBox);
@@ -134,7 +144,12 @@ void BuddyGeneralConfigurationWidget::createGui()
 	layout->addStretch(100);
 }
 
-bool BuddyGeneralConfigurationWidget::isValid()
+const ConfigurationValueStateNotifier * BuddyGeneralConfigurationWidget::valueStateNotifier() const
+{
+	return ValueStateNotifier;
+}
+
+bool BuddyGeneralConfigurationWidget::isValid() const
 {
 	QString display = DisplayEdit->text();
 	if (display.isEmpty())
@@ -144,7 +159,12 @@ bool BuddyGeneralConfigurationWidget::isValid()
 	if (buddy && buddy != MyBuddy)
 		return false;
 
-	return ContactsTable->isValid();
+	return true;
+}
+
+void BuddyGeneralConfigurationWidget::updateStateNotifier()
+{
+	SimpleValueStateNotifier->setState(isValid() ? StateChangedDataValid : StateChangedDataInvalid);
 }
 
 void BuddyGeneralConfigurationWidget::save()
@@ -181,3 +201,5 @@ void BuddyGeneralConfigurationWidget::setBuddyAvatar(const QPixmap& avatar)
 	Avatar buddyAvatar = AvatarManager::instance()->byBuddy(MyBuddy, ActionCreateAndAdd);
 	buddyAvatar.setPixmap(avatar);
 }
+
+#include "moc_buddy-general-configuration-widget.cpp"

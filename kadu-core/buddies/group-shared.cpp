@@ -1,8 +1,8 @@
 /*
  * %kadu copyright begin%
  * Copyright 2009, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2009, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -25,7 +25,7 @@
 
 #include "group-shared.h"
 
-GroupShared * GroupShared::loadStubFromStorage(const QSharedPointer<StoragePoint> &storagePoint)
+GroupShared * GroupShared::loadStubFromStorage(const std::shared_ptr<StoragePoint> &storagePoint)
 {
 	GroupShared *result = loadFromStorage(storagePoint);
 	result->loadStub();
@@ -33,7 +33,7 @@ GroupShared * GroupShared::loadStubFromStorage(const QSharedPointer<StoragePoint
 	return result;
 }
 
-GroupShared * GroupShared::loadFromStorage(const QSharedPointer<StoragePoint> &storagePoint)
+GroupShared * GroupShared::loadFromStorage(const std::shared_ptr<StoragePoint> &storagePoint)
 {
 	GroupShared *result = new GroupShared();
 	result->setStorage(storagePoint);
@@ -47,7 +47,7 @@ GroupShared::GroupShared(const QUuid &uuid) :
 		OfflineToGroup(false), ShowIcon(false), ShowName(false),
 		TabPosition(-1)
 {
-	connect(changeNotifier(), SIGNAL(changed()), this, SIGNAL(updated()));
+	connect(&changeNotifier(), SIGNAL(changed()), this, SIGNAL(updated()));
 }
 
 GroupShared::~GroupShared()
@@ -125,7 +125,9 @@ void GroupShared::setName(const QString &name)
 	if (Name != name)
 	{
 		Name = name;
-		changeNotifier()->notify();
+		changeNotifier().notify();
 		emit nameChanged();
 	}
 }
+
+#include "moc_group-shared.cpp"

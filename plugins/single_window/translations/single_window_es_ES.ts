@@ -1,6 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE TS>
-<TS version="2.0" language="es_ES">
+<?xml version="1.0" ?><!DOCTYPE TS><TS language="es_ES" version="2.0">
 <context>
     <name>@default</name>
     <message>
@@ -40,10 +38,6 @@
         <translation>Atajos</translation>
     </message>
     <message>
-        <source>Tabs</source>
-        <translation>Pestañas</translation>
-    </message>
-    <message>
         <source>Switch to previous tab</source>
         <translation>Cambiar a pestaña anterior</translation>
     </message>
@@ -59,12 +53,16 @@
         <source>Switch focus between roster and tabs</source>
         <translation>Cambiar el foco entre lista y pestañas </translation>
     </message>
+    <message>
+        <source>Behaviour</source>
+        <translation type="unfinished"/>
+    </message>
 </context>
 <context>
     <name>SingleWindow</name>
     <message>
         <source>Conference [%1]</source>
-        <translation type="unfinished"></translation>
+        <translation>Conferencia [%1]</translation>
     </message>
 </context>
 </TS>

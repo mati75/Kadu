@@ -3,6 +3,7 @@
  * Copyright 2008 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -34,7 +35,7 @@ DesktopDockingPlugin::~DesktopDockingPlugin()
 {
 }
 
-int DesktopDockingPlugin::init(bool firstLoad)
+bool DesktopDockingPlugin::init(bool firstLoad)
 {
 	Q_UNUSED(firstLoad)
 
@@ -44,7 +45,7 @@ int DesktopDockingPlugin::init(bool firstLoad)
 	MainConfigurationWindow::registerUiFile(KaduPaths::instance()->dataPath() + QLatin1String("plugins/configuration/desktop_docking.ui"));
 	MainConfigurationWindow::registerUiHandler(DesktopDockConfigurationUiHandler::instance());
 
-	return 0;
+	return true;
 }
 
 void DesktopDockingPlugin::done()
@@ -57,3 +58,5 @@ void DesktopDockingPlugin::done()
 }
 
 Q_EXPORT_PLUGIN2(desktop_docking, DesktopDockingPlugin)
+
+#include "moc_desktop-docking-plugin.cpp"

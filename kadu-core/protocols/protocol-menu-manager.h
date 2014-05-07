@@ -1,10 +1,11 @@
 /*
  * %kadu copyright begin%
  * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2012 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2010 Tomasz Rostański (rozteck@interia.pl)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
  * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2010, 2012 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -31,8 +32,11 @@ class ActionDescription;
 class KADUAPI ProtocolMenuManager
 {
 public:
+	virtual ~ProtocolMenuManager() {}
+
 	virtual const QList<ActionDescription *> & protocolActions() const = 0;
 
+	virtual const QString protocolName() const = 0;
 };
 
 #endif // PROTOCOL_MENU_MANAGER_H

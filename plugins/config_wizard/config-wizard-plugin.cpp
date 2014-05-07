@@ -3,7 +3,7 @@
  * Copyright 2008, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009, 2010 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2011, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -29,13 +29,13 @@ ConfigWizardPlugin::~ConfigWizardPlugin()
 
 }
 
-int ConfigWizardPlugin::init(bool firstLoad)
+bool ConfigWizardPlugin::init(bool firstLoad)
 {
 	ConfigWizardConfigurationUiHandler::registerActions(firstLoad);
 	if (firstLoad)
 		ConfigWizardConfigurationUiHandler::instance()->showConfigWizard();
 
-	return 0;
+	return true;
 }
 
 void ConfigWizardPlugin::done()
@@ -44,3 +44,5 @@ void ConfigWizardPlugin::done()
 }
 
 Q_EXPORT_PLUGIN2(config_wizard, ConfigWizardPlugin)
+
+#include "moc_config-wizard-plugin.cpp"

@@ -1,12 +1,8 @@
 project (pcspeaker)
 
-# minimal required versions
 cmake_minimum_required (VERSION 2.8)
-set (QT_MIN_VERSION "4.7.0")
-set (CMAKE_MIN_VERSION "2.6.0")
 
-set (KADU_FIND_REQUIRED true)
-include (FindKadu)
+find_package (Kadu REQUIRED CONFIG)
 
 set (SOURCES
 	pcspeaker.cpp
@@ -28,11 +24,11 @@ if (UNIX AND NOT APPLE)
 	find_package (X11 REQUIRED COMPONENTS X11)
 	if (NOT X11_FOUND)
 		message (SEND_ERROR "Could NOT find X11")
-	endif (NOT X11_FOUND)
+	endif ()
 
 	include_directories (${X11_INCLUDE_DIR})
 	set (LIBRARIES ${X11_X11_LIB})
-endif (UNIX AND NOT APPLE)
+endif ()
 
 kadu_plugin (pcspeaker
 	PLUGIN_SOURCES ${SOURCES}

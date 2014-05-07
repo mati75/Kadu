@@ -3,8 +3,8 @@
  * Copyright 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009, 2009, 2009 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
- * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2009, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -23,6 +23,8 @@
 
 #include <QtSql/QSqlDatabase>
 
+#include "core/core.h"
+
 #include "plugins/history/history.h"
 
 #include "storage/history-sql-storage.h"
@@ -33,21 +35,24 @@ SqlHistoryPlugin::~SqlHistoryPlugin()
 {
 }
 
-int SqlHistoryPlugin::init(bool firstLoad)
+bool SqlHistoryPlugin::init(bool firstLoad)
 {
 	Q_UNUSED(firstLoad)
 
 	Storage = new HistorySqlStorage();
+	Storage->setFormattedStringFactory(Core::instance()->formattedStringFactory());
 
-	return 0;
+	return true;
 }
 
 void SqlHistoryPlugin::done()
 {
-	if (Storage)
+	if (Storage && History::instance())
 		History::instance()->unregisterStorage(Storage.data());
 
 	QSqlDatabase::removeDatabase("kadu-history");
 }
 
 Q_EXPORT_PLUGIN2(sql_history, SqlHistoryPlugin)
+
+#include "moc_sql-history-plugin.cpp"

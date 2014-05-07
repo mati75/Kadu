@@ -1,8 +1,9 @@
 /*
  * %kadu copyright begin%
  * Copyright 2009, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2008, 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2012 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2008, 2009, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -27,7 +28,7 @@
 #include "exports.h"
 
 class ConfigTab;
-class QGridLayout;
+class QFormLayout;
 class QWidget;
 class QGroupBox;
 class QLayout;
@@ -49,8 +50,7 @@ class QLayout;
 
 	Dodatkowo, GroupBox'a można stworzyć (lub, jeżeli istnieje, uzyskać)
 	wywołując funkcję configGroupBox(section, tab, groupBox) z okna konfiguracyjnego.
-	Do tak uzyskanego GroupBox'a można dodawać dowolne widgety (@see addWidget,
-	@see addWidgets).
+	Do tak uzyskanego GroupBox'a można dodawać dowolne widgety (addWidget, addWidgets).
  **/
 
 class KADUAPI ConfigGroupBox : public QObject
@@ -58,11 +58,10 @@ class KADUAPI ConfigGroupBox : public QObject
 	Q_OBJECT
 
 	QString Name;
-	ConfigTab *MyConfigTab;
 
 	QGroupBox *GroupBox;
 	QWidget *Container;
-	QGridLayout *GridLayout;
+	QFormLayout *MainLayout;
 
 	int RefCount;
 

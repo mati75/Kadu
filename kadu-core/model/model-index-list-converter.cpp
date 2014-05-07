@@ -1,6 +1,6 @@
 /*
  * %kadu copyright begin%
- * Copyright 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011, 2012, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -19,9 +19,10 @@
 
 #include "buddies/buddy-preferred-manager.h"
 #include "chat/chat-manager.h"
-#include "chat/type/chat-type-contact.h"
 #include "chat/type/chat-type-contact-set.h"
-#include "message/message-manager.h"
+#include "chat/type/chat-type-contact.h"
+#include "core/core.h"
+#include "message/unread-message-repository.h"
 #include "model/roles.h"
 
 #include "model-index-list-converter.h"
@@ -94,9 +95,9 @@ Chat ModelIndexListConverter::chatFromIndex(const QModelIndex &index) const
 				return Chat::null;
 		}
 		case BuddyRole:
-			return MessageManager::instance()->unreadMessageForBuddy(index.data(BuddyRole).value<Buddy>()).messageChat();
+			return Core::instance()->unreadMessageRepository()->unreadMessageForBuddy(index.data(BuddyRole).value<Buddy>()).messageChat();
 		case ContactRole:
-			return MessageManager::instance()->unreadMessageForContact(index.data(ContactRole).value<Contact>()).messageChat();
+			return Core::instance()->unreadMessageRepository()->unreadMessageForContact(index.data(ContactRole).value<Contact>()).messageChat();
 	}
 
 	return Chat::null;

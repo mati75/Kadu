@@ -1,7 +1,8 @@
 /*
  * %kadu copyright begin%
  * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011, 2012 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -18,9 +19,17 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "mail-url-handler.h"
-#include "standard-url-handler.h"
-#include "url-handler.h"
+#include <QtXml/QDomDocument>
+
+#include "core/core.h"
+
+#include "dom/dom-processor-service.h"
+#include "gui/services/clipboard-html-transformer-service.h"
+#include "url-handlers/mail-url-dom-visitor-provider.h"
+#include "url-handlers/mail-url-handler.h"
+#include "url-handlers/standard-url-dom-visitor-provider.h"
+#include "url-handlers/standard-url-handler.h"
+#include "url-handlers/url-clipboard-html-transformer.h"
 
 #include "url-handler-manager.h"
 
@@ -36,16 +45,33 @@ UrlHandlerManager * UrlHandlerManager::instance()
 
 UrlHandlerManager::UrlHandlerManager()
 {
+	StandardUrlVisitorProvider = new StandardUrlDomVisitorProvider();
+	Core::instance()->domProcessorService()->registerVisitorProvider(StandardUrlVisitorProvider, 0);
+
+	MailUrlVisitorProvider = new MailUrlDomVisitorProvider();
+	Core::instance()->domProcessorService()->registerVisitorProvider(MailUrlVisitorProvider, 500);
+
 	// NOTE: StandardUrlHandler has to be the first one to fix bug #1894
 	standardUrlHandler = new StandardUrlHandler();
 	registerUrlHandler("Standard", standardUrlHandler);
 
 	mailUrlHandler = new MailUrlHandler();
 	registerUrlHandler("Mail", mailUrlHandler);
+	registerUrlClipboardTransformer();
 }
 
 UrlHandlerManager::~UrlHandlerManager()
 {
+	unregisterUrlClipboardTransformer();
+
+	Core::instance()->domProcessorService()->unregisterVisitorProvider(StandardUrlVisitorProvider);
+	delete StandardUrlVisitorProvider;
+	StandardUrlVisitorProvider = 0;
+
+	Core::instance()->domProcessorService()->unregisterVisitorProvider(MailUrlVisitorProvider);
+	delete MailUrlVisitorProvider;
+	MailUrlVisitorProvider = 0;
+
 	qDeleteAll(RegisteredHandlersByPriority);
 	RegisteredHandlersByPriority.clear();
 	RegisteredHandlers.clear();
@@ -70,11 +96,19 @@ void UrlHandlerManager::unregisterUrlHandler(const QString &name)
 		delete handler;
 	}
 }
-void UrlHandlerManager::convertAllUrls(HtmlDocument &document, bool generateOnlyHrefAttr)
+
+void UrlHandlerManager::registerUrlClipboardTransformer()
 {
-	foreach (UrlHandler *handler, RegisteredHandlersByPriority)
-		handler->convertUrlsToHtml(document, generateOnlyHrefAttr);
+	ClipboardTransformer.reset(new UrlClipboardHtmlTransformer());
+	Core::instance()->clipboardHtmlTransformerService()->registerTransformer(ClipboardTransformer.data());
 }
+
+void UrlHandlerManager::unregisterUrlClipboardTransformer()
+{
+	Core::instance()->clipboardHtmlTransformerService()->unregisterTransformer(ClipboardTransformer.data());
+	ClipboardTransformer.reset();
+}
+
 
 void UrlHandlerManager::openUrl(const QByteArray &url, bool disableMenu)
 {

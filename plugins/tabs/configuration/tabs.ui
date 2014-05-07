@@ -3,26 +3,31 @@
 	<section name="Chat">
 		<tab name="Tabs">
 			<group-box name="General">
-				<check-box caption="Use tabs by default" config-section="Chat" config-item="DefaultTabs" id="tabs/DefaultTabs" />
-				<spin-box caption="Minimum number of tabs" config-section="Chat" config-item="MinTabs" min-value="1" max-value="255" step="1" id="tabs/MinTabs"/>
-				<check-box caption="Tabs at the bottom of the window" config-section="Chat" config-item="TabsBelowChats" />
-				<check-box caption="Conferences in tabs" config-section="Chat" config-item="ConferencesInTabs" />
-				<check-box caption="Closing tabs using button from titlebar" config-section="Tabs" config-item="OldStyleClosing" tool-tip="&lt;nobr&gt;&lt;b&gt;Warning: This option has know bug!&lt;/b&gt;&lt;/nobr&gt;&lt;br&gt;If there is open more than one tab then exiting from KDE will be stopped by this module." />
+				<check-box caption="Enable tabs in chat window" config-section="Chat" config-item="DefaultTabs" id="tabs/DefaultTabs"
+					tool-tip="With this option, each chat will be opened in a separate tab in single window" />
+				<check-box caption="Closing window closes current tab only" config-section="Tabs" config-item="OldStyleClosing"
+					tool-tip="When enabled, closing chat window will cause closing only current tab, instead of all tabs and the window itself" />
+				<combo-box caption="Tab bar position" config-section="Chat" config-item="TabsBelowChats"
+					tool-tip="Choose where you want the tab bar to be placed in chat window" >
+					<item value="false" caption="Top" />
+					<item value="true" caption="Bottom" />
+				</combo-box>
 			</group-box>
 			<group-box name="Look">
-				<check-box caption="Show &quot;New Tab&quot; button" config-section="Tabs" config-item="OpenChatButton" />
-				<check-box caption="Show common &quot;Close Current Tab&quot; button in the corner" config-section="Tabs" config-item="CloseButton" />
-				<check-box caption="Show Close button on each tab" config-section="Tabs" config-item="CloseButtonOnTab" />
+				<check-box caption="Show &quot;Open chat&quot; button" config-section="Tabs" config-item="OpenChatButton" />
+				<check-box caption="Show common &quot;Close Tab&quot; button on tab bar" config-section="Tabs" config-item="CloseButton" />
+				<check-box caption="Show &quot;Close&quot; button on each tab" config-section="Tabs" config-item="CloseButtonOnTab" />
 			</group-box>
 		</tab>
 	</section>
-	<section name="Shortcuts">
-		<tab name="Chat Window">
+	<section name="Behaviour">
+		<tab name="Shortcuts">
 			<group-box name="Tabs">
 				<hot-key-edit caption="Move tab left" config-section="ShortCuts" config-item="MoveTabLeft" />
 				<hot-key-edit caption="Move tab right" config-section="ShortCuts" config-item="MoveTabRight" />
 				<hot-key-edit caption="Switch to previous tab" config-section="ShortCuts" config-item="SwitchTabLeft" />
 				<hot-key-edit caption="Switch to next tab" config-section="ShortCuts" config-item="SwitchTabRight" />
+				<hot-key-edit caption="Reopen closed tab" config-section="ShortCuts" config-item="ReopenClosedTab" />
 			</group-box>
 		</tab>
 	</section>

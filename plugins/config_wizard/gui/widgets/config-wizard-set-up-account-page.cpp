@@ -1,8 +1,8 @@
 /*
  * %kadu copyright begin%
  * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2010, 2011, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -51,8 +51,8 @@ void ConfigWizardSetUpAccountPage::createGui()
 
 bool ConfigWizardSetUpAccountPage::isComplete() const
 {
-	if (AccountWidget)
-		return StateChangedDataValid == AccountWidget.data()->state();
+	if (AccountWidget && AccountWidget.data()->stateNotifier())
+		return StateChangedDataValid == AccountWidget.data()->stateNotifier()->state();
 
 	return true;
 }
@@ -72,7 +72,8 @@ void ConfigWizardSetUpAccountPage::initializePage()
 	{
 		formLayout()->addRow(QString(), AccountWidget.data());
 
-		connect(AccountWidget.data(), SIGNAL(stateChanged(ModalConfigurationWidgetState)), this, SIGNAL(completeChanged()));
+		if (AccountWidget.data()->stateNotifier())
+			connect(AccountWidget.data()->stateNotifier(), SIGNAL(stateChanged(ConfigurationValueState)), this, SIGNAL(completeChanged()));
 		// NOTE: This signal is declared by AccountCreateWidget and AccountCreateWidget
 		// but not by ModalConfigurationWidget. It will work correctly with Qt meta-object system, though.
 		connect(AccountWidget.data(), SIGNAL(accountCreated(Account)), this, SLOT(accountCreated(Account)));
@@ -120,3 +121,5 @@ void ConfigWizardSetUpAccountPage::accountCreated(Account account)
 
 	ConfigurationManager::instance()->flush();
 }
+
+#include "moc_config-wizard-set-up-account-page.cpp"

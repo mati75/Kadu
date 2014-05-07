@@ -2,8 +2,8 @@
  * Copyright 2007, 2008, 2009 Tomasz Kazmierczak
  * %kadu copyright begin%
  * Copyright 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -20,10 +20,12 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <QtCore/QTextCodec>
+
 #include "chat/chat-manager.h"
 #include "chat/chat.h"
 #include "chat/type/chat-type-contact.h"
-#include "misc/coding-conversion.h"
+#include "message/raw-message.h"
 
 #include "plugins/encryption_ng/keys/key.h"
 #include "plugins/encryption_ng/keys/keys-manager.h"
@@ -77,7 +79,11 @@ QCA::PublicKey EncryptioNgSimliteEncryptor::getPublicKey(const Key &key)
 		return QCA::PublicKey();
 	}
 
-	keyData = keyData.mid(BEGIN_RSA_PUBLIC_KEY_LENGTH, keyData.length() - BEGIN_RSA_PUBLIC_KEY_LENGTH - END_RSA_PUBLIC_KEY_LENGTH).replace('\r', "").trimmed();
+	keyData = keyData.replace(BEGIN_RSA_PUBLIC_KEY, "");
+	keyData = keyData.replace(END_RSA_PUBLIC_KEY, "");
+	keyData = keyData.replace('\r', "");
+	keyData = keyData.replace('\n', "");
+	keyData = keyData.replace(' ', "");
 
 	QCA::SecureArray certificate;
 
@@ -118,12 +124,12 @@ QCA::PublicKey EncryptioNgSimliteEncryptor::getPublicKey(const Key &key)
 	return publicKey;
 }
 
-QByteArray EncryptioNgSimliteEncryptor::encrypt(const QByteArray &data)
+RawMessage EncryptioNgSimliteEncryptor::encrypt(const RawMessage &rawMessage)
 {
 	if (!Valid)
 	{
 		EncryptionNgNotification::notifyEncryptionError(tr("Cannot encrypt: valid public key not available"));
-		return data;
+		return rawMessage;
 	}
 
 	//generate a symmetric key for Blowfish (16 bytes in length)
@@ -134,7 +140,7 @@ QByteArray EncryptioNgSimliteEncryptor::encrypt(const QByteArray &data)
 	if (encryptedBlowfishKey.isEmpty())
 	{
 		EncryptionNgNotification::notifyEncryptionError(tr("Cannot encrypt: valid blowfish key not available"));
-		return data;
+		return rawMessage;
 	}
 
 	bool supportUtf8 = false;
@@ -167,12 +173,19 @@ QByteArray EncryptioNgSimliteEncryptor::encrypt(const QByteArray &data)
 	encryptedData.resize(sizeof(head));
 	memcpy(encryptedData.data(), &head, sizeof(head));
 	if (supportUtf8)
-		encryptedData += data;
+		encryptedData += rawMessage.rawPlainContent();
 	else
 	{
 		// we have to replace each Line Separator (U+2028) with Line Feed (\n)
-		QString cp1250String = QString::fromUtf8(data).replace(QChar::LineSeparator, QLatin1Char('\n'));
-		encryptedData += unicode2cp(cp1250String);
+		QString dataString = QString::fromUtf8(rawMessage.rawPlainContent()).replace(QChar::LineSeparator, QLatin1Char('\n'));
+		QTextCodec *cp1250Codec = QTextCodec::codecForName("CP1250");
+		if (cp1250Codec)
+			encryptedData += cp1250Codec->fromUnicode(dataString);
+		else
+		{
+			qWarning("Missing codec for \"CP1250\". Fix your system.");
+			encryptedData += dataString.toUtf8();
+		}
 	}
 
 	QCA::SecureArray encrypted = cipher.process(encryptedData);
@@ -180,7 +193,7 @@ QByteArray EncryptioNgSimliteEncryptor::encrypt(const QByteArray &data)
 	if (!cipher.ok())
 	{
 		EncryptionNgNotification::notifyEncryptionError(tr("Cannot encrypt: unknown error"));
-		return data;
+		return rawMessage;
 	}
 
 	//build the encrypted message
@@ -194,9 +207,11 @@ QByteArray EncryptioNgSimliteEncryptor::encrypt(const QByteArray &data)
 	if (!encoder.ok())
 	{
 		EncryptionNgNotification::notifyEncryptionError(tr("Cannot encrypt: unknown error"));
-		return data;
+		return rawMessage;
 	}
 
 	//finally, put the encrypted message into the output QByteArray
-	return encrypted.toByteArray();
+	return {encrypted.toByteArray()};
 }
+
+#include "moc_encryption-ng-simlite-encryptor.cpp"

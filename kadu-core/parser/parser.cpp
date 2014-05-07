@@ -6,8 +6,8 @@
  * Copyright 2011 Sławomir Stępień (s.stepien@interia.pl)
  * Copyright 2008 Michał Podsiadlik (michal@kadu.net)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
- * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2007, 2008, 2009, 2010, 2011, 2012, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2007, 2009 Dawid Stawiarski (neeo@kadu.net)
  * Copyright 2006, 2007 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
@@ -31,34 +31,72 @@
 #include <QtCore/QStack>
 #include <QtCore/QVariant>
 #include <QtGui/QApplication>
+#include <QtGui/QTextDocument>
 #include <QtNetwork/QHostAddress>
 
 #include "accounts/account-manager.h"
+#include "buddies/group.h"
 #include "chat/model/chat-data-extractor.h"
 #include "configuration/configuration-file.h"
 #include "contacts/contact.h"
 #include "icons/kadu-icon.h"
 #include "misc/misc.h"
 #include "parser/parser-token.h"
-#include "status/status-container.h"
 #include "status/status-container-manager.h"
+#include "status/status-container.h"
 #include "status/status-type-data.h"
 #include "status/status-type-manager.h"
 #include "status/status-type.h"
 
 #include "icons/icons-manager.h"
 #include "debug.h"
-#include "html_document.h"
 
 #include "parser.h"
 
+#define SEARCH_CHARS "%[{\\$@#}]"
+#define EXEC_SEARCH_CHARS "`\'"
+
 // PT_CHECK_FILE_EXISTS and PT_CHECK_FILE_NOT_EXISTS checks need space to be encoded,
-// and encoding searchChars shouldn't hurt also
-#define ENCODE_INCLUDE_CHARS " %[{\\$@#}]`\'"
+// and encoding search chars shouldn't hurt also
+#define ENCODE_INCLUDE_CHARS " " SEARCH_CHARS EXEC_SEARCH_CHARS
+
+Q_GLOBAL_STATIC(QSet<QChar>, searchChars)
+
+static void prepareSearchChars(bool forceExecSeachChars = false)
+{
+	QSet<QChar> &chars = *searchChars();
+	if (chars.isEmpty())
+		foreach (QChar c, QString(SEARCH_CHARS))
+			chars.insert(c);
+
+	bool allowExec = forceExecSeachChars || config_file.readBoolEntry("General", "AllowExecutingFromParser", false);
+	foreach (QChar c, QString(EXEC_SEARCH_CHARS))
+		if (allowExec)
+			chars.insert(c);
+		else
+			chars.remove(c);
+}
 
 QMap<QString, QString> Parser::GlobalVariables;
 QMap<QString, Parser::TalkableTagCallback> Parser::RegisteredTalkableTags;
 QMap<QString, Parser::ObjectTagCallback> Parser::RegisteredObjectTags;
+
+QString Parser::escape(const QString &string)
+{
+	prepareSearchChars(true);
+
+	QString escaped;
+	escaped.reserve(string.size() * 2);
+	QSet<QChar> &chars = *searchChars();
+	foreach (QChar c, string)
+	{
+		if (chars.contains(c))
+			escaped.append('\'');
+		escaped.append(c);
+	}
+
+	return escaped;
+}
 
 bool Parser::registerTag(const QString &name, TalkableTagCallback func)
 {
@@ -182,7 +220,7 @@ bool Parser::isActionParserTokenAtTop(const QStack<ParserToken> &parseStack, con
 	return found;
 }
 
-ParserToken Parser::parsePercentSyntax(const QString &s, int &idx, const Talkable &talkable, bool escape)
+ParserToken Parser::parsePercentSyntax(const QString &s, int &idx, const Talkable &talkable, ParserEscape escape)
 {
 	ParserToken pe;
 	pe.setType(PT_STRING);
@@ -204,11 +242,11 @@ ParserToken Parser::parsePercentSyntax(const QString &s, int &idx, const Talkabl
 			++idx;
 
 			if (buddy && buddy.isBlocked())
-				pe.setContent(qApp->translate("@default", "Blocked"));
+				pe.setContent(QCoreApplication::translate("@default", "Blocked"));
 			else if (contact)
 			{
 				if (contact.isBlocking())
-					pe.setContent(qApp->translate("@default", "Blocking"));
+					pe.setContent(QCoreApplication::translate("@default", "Blocking"));
 				else
 				{
 					const StatusTypeData & typeData = StatusTypeManager::instance()->statusTypeData(contact.currentStatus().type());
@@ -249,8 +287,8 @@ ParserToken Parser::parsePercentSyntax(const QString &s, int &idx, const Talkabl
 			if (contact)
 			{
 				QString description = contact.currentStatus().description();
-				if (escape)
-					HtmlDocument::escapeText(description);
+				if (escape == ParserEscape::HtmlEscape)
+					description = Qt::escape(description);
 
 				pe.setContent(description);
 
@@ -306,8 +344,8 @@ ParserToken Parser::parsePercentSyntax(const QString &s, int &idx, const Talkabl
 			++idx;
 
 			QString nickName = chat ? ChatDataExtractor::data(chat, Qt::DisplayRole).toString() : buddy.nickName();
-			if (escape)
-				HtmlDocument::escapeText(nickName);
+			if (escape == ParserEscape::HtmlEscape)
+				nickName = Qt::escape(nickName);
 
 			pe.setContent(nickName);
 
@@ -318,8 +356,8 @@ ParserToken Parser::parsePercentSyntax(const QString &s, int &idx, const Talkabl
 			++idx;
 
 			QString display = chat ? ChatDataExtractor::data(chat, Qt::DisplayRole).toString() : buddy.display();
-			if (escape)
-				HtmlDocument::escapeText(display);
+			if (escape == ParserEscape::HtmlEscape)
+				display = Qt::escape(display);
 
 			pe.setContent(display);
 
@@ -330,8 +368,8 @@ ParserToken Parser::parsePercentSyntax(const QString &s, int &idx, const Talkabl
 			++idx;
 
 			QString firstName = buddy.firstName();
-			if (escape)
-				HtmlDocument::escapeText(firstName);
+			if (escape == ParserEscape::HtmlEscape)
+				firstName = Qt::escape(firstName);
 
 			pe.setContent(firstName);
 
@@ -342,8 +380,8 @@ ParserToken Parser::parsePercentSyntax(const QString &s, int &idx, const Talkabl
 			++idx;
 
 			QString lastName = buddy.lastName();
-			if (escape)
-				HtmlDocument::escapeText(lastName);
+			if (escape == ParserEscape::HtmlEscape)
+				lastName = Qt::escape(lastName);
 
 			pe.setContent(lastName);
 
@@ -452,28 +490,11 @@ QString Parser::joinParserTokens(const ContainerClass &parseStack)
 	return joined;
 }
 
-QString Parser::parse(const QString &s, Talkable talkable, const QObject * const object, bool escape)
+QString Parser::parse(const QString &s, Talkable talkable, const ParserData * const parserData, ParserEscape escape = ParserEscape::HtmlEscape)
 {
-	kdebugmf(KDEBUG_DUMP, "%s escape=%i\n", qPrintable(s), escape);
+	kdebugmf(KDEBUG_DUMP, "%s htmlEscape=%i\n", qPrintable(s), escape);
 
-	static QHash<QChar, bool> searchChars;
-
-	if (!searchChars.value('%', false))
-	{
-		searchChars['%'] = true;
-		searchChars['['] = true;
-		searchChars['{'] = true;
-		searchChars['\\'] = true;
-		searchChars['$'] = true;
-		searchChars['@'] = true;
-		searchChars['#'] = true;
-		searchChars['}'] = true;
-		searchChars[']'] = true;
-	}
-
-	bool allowExec = config_file.readBoolEntry("General", "AllowExecutingFromParser", false);
-	searchChars['`'] = allowExec;
-	searchChars['\''] = allowExec;
+	prepareSearchChars();
 
 	QStack<ParserToken> parseStack;
 	int idx = 0, len = s.length();
@@ -483,7 +504,7 @@ QString Parser::parse(const QString &s, Talkable talkable, const QObject * const
 
 		int prevIdx = idx;
 		for (; idx < len; ++idx)
-			if (searchChars.value(s.at(idx), false))
+			if (searchChars()->contains(s.at(idx)))
 				break;
 
 		if (idx != prevIdx)
@@ -648,7 +669,7 @@ QString Parser::parse(const QString &s, Talkable talkable, const QObject * const
 									tokens.at(firstSpaceTokenIdx).rawContent().left(spacePos);
 
 						if (filePath.startsWith(QLatin1String("file://")))
-							filePath = filePath.mid(qstrlen("file://"));
+							filePath = filePath.mid(static_cast<int>(qstrlen("file://")));
 
 						bool checkFileExists = (pe2.type() == PT_CHECK_FILE_EXISTS);
 						if (QFile::exists(filePath) == checkFileExists)
@@ -720,8 +741,8 @@ QString Parser::parse(const QString &s, Talkable talkable, const QObject * const
 
 						if (RegisteredTalkableTags.contains(content))
 							pe.setContent(RegisteredTalkableTags[content](talkable));
-						else if (object && RegisteredObjectTags.contains(content))
-							pe.setContent(RegisteredObjectTags[content](object));
+						else if (parserData && RegisteredObjectTags.contains(content))
+							pe.setContent(RegisteredObjectTags[content](parserData));
 						else
 						{
 							kdebugm(KDEBUG_WARNING, "tag %s not registered\n", qPrintable(pe.decodedContent()));

@@ -2,7 +2,7 @@
  * %kadu copyright begin%
  * Copyright 2008, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2008 Michał Podsiadlik (michal@kadu.net)
- * Copyright 2007, 2008, 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2007, 2008, 2009, 2010, 2011, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2007, 2008 Dawid Stawiarski (neeo@kadu.net)
  * %kadu copyright end%
  *
@@ -34,6 +34,7 @@ class QTableView;
 class BuddyContactsTableDelegate;
 class BuddyContactsTableModel;
 class BuddyContactsTableModelProxy;
+class ConfigurationValueStateNotifier;
 
 class BuddyContactsTable : public QWidget
 {
@@ -67,11 +68,9 @@ public:
 	explicit BuddyContactsTable(Buddy buddy, QWidget *parent = 0);
 	virtual ~BuddyContactsTable();
 
-	bool isValid();
-	void save();
+	const ConfigurationValueStateNotifier * valueStateNotifier() const;
 
-signals:
-	void validChanged();
+	void save();
 
 };
 

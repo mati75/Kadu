@@ -1,6 +1,7 @@
 /*
  * %kadu copyright begin%
  * Copyright 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -19,7 +20,6 @@
 
 #include <QtXml/QDomElement>
 
-#include "accounts/account-manager.h"
 #include "configuration/configuration-file.h"
 #include "configuration/xml-configuration-file.h"
 #include "storage/storage-point.h"
@@ -38,14 +38,11 @@ NetworkProxyManager * NetworkProxyManager::instance()
 
 NetworkProxyManager::NetworkProxyManager()
 {
-	ConfigurationManager::instance()->registerStorableObject(this);
-
 	configurationUpdated();
 }
 
 NetworkProxyManager::~NetworkProxyManager()
 {
-	ConfigurationManager::instance()->unregisterStorableObject(this);
 }
 
 void NetworkProxyManager::load()
@@ -133,3 +130,5 @@ void NetworkProxyManager::itemRemoved(NetworkProxy item)
 	disconnect(item, 0, this, 0);
 	emit networkProxyRemoved(item);
 }
+
+#include "moc_network-proxy-manager.cpp"

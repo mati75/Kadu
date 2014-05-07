@@ -7,7 +7,7 @@
  * Copyright 2002, 2003, 2004, 2005 Adrian Smarzewski (adrian@kadu.net)
  * Copyright 2002, 2003, 2004 Tomasz Chiliński (chilek@chilan.com)
  * Copyright 2007, 2009, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2011, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2007 Dawid Stawiarski (neeo@kadu.net)
  * Copyright 2005 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
@@ -35,12 +35,11 @@ WinampMediaplayerPlugin::~WinampMediaplayerPlugin()
 {
 }
 
-int WinampMediaplayerPlugin::init(bool firstLoad)
+bool WinampMediaplayerPlugin::init(bool firstLoad)
 {
 	Q_UNUSED(firstLoad)
 	PlayerInstance = new WinampMediaPlayer();
-	bool res = MediaPlayer::instance()->registerMediaPlayer(PlayerInstance, PlayerInstance);
-	return res ? 0 : 1;
+	return MediaPlayer::instance()->registerMediaPlayer(PlayerInstance, PlayerInstance);
 }
 
 void WinampMediaplayerPlugin::done()
@@ -51,3 +50,5 @@ void WinampMediaplayerPlugin::done()
 }
 
 Q_EXPORT_PLUGIN2(winamp_mediaplayer, WinampMediaplayerPlugin)
+
+#include "moc_winamp-player-plugin.cpp"

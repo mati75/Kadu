@@ -26,6 +26,7 @@
 #define SMS_ACTIONS_H
 
 #include <QtCore/QObject>
+#include <QtCore/QPointer>
 
 #include "chat/chat.h"
 #include "talkable/talkable.h"
@@ -34,6 +35,7 @@ class QAction;
 
 class ActionDescription;
 class ChatWidget;
+class SmsDialogRepository;
 
 class SmsActions : public QObject
 {
@@ -41,6 +43,8 @@ class SmsActions : public QObject
 	Q_DISABLE_COPY(SmsActions)
 
 	static SmsActions *Instance;
+
+	QPointer<SmsDialogRepository> m_smsDialogRepository;
 
 	ActionDescription *sendSmsActionDescription;
 
@@ -57,6 +61,8 @@ public:
 	static void unregisterActions();
 
 	static SmsActions * instance();
+
+	void setSmsDialogRepository(SmsDialogRepository *smsDialogRepository);
 
 };
 

@@ -2,7 +2,7 @@
  * %kadu copyright begin%
  * Copyright 2009, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2009, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
@@ -59,7 +59,7 @@ public:\
 		return data() != compare.data();\
 	}\
 \
-	int operator < (const className &compare) const\
+	bool operator < (const className &compare) const\
 	{\
 		return data() < compare.data();\
 	}\
@@ -319,7 +319,7 @@ class ChangeNotifier;
  * connect(contact, SIGNAL(...), this, SLOT(...));
  * </pre>
  *
- * Both connect will connect to exactly the same signal. This is thanks to QObject-cast operator.
+ * Both connect will connect to exactly the same signal.
  */
 template<class T>
 class SharedBase
@@ -388,19 +388,6 @@ public:
 
 	/**
 	 * @author Rafal 'Vogel' Malinowski
-	 * @short Cast object to QObject * variable.
-	 * @return this object as QObject * variable
-	 *
-	 * Returns data object. Data object must be class derivered from QObject.
-	 * This method allows for signal/slot connecting SharedBase objects.
-	 */
-	operator const QObject * () const
-	{
-		return Data.constData();
-	}
-
-	/**
-	 * @author Rafal 'Vogel' Malinowski
 	 * @short Cast object to T * variable.
 	 * @return this object as T * variable
 	 *
@@ -419,7 +406,7 @@ public:
 	 * Returns true if object is not null (contains data) and false, if object is null
 	 * (does not contains an data).
 	 */
-	operator bool () const // for ! and ifs
+	explicit operator bool () const // for ! and ifs
 	{
 		return Data;
 	}
@@ -548,14 +535,11 @@ public:
 	 * @short Return ChangeNotifier instance for this object.
 	 * @return ChangeNotifier instance for this object
 	 *
-	 * This method can return null value for null object.
+	 * Id object is null, this method has undefined behavior.
 	 */
-	ChangeNotifier * changeNotifier() const
+	ChangeNotifier & changeNotifier() const
 	{
-		if (!isNull())
-			return Data->changeNotifier();
-		else
-			return 0;
+		return Data->changeNotifier();
 	}
 
 	KaduSharedBase_Property(QUuid, uuid, Uuid)

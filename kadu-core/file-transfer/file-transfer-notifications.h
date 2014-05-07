@@ -1,9 +1,10 @@
 /*
  * %kadu copyright begin%
  * Copyright 2008, 2009, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2009, 2012 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2008 Michał Podsiadlik (michal@kadu.net)
- * Copyright 2007, 2008, 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2012 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2007, 2008 Dawid Stawiarski (neeo@kadu.net)
  * %kadu copyright end%
  *
@@ -25,7 +26,7 @@
 #define FILE_TRANSFER_NOTIFICATION_H
 
 #include "file-transfer/file-transfer.h"
-#include "notify/chat-notification.h"
+#include "notify/notification/chat-notification.h"
 
 class FileTransferManager;
 class DccSocket;
@@ -54,6 +55,8 @@ public slots:
 public:
 	static void registerEvents();
 	static void unregisterEvents();
+
+	static void notifyIncomingFileTransfer(const FileTransfer &fileTransfer);
 
 	NewFileTransferNotification(const QString &type, FileTransfer ft, Chat chat, StartType startType);
 

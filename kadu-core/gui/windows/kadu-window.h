@@ -3,12 +3,12 @@
  * Copyright 2011 Tomasz Rostanski (rozteck@interia.pl)
  * Copyright 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2010, 2010 Przemysław Rudy (prudy1@o2.pl)
- * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2009, 2012 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2010 Tomasz Rostański (rozteck@interia.pl)
  * Copyright 2010 Piotr Dąbrowski (ultr@ultr.pl)
  * Copyright 2009 Michał Podsiadlik (michal@kadu.net)
- * Copyright 2009, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2009, 2009, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -43,7 +43,6 @@ class QMenu;
 class QMenuBar;
 class QVBoxLayout;
 
-class Action;
 class ActionDescription;
 class BuddyInfoPanel;
 class ProxyActionContext;
@@ -66,9 +65,6 @@ public:
 	};
 
 private:
-	typedef QPair<Action *, MenuType> MenuAction;
-	QMap<ActionDescription *, MenuAction> MenuActions;
-
 	bool Docked; // TODO: 0.11.0 it is a hack
 	QSplitter *Split;
 
@@ -82,22 +78,15 @@ private:
 	QMenu *ContactsMenu;
 	QMenu *ToolsMenu;
 	QMenu *HelpMenu;
-	QMenu *RecentChatsMenu;
-	QAction *RecentChatsMenuAction;
-	bool RecentChatsMenuNeedsUpdate;
-
-	QAction *AddConference;
-	QAction *AddRoomChat;
 
 	QWidget *MainWidget;
 	QVBoxLayout *MainLayout;
 
 	RosterWidget *Roster;
-	QMenu *StatusButtonMenu;
 	StatusButtons *ChangeStatusButtons;
 	QPoint LastPositionBeforeStatusMenuHide;
 
-#ifdef Q_WS_WIN
+#ifdef Q_OS_WIN32
 	QWidget *HiddenParent;
 #endif
 	QWidget *WindowParent;
@@ -114,7 +103,7 @@ private:
 	void createToolsMenu();
 	void createHelpMenu();
 
-#ifdef Q_WS_WIN
+#ifdef Q_OS_WIN32
 	void hideWindowFromTaskbar();
 #endif
 
@@ -123,15 +112,7 @@ private:
 	virtual void compositingEnabled();
 	virtual void compositingDisabled();
 
-private slots:
-	void invalidateRecentChatsMenu();
-	void updateRecentChatsMenu();
-	void updateAddChatMenuItem();
-	void openRecentChats(QAction *action);
-
-	void iconThemeChanged();
-
-#ifdef Q_WS_WIN
+#ifdef Q_OS_WIN32
 	void setHiddenParent();
 #endif
 
@@ -154,9 +135,6 @@ public:
 	virtual TalkableProxyModel * talkableProxyModel();
 
 	KaduWindowActions * kaduWindowActions() const { return Actions; }
-
-	QAction * insertMenuActionDescription(ActionDescription *actionDescription, MenuType Type, int pos = -1);
-	void removeMenuActionDescription(ActionDescription *actionDescription);
 
 	void setDocked(bool);
 	bool docked() { return Docked; }

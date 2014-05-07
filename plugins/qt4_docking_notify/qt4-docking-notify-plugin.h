@@ -27,21 +27,22 @@
 #ifndef QT4_DOCKING_NOTIFY_PLUGIN_H
 #define QT4_DOCKING_NOTIFY_PLUGIN_H
 
-#include "plugins/generic-plugin.h"
+#include "plugin/plugin-root-component.h"
 
 class Qt4Notify;
 
-class Qt4DockingNotifyPlugin : public QObject, public GenericPlugin
+class Qt4DockingNotifyPlugin : public QObject, public PluginRootComponent
 {
 	Q_OBJECT
-	Q_INTERFACES(GenericPlugin)
+	Q_INTERFACES(PluginRootComponent)
+	Q_PLUGIN_METADATA(IID "im.kadu.PluginRootComponent")
 
 	Qt4Notify *NotifierInstance;
 
 public:
 	virtual ~Qt4DockingNotifyPlugin();
 
-	virtual int init(bool firstLoad);
+	virtual bool init(bool firstLoad);
 	virtual void done();
 
 };

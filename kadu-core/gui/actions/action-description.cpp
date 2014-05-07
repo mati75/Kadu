@@ -1,8 +1,8 @@
 /*
  * %kadu copyright begin%
  * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2009, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -20,6 +20,7 @@
  */
 
 #include <QtCore/QLatin1String>
+#include <QtCore/QMetaMethod>
 
 #include "gui/actions/action.h"
 #include "gui/actions/actions.h"
@@ -217,11 +218,21 @@ void ActionDescription::configurationUpdated()
 }
 
 // TODO: a hack
+#if QT_VERSION >= 0x050000
+void ActionDescription::connectNotify(const QMetaMethod &signal)
+#else
 void ActionDescription::connectNotify(const char *signal)
+#endif
 {
 	QObject::connectNotify(signal);
 
+#if QT_VERSION >= 0x050000
+	if (signal == QMetaMethod::fromSignal(&ActionDescription::actionCreated))
+#else
 	if (QLatin1String(signal) == SIGNAL(actionCreated(Action*))) // do not insert space here
+#endif
 		foreach (Action *action, MappedActions)
 			emit actionCreated(action);
 }
+
+#include "moc_action-description.cpp"

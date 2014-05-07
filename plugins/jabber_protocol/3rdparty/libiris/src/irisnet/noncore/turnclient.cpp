@@ -279,7 +279,7 @@ public:
 		connect(bs, SIGNAL(connectionClosed()), SLOT(bs_connectionClosed()));
 		connect(bs, SIGNAL(delayedCloseFinished()), SLOT(bs_delayedCloseFinished()));
 		connect(bs, SIGNAL(readyRead()), SLOT(bs_readyRead()));
-		connect(bs, SIGNAL(bytesWritten(int)), SLOT(bs_bytesWritten(int)));
+		connect(bs, SIGNAL(bytesWritten(qint64)), SLOT(bs_bytesWritten(qint64)));
 	}
 
 	void do_close()
@@ -345,9 +345,9 @@ public:
 		{
 			pool = new StunTransactionPool(StunTransaction::Tcp, this);
 			pool->setDebugLevel((StunTransactionPool::DebugLevel)debugLevel);
-			connect(pool, SIGNAL(outgoingMessage(const QByteArray &, const QHostAddress &, int)), SLOT(pool_outgoingMessage(const QByteArray &, const QHostAddress &, int)));
+			connect(pool, SIGNAL(outgoingMessage(QByteArray,QHostAddress,int)), SLOT(pool_outgoingMessage(QByteArray,QHostAddress,int)));
 			connect(pool, SIGNAL(needAuthParams()), SLOT(pool_needAuthParams()));
-			connect(pool, SIGNAL(debugLine(const QString &)), SLOT(pool_debugLine(const QString &)));
+			connect(pool, SIGNAL(debugLine(QString)), SLOT(pool_debugLine(QString)));
 
 			pool->setLongTermAuthEnabled(true);
 			if(!user.isEmpty())
@@ -365,7 +365,7 @@ public:
 		connect(allocate, SIGNAL(error(XMPP::StunAllocate::Error)), SLOT(allocate_error(XMPP::StunAllocate::Error)));
 		connect(allocate, SIGNAL(permissionsChanged()), SLOT(allocate_permissionsChanged()));
 		connect(allocate, SIGNAL(channelsChanged()), SLOT(allocate_channelsChanged()));
-		connect(allocate, SIGNAL(debugLine(const QString &)), SLOT(allocate_debugLine(const QString &)));
+		connect(allocate, SIGNAL(debugLine(QString)), SLOT(allocate_debugLine(QString)));
 
 		allocate->setClientSoftwareNameAndVersion(clientSoftware);
 
@@ -752,7 +752,7 @@ private slots:
 
 	void bs_readyRead()
 	{
-		QByteArray buf = bs->read();
+		QByteArray buf = bs->readAll();
 
 		if(tls)
 			tls->writeIncoming(buf);
@@ -760,7 +760,7 @@ private slots:
 			processStream(buf);
 	}
 
-	void bs_bytesWritten(int written)
+	void bs_bytesWritten(qint64 written)
 	{
 		if(tls)
 		{

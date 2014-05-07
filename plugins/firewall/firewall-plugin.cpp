@@ -2,8 +2,8 @@
  * %kadu copyright begin%
  * Copyright 2008, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2007, 2008, 2009, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -20,6 +20,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "core/core.h"
 #include "exports.h"
 
 #include "firewall-configuration-ui-handler.h"
@@ -32,15 +33,16 @@ FirewallPlugin::~FirewallPlugin()
 {
 }
 
-int FirewallPlugin::init(bool firstLoad)
+bool FirewallPlugin::init(bool firstLoad)
 {
 	Q_UNUSED(firstLoad)
 
 	Firewall::createInstance();
+	Firewall::instance()->setFormattedStringFactory(Core::instance()->formattedStringFactory());
 	FirewallNotification::registerNotifications();
 	FirewallConfigurationUiHandler::registerUiHandler();
 
-	return 0;
+	return true;
 }
 
 void FirewallPlugin::done()
@@ -51,3 +53,5 @@ void FirewallPlugin::done()
 }
 
 Q_EXPORT_PLUGIN2(firewall, FirewallPlugin)
+
+#include "moc_firewall-plugin.cpp"

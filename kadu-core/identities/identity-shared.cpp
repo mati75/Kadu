@@ -1,10 +1,10 @@
 /*
  * %kadu copyright begin%
  * Copyright 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2010 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2012 Piotr "ultr" Dąbrowski (ultr@ultr.pl)
+ * Copyright 2009, 2010, 2012 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2012 Piotr Dąbrowski (ultr@ultr.pl)
+ * Copyright 2009, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -22,6 +22,7 @@
  */
 
 #include "accounts/account-manager.h"
+#include "configuration/main-configuration-holder.h"
 #include "contacts/contact.h"
 #include "core/core.h"
 #include "icons/kadu-icon.h"
@@ -34,7 +35,7 @@
 
 #include "identity-shared.h"
 
-IdentityShared * IdentityShared::loadStubFromStorage(const QSharedPointer<StoragePoint> &storagePoint)
+IdentityShared * IdentityShared::loadStubFromStorage(const std::shared_ptr<StoragePoint> &storagePoint)
 {
 	IdentityShared *identityShared = loadFromStorage(storagePoint);
 	identityShared->loadStub();
@@ -42,7 +43,7 @@ IdentityShared * IdentityShared::loadStubFromStorage(const QSharedPointer<Storag
 	return identityShared;
 }
 
-IdentityShared * IdentityShared::loadFromStorage(const QSharedPointer<StoragePoint> &storagePoint)
+IdentityShared * IdentityShared::loadFromStorage(const std::shared_ptr<StoragePoint> &storagePoint)
 {
 	IdentityShared *identityShared = new IdentityShared();
 	identityShared->setStorage(storagePoint);
@@ -115,9 +116,11 @@ void IdentityShared::addAccount(const Account &account)
 	ensureLoaded();
 
 	Accounts.append(account);
-	connect(account.statusContainer(), SIGNAL(statusUpdated()), this, SIGNAL(statusUpdated()));
+	connect(account.statusContainer(), SIGNAL(statusUpdated(StatusContainer *)), this, SIGNAL(statusUpdated(StatusContainer *)));
+	if (MainConfigurationHolder::instance()->isSetStatusPerIdentity())
+		account.statusContainer()->setStatus(LastSetStatus, SourceStatusChanger);
 
-	emit statusUpdated();
+	emit statusUpdated(this);
 }
 
 void IdentityShared::removeAccount(const Account &account)
@@ -130,7 +133,7 @@ void IdentityShared::removeAccount(const Account &account)
 	if (Accounts.removeAll(account) > 0)
 	{
 		disconnect(account.statusContainer(), 0, this, 0);
-		emit statusUpdated();
+		emit statusUpdated(this);
 	}
 }
 
@@ -163,6 +166,7 @@ void IdentityShared::setStatus(Status status, StatusChangeSource source)
 {
 	ensureLoaded();
 
+	LastSetStatus = status;
 	foreach (const Account &account, Accounts)
 		if (account)
 			account.statusContainer()->setStatus(status, source);
@@ -209,3 +213,5 @@ int IdentityShared::maxDescriptionLength()
 	Account account = AccountManager::bestAccount(Accounts);
 	return account ? account.statusContainer()->maxDescriptionLength() : -1;
 }
+
+#include "moc_identity-shared.cpp"

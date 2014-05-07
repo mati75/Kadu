@@ -3,8 +3,8 @@
  * Copyright 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2008, 2009 Michał Podsiadlik (michal@kadu.net)
  * Copyright 2003, 2004 Adrian Smarzewski (adrian@kadu.net)
- * Copyright 2008, 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2004, 2007 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
@@ -60,7 +60,7 @@
 	Wy�wietla komunikat debuguj�cy na konsoli.
 	Sk�adnia jak w printf.
 */
-#ifdef DEBUG_ENABLED
+#ifdef DEBUG_OUTPUT_ENABLED
 #ifdef _MSC_VER
 #define __PRETTY_FUNCTION__ __FUNCTION__
 #define kdebug(format, ...) \
@@ -101,7 +101,7 @@
 /*
 	Funkcja pomocnicza. Nie u�ywa�.
 */
-#ifdef DEBUG_ENABLED
+#ifdef DEBUG_OUTPUT_ENABLED
 KADUAPI void _kdebug_with_mask(int mask, const char *file, const int line, const char *format, ...)
 #ifndef _MSC_VER
  __attribute__((format (printf, 4, 5)))

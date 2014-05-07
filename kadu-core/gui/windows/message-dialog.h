@@ -1,11 +1,11 @@
 /*
  * %kadu copyright begin%
  * Copyright 2008, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2010 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2010, 2012 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2004 Tomasz Jarzynka (tomee@cpi.pl)
  * Copyright 2008, 2009 Michał Podsiadlik (michal@kadu.net)
  * Copyright 2003, 2005 Adrian Smarzewski (adrian@kadu.net)
- * Copyright 2007, 2008, 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2007, 2008 Dawid Stawiarski (neeo@kadu.net)
  * Copyright 2004, 2007 Marcin Ślusarz (joi@kadu.net)
@@ -34,17 +34,29 @@
 
 #include "exports.h"
 
-class QBoxLayout;
-class QLabel;
-
-namespace MessageDialog
+class KADUAPI MessageDialog : public QObject
 {
-	KADUAPI void show(const KaduIcon &icon, const QString &title, const QString &text, QMessageBox::StandardButtons buttons = QMessageBox::Ok,
+	Q_OBJECT
+
+	QMessageBox *Box;
+
+	MessageDialog(const KaduIcon &icon, const QString &title, const QString &text, QMessageBox::StandardButtons buttons,
+				      QWidget *parent = 0, Qt::WindowFlags f = Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint);
+
+protected slots:
+	void messageBoxFinished(int result);
+
+public:
+	static MessageDialog * create(const KaduIcon &icon, const QString &title, const QString &text,
+				      QWidget *parent = 0, Qt::WindowFlags f = Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint);
+	static void show(const KaduIcon &icon, const QString &title, const QString &text, QMessageBox::StandardButtons buttons = QMessageBox::Ok,
 			  QWidget *parent = 0, Qt::WindowFlags f = Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint);
-	KADUAPI int exec(const KaduIcon &icon, const QString &title, const QString &text, QMessageBox::StandardButtons buttons = QMessageBox::Ok,
-			  QWidget *parent = 0, Qt::WindowFlags f = Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint);
-	KADUAPI bool ask(const KaduIcon &icon, const QString &title, const QString &text,
-			 QWidget *parent = 0, Qt::WindowFlags f = Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint);
-}
+
+	MessageDialog * addButton(QMessageBox::StandardButton button, const QString &text = "");
+	void setDefaultButton(QMessageBox::StandardButton button);
+
+	int exec();
+	bool ask();
+};
 
 #endif // MESSAGE_DIALOG_H

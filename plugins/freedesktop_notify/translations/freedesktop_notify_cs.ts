@@ -5,10 +5,6 @@
         <source>Notifications</source>
         <translation>Oznámení</translation>
     </message>
-    <message>
-        <source>General</source>
-        <translation>Obecné</translation>
-    </message>
     <message numerus="yes">
         <source>%n second(s)</source>
         <translation><numerusform>1 sekunda</numerusform><numerusform>%n sekundy</numerusform><numerusform>%n sekund</numerusform></translation>
@@ -36,6 +32,10 @@
     <message>
         <source>Never</source>
         <translation>Nikdy</translation>
+    </message>
+    <message>
+        <source>Options</source>
+        <translation>Volby</translation>
     </message>
 </context>
 </TS>

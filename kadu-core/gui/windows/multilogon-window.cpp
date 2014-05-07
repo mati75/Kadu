@@ -1,8 +1,8 @@
 /*
  * %kadu copyright begin%
  * Copyright 2011 Piotr Dąbrowski (ultr@ultr.pl)
- * Copyright 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -19,6 +19,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <QtGui/QApplication>
 #include <QtGui/QDialogButtonBox>
 #include <QtGui/QHBoxLayout>
 #include <QtGui/QHeaderView>
@@ -29,12 +30,13 @@
 #include <QtGui/QVBoxLayout>
 
 #include "accounts/filter/have-multilogon-filter.h"
+#include "configuration/config-file-variant-wrapper.h"
 #include "gui/widgets/accounts-combo-box.h"
 #include "icons/icons-manager.h"
-#include "misc/misc.h"
 #include "model/roles.h"
 #include "multilogon/model/multilogon-model.h"
 #include "multilogon/multilogon-session.h"
+#include "os/generic/window-geometry-manager.h"
 #include "protocols/protocol.h"
 #include "protocols/services/multilogon-service.h"
 #include "activate.h"
@@ -53,13 +55,11 @@ MultilogonWindow::MultilogonWindow(QWidget *parent) :
 
 	createGui();
 
-	loadWindowGeometry(this, "General", "MultilogonWindowGeometry", 0, 50, 450, 300);
+	new WindowGeometryManager(new ConfigFileVariantWrapper("General", "MultilogonWindowGeometry"), QRect(0, 50, 450, 300), this);
 }
 
 MultilogonWindow::~MultilogonWindow()
 {
-	saveWindowGeometry(this, "General", "MultilogonWindowGeometry");
-
 	Instance = 0;
 }
 
@@ -184,3 +184,5 @@ void MultilogonWindow::killSession()
 	if (session)
 		service->killSession(session);
 }
+
+#include "moc_multilogon-window.cpp"

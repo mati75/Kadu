@@ -51,8 +51,8 @@
 <context>
     <name>ConfigWizardConfigurationUiHandler</name>
     <message>
-        <source>Start Configuration Wizard...</source>
-        <translation>Uruchom kreator konfiguracji...</translation>
+        <source>Start Configuration Wizard</source>
+        <translation>Uruchom kreator konfiguracji</translation>
     </message>
 </context>
 <context>

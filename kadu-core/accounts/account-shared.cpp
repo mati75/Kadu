@@ -3,8 +3,8 @@
  * Copyright 2009, 2010, 2010, 2011, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2010 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
- * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2009, 2010, 2011, 2012, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -34,12 +34,12 @@
 #include "network/proxy/network-proxy-manager.h"
 #include "protocols/protocol.h"
 #include "protocols/protocols-manager.h"
-#include "protocols/services/roster-service.h"
+#include "protocols/services/roster/roster-service.h"
 #include "status/status-setter.h"
 
 #include "account-shared.h"
 
-AccountShared * AccountShared::loadStubFromStorage(const QSharedPointer<StoragePoint> &storagePoint)
+AccountShared * AccountShared::loadStubFromStorage(const std::shared_ptr<StoragePoint> &storagePoint)
 {
 	AccountShared *result = loadFromStorage(storagePoint);
 	result->loadStub();
@@ -47,7 +47,7 @@ AccountShared * AccountShared::loadStubFromStorage(const QSharedPointer<StorageP
 	return result;
 }
 
-AccountShared * AccountShared::loadFromStorage(const QSharedPointer<StoragePoint> &storagePoint)
+AccountShared * AccountShared::loadFromStorage(const std::shared_ptr<StoragePoint> &storagePoint)
 {
 	AccountShared *result = new AccountShared();
 	result->setStorage(storagePoint);
@@ -77,7 +77,7 @@ AccountShared::AccountShared(const QString &protocolName) :
 			protocolRegistered(factory);
 	}
 
-	connect(changeNotifier(), SIGNAL(changed()), this, SIGNAL(updated()));
+	connect(&changeNotifier(), SIGNAL(changed()), this, SIGNAL(updated()));
 }
 
 AccountShared::~AccountShared()
@@ -274,6 +274,9 @@ void AccountShared::store()
 
 	storeValue("PrivateStatus", PrivateStatus);
 
+	if (Details)
+		Details->ensureStored();
+
 	storeRosterTasks();
 }
 
@@ -326,7 +329,8 @@ void AccountShared::setDisconnectStatus()
 
 void AccountShared::protocolRegistered(ProtocolFactory *factory)
 {
-	Q_ASSERT(factory);
+	if (!factory)
+		return;
 
 	ensureLoaded();
 
@@ -334,12 +338,12 @@ void AccountShared::protocolRegistered(ProtocolFactory *factory)
 		return;
 
 	ProtocolHandler = factory->createProtocolHandler(this);
-	Q_ASSERT(ProtocolHandler);
+	if (!ProtocolHandler)
+		return;
 
 	Details = factory->createAccountDetails(this);
-	Q_ASSERT(Details);
-
-	details()->ensureLoaded();
+	if (Details)
+		details()->ensureLoaded();
 
 	connect(ProtocolHandler, SIGNAL(statusChanged(Account, Status)), MyStatusContainer, SLOT(triggerStatusUpdated()));
 	connect(ProtocolHandler, SIGNAL(contactStatusChanged(Contact, Status)),
@@ -358,7 +362,8 @@ void AccountShared::protocolRegistered(ProtocolFactory *factory)
 
 void AccountShared::protocolUnregistered(ProtocolFactory* factory)
 {
-	Q_ASSERT(factory);
+	if (!factory)
+		return;
 
 	ensureLoaded();
 
@@ -408,7 +413,7 @@ void AccountShared::setAccountIdentity(const Identity &accountIdentity)
 
 	doSetAccountIdentity(accountIdentity);
 
-	changeNotifier()->notify();
+	changeNotifier().notify();
 }
 
 void AccountShared::doSetId(const QString &id)
@@ -426,7 +431,7 @@ void AccountShared::setId(const QString &id)
 
 	doSetId(id);
 
-	changeNotifier()->notify();
+	changeNotifier().notify();
 }
 
 Contact AccountShared::accountContact()
@@ -464,3 +469,5 @@ void AccountShared::fileTransferServiceChanged(FileTransferService *service)
 }
 
 KaduShared_PropertyPtrReadDef(AccountShared, Identity, accountIdentity, AccountIdentity)
+
+#include "moc_account-shared.cpp"

@@ -2,8 +2,8 @@
  * %kadu copyright begin%
  * Copyright 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2010, 2011, 2012, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -21,6 +21,7 @@
  */
 
 #include <QtGui/QAction>
+#include <QtGui/QApplication>
 #include <QtGui/QCheckBox>
 #include <QtGui/QDialogButtonBox>
 #include <QtGui/QFormLayout>
@@ -35,13 +36,14 @@
 #include "buddies/buddy-manager.h"
 #include "buddies/model/buddy-list-model.h"
 #include "buddies/model/buddy-manager-adapter.h"
+#include "configuration/config-file-variant-wrapper.h"
 #include "configuration/configuration-file.h"
+#include "core/core.h"
 #include "gui/widgets/select-talkable-combo-box.h"
 #include "gui/windows/message-dialog.h"
-#include "gui/windows/progress-window2.h"
+#include "gui/windows/progress-window.h"
 #include "icons/kadu-icon.h"
-#include "misc/misc.h"
-#include "plugins/plugins-manager.h"
+#include "os/generic/window-geometry-manager.h"
 #include "talkable/filter/mobile-talkable-filter.h"
 #include "debug.h"
 
@@ -49,8 +51,8 @@
 
 #include "mobile-number-manager.h"
 #include "sms-external-sender.h"
-#include "sms-gateway.h"
 #include "sms-gateway-manager.h"
+#include "sms-gateway.h"
 #include "sms-internal-sender.h"
 
 #include "sms-dialog.h"
@@ -68,19 +70,15 @@ SmsDialog::SmsDialog(QWidget* parent) :
 
 	configurationUpdated();
 
-	loadWindowGeometry(this, "Sms", "SmsDialogGeometry", 200, 200, 400, 250);
+	new WindowGeometryManager(new ConfigFileVariantWrapper("Sms", "SmsDialogGeometry"), QRect(200, 200, 400, 250), this);
 
 	RecipientEdit->setFocus();
 
-	PluginsManager::instance()->usePlugin("sms");
 	kdebugf2();
 }
 
 SmsDialog::~SmsDialog()
 {
-	saveWindowGeometry(this, "Sms", "SmsDialogGeometry");
-
-	PluginsManager::instance()->releasePlugin("sms");
 }
 
 void SmsDialog::createGui()
@@ -293,7 +291,7 @@ void SmsDialog::sendSms()
 	connect(sender, SIGNAL(gatewayAssigned(QString, QString)), this, SLOT(gatewayAssigned(QString, QString)));
 	sender->setSignature(SignatureEdit->text());
 
-	ProgressWindow2 *window = new ProgressWindow2(tr("Sending SMS..."));
+	ProgressWindow *window = new ProgressWindow(tr("Sending SMS..."));
 	window->setCancellable(true);
 	window->show();
 
@@ -343,3 +341,5 @@ void SmsDialog::keyPressEvent(QKeyEvent *e)
 	else
 		QWidget::keyPressEvent(e);
 }
+
+#include "moc_sms-dialog.cpp"

@@ -1,7 +1,7 @@
 /*
  * %kadu copyright begin%
  * Copyright 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
@@ -42,8 +42,6 @@ class AntistringConfiguration : public ConfigurationAwareObject
 	void createDefaultConfiguration();
 	void addCondition(const QString &conditionString);
 	void readDefaultConditions();
-	void readConditions();
-	void storeConditions();
 
 protected:
 	virtual void configurationUpdated();
@@ -51,6 +49,9 @@ protected:
 public:
 	AntistringConfiguration();
 	virtual ~AntistringConfiguration();
+
+	void readConditions();
+	void storeConditions();
 
 	QList<QPair<QString, int> > & conditions() { return Conditions; }
 

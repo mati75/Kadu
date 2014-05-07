@@ -2,10 +2,6 @@
 <context>
     <name>@default</name>
     <message>
-        <source>Chat Window</source>
-        <translation>Okno rozmowy</translation>
-    </message>
-    <message>
         <source>Tabs</source>
         <translation>Karty</translation>
     </message>
@@ -14,36 +10,8 @@
         <translation>Ogólne</translation>
     </message>
     <message>
-        <source>Use tabs by default</source>
-        <translation>Domyślnie używaj kart</translation>
-    </message>
-    <message>
-        <source>Minimum number of tabs</source>
-        <translation>Minimalna liczba kart</translation>
-    </message>
-    <message>
-        <source>Tabs at the bottom of the window</source>
-        <translation>Karty na dole okna</translation>
-    </message>
-    <message>
-        <source>Conferences in tabs</source>
-        <translation>Konferencje w kartach</translation>
-    </message>
-    <message>
-        <source>Closing tabs using button from titlebar</source>
-        <translation>Zamykanie kart przyciskiem z paska tytułowego</translation>
-    </message>
-    <message>
-        <source>&lt;nobr&gt;&lt;b&gt;Warning: This option has know bug!&lt;/b&gt;&lt;/nobr&gt;&lt;br&gt;If there is open more than one tab then exiting from KDE will be stopped by this module.</source>
-        <translation>&lt;nobr&gt;&lt;b&gt;Ostrzeżenie: Ta opcja zawiera znany błąd!&lt;/b&gt;&lt;/nobr&gt;&lt;br&gt;Jeśli jest otwarta więcej niż jedna karta to próba wyjścia z KDE zostanie przerwana przez ten moduł.</translation>
-    </message>
-    <message>
         <source>Look</source>
         <translation>Wygląd</translation>
-    </message>
-    <message>
-        <source>Show Close button on each tab</source>
-        <translation>Pokaż przycisk zamykania na każdej karcie</translation>
     </message>
     <message>
         <source>Shortcuts</source>
@@ -69,6 +37,46 @@
         <source>Chat</source>
         <translation>Rozmowa</translation>
     </message>
+    <message>
+        <source>Enable tabs in chat window</source>
+        <translation>Włącz karty w oknie rozmowy</translation>
+    </message>
+    <message>
+        <source>With this option, each chat will be opened in a separate tab in single window</source>
+        <translation>Wszystkie rozmowy będą otwierane w tym samym oknie, ale w różnych kartach</translation>
+    </message>
+    <message>
+        <source>Closing window closes current tab only</source>
+        <translation>Zamknij tylko aktualną kartę przy zamykaniu okna</translation>
+    </message>
+    <message>
+        <source>When enabled, closing chat window will cause closing only current tab, instead of all tabs and the window itself</source>
+        <translation>Przy włączonej tej opcji zamykanie okna będzie skutkowało zamknięciem tylko aktualnej karty a nie wszystkich kart wraz z oknem</translation>
+    </message>
+    <message>
+        <source>Tab bar position</source>
+        <translation>Pozycja paska kart</translation>
+    </message>
+    <message>
+        <source>Choose where you want the tab bar to be placed in chat window</source>
+        <translation>Wybierz miejsce, w którym będzie się znajdował pasek kart</translation>
+    </message>
+    <message>
+        <source>Top</source>
+        <translation>Góra</translation>
+    </message>
+    <message>
+        <source>Bottom</source>
+        <translation>Dół</translation>
+    </message>
+    <message>
+        <source>Behaviour</source>
+        <translation>Zachowanie</translation>
+    </message>
+    <message>
+        <source>Reopen closed tab</source>
+        <translation>Otwórz zamkniętą kartę</translation>
+    </message>
 </context>
 <context>
     <name>TabWidget</name>
@@ -81,16 +89,28 @@
         <translation>Otrzymano nową wiadomość, zamknąć mimo to?</translation>
     </message>
     <message>
-        <source>Open Chat with...</source>
-        <translation>Rozpocznij rozmowę z ...</translation>
-    </message>
-    <message>
         <source>Recent Chats</source>
         <translation>Ostatnie rozmowy</translation>
     </message>
     <message>
+        <source>Open Chat with...</source>
+        <translation>Rozpocznij rozmowę z ...</translation>
+    </message>
+    <message>
+        <source>Tabs</source>
+        <translation>Karty</translation>
+    </message>
+    <message>
         <source>Close Tab</source>
         <translation>Zamknij kartę</translation>
+    </message>
+    <message>
+        <source>Close window</source>
+        <translation>Zamknij okno</translation>
+    </message>
+    <message>
+        <source>Cancel</source>
+        <translation>Anuluj</translation>
     </message>
 </context>
 <context>
@@ -132,8 +152,12 @@
         <translation>Konferencja [%1]</translation>
     </message>
     <message>
-        <source>Close all but active</source>
-        <translation>Zamknij wszystkie poza aktywną</translation>
+        <source>Close other tabs</source>
+        <translation>Zamknij pozostałe karty</translation>
+    </message>
+    <message>
+        <source>Reopen closed tab</source>
+        <translation>Otwórz zamkniętą kartę</translation>
     </message>
 </context>
 </TS>

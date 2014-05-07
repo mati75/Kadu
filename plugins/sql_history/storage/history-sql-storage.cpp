@@ -1,11 +1,12 @@
 /*
  * %kadu copyright begin%
  * Copyright 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2009, 2009, 2009, 2010 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2009, 2009, 2009, 2009, 2010, 2011 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2012 Piotr Dąbrowski (ultr@ultr.pl)
  * Copyright 2009 Michał Podsiadlik (michal@kadu.net)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
- * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2009, 2010, 2011, 2012, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -34,29 +35,32 @@
 #include "accounts/account.h"
 #include "buddies/buddy-manager.h"
 #include "chat/buddy-chat-manager.h"
-#include "chat/chat-details.h"
 #include "chat/chat-details-buddy.h"
+#include "chat/chat-details.h"
 #include "chat/chat-manager.h"
 #include "chat/type/chat-type-contact.h"
 #include "configuration/configuration-file.h"
 #include "contacts/contact-manager.h"
 #include "contacts/contact-set.h"
 #include "core/core.h"
-#include "gui/widgets/chat-widget.h"
+#include "formatted-string/composite-formatted-string.h"
+#include "formatted-string/formatted-string-factory.h"
+#include "formatted-string/formatted-string-plain-text-visitor.h"
+#include "gui/widgets/chat-widget/chat-widget.h"
 #include "gui/windows/message-dialog.h"
-#include "gui/windows/progress-window2.h"
-#include "message/formatted-message.h"
+#include "gui/windows/progress-window.h"
 #include "message/message.h"
+#include "message/sorted-messages.h"
 #include "misc/misc.h"
 #include "status/status-type-data.h"
 #include "status/status-type-manager.h"
 #include "talkable/talkable.h"
 #include "debug.h"
 
+#include "plugins/history/history-query-result.h"
+#include "plugins/history/history-query.h"
 #include "plugins/history/history.h"
 #include "plugins/history/search/history-search-parameters.h"
-#include "plugins/history/history-query.h"
-#include "plugins/history/history-query-result.h"
 
 #include "storage/sql-accounts-mapping.h"
 #include "storage/sql-chats-mapping.h"
@@ -71,9 +75,9 @@
 #define DATE_TITLE_LENGTH 120
 
 HistorySqlStorage::HistorySqlStorage(QObject *parent) :
-		HistoryStorage(parent), ImportProgressWindow(0),
-		AccountsMapping(0), ContactsMapping(0), ChatsMapping(0),
-		DatabaseMutex(QMutex::NonRecursive)
+		HistoryStorage(parent), InitializerThread{}, ImportProgressWindow{},
+		AccountsMapping{}, ContactsMapping{}, ChatsMapping{}, DatabaseMutex{QMutex::NonRecursive},
+		ChatStorage{}, StatusStorage{}, SmsStorage{}
 {
 	kdebugf();
 
@@ -126,12 +130,17 @@ HistorySqlStorage::~HistorySqlStorage()
 		Database.commit();
 }
 
+void HistorySqlStorage::setFormattedStringFactory(FormattedStringFactory *formattedStringFactory)
+{
+	CurrentFormattedStringFactory = formattedStringFactory;
+}
+
 void HistorySqlStorage::ensureProgressWindowReady()
 {
 	if (ImportProgressWindow)
 		return;
 
-	ImportProgressWindow = new ProgressWindow2(tr("Preparing history database..."));
+	ImportProgressWindow = new ProgressWindow(tr("Preparing history database..."));
 	ImportProgressWindow->setWindowTitle(tr("History"));
 	ImportProgressWindow->show();
 }
@@ -311,7 +320,7 @@ int HistorySqlStorage::saveMessageContent(const Message& message)
 	QSqlQuery saveMessageQuery = QSqlQuery(Database);
 	saveMessageQuery.prepare("INSERT INTO kadu_message_contents (content) VALUES (:content)");
 
-	saveMessageQuery.bindValue(":content", message.content());
+	saveMessageQuery.bindValue(":content", message.htmlContent());
 
 	executeQuery(saveMessageQuery);
 	int contentId = saveMessageQuery.lastInsertId().toInt();
@@ -493,7 +502,7 @@ QVector<Talkable> HistorySqlStorage::syncChats()
 	return talkables;
 }
 
-QFuture<QVector<Talkable> > HistorySqlStorage::chats()
+QFuture<QVector<Talkable>> HistorySqlStorage::chats()
 {
 	return QtConcurrent::run(this, &HistorySqlStorage::syncChats);
 }
@@ -526,7 +535,7 @@ QVector<Talkable> HistorySqlStorage::syncStatusBuddies()
 	return result;
 }
 
-QFuture<QVector<Talkable> > HistorySqlStorage::statusBuddies()
+QFuture<QVector<Talkable>> HistorySqlStorage::statusBuddies()
 {
 	return QtConcurrent::run(this, &HistorySqlStorage::syncStatusBuddies);
 }
@@ -554,7 +563,7 @@ QVector<Talkable> HistorySqlStorage::syncSmsRecipients()
 	return result;
 }
 
-QFuture<QVector<Talkable> > HistorySqlStorage::smsRecipients()
+QFuture<QVector<Talkable>> HistorySqlStorage::smsRecipients()
 {
 	return QtConcurrent::run(this, &HistorySqlStorage::syncSmsRecipients);
 }
@@ -634,11 +643,20 @@ QVector<HistoryQueryResult> HistorySqlStorage::syncChatDates(const HistoryQuery 
 			}
 
 			// TODO: this should be done in different place
-			QTextDocument document;
-			document.setHtml(message);
-			FormattedMessage formatted = FormattedMessage::parse(&document);
 
-			QString title = formatted.toPlain().replace('\n', ' ').replace('\r', ' ');
+			QString title;
+			if (CurrentFormattedStringFactory)
+			{
+				auto formattedString = CurrentFormattedStringFactory.data()->fromHtml(message);
+
+				FormattedStringPlainTextVisitor plainTextVisitor;
+				formattedString->accept(&plainTextVisitor);
+
+				title = plainTextVisitor.result().replace('\n', ' ').replace('\r', ' ');
+			}
+			else
+				title = message.replace('\n', ' ').replace('\r', ' ');
+
 			if (title.length() > DATE_TITLE_LENGTH)
 			{
 				title.truncate(DATE_TITLE_LENGTH);
@@ -743,7 +761,7 @@ QVector<HistoryQueryResult> HistorySqlStorage::syncStatusDates(const HistoryQuer
 	return dates;
 }
 
-QFuture<QVector<HistoryQueryResult> > HistorySqlStorage::statusDates(const HistoryQuery &historyQuery)
+QFuture<QVector<HistoryQueryResult>> HistorySqlStorage::statusDates(const HistoryQuery &historyQuery)
 {
 	return QtConcurrent::run(this, &HistorySqlStorage::syncStatusDates, historyQuery);
 }
@@ -813,15 +831,15 @@ QVector<HistoryQueryResult> HistorySqlStorage::syncSmsRecipientDates(const Histo
 	return dates;
 }
 
-QFuture<QVector<HistoryQueryResult> > HistorySqlStorage::smsRecipientDates(const HistoryQuery &historyQuery)
+QFuture<QVector<HistoryQueryResult>> HistorySqlStorage::smsRecipientDates(const HistoryQuery &historyQuery)
 {
 	return QtConcurrent::run(this, &HistorySqlStorage::syncSmsRecipientDates, historyQuery);
 }
 
-QVector<Message> HistorySqlStorage::syncMessages(const HistoryQuery &historyQuery)
+SortedMessages HistorySqlStorage::syncMessages(const HistoryQuery &historyQuery)
 {
 	if (!waitForDatabase())
-		return QVector<Message>();
+		return SortedMessages();
 
 	QMutexLocker locker(&DatabaseMutex);
 
@@ -851,7 +869,7 @@ QVector<Message> HistorySqlStorage::syncMessages(const HistoryQuery &historyQuer
 		queryString += " LIMIT :limit";
 	}
 	else
-		queryString += " ORDER BY date ASC, kadu_messages.rowid ASC";
+		queryString += " ORDER BY date ASC, kadu_messages.rowid DESC";
 
 	query.prepare(queryString);
 
@@ -867,36 +885,21 @@ QVector<Message> HistorySqlStorage::syncMessages(const HistoryQuery &historyQuer
 	if (historyQuery.limit() > 0)
 		query.bindValue(":limit", historyQuery.limit());
 
-	QVector<Message> messages;
-
 	executeQuery(query);
-	messages = messagesFromQuery(query);
-
-	if (historyQuery.limit() > 0)
-	{
-		// see comment above
-		QVector<Message> inverted;
-		inverted.reserve(messages.size());
-
-		for (int i = messages.size() - 1; i >= 0; --i)
-			inverted.append(messages.at(i));
-		return inverted;
-	}
-
-	return messages;
+	return messagesFromQuery(query);
 }
 
-QFuture<QVector<Message> > HistorySqlStorage::messages(const HistoryQuery &historyQuery)
+QFuture<SortedMessages> HistorySqlStorage::messages(const HistoryQuery &historyQuery)
 {
 	return QtConcurrent::run(this, &HistorySqlStorage::syncMessages, historyQuery);
 }
 
-QVector<Message> HistorySqlStorage::syncStatuses(const HistoryQuery &historyQuery)
+SortedMessages HistorySqlStorage::syncStatuses(const HistoryQuery &historyQuery)
 {
 	const Talkable &talkable = historyQuery.talkable();
 
 	if (!waitForDatabase())
-		return QVector<Message>();
+		return SortedMessages();
 
 	QMutexLocker locker(&DatabaseMutex);
 
@@ -910,7 +913,7 @@ QVector<Message> HistorySqlStorage::syncStatuses(const HistoryQuery &historyQuer
 
 	queryString += " ORDER BY set_time ASC";
 
-	QVector<Message> statuses;
+	SortedMessages statuses;
 	query.prepare(queryString);
 
 	if (historyQuery.fromDate().isValid())
@@ -924,17 +927,17 @@ QVector<Message> HistorySqlStorage::syncStatuses(const HistoryQuery &historyQuer
 	return statuses;
 }
 
-QFuture<QVector<Message> > HistorySqlStorage::statuses(const HistoryQuery &historyQuery)
+QFuture<SortedMessages> HistorySqlStorage::statuses(const HistoryQuery &historyQuery)
 {
 	return QtConcurrent::run(this, &HistorySqlStorage::syncStatuses, historyQuery);
 }
 
-QVector<Message> HistorySqlStorage::syncSmses(const HistoryQuery &historyQuery)
+SortedMessages HistorySqlStorage::syncSmses(const HistoryQuery &historyQuery)
 {
 	const Talkable &talkable = historyQuery.talkable();
 
 	if (!waitForDatabase())
-		return QVector<Message>();
+		return SortedMessages();
 
 	QMutexLocker locker(&DatabaseMutex);
 
@@ -962,12 +965,12 @@ QVector<Message> HistorySqlStorage::syncSmses(const HistoryQuery &historyQuery)
 
 	executeQuery(query);
 
-	QVector<Message> result = smsFromQuery(query);
+	SortedMessages result = smsFromQuery(query);
 
 	return result;
 }
 
-QFuture<QVector<Message> > HistorySqlStorage::smses(const HistoryQuery &historyQuery)
+QFuture<SortedMessages> HistorySqlStorage::smses(const HistoryQuery &historyQuery)
 {
 	return QtConcurrent::run(this, &HistorySqlStorage::syncSmses, historyQuery);
 }
@@ -1007,9 +1010,12 @@ QString HistorySqlStorage::stripAllScriptTags(const QString &string)
 	return afterReplace;
 }
 
-QVector<Message> HistorySqlStorage::messagesFromQuery(QSqlQuery &query)
+SortedMessages HistorySqlStorage::messagesFromQuery(QSqlQuery &query)
 {
-	QVector<Message> messages;
+	if (!CurrentFormattedStringFactory)
+		return {};
+
+	auto messages = std::vector<Message>{};
 	while (query.next())
 	{
 		bool outgoing = query.value(5).toBool();
@@ -1026,69 +1032,73 @@ QVector<Message> HistorySqlStorage::messagesFromQuery(QSqlQuery &query)
 			sender.setOwnerBuddy(senderBuddy);
 		}
 
-		Message message = Message::create();
+		auto message = Message::create();
 		message.setMessageChat(ChatsMapping->chatById(query.value(0).toInt()));
 		message.setType(type);
 		message.setMessageSender(sender);
-		message.setContent(stripAllScriptTags(query.value(2).toString()));
+		message.setContent(CurrentFormattedStringFactory.data()->fromHtml(stripAllScriptTags(query.value(2).toString())));
 		message.setSendDate(query.value(3).toDateTime());
 		message.setReceiveDate(query.value(4).toDateTime());
-		message.setStatus(outgoing ? MessageStatusDelivered : MessageStatusReceived);
+		if (outgoing)
+			message.setStatus(MessageStatusDelivered);
 
-		messages.append(message);
+		messages.push_back(message);
 	}
 
-	return messages;
+	// the data was queried in descending order, so we need to reverse it
+	std::reverse(messages.begin(), messages.end());
+
+	return SortedMessages{messages};
 }
 
-QVector<Message> HistorySqlStorage::statusesFromQuery(const Contact &contact, QSqlQuery &query)
+SortedMessages HistorySqlStorage::statusesFromQuery(const Contact &contact, QSqlQuery &query)
 {
-	QVector<Message> statuses;
+	if (!CurrentFormattedStringFactory)
+		return {};
 
+	auto statuses = std::vector<Message>{};
 	while (query.next())
 	{
 		StatusType type = StatusTypeManager::instance()->fromName(query.value(1).toString());
 		const StatusTypeData &typeData = StatusTypeManager::instance()->statusTypeData(type);
 
-		Message message = Message::create();
+		auto message = Message::create();
 
 		const QString description = query.value(2).toString();
-		if (description.isEmpty())
-			message.setContent(Qt::escape(typeData.name()));
-		else
-			message.setContent(Qt::escape(QString("%1 with description: %2")
-					.arg(typeData.name())
-					.arg(description)));
+		const QString htmlContent = description.isEmpty()
+				? Qt::escape(typeData.name())
+				: Qt::escape(QString("%1 with description: %2").arg(typeData.name()).arg(description));
 
-		message.setStatus(MessageStatusReceived);
+		message.setContent(CurrentFormattedStringFactory.data()->fromHtml(htmlContent));
 		message.setType(MessageTypeSystem);
 		message.setMessageSender(contact);
 		message.setReceiveDate(query.value(3).toDateTime());
 		message.setSendDate(query.value(3).toDateTime());
 
-		statuses.append(message);
+		statuses.push_back(message);
 	}
 
-	return statuses;
+	return SortedMessages{statuses};
 }
 
-QVector<Message> HistorySqlStorage::smsFromQuery(QSqlQuery &query)
+SortedMessages HistorySqlStorage::smsFromQuery(QSqlQuery &query)
 {
-	QVector<Message> messages;
+	if (!CurrentFormattedStringFactory)
+		return {};
 
+	auto messages = std::vector<Message>{};
 	while (query.next())
 	{
-		Message message = Message::create();
-		message.setStatus(MessageStatusSent);
+		auto message = Message::create();
 		message.setType(MessageTypeSystem);
 		message.setReceiveDate(query.value(1).toDateTime());
 		message.setSendDate(query.value(1).toDateTime());
-		message.setContent(Qt::escape(query.value(0).toString()));
+		message.setContent(CurrentFormattedStringFactory.data()->fromPlainText(Qt::escape(query.value(0).toString())));
 
-		messages.append(message);
+		messages.push_back(message);
 	}
 
-	return messages;
+	return SortedMessages{messages};
 }
 
 HistoryMessagesStorage * HistorySqlStorage::chatStorage()
@@ -1105,3 +1115,5 @@ HistoryMessagesStorage * HistorySqlStorage::statusStorage()
 {
 	return StatusStorage;
 }
+
+#include "moc_history-sql-storage.cpp"

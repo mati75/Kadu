@@ -3,8 +3,8 @@
  * Copyright 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2010 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
- * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2009, 2010, 2011, 2012, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -32,7 +32,7 @@
 #include "gadu-personal-info-widget.h"
 
 GaduPersonalInfoWidget::GaduPersonalInfoWidget(Account account, QWidget* parent) :
-		QWidget(parent), MyBuddy(Buddy::create())
+		QWidget(parent), Id(account.id()), MyBuddy(Buddy::create())
 {
 	createGui();
 	fillForm();
@@ -45,7 +45,7 @@ GaduPersonalInfoWidget::GaduPersonalInfoWidget(Account account, QWidget* parent)
 		return;
 
 	connect(Service, SIGNAL(personalInfoAvailable(Buddy)), this, SLOT(personalInfoAvailable(Buddy)));
-	Service->fetchPersonalInfo();
+	Service->fetchPersonalInfo(Id);
 }
 
 GaduPersonalInfoWidget::~GaduPersonalInfoWidget()
@@ -103,7 +103,7 @@ void GaduPersonalInfoWidget::personalInfoAvailable(Buddy buddy)
 
 void GaduPersonalInfoWidget::fillForm()
 {
- 	NickName->setText(MyBuddy.nickName());
+	NickName->setText(MyBuddy.nickName());
 	FirstName->setText(MyBuddy.firstName());
 	LastName->setText(MyBuddy.lastName());
 	Sex->setCurrentIndex((int)MyBuddy.gender());
@@ -116,13 +116,13 @@ void GaduPersonalInfoWidget::fillForm()
 bool GaduPersonalInfoWidget::isModified()
 {
 	return NickName->text() != MyBuddy.nickName()
-	|| FirstName->text() != MyBuddy.firstName()
-	|| LastName->text() != MyBuddy.lastName()
-	|| Sex->currentIndex() != (int)MyBuddy.gender()
-	|| FamilyName->text() != MyBuddy.familyName()
-	|| BirthYear->text() != QString::number(MyBuddy.birthYear())
-	|| City->text() != MyBuddy.city()
-	|| FamilyCity->text() != MyBuddy.familyCity();
+			|| FirstName->text() != MyBuddy.firstName()
+			|| LastName->text() != MyBuddy.lastName()
+			|| Sex->currentIndex() != (int)MyBuddy.gender()
+			|| FamilyName->text() != MyBuddy.familyName()
+			|| BirthYear->text() != QString::number(MyBuddy.birthYear())
+			|| City->text() != MyBuddy.city()
+			|| FamilyCity->text() != MyBuddy.familyCity();
 }
 
 void GaduPersonalInfoWidget::apply()
@@ -138,7 +138,7 @@ void GaduPersonalInfoWidget::apply()
 	buddy.setFamilyCity((*FamilyCity).text());
 	buddy.setGender((BuddyGender)Sex->currentIndex());
 
-	Service->updatePersonalInfo(buddy);
+	Service->updatePersonalInfo(Id, buddy);
 	MyBuddy = buddy;
 }
 
@@ -146,3 +146,5 @@ void GaduPersonalInfoWidget::cancel()
 {
 	fillForm();
 }
+
+#include "moc_gadu-personal-info-widget.cpp"

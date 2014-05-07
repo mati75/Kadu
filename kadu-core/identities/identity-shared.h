@@ -2,7 +2,7 @@
  * %kadu copyright begin%
  * Copyright 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009, 2010 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2009, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
@@ -36,6 +36,7 @@ class KADUAPI IdentityShared : public StorableStatusContainer, public Shared
 	bool Permanent;
 	QString Name;
 	QList<Account> Accounts;
+	Status LastSetStatus;
 
 protected:
 	virtual void load();
@@ -43,8 +44,8 @@ protected:
 	virtual bool shouldStore();
 
 public:
-	static IdentityShared * loadStubFromStorage(const QSharedPointer<StoragePoint> &accountStoragePoint);
-	static IdentityShared * loadFromStorage(const QSharedPointer<StoragePoint> &accountStoragePoint);
+	static IdentityShared * loadStubFromStorage(const std::shared_ptr<StoragePoint> &accountStoragePoint);
+	static IdentityShared * loadFromStorage(const std::shared_ptr<StoragePoint> &accountStoragePoint);
 
 	explicit IdentityShared(const QUuid &uuid = QUuid());
 	virtual ~IdentityShared();

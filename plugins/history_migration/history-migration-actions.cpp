@@ -1,8 +1,9 @@
 /*
  * %kadu copyright begin%
  * Copyright 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2012 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -23,9 +24,8 @@
 
 #include "accounts/account-manager.h"
 #include "configuration/configuration-file.h"
-#include "core/core.h"
 #include "gui/actions/action-description.h"
-#include "gui/windows/kadu-window.h"
+#include "gui/menu/menu-inventory.h"
 #include "misc/kadu-paths.h"
 #include "protocols/protocol.h"
 
@@ -58,13 +58,19 @@ HistoryMigrationActions::HistoryMigrationActions() :
 		ImportHistoryActionDescription = new ActionDescription(this, ActionDescription::TypeGlobal, "import_history",
 				this, SLOT(importHistoryActionActivated(QAction*,bool)), KaduIcon(), tr("Import history..."));
 
-		Core::instance()->kaduWindow()->insertMenuActionDescription(ImportHistoryActionDescription, KaduWindow::MenuTools);
+		MenuInventory::instance()
+			->menu("tools")
+			->addAction(ImportHistoryActionDescription, KaduMenu::SectionTools)
+			->update();
 	}
 }
 
 HistoryMigrationActions::~HistoryMigrationActions()
 {
-	Core::instance()->kaduWindow()->removeMenuActionDescription(ImportHistoryActionDescription);
+	MenuInventory::instance()
+		->menu("tools")
+		->removeAction(ImportHistoryActionDescription)
+		->update();
 }
 
 void HistoryMigrationActions::importHistoryActionActivated(QAction *sender, bool toggled)
@@ -92,3 +98,5 @@ void HistoryMigrationActions::runImportHistoryAction()
 
 	hi->run();
 }
+
+#include "moc_history-migration-actions.cpp"

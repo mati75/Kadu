@@ -1,6 +1,7 @@
 /*
  * %kadu copyright begin%
  * Copyright 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -17,23 +18,26 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <QtCore/QFutureWatcher>
-
-#include "gui/widgets/chat-messages-view.h"
-
 #include "history-messages-prepender.h"
 
-HistoryMessagesPrepender::HistoryMessagesPrepender(QFuture<QVector<Message> > messages, ChatMessagesView *chatMessagesView) :
-		Messages(messages), MessagesView(chatMessagesView)
+#include "gui/widgets/webkit-messages-view/webkit-messages-view.h"
+#include "message/sorted-messages.h"
+
+#include <QtCore/QFutureWatcher>
+
+HistoryMessagesPrepender::HistoryMessagesPrepender(QFuture<SortedMessages> messages, WebkitMessagesView *chatMessagesView, QObject *parent) :
+		QObject{parent},
+		m_messages{std::move(messages)},
+		m_messagesView(chatMessagesView)
 {
-	Q_ASSERT(MessagesView);
+	Q_ASSERT(m_messagesView);
 
-	connect(MessagesView.data(), SIGNAL(destroyed()), this, SLOT(deleteLater()));
+	connect(m_messagesView, SIGNAL(destroyed()), this, SLOT(deleteLater()));
 
-	QFutureWatcher<QVector<Message> > *futureWatcher = new QFutureWatcher<QVector<Message> >(this);
-	connect(futureWatcher, SIGNAL(finished()), this, SLOT(messagesAvailable()));
+	auto futureWatcher = make_qobject<QFutureWatcher<SortedMessages>>(this);
+	connect(futureWatcher.get(), SIGNAL(finished()), this, SLOT(messagesAvailable()));
 
-	futureWatcher->setFuture(Messages);
+	futureWatcher->setFuture(m_messages);
 }
 
 HistoryMessagesPrepender::~HistoryMessagesPrepender()
@@ -42,10 +46,13 @@ HistoryMessagesPrepender::~HistoryMessagesPrepender()
 
 void HistoryMessagesPrepender::messagesAvailable()
 {
-	if (!MessagesView)
+	if (!m_messagesView)
 		return;
 
-	MessagesView.data()->prependMessages(Messages.result());
-	MessagesView.clear();
+	m_messagesView->setForcePruneDisabled(true);
+	m_messagesView->add(m_messages.result());
+	m_messagesView = nullptr;
 	deleteLater();
 }
+
+#include "moc_history-messages-prepender.cpp"

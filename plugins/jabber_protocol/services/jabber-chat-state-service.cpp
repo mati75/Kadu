@@ -5,8 +5,8 @@
  * Copyright 2008 Michał Podsiadlik (michal@kadu.net)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
  * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
- * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2007, 2008, 2009, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
@@ -24,6 +24,8 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <xmpp_client.h>
+
 #include "chat/chat-manager.h"
 #include "contacts/contact-manager.h"
 #include "contacts/contact-set.h"
@@ -34,8 +36,8 @@
 namespace XMPP
 {
 
-JabberChatStateService::JabberChatStateService(JabberProtocol *protocol) :
-		ChatStateService(protocol)
+JabberChatStateService::JabberChatStateService(Account account, QObject *parent) :
+		ChatStateService(account, parent)
 {
 }
 
@@ -87,7 +89,7 @@ void JabberChatStateService::setChatState(const Contact &contact, XMPP::ChatStat
 		return;
 
 	JabberAccountDetails *jabberAccountDetails = dynamic_cast<JabberAccountDetails *>(account().details());
-	if (!jabberAccountDetails->sendGoneNotification() && (state == XMPP::StateGone || state == XMPP::StateInactive))
+	if (jabberAccountDetails && !jabberAccountDetails->sendGoneNotification() && (state == XMPP::StateGone || state == XMPP::StateInactive))
 		state = XMPP::StatePaused;
 
 	ContactInfo &info = ContactInfos[contact];
@@ -126,7 +128,7 @@ void JabberChatStateService::setChatState(const Contact &contact, XMPP::ChatStat
 						? XMPP::StatePaused
 						: XMPP::StateActive);
 
-				if (protocol()->isConnected())
+				if (XmppClient.data()->isActive())
 					XmppClient.data()->sendMessage(tm);
 			}
 			m.setChatState(state);
@@ -137,7 +139,7 @@ void JabberChatStateService::setChatState(const Contact &contact, XMPP::ChatStat
 	if (m.containsEvents() || m.chatState() != XMPP::StateNone)
 	{
 		m.setType("chat");
-		if (protocol()->isConnected())
+		if (XmppClient.data()->isActive())
 			XmppClient.data()->sendMessage(m);
 	}
 
@@ -251,3 +253,5 @@ void JabberChatStateService::sendState(const Contact &contact, State state)
 }
 
 }
+
+#include "moc_jabber-chat-state-service.cpp"

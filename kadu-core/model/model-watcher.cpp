@@ -1,6 +1,7 @@
 /*
  * %kadu copyright begin%
  * Copyright 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -147,3 +148,5 @@ void ModelWatcher::rowsRemoved(const QModelIndex &parent, int start, int end)
 {
 	printf("rowsRemoved: %s\n", qPrintable(QString("%1 - %2 - %3 - %4").arg(Name).arg(indexToString(parent).arg(start).arg(end))));
 }
+
+#include "moc_model-watcher.cpp"

@@ -5,7 +5,8 @@
  * Copyright 2008 Michał Podsiadlik (michal@kadu.net)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
  * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
- * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2007, 2008, 2009, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
@@ -30,7 +31,7 @@
 
 NetworkManagerQt::NetworkManagerQt()
 {
-#ifdef Q_WS_WIN
+#ifdef Q_OS_WIN32
 	// Kadu bug #2591
 	if (QSysInfo::WindowsVersion < QSysInfo::WV_VISTA)
 	{
@@ -63,3 +64,5 @@ void NetworkManagerQt::forceOnline()
 {
 	onlineStateChanged(true);
 }
+
+#include "moc_network-manager-qt.cpp"

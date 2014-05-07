@@ -1,129 +1,163 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE TS>
-<TS version="2.0" language="en_US">
+<?xml version="1.0" ?><!DOCTYPE TS><TS language="en" version="2.0">
 <context>
     <name>@default</name>
     <message>
-        <source>Chat Window</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <source>Tabs</source>
-        <translation type="unfinished"></translation>
+        <translation>Tabs</translation>
     </message>
     <message>
         <source>General</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Use tabs by default</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Minimum number of tabs</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Tabs at the bottom of the window</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Conferences in tabs</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Closing tabs using button from titlebar</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>&lt;nobr&gt;&lt;b&gt;Warning: This option has know bug!&lt;/b&gt;&lt;/nobr&gt;&lt;br&gt;If there is open more than one tab then exiting from KDE will be stopped by this module.</source>
-        <translation type="unfinished"></translation>
+        <translation>General</translation>
     </message>
     <message>
         <source>Look</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Show Close button on each tab</source>
-        <translation type="unfinished"></translation>
+        <translation>Look</translation>
     </message>
     <message>
         <source>Shortcuts</source>
-        <translation type="unfinished"></translation>
+        <translation>Shortcuts</translation>
     </message>
     <message>
         <source>Move tab left</source>
-        <translation type="unfinished"></translation>
+        <translation>Move tab left</translation>
     </message>
     <message>
         <source>Move tab right</source>
-        <translation type="unfinished"></translation>
+        <translation>Move tab right</translation>
     </message>
     <message>
         <source>Switch to previous tab</source>
-        <translation type="unfinished"></translation>
+        <translation>Switch to previous tab</translation>
     </message>
     <message>
         <source>Switch to next tab</source>
-        <translation type="unfinished"></translation>
+        <translation>Switch to next tab</translation>
     </message>
     <message>
         <source>Chat</source>
-        <translation type="unfinished"></translation>
+        <translation>Chat</translation>
+    </message>
+    <message>
+        <source>Enable tabs in chat window</source>
+        <translation>Enable tabs in chat window</translation>
+    </message>
+    <message>
+        <source>With this option, each chat will be opened in a separate tab in single window</source>
+        <translation>With this option, each chat will be opened in a separate tab in single window</translation>
+    </message>
+    <message>
+        <source>Closing window closes current tab only</source>
+        <translation>Closing window closes current tab only</translation>
+    </message>
+    <message>
+        <source>When enabled, closing chat window will cause closing only current tab, instead of all tabs and the window itself</source>
+        <translation>When enabled, closing chat window will cause closing only current tab, instead of all tabs and the window itself</translation>
+    </message>
+    <message>
+        <source>Tab bar position</source>
+        <translation>Tab bar position</translation>
+    </message>
+    <message>
+        <source>Choose where you want the tab bar to be placed in chat window</source>
+        <translation>Choose where you want the tab bar to be placed in chat window</translation>
+    </message>
+    <message>
+        <source>Top</source>
+        <translation>Top</translation>
+    </message>
+    <message>
+        <source>Bottom</source>
+        <translation>Bottom</translation>
+    </message>
+    <message>
+        <source>Behaviour</source>
+        <translation>Behaviour</translation>
+    </message>
+    <message>
+        <source>Reopen closed tab</source>
+        <translation>Reopen closed tab</translation>
     </message>
 </context>
 <context>
     <name>TabWidget</name>
     <message>
         <source>Kadu</source>
-        <translation type="unfinished"></translation>
+        <translation>Kadu</translation>
     </message>
     <message>
         <source>New message received, close window anyway?</source>
-        <translation type="unfinished"></translation>
+        <translation>New message received, close window anyway?</translation>
+    </message>
+    <message>
+        <source>Recent Chats</source>
+        <translation>Recent Chats</translation>
+    </message>
+    <message>
+        <source>Open Chat with...</source>
+        <translation>Open Chat with...</translation>
+    </message>
+    <message>
+        <source>Tabs</source>
+        <translation>Tabs</translation>
+    </message>
+    <message>
+        <source>Close Tab</source>
+        <translation>Close Tab</translation>
+    </message>
+    <message>
+        <source>Close window</source>
+        <translation>Close window</translation>
+    </message>
+    <message>
+        <source>Cancel</source>
+        <translation>Cancel</translation>
     </message>
 </context>
 <context>
     <name>TabsManager</name>
     <message>
         <source>Chat in New Window</source>
-        <translation type="unfinished"></translation>
+        <translation>Chat in New Window</translation>
     </message>
     <message>
         <source>Chat in New Tab</source>
-        <translation type="unfinished"></translation>
+        <translation>Chat in New Tab</translation>
     </message>
     <message>
         <source>Attach Chat to Tabs</source>
-        <translation type="unfinished"></translation>
+        <translation>Attach Chat to Tabs</translation>
     </message>
     <message>
         <source>NEW MESSAGE(S)</source>
-        <translation type="unfinished"></translation>
+        <translation>NEW MESSAGE(S)</translation>
     </message>
     <message>
         <source>Detach</source>
-        <translation type="unfinished"></translation>
+        <translation>Detach</translation>
     </message>
     <message>
         <source>Detach all</source>
-        <translation type="unfinished"></translation>
+        <translation>Detach all</translation>
     </message>
     <message>
         <source>Close</source>
-        <translation type="unfinished"></translation>
+        <translation>Close</translation>
     </message>
     <message>
         <source>Close all</source>
-        <translation type="unfinished"></translation>
+        <translation>Close all</translation>
     </message>
     <message>
         <source>Conference [%1]</source>
-        <translation type="unfinished"></translation>
+        <translation>Conference [%1]</translation>
     </message>
     <message>
-        <source>Close all but active</source>
-        <translation type="unfinished"></translation>
+        <source>Close other tabs</source>
+        <translation>Close other tabs</translation>
+    </message>
+    <message>
+        <source>Reopen closed tab</source>
+        <translation>Reopen closed tab</translation>
     </message>
 </context>
 </TS>

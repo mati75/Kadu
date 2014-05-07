@@ -3,7 +3,8 @@
  * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
  * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
- * Copyright 2007, 2008, 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2007, 2008, 2009, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2012 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
@@ -42,6 +43,16 @@ Theme & Theme::operator = (const Theme &copyMe)
 	Name = copyMe.Name;
 
 	return *this;
+}
+
+bool Theme::operator == (const Theme &compareTo)
+{
+	return Path == compareTo.Path && Name == compareTo.Name;
+}
+
+bool Theme::operator != (const Theme &compareTo)
+{
+	return !(*this == compareTo);
 }
 
 bool Theme::isValid() const

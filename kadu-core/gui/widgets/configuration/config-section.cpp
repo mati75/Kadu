@@ -1,10 +1,10 @@
 /*
  * %kadu copyright begin%
  * Copyright 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2009, 2012 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
  * Copyright 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2010, 2011, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -123,8 +123,8 @@ void ConfigSection::configTabDestroyed(QObject *obj)
 	if (TabWidget)
 		TabWidget->removeTab(TabWidget->indexOf((*i)->widget()));
 	ConfigTabs.erase(i);
-
-	TabWidget->setTabBarVisible(ConfigTabs.count() > 1);
+	if (TabWidget)
+		TabWidget->setTabBarVisible(ConfigTabs.count() > 1);
 
 	if (ConfigTabs.isEmpty())
 		deleteLater();
@@ -134,3 +134,10 @@ void ConfigSection::iconThemeChanged()
 {
 	ListWidgetItem->setIcon(Icon.icon());
 }
+
+void ConfigSection::addFullPageWidget(const QString &name, QWidget *widget)
+{
+	TabWidget->addTab(widget, name);
+}
+
+#include "moc_config-section.cpp"

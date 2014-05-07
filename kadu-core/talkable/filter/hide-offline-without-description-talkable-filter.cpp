@@ -1,6 +1,7 @@
 /*
  * %kadu copyright begin%
- * Copyright 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -17,8 +18,8 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "buddies/buddy.h"
 #include "buddies/buddy-preferred-manager.h"
+#include "buddies/buddy.h"
 #include "contacts/contact.h"
 
 #include "hide-offline-without-description-talkable-filter.h"
@@ -64,3 +65,5 @@ void HideOfflineWithoutDescriptionTalkableFilter::setEnabled(bool enabled)
 	Enabled = enabled;
 	emit filterChanged();
 }
+
+#include "moc_hide-offline-without-description-talkable-filter.cpp"

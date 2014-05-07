@@ -1,7 +1,8 @@
 /*
  * %kadu copyright begin%
  * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
- * Copyright 2007, 2008, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2007, 2008, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
@@ -19,22 +20,27 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _EXPORTS_H
+#ifndef EXPORTS_H
+#define EXPORTS_H
 
-#ifdef _WIN32
-#define KADU_IMPORT __declspec(dllimport)
-#define KADU_EXPORT __declspec(dllexport)
+#include <QtCore/QtGlobal>
+
+#ifdef libkadu_EXPORTS
+#	define KADUAPI Q_DECL_EXPORT
+
+#	ifdef KADU_EXPORT_TESTS
+#		define KADUAPI_TESTS Q_DECL_EXPORT
+#	else
+#		define KADUAPI_TESTS
+#	endif
 #else
-#define KADU_IMPORT
-#define KADU_EXPORT
+#	define KADUAPI Q_DECL_IMPORT
+
+#	ifdef KADU_EXPORT_TESTS
+#		define KADUAPI_TESTS Q_DECL_IMPORT
+#	else
+#		define KADUAPI_TESTS
+#	endif
 #endif
 
-#ifdef KADULIB
-#define KADUAPI KADU_EXPORT
-#else
-#define KADUAPI KADU_IMPORT
-#endif
-
-#else
-#define _EXPORTS_H
-#endif
+#endif // EXPORTS_H

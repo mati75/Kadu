@@ -1,13 +1,13 @@
 /*
  * %kadu copyright begin%
  * Copyright 2008, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2010 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2010, 2012 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2008, 2009, 2010 Tomasz Rostański (rozteck@interia.pl)
  * Copyright 2008, 2009 Michał Podsiadlik (michal@kadu.net)
  * Copyright 2003, 2004 Adrian Smarzewski (adrian@kadu.net)
  * Copyright 2002, 2003, 2004 Tomasz Chiliński (chilek@chilan.com)
  * Copyright 2008, 2009, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2010, 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2006, 2007 Dawid Stawiarski (neeo@kadu.net)
  * Copyright 2004, 2005, 2006, 2007 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
@@ -28,7 +28,8 @@
 
 #include <QtCore/QFile>
 #include <QtCore/QSysInfo>
-#include <QtNetwork/QHttp>
+#include <QtNetwork/QNetworkAccessManager>
+#include <QtNetwork/QNetworkReply>
 
 #include "accounts/account-manager.h"
 #include "accounts/account.h"
@@ -41,7 +42,7 @@
 #include "updates.h"
 
 Updates::Updates(QObject *parent) :
-		QObject(parent), UpdateChecked(false), HttpClient(0)
+		QObject(parent), UpdateChecked{false}
 {
 	kdebugf();
 	buildQuery();
@@ -64,7 +65,7 @@ void Updates::accountUnregistered(Account account)
 
 void Updates::buildQuery()
 {
-	Query = QString("/update-new.php?uuid=%1&version=%2").arg(ConfigurationManager::instance()->uuid()).arg(Core::version());
+	Query = QString("/update-new.php?uuid=%1&version=%2").arg(ConfigurationManager::instance()->uuid().toString()).arg(Core::version());
 
 	if (config_file.readBoolEntry("General", "SendSysInfo"), true)
 	{
@@ -90,8 +91,6 @@ void Updates::buildQuery()
 		platform.append("OpenBSD");
 #elif defined(Q_OS_SOLARIS)
 		platform.append("Solaris");
-#elif defined(Q_WS_MAEMO_5)
-		platform.append("Maemo");
 #elif defined(Q_OS_MAC)
 		switch (QSysInfo::MacintoshVersion)
 		{
@@ -163,10 +162,11 @@ void Updates::run()
 
 	UpdateChecked = true;
 
-	HttpClient = new QHttp("www.kadu.im", 80, this);
-	connect(HttpClient, SIGNAL(readyRead(const QHttpResponseHeader &)),
-			this, SLOT(gotUpdatesInfo(const QHttpResponseHeader &)));
-	HttpClient->get(Query);
+	auto manager = new QNetworkAccessManager{this};
+	connect(manager, SIGNAL(finished(QNetworkReply*)),
+			this, SLOT(gotUpdatesInfo(QNetworkReply*)));
+
+	manager->get(QNetworkRequest{QUrl{QLatin1String{"http://www.kadu.im"} + Query}});
 }
 
 bool Updates::isNewerVersionThan(const QString &version)
@@ -203,19 +203,19 @@ QString Updates::stripVersion(const QString &version)
 	return strippedVersion;
 }
 
-void Updates::gotUpdatesInfo(const QHttpResponseHeader &responseHeader)
+void Updates::gotUpdatesInfo(QNetworkReply *reply)
 {
-	Q_UNUSED(responseHeader)
-
 	kdebugf();
+
+	reply->deleteLater();
+	deleteLater();
 
 	if (config_file.readBoolEntry("General", "CheckUpdates"))
 	{
-		QString newestVersion = HttpClient->readAll();
+		auto newestVersion = QString::fromUtf8(reply->readAll());
 		if (newestVersion.size() > 31)
 		{
 			kdebugmf(KDEBUG_WARNING, "cannot obtain update info\n");
-			deleteLater();
 			return;
 		}
 
@@ -225,8 +225,6 @@ void Updates::gotUpdatesInfo(const QHttpResponseHeader &responseHeader)
 			dialog->show();
 		}
 	}
-
-	config_file.writeEntry("General", "LastUpdateCheck", QDateTime(QDate(1970, 1, 1)).secsTo(QDateTime::currentDateTime()));
-
-	deleteLater();
 }
+
+#include "moc_updates.cpp"

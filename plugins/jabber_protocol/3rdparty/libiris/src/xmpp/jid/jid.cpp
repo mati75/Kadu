@@ -1,5 +1,5 @@
 /*
- * jid.cpp - class for verifying and manipulating Jabber IDs
+ * jid.cpp - class for verifying and manipulating XMPP addresses
  * Copyright (C) 2003  Justin Karneges
  *
  * This library is free software; you can redistribute it and/or
@@ -22,8 +22,6 @@
 #include "xmpp/jid/jid.h"
 
 #include <QCoreApplication>
-#include <QByteArray>
-#include <QHash>
 #include <stringprep.h>
 
 #ifndef NO_IRISNET
@@ -36,17 +34,16 @@ using namespace XMPP;
 //----------------------------------------------------------------------------
 // StringPrepCache
 //----------------------------------------------------------------------------
-class StringPrepCache : public QObject
-{
-public:
-	static bool nameprep(const QString &in, int maxbytes, QString& out)
+	QScopedPointer<StringPrepCache> StringPrepCache::_instance;
+
+	bool StringPrepCache::nameprep(const QString &in, int maxbytes, QString& out)
 	{
-		if (in.isEmpty()) {
+		if (in.trimmed().isEmpty()) {
 			out = QString();
-			return true;
+			return false; // empty names or just spaces are disallowed (rfc5892+rfc6122)
 		}
 
-		StringPrepCache *that = get_instance();
+		StringPrepCache *that = instance();
 
 		Result *r = that->nameprep_table[in];
 		if (r) {
@@ -71,14 +68,14 @@ public:
 		return true;
 	}
 
-	static bool nodeprep(const QString &in, int maxbytes, QString& out)
+	bool StringPrepCache::nodeprep(const QString &in, int maxbytes, QString& out)
 	{
 		if(in.isEmpty()) {
       out = QString();
 			return true;
 		}
 
-		StringPrepCache *that = get_instance();
+		StringPrepCache *that = instance();
 
 		Result *r = that->nodeprep_table[in];
 		if(r) {
@@ -102,14 +99,14 @@ public:
 		return true;
 	}
 
-	static bool resourceprep(const QString &in, int maxbytes, QString& out)
+	bool StringPrepCache::resourceprep(const QString &in, int maxbytes, QString& out)
 	{
 		if(in.isEmpty()) {
       out = QString();
 			return true;
 		}
 
-		StringPrepCache *that = get_instance();
+		StringPrepCache *that = instance();
 
 		Result *r = that->resourceprep_table[in];
 		if(r) {
@@ -133,55 +130,59 @@ public:
 		return true;
 	}
 
-	static void cleanup()
+	bool StringPrepCache::saslprep(const QString &in, int maxbytes, QString& out)
 	{
-		delete instance;
-		instance = 0;
+		if(in.isEmpty()) {
+	  out = QString();
+			return true;
+		}
+
+		StringPrepCache *that = instance();
+
+		Result *r = that->saslprep_table[in];
+		if(r) {
+			if(!r->norm) {
+				return false;
+			}
+			out = *(r->norm);
+			return true;
+		}
+
+		QByteArray cs = in.toUtf8();
+		cs.resize(maxbytes);
+		if(stringprep(cs.data(), maxbytes, (Stringprep_profile_flags)0, stringprep_saslprep) != 0) {
+			that->saslprep_table.insert(in, new Result);
+			return false;
+		}
+
+		QString norm = QString::fromUtf8(cs);
+		that->saslprep_table.insert(in, new Result(norm));
+		out = norm;
+		return true;
 	}
 
-private:
-	class Result
+	void StringPrepCache::cleanup()
 	{
-	public:
-		QString *norm;
+		_instance.reset(0);
+	}
 
-		Result() : norm(0)
-		{
-		}
-
-		Result(const QString &s) : norm(new QString(s))
-		{
-		}
-
-		~Result()
-		{
-			delete norm;
-		}
-	};
-
-	QHash<QString,Result*> nameprep_table;
-	QHash<QString,Result*> nodeprep_table;
-	QHash<QString,Result*> resourceprep_table;
-
-	static StringPrepCache *instance;
-
-	static StringPrepCache *get_instance()
+	StringPrepCache *StringPrepCache::instance()
 	{
-		if(!instance)
+		if(!_instance)
 		{
-			instance = new StringPrepCache;
+			_instance.reset(new StringPrepCache);
 #ifndef NO_IRISNET
 			irisNetAddPostRoutine(cleanup);
 #endif
 		}
-		return instance;
+		return _instance.data();
 	}
 
-	StringPrepCache()
+	StringPrepCache::StringPrepCache()
 	{
 	}
 
-	~StringPrepCache()
+	StringPrepCache::~StringPrepCache()
 	{
 		foreach(Result* r, nameprep_table) {
 			delete r;
@@ -195,10 +196,11 @@ private:
 			delete r;
 		}
 		resourceprep_table.clear();
+		foreach(Result* r, saslprep_table) {
+			delete r;
+		}
+		saslprep_table.clear();
 	}
-};
-
-StringPrepCache *StringPrepCache::instance = 0;
 
 //----------------------------------------------------------------------------
 // Jid
@@ -326,7 +328,10 @@ void Jid::set(const QString &s)
 void Jid::set(const QString &domain, const QString &node, const QString &resource)
 {
 	QString norm_domain, norm_node, norm_resource;
-	if(!validDomain(domain, norm_domain) || !validNode(node, norm_node) || !validResource(resource, norm_resource)) {
+	if(!validDomain(domain, norm_domain) ||
+			!validNode(node, norm_node) ||
+			!validResource(resource, norm_resource))
+	{
 		reset();
 		return;
 	}

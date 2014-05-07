@@ -1,13 +1,8 @@
 project (history_migration)
 
-# minimal required versions
 cmake_minimum_required (VERSION 2.8)
-set (QT_MIN_VERSION "4.7.0")
-set (CMAKE_MIN_VERSION "2.8.0")
 
-set (KADU_FIND_REQUIRED true)
-set (KADU_INSTALLS_SDK TRUE)
-include (FindKadu)
+find_package (Kadu REQUIRED CONFIG)
 
 kadu_api_directories (plugins/history_migration
 	gui/windows
@@ -45,5 +40,4 @@ kadu_plugin (history_migration
 	PLUGIN_CONFIGURATION_FILES ${CONFIGURATION_FILES}
 	# TODO: make it more general, eg. gadu_protocol,history_storage
 	PLUGIN_DEPENDENCIES gadu_protocol sql_history history
-	PLUGIN_BUILDDEF HISTORY_MIGRATION_BUILD
 )

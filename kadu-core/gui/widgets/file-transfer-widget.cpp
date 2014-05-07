@@ -1,12 +1,12 @@
 /*
  * %kadu copyright begin%
  * Copyright 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2009, 2012 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2011 Piotr Dąbrowski (ultr@ultr.pl)
  * Copyright 2009 Michał Podsiadlik (michal@kadu.net)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
  * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -23,9 +23,9 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <QtCore/QCoreApplication>
 #include <QtCore/QFileInfo>
 #include <QtCore/QTimer>
-#include <QtGui/QApplication>
 #include <QtGui/QGridLayout>
 #include <QtGui/QLabel>
 #include <QtGui/QProgressBar>
@@ -164,7 +164,11 @@ void FileTransferWidget::removeTransfer()
 
 	if (StatusFinished != CurrentTransfer.transferStatus())
 	{
-		if (!MessageDialog::ask(KaduIcon(), tr("Kadu"), tr("Are you sure you want to remove this transfer?"), this))
+		MessageDialog *dialog = MessageDialog::create(KaduIcon(), tr("Kadu"), tr("Are you sure you want to remove this transfer?"), this);
+		dialog->addButton(QMessageBox::Yes, tr("Remove"));
+		dialog->addButton(QMessageBox::No, tr("Cancel"));
+
+		if (!dialog->ask())
 			return;
 		else
 			if (CurrentTransfer.handler())
@@ -197,7 +201,7 @@ void FileTransferWidget::fileTransferUpdate()
 	}
 
 	if (StatusFinished != CurrentTransfer.transferStatus())
-		ProgressBar->setValue(CurrentTransfer.percent());
+		ProgressBar->setValue(static_cast<int>(CurrentTransfer.percent()));
 	else
 		ProgressBar->setValue(100);
 
@@ -206,7 +210,7 @@ void FileTransferWidget::fileTransferUpdate()
 		if (LastUpdateTime.isValid())
 		{
 			QDateTime now = QDateTime::currentDateTime();
-			int timeDiff = now.toTime_t() - LastUpdateTime.toTime_t();
+			uint timeDiff = now.toTime_t() - LastUpdateTime.toTime_t();
 			if (0 < timeDiff)
 			{
 				Speed = ((CurrentTransfer.transferredSize() - LastTransferredSize) / 1024) / timeDiff;
@@ -264,5 +268,7 @@ void FileTransferWidget::fileTransferUpdate()
 			StartButton->hide();
 	}
 
-	qApp->processEvents();
+	QCoreApplication::processEvents();
 }
+
+#include "moc_file-transfer-widget.cpp"

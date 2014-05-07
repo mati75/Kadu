@@ -1,6 +1,7 @@
 /*
  * %kadu copyright begin%
- * Copyright 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2012, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2012 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -27,10 +28,11 @@
 #include "message/message.h"
 #include "talkable/talkable.h"
 
-#include "../history_exports.h"
 #include "../history-query-result.h"
+#include "../history_exports.h"
 
 class HistoryQuery;
+class SortedMessages;
 
 /**
  * @addtogroup History
@@ -73,7 +75,7 @@ public:
 	 * This methods returns list of available talkables in asynchronous way. Refer to QFuture
 	 * documentation for more information.
 	 */
-	virtual QFuture<QVector<Talkable> > talkables() = 0;
+	virtual QFuture<QVector<Talkable>> talkables() = 0;
 
 	/**
 	 * @author Rafał 'Vogel' Malinowski
@@ -84,7 +86,7 @@ public:
 	 * This methods returns list of available dates for given talkabel in asynchronous way. Refer to QFuture
 	 * documentation for more information. Limit query parametr is ignored for this method.
 	 */
-	virtual QFuture<QVector<HistoryQueryResult> > dates(const HistoryQuery &historyQuery) = 0;
+	virtual QFuture<QVector<HistoryQueryResult>> dates(const HistoryQuery &historyQuery) = 0;
 
 	/**
 	 * @author Rafał 'Vogel' Malinowski
@@ -98,7 +100,7 @@ public:
 	 * Query string parameter is ignored for this method. Limit query parameter can be ignored in
 	 * implementations of this method.
 	 */
-	virtual QFuture<QVector<Message> > messages(const HistoryQuery &historyQuery) = 0;
+	virtual QFuture<SortedMessages> messages(const HistoryQuery &historyQuery) = 0;
 
 	/**
 	 * @author Rafał 'Vogel' Malinowski

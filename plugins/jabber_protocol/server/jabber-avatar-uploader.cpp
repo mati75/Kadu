@@ -3,8 +3,8 @@
  * Copyright 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009, 2009, 2010, 2010 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
- * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2009, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -20,18 +20,33 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
+
 #include <QtCore/QBuffer>
+
+#include <xmpp_client.h>
 
 #include "server/jabber-avatar-pep-uploader.h"
 #include "server/jabber-avatar-vcard-uploader.h"
-#include "jabber-protocol.h"
+#include "services/jabber-pep-service.h"
+#include "services/jabber-vcard-service.h"
 
 #include "jabber-avatar-uploader.h"
 
 #define MAX_AVATAR_DIMENSION 96
 
-JabberAvatarUploader::JabberAvatarUploader(Account account, QObject *parent) :
-		QObject(parent), MyAccount(account)
+QByteArray JabberAvatarUploader::avatarData(const QImage &avatar)
+{
+	QByteArray data;
+	QBuffer buffer(&data);
+	buffer.open(QIODevice::WriteOnly);
+	avatar.save(&buffer, "PNG");
+	buffer.close();
+
+	return data;
+}
+
+JabberAvatarUploader::JabberAvatarUploader(JabberPepService *pepService, XMPP::JabberVCardService *vCardService, QObject *parent) :
+		AvatarUploader(parent), PepService(pepService), VCardService(vCardService)
 {
 }
 
@@ -47,29 +62,28 @@ QImage JabberAvatarUploader::createScaledAvatar(const QImage &avatarToScale)
 	return avatarToScale.scaled(MAX_AVATAR_DIMENSION, MAX_AVATAR_DIMENSION, Qt::KeepAspectRatio, Qt::SmoothTransformation);
 }
 
-QByteArray JabberAvatarUploader::avatarData(const QImage &avatar)
-{
-	QByteArray data;
-	QBuffer buffer(&data);
-	buffer.open(QIODevice::WriteOnly);
-	avatar.save(&buffer, "PNG");
-	buffer.close();
-
-	return data;
-}
-
 void JabberAvatarUploader::uploadAvatarPEP()
 {
-	JabberAvatarPepUploader *pepUploader = new JabberAvatarPepUploader(MyAccount, this);
+	if (!PepService)
+		return;
+
+	JabberAvatarPepUploader *pepUploader = new JabberAvatarPepUploader(PepService.data(), this);
 	connect(pepUploader, SIGNAL(avatarUploaded(bool)), this, SLOT(pepAvatarUploaded(bool)));
-	pepUploader->uploadAvatar(UploadingAvatar, UploadingAvatarData);
+	pepUploader->uploadAvatar(Id, Password, UploadingAvatar);
 }
 
 void JabberAvatarUploader::uploadAvatarVCard()
 {
-	JabberAvatarVCardUploader *vcardUploader = new JabberAvatarVCardUploader(MyAccount, this);
-	connect(vcardUploader, SIGNAL(avatarUploaded(bool)), this, SLOT(avatarUploadedSlot(bool)));
-	vcardUploader->uploadAvatar(UploadingAvatarData);
+	if (!VCardService)
+	{
+		deleteLater();
+		emit avatarUploaded(false, UploadingAvatar);
+		return;
+	}
+
+	JabberAvatarVCardUploader *vcardUploader = new JabberAvatarVCardUploader(VCardService.data(), this);
+	connect(vcardUploader, SIGNAL(avatarUploaded(bool,QImage)), this, SLOT(avatarUploadedSlot(bool)));
+	vcardUploader->uploadAvatar(Id, Password, UploadingAvatar);
 }
 
 void JabberAvatarUploader::pepAvatarUploaded(bool ok)
@@ -91,21 +105,23 @@ void JabberAvatarUploader::avatarUploadedSlot(bool ok)
 	deleteLater();
 }
 
-void JabberAvatarUploader::uploadAvatar(QImage avatar)
+void JabberAvatarUploader::uploadAvatar(const QString &id, const QString &password, QImage avatar)
 {
-	JabberProtocol *protocol = qobject_cast<JabberProtocol *>(MyAccount.protocolHandler());
-	if (!protocol || !protocol->client() || !protocol->client()->rootTask())
+	if (!PepService && !VCardService)
 	{
 		deleteLater();
 		emit avatarUploaded(false, avatar);
 		return;
 	}
 
+	Id = id;
+	Password = password;
 	UploadingAvatar = createScaledAvatar(avatar);
-	UploadingAvatarData = avatarData(UploadingAvatar);
 
-	if (protocol->client()->isPEPAvailable() && protocol->client()->pepManager())
+	if (PepService && PepService.data()->enabled())
 		uploadAvatarPEP();
 	else
 		uploadAvatarVCard();
 }
+
+#include "moc_jabber-avatar-uploader.cpp"

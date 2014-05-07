@@ -1,12 +1,12 @@
 /*
  * %kadu copyright begin%
  * Copyright 2008, 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2010 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2010, 2012 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2008, 2010 Tomasz Rostański (rozteck@interia.pl)
  * Copyright 2011 Piotr Dąbrowski (ultr@ultr.pl)
  * Copyright 2009 Michał Podsiadlik (michal@kadu.net)
- * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2007, 2008, 2009, 2010, 2011, 2012, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2007 Dawid Stawiarski (neeo@kadu.net)
  * Copyright 2005, 2006, 2007 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
@@ -38,7 +38,7 @@
 #include <QtCore/QString>
 #include <QtCore/QTimer>
 #include <QtCore/QUrl>
-#include <QtCore/QWeakPointer>
+#include <QtCore/QPointer>
 #include <QtGui/QAction>
 #include <QtGui/QApplication>
 #include <QtGui/QClipboard>
@@ -54,9 +54,16 @@
 #include <QtWebKit/QWebHitTestResult>
 #include <QtWebKit/QWebPage>
 
+#ifdef DEBUG_ENABLED
+#	include <QtWebKit/QWebInspector>
+#endif
+
 #include "configuration/configuration-file.h"
+#include "core/core.h"
+#include "gui/services/clipboard-html-transformer-service.h"
 #include "gui/windows/message-dialog.h"
 #include "protocols/services/chat-image-service.h"
+#include "services/image-storage-service.h"
 #include "url-handlers/url-handler-manager.h"
 
 #include "debug.h"
@@ -80,16 +87,21 @@ KaduWebView::KaduWebView(QWidget *parent) :
 
 	connect(RefreshTimer, SIGNAL(timeout()), this, SLOT(reload()));
 
-#ifdef Q_WS_MAEMO_5
-	/* Workaround for Qt kinetic scrolling issue in QWebView */
-	installEventFilter(this);
-#endif
-
 	kdebugf2();
 }
 
 KaduWebView::~KaduWebView()
 {
+}
+
+void KaduWebView::setImageStorageService(ImageStorageService *imageStorageService)
+{
+	CurrentImageStorageService = imageStorageService;
+}
+
+ImageStorageService * KaduWebView::imageStorageService() const
+{
+	return CurrentImageStorageService.data();
 }
 
 void KaduWebView::setPage(QWebPage *page)
@@ -137,6 +149,15 @@ void KaduWebView::contextMenuEvent(QContextMenuEvent *e)
 	popupMenu.addSeparator();
 	popupMenu.addAction(copyImage);
 	popupMenu.addAction(saveImage);
+
+#ifdef DEBUG_ENABLED
+	QAction *runInspector = new QAction(&popupMenu);
+	runInspector->setText(tr("Run Inspector"));
+	connect(runInspector, SIGNAL(triggered(bool)), this, SLOT(runInspector(bool)));
+
+	popupMenu.addSeparator();
+	popupMenu.addAction(runInspector);
+#endif
 
  	popupMenu.exec(e->globalPos());
  	kdebugf2();
@@ -199,36 +220,11 @@ void KaduWebView::mouseReleaseEvent(QMouseEvent *e)
 	QWebView::mouseReleaseEvent(e);
 	DraggingPossible = false;
 
-#ifdef Q_WS_X11
+#if defined(Q_OS_UNIX) && !defined(Q_OS_MAC)
 	if (!page()->selectedText().isEmpty())
 		convertClipboardHtml(QClipboard::Selection);
 #endif
 }
-
-#ifdef Q_WS_MAEMO_5
-bool KaduWebView::eventFilter(QObject *, QEvent *e)
-{
-	static bool mousePressed = false;
-	switch (e->type())
-	{
-		case QEvent::MouseButtonPress:
-			if (static_cast<QMouseEvent *>(e)->button() == Qt::LeftButton)
-				mousePressed = true;
-			break;
-		case QEvent::MouseButtonRelease:
-			if (static_cast<QMouseEvent *>(e)->button() == Qt::LeftButton)
-				mousePressed = false;
-			break;
-		case QEvent::MouseMove:
-			if (mousePressed)
-				return true;
-			break;
-		default:
-			break;
-	}
-	return false;
-}
-#endif
 
 void KaduWebView::hyperlinkClicked(const QUrl &anchor) const
 {
@@ -258,9 +254,10 @@ void KaduWebView::saveImage()
 	kdebugf();
 
 	QUrl imageUrl = page()->currentFrame()->hitTestContent(ContextMenuPos).imageUrl();
-	QString imageFullPath = (imageUrl.scheme() == "kaduimg")
-			? ChatImageService::imagesPath() + imageUrl.path()
-			: imageUrl.toLocalFile();
+	if (CurrentImageStorageService)
+		imageUrl = CurrentImageStorageService->toFileUrl(imageUrl);
+
+	QString imageFullPath = imageUrl.toLocalFile();
 	if (imageFullPath.isEmpty())
 		return;
 
@@ -280,25 +277,29 @@ void KaduWebView::saveImage()
 		}
 	}
 
-	QWeakPointer<QFileDialog> fd = new QFileDialog(this);
-	fd.data()->setFileMode(QFileDialog::AnyFile);
-	fd.data()->setAcceptMode(QFileDialog::AcceptSave);
-	fd.data()->setDirectory(config_file.readEntry("Chat", "LastImagePath"));
-	fd.data()->setFilter(QString("%1 (*%2)").arg(qApp->translate("ImageDialog", "Images"), fileExt));
-	fd.data()->setLabelText(QFileDialog::FileName, imageFullPath.section('/', -1));
-	fd.data()->setWindowTitle(tr("Save image"));
+	QPointer<QFileDialog> fd = new QFileDialog(this);
+	fd->setFileMode(QFileDialog::AnyFile);
+	fd->setAcceptMode(QFileDialog::AcceptSave);
+	fd->setDirectory(config_file.readEntry("Chat", "LastImagePath"));
+	fd->setNameFilter(QString("%1 (*%2)").arg(QCoreApplication::translate("ImageDialog", "Images"), fileExt));
+	fd->setLabelText(QFileDialog::FileName, imageFullPath.section('/', -1));
+	fd->setWindowTitle(tr("Save image"));
 
 	do
 	{
-		if (fd.data()->exec() != QFileDialog::Accepted)
+		if (fd->exec() != QFileDialog::Accepted)
 			break;
-		if (fd.data()->selectedFiles().isEmpty())
+		if (fd->selectedFiles().isEmpty())
 			break;
 
-		QString file = fd.data()->selectedFiles().at(0);
+		QString file = fd->selectedFiles().at(0);
 		if (QFile::exists(file))
 		{
-			if (MessageDialog::ask(KaduIcon("dialog-question"), tr("Kadu"), tr("File already exists. Overwrite?")))
+			MessageDialog *dialog = MessageDialog::create(KaduIcon("dialog-question"), tr("Kadu"), tr("File already exists. Overwrite?"));
+			dialog->addButton(QMessageBox::Yes, tr("Overwrite"));
+			dialog->addButton(QMessageBox::No, tr("Cancel"));
+
+			if (dialog->ask())
 			{
 				QFile removeMe(file);
 				if (!removeMe.remove())
@@ -333,11 +334,25 @@ void KaduWebView::saveImage()
 			}
 		}
 
-		config_file.writeEntry("Chat", "LastImagePath", fd.data()->directory().absolutePath());
+		config_file.writeEntry("Chat", "LastImagePath", fd->directory().absolutePath());
 	} while (false);
 
 	delete fd.data();
 }
+
+#ifdef DEBUG_ENABLED
+void KaduWebView::runInspector(bool toggled)
+{
+	Q_UNUSED(toggled)
+
+	page()->settings()->setAttribute(QWebSettings::DeveloperExtrasEnabled, true);
+
+	QWebInspector *inspector = new QWebInspector();
+	inspector->setPage(page());
+
+	inspector->show();
+}
+#endif
 
 void KaduWebView::textCopied() const
 {
@@ -347,42 +362,10 @@ void KaduWebView::textCopied() const
 // taken from Psi+'s webkit patch, SVN rev. 2638, and slightly modified
 void KaduWebView::convertClipboardHtml(QClipboard::Mode mode)
 {
-	// Assume we don't use apostrophes in HTML attributes.
-
-	// Expected string to replace is as follows (capitalics are captured):
-	// <img emoticon="1" title="TITLE"*>
-	// Source string is created in EmoticonsManager::expandEmoticons().
-	static QRegExp emotsRegExp("<img[^>]+emoticon\\s*=\\s*\"1\"[^>]+title\\s*=\\s*\"([^\"]+)\"[^>]*>");
-
-	// Expected string to replace is as follows (capitalics are captured):
-	// <a folded="1" displaystr="DISPLAY" href="HREF"*>DISPLAY</a>
-	// If first display is different than the second, it means that the user selected only part of the link.
-	// Source string is created in StandardUrlHandler::convertUrlsToHtml().
-	// BTW, I know it is totally ugly.
-	static QRegExp foldedLinksRegExp("<a[^>]+folded\\s*=\\s*\"1\"[^>]+displaystr\\s*=\\s*\"([^\"]+)\"[^>]+href\\s*=\\s*\"([^\"]+)\"[^>]*>([^<]*)<[^>]*>");
-
 	QString html = QApplication::clipboard()->mimeData(mode)->html();
 
-	html.replace(emotsRegExp, QLatin1String("\\1"));
-
-	int pos = 0;
-	while (-1 != (pos = foldedLinksRegExp.indexIn(html, pos)))
-	{
-		int matchedLength = foldedLinksRegExp.matchedLength();
-		QString displayStr = foldedLinksRegExp.cap(1);
-		QString realDisplayStr = foldedLinksRegExp.cap(3);
-
-		if (displayStr == realDisplayStr) // i.e., we are copying the entire link, not a part of it
-		{
-			QString hRef = foldedLinksRegExp.cap(2);
-			QString unfoldedLink = QString("<a href=\"%1\">%1</a>").arg(hRef);
-			html.replace(pos, matchedLength, unfoldedLink);
-
-			pos += unfoldedLink.length();
-		}
-		else
-			pos += matchedLength;
-	}
+	if (Core::instance()->clipboardHtmlTransformerService())
+		html = Core::instance()->clipboardHtmlTransformerService()->transform(html);
 
 	QTextDocument document;
 	document.setHtml(html);
@@ -408,6 +391,11 @@ void KaduWebView::setUserFont(const QString &fontString, bool force)
 		style = QString("* { %1 }").arg(userFontStyle(font, force));
 	}
 
+	style.append("\
+		img.scalable { max-width: 80%; }\
+		img.scalable.unscaled { max-width: none; }\
+	");
+
 	QString url = QString("data:text/css;charset=utf-8;base64,%1").arg(QString(style.toUtf8().toBase64()));
 	settings()->setUserStyleSheetUrl(url);
 }
@@ -419,3 +407,5 @@ QString KaduWebView::userFontStyle(const QFont &font, bool force)
 		style += QString(" font-size:%1pt;").arg(font.pointSize());
 	return style;
 }
+
+#include "moc_kadu-web-view.cpp"

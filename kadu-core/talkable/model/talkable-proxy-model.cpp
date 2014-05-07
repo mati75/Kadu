@@ -1,5 +1,7 @@
 /*
  * %kadu copyright begin%
+ * Copyright 2011, 2012, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  * Copyright 2008, 2009, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
@@ -23,8 +25,8 @@
 
 #include "buddies/buddy-preferred-manager.h"
 #include "buddies/buddy.h"
-#include "chat/model/chat-data-extractor.h"
 #include "chat/chat.h"
+#include "chat/model/chat-data-extractor.h"
 #include "contacts/contact.h"
 #include "model/roles.h"
 #include "status/status-type.h"
@@ -176,12 +178,9 @@ bool TalkableProxyModel::lessThan(const QModelIndex &left, const QModelIndex &ri
 		case BuddyRole:
 			return lessThan(left.data(BuddyRole).value<Buddy>(), right.data(BuddyRole).value<Buddy>());
 		case ContactRole:
+		default: // dismiss warning
 			return lessThan(left.data(ContactRole).value<Contact>().ownerBuddy(), right.data(ContactRole).value<Contact>().ownerBuddy());
-		default:
-			Q_ASSERT(false);
 	}
-
-	return QSortFilterProxyModel::lessThan(left, right);
 }
 
 bool TalkableProxyModel::accept(const Chat &chat) const
@@ -277,3 +276,5 @@ void TalkableProxyModel::removeFilter(TalkableFilter *filter)
 
 	emit invalidated();
 }
+
+#include "moc_talkable-proxy-model.cpp"

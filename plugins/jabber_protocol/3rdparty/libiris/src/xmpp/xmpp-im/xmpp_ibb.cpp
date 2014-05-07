@@ -53,7 +53,7 @@ public:
 	QString stanza;
 
 	int blockSize;
-	QByteArray recvBuf, sendBuf;
+	//QByteArray recvBuf, sendBuf;
 	bool closePending, closing;
 
 	int id; // connection id
@@ -66,7 +66,7 @@ IBBConnection::IBBConnection(IBBManager *m)
 	d->m = m;
 	d->j = 0;
 	d->blockSize = IBB_PACKET_SIZE;
-	reset();
+	resetConnection();
 
 	++num_conn;
 	d->id = id_conn++;
@@ -75,7 +75,7 @@ IBBConnection::IBBConnection(IBBManager *m)
 #endif
 }
 
-void IBBConnection::reset(bool clear)
+void IBBConnection::resetConnection(bool clear)
 {
 	d->m->unlink(this);
 	d->state = Idle;
@@ -86,14 +86,15 @@ void IBBConnection::reset(bool clear)
 	delete d->j;
 	d->j = 0;
 
-	d->sendBuf.clear();
+	clearWriteBuffer();
 	if(clear)
-		d->recvBuf.clear();
+		clearReadBuffer();
+	setOpenMode(clear || !bytesAvailable()? QIODevice::NotOpen : QIODevice::ReadOnly);
 }
 
 IBBConnection::~IBBConnection()
 {
-	d->sendBuf.clear(); // drop buffer to make closing procedure fast
+	clearWriteBuffer(); // drop buffer to make closing procedure fast
 	close();
 
 	--num_conn;
@@ -107,7 +108,7 @@ IBBConnection::~IBBConnection()
 void IBBConnection::connectToJid(const Jid &peer, const QString &sid)
 {
 	close();
-	reset(true);
+	resetConnection(true);
 
 	d->state = Requesting;
 	d->peer = peer;
@@ -135,6 +136,7 @@ void IBBConnection::accept()
 
 	d->m->doAccept(this, d->iq_id);
 	d->state = Active;
+	setOpenMode(QIODevice::ReadWrite);
 	d->m->link(this);
 
 	emit connected(); // to be compatible with S5B
@@ -147,7 +149,7 @@ void IBBConnection::close()
 
 	if(d->state == WaitingForAccept) {
 		d->m->doReject(this, d->iq_id, Stanza::Error::Forbidden, "Rejected");
-		reset();
+		resetConnection();
 		return;
 	}
 
@@ -165,7 +167,7 @@ void IBBConnection::close()
 		}
 	}
 
-	reset();
+	resetConnection();
 }
 
 int IBBConnection::state() const
@@ -196,31 +198,16 @@ bool IBBConnection::isOpen() const
 		return false;
 }
 
-void IBBConnection::write(const QByteArray &a)
+qint64 IBBConnection::writeData(const char *data, qint64 maxSize)
 {
-	if(d->state != Active || d->closePending || d->closing)
-		return;
+	if(d->state != Active || d->closePending || d->closing) {
+		setErrorString("read only");
+		return 0;
+	}
 
-	d->sendBuf += a;
+	ByteStream::appendWrite(QByteArray::fromRawData(data, maxSize));
 	trySend();
-}
-
-QByteArray IBBConnection::read(int)
-{
-	// TODO: obey argument
-	QByteArray a = d->recvBuf;
-	d->recvBuf.resize(0);
-	return a;
-}
-
-int IBBConnection::bytesAvailable() const
-{
-	return d->recvBuf.size();
-}
-
-int IBBConnection::bytesToWrite() const
-{
-	return d->sendBuf.size();
+	return maxSize;
 }
 
 void IBBConnection::waitForAccept(const Jid &peer, const QString &iq_id,
@@ -228,7 +215,7 @@ void IBBConnection::waitForAccept(const Jid &peer, const QString &iq_id,
 								  const QString &stanza)
 {
 	close();
-	reset(true);
+	resetConnection(true);
 
 	d->state = WaitingForAccept;
 	d->peer = peer;
@@ -250,14 +237,14 @@ void IBBConnection::takeIncomingData(const IBBData &ibbData)
 		return;
 	}
 	d->seq++;
-	d->recvBuf += ibbData.data;
+	appendRead(ibbData.data);
 
-	readyRead();
+	emit readyRead();
 }
 
 void IBBConnection::setRemoteClosed()
 {
-	reset();
+	resetConnection();
 	emit connectionClosed();
 }
 
@@ -274,19 +261,20 @@ void IBBConnection::ibb_finished()
 				   qPrintable(d->peer.full()), qPrintable(d->sid));
 #endif
 			d->state = Active;
+			setOpenMode(QIODevice::ReadWrite);
 			d->m->link(this);
 			emit connected();
 		}
 		else {
 			if(d->closing) {
-				reset();
+				resetConnection();
 				emit delayedCloseFinished();
 			}
 
-			if(!d->sendBuf.isEmpty() || d->closePending)
+			if(bytesToWrite() || d->closePending)
 				QTimer::singleShot(IBB_PACKET_DELAY, this, SLOT(trySend()));
 
-			bytesWritten(j->bytesWritten()); // will delete this connection if no bytes left.
+			emit bytesWritten(j->bytesWritten()); // will delete this connection if no bytes left.
 		}
 	}
 	else {
@@ -294,12 +282,12 @@ void IBBConnection::ibb_finished()
 #ifdef IBB_DEBUG
 			qDebug("IBBConnection[%d]: %s refused.", d->id, qPrintable(d->peer.full()));
 #endif
-			reset(true);
-			error(ErrRequest);
+			resetConnection(true);
+			setError(ErrRequest);
 		}
 		else {
-			reset(true);
-			error(ErrData);
+			resetConnection(true);
+			setError(ErrData);
 		}
 	}
 }
@@ -310,8 +298,7 @@ void IBBConnection::trySend()
 	if(d->j)
 		return;
 
-	QByteArray a = d->sendBuf.left(d->blockSize); // IBB_PACKET_SIZE
-	d->sendBuf.remove(0, a.size());
+	QByteArray a = takeWrite(d->blockSize);
 
 	if(a.isEmpty()) {
 		if (!d->closePending)
@@ -325,7 +312,7 @@ void IBBConnection::trySend()
 	else {
 #ifdef IBB_DEBUG
 		qDebug("IBBConnection[%d]: sending [%d] bytes (%d bytes left)",
-			   d->id, a.size(), d->sendBuf.size());
+			   d->id, a.size(), bytesToWrite());
 #endif
 	}
 
@@ -382,20 +369,17 @@ IBBManager::IBBManager(Client *parent)
 {
 	d = new Private;
 	d->client = parent;
-	
+
 	d->ibb = new JT_IBB(d->client->rootTask(), true);
 	connect(d->ibb,
-			SIGNAL(incomingRequest(const Jid &, const QString &,
-								   const QString &, int, const QString &)),
-			SLOT(ibb_incomingRequest(const Jid &, const QString &,
-									 const QString &, int,
-									 const QString &)));
+			SIGNAL(incomingRequest(Jid,QString,QString,int,QString)),
+			SLOT(ibb_incomingRequest(Jid,QString,QString,int,QString)));
 	connect(d->ibb,
-			SIGNAL(incomingData(const Jid &, const QString &, const IBBData &, Stanza::Kind)),
-			SLOT(takeIncomingData(const Jid &, const QString &, const IBBData &, Stanza::Kind)));
+			SIGNAL(incomingData(Jid,QString,IBBData,Stanza::Kind)),
+			SLOT(takeIncomingData(Jid,QString,IBBData,Stanza::Kind)));
 	connect(d->ibb,
-			SIGNAL(closeRequest(const Jid &, const QString &, const QString &)),
-			SLOT(ibb_closeRequest(const Jid &, const QString &, const QString &)));
+			SIGNAL(closeRequest(Jid,QString,QString)),
+			SLOT(ibb_closeRequest(Jid,QString,QString)));
 }
 
 IBBManager::~IBBManager()
@@ -603,25 +587,24 @@ bool JT_IBB::take(const QDomElement &e)
 		if(e.tagName() != "iq" || e.attribute("type") != "set")
 			return false;
 
-		bool found;
 		QString id = e.attribute("id");
 		QString from = e.attribute("from");
-		QDomElement openEl = findSubTag(e, "open", &found);
-		if (found && openEl.attribute("xmlns") == IBB_NS) {
+		QDomElement openEl = e.firstChildElement("open");
+		if (!openEl.isNull() && openEl.attribute("xmlns") == IBB_NS) {
 			emit incomingRequest(Jid(from), id,
 							openEl.attribute("sid"),
 							openEl.attribute("block-size").toInt(),
 							openEl.attribute("stanza"));
 			return true;
 		}
-		QDomElement dataEl = findSubTag(e, "data", &found);
-		if (found && dataEl.attribute("xmlns") == IBB_NS) {
+		QDomElement dataEl = e.firstChildElement("data");
+		if (!dataEl.isNull() && dataEl.attribute("xmlns") == IBB_NS) {
 			IBBData data;
 			emit incomingData(Jid(from), id, data.fromXml(dataEl), Stanza::IQ);
 			return true;
 		}
-		QDomElement closeEl = findSubTag(e, "close", &found);
-		if (found && closeEl.attribute("xmlns") == IBB_NS) {
+		QDomElement closeEl = e.firstChildElement("close");
+		if (!closeEl.isNull() && closeEl.attribute("xmlns") == IBB_NS) {
 			emit closeRequest(Jid(from), id, closeEl.attribute("sid"));
 			return true;
 		}

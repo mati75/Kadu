@@ -3,6 +3,7 @@
  * Copyright 2009, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -54,23 +55,13 @@ void GaduSocketNotifiers::createSocketNotifiers()
 
 	ReadNotifier = new QSocketNotifier(Socket, QSocketNotifier::Read, this);
 	connect(ReadNotifier, SIGNAL(activated(int)), this, SLOT(dataReceived()));
-	if (!checkRead())
-		ReadNotifier->setEnabled(false);
 
 	WriteNotifier = new QSocketNotifier(Socket, QSocketNotifier::Write, this);
 	connect(WriteNotifier, SIGNAL(activated(int)), this, SLOT(dataSent()));
-	if (!checkWrite())
-		WriteNotifier->setEnabled(false);
-
-	TimeoutTimer = new QTimer();
-	TimeoutTimer->setSingleShot(true);
-	connect(TimeoutTimer, SIGNAL(timeout()), this, SLOT(socketTimeout()));
 
 	Started = true;
 
-	int tout = timeout();
-	if (0 < tout)
-		TimeoutTimer->start(tout);
+	enable();
 
 	kdebugf2();
 }
@@ -92,9 +83,12 @@ void GaduSocketNotifiers::deleteSocketNotifiers()
 	WriteNotifier->deleteLater();
 	WriteNotifier = 0;
 
-	TimeoutTimer->stop();
-	TimeoutTimer->deleteLater();
-	TimeoutTimer = 0;
+	if (TimeoutTimer)
+	{
+		TimeoutTimer->stop();
+		TimeoutTimer->deleteLater();
+		TimeoutTimer = 0;
+	}
 
 	kdebugf2();
 }
@@ -108,7 +102,8 @@ void GaduSocketNotifiers::disable()
 
 	ReadNotifier->setEnabled(false);
 	WriteNotifier->setEnabled(false);
-	TimeoutTimer->stop();
+	if (TimeoutTimer)
+		TimeoutTimer->stop();
 }
 
 void GaduSocketNotifiers::enable()
@@ -118,14 +113,26 @@ void GaduSocketNotifiers::enable()
 	if (!Started)
 		return;
 
-	if (checkRead())
-		ReadNotifier->setEnabled(true);
-	if (checkWrite())
-		WriteNotifier->setEnabled(true);
+	ReadNotifier->setEnabled(checkRead());
+	WriteNotifier->setEnabled(checkWrite());
 
 	int tout = timeout();
-	if (0 < tout)
+	if (tout > 0)
+	{
+		if (!TimeoutTimer)
+		{
+			TimeoutTimer = new QTimer(this);
+			TimeoutTimer->setSingleShot(true);
+			connect(TimeoutTimer, SIGNAL(timeout()), this, SLOT(socketTimeout()));
+		}
 		TimeoutTimer->start(tout);
+	}
+	else if (TimeoutTimer)
+	{
+		TimeoutTimer->stop();
+		TimeoutTimer->deleteLater();
+		TimeoutTimer = 0;
+	}
 }
 
 void GaduSocketNotifiers::watchFor(int socket)
@@ -168,3 +175,5 @@ void GaduSocketNotifiers::dataSent()
 
 	kdebugf2();
 }
+
+#include "moc_gadu-socket-notifiers.cpp"

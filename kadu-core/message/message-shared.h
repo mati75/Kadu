@@ -3,7 +3,7 @@
  * Copyright 2008, 2009, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2011 Piotr Dąbrowski (ultr@ultr.pl)
  * Copyright 2008, 2009 Michał Podsiadlik (michal@kadu.net)
- * Copyright 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2008, 2009, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
@@ -25,6 +25,7 @@
 #define MESSAGE_SHARED_H
 
 #include <QtCore/QDateTime>
+#include <QtCore/QPointer>
 #include <QtCore/QSharedData>
 
 #include "message/message-common.h"
@@ -32,20 +33,25 @@
 
 class Chat;
 class Contact;
+class FormattedString;
+class FormattedStringFactory;
 
 class MessageShared : public QObject, public Shared
 {
 	Q_OBJECT
 	Q_DISABLE_COPY(MessageShared)
 
+	QPointer<FormattedStringFactory> CurrentFormattedStringFactory;
+
 	Chat *MessageChat;
 	Contact *MessageSender;
-	QString Content;
+	std::unique_ptr<FormattedString> Content;
+	QString PlainTextContent;
+	QString HtmlContent;
 	QDateTime ReceiveDate;
 	QDateTime SendDate;
 	MessageStatus Status;
 	MessageType Type;
-	bool Pending;
 	QString Id;
 
 protected:
@@ -54,25 +60,30 @@ protected:
 	virtual bool shouldStore();
 
 public:
-	static MessageShared * loadStubFromStorage(const QSharedPointer<StoragePoint> &messageStoragePoint);
-	static MessageShared * loadFromStorage(const QSharedPointer<StoragePoint> &messageStoragePoint);
+	static MessageShared * loadStubFromStorage(const std::shared_ptr<StoragePoint> &messageStoragePoint);
+	static MessageShared * loadFromStorage(const std::shared_ptr<StoragePoint> &messageStoragePoint);
 
 	explicit MessageShared(const QUuid &uuid = QUuid());
 	virtual ~MessageShared();
+
+	void setFormattedStringFactory(FormattedStringFactory *formattedStringFactory);
 
 	virtual StorableObject * storageParent();
 	virtual QString storageNodeName();
 
 	void setStatus(MessageStatus status);
 
+	void setContent(std::unique_ptr<FormattedString> &&content);
+	FormattedString * content() const;
+
 	KaduShared_PropertyDeclCRW(Chat, messageChat, MessageChat)
 	KaduShared_PropertyDeclCRW(Contact, messageSender, MessageSender)
-	KaduShared_Property(const QString &, content, Content)
+	KaduShared_PropertyRead(QString, plainTextContent, PlainTextContent)
+	KaduShared_PropertyRead(QString, htmlContent, HtmlContent)
 	KaduShared_Property(const QDateTime &, receiveDate, ReceiveDate)
 	KaduShared_Property(const QDateTime &, sendDate, SendDate)
 	KaduShared_PropertyRead(MessageStatus, status, Status)
 	KaduShared_Property(MessageType, type, Type)
-	KaduShared_PropertyBool(Pending)
 	KaduShared_Property(const QString &, id, Id)
 
 signals:

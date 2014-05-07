@@ -1,11 +1,11 @@
 /*
  * %kadu copyright begin%
  * Copyright 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2009, 2012 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2010 Piotr Dąbrowski (ultr@ultr.pl)
  * Copyright 2009, 2009 Bartłomiej Zimoń (uzi18@o2.pl)
- * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2009, 2010, 2011, 2012, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -22,12 +22,11 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "accounts/account-manager.h"
-#include "buddies/buddy-preferred-manager.h"
-#include "chat/chat-details-contact.h"
 #include "chat/chat-details-contact-set.h"
+#include "chat/chat-details-contact.h"
 #include "chat/type/chat-type-manager.h"
-#include "message/message-manager.h"
+#include "core/core.h"
+#include "message/unread-message-repository.h"
 
 #include "chat-manager.h"
 
@@ -55,20 +54,20 @@ ChatManager::ChatManager()
 
 ChatManager::~ChatManager()
 {
-	disconnect(MessageManager::instance(), 0, this, 0);
+	disconnect(Core::instance()->unreadMessageRepository(), 0, this, 0);
 
-	foreach (const Message &message, MessageManager::instance()->allUnreadMessages())
+	foreach (const Message &message, Core::instance()->unreadMessageRepository()->allUnreadMessages())
 		unreadMessageRemoved(message);
 }
 
 void ChatManager::init()
 {
-	foreach (const Message &message, MessageManager::instance()->allUnreadMessages())
+	foreach (const Message &message, Core::instance()->unreadMessageRepository()->allUnreadMessages())
 		unreadMessageAdded(message);
 
-	connect(MessageManager::instance(), SIGNAL(unreadMessageAdded(Message)),
+	connect(Core::instance()->unreadMessageRepository(), SIGNAL(unreadMessageAdded(Message)),
 	        this, SLOT(unreadMessageAdded(Message)));
-	connect(MessageManager::instance(), SIGNAL(unreadMessageRemoved(Message)),
+	connect(Core::instance()->unreadMessageRepository(), SIGNAL(unreadMessageRemoved(Message)),
 	        this, SLOT(unreadMessageRemoved(Message)));
 }
 
@@ -96,28 +95,6 @@ void ChatManager::itemAboutToBeUnregisterd(Chat item)
 void ChatManager::itemUnregistered(Chat item)
 {
 	emit chatRemoved(item);
-}
-
-bool ChatManager::isAccountCommon(const Account &account, const BuddySet &buddies)
-{
-	QMutexLocker locker(&mutex());
-
-	foreach (const Buddy &buddy, buddies)
-		if (buddy.contacts(account).isEmpty())
-			return false;
-
-	return true;
-}
-
-Account ChatManager::getCommonAccount(const BuddySet &buddies)
-{
-	QMutexLocker locker(&mutex());
-
-	foreach (const Account &account, AccountManager::instance()->items())
-		if (isAccountCommon(account, buddies))
-			return account;
-
-	return Account::null;
 }
 
 QVector<Chat> ChatManager::chats(const Account &account)
@@ -188,3 +165,5 @@ void ChatManager::unreadMessageRemoved(const Message &message)
 	if (unreadMessagesCount > 0)
 		chat.setUnreadMessagesCount(unreadMessagesCount - 1);
 }
+
+#include "moc_chat-manager.cpp"

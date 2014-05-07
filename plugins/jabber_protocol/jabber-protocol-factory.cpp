@@ -3,9 +3,10 @@
  * Copyright 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009, 2009, 2010, 2010 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2010 Piotr Pełzowski (floss@pelzowski.eu)
+ * Copyright 2012 Piotr Dąbrowski (ultr@ultr.pl)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
- * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2009, 2010, 2011, 2012, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -22,6 +23,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "core/core.h"
 #include "icons/kadu-icon.h"
 #include "misc/misc.h"
 #include "status/status-type.h"
@@ -54,7 +56,7 @@ void JabberProtocolFactory::destroyInstance()
 
 JabberProtocolFactory::JabberProtocolFactory()
 {
-	MyStatusAdapter = new JabberStatusAdapter();
+	MyStatusAdapter = make_unique<JabberStatusAdapter>();
 
 	// already sorted
 	SupportedStatusTypes.append(StatusTypeFreeForChat);
@@ -72,7 +74,7 @@ KaduIcon JabberProtocolFactory::icon()
 
 Protocol * JabberProtocolFactory::createProtocolHandler(Account account)
 {
-	return new JabberProtocol(account, this);
+	return new XMPP::JabberProtocol(account, this);
 }
 
 AccountDetails * JabberProtocolFactory::createAccountDetails(AccountShared *accountShared)
@@ -101,7 +103,7 @@ AccountCreateWidget * JabberProtocolFactory::newCreateAccountWidget(bool showBut
 
 AccountEditWidget * JabberProtocolFactory::newEditAccountWidget(Account account, QWidget *parent)
 {
-	JabberEditAccountWidget *result = new JabberEditAccountWidget(account, parent);
+	JabberEditAccountWidget *result = new JabberEditAccountWidget(Core::instance()->accountConfigurationWidgetFactoryRepository(), account, parent);
 	connect(this, SIGNAL(destroyed()), result, SLOT(deleteLater()));
 	return result;
 }
@@ -120,6 +122,11 @@ QValidator::State JabberProtocolFactory::validateId(QString id)
 {
 	int pos = 0;
 	return JabberIdValidator::instance()->validate(id, pos);
+}
+
+bool JabberProtocolFactory::canRegister()
+{
+	return true;
 }
 
 bool JabberProtocolFactory::allowChangeServer()
@@ -141,3 +148,5 @@ ProtocolMenuManager * JabberProtocolFactory::protocolMenuManager()
 {
 	return JabberProtocolMenuManager::instance();
 }
+
+#include "moc_jabber-protocol-factory.cpp"

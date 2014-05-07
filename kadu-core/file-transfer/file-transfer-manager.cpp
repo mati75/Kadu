@@ -1,10 +1,11 @@
 /*
  * %kadu copyright begin%
  * Copyright 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2012 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2009, 2010 Bartłomiej Zimoń (uzi18@o2.pl)
  * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
- * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2007, 2008, 2009, 2010, 2011, 2012, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
@@ -25,10 +26,8 @@
 #include <QtCore/QFileInfo>
 #include <QtGui/QFileDialog>
 #include <QtGui/QMessageBox>
-#include <QtGui/QTextDocument>
 
 #include "accounts/account.h"
-#include "activate.h"
 #include "chat/chat-manager.h"
 #include "chat/chat.h"
 #include "chat/type/chat-type-contact.h"
@@ -39,16 +38,16 @@
 #include "file-transfer/file-transfer-handler.h"
 #include "file-transfer/file-transfer-notifications.h"
 #include "file-transfer/file-transfer.h"
-#include "gui/widgets/chat-widget-manager.h"
-#include "gui/widgets/chat-widget.h"
+#include "gui/widgets/chat-widget/chat-widget-manager.h"
+#include "gui/widgets/chat-widget/chat-widget-repository.h"
+#include "gui/widgets/chat-widget/chat-widget.h"
 #include "gui/windows/file-transfer-window.h"
 #include "gui/windows/kadu-window.h"
 #include "gui/windows/message-dialog.h"
-#include "identities/identity.h"
-#include "notify/notification-manager.h"
 #include "protocols/protocol.h"
 #include "protocols/services/file-transfer-service.h"
 #include "storage/storage-point.h"
+#include "activate.h"
 #include "debug.h"
 
 #include "file-transfer-manager.h"
@@ -109,12 +108,12 @@ void FileTransferManager::removeFileTransferService(Account account)
 
 void FileTransferManager::fileTransferServiceRegistered()
 {
-	addFileTransferService(sender());
+	addFileTransferService(Account{sender()});
 }
 
 void FileTransferManager::fileTransferServiceUnregistered()
 {
-	removeFileTransferService(sender());
+	removeFileTransferService(Account{sender()});
 }
 
 void FileTransferManager::accountRegistered(Account account)
@@ -188,7 +187,7 @@ void FileTransferManager::acceptFileTransfer(FileTransfer transfer)
 			QWidget *parent = 0;
 			Chat chat = ChatTypeContact::findChat(transfer.peer(), ActionReturnNull);
 			if (chat)
-				parent = ChatWidgetManager::instance()->byChat(chat, false);
+				parent = Core::instance()->chatWidgetRepository()->widgetForChat(chat);
 
 			QString question;
 			question = tr("File %1 already exists.").arg(fileName);
@@ -276,38 +275,9 @@ void FileTransferManager::incomingFileTransfer(FileTransfer fileTransfer)
 			fileTransfer.setLocalFileName(alreadyTransferred.localFileName());
 	}
 
-	Chat chat = ChatTypeContact::findChat(fileTransfer.peer(), ActionCreateAndAdd);
-	NewFileTransferNotification *notification = new NewFileTransferNotification("FileTransfer/IncomingFile", fileTransfer,
-			chat, fileTransfer.localFileName().isEmpty() ? StartNew : StartRestore);
-	notification->setTitle(tr("Incoming transfer"));
-
 	fileTransfer.setTransferStatus(StatusWaitingForAccept);
 
-	QString textFileSize = QString("%1 kB");
-	double size = (double) fileTransfer.fileSize() / 1024;
-
-	if (size > 1024 )
-	{
-		size = size / 1024;
-		textFileSize = "%1 MB";
-	}
-
-	if (fileTransfer.localFileName().isEmpty())
-		notification->setText(tr("User <b>%1</b> wants to send you a file <b>%2</b><br/>of size <b>%3</b> using account <b>%4</b>.<br/>Accept transfer?")
-				.arg(Qt::escape(fileTransfer.peer().display(true)))
-				.arg(Qt::escape(fileTransfer.remoteFileName()))
-				.arg(Qt::escape(textFileSize.arg(size, 0, 'f', 2)))
-				.arg(Qt::escape(chat.chatAccount().accountIdentity().name())));
-	else
-		notification->setText(tr("User <b>%1</b> wants to send you a file <b/>%2</b><br/>of size <b>%3</b> using account <b>%4</b>.<br/>"
-				"This is probably a next part of <b>%5</b><br/>What should I do?")
-				.arg(Qt::escape(fileTransfer.peer().display(true)))
-				.arg(Qt::escape(fileTransfer.remoteFileName()))
-				.arg(Qt::escape(textFileSize.arg(size, 0, 'f', 2)))
-				.arg(Qt::escape(chat.chatAccount().accountIdentity().name()))
-				.arg(Qt::escape(fileTransfer.localFileName())));
-
-	NotificationManager::instance()->notify(notification);
+	NewFileTransferNotification::notifyIncomingFileTransfer(fileTransfer);
 }
 
 void FileTransferManager::itemAboutToBeAdded(FileTransfer fileTransfer)
@@ -329,3 +299,5 @@ void FileTransferManager::itemRemoved(FileTransfer fileTransfer)
 {
 	emit fileTransferRemoved(fileTransfer);
 }
+
+#include "moc_file-transfer-manager.cpp"

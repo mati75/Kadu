@@ -1,10 +1,10 @@
 /*
  * %kadu copyright begin%
  * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2009, 2012 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2009 Michał Podsiadlik (michal@kadu.net)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
- * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2009, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
@@ -130,10 +130,6 @@ public:
 	 * Returns node name for storage of given chat data - "Chat".
 	 */
 	virtual QString storageNodeItemName() { return QLatin1String("Chat"); }
-
-	// TODO: move somewhere
-	bool isAccountCommon(const Account &account, const BuddySet &buddies);
-	Account getCommonAccount(const BuddySet &buddies);
 
 	/**
 	 * @author Rafal 'Vogel' Malinowski

@@ -1,6 +1,8 @@
 /*
  * %kadu copyright begin%
+ * Copyright 2012 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -23,7 +25,7 @@
 #include "group-talkable-filter.h"
 
 GroupTalkableFilter::GroupTalkableFilter(QObject *parent) :
-		TalkableFilter(parent), AllGroupShown(true)
+		TalkableFilter(parent)
 {
 }
 
@@ -31,13 +33,21 @@ GroupTalkableFilter::~GroupTalkableFilter()
 {
 }
 
-bool GroupTalkableFilter::acceptGroupList(const QSet<Group> &groups, bool showInAllGroup)
+bool GroupTalkableFilter::acceptGroupList(const QSet<Group> &groups, bool showInEverybodyGroup)
 {
-	if (CurrentGroup)
-		return groups.contains(CurrentGroup);
-	if (AllGroupShown)
-		return showInAllGroup;
-	return groups.isEmpty();
+	switch (CurrentGroupFilter.filterType())
+	{
+		case GroupFilterInvalid:
+			return true;
+		case GroupFilterRegular:
+			return groups.contains(CurrentGroupFilter.group());
+		case GroupFilterEverybody:
+			return showInEverybodyGroup;
+		case GroupFilterUngroupped:
+			return groups.isEmpty();
+	}
+
+	return false;
 }
 
 TalkableFilter::FilterResult GroupTalkableFilter::filterChat(const Chat &chat)
@@ -56,20 +66,13 @@ TalkableFilter::FilterResult GroupTalkableFilter::filterBuddy(const Buddy &buddy
 		return Rejected;
 }
 
-void GroupTalkableFilter::setGroup(const Group &group)
+void GroupTalkableFilter::setGroupFilter(const GroupFilter &groupFilter)
 {
-	if (CurrentGroup == group)
+	if (CurrentGroupFilter == groupFilter)
 		return;
 
-	CurrentGroup = group;
+	CurrentGroupFilter = groupFilter;
 	emit filterChanged();
 }
 
-void GroupTalkableFilter::setAllGroupShown(bool shown)
-{
-	if (AllGroupShown == shown)
-		return;
-
-	AllGroupShown = shown;
-	emit filterChanged();
-}
+#include "moc_group-talkable-filter.cpp"

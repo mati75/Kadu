@@ -5,7 +5,7 @@
  * Copyright 2009, 2010 Tomasz Rostański (rozteck@interia.pl)
  * Copyright 2010 Bartłomiej Zimoń (uzi18@o2.pl)
  * Copyright 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2010, 2011, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -49,16 +49,16 @@ AmarokMediaPlayer::~AmarokMediaPlayer()
 	kdebugf();
 }
 
-int AmarokMediaPlayer::init(bool firstLoad)
+bool AmarokMediaPlayer::init(bool firstLoad)
 {
 	Q_UNUSED(firstLoad)
 
 	bool res = MediaPlayer::instance()->registerMediaPlayer(this, this);
 	if (!res)
-		return 1;
+		return false;
 
 	MediaPlayer::instance()->setInterval(5);
-	return 0;
+	return true;
 }
 
 void AmarokMediaPlayer::done()
@@ -305,3 +305,5 @@ bool AmarokMediaPlayer::isActive()
 }
 
 Q_EXPORT_PLUGIN2(amarok1_mediaplayer, AmarokMediaPlayer)
+
+#include "moc_amarok.cpp"

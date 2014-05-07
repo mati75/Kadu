@@ -9,8 +9,8 @@
  * Copyright 2002, 2003, 2004 Adrian Smarzewski (adrian@kadu.net)
  * Copyright 2005 Paweł Płuciennik (pawel_p@kadu.net)
  * Copyright 2002, 2003 Tomasz Chiliński (chilek@chilan.com)
- * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2007, 2008, 2009, 2010, 2011, 2012, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011, 2012 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2007, 2008 Dawid Stawiarski (neeo@kadu.net)
  * Copyright 2004, 2005, 2006, 2007 Marcin Ślusarz (joi@kadu.net)
  * Copyright 2002, 2003 Dariusz Jagodzik (mast3r@kadu.net)
@@ -38,6 +38,7 @@
 
 #include "buddies/buddy.h"
 #include "gui/widgets/buddy-options-configuration-widget.h"
+#include "gui/widgets/configuration-value-state-notifier.h"
 
 #include "exports.h"
 
@@ -52,18 +53,20 @@ class QTabWidget;
 class QVBoxLayout;
 
 class Buddy;
+class BuddyConfigurationWidget;
+class BuddyConfigurationWidgetFactory;
+class BuddyConfigurationWidgetFactoryRepository;
 class BuddyGeneralConfigurationWidget;
 class BuddyGroupsConfigurationWidget;
 class BuddyPersonalInfoConfigurationWidget;
+class CompositeConfigurationValueStateNotifier;
 
 class KADUAPI BuddyDataWindow : public QWidget
 {
-	friend class BuddyDataWindowAwareObject;
-
 	Q_OBJECT
 
-	static QMap<Buddy, BuddyDataWindow *> Instances;
-	static const QMap<Buddy, BuddyDataWindow *> & instances() { return Instances; }
+	BuddyConfigurationWidgetFactoryRepository *MyBuddyConfigurationWidgetFactoryRepository;
+	QMap<BuddyConfigurationWidgetFactory *, BuddyConfigurationWidget *> BuddyConfigurationWidgets;
 
 	Buddy MyBuddy;
 	BuddyGeneralConfigurationWidget *ContactTab;
@@ -71,11 +74,12 @@ class KADUAPI BuddyDataWindow : public QWidget
 	BuddyPersonalInfoConfigurationWidget *PersonalInfoTab;
 	BuddyOptionsConfigurationWidget *OptionsTab;
 
+	CompositeConfigurationValueStateNotifier *ValueStateNotifier;
+
 	QTabWidget *TabWidget;
 	QPushButton *OkButton;
 	QPushButton *ApplyButton;
-
-	BuddyDataWindow(const Buddy &buddy, QWidget *parent);
+	QPushButton *CancelButton;
 
 	void createGui();
 	void createTabs(QLayout *layout);
@@ -85,10 +89,13 @@ class KADUAPI BuddyDataWindow : public QWidget
 	void createOptionsTab(QTabWidget *tabWidget);
 	void createButtons(QLayout *layout);
 
-	bool isValid();
+	void applyBuddyConfigurationWidgets();
 
 private slots:
-	void updateButtons();
+	void factoryRegistered(BuddyConfigurationWidgetFactory *factory);
+	void factoryUnregistered(BuddyConfigurationWidgetFactory *factory);
+
+	void stateChangedSlot(ConfigurationValueState state);
 
 	void updateBuddy();
 	void updateBuddyAndClose();
@@ -98,9 +105,10 @@ protected:
 	virtual void keyPressEvent(QKeyEvent *event);
 
 public:
-	static BuddyDataWindow * instance(const Buddy &buddy, QWidget *parent = 0);
-
+	explicit BuddyDataWindow(BuddyConfigurationWidgetFactoryRepository *buddyConfigurationWidgetFactoryRepository, const Buddy &buddy);
 	virtual ~BuddyDataWindow();
+
+	QList<BuddyConfigurationWidget *> buddyConfigurationWidgets() const;
 
 	void show();
 
@@ -109,7 +117,10 @@ public:
 	QWidget * optionsTab() const { return OptionsTab; }
 
 signals:
-	void save();
+	void widgetAdded(BuddyConfigurationWidget *widget);
+	void widgetRemoved(BuddyConfigurationWidget *widget);
+
+	void destroyed(const Buddy &buddy);
 
 };
 

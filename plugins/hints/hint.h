@@ -1,7 +1,7 @@
 /*
  * %kadu copyright begin%
  * Copyright 2008, 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2009, 2012 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2011 Piotr Dąbrowski (ultr@ultr.pl)
  * Copyright 2007, 2008, 2009, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
@@ -52,8 +52,8 @@ class Hint : public QFrame, ConfigurationAwareObject
 	QLabel *label;
 	QColor bcolor; //kolor t�a
 	QColor fcolor;
-	unsigned int secs;
-	unsigned int startSecs;
+	int secs;
+	int startSecs;
 
 	Notification *notification;
 	QStringList details;
@@ -83,12 +83,11 @@ public:
 
 	void mouseOver();
 	void mouseOut();
+	void notificationUpdated();
 
-	void getData(QString &text, QPixmap &pixmap, unsigned int &timeout, QFont &font, QColor &fgcolor, QColor &bgcolor);
+	void getData(QString &text, QPixmap &pixmap, int &timeout, QFont &font, QColor &fgcolor, QColor &bgcolor);
 	bool requireManualClosing();
 	bool isDeprecated();
-
-	void addDetail(const QString &detail);
 
 	Chat  chat() { return CurrentChat; }
 

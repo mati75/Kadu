@@ -1,14 +1,8 @@
 project (phonon_sound)
 
-# minimal required versions
 cmake_minimum_required (VERSION 2.8)
-set (QT_MIN_VERSION "4.7.0")
-set (CMAKE_MIN_VERSION "2.6.0")
 
-set (KADU_FIND_REQUIRED true)
-include (FindKadu)
-
-include (FindPkgConfig)
+find_package (Kadu REQUIRED CONFIG)
 
 set (SOURCES
 	phonon-player.cpp
@@ -20,19 +14,24 @@ set (MOC_SOURCES
 	phonon-plugin.h
 )
 
-pkg_search_module (PHONON phonon)
-if (PHONON_FOUND)
-	set (LIBRARIES ${PHONON_LIBRARIES})
-	link_directories (${PHONON_LIBRARY_DIRS})
-	include_directories (${PHONON_INCLUDE_DIRS})
-else (PHONON_FOUND)
+if (NOT WIN32)
+	find_package (PkgConfig)
+	pkg_search_module (PHONON phonon)
+	if (PHONON_FOUND)
+		set (LIBRARIES ${PHONON_LIBRARIES})
+		link_directories (${PHONON_LIBRARY_DIRS})
+		include_directories (${PHONON_INCLUDE_DIRS})
+	endif ()
+endif ()
+
+if (WIN32 OR NOT PHONON_FOUND)
 	if (QT_PHONON_FOUND)
 		set (LIBRARIES ${QT_PHONON_LIBRARY})
 		include_directories (${QT_PHONON_INCLUDE_DIR})
-	else (QT_PHONON_FOUND)
+	else ()
 		message (FATAL_ERROR "Could not find Phonon library")
-	endif (QT_PHONON_FOUND)
-endif (PHONON_FOUND)
+	endif ()
+endif ()
 
 message (STATUS "Found Phonon library: ${LIBRARIES}")
 

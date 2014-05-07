@@ -1,8 +1,8 @@
 /*
  * %kadu copyright begin%
  * Copyright 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2009, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -30,17 +30,19 @@
 #include "history-migration-helper.h"
 
 class Chat;
+class FormattedStringFactory;
 struct HistoryEntry;
 
 class HistoryImportThread : public QObject
 {
 	Q_OBJECT
 
+	QPointer<FormattedStringFactory> CurrentFormattedStringFactory;
+
 	Account GaduAccount;
 	QString Path;
 	QList<UinsList> UinsLists;
 
-	int TotalEntries;
 	int ImportedEntries;
 	int ImportedChats;
 	int TotalMessages;
@@ -53,8 +55,10 @@ class HistoryImportThread : public QObject
 	void importEntry(const Chat &chat, const HistoryEntry &entry);
 
 public:
-	HistoryImportThread(Account gaduAccount, const QString &path, const QList<UinsList> &uinsLists, int totalEntries, QObject *parent = 0);
+	HistoryImportThread(Account gaduAccount, const QString &path, const QList<UinsList> &uinsLists, QObject *parent = 0);
 	virtual ~HistoryImportThread();
+
+	void setFormattedStringFactory(FormattedStringFactory *formattedStringFactory);
 
 	void prepareChats();
 

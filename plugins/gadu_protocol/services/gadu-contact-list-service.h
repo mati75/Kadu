@@ -26,18 +26,20 @@
 #ifndef GADU_CONTACT_LIST_SERVICE_H
 #define GADU_CONTACT_LIST_SERVICE_H
 
+#include "accounts/account.h"
 #include "contacts/contact.h"
 #include "protocols/services/contact-list-service.h"
 
 class GaduContactListStateMachine;
-class GaduProtocol;
-class GaduProtocolSocketNotifiers;
+class GaduConnection;
+class RosterNotifier;
 
 class GaduContactListService : public ContactListService
 {
 	Q_OBJECT
 
-	GaduProtocol *Protocol;
+	QPointer<GaduConnection> Connection;
+	QPointer<RosterNotifier> MyRosterNotifier;
 	GaduContactListStateMachine *StateMachine;
 
 	friend class GaduProtocolSocketNotifiers;
@@ -46,12 +48,18 @@ class GaduContactListService : public ContactListService
 	void handleEventUserlist100GetReply(struct gg_event *e);
 	void handleEventUserlist100Reply(struct gg_event *e);
 
+	void putFinished(bool ok);
+	void getFinished(bool ok);
+
 private slots:
 	void dirtyContactAdded(Contact contact);
 
 public:
-	explicit GaduContactListService(GaduProtocol *protocol);
+	explicit GaduContactListService(const Account &account, Protocol *protocol);
 	virtual ~GaduContactListService();
+
+	void setConnection(GaduConnection *connection);
+	void setRosterNotifier(RosterNotifier *rosterNotifier);
 
 	virtual bool haveToAskForAddingContacts() const;
 
@@ -68,12 +76,16 @@ public slots:
 
 signals:
 	// state machine signals
-	void stateMachineInternalError();
-	void stateMachineNewVersionAvailable();
-	void stateMachineSucceededImporting();
-	void stateMachineSucceededExporting();
-	void stateMachineFailedExporting();
-	void stateMachineHasDirtyContacts();
+	void stateMachinePutStarted();
+	void stateMachinePutFinished();
+	void stateMachinePutFailed();
+
+	void stateMachineGetStarted();
+	void stateMachineGetFinished();
+	void stateMachineGetFailed();
+
+	void stateMachineLocalDirty();
+	void stateMachineRemoteDirty();
 
 };
 

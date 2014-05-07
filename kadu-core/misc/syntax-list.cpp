@@ -3,8 +3,8 @@
  * Copyright 2008, 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2008 Tomasz Rostański (rozteck@interia.pl)
- * Copyright 2007, 2008, 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2007, 2008 Dawid Stawiarski (neeo@kadu.net)
  * %kadu copyright end%
  *
@@ -27,7 +27,7 @@
 #include <QtCore/QFileInfo>
 #include <QtCore/QTextStream>
 
-#include "misc/misc.h"
+#include "misc/kadu-paths.h"
 
 #include "syntax-list.h"
 
@@ -199,3 +199,5 @@ bool SyntaxList::isGlobal(const QString &name)
 	SyntaxInfo info = *(find(name));
 	return info.global;
 }
+
+#include "moc_syntax-list.cpp"

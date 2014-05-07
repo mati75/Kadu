@@ -4,7 +4,7 @@
  * Copyright 2009, 2010 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2011 Piotr Dąbrowski (ultr@ultr.pl)
  * Copyright 2008 Michał Podsiadlik (michal@kadu.net)
- * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2009, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
@@ -33,11 +33,7 @@
 class GaduAccountDetails : public AccountDetails
 {
 	PROPERTY_DEC(bool, AllowDcc)
-	PROPERTY_DEC(bool, LimitImageSize)
-	PROPERTY_DEC(int, MaximumImageSize)
-	PROPERTY_DEC(bool, ImageSizeAsk)
 	PROPERTY_DEC(bool, ReceiveImagesDuringInvisibility)
-	PROPERTY_DEC(short int, MaximumImageRequests)
 	PROPERTY_DEC(bool, ChatImageSizeWarning)
 	PROPERTY_DEC(bool, InitialRosterImport)
 	PROPERTY_DEC(bool, TlsEncryption)
@@ -60,11 +56,7 @@ public:
 	UinType uin();
 
 	PROPERTY_DEF(bool, allowDcc, setAllowDcc, AllowDcc)
-	PROPERTY_DEF(bool, limitImageSize, setLimitImageSize, LimitImageSize)
-	PROPERTY_DEF(int, maximumImageSize, setMaximumImageSize, MaximumImageSize)
-	PROPERTY_DEF(bool, imageSizeAsk, setImageSizeAsk, ImageSizeAsk)
 	PROPERTY_DEF(bool, receiveImagesDuringInvisibility, setReceiveImagesDuringInvisibility, ReceiveImagesDuringInvisibility)
-	PROPERTY_DEF(short int, maximumImageRequests, setMaximumImageRequests, MaximumImageRequests)
 	PROPERTY_DEF(bool, chatImageSizeWarning, setChatImageSizeWarning, ChatImageSizeWarning)
 	PROPERTY_DEF(bool, initialRosterImport, setInitialRosterImport, InitialRosterImport)
 	PROPERTY_DEF(bool, tlsEncryption, setTlsEncryption, TlsEncryption)

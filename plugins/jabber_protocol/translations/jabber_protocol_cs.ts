@@ -2,24 +2,192 @@
 <context>
     <name>@default</name>
     <message>
-        <source>Jabber/XMPP</source>
-        <translation>Jabber/XMPP</translation>
-    </message>
-    <message>
-        <source>Connection</source>
-        <translation>Spojení</translation>
-    </message>
-    <message>
-        <source>Data transfers</source>
-        <translation>Přenosy dat</translation>
-    </message>
-    <message>
-        <source>Port</source>
-        <translation>Přípojka</translation>
-    </message>
-    <message>
         <source>External address</source>
         <translation>Vnější adresa</translation>
+    </message>
+    <message>
+        <source>Disconnected</source>
+        <translation>Odpojeno</translation>
+    </message>
+    <message>
+        <source>XML Parsing Error</source>
+        <translation>Chyba při zpracování XML</translation>
+    </message>
+    <message>
+        <source>XMPP Protocol Error</source>
+        <translation>Chyba protokolu XMPP</translation>
+    </message>
+    <message>
+        <source>Generic stream error</source>
+        <translation>Obecná chyba proudu</translation>
+    </message>
+    <message>
+        <source>Conflict(remote login replacing this one)</source>
+        <translation>Rozpor (vzdálené přihlášení nahrazující toto)</translation>
+    </message>
+    <message>
+        <source>Timed out from inactivity</source>
+        <translation>Překročení času kvůli nečinnosti</translation>
+    </message>
+    <message>
+        <source>Internal server error</source>
+        <translation>Vnitřní chyba serveru</translation>
+    </message>
+    <message>
+        <source>Invalid XML</source>
+        <translation>Neplatné XML</translation>
+    </message>
+    <message>
+        <source>Policy violation</source>
+        <translation>Nedodržení politiky</translation>
+    </message>
+    <message>
+        <source>Server out of resources</source>
+        <translation>Server nemá dostatek prostředků</translation>
+    </message>
+    <message>
+        <source>Server is shutting down</source>
+        <translation>Server se vypíná</translation>
+    </message>
+    <message>
+        <source>XMPP Stream Error: %1</source>
+        <translation>Chyba proudu XMPP: %1</translation>
+    </message>
+    <message>
+        <source>Unable to connect to server</source>
+        <translation>Nelze se připojit k serveru</translation>
+    </message>
+    <message>
+        <source>Host not found</source>
+        <translation>Nepodařilo se najít počítač</translation>
+    </message>
+    <message>
+        <source>Error connecting to proxy</source>
+        <translation>Chyba při připojování se k proxy</translation>
+    </message>
+    <message>
+        <source>Error during proxy negotiation</source>
+        <translation>Chyba při jednání s proxy</translation>
+    </message>
+    <message>
+        <source>Proxy authentication failed</source>
+        <translation>Autentizace u proxy serveru se nezdařila</translation>
+    </message>
+    <message>
+        <source>Socket/stream error</source>
+        <translation>Chyba zásuvky (socket)/proudu</translation>
+    </message>
+    <message>
+        <source>Connection Error: %1</source>
+        <translation>Chyba ve spojení: %1</translation>
+    </message>
+    <message>
+        <source>Host no longer hosted</source>
+        <translation>Počítač není nadále hostěn</translation>
+    </message>
+    <message>
+        <source>Host unknown</source>
+        <translation>Počítač neznámý</translation>
+    </message>
+    <message>
+        <source>A required remote connection failed</source>
+        <translation>Požadované vzdálené spojení se nezdařilo</translation>
+    </message>
+    <message>
+        <source>See other host: %1</source>
+        <translation>Podívejte se na jiného hostitele: %1</translation>
+    </message>
+    <message>
+        <source>Server does not support proper XMPP version</source>
+        <translation>Server nepodporuje správnou verzi XMPP</translation>
+    </message>
+    <message>
+        <source>Stream Negotiation Error: %1</source>
+        <translation>Chyba při vyjednání proudu: %1</translation>
+    </message>
+    <message>
+        <source>Server rejected STARTTLS</source>
+        <translation>Server odmítl STARTTLS</translation>
+    </message>
+    <message>
+        <source>TLS handshake error</source>
+        <translation>Chyba při potřesení rukou TLS</translation>
+    </message>
+    <message>
+        <source>Broken security layer (TLS)</source>
+        <translation>Poškozená bezpečnostní vrstva (TLS)</translation>
+    </message>
+    <message>
+        <source>Unable to login</source>
+        <translation>Nelze se přihlásit</translation>
+    </message>
+    <message>
+        <source>No appropriate mechanism available for given security settings(e.g. SASL library too weak, or plaintext authentication not enabled)</source>
+        <translation>Pro daná bezpečnostní nastavení není dostupný žádný vhodný mechanismus (např. knihovna SASL je příliš slabá, nebo ověření prostým textem není povoleno)</translation>
+    </message>
+    <message>
+        <source>Bad server response</source>
+        <translation>Špatná odpověď serveru</translation>
+    </message>
+    <message>
+        <source>Server failed mutual authentication</source>
+        <translation>Serveru se nepodařilo vzájemné ověření</translation>
+    </message>
+    <message>
+        <source>Encryption required for chosen SASL mechanism</source>
+        <translation>Pro vybraný mechanismus SASL je požadováno šifrování</translation>
+    </message>
+    <message>
+        <source>Invalid account information</source>
+        <translation>Neplatné informace o účtu</translation>
+    </message>
+    <message>
+        <source>Invalid SASL mechanism</source>
+        <translation>Neplatný mechanismus SASL</translation>
+    </message>
+    <message>
+        <source>Invalid realm</source>
+        <translation>Neplatný prostor</translation>
+    </message>
+    <message>
+        <source>SASL mechanism too weak for this account</source>
+        <translation>Mechanismus SASL je pro tento účet příliš slabý</translation>
+    </message>
+    <message>
+        <source>Not authorized</source>
+        <translation>Neoprávněno</translation>
+    </message>
+    <message>
+        <source>Temporary auth failure</source>
+        <translation>Dočasné selhání ověřování pravosti</translation>
+    </message>
+    <message>
+        <source>Authentication error: %1</source>
+        <translation>Chyba při ověřování pravosti: %1</translation>
+    </message>
+    <message>
+        <source>Broken security layer (SASL)</source>
+        <translation>Poškozená bezpečnostní vrstva (SASL)</translation>
+    </message>
+    <message>
+        <source>None</source>
+        <translation>Žádný</translation>
+    </message>
+    <message>
+        <source>General</source>
+        <translation>Obecné</translation>
+    </message>
+    <message>
+        <source>Advanced</source>
+        <translation>Pokročilé</translation>
+    </message>
+    <message>
+        <source>XMPP/Jabber</source>
+        <translation>XMPP/Jabber</translation>
+    </message>
+    <message>
+        <source>Port for data transfers</source>
+        <translation>Přípojka (port) pro přenosy dat</translation>
     </message>
 </context>
 <context>
@@ -497,20 +665,8 @@ Heslo zadané do obou polí (nové heslo a nové zadání hesla) se musí shodov
         <translation>Připojení</translation>
     </message>
     <message>
-        <source>Manually specify server host/port</source>
-        <translation>Stanovit hostitele/přípojku serveru ručně</translation>
-    </message>
-    <message>
-        <source>Host</source>
-        <translation>Hostitel</translation>
-    </message>
-    <message>
         <source>Port</source>
         <translation>Přípojka</translation>
-    </message>
-    <message>
-        <source>Encrypt connection</source>
-        <translation>Zašifrovat spojení</translation>
     </message>
     <message>
         <source>Never</source>
@@ -523,14 +679,6 @@ Heslo zadané do obou polí (nové heslo a nové zadání hesla) se musí shodov
     <message>
         <source>When available</source>
         <translation>Když je tato možnost dostupná</translation>
-    </message>
-    <message>
-        <source>Legacy SSL</source>
-        <translation>Legacy SSL</translation>
-    </message>
-    <message>
-        <source>Probe legacy SSL port</source>
-        <translation>Vyzkoušet přípojku legacy SSL</translation>
     </message>
     <message>
         <source>Allow plaintext authentication</source>
@@ -549,28 +697,12 @@ Heslo zadané do obou polí (nové heslo a nové zadání hesla) se musí shodov
         <translation>Zdroj</translation>
     </message>
     <message>
-        <source>Use hostname as a resource</source>
-        <translation>Použít jméno hostitelského počítače jako zdroj</translation>
-    </message>
-    <message>
         <source>Priority</source>
         <translation>Přednost</translation>
     </message>
     <message>
         <source>Data transfer proxy</source>
         <translation>Proxy přenosu dat</translation>
-    </message>
-    <message>
-        <source>Notifications</source>
-        <translation>Oznámení</translation>
-    </message>
-    <message>
-        <source>Send composing events</source>
-        <translation>Poslat složené události</translation>
-    </message>
-    <message>
-        <source>Send inactivity events (end/suspend conversation)</source>
-        <translation>Poslat události nečinnosti (ukončit/pozastavit rozhovor)</translation>
     </message>
     <message>
         <source>Kadu</source>
@@ -585,14 +717,6 @@ Heslo zadané do obou polí (nové heslo a nové zadání hesla) se musí shodov
         <translation>Legacy SSL je dostupné jen ve spojení s ručním hostitelem/přípojkou.</translation>
     </message>
     <message>
-        <source>Confirm account removal</source>
-        <translation>Potvrdit odstranění účtu</translation>
-    </message>
-    <message>
-        <source>Are you sure you want to remove account %1 (%2)?</source>
-        <translation>Jste si jistý, že chcete odstranit účet %1 (%2)?</translation>
-    </message>
-    <message>
         <source>Remove account</source>
         <translation>Odstranit účet</translation>
     </message>
@@ -601,12 +725,64 @@ Heslo zadané do obou polí (nové heslo a nové zadání hesla) se musí shodov
         <translation>Nastavení proxy</translation>
     </message>
     <message>
-        <source>Privacy</source>
-        <translation>Soukromí</translation>
-    </message>
-    <message>
         <source>Publish system information</source>
         <translation>veřejnit informace o systému</translation>
+    </message>
+    <message>
+        <source>XMPP Server</source>
+        <translation>Server XMPP</translation>
+    </message>
+    <message>
+        <source>Use custom server address/port</source>
+        <translation>Použít vlastní adresu/přípojku serveru</translation>
+    </message>
+    <message>
+        <source>Server address</source>
+        <translation>Adresa serveru</translation>
+    </message>
+    <message>
+        <source>Use encrypted connection</source>
+        <translation>Použít šifrované připojení</translation>
+    </message>
+    <message>
+        <source>Only in older version</source>
+        <translation>Jen ve starší verzi</translation>
+    </message>
+    <message>
+        <source>Network</source>
+        <translation>Síť</translation>
+    </message>
+    <message>
+        <source>Use computer name as a resource</source>
+        <translation>Použít jméno počítače jako zdroj</translation>
+    </message>
+    <message>
+        <source>Enable composing events</source>
+        <translation>Povolit složené události</translation>
+    </message>
+    <message>
+        <source>Your interlocutor will be notified when you are typing a message, before it is sent. And vice versa.</source>
+        <translation>Účastník vašeho hovoru bude upozorněn, když budete psát zprávu, předtím než bude poslána. A naopak.</translation>
+    </message>
+    <message>
+        <source>Enable chat activity events</source>
+        <translation>Povolit události činnosti rozhovoru</translation>
+    </message>
+    <message>
+        <source>Your interlocutor will be notified when you suspend or end conversation. And vice versa.</source>
+        <translation>Účastník vašeho hovoru bude upozorněn, když rozhovor pozastavíte nebo ukončíte. A naopak.</translation>
+    </message>
+    <message>
+        <source>Others can see your system name/version</source>
+        <translation>Ostatní mohou vidět název/verzi vašeho systému</translation>
+    </message>
+    <message>
+        <source>Confrim Account Removal</source>
+        <translation>Potvrdit odstranění účtu</translation>
+    </message>
+    <message>
+        <source>Are you sure do you want to remove account %1 (%2)?</source>
+        <translation>Opravdu chcete odstranit účet %1 (%2)?</translation>
     </message>
 </context>
 <context>
@@ -681,6 +857,10 @@ Nyní, prosím, přidejte své přátele do seznamu kamarádů.</translation>
     <message>
         <source>An error has occurred during registration. Please try again later.</source>
         <translation>Při přihlašování se vyskytla chyba. Zkuste to, prosím, znovu později.</translation>
+    </message>
+    <message>
+        <source>Registering new XMPP account</source>
+        <translation>Zaregistrování nového účtu XMPP</translation>
     </message>
 </context>
 <context>
@@ -957,192 +1137,38 @@ Opravte, prosím, a zkuste to znovu..</translation>
     </message>
 </context>
 <context>
-    <name>XMPP::JabberClient</name>
+    <name>XMPP::JabberConnectionService</name>
     <message>
-        <source>SSL support could not be initialized for account %1. This is most likely because the QCA TLS plugin is not installed on your system.</source>
-        <translation>Podporu SSL se nepodařilo spustit pro účet %1. Nejpravděpodobněji je to proto, že přídavný modul QCA TLS není nainstalován ve vašem systému.</translation>
+        <source>security problem</source>
+        <translation>Bezpečnostní problém</translation>
+    </message>
+    <message>
+        <source>TLS certificate not accepted</source>
+        <translation>Certifikát TLS nepřijat</translation>
+    </message>
+    <message>
+        <source>Unknown error</source>
+        <translation>Neznámá chyba</translation>
     </message>
     <message>
         <source>The server does not support TLS encryption.</source>
         <translation>Server nepodporuje šifrování TLS.</translation>
     </message>
     <message>
-        <source>There was an error communicating with the server.
+        <source>Connection error.
 Details: %1</source>
-        <translation>Během spojení se serverem se vyskytla chyba.
+        <translation>Chyba spojení.
 Podrobnosti: %1</translation>
     </message>
     <message>
-        <source>Disconnected</source>
-        <translation>Odpojeno</translation>
+        <source>Account disconnected.
+Details: %1</source>
+        <translation>Účet odpojen.
+Podrobnosti: %1</translation>
     </message>
     <message>
-        <source>XML Parsing Error</source>
-        <translation>Chyba při zpracování XML</translation>
-    </message>
-    <message>
-        <source>XMPP Protocol Error</source>
-        <translation>Chyba protokolu XMPP</translation>
-    </message>
-    <message>
-        <source>Generic stream error</source>
-        <translation>Chyba generického proudu</translation>
-    </message>
-    <message>
-        <source>Conflict(remote login replacing this one)</source>
-        <translation>Střet (vzdálené přihlášení nahrazující toto)</translation>
-    </message>
-    <message>
-        <source>Timed out from inactivity</source>
-        <translation>Vypršelo z důvodu nečinnosti</translation>
-    </message>
-    <message>
-        <source>Internal server error</source>
-        <translation>Vnitřní chyba serveru</translation>
-    </message>
-    <message>
-        <source>Invalid XML</source>
-        <translation>Neplatné XML</translation>
-    </message>
-    <message>
-        <source>Policy violation</source>
-        <translation>Porušení politiky</translation>
-    </message>
-    <message>
-        <source>Server out of resources</source>
-        <translation>Server beze zdrojů</translation>
-    </message>
-    <message>
-        <source>Server is shutting down</source>
-        <translation>Server se vypíná</translation>
-    </message>
-    <message>
-        <source>XMPP Stream Error: %1</source>
-        <translation>Chyba proudu XMPPr: %1</translation>
-    </message>
-    <message>
-        <source>Unable to connect to server</source>
-        <translation>Nepodařilo se navázat spojení se serverem</translation>
-    </message>
-    <message>
-        <source>Host not found</source>
-        <translation>Nepodařilo se najít server</translation>
-    </message>
-    <message>
-        <source>Error connecting to proxy</source>
-        <translation>Chyba při připojování se k proxy</translation>
-    </message>
-    <message>
-        <source>Error during proxy negotiation</source>
-        <translation>Chyba během vyjednávání proxy</translation>
-    </message>
-    <message>
-        <source>Proxy authentication failed</source>
-        <translation>Ověření proxy bylo neúspěšné</translation>
-    </message>
-    <message>
-        <source>Socket/stream error</source>
-        <translation>Chyba zásuvky/proudu</translation>
-    </message>
-    <message>
-        <source>Connection Error: %1</source>
-        <translation>Chyba spojení: %1</translation>
-    </message>
-    <message>
-        <source>Host no longer hosted</source>
-        <translation>Hostitel není více hostěn</translation>
-    </message>
-    <message>
-        <source>Host unknown</source>
-        <translation>Hostitel neznámý</translation>
-    </message>
-    <message>
-        <source>A required remote connection failed</source>
-        <translation>Požadované vzdálené spojení se nezdařilo</translation>
-    </message>
-    <message>
-        <source>See other host: %1</source>
-        <translation>Podívejte se na jiného hostitele: %1</translation>
-    </message>
-    <message>
-        <source>Server does not support proper XMPP version</source>
-        <translation>Server nepodporuje správnou verzi XMPP</translation>
-    </message>
-    <message>
-        <source>Stream Negotiation Error: %1</source>
-        <translation>Chyba při vyjednání proudu: %1</translation>
-    </message>
-    <message>
-        <source>Server rejected STARTTLS</source>
-        <translation>Server odmítl STARTTLS</translation>
-    </message>
-    <message>
-        <source>TLS handshake error</source>
-        <translation>Chyba při potřesení rukou TLS</translation>
-    </message>
-    <message>
-        <source>Broken security layer (TLS)</source>
-        <translation>Poškozená bezpečnostní vrstva (TLS)</translation>
-    </message>
-    <message>
-        <source>Unable to login</source>
-        <translation>Nelze se přihlásit</translation>
-    </message>
-    <message>
-        <source>No appropriate mechanism available for given security settings(e.g. SASL library too weak, or plaintext authentication not enabled)</source>
-        <translation>Pro daná bezpečnostní nastavení není dostupný žádný vhodný mechanismus (např. knihovna SASL je příliš slabá, nebo ověření prostým textem není povoleno)</translation>
-    </message>
-    <message>
-        <source>Bad server response</source>
-        <translation>Špatná odpověď serveru</translation>
-    </message>
-    <message>
-        <source>Server failed mutual authentication</source>
-        <translation>Serveru se nepodařilo vzájemné ověření</translation>
-    </message>
-    <message>
-        <source>Encryption required for chosen SASL mechanism</source>
-        <translation>Pro vybraný mechanismus SASL je požadováno šifrování</translation>
-    </message>
-    <message>
-        <source>Invalid account information</source>
-        <translation>Neplatné informace o účtu</translation>
-    </message>
-    <message>
-        <source>Invalid SASL mechanism</source>
-        <translation>Neplatný mechanismus SASL</translation>
-    </message>
-    <message>
-        <source>Invalid realm</source>
-        <translation>Neplatný prostor</translation>
-    </message>
-    <message>
-        <source>SASL mechanism too weak for this account</source>
-        <translation>Mechanismus SASL je pro tento účet příliš slabý</translation>
-    </message>
-    <message>
-        <source>Not authorized</source>
-        <translation>Neoprávněno</translation>
-    </message>
-    <message>
-        <source>Temporary auth failure</source>
-        <translation>Dočasné selhání ověřování pravosti</translation>
-    </message>
-    <message>
-        <source>Authentication error: %1</source>
-        <translation>Chyba při ověřování pravosti: %1</translation>
-    </message>
-    <message>
-        <source>Broken security layer (SASL)</source>
-        <translation>Poškozená bezpečnostní vrstva (SASL)</translation>
-    </message>
-    <message>
-        <source>None</source>
-        <translation>Žádná</translation>
-    </message>
-    <message>
-        <source>security problem</source>
-        <translation>Bezpečnostní problém</translation>
+        <source>SSL support could not be initialized for account %1. This is most likely because the QCA TLS plugin is not installed on your system.</source>
+        <translation>Podporu SSL se nepodařilo spustit pro účet %1. Nejpravděpodobněji je to proto, že přídavný modul QCA TLS není nainstalován ve vašem systému.</translation>
     </message>
 </context>
 <context>
@@ -1236,14 +1262,6 @@ Podrobnosti: %1</translation>
         <translation>Zasílatel musí poskytnout správné osobní údaje, dříve než mu bude umožněno provést činnost, nebo poskytl nesprávné osobní údaje.</translation>
     </message>
     <message>
-        <source>Payment required</source>
-        <translation>Platba požadována</translation>
-    </message>
-    <message>
-        <source>The requesting entity is not authorized to access the requested service because payment is required.</source>
-        <translation>Žádající bytí není oprávněno přistupovat k požadované službě, protože je požadována platba.</translation>
-    </message>
-    <message>
         <source>Recipient unavailable</source>
         <translation>Příjemce nedostupný</translation>
     </message>
@@ -1329,13 +1347,6 @@ Podrobnosti: %1</translation>
     <message>
         <source>Disconnected</source>
         <translation>Odpojeno</translation>
-    </message>
-</context>
-<context>
-    <name>XmlConsole</name>
-    <message>
-        <source>XML Console - %1</source>
-        <translation>Konzole XML - %1</translation>
     </message>
 </context>
 </TS>

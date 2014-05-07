@@ -1,7 +1,7 @@
 /*
  * %kadu copyright begin%
  * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2009, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
@@ -22,19 +22,48 @@
 #ifndef GADU_AVATAR_SERVICE_H
 #define GADU_AVATAR_SERVICE_H
 
-#include "contacts/contact.h"
 #include "protocols/services/avatar-service.h"
 
+/**
+ * @addtogroup Gadu
+ * @{
+ */
+
+/**
+ * @class GaduAvatarService
+ * @short Service for downloading and uploading avatars for Gadu-Gadu protocol.
+ * @see AvatarService
+ * @author Rafał 'Vogel' Malinowski
+ *
+ * See documentation of AvatarService to get general information about this service.
+ *
+ * GaduAvatarService does not require any protocol data or session as it uses HTTP communication channel instead
+ * of Gadu Gadu one. Downloading avatars is possible without any authorization. Uploading avatar is done with
+ * OAuth authorization on http://avatars.nowe.gg/upload webservice.
+ *
+ * Both AvatarDownloader and AvatarUploader instances are available at any time.
+ */
 class GaduAvatarService : public AvatarService
 {
 	Q_OBJECT
 
 public:
-	GaduAvatarService(Account account, QObject *parent) : AvatarService(account, parent) {}
+	/**
+	 * @short Create service instance.
+	 * @author Rafał 'Vogel' Malinowski
+	 * @param account account of service
+	 * @param parent QObject parent of service
+	 */
+	explicit GaduAvatarService(Account account, QObject *parent = 0);
+	virtual ~GaduAvatarService();
 
-	virtual void fetchAvatar(Contact contact);
-	virtual void uploadAvatar(QImage avatar);
+	virtual AvatarDownloader * createAvatarDownloader();
+	virtual AvatarUploader * createAvatarUploader();
 
 };
+
+/**
+ * @}
+ */
 
 #endif // GADU_AVATAR_SERVICE_H

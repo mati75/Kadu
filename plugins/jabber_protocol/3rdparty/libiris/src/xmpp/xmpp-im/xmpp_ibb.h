@@ -73,10 +73,9 @@ namespace XMPP
 		BytestreamManager* manager() const;
 
 		bool isOpen() const;
-		void write(const QByteArray &);
-		QByteArray read(int bytes=0);
-		int bytesAvailable() const;
-		int bytesToWrite() const;
+
+	protected:
+		qint64 writeData(const char *data, qint64 maxSize);
 
 	signals:
 		void connected();
@@ -89,7 +88,7 @@ namespace XMPP
 		class Private;
 		Private *d;
 
-		void reset(bool clear=false);
+		void resetConnection(bool clear=false);
 
 		friend class IBBManager;
 		void waitForAccept(const Jid &peer, const QString &iq_id,

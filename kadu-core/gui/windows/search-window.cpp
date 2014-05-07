@@ -1,12 +1,12 @@
 /*
  * %kadu copyright begin%
  * Copyright 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2010 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2009, 2010, 2011 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2010 Piotr Dąbrowski (ultr@ultr.pl)
  * Copyright 2009 Michał Podsiadlik (michal@kadu.net)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
- * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2009, 2010, 2011, 2012, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -41,23 +41,23 @@
 #include "buddies/buddy-manager.h"
 #include "buddies/buddy-preferred-manager.h"
 #include "chat/chat-manager.h"
-#include "chat/type/chat-type-contact.h"
 #include "chat/type/chat-type-contact-set.h"
+#include "chat/type/chat-type-contact.h"
+#include "configuration/config-file-variant-wrapper.h"
 #include "configuration/configuration-file.h"
 #include "contacts/contact-manager.h"
 #include "contacts/contact-set.h"
 #include "contacts/contact.h"
 #include "core/core.h"
 #include "gui/actions/base-action-context.h"
-#include "gui/widgets/chat-widget-manager.h"
-#include "gui/widgets/chat-widget.h"
+#include "gui/widgets/chat-widget/chat-widget-manager.h"
 #include "gui/widgets/toolbar.h"
 #include "gui/windows/add-buddy-window.h"
 #include "gui/windows/kadu-window.h"
 #include "gui/windows/message-dialog.h"
 #include "gui/windows/search-window-actions.h"
 #include "icons/kadu-icon.h"
-#include "misc/misc.h"
+#include "os/generic/window-geometry-manager.h"
 #include "protocols/protocol-factory.h"
 #include "protocols/protocol.h"
 #include "protocols/services/search-service.h"
@@ -141,12 +141,11 @@ SearchWindow::SearchWindow(QWidget *parent, Buddy buddy) :
 	if (UinEdit->text().isEmpty())
 		personalDataTyped();
 
-	loadWindowGeometry(this, "General", "SearchWindowGeometry", 0, 50, 800, 350);
+	new WindowGeometryManager(new ConfigFileVariantWrapper("General", "SearchWindowGeometry"), QRect(0, 50, 800, 350), this);
 }
 
 SearchWindow::~SearchWindow()
 {
-	saveWindowGeometry(this, "General", "SearchWindowGeometry");
 }
 
 void SearchWindow::createGui()
@@ -338,9 +337,7 @@ void SearchWindow::chatFound()
 		const Chat &chat = 1 == contacts.size()
 				? ChatTypeContact::findChat(*contacts.constBegin(), ActionCreateAndAdd)
 				: ChatTypeContactSet::findChat(contacts, ActionCreateAndAdd);
-		ChatWidget * const chatWidget = ChatWidgetManager::instance()->byChat(chat, true);
-		if (chatWidget)
-			chatWidget->activate();
+		Core::instance()->chatWidgetManager()->openChat(chat, OpenChatActivation::Activate);
 	}
 }
 
@@ -606,3 +603,5 @@ void SearchWindow::setActionEnabled(ActionDescription *actionDescription, bool e
 	if (action)
 		action->setEnabled(enable);
 }
+
+#include "moc_search-window.cpp"

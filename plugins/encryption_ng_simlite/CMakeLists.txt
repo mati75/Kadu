@@ -1,20 +1,22 @@
 project (encryption_ng_simlite)
 
-# minimal required versions
 cmake_minimum_required (VERSION 2.8)
-set (QT_MIN_VERSION "4.7.0")
-set (CMAKE_MIN_VERSION "2.6.0")
 
-set (KADU_FIND_REQUIRED true)
-include (FindKadu)
+# Needed for FindQCA2.cmake when building externally
+list (INSERT CMAKE_MODULE_PATH 0 "${CMAKE_CURRENT_SOURCE_DIR}/../../cmake/Modules")
 
-include (FindPkgConfig)
+find_package (Kadu REQUIRED CONFIG)
 
 set (SOURCES
+	actions/simlite-send-public-key-action-description.cpp
+
+	configuration/encryption-ng-simlite-configuration.cpp
+
 	encryption-ng-simlite-decryptor.cpp
 	encryption-ng-simlite-encryptor.cpp
 	encryption-ng-simlite-key-generator.cpp
 	encryption-ng-simlite-key-importer.cpp
+	encryption-ng-simlite-message-filter.cpp
 	encryption-ng-simlite-plugin.cpp
 	encryption-ng-simlite-provider.cpp
 
@@ -22,44 +24,32 @@ set (SOURCES
 )
 
 set (MOC_SOURCES
+	actions/simlite-send-public-key-action-description.h
+
 	encryption-ng-simlite-decryptor.h
 	encryption-ng-simlite-encryptor.h
 	encryption-ng-simlite-key-importer.h
+	encryption-ng-simlite-message-filter.h
 	encryption-ng-simlite-plugin.h
 	encryption-ng-simlite-provider.h
 )
 
 set (CONFIGURATION_FILES
+	data/configuration/encryption-ng-simlite.ui
 )
 
-if (WIN32)
-	if (NOT WIN_QCA_DIR)
-		message (SEND_ERROR "Pass path to libqca2 -DWIN_QCA_DIR=path")
-	else (NOT WIN_QCA_DIR)
-		set (QCA2_INCLUDE_DIRS ${WIN_QCA_DIR}/include/QtCrypto)
-		set (QCA2_LIBRARIES optimized qca2 debug qcad2)
-
-		if (MSVC)
-			set (QCA2_LIBRARY_DIRS ${WIN_QCA_DIR}/lib)
-		else (MSVC)
-			set (QCA2_LIBRARY_DIRS ${WIN_QCA_DIR}/bin)
-		endif (MSVC)
-	endif (NOT WIN_QCA_DIR)
-else (WIN32)
-	pkg_search_module (QCA2 REQUIRED qca2)
-endif (WIN32)
+find_package (QCA2 REQUIRED)
 
 if (APPLE)
 	if (QCA_FRAMEWORK_DIR)
-		set (QCA2_INCLUDE_DIRS ${QCA_FRAMEWORK_DIR}/qca.framework/Headers/)
-		set (QCA2_LIBRARY_DIRS ${QCA_FRAMEWORK_DIR}/qca.framework/)
+		set (QCA2_INCLUDE_DIR ${QCA_FRAMEWORK_DIR}/qca.framework/Headers/)
 		set (QCA2_LIBRARIES "-framework qca")
-	endif (QCA_FRAMEWORK_DIR)
-endif (APPLE)
+		link_directories (${QCA_FRAMEWORK_DIR}/qca.framework/)
+	endif ()
+endif ()
 
-link_directories (${QCA2_LIBRARY_DIRS})
-add_definitions (${QCA2_CFLAGS_OTHER})
-include_directories (${QCA2_INCLUDE_DIRS})
+add_definitions (${QCA2_DEFINITIONS})
+include_directories (${QCA2_INCLUDE_DIR})
 
 kadu_plugin (encryption_ng_simlite
 	PLUGIN_SOURCES ${SOURCES}

@@ -3,6 +3,7 @@
  * Copyright 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -111,7 +112,7 @@ int GaduTokenSocketNotifiers::timeout()
 {
 	return H
 		? H->timeout * 1000
-		: 0;
+		: -1;
 }
 
 bool GaduTokenSocketNotifiers::handleSoftTimeout()
@@ -123,3 +124,5 @@ void GaduTokenSocketNotifiers::connectionTimeout()
 {
 	finished(QString(), QPixmap());
 }
+
+#include "moc_gadu-token-socket-notifiers.cpp"

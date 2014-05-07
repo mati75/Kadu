@@ -2,7 +2,7 @@
  * %kadu copyright begin%
  * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2010 Tomasz Rostański (rozteck@interia.pl)
- * Copyright 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
@@ -25,12 +25,17 @@
 
 #include <QtCore/QList>
 #include <QtCore/QMap>
+#include <QtCore/QScopedPointer>
 
 #include "exports.h"
-#include "html_document.h"
 
+class QDomDocument;
+
+class MailUrlDomVisitorProvider;
 class MailUrlHandler;
+class StandardUrlDomVisitorProvider;
 class StandardUrlHandler;
+class UrlClipboardHtmlTransformer;
 class UrlHandler;
 
 class KADUAPI UrlHandlerManager
@@ -43,8 +48,16 @@ class KADUAPI UrlHandlerManager
 	QMap<QString, UrlHandler *> RegisteredHandlers;
 	QList<UrlHandler *> RegisteredHandlersByPriority;
 
-	MailUrlHandler *mailUrlHandler;
+	StandardUrlDomVisitorProvider *StandardUrlVisitorProvider;
+	MailUrlDomVisitorProvider *MailUrlVisitorProvider;
+
 	StandardUrlHandler *standardUrlHandler;
+	MailUrlHandler *mailUrlHandler;
+
+	QScopedPointer<UrlClipboardHtmlTransformer> ClipboardTransformer;
+
+	void registerUrlClipboardTransformer();
+	void unregisterUrlClipboardTransformer();
 
 public:
 	static UrlHandlerManager * instance();
@@ -52,8 +65,6 @@ public:
 
 	void registerUrlHandler(const QString &name, UrlHandler *handler);
 	void unregisterUrlHandler(const QString &name);
-
-	void convertAllUrls(HtmlDocument &document, bool generateOnlyHrefAttr);
 
 	void openUrl(const QByteArray &url, bool disableMenu = false);
 

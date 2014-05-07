@@ -1,15 +1,16 @@
 #ifndef AMAROK_H
 #define AMAROK_H
 
-#include "plugins/generic-plugin.h"
+#include "plugin/plugin-root-component.h"
 
 #include "plugins/mediaplayer/player_commands.h"
 #include "plugins/mediaplayer/player_info.h"
 
-class AmarokMediaPlayer : public PlayerCommands, PlayerInfo, GenericPlugin
+class AmarokMediaPlayer : public PlayerCommands, PlayerInfo, PluginRootComponent
 {
 	Q_OBJECT
-	Q_INTERFACES(GenericPlugin)
+	Q_INTERFACES(PluginRootComponent)
+	Q_PLUGIN_METADATA(IID "im.kadu.PluginRootComponent")
 
 	QString getString(const QString &obj, const QString &func);
 	QStringList getStringList(const QString &obj, const QString &func);
@@ -23,7 +24,7 @@ public:
 	explicit AmarokMediaPlayer(QObject *parent = 0);
 	virtual ~AmarokMediaPlayer();
 
-	virtual int init(bool firstLoad);
+	virtual bool init(bool firstLoad);
 	virtual void done();
 
 	// PlayerInfo implementation

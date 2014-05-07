@@ -2,7 +2,7 @@
  * %kadu copyright begin%
  * Copyright 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2010, 2011, 2012 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -32,7 +32,7 @@ class TalkableDelegateConfiguration;
 class TalkablePainter
 {
 	const TalkableDelegateConfiguration &Configuration;
-	QStyleOptionViewItemV4 Option;
+	const QStyleOptionViewItemV4 &Option;
 	const QModelIndex &Index;
 	const QTreeView *Widget;
 	const QStyle *Style;
@@ -94,12 +94,12 @@ class TalkablePainter
 	void paintName(QPainter *painter);
 	void paintDescription(QPainter *painter);
 
-#ifdef Q_WS_WIN
+#ifdef Q_OS_WIN32
 	static bool useColorsWorkaround();
 #endif
 
 public:
-	TalkablePainter(const TalkableDelegateConfiguration &configuration, QStyleOptionViewItemV4 option, const QModelIndex &index);
+	TalkablePainter(const TalkableDelegateConfiguration &configuration, const QStyleOptionViewItemV4 &option, const QModelIndex &index);
 	~TalkablePainter();
 
 	QPixmap avatar() const;

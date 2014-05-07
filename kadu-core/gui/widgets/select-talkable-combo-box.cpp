@@ -2,8 +2,8 @@
  * %kadu copyright begin%
  * Copyright 2008, 2009, 2010, 2011, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
- * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2007, 2008, 2009, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
@@ -41,7 +41,7 @@ SelectTalkableComboBox::SelectTalkableComboBox(QWidget *parent) :
 	Chain->addProxyModel(ProxyModel);
 	setUpModel(TalkableRole, Chain);
 
-	Popup = new SelectTalkablePopup();
+	Popup = new SelectTalkablePopup(this);
 
 	HideAnonymousFilter = new HideAnonymousTalkableFilter(ProxyModel);
 	addFilter(HideAnonymousFilter);
@@ -51,8 +51,6 @@ SelectTalkableComboBox::SelectTalkableComboBox(QWidget *parent) :
 
 SelectTalkableComboBox::~SelectTalkableComboBox()
 {
-	delete Popup;
-	Popup = 0;
 }
 
 void SelectTalkableComboBox::setBaseModel(QAbstractItemModel *model)
@@ -81,8 +79,8 @@ Talkable SelectTalkableComboBox::currentTalkable() const
 
 void SelectTalkableComboBox::showPopup()
 {
-	QRect geom(mapToGlobal(rect().bottomLeft()), QSize(geometry().width(), Popup->height()));
-	setWindowGeometry(Popup, geom);
+	QRect geom(mapToGlobal(rect().bottomLeft()), QSize(geometry().width(), Popup->sizeHint().height()));
+	Popup->setGeometry(properGeometry(geom));
 
 	Popup->show(currentTalkable());
 }
@@ -103,3 +101,5 @@ void SelectTalkableComboBox::removeFilter(TalkableFilter *filter)
 	ProxyModel->removeFilter(filter);
 	Popup->removeFilter(filter);
 }
+
+#include "moc_select-talkable-combo-box.cpp"

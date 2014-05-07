@@ -3,6 +3,7 @@
  * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
  * Copyright 2007, 2008, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
@@ -20,19 +21,15 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _DOCKING_EXPORTS_H
+#ifndef DOCKING_EXPORTS_H
+#define DOCKING_EXPORTS_H
 
-#include "exports.h"
+#include <QtCore/QtGlobal>
 
-#ifdef KADULIB
-#define DOCKINGAPI KADU_EXPORT
+#ifdef docking_EXPORTS
+#define DOCKINGAPI Q_DECL_EXPORT
 #else
-#ifdef DOCKING_BUILD
-#define DOCKINGAPI KADU_EXPORT
-#else
-#define DOCKINGAPI KADU_IMPORT
-#endif // DOCKINGAPI
-#endif // KADULIB
-
-#define _DOCKING_EXPORTS_H
+#define DOCKINGAPI Q_DECL_IMPORT
 #endif
+
+#endif // DOCKING_EXPORTS_H

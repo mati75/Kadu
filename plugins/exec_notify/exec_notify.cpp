@@ -1,12 +1,12 @@
 /*
  * %kadu copyright begin%
  * Copyright 2008, 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2009, 2012 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2008 Tomasz Rostański (rozteck@interia.pl)
  * Copyright 2011 Piotr Dąbrowski (ultr@ultr.pl)
  * Copyright 2008 Michał Podsiadlik (michal@kadu.net)
- * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2007, 2008, 2009, 2010, 2011, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -43,10 +43,10 @@
 
 #include "misc/misc.h"
 
-#include "notify/account-notification.h"
-#include "notify/chat-notification.h"
 #include "notify/notification-manager.h"
-#include "notify/notification.h"
+#include "notify/notification/account-notification.h"
+#include "notify/notification/chat-notification.h"
+#include "notify/notification/notification.h"
 
 #include "icons/icons-manager.h"
 #include "parser/parser.h"
@@ -58,7 +58,7 @@ ExecConfigurationWidget::ExecConfigurationWidget(QWidget *parent)
 	: NotifierConfigurationWidget(parent)
 {
 	commandLineEdit = new QLineEdit(this);
-	commandLineEdit->setToolTip(qApp->translate("@default", MainConfigurationWindow::SyntaxTextNotify));
+	commandLineEdit->setToolTip(QCoreApplication::translate("@default", MainConfigurationWindow::SyntaxTextNotify));
 
 	QHBoxLayout *layout = new QHBoxLayout(this);
 	layout->addWidget(commandLineEdit);
@@ -137,7 +137,7 @@ QStringList mySplit(const QChar &sep, const QString &str)
 	kdebugf();
 	QStringList strlist;
 	QString token;
-	unsigned int idx = 0, strlength = str.length();
+	int idx = 0, strlength = str.length();
 	bool inString = false;
 
 	int pos1, pos2;
@@ -234,16 +234,16 @@ void ExecNotify::notify(Notification *notification)
 
 		QStringList sendersList;
 		foreach (const Contact &contact, contacts)
-			sendersList.append(contact.id());
+			sendersList.append(Parser::escape(contact.id()));
 		QString sendersString = sendersList.join(",");
 
 		Contact contact = *contacts.constBegin();
 		foreach (QString it, s)
-			result.append(Parser::parse(it.replace("%ids", sendersString), Talkable(contact), notification));
+			result.append(Parser::parse(it.replace("%ids", sendersString), Talkable(contact), notification, ParserEscape::HtmlEscape));
 	}
 	else
 		foreach (const QString &it, s)
-			result.append(Parser::parse(it, notification));
+			result.append(Parser::parse(it, notification, ParserEscape::HtmlEscape));
 
 	run(result);
 }
@@ -264,3 +264,5 @@ NotifierConfigurationWidget *ExecNotify::createConfigurationWidget(QWidget *pare
 {
 	return new ExecConfigurationWidget(parent);
 }
+
+#include "moc_exec_notify.cpp"

@@ -1,7 +1,7 @@
 /*
  * %kadu copyright begin%
  * Copyright 2008, 2009, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2007, 2008, 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2007, 2008, 2009, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2007, 2008 Dawid Stawiarski (neeo@kadu.net)
  * %kadu copyright end%
@@ -29,7 +29,6 @@
 class QComboBox;
 class QPushButton;
 
-class SyntaxEditorWindow;
 class SyntaxList;
 
 class SyntaxEditor : public QWidget
@@ -38,7 +37,6 @@ class SyntaxEditor : public QWidget
 
 	QSharedPointer<SyntaxList> syntaxList;
 	QComboBox *syntaxListCombo;
-	QPushButton *deleteButton;
 
 	QString category;
 	QString syntaxHint;
@@ -46,9 +44,6 @@ class SyntaxEditor : public QWidget
 	void updateSyntaxList();
 
 private slots:
-	void editClicked();
-	void deleteClicked();
-
 	void syntaxChangedSlot(const QString &newSyntax);
 	void syntaxListUpdated();
 
@@ -66,7 +61,6 @@ public slots:
 
 signals:
 	void syntaxChanged(const QString &newSyntax);
-	void onSyntaxEditorWindowCreated(SyntaxEditorWindow *syntaxEditorWindow);
 
 };
 

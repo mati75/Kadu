@@ -3,11 +3,12 @@
  * Copyright 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009, 2009, 2010 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2010 Piotr Pełzowski (floss@pelzowski.eu)
+ * Copyright 2012 Piotr Dąbrowski (ultr@ultr.pl)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
  * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
  * Copyright 2010 badboy (badboy@gen2.org)
- * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2007, 2008, 2009, 2010, 2011, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
@@ -27,13 +28,13 @@
 
 #include <QtGui/QPushButton>
 
-#include "gui/widgets/gadu-add-account-widget.h"
-#include "gui/widgets/gadu-contact-personal-info-widget.h"
-#include "gui/widgets/gadu-create-account-widget.h"
-#include "gui/widgets/gadu-edit-account-widget.h"
+#include "core/core.h"
 #include "icons/kadu-icon.h"
 #include "status/status-type.h"
 
+#include "gui/widgets/gadu-add-account-widget.h"
+#include "gui/widgets/gadu-contact-personal-info-widget.h"
+#include "gui/widgets/gadu-edit-account-widget.h"
 #include "gadu-account-details.h"
 #include "gadu-contact-details.h"
 #include "gadu-id-validator.h"
@@ -58,7 +59,7 @@ void GaduProtocolFactory::destroyInstance()
 
 GaduProtocolFactory::GaduProtocolFactory()
 {
-	MyStatusAdapter = new GaduStatusAdapter();
+	MyStatusAdapter = make_unique<GaduStatusAdapter>();
 
 	// already sorted
 	SupportedStatusTypes.append(StatusTypeFreeForChat);
@@ -91,16 +92,14 @@ AccountAddWidget * GaduProtocolFactory::newAddAccountWidget(bool showButtons, QW
 	return result;
 }
 
-AccountCreateWidget * GaduProtocolFactory::newCreateAccountWidget(bool showButtons, QWidget *parent)
+AccountCreateWidget * GaduProtocolFactory::newCreateAccountWidget(bool, QWidget *)
 {
-	GaduCreateAccountWidget *result = new GaduCreateAccountWidget(showButtons, parent);
-	connect(this, SIGNAL(destroyed()), result, SLOT(deleteLater()));
-	return result;
+	return nullptr;
 }
 
 AccountEditWidget * GaduProtocolFactory::newEditAccountWidget(Account account, QWidget *parent)
 {
-	GaduEditAccountWidget *result = new GaduEditAccountWidget(account, parent);
+	GaduEditAccountWidget *result = new GaduEditAccountWidget(Core::instance()->accountConfigurationWidgetFactoryRepository(), account, parent);
 	connect(this, SIGNAL(destroyed()), result, SLOT(deleteLater()));
 	return result;
 }
@@ -121,6 +120,11 @@ QValidator::State GaduProtocolFactory::validateId(QString id)
 	return GaduIdValidator::instance()->validate(id, pos);
 }
 
+bool GaduProtocolFactory::canRegister()
+{
+	return false;
+}
+
 QWidget * GaduProtocolFactory::newContactPersonalInfoWidget(Contact contact, QWidget *parent)
 {
 	return new GaduContactPersonalInfoWidget(contact, parent);
@@ -130,3 +134,5 @@ KaduIcon GaduProtocolFactory::icon()
 {
 	return KaduIcon("protocols/gadu-gadu/gadu-gadu");
 }
+
+#include "moc_gadu-protocol-factory.cpp"

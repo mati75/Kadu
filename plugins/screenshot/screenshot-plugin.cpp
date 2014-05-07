@@ -3,7 +3,7 @@
  * Copyright 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
  * Copyright 2007, 2008, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2011, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
@@ -37,7 +37,7 @@ ScreenshotPlugin::~ScreenshotPlugin()
 {
 }
 
-int ScreenshotPlugin::init(bool firstLoad)
+bool ScreenshotPlugin::init(bool firstLoad)
 {
 	Q_UNUSED(firstLoad)
 
@@ -48,7 +48,7 @@ int ScreenshotPlugin::init(bool firstLoad)
 	ScreenShotConfigurationUiHandler::registerConfigurationUi();
 	ScreenshotNotification::registerNotifications();
 
-	return 0;
+	return true;
 }
 
 void ScreenshotPlugin::done()
@@ -62,3 +62,5 @@ void ScreenshotPlugin::done()
 }
 
 Q_EXPORT_PLUGIN2(screenshot, ScreenshotPlugin)
+
+#include "moc_screenshot-plugin.cpp"

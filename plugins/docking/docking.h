@@ -2,8 +2,9 @@
  * %kadu copyright begin%
  * Copyright 2010, 2011 Tomasz Rostanski (rozteck@interia.pl)
  * Copyright 2008, 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2009, 2012 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2010 Tomasz Rostański (rozteck@interia.pl)
+ * Copyright 2012 Piotr Dąbrowski (ultr@ultr.pl)
  * Copyright 2004, 2008 Michał Podsiadlik (michal@kadu.net)
  * Copyright 2002, 2003, 2004 Adrian Smarzewski (adrian@kadu.net)
  * Copyright 2005 Paweł Płuciennik (pawel_p@kadu.net)
@@ -36,6 +37,7 @@
 
 #include "configuration/configuration-aware-object.h"
 #include "status/status-container-aware-object.h"
+#include "status/status-type.h"
 
 #include "docking_exports.h"
 
@@ -48,6 +50,9 @@ class StatusContainer;
 class StatusIcon;
 class StatusMenu;
 
+typedef QPair<QString,QList<StatusType> > StatusPair;
+typedef QPair<QStringList,QString> DescriptionPair;
+
 class DOCKINGAPI DockingManager : public QObject, ConfigurationAwareObject, StatusContainerAwareObject
 {
 	Q_OBJECT
@@ -57,7 +62,7 @@ class DOCKINGAPI DockingManager : public QObject, ConfigurationAwareObject, Stat
 
 	Docker *CurrentDocker;
 
-#ifdef Q_WS_X11
+#if defined(Q_OS_UNIX) && !defined(Q_OS_MAC)
 	bool KaduWindowLastTimeVisible;
 #endif
 	bool DockMenuNeedsUpdate;
@@ -68,10 +73,11 @@ class DOCKINGAPI DockingManager : public QObject, ConfigurationAwareObject, Stat
 
 	StatusMenu *AllAccountsMenu;
 
-#ifdef Q_WS_X11
+#if defined(Q_OS_UNIX) && !defined(Q_OS_MAC)
 	QAction *ShowKaduAction;
 	QAction *HideKaduAction;
 #endif
+	QAction *SilentModeAction;
 	QAction *CloseKaduAction;
 	QAction *containersSeparator;
 
@@ -84,6 +90,10 @@ class DOCKINGAPI DockingManager : public QObject, ConfigurationAwareObject, Stat
 	enum IconType {BlinkingEnvelope = 0, StaticEnvelope = 1, AnimatedEnvelope = 2} newMessageIcon;
 	QTimer *icon_timer;
 	bool blink;
+
+	QList<StatusPair> getStatuses() const;
+	QList<DescriptionPair> getDescriptions() const;
+	QString prepareDescription(const QString &description) const;
 	void defaultToolTip();
 
 	void createDefaultConfiguration();
@@ -104,11 +114,12 @@ private slots:
 
 	void showKaduWindow();
 	void hideKaduWindow();
+	void silentModeToggled(bool enabled);
 
 	void contextMenuAboutToBeShown();
 	void updateContextMenu();
 
-	void containerStatusChanged();
+	void containerStatusChanged(StatusContainer *container);
 
 protected:
 	virtual void configurationUpdated();

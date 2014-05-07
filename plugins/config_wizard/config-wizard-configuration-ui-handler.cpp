@@ -1,9 +1,9 @@
 /*
  * %kadu copyright begin%
  * Copyright 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2010 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2010, 2012 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -23,10 +23,9 @@
 #include <QtGui/QAction>
 
 #include "configuration/configuration-file.h"
-#include "core/core.h"
 #include "gui/actions/action-description.h"
+#include "gui/menu/menu-inventory.h"
 #include "gui/widgets/configuration/configuration-widget.h"
-#include "gui/windows/kadu-window.h"
 #include "misc/kadu-paths.h"
 #include "activate.h"
 #include "debug.h"
@@ -62,14 +61,20 @@ ConfigWizardConfigurationUiHandler::ConfigWizardConfigurationUiHandler()
 {
 	ShowConfigWizardActionDescription = new ActionDescription(this, ActionDescription::TypeMainMenu,
 			"showConfigWizard", this, SLOT(showConfigWizardSlot()), KaduIcon(),
-			tr("Start Configuration Wizard..."));
+			tr("Start Configuration Wizard"));
 
-	Core::instance()->kaduWindow()->insertMenuActionDescription(ShowConfigWizardActionDescription, KaduWindow::MenuTools, 0);
+	MenuInventory::instance()
+		->menu("tools")
+		->addAction(ShowConfigWizardActionDescription, KaduMenu::SectionTools)
+		->update();
 }
 
 ConfigWizardConfigurationUiHandler::~ConfigWizardConfigurationUiHandler()
 {
-	Core::instance()->kaduWindow()->removeMenuActionDescription(ShowConfigWizardActionDescription);
+	MenuInventory::instance()
+		->menu("tools")
+		->removeAction(ShowConfigWizardActionDescription)
+		->update();
 
 	delete Wizard.data();
 }
@@ -92,3 +97,5 @@ void ConfigWizardConfigurationUiHandler::showConfigWizardSlot()
 {
 	showConfigWizard();
 }
+
+#include "moc_config-wizard-configuration-ui-handler.cpp"

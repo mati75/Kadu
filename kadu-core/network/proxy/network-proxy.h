@@ -1,5 +1,6 @@
 /*
  * %kadu copyright begin%
+ * Copyright 2011 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
@@ -30,13 +31,13 @@ class KADUAPI NetworkProxy : public SharedBase<NetworkProxyShared>
 
 public:
 	static NetworkProxy create();
-	static NetworkProxy loadStubFromStorage(const QSharedPointer<StoragePoint> &storage);
-	static NetworkProxy loadFromStorage(const QSharedPointer<StoragePoint> &storage);
+	static NetworkProxy loadStubFromStorage(const std::shared_ptr<StoragePoint> &storage);
+	static NetworkProxy loadFromStorage(const std::shared_ptr<StoragePoint> &storage);
 	static NetworkProxy null;
 
 	NetworkProxy();
 	NetworkProxy(NetworkProxyShared *data);
-	NetworkProxy(QObject *data);
+	explicit NetworkProxy(QObject *data);
 	NetworkProxy(const NetworkProxy &copy);
 
 	virtual ~NetworkProxy();

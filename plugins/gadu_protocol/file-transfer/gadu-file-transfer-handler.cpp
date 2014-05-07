@@ -1,8 +1,8 @@
 /*
  * %kadu copyright begin%
  * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2009, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -23,6 +23,7 @@
 #include "dcc/dcc-socket-notifiers.h"
 #include "helpers/gadu-protocol-helper.h"
 #include "misc/change-notifier.h"
+#include "misc/change-notifier-lock.h"
 #include "gadu-contact-details.h"
 #include "gadu-protocol.h"
 
@@ -45,8 +46,7 @@ GaduFileTransferHandler::~GaduFileTransferHandler()
 
 void GaduFileTransferHandler::updateFileInfo()
 {
-	if (transfer())
-		transfer().changeNotifier()->block();
+	ChangeNotifierLock lock(transfer().changeNotifier());
 
 	if (SocketNotifiers)
 	{
@@ -58,9 +58,6 @@ void GaduFileTransferHandler::updateFileInfo()
 		transfer().setFileSize(0);
 		transfer().setTransferredSize(0);
 	}
-
-	if (transfer())
-		transfer().changeNotifier()->unblock();
 }
 
 void GaduFileTransferHandler::setFileTransferNotifiers(DccSocketNotifiers *socketNotifiers)
@@ -104,7 +101,7 @@ void GaduFileTransferHandler::finished(bool ok)
 
 void GaduFileTransferHandler::socketNotifiersDeleted()
 {
-	// TODO: shouldn't socketNotAvailable() be called here? (btw, if not, we can use QWeakPointer for SocketNotifiers)
+	// TODO: shouldn't socketNotAvailable() be called here? (btw, if not, we can use QPointer for SocketNotifiers)
 	SocketNotifiers = 0;
 }
 
@@ -140,7 +137,7 @@ void GaduFileTransferHandler::send()
 	WaitingForSocketNotifiers = true;
 
 	if (gaduProtocol->fileTransferService())
-		dynamic_cast<GaduFileTransferService *>(gaduProtocol->fileTransferService())->attachSendFileTransferSocket(this);
+		static_cast<GaduFileTransferService *>(gaduProtocol->fileTransferService())->attachSendFileTransferSocket(this);
 }
 
 void GaduFileTransferHandler::stop()
@@ -168,3 +165,5 @@ void GaduFileTransferHandler::reject()
 
 	deleteLater();
 }
+
+#include "moc_gadu-file-transfer-handler.cpp"

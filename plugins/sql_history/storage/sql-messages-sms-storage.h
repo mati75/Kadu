@@ -1,6 +1,7 @@
 /*
  * %kadu copyright begin%
  * Copyright 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2012 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -34,9 +35,9 @@ public:
 	explicit SqlMessagesSmsStorage(HistorySqlStorage *sqlStorage);
 	virtual ~SqlMessagesSmsStorage();
 
-	virtual QFuture<QVector<Talkable> > talkables();
-	virtual QFuture<QVector<HistoryQueryResult> > dates(const HistoryQuery &historyQuery);
-	virtual QFuture<QVector<Message> > messages(const HistoryQuery &historyQuery);
+	virtual QFuture<QVector<Talkable>> talkables();
+	virtual QFuture<QVector<HistoryQueryResult>> dates(const HistoryQuery &historyQuery);
+	virtual QFuture<SortedMessages> messages(const HistoryQuery &historyQuery);
 
 	virtual void deleteMessages(const Talkable &talkable, const QDate &date = QDate());
 

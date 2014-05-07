@@ -1,11 +1,11 @@
 /*
  * %kadu copyright begin%
  * Copyright 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2012 Piotr Dąbrowski (ultr@ultr.pl)
  * Copyright 2009 Michał Podsiadlik (michal@kadu.net)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
- * Copyright 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2012 Piotr Dąbrowski (ultr@ultr.pl)
+ * Copyright 2008, 2009, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2012 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -33,7 +33,7 @@
 #include <errno.h>
 
 #include "core/core.h"
-#include "misc/misc.h"
+#include "misc/kadu-paths.h"
 #include "debug.h"
 #include "kadu-config.h"
 
@@ -42,6 +42,14 @@
 XmlConfigFile::XmlConfigFile() : DomDocument()
 {
 	read();
+}
+
+bool XmlConfigFile::isUsable() const
+{
+	const QString &profilePath = KaduPaths::instance()->profilePath();
+	return !profilePath.isEmpty() &&
+			QDir(profilePath).isReadable() &&
+			QFile(profilePath + QLatin1String("kadu-0.12.conf.xml")).open(QIODevice::ReadWrite);
 }
 
 void XmlConfigFile::read()
@@ -151,11 +159,6 @@ void XmlConfigFile::write(const QString& f)
 void XmlConfigFile::sync()
 {
 	write();
-}
-
-void XmlConfigFile::saveTo(const QString &f)
-{
-	write(f);
 }
 
 void XmlConfigFile::makeBackup()

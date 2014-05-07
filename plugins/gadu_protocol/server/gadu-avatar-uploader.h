@@ -4,7 +4,7 @@
  * Copyright 2008 Michał Podsiadlik (michal@kadu.net)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
  * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
- * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2007, 2008, 2009, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
@@ -28,21 +28,34 @@
 
 #include <QtGui/QImage>
 
-#include "accounts/account.h"
-
 #include "oauth/oauth-token.h"
+#include "protocols/services/avatar-uploader.h"
 
 class QNetworkAccessManager;
 class QNetworkReply;
 
-class GaduAvatarUploader : public QObject
+/**
+ * @addtogroup Gadu
+ * @{
+ */
+
+/**
+ * @class GaduAvatarUploader
+ * @short Class for uploading avatar for Gadu Gadu protocol.
+ * @see AvatarUploader
+ * @author Rafał 'Vogel' Malinowski
+ *
+ * Uploading avatar in Gadu Gadu protocol is done by sending seriees of HTTP requests that are authenticated with
+ * OAuth protocol. User id and password are required to do this operation.
+ */
+class GaduAvatarUploader : public AvatarUploader
 {
 	Q_OBJECT
 
+	QString Id;
 	QNetworkAccessManager *NetworkAccessManager;
 	QNetworkReply *Reply;
 
-	Account MyAccount;
 	QImage Avatar;
 
 private slots:
@@ -50,14 +63,20 @@ private slots:
 	void transferFinished();
 
 public:
-	GaduAvatarUploader(Account account, QObject *parent);
+	/**
+	 * @short Create new GaduAvatarUploader instance.
+	 * @author Rafał 'Vogel' Malinowski
+	 * @param parent QObject parent
+	 */
+	explicit GaduAvatarUploader(QObject *parent = 0);
 	virtual ~GaduAvatarUploader();
 
-	void uploadAvatar(QImage avatar);
-
-signals:
-	void avatarUploaded(bool ok, QImage image);
+	virtual void uploadAvatar(const QString &id, const QString &password, QImage avatar);
 
 };
+
+/**
+ * @}
+ */
 
 #endif // GADU_AVATAR_UPLOADER_H

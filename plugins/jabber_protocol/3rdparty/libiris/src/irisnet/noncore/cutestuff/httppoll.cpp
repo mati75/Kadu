@@ -69,7 +69,7 @@ public:
 	QString host;
 	int port;
 	QString user, pass;
-	QString url;
+	QUrl url;
 	bool use_proxy;
 
 	QByteArray out;
@@ -99,17 +99,22 @@ HttpPoll::HttpPoll(QObject *parent)
 	connect(&d->http, SIGNAL(result()), SLOT(http_result()));
 	connect(&d->http, SIGNAL(error(int)), SLOT(http_error(int)));
 
-	reset(true);
+	resetConnection(true);
 }
 
 HttpPoll::~HttpPoll()
 {
-	reset(true);
+	resetConnection(true);
 	delete d->t;
 	delete d;
 }
 
-void HttpPoll::reset(bool clear)
+QAbstractSocket* HttpPoll::abstractSocket() const
+{
+	return d->http.abstractSocket();
+}
+
+void HttpPoll::resetConnection(bool clear)
 {
 	if(d->http.isActive())
 		d->http.stop();
@@ -128,15 +133,17 @@ void HttpPoll::setAuth(const QString &user, const QString &pass)
 	d->pass = pass;
 }
 
-void HttpPoll::connectToUrl(const QString &url)
+void HttpPoll::connectToUrl(const QUrl &url)
 {
 	connectToHost("", 0, url);
 }
 
-void HttpPoll::connectToHost(const QString &proxyHost, int proxyPort, const QString &url)
+void HttpPoll::connectToHost(const QString &proxyHost, int proxyPort, const QUrl &url)
 {
-	reset(true);
+	resetConnection(true);
 
+	bool useSsl = false;
+	d->port = 80;
 	// using proxy?
 	if(!proxyHost.isEmpty()) {
 		d->host = proxyHost;
@@ -145,13 +152,18 @@ void HttpPoll::connectToHost(const QString &proxyHost, int proxyPort, const QStr
 		d->use_proxy = true;
 	}
 	else {
-		QUrl u = url;
-		d->host = u.host();
-		if(u.port() != -1)
-			d->port = u.port();
-		else
-			d->port = 80;
-		d->url = u.path() + "?" + u.encodedQuery();
+		d->host = url.host();
+		if(url.port() != -1)
+			d->port = url.port();
+		else if (url.scheme() == "https") {
+			d->port = 443;
+			useSsl = true;
+		}
+#if QT_VERSION < 0x050000
+		d->url = url.path() + "?" + url.encodedQuery();
+#else
+		d->url.setUrl(url.path() + "?" + url.query(QUrl::FullyEncoded), QUrl::StrictMode);
+#endif
 		d->use_proxy = false;
 	}
 
@@ -172,6 +184,7 @@ void HttpPoll::connectToHost(const QString &proxyHost, int proxyPort, const QStr
 		return;
 
 	d->state = 1;
+	d->http.setUseSsl(useSsl);
 	d->http.setAuth(d->user, d->pass);
 	d->http.post(d->host, d->port, d->url, makePacket("0", key, "", QByteArray()), d->use_proxy);
 }
@@ -219,7 +232,7 @@ void HttpPoll::close()
 		return;
 
 	if(bytesToWrite() == 0)
-		reset();
+		resetConnection();
 	else
 		d->closing = true;
 }
@@ -237,8 +250,8 @@ void HttpPoll::http_result()
 	QString cookie = d->http.getHeader("Set-Cookie");
 	int n = cookie.indexOf("ID=");
 	if(n == -1) {
-		reset();
-		error(ErrRead);
+		resetConnection();
+		setError(ErrRead);
 		return;
 	}
 	n += 3;
@@ -252,13 +265,13 @@ void HttpPoll::http_result()
 	// session error?
 	if(id.right(2) == ":0") {
 		if(id == "0:0" && d->state == 2) {
-			reset();
+			resetConnection();
 			connectionClosed();
 			return;
 		}
 		else {
-			reset();
-			error(ErrRead);
+			resetConnection();
+			setError(ErrRead);
 			return;
 		}
 	}
@@ -304,7 +317,7 @@ void HttpPoll::http_result()
 	}
 	else {
 		if(d->closing) {
-			reset();
+			resetConnection();
 			delayedCloseFinished();
 			return;
 		}
@@ -313,19 +326,19 @@ void HttpPoll::http_result()
 
 void HttpPoll::http_error(int x)
 {
-	reset();
+	resetConnection();
 	if(x == HttpProxyPost::ErrConnectionRefused)
-		error(ErrConnectionRefused);
+		setError(ErrConnectionRefused);
 	else if(x == HttpProxyPost::ErrHostNotFound)
-		error(ErrHostNotFound);
+		setError(ErrHostNotFound);
 	else if(x == HttpProxyPost::ErrSocket)
-		error(ErrRead);
+		setError(ErrRead);
 	else if(x == HttpProxyPost::ErrProxyConnect)
-		error(ErrProxyConnect);
+		setError(ErrProxyConnect);
 	else if(x == HttpProxyPost::ErrProxyNeg)
-		error(ErrProxyNeg);
+		setError(ErrProxyNeg);
 	else if(x == HttpProxyPost::ErrProxyAuth)
-		error(ErrProxyAuth);
+		setError(ErrProxyAuth);
 }
 
 int HttpPoll::tryWrite()
@@ -434,18 +447,27 @@ class HttpProxyPost::Private
 {
 public:
 	Private(HttpProxyPost *_q) :
-		sock(_q)
+		sock(_q),
+		tls(0)
 	{
 	}
 
+	~Private()
+	{
+		delete tls;
+	}
+
 	BSocket sock;
+	QHostAddress lastAddress;
 	QByteArray postdata, recvBuf, body;
-	QString url;
+	QUrl url;
 	QString user, pass;
 	bool inHeader;
 	QStringList headerLines;
 	bool asProxy;
+	bool useSsl;
 	QString host;
+	QCA::TLS *tls;
 };
 
 HttpProxyPost::HttpProxyPost(QObject *parent)
@@ -456,16 +478,26 @@ HttpProxyPost::HttpProxyPost(QObject *parent)
 	connect(&d->sock, SIGNAL(connectionClosed()), SLOT(sock_connectionClosed()));
 	connect(&d->sock, SIGNAL(readyRead()), SLOT(sock_readyRead()));
 	connect(&d->sock, SIGNAL(error(int)), SLOT(sock_error(int)));
-	reset(true);
+	resetConnection(true);
 }
 
 HttpProxyPost::~HttpProxyPost()
 {
-	reset(true);
+	resetConnection(true);
 	delete d;
 }
 
-void HttpProxyPost::reset(bool clear)
+void HttpProxyPost::setUseSsl(bool state)
+{
+	d->useSsl = state;
+}
+
+QAbstractSocket* HttpProxyPost::abstractSocket() const
+{
+	return d->sock.abstractSocket();
+}
+
+void HttpProxyPost::resetConnection(bool clear)
 {
 	if(d->sock.state() != BSocket::Idle)
 		d->sock.close();
@@ -485,9 +517,9 @@ bool HttpProxyPost::isActive() const
 	return (d->sock.state() == BSocket::Idle ? false: true);
 }
 
-void HttpProxyPost::post(const QString &proxyHost, int proxyPort, const QString &url, const QByteArray &data, bool asProxy)
+void HttpProxyPost::post(const QString &proxyHost, int proxyPort, const QUrl &url, const QByteArray &data, bool asProxy)
 {
-	reset(true);
+	resetConnection(true);
 
 	d->host = proxyHost;
 	d->url = url;
@@ -501,12 +533,18 @@ void HttpProxyPost::post(const QString &proxyHost, int proxyPort, const QString 
 	else
 		fprintf(stderr, ", auth {%s,%s}\n", d->user.latin1(), d->pass.latin1());
 #endif
-	d->sock.connectToHost(proxyHost, proxyPort);
+	if (d->sock.state() != QAbstractSocket::ConnectingState) { // in case of http/1.1 it may be connected
+		if (d->lastAddress.isNull()) {
+			d->sock.connectToHost(proxyHost, proxyPort);
+		} else {
+			d->sock.connectToHost(d->lastAddress, proxyPort);
+		}
+	}
 }
 
 void HttpProxyPost::stop()
 {
-	reset();
+	resetConnection();
 }
 
 QByteArray HttpProxyPost::body() const
@@ -516,8 +554,7 @@ QByteArray HttpProxyPost::body() const
 
 QString HttpProxyPost::getHeader(const QString &var) const
 {
-	for(QStringList::ConstIterator it = d->headerLines.begin(); it != d->headerLines.end(); ++it) {
-		const QString &s = *it;
+	foreach (const QString &s, d->headerLines) {
 		int n = s.indexOf(": ");
 		if(n == -1)
 			continue;
@@ -533,47 +570,93 @@ void HttpProxyPost::sock_connected()
 #ifdef PROX_DEBUG
 	fprintf(stderr, "HttpProxyPost: Connected\n");
 #endif
+	if(d->useSsl) {
+		d->tls = new QCA::TLS(this);
+		connect(d->tls, SIGNAL(readyRead()), SLOT(tls_readyRead()));
+		connect(d->tls, SIGNAL(readyReadOutgoing()), SLOT(tls_readyReadOutgoing()));
+		connect(d->tls, SIGNAL(error()), SLOT(tls_error()));
+		d->tls->startClient();
+	}
+
+	d->lastAddress = d->sock.peerAddress();
 	d->inHeader = true;
 	d->headerLines.clear();
 
 	QUrl u = d->url;
 
 	// connected, now send the request
-	QString s;
-	s += QString("POST ") + d->url + " HTTP/1.0\r\n";
+	QByteArray s;
+	s += QByteArray("POST ") + d->url.toEncoded() + " HTTP/1.1\r\n";
 	if(d->asProxy) {
 		if(!d->user.isEmpty()) {
-			QString str = d->user + ':' + d->pass;
-			s += QString("Proxy-Authorization: Basic ") + QCA::Base64().encodeString(str) + "\r\n";
+			QByteArray str = d->user.toUtf8() + ':' + d->pass.toUtf8();
+			s += QByteArray("Proxy-Authorization: Basic ") + str.toBase64() + "\r\n";
 		}
 		s += "Pragma: no-cache\r\n";
-		s += QString("Host: ") + u.host() + "\r\n";
+		s += QByteArray("Host: ") + u.host().toUtf8() + "\r\n";
 	}
 	else {
-		s += QString("Host: ") + d->host + "\r\n";
+		s += QByteArray("Host: ") + d->host.toUtf8() + "\r\n";
 	}
 	s += "Content-Type: application/x-www-form-urlencoded\r\n";
-	s += QString("Content-Length: ") + QString::number(d->postdata.size()) + "\r\n";
+	s += QByteArray("Content-Length: ") + QByteArray::number(d->postdata.size()) + "\r\n";
 	s += "\r\n";
 
-	// write request
-	d->sock.write(s.toUtf8());
+	if(d->useSsl) {
+		// write request
+		d->tls->write(s);
 
-	// write postdata
-	d->sock.write(d->postdata);
+		// write postdata
+		d->tls->write(d->postdata);
+	} else {
+		// write request
+		d->sock.write(s);
+
+		// write postdata
+		d->sock.write(d->postdata);
+	}
 }
 
 void HttpProxyPost::sock_connectionClosed()
 {
 	d->body = d->recvBuf;
-	reset();
+	resetConnection();
 	result();
+}
+
+void HttpProxyPost::tls_readyRead()
+{
+	//printf("tls_readyRead\n");
+	processData(d->tls->read());
+}
+
+void HttpProxyPost::tls_readyReadOutgoing()
+{
+	//printf("tls_readyReadOutgoing\n");
+	d->sock.write(d->tls->readOutgoing());
+}
+
+void HttpProxyPost::tls_error()
+{
+#ifdef PROX_DEBUG
+	fprintf(stderr, "HttpProxyGetStream: ssl error: %d\n", d->tls->errorCode());
+#endif
+	resetConnection(true);
+	error(ErrConnectionRefused); // FIXME: bogus error
 }
 
 void HttpProxyPost::sock_readyRead()
 {
-	QByteArray block = d->sock.read();
-	ByteStream::appendArray(&d->recvBuf, block);
+	QByteArray block = d->sock.readAll();
+	if(d->useSsl)
+		d->tls->writeIncoming(block);
+	else
+		processData(block);
+}
+
+void HttpProxyPost::processData(const QByteArray &block)
+{
+	d->recvBuf += block;
 
 	if(d->inHeader) {
 		// grab available lines
@@ -601,15 +684,15 @@ void HttpProxyPost::sock_readyRead()
 #ifdef PROX_DEBUG
 				fprintf(stderr, "HttpProxyPost: invalid header!\n");
 #endif
-				reset(true);
+				resetConnection(true);
 				error(ErrProxyNeg);
 				return;
 			}
 			else {
 #ifdef PROX_DEBUG
 				fprintf(stderr, "HttpProxyPost: header proto=[%s] code=[%d] msg=[%s]\n", proto.latin1(), code, msg.latin1());
-				for(QStringList::ConstIterator it = d->headerLines.begin(); it != d->headerLines.end(); ++it)
-					fprintf(stderr, "HttpProxyPost: * [%s]\n", (*it).latin1());
+				foreach (const QString &s, d->headerLines)
+					fprintf(stderr, "HttpProxyPost: * [%s]\n", qPrintable(s));
 #endif
 			}
 
@@ -645,7 +728,7 @@ void HttpProxyPost::sock_readyRead()
 #ifdef PROX_DEBUG
 				fprintf(stderr, "HttpProxyPost: << Error >> [%s]\n", errStr.latin1());
 #endif
-				reset(true);
+				resetConnection(true);
 				error(err);
 				return;
 			}
@@ -658,7 +741,7 @@ void HttpProxyPost::sock_error(int x)
 #ifdef PROX_DEBUG
 	fprintf(stderr, "HttpProxyPost: socket error: %d\n", x);
 #endif
-	reset(true);
+	resetConnection(true);
 	if(x == BSocket::ErrHostNotFound)
 		error(ErrProxyConnect);
 	else if(x == BSocket::ErrConnectionRefused)
@@ -701,16 +784,16 @@ HttpProxyGetStream::HttpProxyGetStream(QObject *parent)
 	connect(&d->sock, SIGNAL(connectionClosed()), SLOT(sock_connectionClosed()));
 	connect(&d->sock, SIGNAL(readyRead()), SLOT(sock_readyRead()));
 	connect(&d->sock, SIGNAL(error(int)), SLOT(sock_error(int)));
-	reset(true);
+	resetConnection(true);
 }
 
 HttpProxyGetStream::~HttpProxyGetStream()
 {
-	reset(true);
+	resetConnection(true);
 	delete d;
 }
 
-void HttpProxyGetStream::reset(bool /*clear*/)
+void HttpProxyGetStream::resetConnection(bool /*clear*/)
 {
 	if(d->tls) {
 		delete d->tls;
@@ -737,7 +820,7 @@ bool HttpProxyGetStream::isActive() const
 
 void HttpProxyGetStream::get(const QString &proxyHost, int proxyPort, const QString &url, bool ssl, bool asProxy)
 {
-	reset(true);
+	resetConnection(true);
 
 	d->host = proxyHost;
 	d->url = url;
@@ -756,13 +839,12 @@ void HttpProxyGetStream::get(const QString &proxyHost, int proxyPort, const QStr
 
 void HttpProxyGetStream::stop()
 {
-	reset();
+	resetConnection();
 }
 
 QString HttpProxyGetStream::getHeader(const QString &var) const
 {
-	for(QStringList::ConstIterator it = d->headerLines.begin(); it != d->headerLines.end(); ++it) {
-		const QString &s = *it;
+	foreach (const QString &s, d->headerLines) {
 		int n = s.indexOf(": ");
 		if(n == -1)
 			continue;
@@ -822,13 +904,13 @@ void HttpProxyGetStream::sock_connected()
 void HttpProxyGetStream::sock_connectionClosed()
 {
 	//d->body = d->recvBuf;
-	reset();
+	resetConnection();
 	emit finished();
 }
 
 void HttpProxyGetStream::sock_readyRead()
 {
-	QByteArray block = d->sock.read();
+	QByteArray block = d->sock.readAll();
 
 	if(d->use_ssl)
 		d->tls->writeIncoming(block);
@@ -844,7 +926,7 @@ void HttpProxyGetStream::processData(const QByteArray &block)
 		return;
 	}
 
-	ByteStream::appendArray(&d->recvBuf, block);
+	d->recvBuf += block;
 
 	if(d->inHeader) {
 		// grab available lines
@@ -874,15 +956,15 @@ void HttpProxyGetStream::processData(const QByteArray &block)
 #ifdef PROX_DEBUG
 				fprintf(stderr, "HttpProxyGetStream: invalid header!\n");
 #endif
-				reset(true);
+				resetConnection(true);
 				error(ErrProxyNeg);
 				return;
 			}
 			else {
 #ifdef PROX_DEBUG
 				fprintf(stderr, "HttpProxyGetStream: header proto=[%s] code=[%d] msg=[%s]\n", proto.latin1(), code, msg.latin1());
-				for(QStringList::ConstIterator it = d->headerLines.begin(); it != d->headerLines.end(); ++it)
-					fprintf(stderr, "HttpProxyGetStream: * [%s]\n", (*it).latin1());
+				foreach (const QString &s, d->headerLines)
+					fprintf(stderr, "HttpProxyGetStream: * [%s]\n", qPrintable(s));
 #endif
 			}
 
@@ -928,7 +1010,7 @@ void HttpProxyGetStream::processData(const QByteArray &block)
 #ifdef PROX_DEBUG
 				fprintf(stderr, "HttpProxyGetStream: << Error >> [%s]\n", errStr.latin1());
 #endif
-				reset(true);
+				resetConnection(true);
 				error(err);
 				return;
 			}
@@ -947,7 +1029,7 @@ void HttpProxyGetStream::sock_error(int x)
 #ifdef PROX_DEBUG
 	fprintf(stderr, "HttpProxyGetStream: socket error: %d\n", x);
 #endif
-	reset(true);
+	resetConnection(true);
 	if(x == BSocket::ErrHostNotFound)
 		error(ErrProxyConnect);
 	else if(x == BSocket::ErrConnectionRefused)
@@ -973,7 +1055,7 @@ void HttpProxyGetStream::tls_error()
 #ifdef PROX_DEBUG
 	fprintf(stderr, "HttpProxyGetStream: ssl error: %d\n", d->tls->errorCode());
 #endif
-	reset(true);
+	resetConnection(true);
 	error(ErrConnectionRefused); // FIXME: bogus error
 }
 

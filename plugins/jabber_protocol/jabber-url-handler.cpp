@@ -2,8 +2,8 @@
  * %kadu copyright begin%
  * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2010 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2011, 2012, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -22,7 +22,6 @@
 
 #include <QtGui/QCursor>
 #include <QtGui/QMenu>
-#include <QtGui/QTextDocument>
 
 #include "accounts/account-manager.h"
 #include "accounts/account.h"
@@ -31,11 +30,15 @@
 #include "contacts/contact-manager.h"
 #include "contacts/contact-set.h"
 #include "contacts/contact.h"
-#include "gui/widgets/chat-widget-manager.h"
-#include "gui/widgets/chat-widget.h"
+#include "core/core.h"
+#include "dom/dom-processor-service.h"
+#include "dom/dom-processor.h"
+#include "dom/ignore-links-dom-visitor.h"
+#include "gui/widgets/chat-widget/chat-widget-manager.h"
 #include "icons/kadu-icon.h"
 #include "misc/misc.h"
 #include "status/status-container.h"
+#include "url-handlers/simple-url-expander.h"
 
 #include "jabber-url-handler.h"
 
@@ -57,34 +60,16 @@ JabberUrlHandler::JabberUrlHandler()
 	// Reparse pair with: "&([^=]+)=([^&]+)"
 }
 
+JabberUrlHandler::~JabberUrlHandler()
+{
+}
+
 bool JabberUrlHandler::isUrlValid(const QByteArray &url)
 {
 	if (url == "xmpp:")
 		return false;
 
 	return JabberRegExp.exactMatch(QString::fromUtf8(url));
-}
-
-void JabberUrlHandler::convertUrlsToHtml(HtmlDocument &document, bool generateOnlyHrefAttr)
-{
-	Q_UNUSED(generateOnlyHrefAttr)
-
-	for (int i = 0; i < document.countElements(); ++i)
-	{
-		if (document.isTagElement(i))
-			continue;
-
-		QString text = document.elementText(i);
-		int index = JabberRegExp.indexIn(text);
-		if (index < 0)
-			continue;
-
-		unsigned int length = JabberRegExp.matchedLength();
-		QString jid = Qt::escape(text.mid(index, length));
-
-		document.splitElement(i, index, length);
-		document.setElementValue(i, "<a href=\"" + jid + "\">" + jid + "</a>", true);
-	}
 }
 
 void JabberUrlHandler::openUrl(const QByteArray &url, bool disableMenu)
@@ -106,9 +91,7 @@ void JabberUrlHandler::openUrl(const QByteArray &url, bool disableMenu)
 		const Chat &chat = ChatTypeContact::findChat(contact, ActionCreateAndAdd);
 		if (chat)
 		{
-			ChatWidget * const chatWidget = ChatWidgetManager::instance()->byChat(chat, true);
-			if (chatWidget)
-				chatWidget->activate();
+			Core::instance()->chatWidgetManager()->openChat(chat, OpenChatActivation::Activate);
 			return;
 		}
 	}
@@ -145,7 +128,7 @@ void JabberUrlHandler::accountSelected(QAction *action)
 
 	const Contact &contact = ContactManager::instance()->byId(account, ids[1], ActionCreateAndAdd);
 	const Chat &chat = ChatTypeContact::findChat(contact, ActionCreateAndAdd);
-	ChatWidget * const chatWidget = ChatWidgetManager::instance()->byChat(chat, true);
-	if (chatWidget)
-		chatWidget->activate();
+	Core::instance()->chatWidgetManager()->openChat(chat, OpenChatActivation::Activate);
 }
+
+#include "moc_jabber-url-handler.cpp"

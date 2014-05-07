@@ -1,14 +1,7 @@
-BEGIN {
-	# declare array
-	split("", include_group)
-}
-
-/\#include/ {
-	include_group[length(include_group)] = $0
-}
-
-!/\#include/ {
-	if (length(include_group) > 0) {
+function printSortedIncluded(include_group)
+{
+	if (length(include_group) > 0)
+	{
 		# new arrays
 		split("", current_dir_include_group)
 		split("", other_dir_include_group)
@@ -30,6 +23,24 @@ BEGIN {
 
 	# clear array
 	split("", include_group)
+}
+
+BEGIN {
+	# declare array
+	split("", include_group)
+	done = 0
+}
+
+/\#include/ {
+	include_group[length(include_group)] = $0
+}
+
+!/\#include/ {
+	printSortedIncluded(include_group)
 
 	print $0
+}
+
+END {
+	printSortedIncluded(include_group)
 }

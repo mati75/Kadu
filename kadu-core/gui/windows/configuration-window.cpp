@@ -5,8 +5,8 @@
  * Copyright 2010, 2010, 2011 Piotr Dąbrowski (ultr@ultr.pl)
  * Copyright 2009 Maciej Płaza (plaza.maciej@gmail.com)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
- * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2009, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -32,6 +32,7 @@
 #include <QtGui/QWidget>
 #include <QtXml/QDomElement>
 
+#include "configuration/config-file-variant-wrapper.h"
 #include "configuration/configuration-manager.h"
 #include "core/core.h"
 #include "gui/widgets/configuration/config-action-button.h"
@@ -57,8 +58,8 @@
 #include "gui/widgets/configuration/configuration-widget.h"
 #include "gui/windows/configuration-window.h"
 #include "gui/windows/kadu-window.h"
+#include "os/generic/window-geometry-manager.h"
 
-#include "misc/misc.h"
 #include "activate.h"
 
 ConfigurationWindow::ConfigurationWindow(const QString &name, const QString &caption, const QString &section, ConfigurationWindowDataManager *dataManager)
@@ -91,12 +92,11 @@ ConfigurationWindow::ConfigurationWindow(const QString &name, const QString &cap
 	main_layout->addSpacing(16);
 	main_layout->addWidget(buttons_layout);
 
-	loadWindowGeometry(this, section, name + "_Geometry", 0, 50, 790, 580);
+	new WindowGeometryManager(new ConfigFileVariantWrapper(section, name + "_Geometry"), QRect(0, 50, 790, 580), this);
 }
 
 ConfigurationWindow::~ConfigurationWindow()
 {
-	saveWindowGeometry(this, this->section(), this->name() + "_Geometry");
 }
 
 void ConfigurationWindow::show()
@@ -142,3 +142,5 @@ void ConfigurationWindow::keyPressEvent(QKeyEvent *e)
 	else
 		QDialog::keyPressEvent(e);
 }
+
+#include "moc_configuration-window.cpp"

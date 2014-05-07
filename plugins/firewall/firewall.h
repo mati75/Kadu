@@ -3,7 +3,7 @@
  * Copyright 2008, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2008 Tomasz Rostański (rozteck@interia.pl)
- * Copyright 2008, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2008, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
@@ -26,6 +26,7 @@
 
 #include <QtCore/QDateTime>
 #include <QtCore/QObject>
+#include <QtCore/QPointer>
 #include <QtCore/QRegExp>
 
 #include "chat/chat.h"
@@ -33,12 +34,17 @@
 
 #include "accounts/accounts-aware-object.h"
 #include "configuration/configuration-aware-object.h"
+#include "message/message-filter.h"
 
 class Account;
 class ChatWidget;
 class Contact;
+class FormattedStringFactory;
+class IncomingMessageFirewallFilter;
+class Message;
+class OutgoingMessageFirewallFilter;
 
-class Firewall : public QObject, ConfigurationAwareObject, AccountsAwareObject
+class Firewall : public MessageFilter, ConfigurationAwareObject, AccountsAwareObject
 {
 	Q_OBJECT
 
@@ -46,6 +52,8 @@ class Firewall : public QObject, ConfigurationAwareObject, AccountsAwareObject
 
 	explicit Firewall();
 	virtual ~Firewall();
+
+	QPointer<FormattedStringFactory> CurrentFormattedStringFactory;
 
 	BuddySet SecuredTemporaryAllowed;
 	ContactSet Passed;
@@ -86,9 +94,6 @@ class Firewall : public QObject, ConfigurationAwareObject, AccountsAwareObject
 	void createDefaultConfiguration();
 
 private slots:
-	void filterIncomingMessage(Chat chat, Contact sender, QString &message, bool &ignore);
-	void filterOutgoingMessage(Chat chat, QString &msg, bool &stop);
-
 	void accountConnected();
 
 	void chatDestroyed(ChatWidget *);
@@ -103,6 +108,14 @@ public:
 	static void destroyInstance();
 
 	static Firewall * instance() { return Instance; }
+
+	void setFormattedStringFactory(FormattedStringFactory *formattedStringFactory);
+
+	virtual bool acceptMessage(const Message& message);
+
+	bool acceptIncomingMessage(const Message &message);
+	bool acceptOutgoingMessage(const Message &message);
+
 };
 
 #endif // KADU_FIREWALL_H

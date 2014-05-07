@@ -2,10 +2,6 @@
 <context>
     <name>@default</name>
     <message>
-        <source>Notify</source>
-        <translation>Notifier</translation>
-    </message>
-    <message>
         <source>Notification</source>
         <translation>Notification</translation>
     </message>
@@ -48,6 +44,10 @@
     <message>
         <source>No Icon</source>
         <translation>Aucune icône</translation>
+    </message>
+    <message>
+        <source>Notifications</source>
+        <translation type="unfinished"/>
     </message>
 </context>
 <context>

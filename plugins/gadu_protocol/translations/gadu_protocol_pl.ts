@@ -53,30 +53,6 @@
         <source>Disconnection has occurred</source>
         <translation>Nastąpiło rozłączenie</translation>
     </message>
-    <message>
-        <source>IMAGE SENT BY THIS BUDDY HAS BEEN BLOCKED</source>
-        <translation>OBRAZEK WYSŁANY PRZEZ ZNAJOMEGO ZOSTAŁ ZABLOKOWANY</translation>
-    </message>
-    <message>
-        <source>Buddy %1 is attempting to send you an image of %2 KiB in size.
-This exceeds your configured limits.
-Do you want to accept this image anyway?</source>
-        <translation>Znajomy %1 chce wysłać ci obrazek o rozmiarze %2 KiB.
-To więcej niż limit ustawiony w konfiguracji
-Czy chcesz mimo to odebrać ten obrazek?</translation>
-    </message>
-    <message>
-        <source>Kadu</source>
-        <translation>Kadu</translation>
-    </message>
-    <message>
-        <source>Incoming Image</source>
-        <translation>Przychodzący obrazek</translation>
-    </message>
-    <message>
-        <source>THIS BUDDY HAS SENT YOU AN IMAGE THAT IS TOO BIG TO BE RECEIVED</source>
-        <translation>ZNAJOMY WYSŁAŁ CI OBRAZEK, KTÓRY JEST ZBYT DUŻY BY GO ODEBRAĆ</translation>
-    </message>
 </context>
 <context>
     <name>GaduAddAccountWidget</name>
@@ -109,75 +85,27 @@ Czy chcesz mimo to odebrać ten obrazek?</translation>
         <translation>Anuluj</translation>
     </message>
     <message>
-        <source>Forgot Your Password?</source>
-        <translation>Zapomniałeś hasła?</translation>
+        <source>Register Account</source>
+        <translation>Zarejestruj konto</translation>
+    </message>
+    <message>
+        <source>Remind GG number</source>
+        <translation>Przypomij numer GG</translation>
+    </message>
+    <message>
+        <source>Remind Password</source>
+        <translation>Przypomnij hasło</translation>
     </message>
 </context>
 <context>
-    <name>GaduChangePasswordWindow</name>
+    <name>GaduChatImageService</name>
     <message>
-        <source>Change Password</source>
-        <translation>Zmień hasło</translation>
+        <source>This image has %1 KiB and exceeds recommended maximum size of %2 KiB. Some clients may have trouble with too large images.</source>
+        <translation>Ten obrazek ma %1 KiB i jest większy niż maksymalny dopuszczalny rozmiar %2 KiB. Niektóre klienty mogą niepoprawnie obsługiwać zbyt duże obrazki.</translation>
     </message>
     <message>
-        <source>E-Mail Address</source>
-        <translation>Adres e-mail</translation>
-    </message>
-    <message>
-        <source>&lt;font size=&apos;-1&apos;&gt;&lt;i&gt;Type E-Mail Address used during registration.&lt;/i&gt;&lt;/font&gt;</source>
-        <translation>&lt;font size=&apos;-1&apos;&gt;&lt;i&gt;Podaj adres e-mail Address użyty podczas rejestracji konta.&lt;/i&gt;&lt;/font&gt;</translation>
-    </message>
-    <message>
-        <source>Old Password</source>
-        <translation>Stare hasło</translation>
-    </message>
-    <message>
-        <source>&lt;font size=&apos;-1&apos;&gt;&lt;i&gt;Enter current password for your Gadu-Gadu account.&lt;/i&gt;&lt;/font&gt;</source>
-        <translation>&lt;font size=&apos;-1&apos;&gt;&lt;i&gt;Wprowadź stare hasło.&lt;/i&gt;&lt;/font&gt;</translation>
-    </message>
-    <message>
-        <source>New Password</source>
-        <translation>Nowe hasło</translation>
-    </message>
-    <message>
-        <source>&lt;font size=&apos;-1&apos;&gt;&lt;i&gt;Enter new password for your Gadu-Gadu account.&lt;/i&gt;&lt;/font&gt;</source>
-        <translation>&lt;font size=&apos;-1&apos;&gt;&lt;i&gt;Wprowadź nowe hasło.&lt;/i&gt;&lt;/font&gt;</translation>
-    </message>
-    <message>
-        <source>Retype New Password</source>
-        <translation>Powtórz nowe hasło</translation>
-    </message>
-    <message>
-        <source>Characters</source>
-        <translation>Weryfikacja</translation>
-    </message>
-    <message>
-        <source>&lt;font size=&apos;-1&apos;&gt;&lt;i&gt;For verification purposes, please type the characters above.&lt;/i&gt;&lt;/font&gt;</source>
-        <translation>&lt;font size=&apos;-1&apos;&gt;&lt;i&gt;Wprowadź tekst widoczny na obrazku.&lt;/i&gt;&lt;/font&gt;</translation>
-    </message>
-    <message>
-        <source>Cancel</source>
-        <translation>Anuluj</translation>
-    </message>
-    <message>
-        <source>Kadu</source>
-        <translation>Kadu</translation>
-    </message>
-    <message>
-        <source>Changing password was successful.</source>
-        <translation>Hasło zostało pomyślnie zmienione.</translation>
-    </message>
-    <message>
-        <source>An error has occurred. Please try again later.</source>
-        <translation>Wystąpił błąd. Proszę spróbować później.</translation>
-    </message>
-    <message>
-        <source>Error data typed in required fields.
-
-Passwords typed in both fields (&quot;Password&quot; and &quot;Retype Password&quot;) must be the same!</source>
-        <translation>Błędne dane w wymaganych polach.
-
-Hasło wpisane w polach (&quot;Hasło&quot; i &quot;Powtórz hasło&quot;) muszą być takie same!</translation>
+        <source>Do you really want to send this image?</source>
+        <translation>Czy na pewno chcesz wysłać ten obrazek?</translation>
     </message>
 </context>
 <context>
@@ -187,7 +115,7 @@ Hasło wpisane w polach (&quot;Hasło&quot; i &quot;Powtórz hasło&quot;) musz�
         <translation>Kadu</translation>
     </message>
     <message>
-        <source>Filtered message too long (%1&gt;=%2)</source>
+        <source>Message too long (%1 &gt;= %2)</source>
         <translation>Wiadomość zbyt długa (%1&gt;=%2)</translation>
     </message>
 </context>
@@ -247,61 +175,6 @@ Hasło wpisane w polach (&quot;Hasło&quot; i &quot;Powtórz hasło&quot;) musz�
     </message>
 </context>
 <context>
-    <name>GaduCreateAccountWidget</name>
-    <message>
-        <source>Password</source>
-        <translation>Hasło</translation>
-    </message>
-    <message>
-        <source>Retype Password</source>
-        <translation>Powtórz hasło</translation>
-    </message>
-    <message>
-        <source>Remember password</source>
-        <translation>Zapamiętaj hasło</translation>
-    </message>
-    <message>
-        <source>E-Mail Address</source>
-        <translation>Adres e-mail</translation>
-    </message>
-    <message>
-        <source>Account Identity</source>
-        <translation>Tożsamość konta</translation>
-    </message>
-    <message>
-        <source>&lt;font size=&apos;-1&apos;&gt;&lt;i&gt;Select or enter the identity that will be associated with this account.&lt;/i&gt;&lt;/font&gt;</source>
-        <translation>&lt;font size=&apos;-1&apos;&gt;&lt;i&gt;Wybierz lub wprowadź tożsamość z która będzie skojarzone konto.&lt;/i&gt;&lt;/font&gt;</translation>
-    </message>
-    <message>
-        <source>Characters</source>
-        <translation>Weryfikacja</translation>
-    </message>
-    <message>
-        <source>&lt;font size=&apos;-1&apos;&gt;&lt;i&gt;For verification purposes, please type the characters above.&lt;/i&gt;&lt;/font&gt;</source>
-        <translation>&lt;font size=&apos;-1&apos;&gt;&lt;i&gt;Wprowadź tekst widoczny na obrazku.&lt;/i&gt;&lt;/font&gt;</translation>
-    </message>
-    <message>
-        <source>Regster Account</source>
-        <translation>Zarejestruj konto</translation>
-    </message>
-    <message>
-        <source>Cancel</source>
-        <translation>Anuluj</translation>
-    </message>
-    <message>
-        <source>Kadu</source>
-        <translation>Kadu</translation>
-    </message>
-    <message>
-        <source>Error data typed in required fields.
-
-Passwords typed in both fields (&quot;Password&quot; and &quot;Retype Password&quot;) must be the same!</source>
-        <translation>Błędne dane w wymaganych polach.
-
-Hasło wpisane w polach (&quot;Hasło&quot; i &quot;Powtórz hasło&quot;) muszą być takie same!</translation>
-    </message>
-</context>
-<context>
     <name>GaduEditAccountWidget</name>
     <message>
         <source>Apply</source>
@@ -328,14 +201,6 @@ Hasło wpisane w polach (&quot;Hasło&quot; i &quot;Powtórz hasło&quot;) musz�
         <translation>Zapamiętaj hasło</translation>
     </message>
     <message>
-        <source>Forgot Your Password?</source>
-        <translation>Zapomniałeś hasła?</translation>
-    </message>
-    <message>
-        <source>Change Your Password</source>
-        <translation>Zmień hasło</translation>
-    </message>
-    <message>
         <source>Account Identity</source>
         <translation>Tożsamość konta</translation>
     </message>
@@ -360,92 +225,20 @@ Hasło wpisane w polach (&quot;Hasło&quot; i &quot;Powtórz hasło&quot;) musz�
         <translation>Połączenie</translation>
     </message>
     <message>
-        <source>Allow file transfers</source>
-        <translation>Zezwól na transfery plików</translation>
-    </message>
-    <message>
         <source>Options</source>
         <translation>Opcje</translation>
-    </message>
-    <message>
-        <source>Show my status to everyone</source>
-        <translation>Pokaż wszystkim mój status</translation>
-    </message>
-    <message>
-        <source>When disabled, you&apos;re visible only to buddies on your list</source>
-        <translation>Gdy wyłączone, jesteś widoczny tylko dla znajomych z twojej listy</translation>
-    </message>
-    <message>
-        <source>Send composing events</source>
-        <translation>Wysyłaj powiadomienia o pisaniu</translation>
     </message>
     <message>
         <source>Use default servers</source>
         <translation>Użyj domyślnych serwerów</translation>
     </message>
     <message>
-        <source>IP addresses</source>
-        <translation>Adres IP</translation>
-    </message>
-    <message>
         <source>Use encrypted connection</source>
         <translation>Używaj szyfrowanego połączenia</translation>
     </message>
     <message>
-        <source>Confirm account removal</source>
-        <translation>Potwierdź usunięcie konta</translation>
-    </message>
-    <message>
-        <source>Are you sure do you want to remove account %1 (%2)</source>
-        <translation>Czy na pewno chcesz usunąć konto %1 (%2)</translation>
-    </message>
-    <message>
         <source>Remove account</source>
         <translation>Usuń konto</translation>
-    </message>
-    <message>
-        <source>Remove account and unregister from server</source>
-        <translation>Usuń konto i wyrejestruj z serwera</translation>
-    </message>
-    <message>
-        <source>Incoming Images</source>
-        <translation>Odbieranie obrazków</translation>
-    </message>
-    <message>
-        <source>Limit incoming images&apos; size</source>
-        <translation>Ograniczaj rozmiar przychodzących obrazków</translation>
-    </message>
-    <message>
-        <source>Maximum images&apos; size that you accept</source>
-        <translation>Maksymalny rozmiar obrazków, jaki akceptujesz</translation>
-    </message>
-    <message>
-        <source>Maximum incoming images&apos; size</source>
-        <translation>Maksymalny rozmiar obrazków przychodzących</translation>
-    </message>
-    <message>
-        <source>Ask for confirmation if an image&apos;s size exceeds the limit</source>
-        <translation>Pytaj o potwierdzenie, gdy rozmiar obrazka przekracza limit</translation>
-    </message>
-    <message>
-        <source>Receive images also when Invisible</source>
-        <translation>Odbieraj obrazki także gdy jesteś niewidoczny</translation>
-    </message>
-    <message>
-        <source>Limit numbers of images received per minute</source>
-        <translation>Ograniczaj ilość odbieranych obrazków na minutę</translation>
-    </message>
-    <message>
-        <source>Outgoing Images</source>
-        <translation>Wysyłanie obrazków</translation>
-    </message>
-    <message>
-        <source>Show a warning when the image is larger then 256 KiB</source>
-        <translation>Pokaż ostrzeżenie gdy obrazek jest więszy niż 256 KiB</translation>
-    </message>
-    <message>
-        <source>External ip</source>
-        <translation>Zewnętrzny adres IP</translation>
     </message>
     <message>
         <source>External port</source>
@@ -460,24 +253,102 @@ Hasło wpisane w polach (&quot;Hasło&quot; i &quot;Powtórz hasło&quot;) musz�
         <translation>Inne</translation>
     </message>
     <message>
-        <source>Receive URLs from anonymous buddies</source>
-        <translation>Odbieraj linki od nieznajomych</translation>
-    </message>
-    <message>
         <source>Proxy configuration</source>
         <translation>Konfiguracja proxy</translation>
     </message>
     <message>
-        <source>Confirm checking &quot;Show my status to everyone&quot; option</source>
-        <translation>Potwierdź włączenie opcji &quot;Pokaż wszystkim mój status&quot; </translation>
+        <source>Images</source>
+        <translation>Obrazki</translation>
     </message>
     <message>
-        <source>Are you sure do you want to check &quot;Show my status to everyone&quot; option?
-You have several buddies which are not allowed to see your status.
-Enabling this option will allow them to know you are available.</source>
-        <translation>Jesteś pewny, że chcesz włączyć opcję &quot;Pokaż wszystkim mój status&quot;?
-Dla kilku znajomych na liście jest włączona opcja nie udostępniania statusu.
-Po włączeniu &quot;Pokaż wszystkim mój status&quot; będą oni mogli zobaczyć twój status. </translation>
+        <source>Receive images also when I am Invisible</source>
+        <translation>Odbieraj obrazki także gdy jestem niewidoczny</translation>
+    </message>
+    <message>
+        <source>Warn me when the image being sent may be too large</source>
+        <translation>Ostrzeż przed wysyłaniem zbyt dużych obrazków</translation>
+    </message>
+    <message>
+        <source>Some clients may have trouble with too large images (over 256 KiB).</source>
+        <translation>Niektóry klienty mogą niepoprawnie obsługiwać zbyt duże obrazki (ponad 256 KiB).</translation>
+    </message>
+    <message>
+        <source>Show my status only to buddies on my list</source>
+        <translation>Pokazuj status tylko znajomym</translation>
+    </message>
+    <message>
+        <source>When disabled, anyone can see your status.</source>
+        <translation>Gdy nie jest zaznaczone, każdy może oglądać twój status</translation>
+    </message>
+    <message>
+        <source>Enable composing events</source>
+        <translation>Włącz powiadomienia o pisaniu</translation>
+    </message>
+    <message>
+        <source>Your interlocutor will be notified when you are typing a message, before it is sent. And vice versa.</source>
+        <translation>Twój rozmówca będzie informowany o tym, że piszesz wiadomość. Działa także w drugą stronę.</translation>
+    </message>
+    <message>
+        <source>Block links from anonymous buddies</source>
+        <translation>Blokuj linki od nieznajomych</translation>
+    </message>
+    <message>
+        <source>Protects you from potentially malicious links in messages from anonymous buddies</source>
+        <translation>Chroni przed potencjalnie groźnymi linkami w wiadomościach od nieznajomych</translation>
+    </message>
+    <message>
+        <source>Gadu-Gadu Server</source>
+        <translation>Serwer Gadu-Gadu</translation>
+    </message>
+    <message>
+        <source>Custom server IP addresses</source>
+        <translation>Własne adresy IP serwerów</translation>
+    </message>
+    <message>
+        <source>Enable file transfers</source>
+        <translation>Włącz transfery plików</translation>
+    </message>
+    <message>
+        <source>Network</source>
+        <translation>Sieć</translation>
+    </message>
+    <message>
+        <source>External IP</source>
+        <translation>Zewnętrzny adres IP</translation>
+    </message>
+    <message>
+        <source>Confrim Account Removal</source>
+        <translation>Potwierdź usunięcie konta</translation>
+    </message>
+    <message>
+        <source>Are you sure do you want to remove account %1 (%2)?</source>
+        <translation>Czy na pewno chcesz usunąć konto %1 (%2)?</translation>
+    </message>
+    <message>
+        <source>Status Visibility</source>
+        <translation>Widoczność Statusu</translation>
+    </message>
+    <message>
+        <source>You are going to reveal your status to several buddies which are currently not allowed to see it.
+Are you sure to allow them to know you are available?</source>
+        <translation>Nastąpi ujawnienie statusu niektórym znajomym, którzy aktualnie go nie widzą.
+Czy na pewno chcesz im ujawnić swoją dostępność?</translation>
+    </message>
+    <message>
+        <source>Make my status visible anyway</source>
+        <translation>Ujawnij mój status mimo wszystko</translation>
+    </message>
+    <message>
+        <source>Stay with private status</source>
+        <translation>Uruchom ze statusem widocznym tylko dla znajomych</translation>
+    </message>
+    <message>
+        <source>Remind GG number</source>
+        <translation>Przypomnij numer GG</translation>
+    </message>
+    <message>
+        <source>Remind Password</source>
+        <translation>Przypomnij hasło</translation>
     </message>
 </context>
 <context>
@@ -550,123 +421,6 @@ Po włączeniu &quot;Pokaż wszystkim mój status&quot; będą oni mogli zobaczy
     <message>
         <source>Cannot load Gadu-Gadu Protocol plugin. Please compile libgadu with zlib support.</source>
         <translation>Nie można załadować wtyczki Gadu-Gadu. Libgadu ze wsparciem dla zlib jest wymagane.</translation>
-    </message>
-</context>
-<context>
-    <name>GaduRemindPasswordWindow</name>
-    <message>
-        <source>Remind password</source>
-        <translation>Przypomnij hasło</translation>
-    </message>
-    <message>
-        <source>E-Mail Address</source>
-        <translation>Adres e-mail</translation>
-    </message>
-    <message>
-        <source>&lt;font size=&apos;-1&apos;&gt;&lt;i&gt;Type E-Mail Address used during registration.&lt;/i&gt;&lt;/font&gt;</source>
-        <translation>&lt;font size=&apos;-1&apos;&gt;&lt;i&gt;Podaj adres e-mail Address użyty podczas rejestracji konta.&lt;/i&gt;&lt;/font&gt;</translation>
-    </message>
-    <message>
-        <source>Characters</source>
-        <translation>Weryfikacja</translation>
-    </message>
-    <message>
-        <source>&lt;font size=&apos;-1&apos;&gt;&lt;i&gt;For verification purposes, please type the characters above.&lt;/i&gt;&lt;/font&gt;</source>
-        <translation>&lt;font size=&apos;-1&apos;&gt;&lt;i&gt;Wprowadź tekst widoczny na obrazku.&lt;/i&gt;&lt;/font&gt;</translation>
-    </message>
-    <message>
-        <source>Send Password</source>
-        <translation>Wyślij hasło</translation>
-    </message>
-    <message>
-        <source>Cancel</source>
-        <translation>Anuluj</translation>
-    </message>
-    <message>
-        <source>Kadu</source>
-        <translation>Kadu</translation>
-    </message>
-    <message>
-        <source>Your password has been send on your email</source>
-        <translation>Twoje hasło zostało wysłane na maila</translation>
-    </message>
-    <message>
-        <source>Error during remind password</source>
-        <translation>Bład podczas przypominania hasła</translation>
-    </message>
-</context>
-<context>
-    <name>GaduUnregisterAccountWindow</name>
-    <message>
-        <source>Unregister account</source>
-        <translation>Wyrejestruj konto</translation>
-    </message>
-    <message>
-        <source>This dialog box allows you to unregister your account. Be aware of using this option.</source>
-        <translation>To okno pozwala na wyrejestrowanie konta. Uważaj z używaniem tej opcji.</translation>
-    </message>
-    <message>
-        <source>&lt;font size=&quot;+1&quot;&gt;&lt;b&gt;It will permanently delete your account and you will not be able to use it later!&lt;/b&gt;&lt;/font&gt;</source>
-        <translation>&lt;font size=&quot;+1&quot;&gt;&lt;b&gt;To okno dialogowe pozwala na trwałe wyrejestrowanie użytkownika z serwera Gadu-Gadu.&lt;/b&gt;&lt;/font&gt;&lt;br /&gt;&lt;font color=&quot;red&quot;&gt;&lt;b&gt;Musisz sobie zdawać sprawę że spowoduje to nieodwracalne usunięcie numeru GG z serwera i nigdy już nie będziesz mógł z niego korzystać!&lt;/b&gt;&lt;/font&gt;</translation>
-    </message>
-    <message>
-        <source>Gadu-Gadu number</source>
-        <translation>Numer Gadu-Gadu</translation>
-    </message>
-    <message>
-        <source>Password</source>
-        <translation>Hasło</translation>
-    </message>
-    <message>
-        <source>&lt;font size=&apos;-1&apos;&gt;&lt;i&gt;Enter password for your Gadu-Gadu account.&lt;/i&gt;&lt;/font&gt;</source>
-        <translation>&lt;font size=&apos;-1&apos;&gt;&lt;i&gt;Podaj adres e-mail Address użyty podczas rejestracji konta.&lt;/i&gt;&lt;/font&gt;</translation>
-    </message>
-    <message>
-        <source>Characters</source>
-        <translation>Weryfikacja</translation>
-    </message>
-    <message>
-        <source>&lt;font size=&apos;-1&apos;&gt;&lt;i&gt;For verification purposes, please type the characters above.&lt;/i&gt;&lt;/font&gt;</source>
-        <translation>&lt;font size=&apos;-1&apos;&gt;&lt;i&gt;Wprowadź tekst widoczny na obrazku.&lt;/i&gt;&lt;/font&gt;</translation>
-    </message>
-    <message>
-        <source>Unregister Account</source>
-        <translation>Wyrejestruj konto</translation>
-    </message>
-    <message>
-        <source>Cancel</source>
-        <translation>Anuluj</translation>
-    </message>
-    <message>
-        <source>Kadu</source>
-        <translation>Kadu</translation>
-    </message>
-    <message>
-        <source>Unregistation was successful. Now you don&apos;t have any GG number :(</source>
-        <translation>Wyrejestrowanie przebiegło prawidłowo. Teraz już nie masz numeru GG :(</translation>
-    </message>
-    <message>
-        <source>An error has occurred while unregistration. Please try again later.</source>
-        <translation>Wystąpił błąd podczas wyrejestrowywania konta. Proszę spróbować później.</translation>
-    </message>
-</context>
-<context>
-    <name>GaduWaitForAccountRegisterWindow</name>
-    <message>
-        <source>Plase wait. New Gadu-Gadu account is being registered.</source>
-        <translation>Proszę czekać. Nowe konto Gadu-Gadu jest rejestrowane.</translation>
-    </message>
-    <message>
-        <source>Registration was successful. Your new number is %1.
-Store it in a safe place along with the password.
-Now add your friends to the userlist.</source>
-        <translation>Rejestracja zakończona. Twój nowy numer to: %1.
-Zapisz go wraz z hasłem w bezpiecznym miejscu.
-Teraz możesz dodać znajomych do listy kontaktów.</translation>
-    </message>
-    <message>
-        <source>An error has occurred during registration. Please try again later.</source>
-        <translation>Wystąpił błąd podczas rejestracji. Proszę spróbować później.</translation>
     </message>
 </context>
 </TS>

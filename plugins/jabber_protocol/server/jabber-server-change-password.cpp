@@ -2,8 +2,8 @@
  * %kadu copyright begin%
  * Copyright 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2010 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -35,11 +35,14 @@ JabberServerChangePassword::JabberServerChangePassword(Account account, const QS
 
 void JabberServerChangePassword::performAction()
 {
-	JabberProtocol *jabberProtocol = qobject_cast<JabberProtocol *>(MyAccount.protocolHandler());
+	XMPP::JabberProtocol *jabberProtocol = qobject_cast<XMPP::JabberProtocol *>(MyAccount.protocolHandler());
 	if (!jabberProtocol || !jabberProtocol->isConnected())
+	{
 		emit finished(this);
+		return;
+	}
 
-	XMPP::JT_Register *task = new XMPP::JT_Register(jabberProtocol->client()->client()->rootTask());
+	XMPP::JT_Register *task = new XMPP::JT_Register(jabberProtocol->xmppClient()->rootTask());
 	QObject::connect(task, SIGNAL(finished()),
 			 this, SLOT(actionFinished()));
 	XMPP::Jid j = MyAccount.id();
@@ -56,3 +59,5 @@ void JabberServerChangePassword::actionFinished()
 
 	emit finished(this);
 }
+
+#include "moc_jabber-server-change-password.cpp"

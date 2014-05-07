@@ -1,7 +1,9 @@
 /*
  * %kadu copyright begin%
  * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2012 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -48,9 +50,9 @@ void BuddyListBackgroundColorsWidget::createGui(MainConfigurationWindow* mainWin
 	layout->addWidget(colorButton);
 	layout->addWidget(alternateColorButton);
 
-	ConfigGroupBox *groupBox = mainWindow->widget()->configGroupBox("Look", "Colors", "Buddy List");
+	ConfigGroupBox *groupBox = mainWindow->widget()->configGroupBox("Look", "Buddies list", "Background");
 
-	groupBox->addWidgets(new QLabel(qApp->translate("@default", "Background") + ':', this), this);
+	groupBox->addWidgets(new QLabel(QCoreApplication::translate("@default", "Background colors") + ':', this), this);
 }
 
 void BuddyListBackgroundColorsWidget::loadConfiguration()
@@ -70,3 +72,5 @@ void BuddyListBackgroundColorsWidget::configurationApplied()
       	MainConfigurationWindow::instanceDataManager()->writeEntry("Look", "UserboxBgColor", QVariant(colorButton->color().name()));
       	MainConfigurationWindow::instanceDataManager()->writeEntry("Look", "UserboxAlternateBgColor", QVariant(alternateColorButton->color().name()));
 }
+
+#include "moc_buddy-list-background-colors-widget.cpp"

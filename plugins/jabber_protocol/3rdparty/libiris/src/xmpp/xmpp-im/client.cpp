@@ -22,9 +22,9 @@
 #include "safedelete.h"
 
 //! \class XMPP::Client client.h
-//! \brief Communicates with the Jabber network.  Start here.
+//! \brief Communicates with the XMPP network.  Start here.
 //!
-//!  Client controls an active Jabber connection.  It allows you to connect,
+//!  Client controls an active XMPP connection.  It allows you to connect,
 //!  authenticate, manipulate the roster, and send / receive messages and
 //!  presence.  It is the centerpiece of this library, and all Tasks must pass
 //!  through it.
@@ -41,7 +41,7 @@
 //!
 //!  \code
 //!  #include "client.h"
-//!  using namespace Jabber;
+//!  using namespace XMPP;
 //!
 //!  ...
 //!
@@ -51,7 +51,7 @@
 //!  {
 //!    client = new Client;
 //!    connect(client, SIGNAL(handshaken()), SLOT(clientHandshaken()));
-//!    connect(client, SIGNAL(authFinished(bool, int, const QString &)), SLOT(authFinished(bool, int, const QString &)));
+//!    connect(client, SIGNAL(authFinished(bool,int,QString)), SLOT(authFinished(bool,int,QString)));
 //!    client->connectToHost("jabber.org");
 //!  }
 //!
@@ -98,7 +98,7 @@
 
 using namespace Jabber;*/
 
-#ifdef Q_WS_WIN
+#ifdef Q_OS_WIN
 #define vsnprintf _vsnprintf
 #endif
 
@@ -124,7 +124,7 @@ class Client::ClientPrivate
 public:
 	ClientPrivate() {}
 
-	ClientStream *stream;
+	QPointer<ClientStream> stream;
 	QDomDocument doc;
 	int id_seed;
 	Task *root;
@@ -165,8 +165,6 @@ Client::Client(QObject *par)
 	d->id_seed = 0xaaaa;
 	d->root = new Task(this, true);
 
-	d->stream = 0;
-
 	d->s5bman = new S5BManager(this);
 	connect(d->s5bman, SIGNAL(incomingReady()), SLOT(s5b_incomingReady()));
 
@@ -186,7 +184,6 @@ Client::~Client()
 	delete d->ibbman;
 	delete d->s5bman;
 	delete d->root;
-	//delete d->stream;
 	delete d;
 }
 
@@ -196,11 +193,11 @@ void Client::connectToServer(ClientStream *s, const Jid &j, bool auth)
 	//connect(d->stream, SIGNAL(connected()), SLOT(streamConnected()));
 	//connect(d->stream, SIGNAL(handshaken()), SLOT(streamHandshaken()));
 	connect(d->stream, SIGNAL(error(int)), SLOT(streamError(int)));
-	//connect(d->stream, SIGNAL(sslCertificateReady(const QSSLCert &)), SLOT(streamSSLCertificateReady(const QSSLCert &)));
+	//connect(d->stream, SIGNAL(sslCertificateReady(QSSLCert)), SLOT(streamSSLCertificateReady(QSSLCert)));
 	connect(d->stream, SIGNAL(readyRead()), SLOT(streamReadyRead()));
 	//connect(d->stream, SIGNAL(closeFinished()), SLOT(streamCloseFinished()));
-	connect(d->stream, SIGNAL(incomingXml(const QString &)), SLOT(streamIncomingXml(const QString &)));
-	connect(d->stream, SIGNAL(outgoingXml(const QString &)), SLOT(streamOutgoingXml(const QString &)));
+	connect(d->stream, SIGNAL(incomingXml(QString)), SLOT(streamIncomingXml(QString)));
+	connect(d->stream, SIGNAL(outgoingXml(QString)), SLOT(streamOutgoingXml(QString)));
 
 	d->stream->connectToServer(j, auth);
 }
@@ -218,16 +215,17 @@ void Client::start(const QString &host, const QString &user, const QString &pass
 	d->resourceList += Resource(resource(), stat);
 
 	JT_PushPresence *pp = new JT_PushPresence(rootTask());
-	connect(pp, SIGNAL(subscription(const Jid &, const QString &, const QString&)), SLOT(ppSubscription(const Jid &, const QString &, const QString&)));
-	connect(pp, SIGNAL(presence(const Jid &, const Status &)), SLOT(ppPresence(const Jid &, const Status &)));
+	connect(pp, SIGNAL(subscription(Jid,QString,QString)), SLOT(ppSubscription(Jid,QString,QString)));
+	connect(pp, SIGNAL(presence(Jid,Status)), SLOT(ppPresence(Jid,Status)));
 
 	JT_PushMessage *pm = new JT_PushMessage(rootTask());
-	connect(pm, SIGNAL(message(const Message &)), SLOT(pmMessage(const Message &)));
+	connect(pm, SIGNAL(message(Message)), SLOT(pmMessage(Message)));
 
 	JT_PushRoster *pr = new JT_PushRoster(rootTask());
-	connect(pr, SIGNAL(roster(const Roster &)), SLOT(prRoster(const Roster &)));
+	connect(pr, SIGNAL(roster(Roster)), SLOT(prRoster(Roster)));
 
 	new JT_ServInfo(rootTask());
+	new JT_PongServer(rootTask());
 
 	d->active = true;
 }
@@ -302,7 +300,7 @@ void Client::groupChatChangeNick(const QString &host, const QString &room, const
 	}
 }
 
-bool Client::groupChatJoin(const QString &host, const QString &room, const QString &nick, const QString& password, int maxchars, int maxstanzas, int seconds, const Status& _s)
+bool Client::groupChatJoin(const QString &host, const QString &room, const QString &nick, const QString& password, int maxchars, int maxstanzas, int seconds, const QDateTime &since, const Status& _s)
 {
 	Jid jid(room + "@" + host + "/" + nick);
 	for(QList<GroupChat>::Iterator it = d->groupChatList.begin(); it != d->groupChatList.end();) {
@@ -328,7 +326,7 @@ bool Client::groupChatJoin(const QString &host, const QString &room, const QStri
 	JT_Presence *j = new JT_Presence(rootTask());
 	Status s = _s;
 	s.setMUC();
-	s.setMUCHistory(maxchars,maxstanzas,seconds);
+	s.setMUCHistory(maxchars, maxstanzas, seconds, since);
 	if (!password.isEmpty()) {
 		s.setMUCPassword(password);
 	}
@@ -342,8 +340,7 @@ void Client::groupChatSetStatus(const QString &host, const QString &room, const 
 {
 	Jid jid(room + "@" + host);
 	bool found = false;
-	for(QList<GroupChat>::ConstIterator it = d->groupChatList.begin(); it != d->groupChatList.end(); it++) {
-		const GroupChat &i = *it;
+	foreach (const GroupChat &i, d->groupChatList) {
 		if(i.j.compare(jid, false)) {
 			found = true;
 			jid = i.j;
@@ -430,13 +427,15 @@ void Client::close(bool)
 		d->stream->close();
 		d->stream = 0;
 	}
-	disconnected();
 	cleanup();
 }
 
 void Client::cleanup()
 {
-	d->active = false;
+	if(d->active) {
+		emit disconnected();
+		d->active = false;
+	}
 	//d->authed = false;
 	d->groupChatList.clear();
 }
@@ -462,7 +461,6 @@ void Client::streamError(int)
 	//error(e);
 
 	//if(!e.isWarning()) {
-		disconnected();
 		cleanup();
 	//}
 }
@@ -516,10 +514,7 @@ static QDomElement oldStyleNS(const QDomElement &e)
 
 void Client::streamReadyRead()
 {
-	// HACK HACK HACK
-	QPointer<ClientStream> pstream = d->stream;
-
-	while(pstream && d->stream->stanzaAvailable()) {
+	while(d->stream && d->stream->stanzaAvailable()) {
 		Stanza s = d->stream->read();
 
 		QString out = s.toString();
@@ -590,7 +585,7 @@ void Client::distribute(const QDomElement &x)
 		for (QDomNode n = x.firstChild(); !n.isNull(); n = n.nextSibling()) {
 			reply.appendChild(n.cloneNode());
 		}
-		
+
 		// Add error
 		QDomElement error = doc()->createElement("error");
 		error.setAttribute("type","cancel");
@@ -644,7 +639,7 @@ void Client::send(const QString &str)
 
 Stream & Client::stream()
 {
-	return *d->stream;
+	return *(d->stream.data());
 }
 
 QString Client::streamBaseNS() const

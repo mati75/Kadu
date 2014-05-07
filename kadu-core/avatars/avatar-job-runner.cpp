@@ -1,7 +1,8 @@
 /*
  * %kadu copyright begin%
  * Copyright 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -22,8 +23,8 @@
 
 #include "avatars/avatar-manager.h"
 #include "avatars/avatar.h"
-#include "contacts/contact.h"
 #include "protocols/protocol.h"
+#include "protocols/services/avatar-downloader.h"
 #include "protocols/services/avatar-service.h"
 
 #include "avatar-job-runner.h"
@@ -37,27 +38,9 @@ AvatarJobRunner::~AvatarJobRunner()
 {
 }
 
-AvatarService * AvatarJobRunner::avatarService(const Account &account)
-{
-	Protocol *protocol = account.protocolHandler();
-	if (!protocol)
-		return 0;
-
-	return protocol->avatarService();
-}
-
-AvatarService * AvatarJobRunner::avatarService(const Contact &contact)
-{
-	Account account = contact.contactAccount();
-	if (account.isNull())
-		return 0;
-
-	return avatarService(account);
-}
-
 void AvatarJobRunner::runJob()
 {
-	AvatarService *service = avatarService(MyContact);
+	AvatarService *service = AvatarService::fromAccount(MyContact.contactAccount());
 	if (!service)
 	{
 		emit jobFinished(false);
@@ -66,33 +49,41 @@ void AvatarJobRunner::runJob()
 		return;
 	}
 
-	connect(service, SIGNAL(avatarFetched(Contact,bool)),
-			this, SLOT(avatarFetched(Contact,bool)));
-	service->fetchAvatar(MyContact);
+	AvatarDownloader *avatarDownloader = service->createAvatarDownloader();
+	if (!avatarDownloader)
+	{
+		emit jobFinished(false);
+		deleteLater();
+
+		return;
+	}
+
+	connect(avatarDownloader, SIGNAL(avatarDownloaded(bool,QImage)), this, SLOT(avatarDownloaded(bool,QImage)));
+	avatarDownloader->downloadAvatar(MyContact.id());
 
 	Timer = new QTimer(this);
 	connect(Timer, SIGNAL(timeout()), this, SLOT(timeout()));
 	Timer->start(15000);
 }
 
-void AvatarJobRunner::avatarFetched(Contact contact, bool ok)
+void AvatarJobRunner::avatarDownloaded(bool ok, QImage avatar)
 {
-	if (MyContact == contact)
-	{
-		if (Timer)
-			Timer->stop();
+	if (Timer)
+		Timer->stop();
 
-		emit jobFinished(ok);
-		deleteLater();
-	}
+	Avatar contactAvatar = AvatarManager::instance()->byContact(MyContact, ActionCreateAndAdd);
+	contactAvatar.setLastUpdated(QDateTime::currentDateTime());
+	contactAvatar.setNextUpdate(QDateTime::fromTime_t(QDateTime::currentDateTime().toTime_t() + 7200));
+	contactAvatar.setPixmap(QPixmap::fromImage(avatar));
+
+	emit jobFinished(ok);
+	deleteLater();
 }
 
 void AvatarJobRunner::timeout()
 {
-	AvatarService *service = avatarService(MyContact);
-	if (service)
-		disconnect(service, 0, this, 0);
-
 	emit jobFinished(false);
 	deleteLater();
 }
+
+#include "moc_avatar-job-runner.cpp"

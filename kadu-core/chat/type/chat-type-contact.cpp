@@ -5,8 +5,8 @@
  * Copyright 2011 Piotr Dąbrowski (ultr@ultr.pl)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
  * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
- * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2007, 2008, 2009, 2010, 2011, 2012, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
@@ -24,9 +24,9 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "chat/chat.h"
 #include "chat/chat-details-contact.h"
 #include "chat/chat-manager.h"
+#include "chat/chat.h"
 #include "contacts/contact-set.h"
 #include "icons/kadu-icon.h"
 
@@ -58,8 +58,11 @@ Chat ChatTypeContact::findChat(const Contact &contact, NotFoundAction notFoundAc
 	chat.setType("Contact");
 
 	ChatDetailsContact *chatDetailsContact = dynamic_cast<ChatDetailsContact *>(chat.details());
-	chatDetailsContact->setState(StorableObject::StateNew);
-	chatDetailsContact->setContact(contact);
+	if (chatDetailsContact)
+	{
+		chatDetailsContact->setState(StorableObject::StateNew);
+		chatDetailsContact->setContact(contact);
+	}
 
 	if (ActionCreateAndAdd == notFoundAction)
 		ChatManager::instance()->addItem(chat);
@@ -154,3 +157,5 @@ ChatEditWidget * ChatTypeContact::createEditWidget(const Chat &chat, QWidget *pa
 
 	return 0;
 }
+
+#include "moc_chat-type-contact.cpp"

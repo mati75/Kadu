@@ -1,6 +1,10 @@
 /*
  * %kadu copyright begin%
- * Copyright 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
+ * Copyright 2007, 2008, 2009, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2012 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -23,16 +27,19 @@
 #include <QtCore/QFutureWatcher>
 #include <QtGui/QWidget>
 
+#include "misc/memory.h"
+
 class QDate;
 class QSplitter;
 class QTreeView;
 
-class ChatMessagesView;
+class WebkitMessagesView;
 class HistoryQueryResult;
 class HistoryQueryResultsModel;
 class HistoryQueryResultsProxyModel;
 class Message;
 class SearchBar;
+class SortedMessages;
 class WaitOverlay;
 class WebViewHighlighter;
 
@@ -61,11 +68,11 @@ class TimelineChatMessagesView : public QWidget
 	HistoryQueryResultsModel *ResultsModel;
 	HistoryQueryResultsProxyModel *ResultsProxyModel;
 	WebViewHighlighter *Highlighter;
-	ChatMessagesView *MessagesView;
+	qobject_ptr<WebkitMessagesView> MessagesView;
 	SearchBar *MessagesSearchBar;
 
 	QFutureWatcher<QVector<HistoryQueryResult> > *ResultsFutureWatcher;
-	QFutureWatcher<QVector<Message> > *MessagesFutureWatcher;
+	QFutureWatcher<SortedMessages> *MessagesFutureWatcher;
 
 	void createGui();
 
@@ -100,7 +107,7 @@ public:
 	 * @short Returns chat messages view widget.
 	 * @return chat messages view widget
 	 */
-	ChatMessagesView * messagesView() const { return MessagesView; }
+	WebkitMessagesView * messagesView() const { return MessagesView.get(); }
 
 	/**
 	 * @author Rafał 'Vogel' Malinowski
@@ -147,7 +154,7 @@ public:
 	 * If received list will be empty, displayForDate() will be called with invalid date to ensure
 	 * that view is cleared.
 	 */
-	void setFutureResults(const QFuture<QVector<HistoryQueryResult> > &futureResults);
+	void setFutureResults(const QFuture<QVector<HistoryQueryResult>> &futureResults);
 
 	/**
 	 * @author Rafał 'Vogel' Malinowski
@@ -156,7 +163,7 @@ public:
 	 *
 	 * This methods sets list of messages to display in message view widget.
 	 */
-	void setMessages(const QVector<Message> &messages);
+	void setMessages(const SortedMessages &messages);
 
 	/**
 	 * @author Rafał 'Vogel' Malinowski
@@ -166,7 +173,7 @@ public:
 	 * This methods sets list of future messages to display in message view widget. This widget will
 	 * be blocked by WaitOverlay until messages are available.
 	 */
-	void setFutureMessages(const QFuture<QVector<Message> > &futureMessages);
+	void setFutureMessages(const QFuture<SortedMessages> &futureMessages);
 
 	/**
 	 * @author Rafał 'Vogel' Malinowski

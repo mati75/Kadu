@@ -1,12 +1,12 @@
 /*
  * %kadu copyright begin%
- * Copyright 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2009, 2010, 2010, 2011, 2012 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009, 2009 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2010 Piotr Dąbrowski (ultr@ultr.pl)
  * Copyright 2009 Michał Podsiadlik (michal@kadu.net)
  * Copyright 2009, 2009, 2010 Bartłomiej Zimoń (uzi18@o2.pl)
- * Copyright 2008, 2009, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2008, 2009, 2009, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -42,14 +42,14 @@
 
 #include "buddy-shared.h"
 
-BuddyShared * BuddyShared::loadStubFromStorage(const QSharedPointer<StoragePoint> &buddyStoragePoint)
+BuddyShared * BuddyShared::loadStubFromStorage(const std::shared_ptr<StoragePoint> &buddyStoragePoint)
 {
 	BuddyShared *result = loadFromStorage(buddyStoragePoint);
 	result->loadStub();
 	return result;
 }
 
-BuddyShared * BuddyShared::loadFromStorage(const QSharedPointer<StoragePoint> &buddyStoragePoint)
+BuddyShared * BuddyShared::loadFromStorage(const std::shared_ptr<StoragePoint> &buddyStoragePoint)
 {
 	BuddyShared *result = new BuddyShared();
 	result->setStorage(buddyStoragePoint);
@@ -63,7 +63,7 @@ BuddyShared::BuddyShared(const QUuid &uuid) :
 {
 	BuddyAvatar = new Avatar();
 
-	connect(changeNotifier(), SIGNAL(changed()), this, SIGNAL(updated()));
+	connect(&changeNotifier(), SIGNAL(changed()), this, SIGNAL(updated()));
 }
 
 BuddyShared::~BuddyShared()
@@ -82,7 +82,11 @@ void BuddyShared::collectGarbage()
 
 	// 1 is for current Buddy
 	const int numberOfReferences = 1 + Contacts.length();
+#if QT_VERSION >= 0x050000
+	if (numberOfReferences != ref.load())
+#else
 	if (numberOfReferences != (int)ref)
+#endif
 	{
 		CollectingGarbage = false;
 		return;
@@ -94,7 +98,11 @@ void BuddyShared::collectGarbage()
 
 		// 1 is for current BuddyShared
 		const int contactNumberOfReferences = 1;
+#if QT_VERSION >= 0x050000
+		if (contactNumberOfReferences != contact.data()->ref.load())
+#else
 		if (contactNumberOfReferences != (int)(contact.data()->ref))
+#endif
 		{
 			CollectingGarbage = false;
 			return;
@@ -314,7 +322,7 @@ void BuddyShared::addContact(const Contact &contact)
 
 	emit contactAdded(contact);
 
-	changeNotifier()->notify();
+	changeNotifier().notify();
 }
 
 void BuddyShared::removeContact(const Contact &contact)
@@ -330,7 +338,7 @@ void BuddyShared::removeContact(const Contact &contact)
 
 	normalizePriorities();
 
-	changeNotifier()->notify();
+	changeNotifier().notify();
 }
 
 QVector<Contact> BuddyShared::contacts(const Account &account)
@@ -383,7 +391,7 @@ void BuddyShared::normalizePriorities()
 
 void BuddyShared::avatarUpdated()
 {
-	changeNotifier()->notify();
+	changeNotifier().notify();
 }
 
 void BuddyShared::setBuddyAvatar(const Avatar &buddyAvatar)
@@ -395,7 +403,7 @@ void BuddyShared::setBuddyAvatar(const Avatar &buddyAvatar)
 		disconnect(*BuddyAvatar, 0, this, 0);
 
 	*BuddyAvatar = buddyAvatar;
-	changeNotifier()->notify();
+	changeNotifier().notify();
 
 	if (*BuddyAvatar)
 		connect(*BuddyAvatar, SIGNAL(updated()), this, SLOT(avatarUpdated()));
@@ -408,7 +416,7 @@ void BuddyShared::setDisplay(const QString &display)
 	if (Display != display)
 	{
 		Display = display;
-		changeNotifier()->notify();
+		changeNotifier().notify();
 		markContactsDirty();
 
 		emit displayUpdated();
@@ -431,7 +439,7 @@ void BuddyShared::setGroups(const QSet<Group> &groups)
 	foreach (const Group &group, groupsToRemove)
 		doRemoveFromGroup(group);
 
-	changeNotifier()->notify();
+	changeNotifier().notify();
 	markContactsDirty();
 }
 
@@ -481,7 +489,7 @@ void BuddyShared::addToGroup(const Group &group)
 
 	if (doAddToGroup(group))
 	{
-		changeNotifier()->notify();
+		changeNotifier().notify();
 		markContactsDirty();
 	}
 }
@@ -492,7 +500,7 @@ void BuddyShared::removeFromGroup(const Group &group)
 
 	if (doRemoveFromGroup(group))
 	{
-		changeNotifier()->notify();
+		changeNotifier().notify();
 		markContactsDirty();
 	}
 }
@@ -534,13 +542,15 @@ quint16 BuddyShared::unreadMessagesCount()
 	return result;
 }
 
-QSharedPointer<StoragePoint> BuddyShared::createStoragePoint()
+std::shared_ptr<StoragePoint> BuddyShared::createStoragePoint()
 {
 	// TODO: fix this, it is only a workaround for an empty buddy on list
 	if (Core::instance()->myself() == Buddy(this))
-		return QSharedPointer<StoragePoint>();
+		return {};
 	else
 		return Shared::createStoragePoint();
 }
 
 KaduShared_PropertyPtrReadDef(BuddyShared, Avatar, buddyAvatar, BuddyAvatar)
+
+#include "moc_buddy-shared.cpp"

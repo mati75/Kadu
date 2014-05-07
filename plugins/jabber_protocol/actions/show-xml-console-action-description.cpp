@@ -1,7 +1,8 @@
 /*
  * %kadu copyright begin%
- * Copyright 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2012 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -23,9 +24,8 @@
 
 #include "accounts/account-manager.h"
 #include "accounts/account.h"
-#include "core/core.h"
 #include "gui/actions/action.h"
-#include "gui/windows/kadu-window.h"
+#include "gui/menu/menu-inventory.h"
 #include "gui/windows/xml-console.h"
 #include "identities/identity.h"
 
@@ -53,12 +53,18 @@ ShowXmlConsoleActionDescription::ShowXmlConsoleActionDescription(QObject *parent
 ShowXmlConsoleActionDescription::~ShowXmlConsoleActionDescription()
 {
 	// actions will delete their menus
-	Core::instance()->kaduWindow()->removeMenuActionDescription(this);
+	MenuInventory::instance()
+		->menu("tools")
+		->removeAction(this)
+		->update();
 }
 
 void ShowXmlConsoleActionDescription::insertMenuActionDescription()
 {
-	Core::instance()->kaduWindow()->insertMenuActionDescription(this, KaduWindow::MenuTools);
+	MenuInventory::instance()
+		->menu("tools")
+		->addAction(this, KaduMenu::SectionTools)
+		->update();
 }
 
 void ShowXmlConsoleActionDescription::actionInstanceCreated(Action *action)
@@ -132,3 +138,5 @@ void ShowXmlConsoleActionDescription::menuActionTriggered(QAction *action)
 
 	(new XmlConsole(account))->show();
 }
+
+#include "moc_show-xml-console-action-description.cpp"

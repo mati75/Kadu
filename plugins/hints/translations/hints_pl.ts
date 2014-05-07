@@ -150,20 +150,12 @@
         <translation>64px</translation>
     </message>
     <message>
-        <source>Show buttons only when necessary</source>
-        <translation>Pokaż przyciski tylko gdy konieczne</translation>
-    </message>
-    <message>
         <source>New Chat/Message</source>
         <translation>Nowa rozmowa lub wiadomość</translation>
     </message>
     <message>
         <source>Advanced</source>
         <translation>Zaawansowane</translation>
-    </message>
-    <message>
-        <source>Advanced...</source>
-        <translation>Zaawansowane...</translation>
     </message>
     <message>
         <source> px</source>
@@ -224,6 +216,14 @@
     <message>
         <source>&lt;b&gt;Here&lt;/b&gt; you can see the preview</source>
         <translation>&lt;b&gt;Tutaj&lt;/b&gt; możesz zobaczyć podgląd</translation>
+    </message>
+    <message>
+        <source>Show buttons only if notification requires user&apos;s action</source>
+        <translation>Pokazuj przyciski tylko wtedy, gdy jest wymagana akcja użytkownika</translation>
+    </message>
+    <message>
+        <source>Hints size and position...</source>
+        <translation>Pozycja i rozmiar dymków...</translation>
     </message>
 </context>
 <context>

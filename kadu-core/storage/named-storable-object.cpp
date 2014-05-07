@@ -2,7 +2,7 @@
  * %kadu copyright begin%
  * Copyright 2008, 2009, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
- * Copyright 2007, 2008, 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
@@ -52,23 +52,22 @@ NamedStorableObject::NamedStorableObject()
  * If parent is NULL this method will return storage point that is child of
  * root node of XML configuration file.
  */
-QSharedPointer<StoragePoint> NamedStorableObject::createStoragePoint()
+std::shared_ptr<StoragePoint> NamedStorableObject::createStoragePoint()
 {
 	if (storageNodeName().isEmpty())
-		return QSharedPointer<StoragePoint>();
+		return {};
 
-	StorableObject *parent = storageParent();
-	if (!parent)
-		return QSharedPointer<StoragePoint>();
+	if (!storageParent())
+		return {};
 
-	QSharedPointer<StoragePoint> parentStoragePoint(storageParent()->storage());
+	auto parentStoragePoint = storageParent()->storage();
 	if (!parentStoragePoint)
-		return QSharedPointer<StoragePoint>();
+		return {};
 
 	QString nodeName = name();
 	if (nodeName.isEmpty())
-		return QSharedPointer<StoragePoint>();
+		return {};
 
 	QDomElement node = parentStoragePoint->storage()->getNamedNode(parentStoragePoint->point(), storageNodeName(), nodeName);
-	return QSharedPointer<StoragePoint>(new StoragePoint(parentStoragePoint->storage(), node));
+	return std::make_shared<StoragePoint>(parentStoragePoint->storage(), node);
 }

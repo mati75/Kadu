@@ -1,23 +1,22 @@
 project (tabs)
 
-# minimal required versions
 cmake_minimum_required (VERSION 2.8)
-set (QT_MIN_VERSION "4.7.0")
-set (CMAKE_MIN_VERSION "2.6.0")
 
-set (KADU_FIND_REQUIRED true)
-include (FindKadu)
+find_package (Kadu REQUIRED CONFIG)
 
 set (SOURCES
 	tabs.cpp
+	tabs-chat-widget-container-handler.cpp
 	tabs-plugin.cpp
-	tabwidget.cpp
+	gui/widgets/tab-bar.cpp
+	gui/widgets/tab-widget.cpp
 )
 
 set (MOC_SOURCES
 	tabs.h
 	tabs-plugin.h
-	tabwidget.h
+	gui/widgets/tab-bar.h
+	gui/widgets/tab-widget.h
 )
 
 set (CONFIGURATION_FILES

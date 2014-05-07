@@ -3,7 +3,7 @@
  * Copyright 2008, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2010 Tomasz Rostański (rozteck@interia.pl)
  * Copyright 2008 Michał Podsiadlik (michal@kadu.net)
- * Copyright 2007, 2008, 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2007, 2008 Dawid Stawiarski (neeo@kadu.net)
  * %kadu copyright end%
@@ -25,19 +25,16 @@
 #ifndef CONTAT_LIST_SERVICE_H
 #define CONTAT_LIST_SERVICE_H
 
-#include <QtCore/QObject>
-
 #include "buddies/buddy-list.h"
 #include "exports.h"
 
-class Contact;
-class Protocol;
+#include "account-service.h"
 
-class KADUAPI ContactListService : public QObject
+class Contact;
+
+class KADUAPI ContactListService : public AccountService
 {
 	Q_OBJECT
-
-	Protocol *CurrentProtocol;
 
 	bool askForAddingContacts(const QMap<Buddy, Contact> &contactsToAdd, const QMap<Buddy, Contact> &contactsToRename);
 	QVector<Contact> performAdds(const QMap<Buddy, Contact> &contactsToAdd);
@@ -45,18 +42,12 @@ class KADUAPI ContactListService : public QObject
 	QVector<Contact> registerBuddies(const BuddyList &buddies);
 
 public:
-	explicit ContactListService(Protocol *protocol);
+	explicit ContactListService(Account account, QObject *parent = 0);
 	virtual ~ContactListService();
-
-	Protocol * protocol() const { return CurrentProtocol; }
 
 	// it is useful when migrating from 0.9.x to a newer version
 	// TODO 0.14: remove
 	virtual bool haveToAskForAddingContacts() const = 0;
-
-	virtual void importContactList();
-	virtual void exportContactList() = 0;
-	virtual void exportContactList(const BuddyList &buddies) = 0;
 
 	virtual void copySupportedBuddyInformation(const Buddy &destination, const Buddy &source) = 0;
 
@@ -64,12 +55,6 @@ public:
 	virtual QByteArray storeBuddyList(const BuddyList &buddies) = 0;
 
 	void setBuddiesList(const BuddyList &buddies, bool removeOldAutomatically);
-
-public slots:
-	virtual void contactListImportedSlot(bool ok, const BuddyList &buddies);
-
-signals:
-	void contactListImported(bool ok, const BuddyList &buddies);
 
 };
 

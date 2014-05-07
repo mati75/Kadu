@@ -1,8 +1,10 @@
 /*
  * %kadu copyright begin%
  * Copyright 2008, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2012 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
- * Copyright 2007, 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2007, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2012 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
@@ -23,7 +25,10 @@
 #ifndef CONNECTION_ERROR_NOTIFICATION_H
 #define CONNECTION_ERROR_NOTIFICATION_H
 
-#include "notify/account-notification.h"
+#include <QtCore/QMap>
+#include <QtCore/QString>
+
+#include "notify/notification/account-notification.h"
 
 class NotifyEvent;
 
@@ -32,22 +37,26 @@ class ConnectionErrorNotification : public AccountNotification
 	Q_OBJECT
 
 	static NotifyEvent *ConnectionErrorNotifyEvent;
-	static QMap<Account, QStringList> ActiveErrors;
 	QString ErrorServer;
 	QString ErrorMessage;
+
+private slots:
+	void ignoreErrors();
 
 public:
 	static void registerEvent();
 	static void unregisterEvent();
 
-	static bool activeError(Account account, const QString &errorMessage);
+	static void notifyConnectionError(const Account &account, const QString &errorServer, const QString &errorMessage);
 
 	ConnectionErrorNotification(Account account, const QString &errorServer, const QString &errorMessage);
 	virtual ~ConnectionErrorNotification();
 
-	QString errorMessage() const;
-	QString errorServer() const;
+	const QString & errorServer() const { return ErrorServer; }
+	const QString & errorMessage() const { return ErrorMessage; }
 
+	virtual bool isPeriodic() { return true; }
+	virtual int period() { return 20; }
 };
 
 #endif // CONNECTION_ERROR_NOTIFICATION_H

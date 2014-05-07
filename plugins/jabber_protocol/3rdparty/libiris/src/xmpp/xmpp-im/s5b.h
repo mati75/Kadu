@@ -86,15 +86,16 @@ namespace XMPP
 		Mode mode() const;
 		int state() const;
 
-		bool isOpen() const;
-		void write(const QByteArray &);
-		QByteArray read(int bytes=0);
-		int bytesAvailable() const;
-		int bytesToWrite() const;
+		qint64 bytesAvailable() const;
+		qint64 bytesToWrite() const;
 
 		void writeDatagram(const S5BDatagram &);
 		S5BDatagram readDatagram();
 		int datagramsAvailable() const;
+
+	protected:
+		qint64 writeData(const char *data, qint64 maxSize);
+		qint64 readData(char * data, qint64 maxSize);
 
 	signals:
 		void proxyQuery();                             // querying proxy for streamhost information
@@ -113,7 +114,7 @@ namespace XMPP
 		void sc_connectionClosed();
 		void sc_delayedCloseFinished();
 		void sc_readyRead();
-		void sc_bytesWritten(int);
+		void sc_bytesWritten(qint64);
 		void sc_error(int);
 
 		void su_packetReady(const QByteArray &buf);
@@ -122,7 +123,7 @@ namespace XMPP
 		class Private;
 		Private *d;
 
-		void reset(bool clear=false);
+		void resetConnection(bool clear=false);
 		void handleUDP(const QByteArray &buf);
 		void sendUDP(const QByteArray &buf);
 
@@ -210,7 +211,7 @@ namespace XMPP
 		S5BConnector(QObject *parent=0);
 		~S5BConnector();
 
-		void reset();
+		void resetConnection();
 		void start(const Jid &self, const StreamHostList &hosts, const QString &key, bool udp, int timeout);
 		SocksClient *takeClient();
 		SocksUDP *takeUDP();

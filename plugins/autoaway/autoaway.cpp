@@ -1,7 +1,7 @@
 /*
  * %kadu copyright begin%
  * Copyright 2008, 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2009, 2012 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2008 Tomasz Rostański (rozteck@interia.pl)
  * Copyright 2002 Tomasz Jarzynka (tomee@cpi.pl)
  * Copyright 2004, 2008, 2009 Michał Podsiadlik (michal@kadu.net)
@@ -11,7 +11,7 @@
  * Copyright 2002, 2003 Tomasz Chiliński (chilek@chilan.com)
  * Copyright 2010 badboy (badboy@gen2.org)
  * Copyright 2007, 2008, 2009, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2010, 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2007 Dawid Stawiarski (neeo@kadu.net)
  * Copyright 2004, 2005, 2006 Marcin Ślusarz (joi@kadu.net)
  * Copyright 2002, 2003 Dariusz Jagodzik (mast3r@kadu.net)
@@ -58,7 +58,18 @@
  */
 
 AutoAway::AutoAway() :
-		StatusChanged(false)
+		autoAwayStatusChanger{},
+		timer{},
+		StatusChanged{false},
+		idleTime{},
+		refreshStatusTime{},
+		refreshStatusInterval{},
+		autoAwaySpinBox{},
+		autoExtendedAwaySpinBox{},
+		autoInvisibleSpinBox{},
+		autoOfflineSpinBox{},
+		autoRefreshSpinBox{},
+		descriptionTextLineEdit{}
 {
 	autoAwayStatusChanger = new AutoAwayStatusChanger(this, this);
 
@@ -76,14 +87,14 @@ AutoAway::~AutoAway()
 	StatusChangerManager::instance()->unregisterStatusChanger(autoAwayStatusChanger);
 }
 
-int AutoAway::init(bool firstLoad)
+bool AutoAway::init(bool firstLoad)
 {
 	Q_UNUSED(firstLoad)
 
 	MainConfigurationWindow::registerUiFile(KaduPaths::instance()->dataPath() + QLatin1String("plugins/configuration/autoaway.ui"));
 	MainConfigurationWindow::registerUiHandler(this);
 
-	return 0;
+	return true;
 }
 
 void AutoAway::done()
@@ -165,13 +176,6 @@ void AutoAway::mainConfigurationWindowCreated(MainConfigurationWindow *mainConfi
 
 	descriptionTextLineEdit = static_cast<QLineEdit *>(mainConfigurationWindow->widget()->widgetById("autoaway/descriptionText"));
 
-	parseStatusCheckBox = static_cast<QCheckBox *>(mainConfigurationWindow->widget()->widgetById("autoaway/enableParseStatus"));
-
-	connect(mainConfigurationWindow->widget()->widgetById("autoaway/enableAutoAway"), SIGNAL(toggled(bool)), autoAwaySpinBox, SLOT(setEnabled(bool)));
-	connect(mainConfigurationWindow->widget()->widgetById("autoaway/enableAutoExtendedAway"), SIGNAL(toggled(bool)), autoExtendedAwaySpinBox, SLOT(setEnabled(bool)));
-	connect(mainConfigurationWindow->widget()->widgetById("autoaway/enableAutoInvisible"), SIGNAL(toggled(bool)), autoInvisibleSpinBox, SLOT(setEnabled(bool)));
-	connect(mainConfigurationWindow->widget()->widgetById("autoaway/enableAutoOffline"), SIGNAL(toggled(bool)), autoOfflineSpinBox, SLOT(setEnabled(bool)));
-
 	connect(autoAwaySpinBox, SIGNAL(valueChanged(int)), this, SLOT(autoAwaySpinBoxValueChanged(int)));
 	connect(autoExtendedAwaySpinBox, SIGNAL(valueChanged(int)), this, SLOT(autoExtendedAwaySpinBoxValueChanged(int)));
 	connect(autoInvisibleSpinBox, SIGNAL(valueChanged(int)), this, SLOT(autoInvisibleSpinBoxValueChanged(int)));
@@ -185,19 +189,18 @@ void AutoAway::mainConfigurationWindowCreated(MainConfigurationWindow *mainConfi
 void AutoAway::configurationUpdated()
 {
 	checkInterval = config_file.readUnsignedNumEntry("General","AutoAwayCheckTime");
-
-	autoAwayTime = config_file.readUnsignedNumEntry("General","AutoAwayTime");
-	autoExtendedAwayTime = config_file.readUnsignedNumEntry("General","AutoExtendedAwayTime");
-	autoDisconnectTime = config_file.readUnsignedNumEntry("General","AutoDisconnectTime");
-	autoInvisibleTime = config_file.readUnsignedNumEntry("General","AutoInvisibleTime");
+	refreshStatusTime = config_file.readUnsignedNumEntry("General","AutoRefreshStatusTime");
+	autoAwayTime = config_file.readUnsignedNumEntry("General","AutoAwayTimeMinutes")*60;
+	autoExtendedAwayTime = config_file.readUnsignedNumEntry("General","AutoExtendedAwayTimeMinutes")*60;
+	autoDisconnectTime = config_file.readUnsignedNumEntry("General","AutoDisconnectTimeMinutes")*60;
+	autoInvisibleTime = config_file.readUnsignedNumEntry("General","AutoInvisibleTimeMinutes")*60;
 
 	autoAwayEnabled = config_file.readBoolEntry("General","AutoAway");
 	autoExtendedAwayEnabled = config_file.readBoolEntry("General","AutoExtendedAway");
 	autoInvisibleEnabled = config_file.readBoolEntry("General","AutoInvisible");
 	autoDisconnectEnabled = config_file.readBoolEntry("General","AutoDisconnect");
-	parseAutoStatus = config_file.readBoolEntry("General", "AutoParseStatus");
+	parseAutoStatus = config_file.readBoolEntry("General", "ParseStatus");
 
-	refreshStatusTime = config_file.readUnsignedNumEntry("General","AutoRefreshStatusTime");
 	refreshStatusInterval = refreshStatusTime;
 
 	autoStatusText = config_file.readEntry("General", "AutoStatusText");
@@ -209,7 +212,7 @@ void AutoAway::configurationUpdated()
 
 	if (autoAwayEnabled || autoExtendedAwayEnabled || autoInvisibleEnabled || autoDisconnectEnabled)
 	{
-		timer->setInterval(config_file.readNumEntry("General", "AutoAwayCheckTime", 5) * 1000);
+		timer->setInterval(checkInterval * 1000);
 		timer->setSingleShot(true);
 		timer->start();
 	}
@@ -253,34 +256,48 @@ void AutoAway::descriptionChangeChanged(int index)
 {
 	descriptionTextLineEdit->setEnabled(index != 0);
 	autoRefreshSpinBox->setEnabled(index != 0);
-	parseStatusCheckBox->setEnabled(index != 0);
 }
 
 QString AutoAway::parseDescription(const QString &parseDescription)
 {
 	if (parseAutoStatus)
-		return (Parser::parse(parseDescription, Talkable(Core::instance()->myself()), true));
+		return (Parser::parse(parseDescription, Talkable(Core::instance()->myself()), ParserEscape::HtmlEscape));
 	else
 		return parseDescription;
+}
+
+static int denominatedInverval(const QString &name, unsigned int def)
+{
+	int ret = config_file.readUnsignedNumEntry("General", name, def * 60);
+	// This AutoAwayTimesDenominated thing was living shortly in 1.0-git.
+	return config_file.readBoolEntry("General", "AutoAwayTimesDenominated", false)
+			? ret
+			: (ret + 59) / 60;
 }
 
 void AutoAway::createDefaultConfiguration()
 {
 	config_file.addVariable("General", "AutoAway", true);
 	config_file.addVariable("General", "AutoAwayCheckTime", 10);
-	config_file.addVariable("General", "AutoAwayTime", 300);
+	config_file.addVariable("General", "AutoAwayTimeMinutes", denominatedInverval("AutoAwayTime", 5));
 	config_file.addVariable("General", "AutoExtendedAway", true);
-	config_file.addVariable("General", "AutoExtendedAwayTime", 900);
+	config_file.addVariable("General", "AutoExtendedAwayTimeMinutes", denominatedInverval("AutoExtendedAwayTime", 15));
 	config_file.addVariable("General", "AutoChangeDescription", 0);
 	config_file.addVariable("General", "AutoDisconnect", false);
-	config_file.addVariable("General", "AutoDisconnectTime", 3600);
+	config_file.addVariable("General", "AutoDisconnectTimeMinutes", denominatedInverval("AutoDisconnectTime", 60));
 	config_file.addVariable("General", "AutoInvisible", false);
-	config_file.addVariable("General", "AutoInvisibleTime", 1800);
-	config_file.addVariable("General", "AutoParseStatus", false);
+	config_file.addVariable("General", "AutoInvisibleTimeMinutes", denominatedInverval("AutoInvisibleTime", 30));
 	config_file.addVariable("General", "AutoRefreshStatusTime", 0);
 	config_file.addVariable("General", "AutoStatusText", QString());
+
+	// AutoAwayCheckTime has been mistakenly denominated in 1.0-git.
+	if (0 == config_file.readUnsignedNumEntry("General", "AutoAwayCheckTime"))
+		config_file.writeEntry("General", "AutoAwayCheckTime", 10);
 }
+
 
 Q_EXPORT_PLUGIN2(autoaway, AutoAway)
 
 /** @} */
+
+#include "moc_autoaway.cpp"

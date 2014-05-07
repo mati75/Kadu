@@ -5,7 +5,7 @@
  * Copyright 2008 Tomasz Rostański (rozteck@interia.pl)
  * Copyright 2009 Maciej Płaza (plaza.maciej@gmail.com)
  * Copyright 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2010, 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -71,7 +71,7 @@ void Qt4NotifyConfigurationWidget::showConfigurationWindow()
 
 	configWindow->widget()->appendUiFile(KaduPaths::instance()->dataPath() + QLatin1String("plugins/configuration/qt4-docking-notify.ui"));
 
-	QString tooltip = qApp->translate("@default", MainConfigurationWindow::SyntaxTextNotify) +
+	QString tooltip = QCoreApplication::translate("@default", MainConfigurationWindow::SyntaxTextNotify) +
 	tr("\n%&t - title (eg. New message) %&m - notification text (eg. Message from Jim), %&d - details (eg. message quotation),\n%&i - notification icon");
 
 	configWindow->widget()->widgetById("Title")->setToolTip(tooltip);
@@ -80,3 +80,5 @@ void Qt4NotifyConfigurationWidget::showConfigurationWindow()
 	configWindow->show();
 	_activateWindow(configWindow);
 }
+
+#include "moc_qt4-docking-notify-configuration-widget.cpp"

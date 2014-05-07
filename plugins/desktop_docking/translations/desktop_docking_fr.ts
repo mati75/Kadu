@@ -2,10 +2,6 @@
 <context>
     <name>@default</name>
     <message>
-        <source>Kadu</source>
-        <translation>Kadu</translation>
-    </message>
-    <message>
         <source>Tray</source>
         <translation>Zone de notification</translation>
     </message>
@@ -40,6 +36,10 @@
     <message>
         <source>Enable icon moving on desktop. After pressing move cursor over docking icon and then move. Press any mouse key when the icon is in right place.</source>
         <translation>Activer le déplacement d&apos;icône vers le bureau. Pressez le curseur de déplacement au dessus de l&apos;icône du dock puis déplacez le. Appuyez sur n&apos;importe quelle touche de la souris lorsque l&apos;icône est à la bonne place.</translation>
+    </message>
+    <message>
+        <source>Buddies list</source>
+        <translation>Liste d&apos;amis</translation>
     </message>
 </context>
 <context>

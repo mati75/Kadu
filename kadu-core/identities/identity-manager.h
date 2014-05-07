@@ -2,7 +2,8 @@
  * %kadu copyright begin%
  * Copyright 2009, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2010 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -26,12 +27,12 @@
 #include <QtCore/QObject>
 #include <QtCore/QUuid>
 
+#include "identities/identity.h"
 #include "storage/simple-manager.h"
 
 #include "exports.h"
 
 class Account;
-class Identity;
 class Status;
 
 class KADUAPI IdentityManager : public QObject, public SimpleManager<Identity>
@@ -72,7 +73,5 @@ signals:
 	void identityRemoved(Identity);
 
 };
-
-#include "identities/identity.h" // for MOC
 
 #endif // IDENTITY_MANAGER_H

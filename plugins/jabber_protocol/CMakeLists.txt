@@ -1,73 +1,44 @@
 project (jabber_protocol)
 
-# minimal required versions
 cmake_minimum_required (VERSION 2.8)
-set (QT_MIN_VERSION "4.7.0")
-set (CMAKE_MIN_VERSION "2.8.0")
 
-set (KADU_FIND_REQUIRED true)
-set (KADU_INSTALLS_SDK TRUE)
-include (FindKadu)
+# Needed for FindQCA2.cmake when building externally
+list (INSERT CMAKE_MODULE_PATH 0 "${CMAKE_CURRENT_SOURCE_DIR}/../../cmake/Modules")
 
-include (FindPkgConfig)
+find_package (Kadu REQUIRED CONFIG)
 
 if (WIN32)
-	if (NOT WIN_QCA_DIR)
-		message (SEND_ERROR "Pass path to libqca2 -DWIN_QCA_DIR=path")
-	else (NOT WIN_QCA_DIR)
-		set (QCA2_INCLUDE_DIRS ${WIN_QCA_DIR}/include/QtCrypto)
-		set (QCA2_LIBRARIES optimized qca2 debug qcad2)
-
-		if (MSVC)
-			set (QCA2_LIBRARY_DIRS ${WIN_QCA_DIR}/lib)
-		else (MSVC)
-			set (QCA2_LIBRARY_DIRS ${WIN_QCA_DIR}/bin)
-		endif (MSVC)
-	endif (NOT WIN_QCA_DIR)
-
-	if (NOT WIN_ZLIB_DIR)
-		message (SEND_ERROR "Pass path to zlib -DWIN_ZLIB_DIR=path")
-	else (NOT WIN_ZLIB_DIR)
-		set (ZLIB_INCLUDE_DIRS ${WIN_ZLIB_DIR}/include)
-
-		if (MSVC)
-			set (ZLIB_LIBRARY_DIRS ${WIN_ZLIB_DIR}/lib)
-			set (ZLIB_LIBRARIES zlib)
-		else (MSVC)
-			set (ZLIB_LIBRARY_DIRS ${WIN_ZLIB_DIR}/bin)
-			set (ZLIB_LIBRARIES zlib1)
-		endif (MSVC)
-	endif (NOT WIN_ZLIB_DIR)
-
 	if (NOT WIN_IDN_DIR)
 		message (SEND_ERROR "Pass path to libidn -DWIN_IDN_DIR=path")
-	else (NOT WIN_IDN_DIR)
+	else ()
 		if (MSVC)
-			set (IDN_INCLUDE_DIRS ${WIN_IDN_DIR}/win32/include ${WIN_IDN_DIR}/lib)
-			set (IDN_LIBRARIES optimized ${WIN_IDN_DIR}/win32/lib/libidn.lib debug ${WIN_IDN_DIR}/win32/lib/debug/libidn.lib)
-		else (MSVC)
+			set (IDN_INCLUDE_DIRS ${WIN_IDN_DIR}/windows/include ${WIN_IDN_DIR}/lib)
+			set (IDN_LIBRARIES optimized ${WIN_IDN_DIR}/windows/lib/libidn.lib debug ${WIN_IDN_DIR}/windows/lib/debug/libidn.lib)
+		else ()
 			set (IDN_INCLUDE_DIRS ${WIN_IDN_DIR}/include)
 			set (IDN_LIBRARY_DIRS ${WIN_IDN_DIR}/bin)
 			set (IDN_LIBRARIES idn-11)
-		endif (MSVC)
-	endif (NOT WIN_IDN_DIR)
-else (WIN32)
-	pkg_search_module (QCA2 REQUIRED qca2)
+		endif ()
+	endif ()
+else ()
+	find_package (PkgConfig)
 	pkg_search_module (IDN REQUIRED libidn)
+	pkg_search_module (ZLIB zlib)
+endif ()
 
-	include (FindZLIB)
-	if (NOT ZLIB_FOUND)
-		pkg_search_module (ZLIB REQUIRED zlib)
-	endif (NOT ZLIB_FOUND)
-endif (WIN32)
+if (NOT ZLIB_FOUND)
+	find_package (ZLIB REQUIRED)
+endif ()
+
+find_package (QCA2 REQUIRED)
 
 if (APPLE)
 	if (QCA_FRAMEWORK_DIR)
-		set (QCA2_INCLUDE_DIRS ${QCA_FRAMEWORK_DIR}/qca.framework/Headers/)
-		set (QCA2_LIBRARY_DIRS ${QCA_FRAMEWORK_DIR}/qca.framework/)
+		set (QCA2_INCLUDE_DIR ${QCA_FRAMEWORK_DIR}/qca.framework/Headers/)
 		set (QCA2_LIBRARIES "-framework qca")
-	endif (QCA_FRAMEWORK_DIR)
-endif (APPLE)
+		link_directories (${QCA_FRAMEWORK_DIR}/qca.framework/)
+	endif ()
+endif ()
 
 kadu_api_directories (plugins/jabber_protocol
 	actions
@@ -95,9 +66,7 @@ set (SOURCES
 	certificates/certificate-helpers.cpp
 	certificates/trusted-certificates-manager.cpp
 
-	client/jabber-client.cpp
 	client/mini-client.cpp
-	client/pong-server.cpp
 
 	file-transfer/jabber-file-transfer-handler.cpp
 	file-transfer/s5b-server-manager.cpp
@@ -118,11 +87,11 @@ set (SOURCES
 	resource/jabber-resource.cpp
 	resource/jabber-resource-pool.cpp
 
-	server/jabber-avatar-fetcher.cpp
-	server/jabber-avatar-pep-fetcher.cpp
+	server/jabber-avatar-downloader.cpp
+	server/jabber-avatar-pep-downloader.cpp
 	server/jabber-avatar-pep-uploader.cpp
 	server/jabber-avatar-uploader.cpp
-	server/jabber-avatar-vcard-fetcher.cpp
+	server/jabber-avatar-vcard-downloader.cpp
 	server/jabber-avatar-vcard-uploader.cpp
 	server/jabber-server-change-password.cpp
 	server/jabber-server-register-account.cpp
@@ -130,29 +99,34 @@ set (SOURCES
 	services/jabber-avatar-service.cpp
 	services/jabber-chat-service.cpp
 	services/jabber-chat-state-service.cpp
+	services/jabber-client-info-service.cpp
+	services/jabber-connection-service.cpp
 	services/jabber-contact-personal-info-service.cpp
 	services/jabber-file-transfer-service.cpp
+	services/jabber-pep-service.cpp
 	services/jabber-personal-info-service.cpp
 	services/jabber-roster-service.cpp
+	services/jabber-server-info-service.cpp
+	services/jabber-stream-debug-service.cpp
 	services/jabber-subscription-service.cpp
+	services/jabber-vcard-downloader.cpp
+	services/jabber-vcard-service.cpp
+	services/jabber-vcard-uploader.cpp
 
 	tasks/pep-get-task.cpp
 	tasks/pep-publish-task.cpp
 	tasks/pep-retract-task.cpp
 
-	utils/jid-util.cpp
-	utils/pep-manager.cpp
-	utils/server-info-manager.cpp
-	utils/vcard-factory.cpp
-
 	iris-status-adapter.cpp
 	jabber-account-details.cpp
 	jabber-contact-details.cpp
+	jabber-error-helper.cpp
 	jabber-id-validator.cpp
 	jabber-protocol.cpp
 	jabber-protocol-factory.cpp
 	jabber-protocol-plugin.cpp
 	jabber-status-adapter.cpp
+	jabber-url-dom-visitor-provider.cpp
 	jabber-url-handler.cpp
 	facebook-protocol-factory.cpp
 	gtalk-protocol-factory.cpp
@@ -165,9 +139,7 @@ set (MOC_SOURCES
 	certificates/certificate-display-dialog.h
 	certificates/trusted-certificates-manager.h
 
-	client/jabber-client.h
 	client/mini-client.h
-	client/pong-server.h
 
 	file-transfer/jabber-file-transfer-handler.h
 	file-transfer/s5b-server-manager.h
@@ -186,11 +158,11 @@ set (MOC_SOURCES
 	resource/jabber-resource.h
 	resource/jabber-resource-pool.h
 
-	server/jabber-avatar-fetcher.h
-	server/jabber-avatar-pep-fetcher.h
+	server/jabber-avatar-downloader.h
+	server/jabber-avatar-pep-downloader.h
 	server/jabber-avatar-pep-uploader.h
 	server/jabber-avatar-uploader.h
-	server/jabber-avatar-vcard-fetcher.h
+	server/jabber-avatar-vcard-downloader.h
 	server/jabber-avatar-vcard-uploader.h
 	server/jabber-server-change-password.h
 	server/jabber-server-register-account.h
@@ -198,19 +170,23 @@ set (MOC_SOURCES
 	services/jabber-avatar-service.h
 	services/jabber-chat-service.h
 	services/jabber-chat-state-service.h
+	services/jabber-client-info-service.h
+	services/jabber-connection-service.h
 	services/jabber-contact-personal-info-service.h
 	services/jabber-file-transfer-service.h
+	services/jabber-pep-service.h
 	services/jabber-personal-info-service.h
 	services/jabber-roster-service.h
+	services/jabber-server-info-service.h
+	services/jabber-stream-debug-service.h
 	services/jabber-subscription-service.h
+	services/jabber-vcard-downloader.h
+	services/jabber-vcard-service.h
+	services/jabber-vcard-uploader.h
 
 	tasks/pep-get-task.h
 	tasks/pep-publish-task.h
 	tasks/pep-retract-task.h
-
-	utils/pep-manager.h
-	utils/server-info-manager.h
-	utils/vcard-factory.h
 
 	facebook-protocol-factory.h
 	gtalk-protocol-factory.h
@@ -221,11 +197,11 @@ set (MOC_SOURCES
 	jabber-url-handler.h
 )
 
-add_definitions (${QCA2_CFLAGS_OTHER} ${IDN_CFLAGS_OTHER} ${ZLIB_CFLAGS_OTHER} -DIRISNET_STATIC)
+add_definitions (${QCA2_DEFINITIONS} ${IDN_CFLAGS_OTHER} ${ZLIB_CFLAGS_OTHER} -DIRISNET_STATIC)
 add_subdirectory (3rdparty)
 
 include_directories (
-	${QCA2_INCLUDE_DIRS}
+	${QCA2_INCLUDE_DIR}
 
 	${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/libiris/include
 	${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/libiris/include/iris
@@ -239,9 +215,9 @@ include_directories (
 set (LIBRARIES 3rdparty ${QCA2_LIBRARIES} ${IDN_LIBRARIES} ${ZLIB_LIBRARIES} ${QT_LIBRARIES})
 if (WIN32)
 	set (LIBRARIES ${LIBRARIES} advapi32 ws2_32)
-endif (WIN32)
+endif ()
 
-link_directories (${CMAKE_CURRENT_BUILD_DIR}/3rdparty ${QCA2_LIBRARY_DIRS} ${IDN_LIBRARY_DIRS} ${ZLIB_LIBRARY_DIRS})
+link_directories (${CMAKE_CURRENT_BUILD_DIR}/3rdparty ${IDN_LIBRARY_DIRS} ${ZLIB_LIBRARY_DIRS})
 
 set (CONFIGURATION_FILES
 	data/configuration/jabber_protocol.ui

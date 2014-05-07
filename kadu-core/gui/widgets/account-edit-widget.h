@@ -1,8 +1,9 @@
 /*
  * %kadu copyright begin%
  * Copyright 2008 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2012 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2008, 2009 Michał Podsiadlik (michal@kadu.net)
- * Copyright 2007, 2008, 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2007, 2008, 2009, 2010, 2011, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2007, 2008 Dawid Stawiarski (neeo@kadu.net)
  * %kadu copyright end%
  *
@@ -26,23 +27,57 @@
 #include <QtGui/QWidget>
 
 #include "accounts/account.h"
+#include "gui/widgets/account-configuration-widget.h"
 #include "gui/widgets/modal-configuration-widget.h"
 #include "exports.h"
 
-class KADUAPI AccountEditWidget : public ModalConfigurationWidget
+class QTabWidget;
+class QPushButton;
+
+class AccountConfigurationWidget;
+class AccountConfigurationWidgetFactory;
+class AccountConfigurationWidgetFactoryRepository;
+class CompositeConfigurationValueStateNotifier;
+class SimpleConfigurationValueStateNotifier;
+
+class KADUAPI AccountEditWidget : public AccountConfigurationWidget
 {
 	Q_OBJECT
 
-	Account MyAccount;
+	AccountConfigurationWidgetFactoryRepository *MyAccountConfigurationWidgetFactoryRepository;
+	QMap<AccountConfigurationWidgetFactory *, AccountConfigurationWidget *> AccountConfigurationWidgets;
+	SimpleConfigurationValueStateNotifier *StateNotifier;
+	CompositeConfigurationValueStateNotifier *CompositeStateNotifier;
+
+private slots:
+	void factoryRegistered(AccountConfigurationWidgetFactory *factory);
+	void factoryUnregistered(AccountConfigurationWidgetFactory *factory);
+	virtual void removeAccount() = 0;
 
 protected:
-	Account account() { return MyAccount; }
+	AccountConfigurationWidgetFactoryRepository * accountConfigurationWidgetFactoryRepository() const;
+
+	void applyAccountConfigurationWidgets();
+	void cancelAccountConfigurationWidgets();
+
+	SimpleConfigurationValueStateNotifier * simpleStateNotifier() const;
 
 public:
-	explicit AccountEditWidget(Account account, QWidget *parent = 0) :
-			ModalConfigurationWidget(parent), MyAccount(account) {}
-	virtual ~AccountEditWidget() {}
+	explicit AccountEditWidget(AccountConfigurationWidgetFactoryRepository *accountConfigurationWidgetFactoryRepository,
+							   Account account, QWidget *parent = 0);
+	virtual ~AccountEditWidget();
 
+	virtual const ConfigurationValueStateNotifier * stateNotifier() const;
+
+	QList<AccountConfigurationWidget *> accountConfigurationWidgets() const;
+
+signals:
+	void widgetAdded(AccountConfigurationWidget *widget);
+	void widgetRemoved(AccountConfigurationWidget *widget);
+
+public slots:
+	virtual void apply() = 0;
+	virtual void cancel() = 0;
 };
 
 #endif // ACCOUNT_EDIT_WIDGET_H

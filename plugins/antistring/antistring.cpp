@@ -3,8 +3,8 @@
  * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2008 Michał Podsiadlik (michal@kadu.net)
- * Copyright 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2008, 2009, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -23,9 +23,9 @@
 
 #include <QtCore/QFile>
 
-#include "accounts/account.h"
-#include "protocols/protocol.h"
-#include "protocols/services/chat-service.h"
+#include "core/core.h"
+#include "message/message-manager.h"
+#include "services/message-filter-service.h"
 
 #include "antistring-notification.h"
 
@@ -47,60 +47,32 @@ void Antistring::destroyInstance()
 
 Antistring::Antistring()
 {
-	triggerAllAccountsRegistered();
+	Core::instance()->messageFilterService()->registerMessageFilter(this);
 }
 
 Antistring::~Antistring()
 {
-	triggerAllAccountsUnregistered();
+	Core::instance()->messageFilterService()->unregisterMessageFilter(this);
 }
 
-ChatService * Antistring::chatService(Account account) const
-{
-	if (!account.protocolHandler())
-		return 0;
-
-	return account.protocolHandler()->chatService();
-}
-
-void Antistring::accountRegistered(Account account)
-{
-	ChatService *accountChatService = chatService(account);
-	if (!accountChatService)
-		return;
-
-	connect(accountChatService, SIGNAL(filterIncomingMessage(Chat, Contact, QString &, bool &)),
-			this, SLOT(filterIncomingMessage(Chat, Contact, QString &, bool &)));
-}
-
-void Antistring::accountUnregistered(Account account)
-{
-	ChatService *accountChatService = chatService(account);
-	if (!accountChatService)
-		return;
-
-	disconnect(accountChatService, 0, this, 0);
-}
-
-void Antistring::filterIncomingMessage(Chat chat, Contact sender, QString &message, bool &ignore)
+bool Antistring::acceptMessage(const Message &message)
 {
 	if (!Configuration.enabled())
-		return;
+		return true;
 
-	if (points(message) < 3)
-		return;
+	if (MessageTypeSent == message.type())
+		return true;
 
-	AntistringNotification::notifyStringReceived(chat);
+	if (points(message.plainTextContent()) < 3)
+		return true;
 
-	ChatService *accountChatService = chatService(chat.chatAccount());
-	if (accountChatService)
-		accountChatService->sendMessage(chat, Configuration.returnMessage(), true);
-
-	if (Configuration.messageStop())
-		ignore = true;
+	AntistringNotification::notifyStringReceived(message.messageChat());
+	MessageManager::instance()->sendMessage(message.messageChat(), Configuration.returnMessage(), true);
 
 	if (Configuration.logMessage())
-		writeLog(sender, message);
+		writeLog(message.messageSender(), message.htmlContent());
+
+	return !Configuration.messageStop();
 }
 
 void Antistring::writeLog(Contact sender, const QString &message)
@@ -141,3 +113,5 @@ int Antistring::points(const QString &message)
 
 	return result;
 }
+
+#include "moc_antistring.cpp"

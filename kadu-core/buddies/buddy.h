@@ -1,12 +1,12 @@
 /*
  * %kadu copyright begin%
- * Copyright 2008, 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2008, 2009, 2010, 2010, 2011, 2012 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009, 2009 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2010 Piotr Dąbrowski (ultr@ultr.pl)
  * Copyright 2008, 2009 Michał Podsiadlik (michal@kadu.net)
  * Copyright 2009, 2009 Bartłomiej Zimoń (uzi18@o2.pl)
- * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2007, 2008, 2009, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2007, 2008 Dawid Stawiarski (neeo@kadu.net)
  * %kadu copyright end%
  *
@@ -58,15 +58,15 @@ class KADUAPI Buddy : public SharedBase<BuddyShared>
 
 public:
 	static Buddy create();
-	static Buddy loadStubFromStorage(const QSharedPointer<StoragePoint> &buddyStoragePoint);
-	static Buddy loadFromStorage(const QSharedPointer<StoragePoint> &buddyStoragePoint);
+	static Buddy loadStubFromStorage(const std::shared_ptr<StoragePoint> &buddyStoragePoint);
+	static Buddy loadFromStorage(const std::shared_ptr<StoragePoint> &buddyStoragePoint);
 	static Buddy null;
 
 	static Buddy dummy();
 
 	Buddy();
 	Buddy(BuddyShared *data);
-	Buddy(QObject *data);
+	explicit Buddy(QObject *data);
 	Buddy(const Buddy &copy);
 	virtual ~Buddy();
 
@@ -126,8 +126,5 @@ public:
 };
 
 Q_DECLARE_METATYPE(Buddy)
-
-// for MOC
-#include "buddies/group.h"
 
 #endif // BUDDY_H

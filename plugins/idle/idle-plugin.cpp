@@ -3,7 +3,7 @@
  * Copyright 2008, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2010, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -30,12 +30,12 @@ IdlePlugin::~IdlePlugin()
 {
 }
 
-int IdlePlugin::init(bool firstLoad)
+bool IdlePlugin::init(bool firstLoad)
 {
 	Q_UNUSED(firstLoad)
 
 	IdleInstance = new Idle(this);
-	return 0;
+	return true;
 }
 
 void IdlePlugin::done()
@@ -45,3 +45,5 @@ void IdlePlugin::done()
 }
 
 Q_EXPORT_PLUGIN2(idle, IdlePlugin)
+
+#include "moc_idle-plugin.cpp"

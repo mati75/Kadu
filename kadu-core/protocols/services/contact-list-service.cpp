@@ -1,9 +1,9 @@
 /*
  * %kadu copyright begin%
  * Copyright 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2010 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2010, 2012 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -25,15 +25,14 @@
 #include "contacts/contact.h"
 #include "core/core.h"
 #include "gui/windows/message-dialog.h"
-#include "protocols/protocol.h"
 #include "protocols/roster.h"
 #include "protocols/services/roster/roster-entry.h"
 #include "debug.h"
 
 #include "contact-list-service.h"
 
-ContactListService::ContactListService(Protocol *protocol) :
-		QObject(protocol), CurrentProtocol(protocol)
+ContactListService::ContactListService(Account account, QObject *parent) :
+		AccountService(account, parent)
 {
 }
 
@@ -77,7 +76,11 @@ bool ContactListService::askForAddingContacts(const QMap<Buddy, Contact> &contac
 	questionString += tr("Do you want to apply the above changes to your local contact list? "
 			"Regardless of your choice, it will be sent to the server after making possible changes.");
 
-	return MessageDialog::ask(KaduIcon("dialog-question"), tr("Kadu"), questionString);
+	MessageDialog *dialog = MessageDialog::create(KaduIcon("dialog-question"), tr("Kadu"), questionString);
+	dialog->addButton(QMessageBox::Yes, tr("Apply changes"));
+	dialog->addButton(QMessageBox::No, tr("Leave contact list unchanged"));
+
+	return dialog->ask();
 }
 
 QVector<Contact> ContactListService::performAdds(const QMap<Buddy, Contact> &contactsToAdd)
@@ -135,9 +138,9 @@ QVector<Contact> ContactListService::registerBuddies(const BuddyList &buddies)
 			targetBuddy = BuddyManager::instance()->byDisplay(buddy.display(), ActionCreate);
 		targetBuddy.setAnonymous(false);
 
-		foreach (const Contact &contact, buddy.contacts(CurrentProtocol->account()))
+		foreach (const Contact &contact, buddy.contacts(account()))
 		{
-			Contact knownContact = ContactManager::instance()->byId(CurrentProtocol->account(), contact.id(), ActionReturnNull);
+			Contact knownContact = ContactManager::instance()->byId(account(), contact.id(), ActionReturnNull);
 			if (knownContact)
 			{
 				// do not import dirty removed contacts unless we will be asking the user
@@ -190,9 +193,9 @@ QVector<Contact> ContactListService::registerBuddies(const BuddyList &buddies)
 
 void ContactListService::setBuddiesList(const BuddyList &buddies, bool removeOldAutomatically)
 {
-	QList<Contact> unImportedContacts = ContactManager::instance()->contacts(CurrentProtocol->account()).toList();
+	QList<Contact> unImportedContacts = ContactManager::instance()->contacts(account()).toList();
 
-	foreach (const Contact &myselfContact, Core::instance()->myself().contacts(CurrentProtocol->account()))
+	foreach (const Contact &myselfContact, Core::instance()->myself().contacts(account()))
 		unImportedContacts.removeAll(myselfContact);
 
 	// now buddies = SERVER_CONTACTS, unImportedContacts = ALL_EVER_HAD_LOCALLY_CONTACTS
@@ -231,10 +234,14 @@ void ContactListService::setBuddiesList(const BuddyList &buddies, bool removeOld
 
 	if (!unImportedContacts.isEmpty())
 	{
-		if (removeOldAutomatically || MessageDialog::ask(KaduIcon("dialog-question"),
-				tr("Kadu"),
-				tr("The following contacts from your list were not found in file:<br/><b>%1</b>.<br/>"
-				"Do you want to remove them from contact list?").arg(contactsList.join("</b>, <b>"))))
+		MessageDialog *dialog = MessageDialog::create(KaduIcon("dialog-question"),
+				      tr("Kadu"),
+				      tr("The following contacts from your list were not found in file:<br/><b>%1</b>.<br/>"
+				      "Do you want to remove them from contact list?").arg(contactsList.join("</b>, <b>")));
+		dialog->addButton(QMessageBox::Yes, tr("Remove"));
+		dialog->addButton(QMessageBox::No, tr("Cancel"));
+
+		if (removeOldAutomatically || dialog->ask())
 		{
 			foreach (const Contact &contact, unImportedContacts)
 			{
@@ -250,17 +257,4 @@ void ContactListService::setBuddiesList(const BuddyList &buddies, bool removeOld
 	ConfigurationManager::instance()->flush();
 }
 
-void ContactListService::importContactList()
-{
-	connect(this, SIGNAL(contactListImported(bool,BuddyList)),
-			this, SLOT(contactListImportedSlot(bool,BuddyList)));
-}
-
-void ContactListService::contactListImportedSlot(bool ok, const BuddyList &buddies)
-{
-	disconnect(this, SIGNAL(contactListImported(bool,BuddyList)),
-			this, SLOT(contactListImportedSlot(bool,BuddyList)));
-
-	if (ok)
-		setBuddiesList(buddies, true);
-}
+#include "moc_contact-list-service.cpp"

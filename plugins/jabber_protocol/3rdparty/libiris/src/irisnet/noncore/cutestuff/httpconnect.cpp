@@ -20,10 +20,11 @@
 
 #include "httpconnect.h"
 
-#include <qstringlist.h>
+#include <QStringList>
 #include <QByteArray>
-#include "bsocket.h"
 #include <QtCrypto>
+
+#include "bsocket.h"
 
 //#define PROX_DEBUG
 
@@ -64,7 +65,7 @@ static QString extractLine(QByteArray *buf, bool *found)
 	}
 	else {
 		// Found newline
-		QString s = QString::fromAscii(buf->left(index));
+		QString s = QString::fromLatin1(buf->left(index));
 		buf->remove(0, index + 2);
 
 		if (found)
@@ -124,19 +125,19 @@ HttpConnect::HttpConnect(QObject *parent)
 	connect(&d->sock, SIGNAL(connectionClosed()), SLOT(sock_connectionClosed()));
 	connect(&d->sock, SIGNAL(delayedCloseFinished()), SLOT(sock_delayedCloseFinished()));
 	connect(&d->sock, SIGNAL(readyRead()), SLOT(sock_readyRead()));
-	connect(&d->sock, SIGNAL(bytesWritten(int)), SLOT(sock_bytesWritten(int)));
+	connect(&d->sock, SIGNAL(bytesWritten(qint64)), SLOT(sock_bytesWritten(qint64)));
 	connect(&d->sock, SIGNAL(error(int)), SLOT(sock_error(int)));
 
-	reset(true);
+	resetConnection(true);
 }
 
 HttpConnect::~HttpConnect()
 {
-	reset(true);
+	resetConnection(true);
 	delete d;
 }
 
-void HttpConnect::reset(bool clear)
+void HttpConnect::resetConnection(bool clear)
 {
 	if(d->sock.state() != BSocket::Idle)
 		d->sock.close();
@@ -145,6 +146,7 @@ void HttpConnect::reset(bool clear)
 		d->recvBuf.resize(0);
 	}
 	d->active = false;
+	setOpenMode(QIODevice::NotOpen);
 }
 
 void HttpConnect::setAuth(const QString &user, const QString &pass)
@@ -155,7 +157,7 @@ void HttpConnect::setAuth(const QString &user, const QString &pass)
 
 void HttpConnect::connectToHost(const QString &proxyHost, int proxyPort, const QString &host, int port)
 {
-	reset(true);
+	resetConnection(true);
 
 	d->host = proxyHost;
 	d->port = proxyPort;
@@ -172,35 +174,21 @@ void HttpConnect::connectToHost(const QString &proxyHost, int proxyPort, const Q
 	d->sock.connectToHost(d->host, d->port);
 }
 
-bool HttpConnect::isOpen() const
-{
-	return d->active;
-}
-
 void HttpConnect::close()
 {
 	d->sock.close();
 	if(d->sock.bytesToWrite() == 0)
-		reset();
+		resetConnection();
 }
 
-void HttpConnect::write(const QByteArray &buf)
+qint64 HttpConnect::writeData(const char *data, qint64 maxSize)
 {
 	if(d->active)
-		d->sock.write(buf);
+		return d->sock.write(data, maxSize);
+	return 0;
 }
 
-QByteArray HttpConnect::read(int bytes)
-{
-	return ByteStream::read(bytes);
-}
-
-int HttpConnect::bytesAvailable() const
-{
-	return ByteStream::bytesAvailable();
-}
-
-int HttpConnect::bytesToWrite() const
+qint64 HttpConnect::bytesToWrite() const
 {
 	if(d->active)
 		return d->sock.bytesToWrite();
@@ -237,28 +225,28 @@ void HttpConnect::sock_connected()
 void HttpConnect::sock_connectionClosed()
 {
 	if(d->active) {
-		reset();
+		resetConnection();
 		connectionClosed();
 	}
 	else {
-		error(ErrProxyNeg);
+		setError(ErrProxyNeg);
 	}
 }
 
 void HttpConnect::sock_delayedCloseFinished()
 {
 	if(d->active) {
-		reset();
+		resetConnection();
 		delayedCloseFinished();
 	}
 }
 
 void HttpConnect::sock_readyRead()
 {
-	QByteArray block = d->sock.read();
+	QByteArray block = d->sock.readAll();
 
 	if(!d->active) {
-		ByteStream::appendArray(&d->recvBuf, block);
+		d->recvBuf += block;
 
 		if(d->inHeader) {
 			// grab available lines
@@ -286,8 +274,8 @@ void HttpConnect::sock_readyRead()
 #ifdef PROX_DEBUG
 					fprintf(stderr, "HttpConnect: invalid header!\n");
 #endif
-					reset(true);
-					error(ErrProxyNeg);
+					resetConnection(true);
+					setError(ErrProxyNeg);
 					return;
 				}
 				else {
@@ -303,6 +291,7 @@ void HttpConnect::sock_readyRead()
 					fprintf(stderr, "HttpConnect: << Success >>\n");
 #endif
 					d->active = true;
+					setOpenMode(QIODevice::ReadWrite);
 					connected();
 
 					if(!d->recvBuf.isEmpty()) {
@@ -339,8 +328,8 @@ void HttpConnect::sock_readyRead()
 #ifdef PROX_DEBUG
 					fprintf(stderr, "HttpConnect: << Error >> [%s]\n", qPrintable(errStr));
 #endif
-					reset(true);
-					error(err);
+					resetConnection(true);
+					setError(err);
 					return;
 				}
 			}
@@ -353,7 +342,7 @@ void HttpConnect::sock_readyRead()
 	}
 }
 
-void HttpConnect::sock_bytesWritten(int x)
+void HttpConnect::sock_bytesWritten(qint64 x)
 {
 	if(d->toWrite > 0) {
 		int size = x;
@@ -370,17 +359,17 @@ void HttpConnect::sock_bytesWritten(int x)
 void HttpConnect::sock_error(int x)
 {
 	if(d->active) {
-		reset();
-		error(ErrRead);
+		resetConnection();
+		setError(ErrRead);
 	}
 	else {
-		reset(true);
+		resetConnection(true);
 		if(x == BSocket::ErrHostNotFound)
-			error(ErrProxyConnect);
+			setError(ErrProxyConnect);
 		else if(x == BSocket::ErrConnectionRefused)
-			error(ErrProxyConnect);
+			setError(ErrProxyConnect);
 		else if(x == BSocket::ErrRead)
-			error(ErrProxyNeg);
+			setError(ErrProxyNeg);
 	}
 }
 

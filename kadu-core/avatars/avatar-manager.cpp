@@ -1,10 +1,10 @@
 /*
  * %kadu copyright begin%
- * Copyright 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2009, 2010, 2011, 2012 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009, 2010 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
  * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -50,7 +50,8 @@ AvatarManager * AvatarManager::instance()
 	return Instance;
 }
 
-AvatarManager::AvatarManager()
+AvatarManager::AvatarManager() :
+		UpdateTimer{nullptr}
 {
 }
 
@@ -121,6 +122,10 @@ void AvatarManager::contactAdded(Contact contact)
 bool AvatarManager::needUpdate(const Contact &contact)
 {
 	QMutexLocker locker(&mutex());
+
+	Protocol *protocol = contact.contactAccount().protocolHandler();
+	if (!protocol || !protocol->isConnected())
+		return false;
 
 	if (!contact.contactAvatar())
 		return true;
@@ -222,3 +227,5 @@ Avatar AvatarManager::byContact(Contact contact, NotFoundAction action)
 
 	return avatar;
 }
+
+#include "moc_avatar-manager.cpp"

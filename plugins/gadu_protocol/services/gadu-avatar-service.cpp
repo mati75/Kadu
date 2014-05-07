@@ -2,7 +2,8 @@
  * %kadu copyright begin%
  * Copyright 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2009, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -21,27 +22,28 @@
 
 #include <QtXml/QDomDocument>
 
-#include "server/gadu-avatar-fetcher.h"
+#include "server/gadu-avatar-downloader.h"
 #include "server/gadu-avatar-uploader.h"
+
 #include "gadu-avatar-service.h"
 
-void GaduAvatarService::fetchAvatar(Contact contact)
+GaduAvatarService::GaduAvatarService(Account account, QObject *parent) :
+		AvatarService(account, parent)
 {
-	if (contact.id().isEmpty())
-		return;
-
-	GaduAvatarFetcher *avatarFetcher = new GaduAvatarFetcher(contact, this);
-	connect(avatarFetcher, SIGNAL(avatarFetched(Contact, bool)),
-			this, SIGNAL(avatarFetched(Contact, bool)));
-	avatarFetcher->fetchAvatar();
 }
 
-void GaduAvatarService::uploadAvatar(QImage avatar)
+GaduAvatarService::~GaduAvatarService()
 {
-	if (account().accountContact().id().isEmpty())
-		return;
-
-	GaduAvatarUploader *avatarUploader = new GaduAvatarUploader(account(), this);
-	connect(avatarUploader, SIGNAL(avatarUploaded(bool, QImage)), this, SIGNAL(avatarUploaded(bool, QImage)));
-	avatarUploader->uploadAvatar(avatar);
 }
+
+AvatarDownloader * GaduAvatarService::createAvatarDownloader()
+{
+	return new GaduAvatarDownloader(this);
+}
+
+AvatarUploader * GaduAvatarService::createAvatarUploader()
+{
+	return new GaduAvatarUploader(this);
+}
+
+#include "moc_gadu-avatar-service.cpp"

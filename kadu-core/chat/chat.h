@@ -1,11 +1,11 @@
 /*
  * %kadu copyright begin%
- * Copyright 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2009, 2010, 2011, 2012 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2009 Michał Podsiadlik (michal@kadu.net)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
- * Copyright 2009, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2009, 2009, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -53,13 +53,13 @@ class KADUAPI Chat : public SharedBase<ChatShared>
 
 public:
 	static Chat create();
-	static Chat loadStubFromStorage(const QSharedPointer<StoragePoint> &chatStoragePoint);
-	static Chat loadFromStorage(const QSharedPointer<StoragePoint> &chatStoragePoint);
+	static Chat loadStubFromStorage(const std::shared_ptr<StoragePoint> &chatStoragePoint);
+	static Chat loadFromStorage(const std::shared_ptr<StoragePoint> &chatStoragePoint);
 	static Chat null;
 
 	Chat();
 	Chat(ChatShared *data);
-	Chat(QObject *data);
+	explicit Chat(QObject *data);
 	Chat(const Chat &copy);
 
 	virtual ~Chat();
@@ -147,8 +147,5 @@ public:
  */
 
 Q_DECLARE_METATYPE(Chat)
-
-// for MOC
-#include "buddies/group.h"
 
 #endif // CHAT_H

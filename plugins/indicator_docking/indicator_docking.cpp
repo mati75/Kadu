@@ -1,8 +1,10 @@
 /*
  * %kadu copyright begin%
+ * Copyright 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2012 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2011 Marcin Dawidziuk (cinekdawidziuk@gmail.com)
- * Copyright 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2011, 2012, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -26,6 +28,7 @@
 #include <QtGui/QImage>
 #include <QtGui/QMouseEvent>
 
+#include <libindicate-qt/qindicateindicator.h>
 #include <libindicate-qt/qindicateserver.h>
 
 #include "avatars/avatar.h"
@@ -39,12 +42,16 @@
 #include "contacts/contact-set.h"
 #include "contacts/contact.h"
 #include "core/core.h"
-#include "gui/widgets/chat-widget-manager.h"
-#include "gui/widgets/chat-widget.h"
+#include "gui/widgets/chat-widget/chat-widget-manager.h"
+#include "gui/widgets/chat-widget/chat-widget-repository.h"
+#include "gui/widgets/chat-widget/chat-widget.h"
 #include "message/message-manager.h"
+#include "message/unread-message-repository.h"
 #include "misc/kadu-paths.h"
-#include "notify/new-message-notification.h"
 #include "notify/notification-manager.h"
+#include "notify/notification/new-message-notification.h"
+#include "notify/notification/notification.h"
+#include "services/notification-service.h"
 
 #include "plugins/docking/docking.h"
 
@@ -79,8 +86,8 @@ IndicatorDocking::IndicatorDocking() :
 
 	connect(Server, SIGNAL(serverDisplay()), this, SLOT(showMainWindow()));
 	connect(ChatManager::instance(), SIGNAL(chatUpdated(Chat)), this, SLOT(chatUpdated(Chat)));
-	connect(ChatWidgetManager::instance(), SIGNAL(chatWidgetCreated(ChatWidget*)), this, SLOT(chatWidgetCreated(ChatWidget*)));
-	connect(NotificationManager::instance(), SIGNAL(silentModeToggled(bool)), this, SLOT(silentModeToggled(bool)));
+	connect(Core::instance()->chatWidgetRepository(), SIGNAL(chatWidgetAdded(ChatWidget*)), this, SLOT(chatWidgetAdded(ChatWidget*)));
+	connect(Core::instance()->notificationService(), SIGNAL(silentModeToggled(bool)), this, SLOT(silentModeToggled(bool)));
 
 	createDefaultConfiguration();
 
@@ -97,14 +104,14 @@ IndicatorDocking::~IndicatorDocking()
 
 	disconnect(Server, 0, this, 0);
 	disconnect(ChatManager::instance(), 0, this, 0);
-	disconnect(ChatWidgetManager::instance(), 0, this, 0);
+	disconnect(Core::instance()->chatWidgetRepository(), 0, this, 0);
 
 	QSet<QIndicate::Indicator *> indicatorsToDelete;
 	IndMMap::const_iterator end = IndicatorsMap.constEnd();
 	for (IndMMap::const_iterator it = IndicatorsMap.constBegin(); it != end; ++it)
 	{
 		disconnect(it.value(), 0, this, 0);
-		it.value()->release();
+		it.value()->release(this);
 		// because it is a multimap, keys may repeat
 		indicatorsToDelete.insert(it.key());
 	}
@@ -117,8 +124,8 @@ IndicatorDocking::~IndicatorDocking()
 
 void IndicatorDocking::indicateUnreadMessages()
 {
-	if (config_file.readBoolEntry("Notify", "NewChat_IndicatorNotify") && !NotificationManager::instance()->silentMode())
-		foreach (const Message &message, MessageManager::instance()->allUnreadMessages())
+	if (config_file.readBoolEntry("Notify", "NewChat_IndicatorNotify") && !Core::instance()->notificationService()->silentMode())
+		foreach (const Message &message, Core::instance()->unreadMessageRepository()->allUnreadMessages())
 			notify(new MessageNotification(MessageNotification::NewChat, message));
 }
 
@@ -151,7 +158,7 @@ void IndicatorDocking::notify(Notification *notification)
 		return;
 
 	chatNotification->clearDefaultCallback();
-	chatNotification->acquire();
+	chatNotification->acquire(this);
 
 	// First we need to search for exactly the same chat.
 	QIndicate::Indicator *indicator = 0;
@@ -159,7 +166,7 @@ void IndicatorDocking::notify(Notification *notification)
 	if (it != IndicatorsMap.end())
 	{
 		disconnect(it.value(), 0, this, 0);
-		it.value()->release();
+		it.value()->release(this);
 		it.value() = chatNotification;
 		indicator = it.key();
 	}
@@ -226,7 +233,7 @@ void IndicatorDocking::chatUpdated(const Chat &chat)
 		removeNotification(it.value());
 }
 
-void IndicatorDocking::chatWidgetCreated(ChatWidget *chatWidget)
+void IndicatorDocking::chatWidgetAdded(ChatWidget *chatWidget)
 {
 	// When a chat widget is created, it is filled with all messages from given aggregate chat.
 
@@ -258,7 +265,7 @@ void IndicatorDocking::displayIndicator(QIndicate::Indicator *indicator)
 
 	chatNotification->openChat();
 
-	// chatUpdated() or chatWidgetCreated() slot will take care of deleting indicator
+	// chatUpdated() or chatWidgetAdded() slot will take care of deleting indicator
 }
 
 void IndicatorDocking::removeNotification(ChatNotification *chatNotification)
@@ -272,7 +279,7 @@ void IndicatorDocking::removeNotification(ChatNotification *chatNotification)
 
 	QIndicate::Indicator *indicator = it.key();
 	disconnect(it.value(), 0, this, 0);
-	it.value()->release();
+	it.value()->release(this);
 	IndicatorsMap.erase(it);
 
 	if (!IndicatorsMap.contains(indicator))
@@ -318,3 +325,5 @@ void IndicatorDocking::createDefaultConfiguration()
 	config_file.addVariable("Notify", "NewChat_IndicatorNotify", true);
 	config_file.addVariable("Notify", "NewMessage_IndicatorNotify", true);
 }
+
+#include "moc_indicator_docking.cpp"

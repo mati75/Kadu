@@ -2,7 +2,7 @@
  * %kadu copyright begin%
  * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2009, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
@@ -32,8 +32,7 @@
  * Contructs empty object with given uuid. When uuid is invalid (NULL)
  * new uuid is created and assigned to object.
  */
-Shared::Shared(const QUuid &uuid) :
-		MyChangeNotifier(new ChangeNotifier())
+Shared::Shared(const QUuid &uuid)
 {
 	setUuid(uuid.isNull() ? QUuid::createUuid() : uuid);
 }
@@ -58,8 +57,6 @@ Shared::Shared(const QUuid &uuid) :
 Shared::~Shared()
 {
 	ref.ref();
-
-	delete MyChangeNotifier;
 }
 
 /**
@@ -129,7 +126,7 @@ void Shared::aboutToBeRemoved()
 {
 }
 
-ChangeNotifier * Shared::changeNotifier() const
+ChangeNotifier & Shared::changeNotifier()
 {
 	return MyChangeNotifier;
 }

@@ -1,6 +1,8 @@
 /*
  * %kadu copyright begin%
- * Copyright 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2012 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -39,7 +41,7 @@ DeleteTalkableAction::DeleteTalkableAction(QObject *parent) :
 	setName("deleteUsersAction");
 	setIcon(KaduIcon("edit-delete"));
 	setShortcut("kadu_deleteuser");
-	setText(tr("Delete Buddy..."));
+	setText(tr("Delete Buddy"));
 
 	registerAction();
 }
@@ -74,12 +76,12 @@ Buddy DeleteTalkableAction::actionBuddy(ActionContext *context) const
 
 void DeleteTalkableAction::setChatActionTitleAndIcon(Action *action)
 {
-	action->setText(qApp->translate("KaduWindowActions", "Delete Chat..."));
+	action->setText(QCoreApplication::translate("KaduWindowActions", "Delete Chat"));
 }
 
 void DeleteTalkableAction::setBuddyActionTitleAndIcon(Action *action)
 {
-	action->setText(qApp->translate("KaduWindowActions", "Delete Buddy..."));
+	action->setText(QCoreApplication::translate("KaduWindowActions", "Delete Buddy"));
 }
 
 void DeleteTalkableAction::updateChatActionState(Action *action)
@@ -138,8 +140,12 @@ void DeleteTalkableAction::chatActionTriggered(ActionContext *context)
 	if (!chat)
 		return;
 
-	if (MessageDialog::ask(KaduIcon("dialog-warning"), tr("Delete Chat"),
-	                        tr("<b>%1</b> chat will be deleted.<br/>Are you sure?").arg(chat.display())))
+	MessageDialog *dialog = MessageDialog::create(KaduIcon("dialog-warning"), tr("Delete Chat"),
+	                        tr("<b>%1</b> chat will be deleted.<br/>Are you sure?").arg(chat.display()));
+	dialog->addButton(QMessageBox::Yes, tr("Delete chat"));
+	dialog->addButton(QMessageBox::No, tr("Cancel"));
+
+	if (dialog->ask())
 		chat.setDisplay(QString());
 }
 
@@ -173,3 +179,5 @@ void DeleteTalkableAction::trigger(ActionContext *context)
 			break;
 	}
 }
+
+#include "moc_delete-talkable-action.cpp"

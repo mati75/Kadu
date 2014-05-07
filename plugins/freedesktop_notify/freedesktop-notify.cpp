@@ -2,10 +2,10 @@
  * Copyright 2009 Jacek Jabłoński
  * %kadu copyright begin%
  * Copyright 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2010 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2010, 2012 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2011 Piotr Dąbrowski (ultr@ultr.pl)
- * Copyright 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -30,13 +30,15 @@
 #include <QtDBus/QDBusServiceWatcher>
 
 #include "configuration/configuration-file.h"
+#include "core/core.h"
+#include "dom/dom-processor-service.h"
 #include "icons/kadu-icon.h"
 #include "misc/kadu-paths.h"
 #include "notify/notification-manager.h"
-#include "notify/notification.h"
+#include "notify/notification/aggregate-notification.h"
+#include "notify/notification/notification.h"
 #include "notify/notify-event.h"
 #include "url-handlers/url-handler-manager.h"
-#include "html_document.h"
 
 #include "freedesktop-notify.h"
 
@@ -60,8 +62,8 @@ void FreedesktopNotify::destroyInstance()
 
 FreedesktopNotify::FreedesktopNotify() :
 		Notifier("FreedesktopNotify", QT_TRANSLATE_NOOP("@default", "System notifications"), KaduIcon("kadu_icons/notify-hints")),
-		KdePlasmaNotifications(true), IsXCanonicalAppendSupported(false), UseFreedesktopStandard(false), ServerSupportsActions(true), ServerSupportsBody(true),
-		ServerSupportsHyperlinks(true), ServerSupportsMarkup(true), ServerCapabilitiesRequireChecking(false)
+		KdePlasmaNotifications(true), IsXCanonicalAppendSupported(false), ServerSupportsActions(true), ServerSupportsBody(true),
+		ServerSupportsHyperlinks(true), ServerSupportsMarkup(true), ServerCapabilitiesRequireChecking(true)
 {
 	StripBr.setPattern(QLatin1String("<br ?/?>"));
 	StripHtml.setPattern(QLatin1String("<[^>]*>"));
@@ -69,31 +71,20 @@ FreedesktopNotify::FreedesktopNotify() :
 	StripUnsupportedHtml.setPattern(QLatin1String("<(/?[^/<>][^<>]+|//[^>]*|/?[^biu])>"));
 
 	DesktopEntry = QFileInfo(KaduPaths::instance()->desktopFilePath()).baseName();
+	NotificationsInterface = new QDBusInterface("org.freedesktop.Notifications",
+			"/org/freedesktop/Notifications", "org.freedesktop.Notifications");
 
-	KNotify = new QDBusInterface("org.kde.VisualNotifications",
-			"/VisualNotifications", "org.kde.VisualNotifications");
+	QDBusServiceWatcher *watcher = new QDBusServiceWatcher(this);
+	watcher->setConnection(QDBusConnection::sessionBus());
+	watcher->setWatchMode(QDBusServiceWatcher::WatchForOwnerChange);
+	watcher->addWatchedService("org.freedesktop.Notifications");
 
-	if (!KNotify->isValid())
-	{
-		delete KNotify;
-		KNotify = new QDBusInterface("org.freedesktop.Notifications",
-				"/org/freedesktop/Notifications", "org.freedesktop.Notifications");
+	connect(watcher, SIGNAL(serviceOwnerChanged(QString,QString,QString)),
+			SLOT(slotServiceOwnerChanged(QString,QString,QString)));
 
-		QDBusServiceWatcher *watcher = new QDBusServiceWatcher(this);
-		watcher->setConnection(QDBusConnection::sessionBus());
-		watcher->setWatchMode(QDBusServiceWatcher::WatchForOwnerChange);
-		watcher->addWatchedService("org.freedesktop.Notifications");
-
-		connect(watcher, SIGNAL(serviceOwnerChanged(const QString &, const QString &, const QString &)),
-				SLOT(slotServiceOwnerChanged(const QString &, const QString &, const QString &)));
-
-		UseFreedesktopStandard = true;
-		ServerCapabilitiesRequireChecking = true;
-	}
-
-	KNotify->connection().connect(KNotify->service(), KNotify->path(), KNotify->interface(),
+	NotificationsInterface->connection().connect(NotificationsInterface->service(), NotificationsInterface->path(), NotificationsInterface->interface(),
 			"ActionInvoked", this, SLOT(actionInvoked(unsigned int, QString)));
-	KNotify->connection().connect(KNotify->service(), KNotify->path(), KNotify->interface(),
+	NotificationsInterface->connection().connect(NotificationsInterface->service(), NotificationsInterface->path(), NotificationsInterface->interface(),
 			"NotificationClosed", this, SLOT(notificationClosed(unsigned int, unsigned int)));
 
 	import_0_9_0_Configuration();
@@ -108,8 +99,8 @@ FreedesktopNotify::~FreedesktopNotify()
 {
 	NotificationManager::instance()->unregisterNotifier(this);
 
-	delete KNotify;
-	KNotify = 0;
+	delete NotificationsInterface;
+	NotificationsInterface = 0;
 }
 
 void FreedesktopNotify::checkServerCapabilities()
@@ -117,13 +108,13 @@ void FreedesktopNotify::checkServerCapabilities()
 	if (!ServerCapabilitiesRequireChecking)
 		return;
 
-	QDBusMessage replyMsg = KNotify->call(QDBus::Block, "GetServerInformation");
+	QDBusMessage replyMsg = NotificationsInterface->call(QDBus::Block, "GetServerInformation");
 	if (replyMsg.type() != QDBusMessage::ReplyMessage)
 		KdePlasmaNotifications = false;
 	else
 		KdePlasmaNotifications = replyMsg.arguments().at(0).toString().contains("Plasma") && replyMsg.arguments().at(1).toString().contains("KDE");
 
-	replyMsg = KNotify->call(QDBus::Block, "GetCapabilities");
+	replyMsg = NotificationsInterface->call(QDBus::Block, "GetCapabilities");
 	if (replyMsg.type() != QDBusMessage::ReplyMessage)
 	{
 		IsXCanonicalAppendSupported = false;
@@ -161,7 +152,17 @@ void FreedesktopNotify::notify(Notification *notification)
 
 	QList<QVariant> args;
 	args.append("Kadu");
-	args.append(0U);
+
+	unsigned int replacedNotificationId = 0U;
+	unsigned int notificationUid = NotificationMap.key(notification);
+
+	if (notificationUid)
+	{
+		notificationClosed(notification);
+		replacedNotificationId = notificationUid;
+	}
+
+	args.append(replacedNotificationId);
 
 	KaduIcon icon(notification->icon());
 	if (icon.isNull())
@@ -172,10 +173,6 @@ void FreedesktopNotify::notify(Notification *notification)
 	else
 		icon.setSize("64x64");
 	args.append(icon.fullPath());
-
-	// the new spec doesn't have this
-	if (!UseFreedesktopStandard)
-		args.append(QString());
 
 	QString summary;
 	if (useKdeStyle)
@@ -189,13 +186,15 @@ void FreedesktopNotify::notify(Notification *notification)
 
 	args.append(summary);
 
-	bool msgRcv = (notification->type() == "NewMessage" || notification->type() == "NewChat");
+	bool typeNewMessage = (notification->type() == "NewMessage" || notification->type() == "NewChat");
 	QString body;
 	if (ServerSupportsBody)
 	{
-		if (!msgRcv || ShowContentMessage)
+		if (!typeNewMessage || ShowContentMessage)
 		{
-			body = notification->details();
+			body = !notification->details().isEmpty()
+					? notification->details().last()
+					: QString();
 			body.replace(StripBr, QLatin1String("\n"));
 			if (ServerSupportsMarkup)
 				body.remove(StripUnsupportedHtml);
@@ -215,16 +214,13 @@ void FreedesktopNotify::notify(Notification *notification)
 				body.prepend(notification->text() + "\n<small>");
 				body.append("</small>");
 			}
+
+			if (body.length() > CiteSign)
+				body = body.left(CiteSign) + QLatin1String("...");
 		}
 
 		if (ServerSupportsHyperlinks && !body.isEmpty())
-		{
-			HtmlDocument doc;
-			doc.parseHtml(body);
-			UrlHandlerManager::instance()->convertAllUrls(doc, true);
-
-			body = doc.generateHtml();
-		}
+			body = Core::instance()->domProcessorService()->process(body);
 	}
 
 	args.append(body);
@@ -232,7 +228,15 @@ void FreedesktopNotify::notify(Notification *notification)
 	QStringList actions;
 	if (ServerSupportsActions)
 	{
-		foreach (const Notification::Callback &callback, notification->getCallbacks())
+		Notification *firstNotification = notification;
+
+		AggregateNotification *aggregateNotification = qobject_cast<AggregateNotification *>(notification);
+		if (aggregateNotification)
+		{
+			firstNotification = aggregateNotification->notifications().first();
+		}
+
+		foreach (const Notification::Callback &callback, firstNotification->getCallbacks())
 		{
 			actions << callback.Signature;
 			actions << callback.Caption;
@@ -241,7 +245,7 @@ void FreedesktopNotify::notify(Notification *notification)
 	args.append(actions);
 
 	QVariantMap hints;
-	hints.insert("category", msgRcv ? "im.received" : "im");
+	hints.insert("category", typeNewMessage ? "im.received" : "im");
 	hints.insert("desktop-entry", DesktopEntry);
 	if (IsXCanonicalAppendSupported && !useKdeStyle)
 		hints.insert("x-canonical-append", "allowed");
@@ -250,10 +254,10 @@ void FreedesktopNotify::notify(Notification *notification)
 	// -1 is server default
 	args.append(CustomTimeout ? Timeout * 1000 : -1);
 
-	QDBusReply<unsigned int> reply = KNotify->callWithArgumentList(QDBus::Block, "Notify", args);
+	QDBusReply<unsigned int> reply = NotificationsInterface->callWithArgumentList(QDBus::Block, "Notify", args);
 	if (reply.isValid())
 	{
-		notification->acquire(); // do not remove now
+		notification->acquire(this); // do not remove now
 
 		connect(notification, SIGNAL(closed(Notification*)), this, SLOT(notificationClosed(Notification*)));
 
@@ -263,19 +267,20 @@ void FreedesktopNotify::notify(Notification *notification)
 
 void FreedesktopNotify::notificationClosed(Notification *notification)
 {
-	QMap<unsigned int, Notification *>::const_iterator i = NotificationMap.constBegin();
-	while (i != NotificationMap.constEnd())
+	QMap<unsigned int, Notification *>::iterator i = NotificationMap.begin();
+	while (i != NotificationMap.end())
 	{
 		if (i.value() == notification)
 		{
-			NotificationMap.remove(i.key());
-
 			QList<QVariant> args;
 			args.append(i.key());
-			KNotify->callWithArgumentList(QDBus::Block, "CloseNotification", args);
+			NotificationsInterface->callWithArgumentList(QDBus::Block, "CloseNotification", args);
+
+			NotificationMap.erase(i);
 
 			return;
 		}
+
 		++i;
 	}
 }
@@ -289,7 +294,7 @@ void FreedesktopNotify::notificationClosed(unsigned int id, unsigned int reason)
 
 	Notification *notification = NotificationMap.take(id);
 	disconnect(notification, SIGNAL(closed(Notification*)), this, SLOT(notificationClosed(Notification*)));
-	notification->release();
+	notification->release(this);
 }
 
 void FreedesktopNotify::slotServiceOwnerChanged(const QString &serviceName, const QString &oldOwner, const QString &newOwner)
@@ -298,12 +303,10 @@ void FreedesktopNotify::slotServiceOwnerChanged(const QString &serviceName, cons
 	Q_UNUSED(oldOwner)
 	Q_UNUSED(newOwner)
 
-	QMap<unsigned int, Notification *>::const_iterator i = NotificationMap.constBegin();
-	while (i != NotificationMap.constEnd())
+	foreach (Notification *notification, NotificationMap)
 	{
-		Notification *notification = i.value();
 		disconnect(notification, SIGNAL(closed(Notification*)), this, SLOT(notificationClosed(Notification*)));
-		notification->release();
+		notification->release(this);
 	}
 
 	NotificationMap.clear();
@@ -341,7 +344,7 @@ void FreedesktopNotify::actionInvoked(unsigned int id, QString action)
 
 	QList<QVariant> args;
 	args.append(id);
-	KNotify->callWithArgumentList(QDBus::Block, "CloseNotification", args);
+	NotificationsInterface->callWithArgumentList(QDBus::Block, "CloseNotification", args);
 }
 
 void FreedesktopNotify::configurationUpdated()
@@ -382,9 +385,15 @@ void FreedesktopNotify::createDefaultConfiguration()
 	config_file.addVariable("Notify", "multilogon_FreedesktopNotify", true);
 	config_file.addVariable("Notify", "multilogon/sessionConnected_FreedesktopNotify", true);
 	config_file.addVariable("Notify", "multilogon/sessionDisconnected_FreedesktopNotify", true);
+	config_file.addVariable("Notify", "Roster/ImportFailed_UseCustomSettings", true);
+	config_file.addVariable("Notify", "Roster/ImportFailed_FreedesktopNotify", true);
+	config_file.addVariable("Notify", "Roster/ExportFailed_UseCustomSettings", true);
+	config_file.addVariable("Notify", "Roster/ExportFailed_FreedesktopNotify", true);
 
 	config_file.addVariable("FreedesktopNotify", "CustomTimeout", false);
 	config_file.addVariable("FreedesktopNotify", "Timeout", 10);
 	config_file.addVariable("FreedesktopNotify", "ShowContentMessage", true);
 	config_file.addVariable("FreedesktopNotify", "CiteSign", 100);
 }
+
+#include "moc_freedesktop-notify.cpp"

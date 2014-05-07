@@ -1,8 +1,9 @@
 /*
  * %kadu copyright begin%
  * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2012 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -21,7 +22,7 @@
 
 #include <QtGui/QAction>
 
-#include "core/core.h"
+#include "gui/menu/menu-inventory.h"
 #include "gui/windows/kadu-window.h"
 
 #include "autostatus.h"
@@ -42,7 +43,8 @@ void AutostatusActions::destroyInstance()
 	Instance = 0;
 }
 
-AutostatusActions::AutostatusActions()
+AutostatusActions::AutostatusActions() :
+		AutostatusActionDescription{}
 {
 }
 
@@ -57,12 +59,20 @@ void AutostatusActions::registerActions()
 		this, SLOT(autostatusActionActivated(QAction *, bool)),
 		KaduIcon(), tr("&Autostatus"), true
 	);
-	Core::instance()->kaduWindow()->insertMenuActionDescription(AutostatusActionDescription, KaduWindow::MenuKadu, 6);
+
+	MenuInventory::instance()
+		->menu("main")
+		->addAction(AutostatusActionDescription, KaduMenu::SectionMiscTools, 2)
+		->update();
 }
 
 void AutostatusActions::unregisterActions()
 {
-	Core::instance()->kaduWindow()->removeMenuActionDescription(AutostatusActionDescription);
+	MenuInventory::instance()
+		->menu("main")
+		->removeAction(AutostatusActionDescription)
+		->update();
+
 	delete AutostatusActionDescription;
 	AutostatusActionDescription = 0;
 }
@@ -73,3 +83,5 @@ void AutostatusActions::autostatusActionActivated(QAction *action, bool toggled)
 
 	Autostatus::instance()->toggle(toggled);
 }
+
+#include "moc_autostatus-actions.cpp"

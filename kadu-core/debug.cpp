@@ -4,7 +4,7 @@
  * Copyright 2008, 2009 Michał Podsiadlik (michal@kadu.net)
  * Copyright 2003 Adrian Smarzewski (adrian@kadu.net)
  * Copyright 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2004, 2006, 2007 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
@@ -25,12 +25,12 @@
 #include <stdarg.h>
 #include <stdio.h>
 
-#include "misc/misc.h"
+#include "misc/date-time.h"
 #include "debug.h"
 
 int debug_mask = -2;
 
-#ifdef DEBUG_ENABLED
+#ifdef DEBUG_OUTPUT_ENABLED
 
 #include <QtCore/QDebug>
 #include <QtCore/QMutex>
@@ -41,11 +41,11 @@ int debug_mask = -2;
 #include <windows.h>
 #endif
 
-bool KADU_EXPORT showTimesInDebug = false;
+bool KADUAPI showTimesInDebug = false;
 
 void _kdebug_with_mask(int mask, const char* file, const int line, const char* format,...)
 {
-	static int last;
+	static long last;
 	static QMutex mutex;
 
 	if (debug_mask & mask)
@@ -55,10 +55,10 @@ void _kdebug_with_mask(int mask, const char* file, const int line, const char* f
 		if (showTimesInDebug)
 		{
 			time_t sec;
-			int msec;
+			long int msec;
 			getTime(&sec, &msec);
-			int x = (sec % 1000) * 1000 + msec;
-			fprintf(stderr, "KK <%d:%03d:%09d:%s:%i>\t", (int)sec, msec, x - last, file, line);
+			long x = (sec % 1000) * 1000 + msec;
+			fprintf(stderr, "KK <%d:%03ld:%09ld:%s:%i>\t", (int)sec, msec, x - last, file, line);
 			last = x;
 		}
 		else

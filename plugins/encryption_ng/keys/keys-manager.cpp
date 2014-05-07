@@ -3,7 +3,7 @@
  * Copyright 2011 Tomasz Rostanski (rozteck@interia.pl)
  * Copyright 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -104,3 +104,5 @@ Key KeysManager::byContactAndType(Contact contact, const QString &keyType, NotFo
 
 	return key;
 }
+
+#include "moc_keys-manager.cpp"

@@ -6,14 +6,6 @@
         <translation>SMS</translation>
     </message>
     <message>
-        <source>General</source>
-        <translation>Obecné</translation>
-    </message>
-    <message>
-        <source>SMS Nick</source>
-        <translation>Přezdívka SMS</translation>
-    </message>
-    <message>
         <source>Application</source>
         <translation>Program</translation>
     </message>
@@ -24,14 +16,6 @@
     <message>
         <source>Custom SMS application</source>
         <translation>Vlastní program na SMS</translation>
-    </message>
-    <message>
-        <source>Use SMS custom string</source>
-        <translation>Použít vlastní řetězec SMS</translation>
-    </message>
-    <message>
-        <source>SMS custom string</source>
-        <translation>Vlastní řetězec SMS</translation>
     </message>
     <message>
         <source>Gateways</source>
@@ -74,6 +58,26 @@ Argumenty mají být odděleny mezerami. %k argument je převeden na číslo, %m
     <message>
         <source>SMS proxy for built-in application</source>
         <translation>SMS proxy pro vestavěný program</translation>
+    </message>
+    <message>
+        <source>Extras</source>
+        <translation>Navíc</translation>
+    </message>
+    <message>
+        <source>Your nick for SMS</source>
+        <translation>Vaše přezdívka pro SMS</translation>
+    </message>
+    <message>
+        <source>Use application custom arguments</source>
+        <translation>Použíz vlastní argumenty programu</translation>
+    </message>
+    <message>
+        <source>SMS custom arguments</source>
+        <translation>Vlastní argumenty SMS</translation>
+    </message>
+    <message>
+        <source>Behaviour</source>
+        <translation>Chování</translation>
     </message>
 </context>
 <context>

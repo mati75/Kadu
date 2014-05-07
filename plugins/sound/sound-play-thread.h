@@ -6,7 +6,7 @@
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
  * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
  * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2010, 2011, 2012 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
@@ -30,7 +30,7 @@
 #include <QtCore/QMutex>
 #include <QtCore/QObject>
 #include <QtCore/QWaitCondition>
-#include <QtCore/QWeakPointer>
+#include <QtCore/QPointer>
 
 class SoundPlayer;
 
@@ -46,7 +46,7 @@ class SoundPlayThread : public QObject
 
 	bool Play;
 
-	QWeakPointer<SoundPlayer> Player;
+	QPointer<SoundPlayer> Player;
 	QString Path;
 
 public:

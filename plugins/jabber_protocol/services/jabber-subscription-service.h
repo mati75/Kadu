@@ -2,7 +2,7 @@
  * %kadu copyright begin%
  * Copyright 2008, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2008 Michał Podsiadlik (michal@kadu.net)
- * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2007, 2008, 2009, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2007, 2008 Dawid Stawiarski (neeo@kadu.net)
  * %kadu copyright end%
  *
@@ -29,6 +29,11 @@
 
 #include "protocols/services/subscription-service.h"
 
+namespace XMPP
+{
+
+class Client;
+
 class JabberProtocol;
 
 class JabberSubscriptionService : public SubscriptionService
@@ -36,9 +41,10 @@ class JabberSubscriptionService : public SubscriptionService
 	Q_OBJECT
 
 	JabberProtocol *Protocol;
+	QPointer<Client> XmppClient;
 
 private slots:
-	void subscription(const XMPP::Jid &jid, const QString &type, const QString &nick);
+	void subscription(const Jid &jid, const QString &type, const QString &nick);
 
 public:
 	explicit JabberSubscriptionService(JabberProtocol *protocol);
@@ -47,9 +53,13 @@ public:
 	virtual void removeSubscription(const Contact &contact);
 	virtual void requestSubscription(const Contact &contact);
 
+	void sendSubsription(const Contact &contact, const QString &subscription);
+
 public slots:
 	virtual void authorizeContact(Contact contact, bool authorized);
 
 };
+
+}
 
 #endif // JABBER_SUBSCRIPTION_SERVICE_H

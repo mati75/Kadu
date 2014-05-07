@@ -9,7 +9,7 @@
  * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
  * Copyright 2010 badboy (badboy@gen2.org)
  * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2010, 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
@@ -33,7 +33,7 @@
 // for OS X
 #undef check
 
-#include <QtCore/QWeakPointer>
+#include <QtCore/QPointer>
 
 #include "buddies/buddy.h"
 #include "gui/widgets/kadu-tree-view-delegate.h"
@@ -47,7 +47,7 @@ class TalkableDelegate : public KaduTreeViewDelegate
 {
 	Q_OBJECT
 
-	QWeakPointer<ModelChain> Chain;
+	QPointer<ModelChain> Chain;
 
 private slots:
 	void contactUpdated(const Contact &contact);
@@ -63,8 +63,5 @@ public:
 	virtual bool editorEvent(QEvent *event, QAbstractItemModel *model, const QStyleOptionViewItem &option, const QModelIndex &index);
 
 };
-
-// for MOC
-#include "contacts/contact.h"
 
 #endif // TALKABLE_DELEGATE_H

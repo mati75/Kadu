@@ -3,8 +3,8 @@
  * Copyright 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2010, 2011 Piotr Dąbrowski (ultr@ultr.pl)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
- * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2009, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -30,13 +30,12 @@
 #include "configuration/configuration-file.h"
 #include "contacts/contact-manager.h"
 #include "core/core.h"
-#include "emoticons/emoticons-manager.h"
+#include "dom/dom-processor-service.h"
 #include "misc/syntax-list.h"
 #include "parser/parser.h"
 #include "url-handlers/url-handler-manager.h"
 
 #include "debug.h"
-#include "html_document.h"
 
 #include "buddy-info-panel.h"
 
@@ -65,8 +64,6 @@ BuddyInfoPanel::~BuddyInfoPanel()
 void BuddyInfoPanel::configurationUpdated()
 {
 	setUserFont(config_file.readFontEntry("Look", "PanelFont").toString(), true);
-
-	EmoticonsManager::instance()->configurationUpdated();
 
 	update();
 }
@@ -204,16 +201,12 @@ void BuddyInfoPanel::displayItem(Talkable item)
 		return;
 	}
 
-	HtmlDocument doc;
-	doc.parseHtml(Parser::parse(Syntax, item));
-	UrlHandlerManager::instance()->convertAllUrls(doc, false);
+	QDomDocument domDocument;
+	domDocument.setContent(Template.arg(Parser::parse(Syntax, item, ParserEscape::HtmlEscape)));
 
-	if (EmoticonsStyleNone != (EmoticonsStyle)config_file.readNumEntry("Chat", "EmoticonsStyle") &&
-			config_file.readBoolEntry("General", "ShowEmotPanel"))
-		EmoticonsManager::instance()->expandEmoticons(doc,
-				(EmoticonsStyle)config_file.readNumEntry("Chat", "EmoticonsStyle"));
+	Core::instance()->domProcessorService()->process(domDocument);
 
-	setHtml(Template.arg(doc.generateHtml()));
+	setHtml(domDocument.toString(0));
 }
 
 void BuddyInfoPanel::setVisible(bool visible)
@@ -228,3 +221,5 @@ void BuddyInfoPanel::styleFixup(QString &syntax)
 {
 	syntax = Template.arg(syntax);
 }
+
+#include "moc_buddy-info-panel.cpp"

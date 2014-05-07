@@ -1,12 +1,8 @@
 project (sql_history)
 
-# minimal required versions
 cmake_minimum_required (VERSION 2.8)
-set (QT_MIN_VERSION "4.7.0")
-set (CMAKE_MIN_VERSION "2.6.0")
 
-set (KADU_FIND_REQUIRED true)
-include (FindKadu)
+find_package (Kadu REQUIRED CONFIG)
 
 set (SOURCES
 	storage/history-sql-storage.cpp
@@ -51,6 +47,6 @@ kadu_plugin (sql_history
 
 if (NOT WIN32)
 	install (PROGRAMS data/scripts/history-database-recovery.sh
-		DESTINATION ${KADU_PLUGINS_DIR}/data/sql_history/scripts
+		DESTINATION ${KADU_INSTALL_PLUGINS_DATA_DIR}/data/sql_history/scripts
 	)
-endif (NOT WIN32)
+endif ()

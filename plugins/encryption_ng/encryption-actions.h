@@ -2,7 +2,7 @@
  * %kadu copyright begin%
  * Copyright 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2008, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2008, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
@@ -31,7 +31,7 @@
 class Action;
 class ActionDescription;
 class Contact;
-class EnableEncryptionActionDescription;
+class EncryptionSetUpActionDescription;
 
 class EncryptionActions : public QObject
 {
@@ -40,7 +40,7 @@ class EncryptionActions : public QObject
 
 	static EncryptionActions *Instance;
 
-	EnableEncryptionActionDescription *EnableEncryptionActionDescriptionInstance;
+	EncryptionSetUpActionDescription *EncryptionSetUpActionDescriptionInstance;
 
 	EncryptionActions();
 	virtual ~EncryptionActions();

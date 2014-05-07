@@ -3,8 +3,8 @@
  * Copyright 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009, 2010 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
- * Copyright 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2008, 2009, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -93,24 +93,24 @@ Account GaduImporter::import065Account(QXmlQuery &xmlQuery)
 {
 	Account result = Account::create("gadu");
 
-	GaduAccountDetails *accountDetails = dynamic_cast<GaduAccountDetails *>(result.details());
-	accountDetails->setState(StorableObject::StateNew);
-
 	result.setId(readEntry(xmlQuery, "General", "UIN").toString());
 	result.setPassword(pwHash(readEntry(xmlQuery, "General", "Password").toString()));
 	result.setRememberPassword(true);
 	result.setHasPassword(!result.password().isEmpty());
 	result.setPrivateStatus(readEntry(xmlQuery, "General", "PrivateStatus").toBool());
-	accountDetails->setAllowDcc(readEntry(xmlQuery, "Network", "AllowDCC").toBool());
 
-	accountDetails->setMaximumImageSize(readEntry(xmlQuery, "Chat", "MaxImageSize", 255).toUInt());
-	accountDetails->setReceiveImagesDuringInvisibility(readEntry(xmlQuery, "Chat", "ReceiveImagesDuringInvisibility").toBool());
-	accountDetails->setMaximumImageRequests(readEntry(xmlQuery, "Chat", "MaxImageRequests").toUInt());
+	GaduAccountDetails *accountDetails = dynamic_cast<GaduAccountDetails *>(result.details());
+	if (accountDetails)
+	{
+		accountDetails->setState(StorableObject::StateNew);
+		accountDetails->setAllowDcc(readEntry(xmlQuery, "Network", "AllowDCC").toBool());
+		accountDetails->setReceiveImagesDuringInvisibility(readEntry(xmlQuery, "Chat", "ReceiveImagesDuringInvisibility").toBool());
+	}
 
 	QString address = readEntry(xmlQuery, "Network", "ProxyHost").toString();
 	if (!address.isEmpty())
 	{
-		int port = readEntry(xmlQuery, "Network", "ProxyPort").toUInt();
+		int port = readEntry(xmlQuery, "Network", "ProxyPort").toInt();
 		QString user = readEntry(xmlQuery, "Network", "ProxyUser").toString();
 		QString password = readEntry(xmlQuery, "Network", "ProxyPassword").toString();
 
@@ -161,22 +161,25 @@ void GaduImporter::importAccounts()
 
 	Account defaultGaduGadu = Account::create("gadu");
 
-	GaduAccountDetails *accountDetails = dynamic_cast<GaduAccountDetails *>(defaultGaduGadu.details());
-	accountDetails->setState(StorableObject::StateNew);
-
-	if (!IdentityManager::instance()->items().isEmpty())
-		defaultGaduGadu.setAccountIdentity(IdentityManager::instance()->items().at(0));
-
 	defaultGaduGadu.setId(importUinString);
 	defaultGaduGadu.setPassword(pwHash(config_file.readEntry("General", "Password")));
 	defaultGaduGadu.setRememberPassword(true);
 	defaultGaduGadu.setHasPassword(!defaultGaduGadu.password().isEmpty());
 	defaultGaduGadu.setPrivateStatus(config_file.readBoolEntry("General", "PrivateStatus"));
-	accountDetails->setAllowDcc(config_file.readBoolEntry("Network", "AllowDCC"));
 
-	accountDetails->setMaximumImageSize(config_file.readNumEntry("Chat", "MaxImageSize", 255));
-	accountDetails->setReceiveImagesDuringInvisibility(config_file.readBoolEntry("Chat", "ReceiveImagesDuringInvisibility"));
-	accountDetails->setMaximumImageRequests(config_file.readNumEntry("Chat", "MaxImageRequests"));
+	// bad code: order of calls is important here
+	// we have to set identity after password
+	// so in cache of identity status container it already knows password and can do status change without asking user for it
+	if (!IdentityManager::instance()->items().isEmpty())
+		defaultGaduGadu.setAccountIdentity(IdentityManager::instance()->items().at(0));
+
+	GaduAccountDetails *accountDetails = dynamic_cast<GaduAccountDetails *>(defaultGaduGadu.details());
+	if (accountDetails)
+	{
+		accountDetails->setState(StorableObject::StateNew);
+		accountDetails->setAllowDcc(config_file.readBoolEntry("Network", "AllowDCC"));
+		accountDetails->setReceiveImagesDuringInvisibility(config_file.readBoolEntry("Chat", "ReceiveImagesDuringInvisibility"));
+	}
 
 	QString address = config_file.readEntry("Network", "ProxyHost");
 	if (!address.isEmpty())
@@ -191,7 +194,8 @@ void GaduImporter::importAccounts()
 			defaultGaduGadu.setProxy(networkProxy);
 	}
 
-	accountDetails->import_0_6_5_LastStatus();
+	if (accountDetails)
+		accountDetails->import_0_6_5_LastStatus();
 
 	AccountManager::instance()->addItem(defaultGaduGadu);
 	defaultGaduGadu.accountContact().setOwnerBuddy(Core::instance()->myself());
@@ -268,3 +272,5 @@ void GaduImporter::buddyAdded(const Buddy &buddy)
 
 	importGaduContact(account, buddy);
 }
+
+#include "moc_gadu-importer.cpp"

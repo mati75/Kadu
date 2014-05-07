@@ -4,7 +4,7 @@
  * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2009 Michał Podsiadlik (michal@kadu.net)
  * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
- * Copyright 2007, 2008, 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
@@ -33,12 +33,15 @@
 
 #include "exports.h"
 
-class KADUAPI SearchService : public QObject
+#include "account-service.h"
+
+class KADUAPI SearchService : public AccountService
 {
 	Q_OBJECT
 
 public:
-	explicit SearchService(QObject *parent) : QObject(parent) {}
+	explicit SearchService(Account account, QObject *parent) : AccountService(account, parent) {}
+	virtual ~SearchService() {}
 
 	virtual void searchFirst(BuddySearchCriteria criteria) = 0;
 	virtual void searchNext() = 0;

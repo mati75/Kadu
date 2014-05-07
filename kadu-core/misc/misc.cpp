@@ -9,8 +9,8 @@
  * Copyright 2002, 2003, 2004, 2005, 2006 Adrian Smarzewski (adrian@kadu.net)
  * Copyright 2003, 2004, 2005 Paweł Płuciennik (pawel_p@kadu.net)
  * Copyright 2002, 2003, 2004 Tomasz Chiliński (chilek@chilan.com)
- * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2007, 2008, 2009, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011, 2012 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2007, 2008, 2009 Dawid Stawiarski (neeo@kadu.net)
  * Copyright 2004, 2005, 2006, 2007 Marcin Ślusarz (joi@kadu.net)
  * Copyright 2003 Dariusz Jagodzik (mast3r@kadu.net)
@@ -44,10 +44,9 @@
 #include "buddies/buddy-set.h"
 #include "configuration/configuration-file.h"
 #include "contacts/contact-manager.h"
-#include "gui/widgets/chat-widget-manager.h"
+#include "gui/widgets/chat-widget/chat-widget-manager.h"
 #include "gui/windows/message-dialog.h"
 #include "debug.h"
-#include "html_document.h"
 
 #include "misc.h"
 
@@ -89,7 +88,7 @@ QRect properGeometry(const QRect &rect)
 	if (geometry.topLeft().x() < availableGeometry.x())
 		geometry.moveLeft(availableGeometry.x());
 	if (geometry.topLeft().y() < availableGeometry.y())
-		geometry.moveTop(availableGeometry.x());
+		geometry.moveTop(availableGeometry.y());
 
 #ifdef Q_OS_MAC
 	// looks like QDesktopWidget::availableGeometry() does not work correctly on Mac OS X, so we need a workaround
@@ -106,41 +105,11 @@ QRect properGeometry(const QRect &rect)
 	return geometry;
 }
 
-QRect windowGeometry(const QWidget *w)
-{
-	// it has to be symmetric to what setWindowGeometry() does
-	return QRect(w->pos(), w->size());
-}
-
-void setWindowGeometry(QWidget *w, const QRect &geometry)
-{
-	QRect rect = properGeometry(geometry);
-
-	// setGeometry() will do no good here, refer to Qt docs and Kadu bug #2262
-	// note it has to be symmetric to what windowGeometry() does
-	w->resize(rect.size());
-	w->move(rect.topLeft());
-}
-
-void saveWindowGeometry(const QWidget *w, const QString &section, const QString &name)
-{
-	config_file.writeEntry(section, name, windowGeometry(w));
-}
-
-void loadWindowGeometry(QWidget *w, const QString &section, const QString &name, int defaultX, int defaultY, int defaultWidth, int defaultHeight)
-{
-	QRect rect = config_file.readRectEntry(section, name);
-	if (!rect.isValid() || rect.height() == 0 || rect.width() == 0)
-		rect.setRect(defaultX, defaultY, defaultWidth, defaultHeight);
-
-	setWindowGeometry(w, rect);
-}
-
 QString pwHash(const QString &text)
 {
 	QString newText = text;
-	for (unsigned int i = 0, textLength = text.length(); i < textLength; ++i)
-		newText[i] = QChar(text.at(i).unicode() ^ i ^ 1);
+	for (int i = 0, textLength = text.length(); i < textLength; ++i)
+		newText[i] = QChar(text.at(i).unicode() ^ static_cast<uint>(i) ^ 1);
 	return newText;
 }
 
@@ -163,25 +132,25 @@ QString intListToString(const QList<int> &in)
 QRect stringToRect(const QString &value, const QRect *def)
 {
 	QStringList stringlist;
-	QRect rect(0,0,0,0);
+	QRect rect = def ? *def : QRect(0, 0, 0, 0);
 	int l, t, w, h;
 	bool ok;
 
 	stringlist = value.split(',', QString::SkipEmptyParts);
 	if (stringlist.count() != 4)
-		return def ? *def : rect;
+		return rect;
 	l = stringlist.at(0).toInt(&ok);
 	if (!ok)
-		return def ? *def : rect;
+		return rect;
 	t = stringlist.at(1).toInt(&ok);
 	if (!ok)
-		return def ? *def : rect;
+		return rect;
 	w = stringlist.at(2).toInt(&ok);
 	if (!ok)
-		return def ? *def : rect;
+		return rect;
 	h = stringlist.at(3).toInt(&ok);
 	if (!ok)
-		return def ? *def : rect;
+		return rect;
 	rect.setRect(l, t, w, h);
 
 	return rect;
@@ -208,4 +177,18 @@ QString fixFileName(const QString &path, const QString &fn)
 		return name + '.' + ext.toUpper();
 	// we cannot fix it, return original
 	return fn;
+}
+
+QChar extractLetter(QChar c)
+{
+	QString decomposition = c.decomposition();
+	if (decomposition.isEmpty())
+		return c;
+
+	int length = decomposition.length();
+	for (int i = 0; i < length; i++)
+		if (decomposition.at(i).isLetter())
+			return decomposition.at(i);
+
+	return c;
 }

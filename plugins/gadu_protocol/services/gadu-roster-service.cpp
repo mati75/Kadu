@@ -1,8 +1,8 @@
 /*
  * %kadu copyright begin%
  * Copyright 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -25,6 +25,8 @@
 #include "debug.h"
 
 #include "helpers/gadu-protocol-helper.h"
+#include "server/gadu-connection.h"
+#include "server/gadu-writable-session-token.h"
 #include "gadu-contact-details.h"
 
 #include "gadu-roster-service.h"
@@ -44,27 +46,27 @@ int GaduRosterService::notifyTypeFromContact(const Contact &contact)
 	return result;
 }
 
-GaduRosterService::GaduRosterService(Protocol *protocol) :
-		RosterService(protocol), GaduSession(0)
+GaduRosterService::GaduRosterService(Account account, QObject *parent) :
+		RosterService(account, parent)
 {
-	Q_ASSERT(protocol);
 }
 
 GaduRosterService::~GaduRosterService()
 {
 }
-
-void GaduRosterService::setGaduSession(gg_session *gaduSession)
+void GaduRosterService::setConnection(GaduConnection *connection)
 {
-	GaduSession = gaduSession;
+	Connection = connection;
 }
 
 void GaduRosterService::prepareRoster(const QVector<Contact> &contacts)
 {
+	if (!Connection || !Connection->hasSession())
+		return;
+
 	RosterService::prepareRoster(contacts);
 
 	Q_ASSERT(StateNonInitialized == state());
-	Q_ASSERT(GaduSession);
 
 	setState(StateInitializing);
 
@@ -77,9 +79,8 @@ void GaduRosterService::prepareRoster(const QVector<Contact> &contacts)
 
 	if (sendList.isEmpty())
 	{
-		static_cast<GaduProtocol *>(protocol())->disableSocketNotifiers();
-		gg_notify_ex(GaduSession, 0, 0, 0);
-		static_cast<GaduProtocol *>(protocol())->enableSocketNotifiers();
+		auto writableSessionToken = Connection->writableSessionToken();
+		gg_notify_ex(writableSessionToken.rawSession(), 0, 0, 0);
 		kdebugmf(KDEBUG_NETWORK|KDEBUG_INFO, "Userlist is empty\n");
 
 		setState(StateInitialized);
@@ -107,28 +108,35 @@ void GaduRosterService::prepareRoster(const QVector<Contact> &contacts)
 		++i;
 	}
 
-	static_cast<GaduProtocol *>(protocol())->disableSocketNotifiers();
-	gg_notify_ex(static_cast<GaduProtocol *>(protocol())->gaduSession(), uins.data(), types.data(), count);
-	static_cast<GaduProtocol *>(protocol())->enableSocketNotifiers();
+	auto writableSessionToken = Connection->writableSessionToken();
+	gg_notify_ex(writableSessionToken.rawSession(), uins.data(), types.data(), count);
 	kdebugmf(KDEBUG_NETWORK|KDEBUG_INFO, "Userlist sent\n");
 
 	setState(StateInitialized);
 	emit rosterReady(true);
 }
 
-void GaduRosterService::updateFlag(int uin, int newFlags, int oldFlags, int flag) const
+void GaduRosterService::updateFlag(gg_session *session, int uin, int newFlags, int oldFlags, int flag) const
 {
-	if (!GaduSession)
-		return;
+	Q_ASSERT(session);
 
 	if (!(oldFlags & flag) && (newFlags & flag))
-		gg_add_notify_ex(GaduSession, uin, flag);
+		gg_add_notify_ex(session, uin, flag);
 	if ((oldFlags & flag) && !(newFlags & flag))
-		gg_remove_notify_ex(GaduSession, uin, flag);
+		gg_remove_notify_ex(session, uin, flag);
 }
 
 void GaduRosterService::sendNewFlags(const Contact &contact, int newFlags) const
 {
+	// TODO: This is broken... Complete lack of error handling. This method is called
+	// from executeTask() which assumes the task is always actually executed and removes
+	// it from the list. While there are two returns for error conditions in this
+	// method, and also gg_add_notify_ex() or gg_remove_notify_ex() in updateFlag()
+	// could fail.
+
+	if (!Connection || !Connection->hasSession())
+		return;
+
 	GaduContactDetails *details = GaduProtocolHelper::gaduContactDetails(contact);
 	if (!details)
 		return;
@@ -141,11 +149,10 @@ void GaduRosterService::sendNewFlags(const Contact &contact, int newFlags) const
 
 	details->setGaduFlags(newFlags);
 
-	static_cast<GaduProtocol *>(protocol())->disableSocketNotifiers();
-	updateFlag(uin, newFlags, oldFlags, 0x01);
-	updateFlag(uin, newFlags, oldFlags, 0x02);
-	updateFlag(uin, newFlags, oldFlags, 0x04);
-	static_cast<GaduProtocol *>(protocol())->enableSocketNotifiers();
+	auto writableSessionToken = Connection->writableSessionToken();
+	updateFlag(writableSessionToken.rawSession(), uin, newFlags, oldFlags, 0x01);
+	updateFlag(writableSessionToken.rawSession(), uin, newFlags, oldFlags, 0x02);
+	updateFlag(writableSessionToken.rawSession(), uin, newFlags, oldFlags, 0x04);
 }
 
 void GaduRosterService::executeTask(const RosterTask &task)
@@ -166,3 +173,5 @@ void GaduRosterService::executeTask(const RosterTask &task)
 			break;
 	}
 }
+
+#include "moc_gadu-roster-service.cpp"

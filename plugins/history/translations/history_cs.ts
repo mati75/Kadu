@@ -38,36 +38,59 @@
         <translation>Uložit stav pouze s popisem</translation>
     </message>
     <message>
-        <source>Quotation</source>
-        <translation>Citace</translation>
-    </message>
-    <message>
-        <source>Quote message in chat window</source>
-        <translation>Citovat zprávu v okně s rozhovorem</translation>
-    </message>
-    <message>
-        <source>.</source>
-        <translation>.</translation>
-    </message>
-    <message>
         <source>Shortcuts</source>
         <translation>Zkratky</translation>
-    </message>
-    <message>
-        <source>General</source>
-        <translation>Obecné</translation>
     </message>
     <message>
         <source>View history</source>
         <translation>Zobrazit historii</translation>
     </message>
     <message>
-        <source>Do not quote messages older than</source>
-        <translation>Necitovat zprávy starší než</translation>
+        <source>Save chats in history</source>
+        <translation>Ukládat rozhovory v historii</translation>
     </message>
     <message>
-        <source>Kadu</source>
-        <translation>Kadu</translation>
+        <source>History in chat window</source>
+        <translation>Historie v okně s rozhovorem</translation>
+    </message>
+    <message>
+        <source>Show messages from history since</source>
+        <translation>Ukázat zprávy z historie od</translation>
+    </message>
+    <message>
+        <source>Choose time period in which messages can be quoted in chat window</source>
+        <translation>Zvolit časové období, pro které mohou být zprávy uvedeny v okně s rozhovorem</translation>
+    </message>
+    <message>
+        <source>yesterday</source>
+        <translation>Včera</translation>
+    </message>
+    <message>
+        <source>last week</source>
+        <translation>Minulý týden</translation>
+    </message>
+    <message>
+        <source>last month</source>
+        <translation>Minulý měsíc</translation>
+    </message>
+    <message>
+        <source>Limit number of messages from history</source>
+        <translation>Omezit počet zpráv z historie</translation>
+    </message>
+    <message>
+        <source>Behaviour</source>
+        <translation>Chování</translation>
+    </message>
+    <message>
+        <source>Chat window</source>
+        <translation>Okno pro rozhovor</translation>
+    </message>
+</context>
+<context>
+    <name>BuddyHistoryDeleteHandler</name>
+    <message>
+        <source>Chat history</source>
+        <translation>Historie rozhovoru</translation>
     </message>
 </context>
 <context>
@@ -83,23 +106,27 @@
         <source>Clear History</source>
         <translation>Smazat historii</translation>
     </message>
+</context>
+<context>
+    <name>HistoryBuddyConfigurationWidget</name>
     <message>
-        <source>%1 day(s) %2 hour(s)</source>
-        <translation>%1 den/dny/dnů %2 hodinu/hodiny/hodin</translation>
+        <source>History</source>
+        <translation>Historie</translation>
+    </message>
+    <message>
+        <source>Store history</source>
+        <translation>Ukládat historii</translation>
     </message>
 </context>
 <context>
-    <name>HistoryBuddyDataWindowAddons</name>
+    <name>HistoryChatConfigurationWidget</name>
     <message>
-        <source>Store history</source>
-        <translation>Uchovávat historii</translation>
+        <source>History</source>
+        <translation>Historie</translation>
     </message>
-</context>
-<context>
-    <name>HistoryChatDataWindowAddons</name>
     <message>
         <source>Store history</source>
-        <translation>Uchovávat historii</translation>
+        <translation>Ukládat historii</translation>
     </message>
 </context>
 <context>
@@ -118,7 +145,15 @@
     </message>
     <message>
         <source>Do you really want to delete history?</source>
-        <translation>Opravdu chcete smazat historii</translation>
+        <translation>Opravdu chcete smazat historii?</translation>
+    </message>
+    <message>
+        <source>Delete history</source>
+        <translation>Smazat historii</translation>
+    </message>
+    <message>
+        <source>Cancel</source>
+        <translation>Zrušit</translation>
     </message>
 </context>
 <context>
@@ -169,13 +204,6 @@
     <message>
         <source>SMS</source>
         <translation>SMS</translation>
-    </message>
-</context>
-<context>
-    <name>QApplication</name>
-    <message>
-        <source>Chat history</source>
-        <translation>Historie rozhovoru</translation>
     </message>
 </context>
 <context>

@@ -1,6 +1,8 @@
 /*
  * %kadu copyright begin%
+ * Copyright 2012 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -22,10 +24,15 @@
 #include <QtGui/QTreeView>
 #include <QtGui/QVBoxLayout>
 
+#include "chat-style/engine/chat-style-renderer-factory-provider.h"
+#include "core/core.h"
+#include "gui/scoped-updates-disabler.h"
 #include "gui/web-view-highlighter.h"
-#include "gui/widgets/chat-messages-view.h"
+#include "gui/widgets/webkit-messages-view/webkit-messages-view.h"
+#include "gui/widgets/webkit-messages-view/webkit-messages-view-factory.h"
 #include "gui/widgets/search-bar.h"
 #include "gui/widgets/wait-overlay.h"
+#include "message/sorted-messages.h"
 #include "model/roles.h"
 
 #include "model/history-query-results-model.h"
@@ -75,21 +82,22 @@ void TimelineChatMessagesView::createGui()
 	frameLayout->setMargin(0);
 	frameLayout->setSpacing(0);
 
-	MessagesView = new ChatMessagesView(Chat::null, false, frame);
+	MessagesView = Core::instance()->webkitMessagesViewFactory()->createWebkitMessagesView(Chat::null, false, frame);
 	MessagesView->setFocusPolicy(Qt::StrongFocus);
 	MessagesView->setForcePruneDisabled(true);
 
-	frameLayout->addWidget(MessagesView);
+	frameLayout->addWidget(MessagesView.get());
 
 	MessagesSearchBar = new SearchBar(this);
-	MessagesSearchBar->setSearchWidget(MessagesView);
+	MessagesSearchBar->setSearchWidget(MessagesView.get());
 
-	Highlighter = new WebViewHighlighter(MessagesView);
+	Highlighter = new WebViewHighlighter(MessagesView.get());
 	Highlighter->setAutoUpdate(true);
 
 	connect(MessagesSearchBar, SIGNAL(searchPrevious(QString)), Highlighter, SLOT(selectPrevious(QString)));
 	connect(MessagesSearchBar, SIGNAL(searchNext(QString)), Highlighter, SLOT(selectNext(QString)));
 	connect(MessagesSearchBar, SIGNAL(clearSearch()), Highlighter, SLOT(clearSelect()));
+	connect(Highlighter, SIGNAL(somethingFound(bool)), MessagesSearchBar, SLOT(somethingFound(bool)));
 
 	frameLayout->addWidget(MessagesSearchBar);
 
@@ -140,7 +148,7 @@ void TimelineChatMessagesView::futureResultsCanceled()
 	ResultsFutureWatcher = 0;
 }
 
-void TimelineChatMessagesView::setFutureResults(const QFuture<QVector<HistoryQueryResult> > &futureResults)
+void TimelineChatMessagesView::setFutureResults(const QFuture<QVector<HistoryQueryResult>> &futureResults)
 {
 	if (ResultsFutureWatcher)
 	{
@@ -157,15 +165,12 @@ void TimelineChatMessagesView::setFutureResults(const QFuture<QVector<HistoryQue
 	showTimelineWaitOverlay();
 }
 
-void TimelineChatMessagesView::setMessages(const QVector<Message> &messages)
+void TimelineChatMessagesView::setMessages(const SortedMessages &messages)
 {
-	MessagesView->setUpdatesEnabled(false);
+	ScopedUpdatesDisabler updatesDisabler{*MessagesView};
 
 	MessagesView->clearMessages();
-	MessagesView->appendMessages(messages);
-	MessagesView->refresh();
-
-	MessagesView->setUpdatesEnabled(true);
+	MessagesView->add(messages);
 
 	emit messagesDisplayed();
 }
@@ -196,7 +201,7 @@ void TimelineChatMessagesView::futureMessagesCanceled()
 	MessagesFutureWatcher = 0;
 }
 
-void TimelineChatMessagesView::setFutureMessages(const QFuture<QVector<Message> > &futureMessages)
+void TimelineChatMessagesView::setFutureMessages(const QFuture<SortedMessages> &futureMessages)
 {
 	if (MessagesFutureWatcher)
 	{
@@ -204,7 +209,7 @@ void TimelineChatMessagesView::setFutureMessages(const QFuture<QVector<Message> 
 		MessagesFutureWatcher->deleteLater();
 	}
 
-	MessagesFutureWatcher = new QFutureWatcher<QVector<Message> >(this);
+	MessagesFutureWatcher = new QFutureWatcher<SortedMessages>(this);
 	connect(MessagesFutureWatcher, SIGNAL(finished()), this, SLOT(futureMessagesAvailable()));
 	connect(MessagesFutureWatcher, SIGNAL(canceled()), this, SLOT(futureMessagesCanceled()));
 
@@ -230,7 +235,7 @@ void TimelineChatMessagesView::hideTimelineWaitOverlay()
 void TimelineChatMessagesView::showMessagesViewWaitOverlay()
 {
 	if (!MessagesViewWaitOverlay)
-		MessagesViewWaitOverlay = new WaitOverlay(MessagesView);
+		MessagesViewWaitOverlay = new WaitOverlay(MessagesView.get());
 	else
 		MessagesViewWaitOverlay->show();
 }
@@ -272,3 +277,5 @@ void TimelineChatMessagesView::setSizes(const QList<int> &newSizes)
 
 	Splitter->setSizes(newSizes);
 }
+
+#include "moc_timeline-chat-messages-view.cpp"

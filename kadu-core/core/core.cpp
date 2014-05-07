@@ -2,16 +2,16 @@
  * %kadu copyright begin%
  * Copyright 2011 Tomasz Rostanski (rozteck@interia.pl)
  * Copyright 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2010, 2010 Przemysław Rudy (prudy1@o2.pl)
- * Copyright 2009, 2010, 2010, 2011 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2010, 2010, 2011 Przemysław Rudy (prudy1@o2.pl)
+ * Copyright 2009, 2010, 2010, 2011, 2012 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2010, 2010, 2010 Tomasz Rostański (rozteck@interia.pl)
  * Copyright 2010, 2011 Piotr Dąbrowski (ultr@ultr.pl)
  * Copyright 2009 Michał Podsiadlik (michal@kadu.net)
  * Copyright 2009, 2010 Maciej Płaza (plaza.maciej@gmail.com)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
  * Copyright 2010 badboy (badboy@gen2.org)
- * Copyright 2009, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2009, 2009, 2010, 2011, 2012, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -40,38 +40,91 @@
 #include "avatars/avatar-manager.h"
 #include "buddies/buddy-manager.h"
 #include "buddies/group-manager.h"
+#include "chat/buddy-chat-manager.h"
+#include "chat/chat-manager.h"
+#include "chat-style/chat-style-manager.h"
+#include "chat-style/engine/chat-style-renderer-factory-provider.h"
+#include "chat-style/engine/configured-chat-style-renderer-factory-provider.h"
 #include "configuration/configuration-file.h"
 #include "configuration/configuration-manager.h"
 #include "configuration/main-configuration-holder.h"
 #include "contacts/contact-manager.h"
-#include "emoticons/emoticons.h"
+#include "dom/dom-processor-service.h"
 #include "file-transfer/file-transfer-manager.h"
+#include "formatted-string/formatted-string-factory.h"
+#include "gui/services/clipboard-html-transformer-service.h"
+#include "gui/widgets/account-configuration-widget-factory-repository.h"
+#include "gui/widgets/buddy-configuration-widget-factory-repository.h"
+#include "gui/widgets/chat-configuration-widget-factory-repository.h"
 #include "gui/widgets/chat-edit-box.h"
-#include "gui/widgets/chat-widget-manager.h"
+#include "gui/widgets/chat-top-bar-widget-factory-repository.h"
+#include "gui/widgets/chat-widget/chat-widget-actions.h"
+#include "gui/widgets/chat-widget/chat-widget-activation-service.h"
+#include "gui/widgets/chat-widget/chat-widget-container-handler-mapper.h"
+#include "gui/widgets/chat-widget/chat-widget-container-handler-repository.h"
+#include "gui/widgets/chat-widget/chat-widget-factory.h"
+#include "gui/widgets/chat-widget/chat-widget-manager.h"
+#include "gui/widgets/chat-widget/chat-widget-message-handler.h"
+#include "gui/widgets/chat-widget/chat-widget-message-handler-configurator.h"
+#include "gui/widgets/chat-widget/chat-widget-repository.h"
+#include "gui/widgets/webkit-messages-view/webkit-messages-view-display-factory.h"
+#include "gui/widgets/webkit-messages-view/webkit-messages-view-factory.h"
+#include "gui/widgets/webkit-messages-view/webkit-messages-view-handler-factory.h"
+#include "gui/windows/buddy-data-window-repository.h"
+#include "gui/windows/chat-data-window-repository.h"
+#include "gui/windows/chat-window/chat-window-factory.h"
+#include "gui/windows/chat-window/chat-window-manager.h"
+#include "gui/windows/chat-window/chat-window-storage.h"
+#include "gui/windows/chat-window/chat-window-storage-configurator.h"
+#include "gui/windows/chat-window/chat-window-repository.h"
+#include "gui/windows/chat-window/window-chat-widget-container-handler.h"
 #include "gui/windows/kadu-window.h"
 #include "gui/windows/search-window.h"
 #include "icons/icons-manager.h"
 #include "icons/kadu-icon.h"
-#include "kadu-application.h"
+#include "message/message-html-renderer-service.h"
 #include "message/message-manager.h"
+#include "message/message-render-info.h"
+#include "message/message-render-info-factory.h"
+#include "message/unread-message-repository.h"
+#include "misc/change-notifier-lock.h"
 #include "misc/date-time-parser-tags.h"
-#include "misc/misc.h"
+#include "misc/kadu-paths.h"
 #include "notify/notification-manager.h"
 #include "parser/parser.h"
-#include "plugins/plugins-manager.h"
+#include "plugin/dependency-graph/plugin-dependency-graph-builder.h"
+#include "plugin/activation/plugin-activation-error-handler.h"
+#include "plugin/activation/plugin-activation-service.h"
+#include "plugin/metadata/plugin-metadata-finder.h"
+#include "plugin/metadata/plugin-metadata-reader.h"
+#include "plugin/plugin-conflict-resolver.h"
+#include "plugin/plugin-dependency-handler.h"
+#include "plugin/plugin-manager.h"
+#include "plugin/state/plugin-state-manager.h"
+#include "plugin/state/plugin-state-service.h"
+#include "plugin/state/plugin-state-storage.h"
 #include "protocols/protocol-factory.h"
 #include "protocols/protocol.h"
+#include "protocols/services/roster/roster-notifier.h"
 #include "provider/default-provider.h"
 #include "provider/simple-provider.h"
+#include "services/chat-image-request-service-configurator.h"
+#include "services/chat-image-request-service.h"
+#include "services/image-storage-service.h"
+#include "services/message-filter-service.h"
+#include "services/message-transformer-service.h"
+#include "services/notification-service.h"
+#include "services/raw-message-transformer-service.h"
 #include "status/status-container-manager.h"
 #include "status/status-setter.h"
 #include "status/status-type-manager.h"
 #include "status/status-type.h"
-#include "themes/emoticon-theme-manager.h"
+#include "storage/storage-point-factory.h"
 #include "themes/icon-theme-manager.h"
 #include "url-handlers/url-handler-manager.h"
 #include "activate.h"
 #include "debug.h"
+#include "kadu-application.h"
 #include "kadu-config.h"
 #include "updates.h"
 
@@ -115,12 +168,59 @@ KaduApplication * Core::application()
 }
 
 Core::Core() :
-		KaduWindowProvider(new SimpleProvider<QWidget *>(0)),
-		MainWindowProvider(new DefaultProvider<QWidget *>(KaduWindowProvider)),
+		KaduWindowProvider{new SimpleProvider<QWidget *>(0)},
+		MainWindowProvider{new DefaultProvider<QWidget *>(KaduWindowProvider)},
+		CurrentBuddyDataWindowRepository{nullptr},
+		CurrentChatDataWindowRepository{nullptr},
+		CurrentChatImageRequestService{nullptr},
+		CurrentDomProcessorService{nullptr},
+		CurrentImageStorageService{nullptr},
+		CurrentMessageFilterService{nullptr},
+		CurrentMessageHtmlRendererService{nullptr},
+		CurrentMessageRenderInfoFactory{nullptr},
+		CurrentMessageTransformerService{nullptr},
+		CurrentNotificationService{nullptr},
+		CurrentFormattedStringFactory{nullptr},
+		CurrentRawMessageTransformerService{nullptr},
+		CurrentClipboardHtmlTransformerService{nullptr},
+		CurrentAccountConfigurationWidgetFactoryRepository{nullptr},
+		CurrentBuddyConfigurationWidgetFactoryRepository{nullptr},
+		CurrentChatConfigurationWidgetFactoryRepository{nullptr},
+		CurrentChatTopBarWidgetFactoryRepository{nullptr},
+		CurrentUnreadMessageRepository{nullptr},
+		CurrentRosterNotifier{nullptr},
+		CurrentChatWidgetActions{nullptr},
+		CurrentChatWidgetActivationService{nullptr},
+		CurrentChatWidgetContainerHandlerMapper{nullptr},
+		CurrentChatWidgetContainerHandlerRepository{nullptr},
+		CurrentChatWidgetFactory{nullptr},
+		CurrentChatWidgetManager{nullptr},
+		CurrentChatWidgetMessageHandler{nullptr},
+		CurrentChatWidgetRepository{nullptr},
+		CurrentChatWindowFactory{nullptr},
+		CurrentChatWindowManager{nullptr},
+		CurrentChatWindowStorage{nullptr},
+		CurrentChatWindowRepository{nullptr},
+		CurrentStoragePointFactory{nullptr},
+		CurrentPluginActivationService{nullptr},
+		CurrentPluginActivationErrorHandler{nullptr},
+		CurrentPluginConflictResolver{nullptr},
+		CurrentPluginDependencyGraphBuilder{nullptr},
+		CurrentPluginDependencyHandler{nullptr},
+		CurrentPluginMetadataFinder{nullptr},
+		CurrentPluginMetadataReader{nullptr},
+		CurrentPluginStateManager{nullptr},
+		CurrentPluginStateService{nullptr},
+		CurrentPluginManager{nullptr},
 		Window(0),
 		Myself(Buddy::create()), IsClosing(false),
 		ShowMainWindowOnStart(true), QcaInit(new QCA::Initializer())
 {
+	// must be created first
+	CurrentStoragePointFactory = new StoragePointFactory(this);
+	CurrentStoragePointFactory->setConfigurationFile(xml_config_file);
+	Instance = this; // TODO: fix this hack
+
 	connect(qApp, SIGNAL(aboutToQuit()), this, SLOT(quit()));
 
 	import_0_6_5_configuration();
@@ -133,22 +233,28 @@ Core::Core() :
 	Parser::GlobalVariables.insert(QLatin1String("HOME"), KaduPaths::homePath());
 	Parser::GlobalVariables.insert(QLatin1String("KADU_CONFIG"), KaduPaths::instance()->profilePath());
 	DateTimeParserTags::registerParserTags();
+
+	importPre10Configuration();
 }
 
 Core::~Core()
 {
 	IsClosing = true;
 
+	CurrentPluginStateManager->storePluginStates();
+
 	// unloading modules does that
 	/*StatusContainerManager::instance()->disconnectAndStoreLastStatus(disconnectWithCurrentDescription, disconnectDescription);*/
-	ChatWidgetManager::instance()->closeAllWindows();
-	ConfigurationManager::instance()->store();
+	CurrentChatWindowManager->storeOpenedChatWindows();
+	ConfigurationManager::instance()->flush();
 // 	delete Configuration;
 // 	Configuration = 0;
 
-	storeConfiguration();
+	xml_config_file->makeBackup();
 
-	PluginsManager::instance()->deactivatePlugins();
+	CurrentPluginManager->deactivatePlugins();
+
+	stopServices();
 
 #ifdef Q_OS_MAC
 	QApplication::setWindowIcon(KaduIcon("kadu_icons/kadu").icon());
@@ -176,6 +282,29 @@ void Core::import_0_6_5_configuration()
 	config_file.addVariable("Look", "UserboxAlternateBgColor", config_file.readEntry("Look", "UserboxBgColor"));
 }
 
+void Core::importPre10Configuration()
+{
+	if (config_file.readBoolEntry("General", "ImportedPre10"))
+	{
+		return;
+	}
+
+	foreach (const Buddy &buddy, BuddyManager::instance()->items())
+	{
+		if (buddy.isNull() || buddy.isAnonymous())
+			continue;
+
+		bool notify = buddy.property("notify:Notify", false).toBool() || config_file.readBoolEntry("Notify", "NotifyAboutAll");
+
+		if (notify)
+			buddy.removeProperty("notify:Notify");
+		else
+			buddy.addProperty("notify:Notify", false, CustomProperties::Storable);
+	}
+
+	config_file.addVariable("General", "ImportedPre10", true);
+}
+
 void Core::createDefaultConfiguration()
 {
 	QWidget w;
@@ -184,19 +313,9 @@ void Core::createDefaultConfiguration()
 	config_file.addVariable("Chat", "BlinkChatTitle", true);
 	config_file.addVariable("Chat", "ChatCloseTimer", true);
 	config_file.addVariable("Chat", "ChatCloseTimerPeriod", 2);
-#ifdef Q_WS_MAEMO_5
-	config_file.addVariable("Chat", "ChatPrune", true);
-#else
 	config_file.addVariable("Chat", "ChatPrune", false);
-#endif
-	config_file.addVariable("Chat", "ChatPruneLen", 20);
+	config_file.addVariable("Chat", "ChatPruneLen", 0);
 	config_file.addVariable("Chat", "ConfirmChatClear", true);
-	config_file.addVariable("Chat", "EmoticonsPaths", QString());
-	config_file.addVariable("Chat", "EmoticonsStyle", EmoticonsStyleAnimated);
-	config_file.addVariable("Chat", "EmoticonsScaling", EmoticonsScalingStatic);
-	config_file.addVariable("Chat", "EmoticonsTheme", EmoticonThemeManager::defaultTheme());
-	config_file.addVariable("Chat", "FoldLink", true);
-	config_file.addVariable("Chat", "LinkFoldTreshold", 50);
 	config_file.addVariable("Chat", "IgnoreAnonymousRichtext", true);
 	config_file.addVariable("Chat", "IgnoreAnonymousUsers", false);
 	config_file.addVariable("Chat", "IgnoreAnonymousUsersInConferences", false);
@@ -212,12 +331,11 @@ void Core::createDefaultConfiguration()
 	config_file.addVariable("Chat", "ShowEditWindowLabel", true);
 
 	config_file.addVariable("General", "AllowExecutingFromParser", false);
-	config_file.addVariable("General", "AutoRaise", false);
 	config_file.addVariable("General", "CheckUpdates", true);
 	config_file.addVariable("General", "DEBUG_MASK", KDEBUG_ALL & ~KDEBUG_FUNCTION_END);
 	config_file.addVariable("General", "DescriptionHeight", 60);
 	config_file.addVariable("General", "DisconnectWithCurrentDescription", true);
-#ifdef Q_WS_WIN
+#ifdef Q_OS_WIN32
 	config_file.addVariable("General", "HideMainWindowFromTaskbar", false);
 #endif
 	config_file.addVariable("General", "Language",  QLocale::system().name().left(2));
@@ -227,7 +345,6 @@ void Core::createDefaultConfiguration()
 	config_file.addVariable("General", "ShowBlocked", true);
 	config_file.addVariable("General", "ShowBlocking", true);
 	config_file.addVariable("General", "ShowMyself", false);
-	config_file.addVariable("General", "ShowEmotPanel", true);
 	config_file.addVariable("General", "ShowOffline", true);
 	config_file.addVariable("General", "ShowOnlineAndDescription", false);
 	config_file.addVariable("General", "ShowWithoutDescription", true);
@@ -257,7 +374,7 @@ void Core::createDefaultConfiguration()
 	config_file.addVariable("Look", "ChatContents", QString());
 	config_file.addVariable("Look", "ForceCustomChatFont", false);
 	QFont chatFont = qApp->font();
-#ifdef Q_WS_WIN
+#ifdef Q_OS_WIN32
 	// On Windows default app font is often "MS Shell Dlg 2", and the default sans
 	// family (Arial, at least in Qt 4.8) is better. Though, on X11 the default
 	// sans family is the same while most users will have some nice default app
@@ -286,7 +403,6 @@ void Core::createDefaultConfiguration()
 	config_file.addVariable("Look", "DescriptionColor", w.palette().text().color());
 	config_file.addVariable("Look", "DisplayGroupTabs", true);
 	config_file.addVariable("Look", "HeaderSeparatorHeight", 1);
-	config_file.addVariable("Look", "IconsPaths", QString());
 	config_file.addVariable("Look", "InfoPanelFgColor", w.palette().text().color());
 	config_file.addVariable("Look", "InfoPanelBgFilled", false);
 	config_file.addVariable("Look", "InfoPanelBgColor", w.palette().base().color());
@@ -299,11 +415,7 @@ void Core::createDefaultConfiguration()
 	config_file.addVariable("Look", "PanelFont", qApp->font());
 	config_file.addVariable("Look", "PanelVerticalScrollbar", false);
 	config_file.addVariable("Look", "ParagraphSeparator", 4);
-#ifdef Q_WS_MAEMO_5
-	config_file.addVariable("Look", "ShowAvatars", false);
-#else
 	config_file.addVariable("Look", "ShowAvatars", true);
-#endif
 	config_file.addVariable("Look", "IconTheme", IconThemeManager::defaultTheme());
 	config_file.addVariable("Look", "ShowGroupAll", true);
 	config_file.addVariable("Look", "ShowBold", true);
@@ -392,9 +504,16 @@ void Core::createAllDefaultToolbars()
 
 void Core::init()
 {
+	MessageRenderInfo::registerParserTags();
+
+	runServices();
+
 	// protocol modules should be loaded before gui
 	// it fixes crash on loading pending messages from config, contacts import from 0.6.5, and maybe other issues
-	PluginsManager::instance()->activateProtocolPlugins();
+	{
+		auto changeNotifierLock = ChangeNotifierLock{CurrentPluginStateService->changeNotifier()};
+		CurrentPluginManager->activateProtocolPlugins();
+	}
 
 	Myself.setAnonymous(false);
 	Myself.setDisplay(config_file.readEntry("General", "Nick", tr("Me")));
@@ -411,10 +530,10 @@ void Core::init()
 	AccountManager::instance()->ensureLoaded();
 	BuddyManager::instance()->ensureLoaded();
 	ContactManager::instance()->ensureLoaded();
-	// Without that MessageManager is loaded while filtering buddies list for the first time.
-	// It has to happen earlier because MessageManager::loaded() might add buddies to the BuddyManager
+	// Without that UnreadMessageRepository is loaded while filtering buddies list for the first time.
+	// It has to happen earlier because UnreadMessageRepository::loaded() might add buddies to the BuddyManager
 	// which (the buddies) otherwise will not be taken into account by buddies list before its next update.
-	MessageManager::instance()->ensureLoaded();
+	CurrentUnreadMessageRepository->ensureLoaded();
 	AvatarManager::instance(); // initialize that
 
 #if WITH_LIBINDICATE_QT
@@ -428,11 +547,6 @@ void Core::initialized()
 	StatusSetter::instance()->coreInitialized();
 }
 
-void Core::storeConfiguration()
-{
-	xml_config_file->makeBackup();
-}
-
 void Core::deleteOldConfigurationFiles()
 {
 	kdebugf();
@@ -440,22 +554,22 @@ void Core::deleteOldConfigurationFiles()
 	QDir oldConfigs(KaduPaths::instance()->profilePath(), "kadu-0.12.conf.xml.backup.*", QDir::Name, QDir::Files);
 	if (oldConfigs.count() > 20)
 		for (unsigned int i = 0, max = oldConfigs.count() - 20; i < max; ++i)
-			QFile::remove(KaduPaths::instance()->profilePath() + oldConfigs[i]);
+			QFile::remove(KaduPaths::instance()->profilePath() + oldConfigs[static_cast<int>(i)]);
 
 	QDir oldConfigs2(KaduPaths::instance()->profilePath(), "kadu-0.6.6.conf.xml.backup.*", QDir::Name, QDir::Files);
 	if (oldConfigs2.count() > 20)
 		for (unsigned int i = 0, max = oldConfigs2.count() - 20; i < max; ++i)
-			QFile::remove(KaduPaths::instance()->profilePath() + oldConfigs2[i]);
+			QFile::remove(KaduPaths::instance()->profilePath() + oldConfigs2[static_cast<int>(i)]);
 
 	QDir oldBacktraces(KaduPaths::instance()->profilePath(), "kadu.backtrace.*", QDir::Name, QDir::Files);
 	if (oldBacktraces.count() > 20)
 		for (unsigned int i = 0, max = oldBacktraces.count() - 20; i < max; ++i)
-			QFile::remove(KaduPaths::instance()->profilePath() + oldBacktraces[i]);
+			QFile::remove(KaduPaths::instance()->profilePath() + oldBacktraces[static_cast<int>(i)]);
 
 	QDir oldDebugs(KaduPaths::instance()->profilePath(), "kadu.log.*", QDir::Name, QDir::Files);
 	if (oldDebugs.count() > 20)
 		for (unsigned int i = 0, max = oldDebugs.count() - 20; i < max; ++i)
-			QFile::remove(KaduPaths::instance()->profilePath() + oldDebugs[i]);
+			QFile::remove(KaduPaths::instance()->profilePath() + oldDebugs[static_cast<int>(i)]);
 
 	kdebugf2();
 }
@@ -522,6 +636,403 @@ void Core::createGui()
 	FileTransferManager::instance();
 }
 
+void Core::runServices()
+{
+	CurrentBuddyDataWindowRepository = new BuddyDataWindowRepository(this);
+	CurrentChatDataWindowRepository = new ChatDataWindowRepository(this);
+	CurrentChatImageRequestService = new ChatImageRequestService(this);
+	CurrentDomProcessorService = new DomProcessorService(this);
+	CurrentImageStorageService = new ImageStorageService(this);
+	CurrentMessageFilterService = new MessageFilterService(this);
+	CurrentMessageHtmlRendererService = new MessageHtmlRendererService(this);
+	CurrentMessageTransformerService = new MessageTransformerService(this);
+	CurrentFormattedStringFactory = new FormattedStringFactory();
+	CurrentRawMessageTransformerService = new RawMessageTransformerService(this);
+	CurrentClipboardHtmlTransformerService = new ClipboardHtmlTransformerService(this);
+	CurrentAccountConfigurationWidgetFactoryRepository = new AccountConfigurationWidgetFactoryRepository(this);
+	CurrentBuddyConfigurationWidgetFactoryRepository = new BuddyConfigurationWidgetFactoryRepository(this);
+	CurrentChatConfigurationWidgetFactoryRepository = new ChatConfigurationWidgetFactoryRepository(this);
+	CurrentChatTopBarWidgetFactoryRepository = new ChatTopBarWidgetFactoryRepository(this);
+	CurrentUnreadMessageRepository = new UnreadMessageRepository(this);
+
+	CurrentRosterNotifier = new RosterNotifier(this);
+	foreach (const auto &notifyEvent, CurrentRosterNotifier->notifyEvents())
+		NotificationManager::instance()->registerNotifyEvent(notifyEvent);
+
+	CurrentChatWidgetActions = new ChatWidgetActions(this);
+
+	CurrentChatWidgetFactory = new ChatWidgetFactory(this);
+	CurrentChatWidgetFactory->setFormattedStringFactory(CurrentFormattedStringFactory);
+
+	CurrentChatWidgetRepository = new ChatWidgetRepository(this);
+
+	CurrentChatWindowFactory = new ChatWindowFactory(this);
+	CurrentChatWindowRepository = new ChatWindowRepository(this);
+
+	auto windowChatWidgetContainerHandler = new WindowChatWidgetContainerHandler(this);
+	windowChatWidgetContainerHandler->setChatWindowFactory(CurrentChatWindowFactory);
+	windowChatWidgetContainerHandler->setChatWindowRepository(CurrentChatWindowRepository);
+
+	CurrentChatWidgetContainerHandlerRepository = new ChatWidgetContainerHandlerRepository(this);
+	CurrentChatWidgetContainerHandlerRepository->registerChatWidgetContainerHandler(windowChatWidgetContainerHandler);
+
+	CurrentChatWidgetContainerHandlerMapper = new ChatWidgetContainerHandlerMapper(this);
+	CurrentChatWidgetContainerHandlerMapper->setChatWidgetContainerHandlerRepository(CurrentChatWidgetContainerHandlerRepository);
+	CurrentChatWidgetContainerHandlerMapper->setChatWidgetRepository(CurrentChatWidgetRepository);
+
+	CurrentChatWidgetActivationService = new ChatWidgetActivationService(this);
+	CurrentChatWidgetActivationService->setChatWidgetContainerHandlerMapper(CurrentChatWidgetContainerHandlerMapper);
+	CurrentChatWidgetActivationService->setChatWidgetContainerHandlerRepository(CurrentChatWidgetContainerHandlerRepository);
+
+	CurrentChatWidgetManager = new ChatWidgetManager(this);
+	CurrentChatWidgetManager->setChatWidgetActivationService(CurrentChatWidgetActivationService);
+	CurrentChatWidgetManager->setChatWidgetFactory(CurrentChatWidgetFactory);
+	CurrentChatWidgetManager->setChatWidgetRepository(CurrentChatWidgetRepository);
+
+	CurrentChatWidgetMessageHandler = new ChatWidgetMessageHandler(this);
+	CurrentChatWidgetMessageHandler->setChatWidgetActivationService(CurrentChatWidgetActivationService);
+	CurrentChatWidgetMessageHandler->setChatWidgetManager(CurrentChatWidgetManager);
+	CurrentChatWidgetMessageHandler->setChatWidgetRepository(CurrentChatWidgetRepository);
+	CurrentChatWidgetMessageHandler->setMessageManager(MessageManager::instance());
+	CurrentChatWidgetMessageHandler->setUnreadMessageRepository(CurrentUnreadMessageRepository);
+	auto chatWidgetMessageHandlerConfigurator = new ChatWidgetMessageHandlerConfigurator(); // this is basically a global so we do not care about relesing it
+	chatWidgetMessageHandlerConfigurator->setChatWidgetMessageHandler(CurrentChatWidgetMessageHandler);
+
+	CurrentChatWindowStorage = new ChatWindowStorage(this);
+	CurrentChatWindowStorage->setChatManager(ChatManager::instance());
+	CurrentChatWindowStorage->setStoragePointFactory(CurrentStoragePointFactory);
+	auto chatWindowStorageConfigurator = new ChatWindowStorageConfigurator(); // this is basically a global so we do not care about relesing it
+	chatWindowStorageConfigurator->setChatWindowStorage(CurrentChatWindowStorage);
+
+	CurrentChatWindowManager = new ChatWindowManager(this);
+	CurrentChatWindowManager->setChatWidgetManager(CurrentChatWidgetManager);
+	CurrentChatWindowManager->setChatWindowRepository(CurrentChatWindowRepository);
+	CurrentChatWindowManager->setChatWindowStorage(CurrentChatWindowStorage);
+
+	// this instance lives forever
+	// TODO: maybe make it QObject and make CurrentChatImageRequestService its parent
+	ChatImageRequestServiceConfigurator *configurator = new ChatImageRequestServiceConfigurator();
+	configurator->setChatImageRequestService(CurrentChatImageRequestService);
+
+	CurrentChatImageRequestService->setImageStorageService(CurrentImageStorageService);
+	CurrentChatImageRequestService->setAccountManager(AccountManager::instance());
+	CurrentChatImageRequestService->setContactManager(ContactManager::instance());
+
+	MessageManager::instance()->setMessageFilterService(CurrentMessageFilterService);
+	MessageManager::instance()->setMessageTransformerService(CurrentMessageTransformerService);
+	MessageManager::instance()->setFormattedStringFactory(CurrentFormattedStringFactory);
+
+	CurrentFormattedStringFactory->setImageStorageService(CurrentImageStorageService);
+
+	ChatStyleManager::instance()->setFormattedStringFactory(CurrentFormattedStringFactory);
+
+	CurrentMessageHtmlRendererService->setDomProcessorService(CurrentDomProcessorService);
+	CurrentMessageRenderInfoFactory = new MessageRenderInfoFactory();
+	CurrentMessageRenderInfoFactory->setChatStyleManager(ChatStyleManager::instance());
+
+	CurrentPluginActivationErrorHandler = new PluginActivationErrorHandler{this};
+	CurrentPluginActivationService = new PluginActivationService(this);
+
+	CurrentPluginMetadataFinder = new PluginMetadataFinder(this);
+	CurrentPluginMetadataReader = new PluginMetadataReader(this);
+	CurrentPluginStateManager = new PluginStateManager(this);
+	CurrentPluginStateService = new PluginStateService(this);
+
+	CurrentPluginDependencyGraphBuilder = new PluginDependencyGraphBuilder(this);
+
+	CurrentPluginMetadataFinder->setDirectory(KaduPaths::instance()->dataPath() + QLatin1String{"plugins"});
+	CurrentPluginMetadataFinder->setPluginMetadataReader(CurrentPluginMetadataReader);
+
+	CurrentPluginDependencyHandler = new PluginDependencyHandler(this);
+	CurrentPluginDependencyHandler->setPluginDependencyGraphBuilder(CurrentPluginDependencyGraphBuilder);
+	CurrentPluginDependencyHandler->setPluginMetadataProvider(CurrentPluginMetadataFinder);
+
+	CurrentPluginConflictResolver = new PluginConflictResolver{this};
+	CurrentPluginConflictResolver->setPluginDependencyHandler(CurrentPluginDependencyHandler);
+
+	CurrentPluginActivationService->setPluginActivationErrorHandler(CurrentPluginActivationErrorHandler);
+	CurrentPluginActivationService->setPluginDependencyHandler(CurrentPluginDependencyHandler);
+	CurrentPluginActivationService->setPluginStateService(CurrentPluginStateService);
+
+	CurrentPluginManager = new PluginManager(this);
+	CurrentPluginManager->setPluginActivationService(CurrentPluginActivationService);
+	CurrentPluginManager->setPluginDependencyHandler(CurrentPluginDependencyHandler);
+	CurrentPluginManager->setPluginStateService(CurrentPluginStateService);
+
+	CurrentPluginActivationErrorHandler->setPluginActivationService(CurrentPluginActivationService);
+	CurrentPluginActivationErrorHandler->setPluginStateService(CurrentPluginStateService);
+
+	CurrentPluginStateManager->setPluginDependencyHandler(CurrentPluginDependencyHandler);
+	CurrentPluginStateManager->setPluginStateService(CurrentPluginStateService);
+	CurrentPluginStateManager->setStoragePointFactory(CurrentStoragePointFactory);
+
+	CurrentPluginDependencyHandler->initialize();
+	CurrentPluginStateManager->loadPluginStates();
+
+	CurrentChatStyleRendererFactoryProvider = make_qobject<ConfiguredChatStyleRendererFactoryProvider>(this);
+
+	ChatStyleManager::instance()->setConfiguredChatStyleRendererFactoryProvider(CurrentChatStyleRendererFactoryProvider.get());
+
+	CurrentWebkitMessagesViewDisplayFactory = make_qobject<WebkitMessagesViewDisplayFactory>(this);
+	CurrentWebkitMessagesViewDisplayFactory->setChatStyleManager(ChatStyleManager::instance());
+	CurrentWebkitMessagesViewDisplayFactory->setMessageRenderInfoFactory(CurrentMessageRenderInfoFactory);
+
+	CurrentWebkitMessagesViewHandlerFactory = make_qobject<WebkitMessagesViewHandlerFactory>(this);
+	CurrentWebkitMessagesViewHandlerFactory->setChatStyleManager(ChatStyleManager::instance());
+	CurrentWebkitMessagesViewHandlerFactory->setWebkitMessagesViewDisplayFactory(CurrentWebkitMessagesViewDisplayFactory.get());
+
+	CurrentWebkitMessagesViewFactory = make_qobject<WebkitMessagesViewFactory>(this);
+	CurrentWebkitMessagesViewFactory->setChatStyleRendererFactoryProvider(CurrentChatStyleRendererFactoryProvider.get());
+	CurrentWebkitMessagesViewFactory->setImageStorageService(CurrentImageStorageService);
+	CurrentWebkitMessagesViewFactory->setWebkitMessagesViewHandlerFactory(CurrentWebkitMessagesViewHandlerFactory.get());
+}
+
+void Core::runGuiServices()
+{
+	CurrentNotificationService = new NotificationService(this);
+	CurrentChatWidgetMessageHandler->setNotificationService(CurrentNotificationService);
+
+	CurrentChatWindowManager->openStoredChatWindows();
+}
+
+void Core::stopServices()
+{
+	delete CurrentChatWidgetRepository;
+	CurrentChatWidgetRepository = 0;
+}
+
+void Core::activatePlugins()
+{
+	auto changeNotifierLock = ChangeNotifierLock{CurrentPluginStateService->changeNotifier()};
+	CurrentPluginManager->activatePlugins();
+	CurrentPluginManager->activateReplacementPlugins();
+}
+
+BuddyDataWindowRepository * Core::buddyDataWindowRepository() const
+{
+	return CurrentBuddyDataWindowRepository;
+}
+
+ChatDataWindowRepository * Core::chatDataWindowRepository() const
+{
+	return CurrentChatDataWindowRepository;
+}
+
+ChatImageRequestService * Core::chatImageRequestService() const
+{
+	return CurrentChatImageRequestService;
+}
+
+DomProcessorService * Core::domProcessorService() const
+{
+	return CurrentDomProcessorService;
+}
+
+ImageStorageService * Core::imageStorageService() const
+{
+	return CurrentImageStorageService;
+}
+
+MessageFilterService * Core::messageFilterService() const
+{
+	return CurrentMessageFilterService;
+}
+
+MessageHtmlRendererService * Core::messageHtmlRendererService() const
+{
+	return CurrentMessageHtmlRendererService;
+}
+
+MessageRenderInfoFactory * Core::messageRenderInfoFactory() const
+{
+	return CurrentMessageRenderInfoFactory;
+}
+
+MessageTransformerService * Core::messageTransformerService() const
+{
+	return CurrentMessageTransformerService;
+}
+
+NotificationService * Core::notificationService() const
+{
+	return CurrentNotificationService;
+}
+
+FormattedStringFactory * Core::formattedStringFactory() const
+{
+	return CurrentFormattedStringFactory;
+}
+
+RawMessageTransformerService * Core::rawMessageTransformerService() const
+{
+	return CurrentRawMessageTransformerService;
+}
+
+ClipboardHtmlTransformerService * Core::clipboardHtmlTransformerService() const
+{
+	return CurrentClipboardHtmlTransformerService;
+}
+
+AccountConfigurationWidgetFactoryRepository * Core::accountConfigurationWidgetFactoryRepository() const
+{
+	return CurrentAccountConfigurationWidgetFactoryRepository;
+}
+
+BuddyConfigurationWidgetFactoryRepository * Core::buddyConfigurationWidgetFactoryRepository() const
+{
+	return CurrentBuddyConfigurationWidgetFactoryRepository;
+}
+
+ChatConfigurationWidgetFactoryRepository * Core::chatConfigurationWidgetFactoryRepository() const
+{
+	return CurrentChatConfigurationWidgetFactoryRepository;
+}
+
+ChatTopBarWidgetFactoryRepository * Core::chatTopBarWidgetFactoryRepository() const
+{
+	return CurrentChatTopBarWidgetFactoryRepository;
+}
+
+UnreadMessageRepository * Core::unreadMessageRepository() const
+{
+	return CurrentUnreadMessageRepository;
+}
+
+RosterNotifier * Core::rosterNotifier() const
+{
+	return CurrentRosterNotifier;
+}
+
+ChatWidgetContainerHandlerMapper * Core::chatWidgetContainerHandlerMapper() const
+{
+	return CurrentChatWidgetContainerHandlerMapper;
+}
+
+ChatWidgetContainerHandlerRepository * Core::chatWidgetContainerHandlerRepository() const
+{
+	return CurrentChatWidgetContainerHandlerRepository;
+}
+
+ChatWidgetActions * Core::chatWidgetActions() const
+{
+	return CurrentChatWidgetActions;
+}
+
+ChatWidgetActivationService * Core::chatWidgetActivationService() const
+{
+	return CurrentChatWidgetActivationService;
+}
+
+ChatWidgetManager * Core::chatWidgetManager() const
+{
+	return CurrentChatWidgetManager;
+}
+
+ChatWidgetFactory * Core::chatWidgetFactory() const
+{
+	return CurrentChatWidgetFactory;
+}
+
+ChatWidgetRepository * Core::chatWidgetRepository() const
+{
+	return CurrentChatWidgetRepository;
+}
+
+ChatWindowFactory * Core::chatWindowFactory() const
+{
+	return CurrentChatWindowFactory;
+}
+
+ChatWindowManager * Core::chatWindowManager() const
+{
+	return CurrentChatWindowManager;
+}
+
+ChatWindowRepository * Core::chatWindowRepository() const
+{
+	return CurrentChatWindowRepository;
+}
+
+StoragePointFactory * Core::storagePointFactory() const
+{
+	return CurrentStoragePointFactory;
+}
+
+PluginActivationErrorHandler * Core::pluginActivationErrorHandler() const
+{
+	return CurrentPluginActivationErrorHandler;
+}
+
+PluginActivationService * Core::pluginActivationService() const
+{
+	return CurrentPluginActivationService;
+}
+
+PluginConflictResolver * Core::pluginConflictResolver() const
+{
+	return CurrentPluginConflictResolver;
+}
+
+PluginDependencyGraphBuilder * Core::pluginDependencyGraphBuilder() const
+{
+	return CurrentPluginDependencyGraphBuilder;
+}
+
+PluginDependencyHandler * Core::pluginDependencyHandler() const
+{
+	return CurrentPluginDependencyHandler;
+}
+
+PluginMetadataProvider * Core::pluginMetadataProvider() const
+{
+	return CurrentPluginMetadataFinder;
+}
+
+PluginMetadataReader * Core::pluginMetadataReader() const
+{
+	return CurrentPluginMetadataReader;
+}
+
+PluginStateManager * Core::pluginStateManager() const
+{
+	return CurrentPluginStateManager;
+}
+
+PluginStateService * Core::pluginStateService() const
+{
+	return CurrentPluginStateService;
+}
+
+PluginManager * Core::pluginManager() const
+{
+	return CurrentPluginManager;
+}
+
+ChatStyleRendererFactoryProvider * Core::chatStyleRendererFactoryProvider() const
+{
+	return CurrentChatStyleRendererFactoryProvider.get();
+}
+
+ConfiguredChatStyleRendererFactoryProvider * Core::configuredChatStyleRendererFactoryProvider() const
+{
+	return CurrentChatStyleRendererFactoryProvider.get();
+}
+
+WebkitMessagesViewDisplayFactory * Core::webkitMessagesViewDisplayFactory() const
+{
+	return CurrentWebkitMessagesViewDisplayFactory.get();
+}
+
+WebkitMessagesViewFactory * Core::webkitMessagesViewFactory() const
+{
+	return CurrentWebkitMessagesViewFactory.get();
+}
+
+WebkitMessagesViewHandlerFactory * Core::webkitMessagesViewHandlerFactory() const
+{
+	return CurrentWebkitMessagesViewHandlerFactory.get();
+}
+
 void Core::showMainWindow()
 {
 	if (ShowMainWindowOnStart)
@@ -541,7 +1052,7 @@ KaduWindow * Core::kaduWindow()
 	return Window;
 }
 
-const QSharedPointer<DefaultProvider<QWidget *> > & Core::mainWindowProvider() const
+const std::shared_ptr<DefaultProvider<QWidget *>> & Core::mainWindowProvider() const
 {
 	return MainWindowProvider;
 }
@@ -562,3 +1073,5 @@ void Core::quit()
 	delete Instance;
 	Instance = 0;
 }
+
+#include "moc_core.cpp"

@@ -3,7 +3,7 @@
  * Copyright 2009, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2010 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2011, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -44,11 +44,11 @@ void ConfigRadioButton::createWidgets()
 {
 	kdebugf();
 
-	setText(qApp->translate("@default", widgetCaption.toUtf8().constData()));
+	setText(QCoreApplication::translate("@default", widgetCaption.toUtf8().constData()));
 	parentConfigGroupBox->addWidget(this, true);
 
 	if (!ConfigWidget::toolTip.isEmpty())
-		setToolTip(qApp->translate("@default", ConfigWidget::toolTip.toUtf8().constData()));
+		setToolTip(QCoreApplication::translate("@default", ConfigWidget::toolTip.toUtf8().constData()));
 }
 
 void ConfigRadioButton::loadConfiguration()
@@ -67,3 +67,5 @@ void ConfigRadioButton::saveConfiguration()
 
 	dataManager->writeEntry(section, item, QVariant(isChecked() ? "true" : "false"));
 }
+
+#include "moc_config-radio-button.cpp"

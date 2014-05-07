@@ -2,7 +2,7 @@
  * %kadu copyright begin%
  * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009, 2010, 2010 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2009, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
@@ -23,25 +23,49 @@
 #ifndef JABBER_AVATAR_UPLOADER_H
 #define JABBER_AVATAR_UPLOADER_H
 
+#include <QtCore/QPointer>
 #include <QtGui/QImage>
 
-#include "accounts/account.h"
+#include "protocols/services/avatar-uploader.h"
 
 class QNetworkAccessManager;
 class QNetworkReply;
 
-class JabberAvatarUploader : public QObject
+namespace XMPP { class JabberVCardService; }
+
+class JabberPepService;
+
+/**
+ * @addtogroup Jabber
+ * @{
+ */
+
+/**
+ * @class JabberAvatarUploader
+ * @short Uploads avatar to XMPP server using PEP or VCard.
+ * @author Rafał 'Vogel' Malinowski
+ *
+ * This class allows for easy upload of avatar to XMPP server. New instance can be created by constructor that requires
+ * JabberPepService and XMPP::JabberVCardService arguments. If both services are null then this class will always fail
+ * to do it job. If one is provided then it will be used to upload avatar. If both are provided then PEP service will
+ * be used and VCard only when PEP service is not enabled or when it failed.
+ *
+ * This class internally used JabberAvatarPepUploader and JabberAvatarVCardUploader.
+ */
+class JabberAvatarUploader : public AvatarUploader
 {
 	Q_OBJECT
 
-	Account MyAccount;
+	QPointer<JabberPepService> PepService;
+	QPointer<XMPP::JabberVCardService> VCardService;
+
+	QString Id;
+	QString Password;
 	QImage UploadingAvatar;
-	QByteArray UploadingAvatarData;
 
 	// http://xmpp.org/extensions/xep-0153.html
 	// we dont like too big files
 	QImage createScaledAvatar(const QImage &avatarToScale);
-	QByteArray avatarData(const QImage &avatar);
 
 	void uploadAvatarPEP();
 	void uploadAvatarVCard();
@@ -51,14 +75,30 @@ private slots:
 	void avatarUploadedSlot(bool ok);
 
 public:
-	JabberAvatarUploader(Account account, QObject *parent);
+	/**
+	 * @author Rafał 'Vogel' Malinowski
+	 * @short Return image data as PNG byte array.
+	 * @param avatar avatar image to convert
+	 * @return image data as PNG byte array
+	 */
+	static QByteArray avatarData(const QImage &avatar);
+
+	/**
+	 * @author Rafał 'Vogel' Malinowski
+	 * @short Create instance attached to given services.
+	 * @param pepService instance of JabberPepService
+	 * @param vCardService instance of XMPP::JabberVCardService
+	 * @param parent QObject parent
+	 */
+	JabberAvatarUploader(JabberPepService *pepService, XMPP::JabberVCardService *vCardService, QObject *parent);
 	virtual ~JabberAvatarUploader();
 
-	void uploadAvatar(QImage avatar);
-
-signals:
-	void avatarUploaded(bool ok, QImage image);
+	virtual void uploadAvatar(const QString &id, const QString &password, QImage avatar);
 
 };
+
+/**
+ * @}
+ */
 
 #endif // JABBER_AVATAR_UPLOADER_H

@@ -6,14 +6,6 @@
         <translation>État</translation>
     </message>
     <message>
-        <source>Autostatus</source>
-        <translation>Autostatus</translation>
-    </message>
-    <message>
-        <source>General</source>
-        <translation>Général</translation>
-    </message>
-    <message>
         <source>Autostatus file</source>
         <translation>Fichier Autostatus</translation>
     </message>
@@ -36,6 +28,18 @@
     <message>
         <source>Invisible</source>
         <translation>Invisible</translation>
+    </message>
+    <message>
+        <source>Behaviour</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <source>Description</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <source>AutoStatus</source>
+        <translation type="unfinished"/>
     </message>
 </context>
 <context>

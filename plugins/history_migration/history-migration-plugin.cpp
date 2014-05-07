@@ -3,6 +3,7 @@
  * Copyright 2008 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -28,7 +29,7 @@ HistoryMigrationPlugin::~HistoryMigrationPlugin()
 {
 }
 
-int HistoryMigrationPlugin::init(bool firstLoad)
+bool HistoryMigrationPlugin::init(bool firstLoad)
 {
 	HistoryMigrationActions::registerActions();
 	HistoryImporterManager::createInstance();
@@ -36,7 +37,7 @@ int HistoryMigrationPlugin::init(bool firstLoad)
 	if (firstLoad)
 		HistoryMigrationActions::instance()->runImportHistoryAction();
 
-	return 0;
+	return true;
 }
 
 void HistoryMigrationPlugin::done()
@@ -46,3 +47,5 @@ void HistoryMigrationPlugin::done()
 }
 
 Q_EXPORT_PLUGIN2(history_migration, HistoryMigrationPlugin)
+
+#include "moc_history-migration-plugin.cpp"

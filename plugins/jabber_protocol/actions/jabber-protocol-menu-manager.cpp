@@ -1,6 +1,7 @@
 /*
  * %kadu copyright begin%
  * Copyright 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2012 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
@@ -19,6 +20,7 @@
  */
 
 #include "actions/jabber-actions.h"
+#include "gui/menu/menu-inventory.h"
 
 #include "jabber-protocol-menu-manager.h"
 
@@ -41,11 +43,15 @@ JabberProtocolMenuManager::JabberProtocolMenuManager()
 	RosterActions.append(JabberActions::instance()->resendSubscription());
 	RosterActions.append(JabberActions::instance()->removeSubscription());
 	RosterActions.append(JabberActions::instance()->askForSubscription());
+
+	MenuInventory::instance()->registerProtocolMenuManager(this);
 }
 
 JabberProtocolMenuManager::~JabberProtocolMenuManager()
 {
 	RosterActions.clear();
+
+	MenuInventory::instance()->unregisterProtocolMenuManager(this);
 }
 
 const QList<ActionDescription *> & JabberProtocolMenuManager::protocolActions() const

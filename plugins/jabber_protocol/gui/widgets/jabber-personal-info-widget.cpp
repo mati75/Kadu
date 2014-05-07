@@ -2,8 +2,8 @@
  * %kadu copyright begin%
  * Copyright 2009, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009, 2010 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2009, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -32,7 +32,7 @@
 #include "jabber-personal-info-widget.h"
 
 JabberPersonalInfoWidget::JabberPersonalInfoWidget(Account account, QWidget* parent) :
-		QWidget(parent), MyBuddy(Buddy::create())
+		QWidget(parent), Id(account.id()), MyBuddy(Buddy::create())
 {
 	createGui();
 	fillForm();
@@ -45,7 +45,7 @@ JabberPersonalInfoWidget::JabberPersonalInfoWidget(Account account, QWidget* par
 		return;
 
 	connect(Service, SIGNAL(personalInfoAvailable(Buddy)), this, SLOT(personalInfoAvailable(Buddy)));
-	Service->fetchPersonalInfo();
+	Service->fetchPersonalInfo(Id);
 }
 
 JabberPersonalInfoWidget::~JabberPersonalInfoWidget()
@@ -127,7 +127,7 @@ void JabberPersonalInfoWidget::apply()
 	buddy.setEmail((*Email).text());
 	buddy.setWebsite((*Website).text());
 
-	Service->updatePersonalInfo(buddy);
+	Service->updatePersonalInfo(Id, buddy);
 	MyBuddy = buddy;
 }
 
@@ -135,3 +135,5 @@ void JabberPersonalInfoWidget::cancel()
 {
 	fillForm();
 }
+
+#include "moc_jabber-personal-info-widget.cpp"

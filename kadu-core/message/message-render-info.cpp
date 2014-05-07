@@ -3,8 +3,8 @@
  * Copyright 2008, 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2011 Piotr Dąbrowski (ultr@ultr.pl)
  * Copyright 2004, 2006 Adrian Smarzewski (adrian@kadu.net)
- * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2007, 2008, 2009, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2007 Dawid Stawiarski (neeo@kadu.net)
  * Copyright 2004, 2005, 2006, 2007 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
@@ -23,104 +23,86 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <QtCore/QFile>
-#include <QtCore/QRegExp>
-
-#include "configuration/chat-configuration-holder.h"
-#include "configuration/configuration-file.h"
-#include "emoticons/emoticons-manager.h"
-#include "icons/kadu-icon.h"
-#include "message/formatted-message-part.h"
-#include "misc/misc.h"
-#include "parser/parser.h"
-#include "protocols/services/chat-image-service.h"
-#include "url-handlers/url-handler-manager.h"
-
 #include "message-render-info.h"
 
-QString formatMessage(const QString& text)
-{
-	HtmlDocument htmlDocument;
-	htmlDocument.parseHtml(text);
-	UrlHandlerManager::instance()->convertAllUrls(htmlDocument, false);
-	EmoticonsManager::instance()->expandEmoticons(htmlDocument, (EmoticonsStyle)ChatConfigurationHolder::instance()->emoticonsStyle());
+#include "core/core.h"
+#include "message/message-html-renderer-service.h"
+#include "misc/date-time.h"
+#include "parser/parser.h"
 
-	return htmlDocument.generateHtml();
-}
-
-static QString getMessage(const QObject * const object)
+static QString getMessage(const ParserData * const object)
 {
-	const MessageRenderInfo * const messageRenderInfo = qobject_cast<const MessageRenderInfo * const>(object);
+	const MessageRenderInfo * const messageRenderInfo = dynamic_cast<const MessageRenderInfo * const>(object);
 	if (messageRenderInfo)
-		return formatMessage(messageRenderInfo->htmlMessageContent());
+		return Core::instance()->messageHtmlRendererService()->renderMessage(messageRenderInfo->message());
 	else
 		return QString();
 }
 
-static QString getMessageId(const QObject * const object)
+static QString getMessageId(const ParserData * const object)
 {
-	const MessageRenderInfo * const messageRenderInfo = qobject_cast<const MessageRenderInfo * const>(object);
+	const MessageRenderInfo * const messageRenderInfo = dynamic_cast<const MessageRenderInfo * const>(object);
 	if (messageRenderInfo)
 		return messageRenderInfo->message().id();
 	return QString();
 }
 
-static QString getMessageStatus(const QObject * const object)
+static QString getMessageStatus(const ParserData * const object)
 {
-	const MessageRenderInfo * const messageRenderInfo = qobject_cast<const MessageRenderInfo * const>(object);
+	const MessageRenderInfo * const messageRenderInfo = dynamic_cast<const MessageRenderInfo * const>(object);
 	if (messageRenderInfo)
 		return QString::number(messageRenderInfo->message().status());
 	return QString();
 }
 
-static QString getBackgroundColor(const QObject * const object)
+static QString getBackgroundColor(const ParserData * const object)
 {
-	const MessageRenderInfo * const messageRenderInfo = qobject_cast<const MessageRenderInfo * const>(object);
+	const MessageRenderInfo * const messageRenderInfo = dynamic_cast<const MessageRenderInfo * const>(object);
 	if (messageRenderInfo)
 		return messageRenderInfo->backgroundColor();
 	else
 		return QString();
 }
 
-static QString getFontColor(const QObject * const object)
+static QString getFontColor(const ParserData * const object)
 {
-	const MessageRenderInfo * const messageRenderInfo = qobject_cast<const MessageRenderInfo * const>(object);
+	const MessageRenderInfo * const messageRenderInfo = dynamic_cast<const MessageRenderInfo * const>(object);
 	if (messageRenderInfo)
 		return messageRenderInfo->fontColor();
 	else
 		return QString();
 }
 
-static QString getNickColor(const QObject * const object)
+static QString getNickColor(const ParserData * const object)
 {
-	const MessageRenderInfo * const messageRenderInfo = qobject_cast<const MessageRenderInfo * const>(object);
+	const MessageRenderInfo * const messageRenderInfo = dynamic_cast<const MessageRenderInfo * const>(object);
 	if (messageRenderInfo)
 		return messageRenderInfo->nickColor();
 	else
 		return QString();
 }
 
-static QString getSentDate(const QObject * const object)
+static QString getSentDate(const ParserData * const object)
 {
-	const MessageRenderInfo * const messageRenderInfo = qobject_cast<const MessageRenderInfo * const>(object);
+	const MessageRenderInfo * const messageRenderInfo = dynamic_cast<const MessageRenderInfo * const>(object);
 	if (messageRenderInfo && messageRenderInfo->showServerTime())
 		return printDateTime(messageRenderInfo->message().sendDate());
 	else
 		return QString();
 }
 
-static QString getReceivedDate(const QObject * const object)
+static QString getReceivedDate(const ParserData * const object)
 {
-	const MessageRenderInfo * const messageRenderInfo = qobject_cast<const MessageRenderInfo * const>(object);
+	const MessageRenderInfo * const messageRenderInfo = dynamic_cast<const MessageRenderInfo * const>(object);
 	if (messageRenderInfo)
 		return printDateTime(messageRenderInfo->message().receiveDate());
 	else
 		return QString();
 }
 
-static QString getSeparator(const QObject * const object)
+static QString getSeparator(const ParserData * const object)
 {
-	const MessageRenderInfo * const messageRenderInfo = qobject_cast<const MessageRenderInfo * const>(object);
+	const MessageRenderInfo * const messageRenderInfo = dynamic_cast<const MessageRenderInfo * const>(object);
 	if (!messageRenderInfo)
 		return QString();
 
@@ -129,13 +111,6 @@ static QString getSeparator(const QObject * const object)
 		return "<div style=\"margin: 0; margin-top:" + QString::number(separatorSize) + "px\"></div>";
 	else
 		return QString();
-}
-
-static QString loadingImageHtml(const QString &imageId)
-{
-	return QString("<img src=\"file:///%1\" id=\"%2\" />")
-			.arg(KaduIcon("kadu_icons/please-wait", "16x16").fullPath())
-			.arg(imageId);
 }
 
 void MessageRenderInfo::registerParserTags()
@@ -164,81 +139,48 @@ void MessageRenderInfo::unregisterParserTags()
 	Parser::unregisterObjectTag("separator");
 }
 
-MessageRenderInfo::MessageRenderInfo(const Message &msg) :
-		MyMessage(msg), ShowServerTime(true)
+MessageRenderInfo::MessageRenderInfo(Message message, QString backgroundColor, QString fontColor, QString nickColor,
+			bool includeHeader, int separatorSize, bool showServerTime) :
+		m_message{std::move(message)}, m_backgroundColor{std::move(backgroundColor)}, m_fontColor{std::move(fontColor)}, m_nickColor{std::move(nickColor)},
+		m_includeHeader(includeHeader), m_separatorSize{separatorSize}, m_showServerTime{showServerTime}
 {
-	switch (msg.type())
-	{
-		case MessageTypeSent:
-			BackgroundColor = ChatConfigurationHolder::instance()->myBackgroundColor();
-			NickColor = ChatConfigurationHolder::instance()->myNickColor();
-			FontColor = ChatConfigurationHolder::instance()->myFontColor();
-			break;
-
-		case MessageTypeReceived:
-			BackgroundColor = ChatConfigurationHolder::instance()->usrBackgroundColor();
-			NickColor = ChatConfigurationHolder::instance()->usrNickColor();
-			FontColor = ChatConfigurationHolder::instance()->usrFontColor();
-			break;
-
-		default:
-			// do nothing
-			break;
-	}
-
-	HtmlMessageContent = replacedNewLine(MyMessage.content(), QLatin1String("<br/>"));
-	HtmlMessageContent.replace(QChar::LineSeparator, QLatin1String("<br/>"));
-
-	// compare this regexp with FormattedMessagePart::toHtml()
-	QRegExp kaduimgRegExp("<img src=\"kaduimg:///([^\"]*)\" />");
-	int pos = 0;
-	while ((pos = kaduimgRegExp.indexIn(HtmlMessageContent, pos)) != -1)
-	{
-		QString imgId = kaduimgRegExp.cap(1);
-		if (!QFile(ChatImageService::imagesPath() + imgId).exists())
-			HtmlMessageContent.replace(kaduimgRegExp.cap(0), loadingImageHtml(imgId));
-		else
-			pos += kaduimgRegExp.matchedLength();
-	}
 }
 
 MessageRenderInfo::~MessageRenderInfo()
 {
 }
 
-void MessageRenderInfo::replaceLoadingImages(const QString &imageId, const QString &imageFileName)
+Message MessageRenderInfo::message() const
 {
-	QString img = QString("<img src=\"kaduimg:///%1\" />").arg(imageFileName);
-	HtmlMessageContent.replace(loadingImageHtml(imageId), img);
+	return m_message;
 }
 
-MessageRenderInfo & MessageRenderInfo::setShowServerTime(bool noServerTime, int noServerTimeDiff)
+QString MessageRenderInfo::backgroundColor() const
 {
-	ShowServerTime = (MyMessage.sendDate().isValid()
-			&& (!noServerTime || (abs((qint64)MyMessage.receiveDate().toTime_t() - (qint64)MyMessage.sendDate().toTime_t())) > noServerTimeDiff));
-	return *this;
+	return m_backgroundColor;
 }
 
-MessageRenderInfo & MessageRenderInfo::setSeparatorSize(int separatorSize)
+QString MessageRenderInfo::fontColor() const
 {
-	SeparatorSize = separatorSize;
-	return *this;
+	return m_fontColor;
 }
 
-MessageRenderInfo & MessageRenderInfo::setBackgroundColor(const QString &backgroundColor)
+QString MessageRenderInfo::nickColor() const
 {
-	BackgroundColor = backgroundColor;
-	return *this;
+	return m_nickColor;
 }
 
-MessageRenderInfo & MessageRenderInfo::setFontColor(const QString &fontColor)
+bool MessageRenderInfo::includeHeader() const
 {
-	FontColor = fontColor;
-	return *this;
+	return m_includeHeader;
 }
 
-MessageRenderInfo & MessageRenderInfo::setNickColor(const QString &nickColor)
+int MessageRenderInfo::separatorSize() const
 {
-	NickColor = nickColor;
-	return *this;
+	return m_separatorSize;
+}
+
+bool MessageRenderInfo::showServerTime() const
+{
+	return m_showServerTime;
 }

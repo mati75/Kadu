@@ -3,8 +3,8 @@
  * Copyright 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009 Tomasz Rostański (rozteck@interia.pl)
  * Copyright 2008, 2009 Michał Podsiadlik (michal@kadu.net)
- * Copyright 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2008, 2009, 2010, 2011, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -25,6 +25,7 @@
 #include <sys/stat.h>
 #include <sys/time.h>
 #include <sys/types.h>
+#include <signal.h>
 #include <stdio.h>
 
 #include "configuration/xml-configuration-file.h"
@@ -32,14 +33,10 @@
 #include "core/crash-aware-object.h"
 #include "gui/windows/kadu-window.h"
 #include "misc/kadu-paths.h"
-#include "plugins/plugin.h"
-#include "plugins/plugins-manager.h"
+#include "plugin/activation/plugin-activation-service.h"
 #include "activate.h"
 #include "debug.h"
 #include "kadu-config.h"
-
-#if SIG_HANDLING_ENABLED
-#include <signal.h>
 
 #include <QtCore/QCoreApplication>
 #include <QtCore/QDateTime>
@@ -100,9 +97,9 @@ static void kadu_signal_handler(int signal)
 			fprintf(backtraceFile, "======= END OF BACKTRACE  ======\n");
 
 			fprintf(backtraceFile, "loaded plugins:\n");
-			QList<Plugin *> plugins = PluginsManager::instance()->activePlugins();
-			foreach (Plugin *plugin, plugins)
-				fprintf(backtraceFile, "> %s\n", qPrintable(plugin->name()));
+			auto pluginNames = Core::instance()->pluginActivationService()->activePlugins();
+			for (auto const &pluginName : pluginNames)
+				fprintf(backtraceFile, "> %s\n", qPrintable(pluginName));
 			fprintf(backtraceFile, "Kadu version: %s\n", qPrintable(Core::version()));
 			fprintf(backtraceFile, "Qt compile time version: %s\nQt runtime version: %s\n",
 					QT_VERSION_STR, qVersion());
@@ -129,14 +126,11 @@ static void kadu_signal_handler(int signal)
 		_activateWindow(Core::instance()->kaduWindow());
 	}
 	else if (signal == SIGINT || signal == SIGTERM)
-		qApp->quit();
+		QCoreApplication::quit();
 }
-
-#endif // SIG_HANDLING_ENABLED
 
 void enableSignalHandling()
 {
-#if SIG_HANDLING_ENABLED
 	char *d = getenv("SIGNAL_HANDLING");
 	bool signalHandlingEnabled = d ? (atoi(d) != 0) : true;
 
@@ -148,5 +142,4 @@ void enableSignalHandling()
 		signal(SIGUSR1, kadu_signal_handler);
 		signal(SIGPIPE, SIG_IGN);
 	}
-#endif // SIG_HANDLING_ENABLED
 }

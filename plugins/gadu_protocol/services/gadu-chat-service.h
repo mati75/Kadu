@@ -4,7 +4,7 @@
  * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2011 Piotr Dąbrowski (ultr@ultr.pl)
  * Copyright 2010 Bartłomiej Zimoń (uzi18@o2.pl)
- * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2009, 2010, 2011, 2012, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
@@ -28,30 +28,54 @@
 #include <libgadu.h>
 
 #include "message/message-common.h"
+#include "protocols/protocol.h"
+#include "protocols/services/chat-image.h"
 
 #include "protocols/services/chat-service.h"
 
 class QTimer;
 
+class FormattedStringFactory;
+class GaduChatImageService;
+class GaduConnection;
+class ImageStorageService;
+class RawMessage;
+
+/**
+ * @addtogroup Gadu
+ * @{
+ */
+
+/**
+ * @class GaduChatService
+ * @todo Refactor
+ * @short Service for sending and receiving messages in Gadu-Gadu protocol.
+ * @author Rafał 'Vogel' Malinowski
+ *
+ * This service implements sending and receiving messages in Gadu-Gadu protocol.
+ */
 class GaduChatService : public ChatService
 {
 	Q_OBJECT
 
-	gg_session *GaduSession;
+	QPointer<GaduChatImageService> CurrentGaduChatImageService;
+	QPointer<ImageStorageService> CurrentImageStorageService;
+	QPointer<FormattedStringFactory> CurrentFormattedStringFactory;
+
+	QPointer<GaduConnection> Connection;
 
 	QHash<int, Message> UndeliveredMessages;
-	bool ReceiveImagesDuringInvisibility;
 
 	bool isSystemMessage(struct gg_event *e);
 	Contact getSender(struct gg_event *e);
 	bool ignoreSender(gg_event *e, Buddy sender);
 	ContactSet getRecipients(struct gg_event *e);
-	QByteArray getContent(struct gg_event *e);
+	RawMessage getRawMessage(struct gg_event *e);
 	bool ignoreRichText(Contact sender);
-	bool ignoreImages(Contact sender);
-	FormattedMessage createFormattedMessage(struct gg_event *e, const QByteArray &content, Contact sender);
 
 	void handleMsg(Contact sender, ContactSet recipients, MessageType type, struct gg_event *e);
+	int sendRawMessage(const QVector<Contact> &contacts, const RawMessage &rawMessage);
+	UinType * contactsToUins(const QVector<Contact> &contacts) const;
 
 	QTimer *RemoveTimer;
 
@@ -59,20 +83,56 @@ private slots:
 	void removeTimeoutUndeliveredMessages();
 
 public:
-	explicit GaduChatService(Protocol *protocol);
+	explicit GaduChatService(Account account, QObject *parent = 0);
 	virtual ~GaduChatService();
 
-	void setReceiveImagesDuringInvisibility(bool receiveImagesDuringInvisibility);
+	/**
+	 * @short Set gadu chat image service for this service.
+	 * @author Rafał 'Vogel' Malinowski
+	 * @param gaduChatImageService chat image service for this service
+	 */
+	void setGaduChatImageService(GaduChatImageService *gaduChatImageService);
+
+	/**
+	 * @short Set image storage service for this service.
+	 * @author Rafał 'Vogel' Malinowski
+	 * @param imageStorageService image storage service for this service
+	 *
+	 * This service is used to get full file paths of chat images.
+	 */
+	void setImageStorageService(ImageStorageService *imageStorageService);
+
+	/**
+	 * @short Set formatted string factory for this service.
+	 * @author Rafał 'Vogel' Malinowski
+	 * @param formattedStringFactory formatted string factory for this service
+	 */
+	void setFormattedStringFactory(FormattedStringFactory *formattedStringFactory);
+
+	/**
+	 * @short Set connection for this service.
+	 * @author Rafał 'Vogel' Malinowski
+	 * @param connection connection for this service
+	 */
+	void setConnection(GaduConnection *connection);
+
+	virtual int maxMessageLength() const;
 
 public slots:
-	virtual bool sendMessage(const Chat &chat, const QString &message, bool silent = false);
-
-	void setGaduSession(gg_session *gaduSession);
+	virtual bool sendMessage(const Message &message);
+	virtual bool sendRawMessage(const Chat &chat, const QByteArray &rawMessage);
 
 	void handleEventMsg(struct gg_event *e);
 	void handleEventMultilogonMsg(struct gg_event *e);
 	void handleEventAck(struct gg_event *e);
 
+signals:
+	void chatImageKeyReceived(const QString &id, const ChatImage &chatImage);
+
 };
+
+/**
+ * @}
+ */
 
 #endif // GADU_CHAT_SERVICE_H

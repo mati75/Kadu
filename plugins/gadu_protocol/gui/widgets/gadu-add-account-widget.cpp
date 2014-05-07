@@ -2,8 +2,8 @@
  * %kadu copyright begin%
  * Copyright 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009, 2010 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2010, 2011, 2012, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -33,18 +33,16 @@
 
 #include "accounts/account-manager.h"
 #include "gui/widgets/identities-combo-box.h"
+#include "gui/widgets/simple-configuration-value-state-notifier.h"
 #include "gui/windows/message-dialog.h"
 #include "icons/icons-manager.h"
 #include "identities/identity-manager.h"
+#include "os/generic/url-opener.h"
 #include "protocols/protocols-manager.h"
-#include "html_document.h"
 
-#include "gui/windows/gadu-remind-password-window.h"
-#include "server/gadu-server-register-account.h"
 #include "gadu-account-details.h"
 #include "gadu-id-validator.h"
 #include "gadu-protocol-factory.h"
-#include "token-widget.h"
 
 #include "gadu-add-account-widget.h"
 
@@ -85,10 +83,20 @@ void GaduAddAccountWidget::createGui(bool showButtons)
 	RememberPassword = new QCheckBox(tr("Remember Password"), this);
 	layout->addRow(0, RememberPassword);
 
-	RemindPassword = new QLabel();
-	RemindPassword->setTextInteractionFlags(Qt::LinksAccessibleByKeyboard | Qt::LinksAccessibleByMouse);
-	layout->addRow(0, RemindPassword);
-	connect(RemindPassword, SIGNAL(linkActivated(QString)), this, SLOT(remindPasssword()));
+	auto registerAccountLabel = new QLabel(QString("<a href='register'>%1</a>").arg(tr("Register Account")));
+	registerAccountLabel->setTextInteractionFlags(Qt::LinksAccessibleByKeyboard | Qt::LinksAccessibleByMouse);
+	layout->addRow(0, registerAccountLabel);
+	connect(registerAccountLabel, SIGNAL(linkActivated(QString)), this, SLOT(registerAccount()));
+
+	auto remindUinLabel = new QLabel(QString("<a href='change'>%1</a>").arg(tr("Remind GG number")));
+	remindUinLabel->setTextInteractionFlags(Qt::LinksAccessibleByKeyboard | Qt::LinksAccessibleByMouse);
+	layout->addRow(0, remindUinLabel);
+	connect(remindUinLabel, SIGNAL(linkActivated(QString)), this, SLOT(remindUin()));
+
+	auto remindPasswordLabel = new QLabel(QString("<a href='change'>%1</a>").arg(tr("Remind Password")));
+	remindPasswordLabel->setTextInteractionFlags(Qt::LinksAccessibleByKeyboard | Qt::LinksAccessibleByMouse);
+	layout->addRow(0, remindPasswordLabel);
+	connect(remindPasswordLabel, SIGNAL(linkActivated(QString)), this, SLOT(remindPassword()));
 
 	Identity = new IdentitiesComboBox(this);
 	connect(Identity, SIGNAL(currentIndexChanged(int)), this, SLOT(dataChanged()));
@@ -133,11 +141,14 @@ void GaduAddAccountWidget::apply()
 {
 	Account gaduAccount = Account::create("gadu");
 
-	gaduAccount.setAccountIdentity(Identity->currentIdentity());
 	gaduAccount.setId(AccountId->text());
 	gaduAccount.setPassword(AccountPassword->text());
 	gaduAccount.setHasPassword(!AccountPassword->text().isEmpty());
 	gaduAccount.setRememberPassword(RememberPassword->isChecked());
+	// bad code: order of calls is important here
+	// we have to set identity after password
+	// so in cache of identity status container it already knows password and can do status change without asking user for it
+	gaduAccount.setAccountIdentity(Identity->currentIdentity());
 
 	GaduAccountDetails *details = dynamic_cast<GaduAccountDetails *>(gaduAccount.details());
 	if (details)
@@ -155,17 +166,6 @@ void GaduAddAccountWidget::cancel()
 
 void GaduAddAccountWidget::dataChanged()
 {
-	if (AccountId->text().isEmpty())
-	{
-		RemindPassword->setText(tr("Forgot Your Password?"));
-		RemindPassword->setEnabled(false);
-	}
-	else
-	{
-		RemindPassword->setText(QString("<a href='remind'>%1</a>").arg(tr("Forgot Your Password?")));
-		RemindPassword->setEnabled(true);
-	}
-
 	bool valid = !AccountId->text().isEmpty()
 			&& !AccountPassword->text().isEmpty()
 			&& !AccountManager::instance()->byId("gadu", AccountId->text())
@@ -177,15 +177,24 @@ void GaduAddAccountWidget::dataChanged()
 			&& AccountPassword->text().isEmpty()
 			&& RememberPassword->isChecked()
 			&& 0 == Identity->currentIndex())
-		setState(StateNotChanged);
+		simpleStateNotifier()->setState(StateNotChanged);
 	else
-		setState(valid ? StateChangedDataValid : StateChangedDataInvalid);
+		simpleStateNotifier()->setState(valid ? StateChangedDataValid : StateChangedDataInvalid);
 }
 
-void GaduAddAccountWidget::remindPasssword()
+void GaduAddAccountWidget::registerAccount()
 {
-	bool ok;
-	UinType uin = AccountId->text().toUInt(&ok);
-	if (ok)
-		(new GaduRemindPasswordWindow(uin))->show();
+	UrlOpener::openUrl("https://login.gg.pl/createGG/step1/?id=frame_1");
 }
+
+void GaduAddAccountWidget::remindUin()
+{
+	UrlOpener::openUrl("https://login.gg.pl/account/remindGG_email/?id=frame_1");
+}
+
+void GaduAddAccountWidget::remindPassword()
+{
+	UrlOpener::openUrl("https://login.gg.pl/account/remindPassword/?id=frame_1");
+}
+
+#include "moc_gadu-add-account-widget.cpp"

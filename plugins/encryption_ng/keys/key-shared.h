@@ -5,7 +5,7 @@
  * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2008, 2009 Michał Podsiadlik (michal@kadu.net)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
- * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2009, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
@@ -50,8 +50,8 @@ protected:
 	virtual bool shouldStore();
 
 public:
-	static KeyShared * loadStubFromStorage(const QSharedPointer<StoragePoint> &avatarStoragePoint);
-	static KeyShared * loadFromStorage(const QSharedPointer<StoragePoint> &avatarStoragePoint);
+	static KeyShared * loadStubFromStorage(const std::shared_ptr<StoragePoint> &avatarStoragePoint);
+	static KeyShared * loadFromStorage(const std::shared_ptr<StoragePoint> &avatarStoragePoint);
 
 	explicit KeyShared(const QUuid &uuid = QUuid());
 	virtual ~KeyShared();

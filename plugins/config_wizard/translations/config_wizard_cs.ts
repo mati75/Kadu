@@ -37,7 +37,7 @@
     <name>ConfigWizardCompletedPage</name>
     <message>
         <source>&lt;h3&gt;Configuration Wizard Completed&lt;/h3&gt;</source>
-        <translation>&lt;h3&gt;Pprůvodce nastavením dokončen&lt;/h3&gt;</translation>
+        <translation>&lt;h3&gt;Průvodce nastavením dokončen&lt;/h3&gt;</translation>
     </message>
     <message>
         <source>Go to Accounts Setting after closing this window</source>
@@ -51,8 +51,8 @@
 <context>
     <name>ConfigWizardConfigurationUiHandler</name>
     <message>
-        <source>Start Configuration Wizard...</source>
-        <translation>Spustit průvodce nastavením...</translation>
+        <source>Start Configuration Wizard</source>
+        <translation>Spustit průvodce nastavením</translation>
     </message>
 </context>
 <context>

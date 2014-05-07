@@ -1,10 +1,10 @@
 /*
  * %kadu copyright begin%
  * Copyright 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2009, 2012 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2010 Piotr Dąbrowski (ultr@ultr.pl)
- * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2009, 2010, 2011, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -23,6 +23,7 @@
 
 #include "gui/windows/window-notifier-window.h"
 #include "notify/notification-manager.h"
+#include "notify/notification/notification.h"
 
 #include "configuration/configuration-file.h"
 
@@ -60,11 +61,19 @@ void WindowNotifier::notify(Notification *notification)
 {
 	kdebugf();
 
+	notification->acquire(this);
+
 	WindowNotifierWindow *window = new WindowNotifierWindow(notification);
+	connect(window, SIGNAL(closed(Notification *)), this, SLOT(notificationClosed(Notification *)));
 	window->show();
 	_activateWindow(window);
 
 	kdebugf2();
+}
+
+void WindowNotifier::notificationClosed(Notification *notification)
+{
+	notification->release(this);
 }
 
 void WindowNotifier::import_0_6_5_configuration()
@@ -79,3 +88,5 @@ void WindowNotifier::createDefaultConfiguration()
 
 /** @} */
 
+
+#include "moc_window-notifier.cpp"

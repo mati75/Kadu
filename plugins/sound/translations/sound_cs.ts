@@ -14,14 +14,6 @@
         <translation>Obecné</translation>
     </message>
     <message>
-        <source>Use sounds</source>
-        <translation>Použít zvuky</translation>
-    </message>
-    <message>
-        <source>Theme</source>
-        <translation>Téma</translation>
-    </message>
-    <message>
         <source>Sound theme</source>
         <translation>Zvukové téma</translation>
     </message>
@@ -36,6 +28,10 @@
     <message>
         <source>Play a sound</source>
         <translation>Přehrát zvuk</translation>
+    </message>
+    <message>
+        <source>Enable sound notifications</source>
+        <translation>Povolit zvuková oznámení</translation>
     </message>
 </context>
 <context>

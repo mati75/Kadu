@@ -1,8 +1,8 @@
 /*
  * %kadu copyright begin%
  * Copyright 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  * Copyright 2010 Wojciech Treter (juzefwt@gmail.com)
  *
@@ -20,7 +20,12 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "utils/vcard-factory.h"
+#include <xmpp_vcard.h>
+
+#include "server/jabber-avatar-uploader.h"
+#include "services/jabber-vcard-downloader.h"
+#include "services/jabber-vcard-service.h"
+#include "services/jabber-vcard-uploader.h"
 #include "jabber-protocol.h"
 
 #include "jabber-avatar-vcard-uploader.h"
@@ -30,55 +35,79 @@
 #define NS_DATA "http://www.xmpp.org/extensions/xep-0084.html#ns-data"
 #define MAX_AVATAR_DIMENSION 96
 
-JabberAvatarVCardUploader::JabberAvatarVCardUploader(Account account, QObject *parent) :
-		QObject(parent), MyAccount(account)
+JabberAvatarVCardUploader::JabberAvatarVCardUploader(XMPP::JabberVCardService *vcardService, QObject *parent) :
+		AvatarUploader(parent), VCardService(vcardService)
 {
-	MyProtocol = qobject_cast<JabberProtocol *>(account.protocolHandler());
 }
 
 JabberAvatarVCardUploader::~JabberAvatarVCardUploader()
 {
 }
 
-void JabberAvatarVCardUploader::uploadAvatar(const QByteArray &data)
+void JabberAvatarVCardUploader::done()
 {
-	UploadedAvatarData = data;
-
-	VCardFactory::instance()->getVCard(MyAccount.id(), MyProtocol->client()->rootTask(), this, SLOT(vcardReceived()));
-}
-
-void JabberAvatarVCardUploader::vcardReceived()
-{
-	XMPP::JT_VCard *task = qobject_cast<XMPP::JT_VCard *>(sender());
-
-	if (!task || !task->success())
-	{
-		emit avatarUploaded(false);
-		deleteLater();
-		return;
-	}
-
-	XMPP::Jid jid = XMPP::Jid(MyAccount.id());
-
-	XMPP::VCard vcard = task->vcard();
-	vcard.setPhoto(UploadedAvatarData);
-
-	VCardFactory::instance()->setVCard(MyProtocol->client()->rootTask(), jid, vcard, this, SLOT(vcardUploaded()));
-}
-
-void JabberAvatarVCardUploader::vcardUploaded()
-{
-	XMPP::JT_VCard *task = qobject_cast<XMPP::JT_VCard *>(sender());
-	if (!task || !task->success())
-	{
-		emit avatarUploaded(false);
-		deleteLater();
-		return;
-	}
-
-
-	emit avatarUploaded(true);
+	emit avatarUploaded(true, UploadedAvatar);
 	deleteLater();
-
-	printf("vcard uploaded\n");
 }
+
+void JabberAvatarVCardUploader::failed()
+{
+	emit avatarUploaded(false, UploadedAvatar);
+	deleteLater();
+}
+
+void JabberAvatarVCardUploader::uploadAvatar(const QString &id, const QString &password, QImage avatar)
+{
+	Q_UNUSED(password)
+
+	MyJid = id;
+	UploadedAvatar = avatar;
+
+	if (!VCardService)
+	{
+		failed();
+		return;
+	}
+
+	JabberVCardDownloader *vCardDownloader = VCardService.data()->createVCardDownloader();
+	if (!vCardDownloader)
+	{
+		failed();
+		return;
+	}
+
+	connect(vCardDownloader, SIGNAL(vCardDownloaded(bool,XMPP::VCard)), this, SLOT(vCardDownloaded(bool,XMPP::VCard)));
+	vCardDownloader->downloadVCard(id);
+}
+
+void JabberAvatarVCardUploader::vCardDownloaded(bool ok, XMPP::VCard vCard)
+{
+	if (!ok || !VCardService)
+	{
+		failed();
+		return;
+	}
+
+	XMPP::VCard updatedVCard = vCard;
+	updatedVCard.setPhoto(JabberAvatarUploader::avatarData(UploadedAvatar));
+
+	JabberVCardUploader *vCardUploader = VCardService.data()->createVCardUploader();
+	if (!vCardUploader)
+	{
+		failed();
+		return;
+	}
+
+	connect(vCardUploader, SIGNAL(vCardUploaded(bool)), this, SLOT(vCardUploaded(bool)));
+	vCardUploader->uploadVCard(MyJid.bare(), updatedVCard);
+}
+
+void JabberAvatarVCardUploader::vCardUploaded(bool ok)
+{
+	if (ok)
+		done();
+	else
+		failed();
+}
+
+#include "moc_jabber-avatar-vcard-uploader.cpp"

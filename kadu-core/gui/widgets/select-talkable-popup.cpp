@@ -1,9 +1,10 @@
 /*
  * %kadu copyright begin%
  * Copyright 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2012 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2010 Tomasz Rostański (rozteck@interia.pl)
- * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2009, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -33,9 +34,10 @@
 #include "select-talkable-popup.h"
 
 SelectTalkablePopup::SelectTalkablePopup(QWidget *parent) :
-		FilteredTreeView(FilterAtBottom, parent)
+		FilteredTreeView(FilterAtBottom, parent, Qt::Popup)
 {
-	setWindowFlags(Qt::Popup);
+	setAttribute(Qt::WA_WindowPropagation);
+	setAttribute(Qt::WA_X11NetWmWindowTypeCombo);
 
 	View = new TalkableTreeView(this);
 	setView(View);
@@ -68,6 +70,13 @@ SelectTalkablePopup::~SelectTalkablePopup()
 {
 }
 
+QSize SelectTalkablePopup::sizeHint() const
+{
+	QSize newSizeHint = FilteredTreeView::sizeHint();
+	newSizeHint.setHeight(2 * newSizeHint.height());
+	return newSizeHint;
+}
+
 void SelectTalkablePopup::setBaseModel(QAbstractItemModel *model)
 {
 	Chain->setBaseModel(model);
@@ -80,9 +89,7 @@ void SelectTalkablePopup::setShowAnonymous(bool showAnonymous)
 
 void SelectTalkablePopup::show(const Talkable &talkable)
 {
-#ifndef Q_WS_MAEMO_5
 	filterWidget()->setFocus();
-#endif
 
 	QModelIndex currentIndex;
 
@@ -121,3 +128,5 @@ void SelectTalkablePopup::removeFilter(TalkableFilter *filter)
 {
 	ProxyModel->removeFilter(filter);
 }
+
+#include "moc_select-talkable-popup.cpp"

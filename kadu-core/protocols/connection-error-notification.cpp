@@ -1,9 +1,9 @@
 /*
  * %kadu copyright begin%
  * Copyright 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2009, 2012 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2007, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2010, 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2007 Dawid Stawiarski (neeo@kadu.net)
  * %kadu copyright end%
  *
@@ -28,25 +28,23 @@
 #include "notify/notification-manager.h"
 #include "notify/notify-event.h"
 #include "parser/parser.h"
-#include "debug.h"
 
 #include "connection-error-notification.h"
 
 NotifyEvent *ConnectionErrorNotification::ConnectionErrorNotifyEvent = 0;
-QMap<Account, QStringList> ConnectionErrorNotification::ActiveErrors;
 
-static QString getErrorMessage(const QObject * const object)
+static QString getErrorMessage(const ParserData * const object)
 {
-	const ConnectionErrorNotification * const connectionErrorNotification = qobject_cast<const ConnectionErrorNotification * const>(object);
+	const ConnectionErrorNotification * const connectionErrorNotification = dynamic_cast<const ConnectionErrorNotification * const>(object);
 	if (connectionErrorNotification)
 		return connectionErrorNotification->errorMessage();
 	else
 		return QString();
 }
 
-static QString getErrorServer(const QObject * const object)
+static QString getErrorServer(const ParserData * const object)
 {
-	const ConnectionErrorNotification * const connectionErrorNotification = qobject_cast<const ConnectionErrorNotification * const>(object);
+	const ConnectionErrorNotification * const connectionErrorNotification = dynamic_cast<const ConnectionErrorNotification * const>(object);
 	if (connectionErrorNotification)
 		return connectionErrorNotification->errorServer();
 	else
@@ -60,6 +58,7 @@ void ConnectionErrorNotification::registerEvent()
 
 	ConnectionErrorNotifyEvent = new NotifyEvent("ConnectionError", NotifyEvent::CallbackNotRequired, QT_TRANSLATE_NOOP("@default", "Connection error"));
 	NotificationManager::instance()->registerNotifyEvent(ConnectionErrorNotifyEvent);
+
 	Parser::registerObjectTag("error", getErrorMessage);
 	Parser::registerObjectTag("errorServer", getErrorServer);
 }
@@ -77,9 +76,10 @@ void ConnectionErrorNotification::unregisterEvent()
 	ConnectionErrorNotifyEvent = 0;
 }
 
-bool ConnectionErrorNotification::activeError(Account account, const QString &errorMessage)
+void ConnectionErrorNotification::notifyConnectionError(const Account &account, const QString &errorServer, const QString &errorMessage)
 {
-	return ActiveErrors.contains(account) && ActiveErrors[account].contains(errorMessage);
+	ConnectionErrorNotification *connectionErrorNotification = new ConnectionErrorNotification(account, errorServer, errorMessage);
+	NotificationManager::instance()->notify(connectionErrorNotification);
 }
 
 ConnectionErrorNotification::ConnectionErrorNotification(Account account, const QString &errorServer, const QString &errorMessage) :
@@ -87,7 +87,6 @@ ConnectionErrorNotification::ConnectionErrorNotification(Account account, const 
 		ErrorServer(errorServer), ErrorMessage(errorMessage)
 {
 	setTitle(tr("Connection error"));
-
 	setText(Qt::escape(tr("Connection error on account: %1 (%2)").arg(account.id()).arg(account.accountIdentity().name())));
 
 	if (!ErrorMessage.isEmpty())
@@ -98,24 +97,17 @@ ConnectionErrorNotification::ConnectionErrorNotification(Account account, const 
 			setDetails(Qt::escape(QString("%1 (%2)").arg(ErrorMessage).arg(ErrorServer)));
 	}
 
-	ActiveErrors[account].append(ErrorMessage);
+	addCallback(tr("Ignore"), SLOT(ignoreErrors()), "ignoreErrors()");
+}
+
+void ConnectionErrorNotification::ignoreErrors()
+{
+	NotificationManager::instance()->ignoreConnectionErrors(account());
+	emit closed(this);
 }
 
 ConnectionErrorNotification::~ConnectionErrorNotification()
 {
-	ActiveErrors[account()].removeAll(ErrorMessage);
 }
 
-QString ConnectionErrorNotification::errorMessage() const
-{
-	kdebugf();
-
-	return ErrorMessage;
-}
-
-QString ConnectionErrorNotification::errorServer() const
-{
-	kdebugf();
-
-	return ErrorServer;
-}
+#include "moc_connection-error-notification.cpp"

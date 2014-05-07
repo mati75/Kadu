@@ -4,6 +4,7 @@
  * %kadu copyright begin%
  * Copyright 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -60,12 +61,11 @@ bool PEPGetTask::take(const QDomElement &x)
 
 	if (x.attribute("type") == "result")
 	{
-		bool found;
 		// FIXME Check namespace...
-		QDomElement e = findSubTag(x, "pubsub", &found);
-		if (found) {
-			QDomElement i = findSubTag(e, "items", &found);
-			if (found) {
+		QDomElement e = x.firstChildElement("pubsub");
+		if (!e.isNull()) {
+			QDomElement i = e.firstChildElement("items");
+			if (!i.isNull()) {
 				for (QDomNode n1 = i.firstChild(); !n1.isNull(); n1 = n1.nextSibling()) {
 					QDomElement e1 = n1.toElement();
 					if  (!e1.isNull() && e1.tagName() == "item") {
@@ -101,3 +101,5 @@ const QString & PEPGetTask::node() const
 {
 	return node_;
 }
+
+#include "moc_pep-get-task.cpp"

@@ -1,11 +1,11 @@
 /*
  * %kadu copyright begin%
  * Copyright 2008, 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2010 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2010, 2012 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
  * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
  * Copyright 2007, 2008, 2009, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2011, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
@@ -33,7 +33,7 @@ StatusIcon::StatusIcon(StatusContainer *statusContainer, QObject *parent) :
 		QObject(parent), MyStatusContainer(statusContainer), BlinkTimer(0), BlinkOffline(true)
 {
 	statusUpdated();
-	connect(MyStatusContainer, SIGNAL(statusUpdated()), this, SLOT(statusUpdated()));
+	connect(MyStatusContainer, SIGNAL(statusUpdated(StatusContainer *)), this, SLOT(statusUpdated(StatusContainer *)));
 }
 
 StatusIcon::~StatusIcon()
@@ -85,8 +85,10 @@ void StatusIcon::updateStatus()
 		enableBlink();
 }
 
-void StatusIcon::statusUpdated()
+void StatusIcon::statusUpdated(StatusContainer *container)
 {
+	Q_UNUSED(container)
+
 	updateStatus();
 }
 
@@ -100,3 +102,5 @@ void StatusIcon::setIcon(const KaduIcon &icon)
 	Icon = icon;
 	emit iconUpdated(Icon);
 }
+
+#include "moc_status-icon.cpp"

@@ -5,8 +5,8 @@
  * Copyright 2011 Piotr Dąbrowski (ultr@ultr.pl)
  * Copyright 2009 Michał Podsiadlik (michal@kadu.net)
  * Copyright 2009, 2010 Bartłomiej Zimoń (uzi18@o2.pl)
- * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2009, 2010, 2011, 2012, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -25,19 +25,28 @@
 
 #include <QtCore/QScopedArrayPointer>
 #include <QtCore/QTimer>
-#include <QtGui/QTextDocument>
 
-#include "chat/type/chat-type-contact.h"
 #include "chat/type/chat-type-contact-set.h"
+#include "chat/type/chat-type-contact.h"
 #include "configuration/configuration-file.h"
 #include "contacts/contact-manager.h"
 #include "contacts/contact-set.h"
+#include "core/core.h"
+#include "formatted-string/composite-formatted-string.h"
+#include "formatted-string/formatted-string-factory.h"
+#include "formatted-string/formatted-string-plain-text-visitor.h"
 #include "gui/windows/message-dialog.h"
+#include "message/raw-message.h"
+#include "services/image-storage-service.h"
+#include "services/raw-message-transformer-service.h"
 #include "status/status-type.h"
 #include "debug.h"
 
-#include "helpers/gadu-formatter.h"
+#include "helpers/formatted-string-gadu-html-visitor.h"
+#include "helpers/formatted-string-image-key-received-visitor.h"
 #include "helpers/gadu-protocol-helper.h"
+#include "server/gadu-connection.h"
+#include "server/gadu-writable-session-token.h"
 
 #include "gadu-chat-service.h"
 
@@ -45,8 +54,8 @@
 #define MAX_DELIVERY_TIME 60 /*seconds*/
 #define REMOVE_TIMER_INTERVAL 1000
 
-GaduChatService::GaduChatService(Protocol *protocol) :
-		ChatService(protocol), GaduSession(0), ReceiveImagesDuringInvisibility(false)
+GaduChatService::GaduChatService(Account account, QObject *parent) :
+		ChatService(account, parent)
 {
 	RemoveTimer = new QTimer(this);
 	RemoveTimer->setInterval(REMOVE_TIMER_INTERVAL);
@@ -58,128 +67,105 @@ GaduChatService::~GaduChatService()
 {
 }
 
-void GaduChatService::setGaduSession(gg_session *gaduSession)
+void GaduChatService::setGaduChatImageService(GaduChatImageService *gaduChatImageService)
 {
-	GaduSession = gaduSession;
+	CurrentGaduChatImageService = gaduChatImageService;
 }
 
-void GaduChatService::setReceiveImagesDuringInvisibility(bool receiveImagesDuringInvisibility)
+void GaduChatService::setImageStorageService(ImageStorageService *imageStorageService)
 {
-	ReceiveImagesDuringInvisibility = receiveImagesDuringInvisibility;
+	CurrentImageStorageService = imageStorageService;
 }
 
-bool GaduChatService::sendMessage(const Chat &chat, const QString &message, bool silent)
+void GaduChatService::setFormattedStringFactory(FormattedStringFactory *formattedStringFactory)
 {
-	kdebugf();
+	CurrentFormattedStringFactory = formattedStringFactory;
+}
 
-	if (!GaduSession)
-		return false;
+void GaduChatService::setConnection(GaduConnection *connection)
+{
+	Connection = connection;
+}
 
-	QTextDocument document;
-	/*
-	 * If message does not contain < then we can assume that this is plain text. Some plugins, like
-	 * encryption_ng, are using sendMessage() method to pass messages (like public keys). We want
-	 * these messages to have proper lines and paragraphs.
-	 */
-	if (message.contains('<'))
-		document.setHtml(message);
-	else
-		document.setPlainText(message);
+int GaduChatService::maxMessageLength() const
+{
+	return 10000;
+}
 
-	FormattedMessage formattedMessage = FormattedMessage::parse(&document);
+int GaduChatService::sendRawMessage(const QVector<Contact> &contacts, const RawMessage &rawMessage)
+{
+	if (!Connection || !Connection.data()->hasSession())
+		return -1;
 
-	QString plain = formattedMessage.toPlain();
-	QVector<Contact> contacts = chat.contacts().toContactVector();
-
-	unsigned int uinsCount = 0;
-	unsigned int formatsSize = 0;
-	QScopedArrayPointer<unsigned char> formats(GaduFormatter::createFormats(account(), formattedMessage, formatsSize));
-	bool stop = false;
-
-	kdebugmf(KDEBUG_INFO, "\n%s\n", qPrintable(plain));
-
-	QByteArray data = plain.toUtf8();
-
-	emit filterRawOutgoingMessage(chat, data, stop);
-	plain = QString::fromUtf8(data);
-	emit filterOutgoingMessage(chat, plain, stop);
-
-	if (stop)
+	auto writableSessionToken = Connection.data()->writableSessionToken();
+	unsigned int uinsCount = contacts.count();
+	if (uinsCount > 1)
 	{
-		kdebugmf(KDEBUG_FUNCTION_END, "end: filter stopped processing\n");
-		return false;
+		QScopedArrayPointer<UinType> uins(contactsToUins(contacts));
+		return gg_send_message_confer_html(writableSessionToken.rawSession(), GG_CLASS_CHAT, uinsCount, uins.data(),
+				(const unsigned char *) rawMessage.rawContent().constData());
+	}
+	else if (uinsCount == 1)
+	{
+		UinType uin = GaduProtocolHelper::uin(contacts.at(0));
+		return gg_send_message_html(writableSessionToken.rawSession(), GG_CLASS_CHAT, uin, (const unsigned char *) rawMessage.rawContent().constData());
 	}
 
-	if (data.length() >= 10000)
+	return -1;
+}
+
+UinType * GaduChatService::contactsToUins(const QVector<Contact> &contacts) const
+{
+	UinType * uins = new UinType[contacts.count()];
+	unsigned int i = 0;
+
+	foreach (const Contact &contact, contacts)
+		uins[i++] = GaduProtocolHelper::uin(contact);
+
+	return uins;
+}
+
+bool GaduChatService::sendMessage(const Message &message)
+{
+	if (!Connection || !Connection.data()->hasSession())
+		return false;
+
+	FormattedStringPlainTextVisitor plainTextVisitor;
+	message.content()->accept(&plainTextVisitor);
+
+	FormattedStringGaduHtmlVisitor htmlVisitor(CurrentGaduChatImageService, CurrentImageStorageService);
+	message.content()->accept(&htmlVisitor);
+
+	auto rawMessage = RawMessage{plainTextVisitor.result().toUtf8(), htmlVisitor.result().toUtf8()};
+	if (rawMessageTransformerService())
+		rawMessage = rawMessageTransformerService()->transform(rawMessage, message);
+
+	if (rawMessage.rawContent().length() > maxMessageLength())
 	{
-		MessageDialog::show(KaduIcon("dialog-warning"), tr("Kadu"), tr("Filtered message too long (%1>=%2)").arg(data.length()).arg(10000));
+		MessageDialog::show(KaduIcon("dialog-warning"), tr("Kadu"), tr("Message too long (%1 >= %2)").arg(rawMessage.rawContent().length()).arg(10000));
 		kdebugmf(KDEBUG_FUNCTION_END, "end: filtered message too long\n");
 		return false;
 	}
 
-	uinsCount = contacts.count();
-
-	static_cast<GaduProtocol *>(protocol())->disableSocketNotifiers();
-	int messageId = -1;
-	if (uinsCount > 1)
-	{
-		QScopedArrayPointer<UinType> uins(new UinType[uinsCount]);
-		unsigned int i = 0;
-
-		foreach (const Contact &contact, contacts)
-			uins[i++] = GaduProtocolHelper::uin(contact);
-
-		if (formatsSize)
-			messageId = gg_send_message_confer_richtext(
-					GaduSession, GG_CLASS_CHAT, uinsCount, uins.data(), (const unsigned char *)data.constData(),
-					formats.data(), formatsSize);
-		else
-			messageId = gg_send_message_confer(
-					GaduSession, GG_CLASS_CHAT, uinsCount, uins.data(), (const unsigned char *)data.constData());
-	}
-	else if (uinsCount == 1)
-	{
-		if (formatsSize)
-			messageId = gg_send_message_richtext(
-					GaduSession, GG_CLASS_CHAT, GaduProtocolHelper::uin(contacts.at(0)), (const unsigned char *)data.constData(),
-					formats.data(), formatsSize);
-		else
-			messageId = gg_send_message(
-					GaduSession, GG_CLASS_CHAT, GaduProtocolHelper::uin(contacts.at(0)), (const unsigned char *)data.constData());
-	}
-	static_cast<GaduProtocol *>(protocol())->enableSocketNotifiers();
+	int messageId = sendRawMessage(message.messageChat().contacts().toContactVector(), rawMessage);
 
 	if (-1 == messageId)
 		return false;
 
+	message.setId(QString::number(messageId));
+	UndeliveredMessages.insert(messageId, message);
 
-	if (!silent)
-	{
-		Message msg = Message::create();
-		msg.setMessageChat(chat);
-		msg.setType(MessageTypeSent);
-		msg.setMessageSender(account().accountContact());
-		msg.setStatus(MessageStatusSent);
-		msg.setContent(formattedMessage.toHtml());
-		msg.setSendDate(QDateTime::currentDateTime());
-		msg.setReceiveDate(QDateTime::currentDateTime());
-		msg.setId(QString::number(messageId));
-
-		UndeliveredMessages.insert(messageId, msg);
-		emit messageSent(msg);
-	}
-
-	kdebugf2();
 	return true;
+}
+
+bool GaduChatService::sendRawMessage(const Chat &chat, const QByteArray &rawMessage)
+{
+	int messageId = sendRawMessage(chat.contacts().toContactVector(), {rawMessage});
+	return messageId != -1;
 }
 
 bool GaduChatService::isSystemMessage(gg_event *e)
 {
-	if (0 == e->event.msg.sender)
-	{
-		kdebugmf(KDEBUG_INFO, "Ignored system message.\n");
-	}
-
 	return 0 == e->event.msg.sender;
 }
 
@@ -198,11 +184,6 @@ bool GaduChatService::ignoreSender(gg_event *e, Buddy sender)
 				config_file.readBoolEntry("Chat", "IgnoreAnonymousUsersInConferences")
 			);
 
-	if (ignore)
-	{
-		kdebugmf(KDEBUG_INFO, "Ignored anonymous. %u is ignored\n", sender.id(account()).toUInt());
-	}
-
 	return ignore;
 }
 
@@ -215,43 +196,17 @@ ContactSet GaduChatService::getRecipients(gg_event *e)
 	return recipients;
 }
 
-QByteArray GaduChatService::getContent(gg_event *e)
+RawMessage GaduChatService::getRawMessage(gg_event *e)
 {
-	return QByteArray((const char *)e->event.msg.message);
+	return {
+		(const char *)e->event.msg.message,
+		(const char *)e->event.msg.xhtml_message
+	};
 }
 
 bool GaduChatService::ignoreRichText(Contact sender)
 {
-	bool ignore = sender.isAnonymous() &&
-		config_file.readBoolEntry("Chat","IgnoreAnonymousRichtext");
-
-	if (ignore)
-	{
-		kdebugm(KDEBUG_INFO, "Richtext ignored from anonymous user\n");
-	}
-
-	return ignore;
-}
-
-bool GaduChatService::ignoreImages(Contact sender)
-{
-	return sender.isAnonymous() ||
-		(
-			StatusTypeGroupOffline == protocol()->status().group() ||
-			(
-				(StatusTypeGroupInvisible == protocol()->status().group()) &&
-				!ReceiveImagesDuringInvisibility
-			)
-		);
-}
-
-FormattedMessage GaduChatService::createFormattedMessage(struct gg_event *e, const QByteArray &content, Contact sender)
-{
-	if (ignoreRichText(sender))
-		return GaduFormatter::createMessage(account(), sender, QString::fromUtf8(content), 0, 0, false);
-	else
-		return GaduFormatter::createMessage(account(), sender, QString::fromUtf8(content),
-				(unsigned char *)e->event.msg.formats, e->event.msg.formats_length, !ignoreImages(sender));
+	return sender.isAnonymous() && config_file.readBoolEntry("Chat","IgnoreAnonymousRichtext");
 }
 
 void GaduChatService::handleMsg(Contact sender, ContactSet recipients, MessageType type, gg_event *e)
@@ -273,41 +228,47 @@ void GaduChatService::handleMsg(Contact sender, ContactSet recipients, MessageTy
 	if (!chat || chat.isIgnoreAllMessages())
 		return;
 
-	QByteArray content = getContent(e);
+	Message message = Message::create();
+	message.setMessageChat(chat);
+	message.setType(type);
+	message.setMessageSender(sender);
+	message.setSendDate(QDateTime::fromTime_t(e->event.msg.time));
+	message.setReceiveDate(QDateTime::currentDateTime());
 
-	bool ignore = false;
-	if (account().accountContact() != sender)
-		emit filterRawIncomingMessage(chat, sender, content, ignore);
+	auto rawMessage= getRawMessage(e);
+	if (rawMessageTransformerService())
+		rawMessage = rawMessageTransformerService()->transform(rawMessage, message);
 
-	FormattedMessage message = createFormattedMessage(e, content, sender);
-	if (message.isEmpty())
-		return;
-
-	kdebugmf(KDEBUG_INFO, "Got message from %u saying \"%s\"\n",
-			sender.id().toUInt(), qPrintable(message.toPlain()));
-
-	if (account().accountContact() != sender)
+	auto string = QString::fromUtf8(rawMessage.rawContent());
+	// TODO: this is a hack, we get <img name= from GG servers, but
+	// FormattedStringFactory requires <img src= as it cannot parse name= attribute
+	// this is because of QTextDocument usage, this needs to be fixed in a proper way
+	string.replace(QLatin1String{"<img name="}, QLatin1String{"<img src="});
+	auto formattedString = CurrentFormattedStringFactory->fromHtml(string);
+	if (ignoreRichText(sender))
 	{
-		QString messageString = message.toPlain();
-		emit filterIncomingMessage(chat, sender, messageString, ignore);
+		FormattedStringPlainTextVisitor visitor;
+		formattedString->accept(&visitor);
+		formattedString = CurrentFormattedStringFactory->fromPlainText(visitor.result());
 	}
 
-	if (ignore)
+	if (formattedString->isEmpty())
 		return;
 
-	Message msg = Message::create();
-	msg.setMessageChat(chat);
-	msg.setType(type);
-	msg.setMessageSender(sender);
-	msg.setStatus(MessageTypeReceived == type ? MessageStatusReceived : MessageStatusSent);
-	msg.setContent(message.toHtml());
-	msg.setSendDate(QDateTime::fromTime_t(e->event.msg.time));
-	msg.setReceiveDate(QDateTime::currentDateTime());
+	message.setContent(std::move(formattedString));
 
 	if (MessageTypeReceived == type)
-		emit messageReceived(msg);
+	{
+		emit messageReceived(message);
+
+		FormattedStringImageKeyReceivedVisitor imageKeyReceivedVisitor(sender.id());
+		connect(&imageKeyReceivedVisitor, SIGNAL(chatImageKeyReceived(QString,ChatImage)),
+		        this, SIGNAL(chatImageKeyReceived(QString,ChatImage)));
+
+		message.content()->accept(&imageKeyReceivedVisitor);
+	}
 	else
-		emit messageSent(msg);
+		emit messageSent(message);
 }
 
 void GaduChatService::handleEventMsg(struct gg_event *e)
@@ -395,9 +356,11 @@ void GaduChatService::removeTimeoutUndeliveredMessages()
 		else
 			++it;
 
-	foreach (const Message &message, removedMessages)
+	for (auto const &message : removedMessages)
 	{
 		message.setStatus(MessageStatusWontDeliver);
 		emit sentMessageStatusChanged(message);
 	}
 }
+
+#include "moc_gadu-chat-service.cpp"

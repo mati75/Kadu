@@ -1,8 +1,8 @@
 /*
  * %kadu copyright begin%
  * Copyright 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2009, 2010, 2011, 2012, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -22,22 +22,28 @@
 #include "accounts/account-manager.h"
 #include "accounts/account.h"
 
-#include "buddies/buddy.h"
 #include "buddies/buddy-list-mime-data-helper.h"
 #include "buddies/buddy-preferred-manager.h"
-#include "contacts/contact.h"
+#include "buddies/buddy.h"
 #include "contacts/contact-manager.h"
+#include "contacts/contact.h"
 #include "contacts/model/contact-data-extractor.h"
 #include "model/roles.h"
 #include "protocols/protocol.h"
 #include "talkable/talkable.h"
 
-#include "buddy-list-model.h"
 #include "buddy-data-extractor.h"
+#include "buddy-list-model.h"
 
 BuddyListModel::BuddyListModel(QObject *parent) :
 		QAbstractItemModel(parent), Checkable(false)
 {
+	QHash<int, QByteArray> roles;
+	roles[Qt::DisplayRole] = "display";
+	roles[AvatarPathRole] = "avatar";
+	roles[StatusIconPath] = "statusIcon";
+	setRoleNames(roles);
+
 	triggerAllAccountsRegistered();
 
 	connect(ContactManager::instance(), SIGNAL(contactUpdated(Contact)),
@@ -523,3 +529,5 @@ void BuddyListModel::accountUnregistered (Account account)
 {
 	disconnect(account, 0, this, 0);
 }
+
+#include "moc_buddy-list-model.cpp"

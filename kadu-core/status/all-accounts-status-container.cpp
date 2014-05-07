@@ -1,6 +1,8 @@
 /*
  * %kadu copyright begin%
- * Copyright 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2012 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -19,6 +21,7 @@
 
 #include "accounts/account-manager.h"
 #include "accounts/account.h"
+#include "configuration/main-configuration-holder.h"
 #include "icons/kadu-icon.h"
 #include "protocols/protocol.h"
 
@@ -38,9 +41,11 @@ AllAccountsStatusContainer::~AllAccountsStatusContainer()
 void AllAccountsStatusContainer::accountRegistered(Account account)
 {
 	Accounts.append(account);
-	connect(account.statusContainer(), SIGNAL(statusUpdated()), this, SIGNAL(statusUpdated()));
+	connect(account.statusContainer(), SIGNAL(statusUpdated(StatusContainer *)), this, SIGNAL(statusUpdated(StatusContainer *)));
+	if (!MainConfigurationHolder::instance()->isSetStatusPerAccount() && !MainConfigurationHolder::instance()->isSetStatusPerIdentity())
+		account.statusContainer()->setStatus(LastSetStatus, SourceStatusChanger);
 
-	emit statusUpdated();
+	emit statusUpdated(this);
 }
 
 void AllAccountsStatusContainer::accountUnregistered(Account account)
@@ -48,7 +53,7 @@ void AllAccountsStatusContainer::accountUnregistered(Account account)
 	if (Accounts.removeAll(account) > 0)
 	{
 		disconnect(account.statusContainer(), 0, this, 0);
-		emit statusUpdated();
+		emit statusUpdated(this);
 	}
 }
 
@@ -89,6 +94,7 @@ int AllAccountsStatusContainer::maxDescriptionLength()
 
 void AllAccountsStatusContainer::setStatus(Status status, StatusChangeSource source)
 {
+	LastSetStatus = status;
 	foreach (const Account &account, Accounts)
 		if (account)
 			account.statusContainer()->setStatus(status, source);
@@ -108,3 +114,5 @@ void AllAccountsStatusContainer::storeStatus(Status status)
 	foreach (const Account &account, Accounts)
 		account.statusContainer()->storeStatus(status);
 }
+
+#include "moc_all-accounts-status-container.cpp"

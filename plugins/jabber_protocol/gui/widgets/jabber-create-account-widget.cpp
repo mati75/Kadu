@@ -6,8 +6,8 @@
  * Copyright 2009 Michał Podsiadlik (michal@kadu.net)
  * Copyright 2009, 2009 Bartłomiej Zimoń (uzi18@o2.pl)
  * Copyright 2010 badboy (badboy@gen2.org)
- * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2009, 2010, 2011, 2012, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -38,6 +38,7 @@
 #include <QtGui/QVBoxLayout>
 
 #include "accounts/account-manager.h"
+#include "gui/widgets/simple-configuration-value-state-notifier.h"
 #include "gui/windows/jabber-wait-for-account-register-window.h"
 #include "gui/windows/message-dialog.h"
 #include "icons/icons-manager.h"
@@ -280,9 +281,9 @@ void JabberCreateAccountWidget::dataChanged()
 			&& CustomPort->text().toUInt() == port_
 			&& EncryptionMode->currentIndex() == 1
 			&& LegacySSLProbe->isChecked())
-		setState(StateNotChanged);
+		simpleStateNotifier()->setState(StateNotChanged);
 	else
-		setState(valid ? StateChangedDataValid : StateChangedDataInvalid);
+		simpleStateNotifier()->setState(valid ? StateChangedDataValid : StateChangedDataInvalid);
 }
 
 void JabberCreateAccountWidget::apply()
@@ -333,7 +334,7 @@ void JabberCreateAccountWidget::resetGui()
 	LegacySSLProbe->setChecked(true);
 	RegisterAccountButton->setEnabled(false);
 
-	setState(StateNotChanged);
+	simpleStateNotifier()->setState(StateNotChanged);
 }
 
 void JabberCreateAccountWidget::jidRegistered(const QString &jid, const QString &tlsDomain)
@@ -345,11 +346,14 @@ void JabberCreateAccountWidget::jidRegistered(const QString &jid, const QString 
 	}
 
 	Account jabberAccount = Account::create("jabber");
-	jabberAccount.setAccountIdentity(IdentityCombo->currentIdentity());
 	jabberAccount.setId(jid);
 	jabberAccount.setHasPassword(true);
 	jabberAccount.setPassword(NewPassword->text());
 	jabberAccount.setRememberPassword(RememberPassword->isChecked());
+	// bad code: order of calls is important here
+	// we have to set identity after password
+	// so in cache of identity status container it already knows password and can do status change without asking user for it
+	jabberAccount.setAccountIdentity(IdentityCombo->currentIdentity());
 
 	JabberAccountDetails *details = dynamic_cast<JabberAccountDetails *>(jabberAccount.details());
 	if (details)
@@ -362,3 +366,5 @@ void JabberCreateAccountWidget::jidRegistered(const QString &jid, const QString 
 
 	emit accountCreated(jabberAccount);
 }
+
+#include "moc_jabber-create-account-widget.cpp"

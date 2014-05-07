@@ -1,12 +1,8 @@
 project (winamp_mediaplayer)
 
-# minimal required versions
 cmake_minimum_required (VERSION 2.8)
-set (QT_MIN_VERSION "4.7.0")
-set (CMAKE_MIN_VERSION "2.6.0")
 
-set (KADU_FIND_REQUIRED true)
-include (FindKadu)
+find_package (Kadu REQUIRED CONFIG)
 
 set (SOURCES
 	winamp.cpp
@@ -19,10 +15,8 @@ set (MOC_SOURCES
 )
 
 if (MINGW)
-	set_source_files_properties (winamp.cpp PROPERTIES
-		COMPILE_FLAGS -fno-strict-aliasing
-	)
-endif (MINGW)
+	set_property (SOURCE winamp.cpp APPEND_STRING PROPERTY COMPILE_FLAGS " -fno-strict-aliasing")
+endif ()
 
 kadu_plugin (winamp_mediaplayer
 	PLUGIN_SOURCES ${SOURCES}

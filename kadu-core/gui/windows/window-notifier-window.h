@@ -1,8 +1,9 @@
 /*
  * %kadu copyright begin%
  * Copyright 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2012 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2011 Piotr Dąbrowski (ultr@ultr.pl)
- * Copyright 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
@@ -41,6 +42,9 @@ class WindowNotifierWindow : public QDialog, DesktopAwareObject
 public:
 	explicit WindowNotifierWindow(Notification *notification, QWidget *parent = 0);
 	virtual ~WindowNotifierWindow();
+
+signals:
+	void closed(Notification *notification);
 
 };
 

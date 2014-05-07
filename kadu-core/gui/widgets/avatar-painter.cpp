@@ -1,8 +1,9 @@
 /*
  * %kadu copyright begin%
  * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2012 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2010, 2011, 2012 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  * Copyright 2010 Dariusz Markowicz
  *
@@ -84,28 +85,51 @@ void AvatarPainter::paintFromCache(QPainter *painter)
 	painter->drawPixmap(AvatarRect, cached);
 }
 
+QPixmap AvatarPainter::cropped()
+{
+	int minDimension = Avatar.height() < Avatar.width()
+		? Avatar.height()
+		: Avatar.width();
+
+	int x = (Avatar.width() - minDimension) / 2;
+	int y = (Avatar.height() - minDimension) / 2;
+
+	QImage cropped = Avatar.toImage().copy(x, y, minDimension, minDimension);
+
+	return QPixmap::fromImage(cropped);
+}
+
 void AvatarPainter::doPaint(QPainter *painter, const QSize &size)
 {
 	QPixmap displayAvatar;
+	QPixmap croppedAvatar = cropped();
 
-	if (Avatar.size() != size)
-		displayAvatar = Avatar.scaled(size, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+	if (croppedAvatar.height() > size.height() || croppedAvatar.width() > size.width())
+		displayAvatar = croppedAvatar.scaled(size, Qt::KeepAspectRatio, Qt::SmoothTransformation);
 	else
-		displayAvatar = Avatar;
+		displayAvatar = croppedAvatar;
 
 	QRect displayRect = displayAvatar.rect();
-	displayRect.moveTop(0);
+	displayRect.moveTop((size.height() - displayRect.height()) / 2);
 	displayRect.moveLeft((size.width() - displayRect.width()) / 2);
 
 	// grey out offline contacts' avatar
-	if (greyOut())
-		painter->drawPixmap(displayRect, QIcon(displayAvatar).pixmap(displayAvatar.size(), QIcon::Disabled));
-	else
-		painter->drawPixmap(displayRect, displayAvatar);
+	displayAvatar = greyOut()
+		? QIcon(displayAvatar).pixmap(displayAvatar.size(), QIcon::Disabled)
+		: displayAvatar;
+
+	int radius = 3;
+	QPainterPath displayRectPath;
+	displayRectPath.addRoundedRect(displayRect, radius, radius);
+
+	painter->setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
+	painter->setClipPath(displayRectPath);
+	painter->drawPixmap(displayRect, displayAvatar);
+	painter->setClipping(false);
 
 	// draw avatar border
 	if (Configuration.avatarBorder())
-		painter->drawRect(displayRect.adjusted(0, 0, -1, -1));
+		painter->drawRoundedRect(displayRect, radius, radius);
 }
 
 void AvatarPainter::paint(QPainter *painter)

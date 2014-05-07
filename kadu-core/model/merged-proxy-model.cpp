@@ -1,6 +1,7 @@
 /*
  * %kadu copyright begin%
- * Copyright 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -325,7 +326,8 @@ QModelIndex MergedProxyModel::mappedSourceParent(const QModelIndex &proxyIndex) 
 	Q_ASSERT(proxyIndex.model() == this);
 
 	const void *p = proxyIndex.internalPointer();
-	Q_ASSERT(p);
+	if (!p)
+		return QModelIndex();
 
 	const QModelIndex *mapping = static_cast<const QModelIndex *>(p);
 	return *mapping;
@@ -335,6 +337,9 @@ QModelIndex MergedProxyModel::index(int row, int column, const QModelIndex &pare
 {
 	if (row < 0 || column < 0)
 		return QModelIndex();
+
+	if (!parent.isValid())
+		return createIndex(row, column);
 
 	const QModelIndex &sourceParent = mapToSource(parent); // parent is already mapped
 	QModelIndex *mapping = createMapping(sourceParent); // map children for this parent
@@ -432,3 +437,5 @@ QMimeData * MergedProxyModel::mimeData(const QModelIndexList &proxyIndexes) cons
 
 	return mergedMimeData;
 }
+
+#include "moc_merged-proxy-model.cpp"

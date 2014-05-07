@@ -2,10 +2,6 @@
 <context>
     <name>@default</name>
     <message>
-        <source>Notify</source>
-        <translation>Oznámit</translation>
-    </message>
-    <message>
         <source>Notification</source>
         <translation>Oznámení</translation>
     </message>
@@ -48,6 +44,10 @@
     <message>
         <source>No Icon</source>
         <translation>Žádná ikona</translation>
+    </message>
+    <message>
+        <source>Notifications</source>
+        <translation>Oznámení</translation>
     </message>
 </context>
 <context>

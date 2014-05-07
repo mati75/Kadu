@@ -1,13 +1,14 @@
 /*
  * %kadu copyright begin%
  * Copyright 2008, 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2009, 2012 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2008 Tomasz Rostański (rozteck@interia.pl)
  * Copyright 2010 Bartłomiej Zimoń (uzi18@o2.pl)
  * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
  * Copyright 2005 Paweł Płuciennik (pawel_p@kadu.net)
  * Copyright 2010 badboy (badboy@gen2.org)
  * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2012 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2007 Dawid Stawiarski (neeo@kadu.net)
  * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
@@ -33,7 +34,7 @@
 #include <QtCore/QTimer>
 
 #include "gui/windows/main-configuration-window.h"
-#include "plugins/generic-plugin.h"
+#include "plugin/plugin-root-component.h"
 #include "status/status-changer.h"
 
 #include "autoaway-status-changer.h"
@@ -46,10 +47,11 @@ class QCheckBox;
  * @defgroup autoaway Autoaway
  * @{
  */
-class AutoAway : public ConfigurationUiHandler, ConfigurationAwareObject, public GenericPlugin
+class AutoAway : public ConfigurationUiHandler, ConfigurationAwareObject, public PluginRootComponent
 {
 	Q_OBJECT
-	Q_INTERFACES(GenericPlugin)
+	Q_INTERFACES(PluginRootComponent)
+	Q_PLUGIN_METADATA(IID "im.kadu.PluginRootComponent")
 
 	AutoAwayStatusChanger *autoAwayStatusChanger;
 	QTimer *timer;
@@ -81,8 +83,6 @@ class AutoAway : public ConfigurationUiHandler, ConfigurationAwareObject, public
 
 	QLineEdit *descriptionTextLineEdit;
 
-	QCheckBox *parseStatusCheckBox;
-
 	QString autoStatusText;
 	QString DescriptionAddon;
 
@@ -109,7 +109,7 @@ public:
 	AutoAway();
 	virtual ~AutoAway();
 
-	virtual int init(bool firstLoad);
+	virtual bool init(bool firstLoad);
 	virtual void done();
 
 	AutoAwayStatusChanger::ChangeStatusTo changeStatusTo();

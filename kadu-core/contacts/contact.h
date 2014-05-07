@@ -5,8 +5,8 @@
  * Copyright 2010 Piotr Dąbrowski (ultr@ultr.pl)
  * Copyright 2008, 2009 Michał Podsiadlik (michal@kadu.net)
  * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
- * Copyright 2007, 2008, 2009, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2007, 2008, 2009, 2009, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011, 2012 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
@@ -48,15 +48,15 @@ class KADUAPI Contact : public SharedBase<ContactShared>
 
 public:
 	static Contact create();
-	static Contact loadStubFromStorage(const QSharedPointer<StoragePoint> &storage);
-	static Contact loadFromStorage(const QSharedPointer<StoragePoint> &storage);
+	static Contact loadStubFromStorage(const std::shared_ptr<StoragePoint> &storage);
+	static Contact loadFromStorage(const std::shared_ptr<StoragePoint> &storage);
 	static Contact null;
 
 	static Contact contactWithHigherStatus(const Contact &c1, const Contact &c2);
 
 	Contact();
 	Contact(ContactShared *data);
-	Contact(QObject *data);
+	explicit Contact(QObject *data);
 	Contact(const Contact &copy);
 	virtual ~Contact();
 
@@ -65,7 +65,7 @@ public:
 
 	KaduSharedBase_PropertyRead(ContactDetails *, details, Details)
 	KaduSharedBase_PropertyRead(QUuid, uuid, Uuid)
-	KaduSharedBase_PropertyRead(QSharedPointer<StoragePoint>, storage, Storage)
+	KaduSharedBase_PropertyRead(std::shared_ptr<StoragePoint>, storage, Storage)
 	KaduSharedBase_PropertyCRW(Account, contactAccount, ContactAccount)
 	KaduSharedBase_PropertyCRW(Avatar, contactAvatar, ContactAvatar)
 	KaduSharedBase_PropertyCRW(Buddy, ownerBuddy, OwnerBuddy)

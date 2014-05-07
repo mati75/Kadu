@@ -2,7 +2,7 @@
  * %kadu copyright begin%
  * Copyright 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009, 2010 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2009, 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
@@ -36,13 +36,13 @@ class KADUAPI Identity : public SharedBase<IdentityShared>
 
 public:
 	static Identity create();
-	static Identity loadStubFromStorage(const QSharedPointer<StoragePoint> &identityStoragePoint);
-	static Identity loadFromStorage(const QSharedPointer<StoragePoint> &identityStoragePoint);
+	static Identity loadStubFromStorage(const std::shared_ptr<StoragePoint> &identityStoragePoint);
+	static Identity loadFromStorage(const std::shared_ptr<StoragePoint> &identityStoragePoint);
 	static Identity null;
 
 	Identity();
 	Identity(IdentityShared *data);
-	Identity(QObject *data);
+	explicit Identity(QObject *data);
 	Identity(const Identity &copy);
 	virtual ~Identity();
 

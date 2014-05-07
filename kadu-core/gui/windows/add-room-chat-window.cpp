@@ -1,6 +1,7 @@
 /*
  * %kadu copyright begin%
- * Copyright 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011, 2012, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -17,6 +18,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <QtGui/QApplication>
 #include <QtGui/QDialogButtonBox>
 #include <QtGui/QFormLayout>
 #include <QtGui/QLabel>
@@ -27,12 +29,13 @@
 #include "accounts/filter/protocol-filter.h"
 #include "chat/chat-details-room.h"
 #include "chat/chat-manager.h"
-#include <chat/type/chat-type-room.h>
+#include "chat/type/chat-type-room.h"
+#include "configuration/config-file-variant-wrapper.h"
+#include "core/core.h"
 #include "gui/widgets/accounts-combo-box.h"
-#include "gui/widgets/chat-widget.h"
-#include "gui/widgets/chat-widget-manager.h"
+#include "gui/widgets/chat-widget/chat-widget-manager.h"
 #include "icons/kadu-icon.h"
-#include "misc/misc.h"
+#include "os/generic/window-geometry-manager.h"
 #include "protocols/protocol.h"
 
 #include "add-room-chat-window.h"
@@ -48,12 +51,11 @@ AddRoomChatWindow::AddRoomChatWindow(QWidget *parent) :
 
 	validateData();
 
-	loadWindowGeometry(this, "General", "AddRoomChatWindowGeometry", 0, 50, 430, 250);
+	new WindowGeometryManager(new ConfigFileVariantWrapper("General", "AddRoomChatWindowGeometry"), QRect(0, 50, 430, 250), this);
 }
 
 AddRoomChatWindow::~AddRoomChatWindow()
 {
-	saveWindowGeometry(this, "General", "AddRoomChatWindowGeometry");
 }
 
 void AddRoomChatWindow::createGui()
@@ -226,9 +228,7 @@ void AddRoomChatWindow::start()
 	if (!DisplayNameEdit->text().isEmpty())
 		chat.setDisplay(DisplayNameEdit->text());
 
-	ChatWidget * const chatWidget = ChatWidgetManager::instance()->byChat(computeChat(), true);
-	if (chatWidget)
-		chatWidget->activate();
+	Core::instance()->chatWidgetManager()->openChat(computeChat(), OpenChatActivation::Activate);
 
 	ChatDetailsRoom *details = qobject_cast<ChatDetailsRoom *>(chat.details());
 	Q_ASSERT(details);
@@ -238,3 +238,5 @@ void AddRoomChatWindow::start()
 
 	QDialog::accept();
 }
+
+#include "moc_add-room-chat-window.cpp"

@@ -3,7 +3,7 @@
  * Copyright 2008, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -20,34 +20,59 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "core/core.h"
+#include "gui/widgets/chat-widget/chat-widget-container-handler-repository.h"
 #include "gui/windows/main-configuration-window.h"
 #include "misc/kadu-paths.h"
 
 #include "tabs.h"
+#include "tabs-chat-widget-container-handler.h"
 
 #include "tabs-plugin.h"
+
+TabsPlugin::TabsPlugin(QObject *parent) :
+		QObject{parent},
+		TabsManagerInstance{}
+{
+}
+
 
 TabsPlugin::~TabsPlugin()
 {
 }
 
-int TabsPlugin::init(bool firstLoad)
+bool TabsPlugin::init(bool firstLoad)
 {
 	Q_UNUSED(firstLoad)
 
+	ChatWidgetContainerHandler.reset(new TabsChatWidgetContainerHandler());
 	TabsManagerInstance = new TabsManager(this);
+	TabsManagerInstance->setChatWidgetRepository(Core::instance()->chatWidgetRepository());
 	MainConfigurationWindow::registerUiFile(KaduPaths::instance()->dataPath() + QLatin1String("plugins/configuration/tabs.ui"));
 	MainConfigurationWindow::registerUiHandler(TabsManagerInstance);
 
-	return 0;
+	ChatWidgetContainerHandler.data()->setTabsManager(TabsManagerInstance);
+	ChatWidgetContainerHandler.data()->setTabWidget(TabsManagerInstance->tabWidget());
+	Core::instance()->chatWidgetContainerHandlerRepository()->registerChatWidgetContainerHandler(ChatWidgetContainerHandler.data());
+
+	TabsManagerInstance->openStoredChatTabs();
+
+	return true;
 }
 
 void TabsPlugin::done()
 {
+	TabsManagerInstance->storeOpenedChatTabs();
+
+	Core::instance()->chatWidgetContainerHandlerRepository()->unregisterChatWidgetContainerHandler(ChatWidgetContainerHandler.data());
+
 	MainConfigurationWindow::unregisterUiHandler(TabsManagerInstance);
 	MainConfigurationWindow::unregisterUiFile(KaduPaths::instance()->dataPath() + QLatin1String("plugins/configuration/tabs.ui"));
 	delete TabsManagerInstance;
 	TabsManagerInstance = 0;
+	ChatWidgetContainerHandler.reset();
 }
 
 Q_EXPORT_PLUGIN2(tabs, TabsPlugin)
+
+#include "moc_tabs-plugin.cpp"

@@ -1,6 +1,7 @@
 /*
  * %kadu copyright begin%
- * Copyright 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2012, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -19,13 +20,13 @@
 
 #include <QtSql/QSqlQuery>
 
-#include "accounts/account.h"
 #include "accounts/account-manager.h"
+#include "accounts/account.h"
 
 #include "sql-accounts-mapping.h"
 
 SqlAccountsMapping::SqlAccountsMapping(const QSqlDatabase &database, QObject *parent) :
-		QObject(parent), Database(database)
+		QObject(parent), Database(database), Mutex(QMutex::Recursive)
 {
 	loadMappingsFromDatabase();
 
@@ -40,6 +41,8 @@ SqlAccountsMapping::~SqlAccountsMapping()
 
 void SqlAccountsMapping::accountAdded(Account account)
 {
+	QMutexLocker locker(&Mutex);
+
 	if (idByAccount(account) > 0)
 		return;
 
@@ -54,6 +57,8 @@ void SqlAccountsMapping::accountAdded(Account account)
 
 void SqlAccountsMapping::accountRemoved(Account account)
 {
+	QMutexLocker locker(&Mutex);
+
 	if (idByAccount(account) <= 0)
 		return;
 
@@ -65,6 +70,8 @@ void SqlAccountsMapping::accountRemoved(Account account)
 
 void SqlAccountsMapping::accountUpdated(const Account &account)
 {
+	QMutexLocker locker(&Mutex);
+
 	if (idByAccount(account) <= 0)
 		return;
 
@@ -78,12 +85,16 @@ void SqlAccountsMapping::accountUpdated(const Account &account)
 
 void SqlAccountsMapping::addMapping(int id, const Account &account)
 {
+	QMutexLocker locker(&Mutex);
+
 	account.addProperty("sql_history:id", id, CustomProperties::NonStorable);
 	AccountMapping.insert(id, account);
 }
 
 void SqlAccountsMapping::loadMappingsFromDatabase()
 {
+	QMutexLocker locker(&Mutex);
+
 	QSqlQuery query(Database);
 	query.prepare("SELECT id, protocol, account FROM kadu_accounts");
 
@@ -107,6 +118,8 @@ void SqlAccountsMapping::loadMappingsFromDatabase()
 
 Account SqlAccountsMapping::accountById(int sqlId) const
 {
+	QMutexLocker locker(&Mutex);
+
 	if (AccountMapping.contains(sqlId))
 		return AccountMapping.value(sqlId);
 	else
@@ -117,3 +130,5 @@ int SqlAccountsMapping::idByAccount(const Account &account)
 {
 	return account.property("sql_history:id", 0).toInt();
 }
+
+#include "moc_sql-accounts-mapping.cpp"

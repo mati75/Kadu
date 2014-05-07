@@ -1,7 +1,8 @@
 /*
  * %kadu copyright begin%
  * Copyright 2011 Sławomir Stępień (s.stepien@interia.pl)
- * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -29,7 +30,7 @@ MediaplayerPlugin::~MediaplayerPlugin()
 {
 }
 
-int MediaplayerPlugin::init(bool firstLoad)
+bool MediaplayerPlugin::init(bool firstLoad)
 {
 	Q_UNUSED(firstLoad)
 
@@ -38,7 +39,7 @@ int MediaplayerPlugin::init(bool firstLoad)
 	MainConfigurationWindow::registerUiFile(KaduPaths::instance()->dataPath() + QLatin1String("plugins/configuration/mediaplayer.ui"));
 	MainConfigurationWindow::registerUiHandler(MediaPlayer::instance());
 
-	return 0;
+	return true;
 }
 
 void MediaplayerPlugin::done()
@@ -50,3 +51,5 @@ void MediaplayerPlugin::done()
 }
 
 Q_EXPORT_PLUGIN2(mediaplayer, MediaplayerPlugin)
+
+#include "moc_mediaplayer-plugin.cpp"

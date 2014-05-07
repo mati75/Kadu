@@ -4,6 +4,7 @@
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
  * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
  * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2012 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
@@ -30,6 +31,8 @@ class KeyGenerator
 {
 
 public:
+	virtual ~KeyGenerator() {}
+
 	virtual bool hasKeys(const Account &account) = 0;
 	virtual bool generateKeys(const Account &account) = 0;
 

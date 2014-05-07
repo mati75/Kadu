@@ -2,8 +2,8 @@
  * %kadu copyright begin%
  * Copyright 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2010, 2010 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2010, 2011, 2012, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -20,46 +20,66 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "buddies/buddy-manager.h"
+#include <QtCore/QDate>
 
-#include "utils/vcard-factory.h"
-#include "jabber-protocol.h"
+#include <xmpp_jid.h>
+#include <xmpp_vcard.h>
+
+#include "buddies/buddy-manager.h"
+#include "contacts/contact.h"
+
+#include "jabber-vcard-downloader.h"
+#include "jabber-vcard-service.h"
 
 #include "jabber-contact-personal-info-service.h"
 
-JabberContactPersonalInfoService::JabberContactPersonalInfoService(JabberProtocol *protocol) :
-		ContactPersonalInfoService(protocol), Protocol(protocol)
+JabberContactPersonalInfoService::JabberContactPersonalInfoService(Account account, QObject *parent) :
+		ContactPersonalInfoService(account, parent)
 {
+}
+
+JabberContactPersonalInfoService::~JabberContactPersonalInfoService()
+{
+}
+
+void JabberContactPersonalInfoService::setVCardService(XMPP::JabberVCardService *vCardService)
+{
+	VCardService = vCardService;
 }
 
 void JabberContactPersonalInfoService::fetchPersonalInfo(Contact contact)
 {
 	CurrentBuddy = BuddyManager::instance()->byContact(contact, ActionCreateAndAdd);
-	if (Protocol && Protocol->client() && Protocol->client()->rootTask())
-		VCardFactory::instance()->getVCard(contact.id(), Protocol->client()->rootTask(), this, SLOT(fetchingVCardFinished()));
+	if (!VCardService)
+		return;
+
+	JabberVCardDownloader *vCardDownloader = VCardService.data()->createVCardDownloader();
+	if (!vCardDownloader)
+		return;
+
+	connect(vCardDownloader, SIGNAL(vCardDownloaded(bool,XMPP::VCard)), this, SLOT(vCardDownloaded(bool,XMPP::VCard)));
+	vCardDownloader->downloadVCard(contact.id());
 }
 
-void JabberContactPersonalInfoService::fetchingVCardFinished()
+void JabberContactPersonalInfoService::vCardDownloaded(bool ok, XMPP::VCard vCard)
 {
-	XMPP::VCard vcard;
-	XMPP::JT_VCard *task = (XMPP::JT_VCard *)sender();
+	if (!ok)
+		return;
 
-	if (task && task->success())
-	{
-		vcard = task->vcard();
-		CurrentBuddy.setNickName(vcard.nickName());
-		CurrentBuddy.setFirstName(vcard.fullName());
-		CurrentBuddy.setFamilyName(vcard.familyName());
-		QDate bday = QDate::fromString(vcard.bdayStr(), "yyyy-MM-dd");
-		if (bday.isValid() && !bday.isNull())
-			CurrentBuddy.setBirthYear(bday.year());
+	CurrentBuddy.setNickName(vCard.nickName());
+	CurrentBuddy.setFirstName(vCard.fullName());
+	CurrentBuddy.setFamilyName(vCard.familyName());
+	QDate bday = QDate::fromString(vCard.bdayStr(), "yyyy-MM-dd");
+	if (bday.isValid() && !bday.isNull())
+		CurrentBuddy.setBirthYear(bday.year());
 
-		if (!vcard.addressList().isEmpty())
-			CurrentBuddy.setCity(vcard.addressList().at(0).locality);
-		if (!vcard.emailList().isEmpty())
-			CurrentBuddy.setEmail(vcard.emailList().at(0).userid);
-		CurrentBuddy.setWebsite(vcard.url());
+	if (!vCard.addressList().isEmpty())
+		CurrentBuddy.setCity(vCard.addressList().at(0).locality);
+	if (!vCard.emailList().isEmpty())
+		CurrentBuddy.setEmail(vCard.emailList().at(0).userid);
+	CurrentBuddy.setWebsite(vCard.url());
 
-		emit personalInfoAvailable(CurrentBuddy);
-	}
+	emit personalInfoAvailable(CurrentBuddy);
 }
+
+#include "moc_jabber-contact-personal-info-service.cpp"

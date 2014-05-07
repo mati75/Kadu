@@ -1,8 +1,9 @@
 /*
  * %kadu copyright begin%
  * Copyright 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2012 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -118,7 +119,7 @@ void ImportProfilesWindow::accept()
 		if (importer.import(IdentityManager::instance()->byName(profile.Name, true)))
 		{
 			ProfileDataManager::markImported(profile.Name);
-			MessageDialog::exec(KaduIcon("dialog-information"), tr("Import external profile..."), tr("Profile %1 successfully imported!")
+			MessageDialog::show(KaduIcon("dialog-information"), tr("Import external profile..."), tr("Profile %1 successfully imported!")
 					.arg(profile.Name));
 
 			if (importHistory && !HistoryImporterManager::instance()->containsImporter(path + "/kadu/history/"))
@@ -130,7 +131,7 @@ void ImportProfilesWindow::accept()
 			}
 		}
 		else
-			MessageDialog::exec(KaduIcon("dialog-warning"), tr("Import profile..."), tr("Unable to import profile: %1: %2")
+			MessageDialog::show(KaduIcon("dialog-warning"), tr("Import profile..."), tr("Unable to import profile: %1: %2")
 					.arg(profile.Name)
 					.arg(importer.errorMessage()));
 	}
@@ -139,3 +140,5 @@ void ImportProfilesWindow::accept()
 
 	QDialog::accept();
 }
+
+#include "moc_import-profiles-window.cpp"

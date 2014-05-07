@@ -2,8 +2,8 @@
  * %kadu copyright begin%
  * Copyright 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2008, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2008, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -23,17 +23,16 @@
 #ifndef ANTISTRING_H
 #define ANTISTRING_H
 
-#include "accounts/accounts-aware-object.h"
 #include "configuration/configuration-aware-object.h"
 #include "gui/windows/main-configuration-window.h"
+#include "message/message-filter.h"
 
 #include "antistring-configuration.h"
 
-class Chat;
-class ChatService;
+class Account;
 class Contact;
 
-class Antistring : public QObject, public AccountsAwareObject
+class Antistring : public MessageFilter
 {
 	Q_OBJECT
 	Q_DISABLE_COPY(Antistring)
@@ -48,15 +47,6 @@ class Antistring : public QObject, public AccountsAwareObject
 	int points(const QString &message);
 	void writeLog(Contact sender, const QString &message);
 
-	ChatService * chatService(Account account) const;
-
-private slots:
-	void filterIncomingMessage(Chat chat, Contact sender, QString &message, bool &ignore);
-
-protected:
-	virtual void accountRegistered(Account account);
-	virtual void accountUnregistered(Account account);
-
 public:
 	static void createInstance();
 	static void destroyInstance();
@@ -65,10 +55,8 @@ public:
 
 	AntistringConfiguration & configuration() { return Configuration; }
 
-};
+	virtual bool acceptMessage(const Message &message);
 
-// for MOC
-#include "chat/chat.h"
-#include "contacts/contact.h"
+};
 
 #endif // ANTISTRING_H

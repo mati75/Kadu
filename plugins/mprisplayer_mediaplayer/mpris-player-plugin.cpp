@@ -6,7 +6,7 @@
  * Copyright 2002, 2003, 2004, 2005 Adrian Smarzewski (adrian@kadu.net)
  * Copyright 2002, 2003, 2004 Tomasz Chiliński (chilek@chilan.com)
  * Copyright 2007, 2009, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2011, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2007 Dawid Stawiarski (neeo@kadu.net)
  * Copyright 2005 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
@@ -37,14 +37,14 @@ MPRISPlayerPlugin::~MPRISPlayerPlugin()
 
 }
 
-int MPRISPlayerPlugin::init(bool firstLoad)
+bool MPRISPlayerPlugin::init(bool firstLoad)
 {
 	Q_UNUSED(firstLoad)
 
 	MPRISPlayerConfigurationUiHandler::registerConfigurationUi();
 	MPRISPlayer::createInstance();
 
-	return 0;
+	return true;
 }
 
 void MPRISPlayerPlugin::done()
@@ -55,3 +55,5 @@ void MPRISPlayerPlugin::done()
 }
 
 Q_EXPORT_PLUGIN2(mprisplayer_mediaplayer, MPRISPlayerPlugin)
+
+#include "moc_mpris-player-plugin.cpp"

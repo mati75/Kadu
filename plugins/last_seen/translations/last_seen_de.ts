@@ -1,22 +1,13 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE TS>
-<TS version="2.0" language="de">
-<context>
-    <name>Infos</name>
-    <message>
-        <source>&amp;Show infos about buddies...</source>
-        <translation type="unfinished"></translation>
-    </message>
-</context>
+<?xml version="1.0" ?><!DOCTYPE TS><TS language="de" version="2.0">
 <context>
     <name>InfosDialog</name>
     <message>
         <source>Buddies Information</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <source>Buddy</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <source>Protocol</source>
@@ -52,7 +43,7 @@
     </message>
     <message>
         <source>Username</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"/>
     </message>
 </context>
 </TS>

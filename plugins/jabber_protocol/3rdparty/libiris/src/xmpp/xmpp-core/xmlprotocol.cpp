@@ -1,5 +1,5 @@
 /*
- * xmlprotocol.cpp - state machine for 'jabber-like' protocols
+ * xmlprotocol.cpp - state machine for 'xmpp-like' protocols
  * Copyright (C) 2004  Justin Karneges
  *
  * This library is free software; you can redistribute it and/or
@@ -18,14 +18,12 @@
  *
  */
 
-#include "xmlprotocol.h"
-
-#include "bytestream.h"
-//Added by qt3to4:
 #include <QList>
 #include <QTextStream>
 #include <QByteArray>
-#include <QApplication>
+
+#include "xmlprotocol.h"
+#include "bytestream.h"
 
 using namespace XMPP;
 
@@ -148,7 +146,7 @@ static void createRootXmlTags(const QDomElement &root, QString *xmlHeader, QStri
 
 // w3c xml spec:
 // [2] Char ::= #x9 | #xA | #xD | [#x20-#xD7FF] | [#xE000-#xFFFD] | [#x10000-#x10FFFF]
-static inline bool validChar(const quint32 ch) 
+static inline bool validChar(const quint32 ch)
 {
 	return ch == 0x9 || ch == 0xA || ch == 0xD
 			|| (ch >= 0x20 && ch <= 0xD7FF)
@@ -156,12 +154,12 @@ static inline bool validChar(const quint32 ch)
 			|| (ch >= 0x10000 && ch <= 0x10FFFF);
 }
 
-static inline bool lowSurrogate(const quint32 ch) 
+static inline bool lowSurrogate(const quint32 ch)
 {
 	return  ch >= 0xDC00 && ch <= 0xDFFF;
 }
 
-static inline bool highSurrogate(const quint32 ch) 
+static inline bool highSurrogate(const quint32 ch)
 {
 	return  ch >= 0xD800 && ch <= 0xDBFF;
 }
@@ -545,7 +543,7 @@ int XmlProtocol::internalWriteData(const QByteArray &a, TrackItem::Type t, int i
 	i.size = a.size();
 	trackQueue += i;
 
-	ByteStream::appendArray(&outData, a);
+	outData += a;
 	return a.size();
 }
 

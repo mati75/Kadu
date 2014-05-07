@@ -1,8 +1,8 @@
 /*
  * %kadu copyright begin%
  * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011, 2012 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -25,6 +25,7 @@
 #include <QtCore/QFile>
 #include <QtCore/QRegExp>
 #include <QtCore/QStringList>
+#include <QtCore/QTextCodec>
 #include <QtCore/QTextStream>
 #include <QtCore/QtAlgorithms>
 
@@ -140,7 +141,7 @@ namespace HistoryMigrationHelper
 		}
 
 		QTextStream stream(&f);
-		stream.setCodec(codec_latin2);
+		stream.setCodec(QTextCodec::codecForName("ISO8859-2"));
 		while (!(line = stream.readLine()).isNull())
 		{
 			HistoryEntry entry;

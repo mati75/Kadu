@@ -31,7 +31,7 @@
  */
 XMPP::Resource JabberResourcePool::EmptyResource(QString(), XMPP::Status(QString(), QString(), 0, false));
 
-JabberResourcePool::JabberResourcePool(JabberProtocol *protocol) :
+JabberResourcePool::JabberResourcePool(XMPP::JabberProtocol *protocol) :
 	QObject(protocol), protocol(protocol)
 {
 }
@@ -253,3 +253,5 @@ const XMPP::Resource & JabberResourcePool::bestResource(const XMPP::Jid &jid, bo
 
 	return bestResource ? bestResource->resource() : EmptyResource;
 }
+
+#include "moc_jabber-resource-pool.cpp"

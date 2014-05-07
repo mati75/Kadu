@@ -2,7 +2,7 @@
  * %kadu copyright begin%
  * Copyright 2008, 2009, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2008, 2009 Michał Podsiadlik (michal@kadu.net)
- * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2007, 2008, 2009, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2007, 2008 Dawid Stawiarski (neeo@kadu.net)
  * %kadu copyright end%
  *
@@ -24,6 +24,7 @@
 #define AVATAR_JOB_RUNNER_H
 
 #include <QtCore/QObject>
+#include <QtGui/QPixmap>
 
 #include "contacts/contact.h"
 
@@ -42,11 +43,8 @@ class KADUAPI AvatarJobRunner : public QObject
 
 	QTimer *Timer;
 
-	AvatarService * avatarService(const Account &account);
-	AvatarService * avatarService(const Contact &contact);
-
 private slots:
-	void avatarFetched(Contact contact, bool ok);
+	void avatarDownloaded(bool ok , QImage avatar);
 	void timeout();
 
 public:

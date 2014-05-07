@@ -1,6 +1,7 @@
 /*
  * %kadu copyright begin%
- * Copyright 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011, 2012, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -26,12 +27,13 @@
 #include "configuration/configuration-file.h"
 #include "gui/actions/action.h"
 #include "gui/widgets/chat-edit-box.h"
-#include "gui/widgets/chat-messages-view.h"
-#include "gui/widgets/chat-widget.h"
+#include "gui/widgets/chat-widget/chat-widget.h"
+#include "gui/widgets/webkit-messages-view/webkit-messages-view.h"
+#include "message/sorted-messages.h"
 
 #include "gui/windows/history-window.h"
-#include "history-query.h"
 #include "history-messages-prepender.h"
+#include "history-query.h"
 #include "history.h"
 
 #include "show-history-action-description.h"
@@ -136,7 +138,7 @@ void ShowHistoryActionDescription::showDaysMessages(QAction *action, int days)
 		return;
 	}
 
-	ChatMessagesView *chatMessagesView = chatWidget->chatMessagesView();
+	WebkitMessagesView *chatMessagesView = chatWidget->chatMessagesView();
 	if (!chatMessagesView)
 	{
 		HistoryWindow::show(actionChat);
@@ -162,9 +164,11 @@ void ShowHistoryActionDescription::showDaysMessages(QAction *action, int days)
 	query.setTalkable(messagesChat);
 
 	if (0 == days)
-		query.setLimit(config_file.readNumEntry("History", "ChatHistoryCitation", 10));
+		query.setLimit(config_file.readUnsignedNumEntry("History", "ChatHistoryCitation", 10));
 	else
 		query.setFromDate(QDate::currentDate().addDays(-days));
 
 	new HistoryMessagesPrepender(historyStorage->messages(query), chatMessagesView);
 }
+
+#include "moc_show-history-action-description.cpp"

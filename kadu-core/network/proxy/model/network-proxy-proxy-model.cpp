@@ -1,6 +1,7 @@
 /*
  * %kadu copyright begin%
  * Copyright 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -58,3 +59,5 @@ bool NetworkProxyProxyModel::lessThan(const QModelIndex &left, const QModelIndex
 	int displayCompare = compareNames(leftNetworkProxy.address(), rightNetworkProxy.address());
 	return displayCompare < 0;
 }
+
+#include "moc_network-proxy-proxy-model.cpp"

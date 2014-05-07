@@ -2,8 +2,8 @@
  * %kadu copyright begin%
  * Copyright 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
- * Copyright 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2009, 2010, 2011, 2012, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -23,14 +23,13 @@
 #include <QtCore/QPair>
 #include <QtCore/QTimer>
 
-#include "buddies/buddy.h"
 #include "buddies/buddy-manager.h"
+#include "buddies/buddy.h"
 #include "configuration/configuration-file.h"
 #include "configuration/configuration-manager.h"
 #include "contacts/contact-parser-tags.h"
-#include "contacts/contact.h"
 #include "core/core.h"
-#include "message/message-manager.h"
+#include "message/unread-message-repository.h"
 #include "protocols/protocol-factory.h"
 #include "protocols/protocol.h"
 #include "protocols/services/roster/roster-entry.h"
@@ -63,9 +62,9 @@ ContactManager::ContactManager()
 
 ContactManager::~ContactManager()
 {
-	disconnect(MessageManager::instance(), 0, this, 0);
+	disconnect(Core::instance()->unreadMessageRepository(), 0, this, 0);
 
-	foreach (const Message &message, MessageManager::instance()->allUnreadMessages())
+	foreach (const Message &message, Core::instance()->unreadMessageRepository()->allUnreadMessages())
 		unreadMessageRemoved(message);
 
 	ContactParserTags::unregisterParserTags();
@@ -78,12 +77,12 @@ void ContactManager::init()
 
 	ContactParserTags::registerParserTags();
 
-	foreach (const Message &message, MessageManager::instance()->allUnreadMessages())
+	foreach (const Message &message, Core::instance()->unreadMessageRepository()->allUnreadMessages())
 		unreadMessageAdded(message);
 
-	connect(MessageManager::instance(), SIGNAL(unreadMessageAdded(Message)),
+	connect(Core::instance()->unreadMessageRepository(), SIGNAL(unreadMessageAdded(Message)),
 	        this, SLOT(unreadMessageAdded(Message)));
-	connect(MessageManager::instance(), SIGNAL(unreadMessageRemoved(Message)),
+	connect(Core::instance()->unreadMessageRepository(), SIGNAL(unreadMessageRemoved(Message)),
 	        this, SLOT(unreadMessageRemoved(Message)));
 }
 
@@ -281,3 +280,5 @@ void ContactManager::loaded()
 		// delay it so that everything needed will be loaded when we call this method
 		QTimer::singleShot(0, this, SLOT(removeDuplicateContacts()));
 }
+
+#include "moc_contact-manager.cpp"
