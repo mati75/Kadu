@@ -2,6 +2,7 @@ kadu (1.0~rc1-1) unstable; urgency=low
 
   * New upstream release (Closes: #746102).
   * Cleaned-up debian/patches -- made those fit Kadu 1.0
+  * Added libarchive-dev to Build-Depends
 
  -- Patryk Cisek <patryk@debian.org>  Wed, 07 May 2014 19:32:57 +0200
 
