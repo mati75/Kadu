@@ -14,19 +14,19 @@ Description: Fixes contents of "About" dialog's tabs.
 Author: Patryk Cisek <patryk@debian.org>
 ---
 diff --git a/kadu-core/gui/windows/about.cpp b/kadu-core/gui/windows/about.cpp
-index 8f08e2f..a4472ec 100644
+index 25ab818..148a15d 100644
 --- a/kadu-core/gui/windows/about.cpp
 +++ b/kadu-core/gui/windows/about.cpp
-@@ -158,7 +158,7 @@ About::About(QWidget *parent) :
+@@ -151,7 +151,7 @@ About::About(QWidget *parent) :
  	tb_changelog->setOpenLinks(false);
  	tb_changelog->setFrameStyle(QFrame::NoFrame);
  	tb_changelog->viewport()->setAutoFillBackground(false);
 -	QString changelog = Qt::escape(loadFile("ChangeLog"));
 +	QString changelog = Qt::escape(loadFile("about-changes-tab.txt"));
  	changelog.replace('\n', "<br/>");
- 	HtmlDocument changelog_html;
- 	changelog_html.parseHtml(changelog);
-@@ -244,7 +244,10 @@ QString About::loadFile(const QString &name)
+ 	// #bug_no -> Redmine URL
+ 	changelog.replace(QRegExp("#(\\d+)"), "<a href=\"http://www.kadu.im/redmine/issues/\\1\">#\\1</a>");
+@@ -232,7 +232,10 @@ QString About::loadFile(const QString &name)
  {
  	kdebugf();
  
