@@ -15,13 +15,12 @@ git reset --hard
 git co 1.0/upstream-kadu
 git br -D 1.0/master || true
 git co -b 1.0/master 1.0/upstream-kadu
-git merge -m "Merging 1.0/upstream-plugins 1.0/upstream-themes 1.0/debian" \
-    1.0/upstream-plugins 1.0/upstream-themes 1.0/debian
+git merge -m "Merging 1.0/upstream-themes 1.0/debian" \
+    1.0/upstream-themes 1.0/debian
 
 if [ "$debian_revision" = 1 ]; then
-    # Generate orig-external{plugins,themes}.tar.bz2, but only if it's first
+    # Generate orig-externalthemes.tar.bz2, but only if it's first
     # Debian revision for particular upstream version
-    tar c externalplugins | bzip2 -9 > ../kadu_$upstream_version.orig-externalplugins.tar.bz2
     tar c externalthemes | bzip2 -9 > ../kadu_$upstream_version.orig-externalthemes.tar.bz2
 fi
 debuild -us -uc -I.git $@
