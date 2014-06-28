@@ -68,7 +68,8 @@ install-indep:
 	find $(INSTALL_DIR) -name Thumbs.db -delete
 	rm -f $(INSTALL_DIR)/usr/share/kadu/themes/sounds/bns/sound.conf~
 	# Move cmake files to proper directory
-	mv $(INSTALL_DIR)/usr/lib/$(DEB_HOST_MULTIARCH)/cmake $(INSTALL_DIR)/usr/share/cmake-2.8/Modules/
+	mkdir $(INSTALL_DIR)/usr/share/cmake-2.8/Modules
+	mv $(INSTALL_DIR)/usr/lib/$(DEB_HOST_MULTIARCH)/cmake/Kadu/KaduConfig*.cmake $(INSTALL_DIR)/usr/share/cmake-2.8/Modules/
 	dh_install -i
 
 install-arch:
