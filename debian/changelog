@@ -5,8 +5,9 @@ kadu (1.0~rc1-1) unstable; urgency=low
   * Added libarchive-dev and libotr5-dev to Build-Depends
   * Removed kadu-external-modules package
   * Updated debian/*.install files
+  * Replaced hardening-wrapper with dpkg-buildflags
 
- -- Patryk Cisek <patryk@debian.org>  Sat, 28 Jun 2014 09:17:30 +0200
+ -- Patryk Cisek <patryk@debian.org>  Sat, 28 Jun 2014 10:15:13 +0200
 
 kadu (0.12.3-3) unstable; urgency=low
 
