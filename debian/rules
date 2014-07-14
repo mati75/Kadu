@@ -30,7 +30,7 @@ endif
 ifeq ($(DEB_BUILD_ARCH_OS), hurd)
 		debian/prepare_install_files.sh non-linux
 endif
-	cd $(BUILD_DIR) && cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr $(PKG_DIR)
+	cd $(BUILD_DIR) && cmake -DCMAKE_SKIP_RPATH=True -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr $(PKG_DIR)
 	touch configure-stamp
 
 #Architecture
