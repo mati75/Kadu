@@ -1,7 +1,7 @@
 debian/kadu.desktop usr/share/applications
 debian/kadu.xpm /usr/share/pixmaps
 debian/tmp/usr/bin/kadu
-debian/tmp/usr/lib/*/kadu/libkadu.so
+debian/tmp/usr/lib/*/libkadu.so
 debian/tmp/usr/lib/*/kadu/plugins/libantistring.so
 debian/tmp/usr/lib/*/kadu/plugins/libauto_hide.so
 debian/tmp/usr/lib/*/kadu/plugins/libautoaway.so

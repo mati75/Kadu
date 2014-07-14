@@ -1,0 +1,17 @@
+Description: Installs libgadu.so in /usr/lib
+ Originally libgadu.so is installed in /usr/lib/kadu and RPATH is used to
+ find it. Since Kadu is built without RPATH, moving libkadu.so to appropriate
+ directory.
+diff --git a/kadu-core/CMakeLists.txt b/kadu-core/CMakeLists.txt
+index cf39b91..d1e830f 100644
+--- a/kadu-core/CMakeLists.txt
++++ b/kadu-core/CMakeLists.txt
+@@ -246,7 +246,7 @@ set_target_properties (kadu PROPERTIES
+ 
+ install (TARGETS libkadu kadu
+ 	EXPORT KaduTargets
+-	LIBRARY DESTINATION ${KADU_INSTALL_LIB_DIR}/kadu
++	LIBRARY DESTINATION ${CMAKE_INSTALL_FULL_LIBDIR}
+ 	RUNTIME DESTINATION ${KADU_INSTALL_BIN_DIR}
+ )
+ # TODO this WIN32 check is a workaround for an error on Linux
