@@ -314,7 +314,7 @@
         <translation>Подчеркнутый текст</translation>
     </message>
     <message>
-        <source>Behaviour</source>
+        <source>Behavior</source>
         <translation>Поведение</translation>
     </message>
     <message>
@@ -828,10 +828,6 @@ changes upon establishing connection to the server</source>
     <message>
         <source>Enable transparency in chat window</source>
         <translation>Включить прозрачность в окне чата</translation>
-    </message>
-    <message>
-        <source>Your system does not support transparency.</source>
-        <translation>Ваша система не поддерживает прозрачность</translation>
     </message>
     <message>
         <source>Buddies list</source>
@@ -2365,7 +2361,7 @@ Do you want to accept this image anyway?</source>
         <translation>Свойства группы %1</translation>
     </message>
     <message>
-        <source>Behaviour</source>
+        <source>Behavior</source>
         <translation>Поведение</translation>
     </message>
     <message>

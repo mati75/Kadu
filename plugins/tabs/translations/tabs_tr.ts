@@ -70,11 +70,23 @@
         <translation type="unfinished"/>
     </message>
     <message>
-        <source>Behaviour</source>
+        <source>Behavior</source>
         <translation type="unfinished"/>
     </message>
     <message>
         <source>Reopen closed tab</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <source>Show &apos;Open chat&apos; button</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <source>Show common &apos;Close Tab&apos; button on tab bar</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <source>Show &apos;Close&apos; button on each tab</source>
         <translation type="unfinished"/>
     </message>
 </context>

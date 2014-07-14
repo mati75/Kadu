@@ -76,7 +76,10 @@ void PluginManager::activatePlugins()
 {
 	if (m_pluginActivationService)
 		for (const auto &pluginName : pluginsToActivate())
+		{
 			m_pluginActivationService->activatePluginWithDependencies(pluginName);
+			m_pluginStateService->setPluginState(pluginName, PluginState::Enabled); // make plugin enabled if it was new
+		}
 }
 
 QVector<QString> PluginManager::pluginsToActivate(std::function<bool(const PluginMetadata &)> filter) const
@@ -121,6 +124,9 @@ void PluginManager::activateReplacementPlugins()
 			continue;
 
 		auto replacementPlugin = findReplacementPlugin(pluginToReplace);
+		if (replacementPlugin.isEmpty())
+			continue;
+
 		if (PluginState::New == m_pluginStateService->pluginState(replacementPlugin))
 			if (m_pluginActivationService->activatePluginWithDependencies(replacementPlugin).contains(replacementPlugin))
 			{

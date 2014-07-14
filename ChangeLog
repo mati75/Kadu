@@ -1,3 +1,14 @@
++++ version 1.0-rc3
+* windows: fixed windows build (Vogel)
+* jabber: #2800 fixed: unable to change buddy name with Facebook account to its real name (Vogel)
+
++++ version 1.0-rc3
+* windows: build fixes (Vogel)
+* debian: build fixes (Vogel)
+
++++ version 1.0-rc2
+* misc: misc fixes (Vogel)
+
 +++ version 1.0-rc1
 * gadu: #2750 fixed: unable to login when password contains non-ascii characters (Vogel)
 * status: #2655 fixed: set status on new account automatically if status is per-identity or per-all (Vogel)

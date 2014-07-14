@@ -90,7 +90,7 @@
     </message>
     <message>
         <source>Remind GG number</source>
-        <translation type="unfinished"/>
+        <translation>Připomenout číslo GG</translation>
     </message>
     <message>
         <source>Remind Password</source>
@@ -344,7 +344,7 @@ Jste si jistý, že jim chcete umožnit vědět, že jste dostupný?</translatio
     </message>
     <message>
         <source>Remind GG number</source>
-        <translation type="unfinished"/>
+        <translation>Připomenout číslo GG</translation>
     </message>
     <message>
         <source>Remind Password</source>

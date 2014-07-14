@@ -1,0 +1,7 @@
+*~
+*.kdev4
+CMakeLists.txt.user
+/build*
+.configuration-ui-translations.cpp
+docs
+/.tx/

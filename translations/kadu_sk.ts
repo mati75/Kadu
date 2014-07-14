@@ -314,7 +314,7 @@
         <translation>Podčiarknutý text</translation>
     </message>
     <message>
-        <source>Behaviour</source>
+        <source>Behavior</source>
         <translation>Správanie</translation>
     </message>
     <message>
@@ -827,10 +827,6 @@ changes upon establishing connection to the server</source>
     </message>
     <message>
         <source>Enable transparency in chat window</source>
-        <translation type="unfinished"/>
-    </message>
-    <message>
-        <source>Your system does not support transparency.</source>
         <translation type="unfinished"/>
     </message>
     <message>
@@ -2365,7 +2361,7 @@ Do you want to accept this image anyway?</source>
         <translation>Vlastnosti skupiny %1</translation>
     </message>
     <message>
-        <source>Behaviour</source>
+        <source>Behavior</source>
         <translation>Správanie</translation>
     </message>
     <message>

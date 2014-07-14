@@ -1,4 +1,6 @@
-<?xml version="1.0" ?><!DOCTYPE TS><TS language="en" version="2.0">
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE TS>
+<TS version="2.0" language="en">
 <context>
     <name>@default</name>
     <message>
@@ -70,12 +72,24 @@
         <translation>Bottom</translation>
     </message>
     <message>
-        <source>Behaviour</source>
-        <translation>Behaviour</translation>
+        <source>Behavior</source>
+        <translation>Behavior</translation>
     </message>
     <message>
         <source>Reopen closed tab</source>
         <translation>Reopen closed tab</translation>
+    </message>
+    <message>
+        <source>Show &apos;Open chat&apos; button</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Show common &apos;Close Tab&apos; button on tab bar</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Show &apos;Close&apos; button on each tab</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>

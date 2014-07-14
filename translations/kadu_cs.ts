@@ -314,7 +314,7 @@
         <translation>Podtržený text</translation>
     </message>
     <message>
-        <source>Behaviour</source>
+        <source>Behavior</source>
         <translation>Chování</translation>
     </message>
     <message>
@@ -830,10 +830,6 @@ ihned po zřízení spojení se serverem</translation>
     <message>
         <source>Enable transparency in chat window</source>
         <translation>Povolit průhlednost v okně pro rozhovor</translation>
-    </message>
-    <message>
-        <source>Your system does not support transparency.</source>
-        <translation>Váš systém nepodporuje průhlednost.</translation>
     </message>
     <message>
         <source>Buddies list</source>
@@ -2369,7 +2365,7 @@ Chcete přesto tento obrázek přijmout?</translation>
         <translation>Vlastnosti skupiny %1</translation>
     </message>
     <message>
-        <source>Behaviour</source>
+        <source>Behavior</source>
         <translation>Chování</translation>
     </message>
     <message>

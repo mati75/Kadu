@@ -314,7 +314,7 @@
         <translation>Podkreślenie</translation>
     </message>
     <message>
-        <source>Behaviour</source>
+        <source>Behavior</source>
         <translation>Zachowanie</translation>
     </message>
     <message>
@@ -826,10 +826,6 @@ znajomych po połączeniu się z serwerem</translation>
     <message>
         <source>Enable transparency in chat window</source>
         <translation>Włącz przezroczystość w oknie rozmowy</translation>
-    </message>
-    <message>
-        <source>Your system does not support transparency.</source>
-        <translation>Twój system nie obsługuje przezroczystości.</translation>
     </message>
     <message>
         <source>Buddies list</source>
@@ -2371,7 +2367,7 @@ Czy chcesz mimo to odebrać ten obrazek?</translation>
         <translation>Ustawienia grupy %1</translation>
     </message>
     <message>
-        <source>Behaviour</source>
+        <source>Behavior</source>
         <translation>Zachowanie</translation>
     </message>
     <message>

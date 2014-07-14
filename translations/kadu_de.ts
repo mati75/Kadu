@@ -314,7 +314,7 @@
         <translation>Unterstrichen</translation>
     </message>
     <message>
-        <source>Behaviour</source>
+        <source>Behavior</source>
         <translation>Verhalten</translation>
     </message>
     <message>
@@ -821,10 +821,6 @@ wenn Kontakte sich mit dem Server verbinden</translation>
     </message>
     <message>
         <source>Enable transparency in chat window</source>
-        <translation type="unfinished"/>
-    </message>
-    <message>
-        <source>Your system does not support transparency.</source>
         <translation type="unfinished"/>
     </message>
     <message>
@@ -2359,7 +2355,7 @@ Do you want to accept this image anyway?</source>
         <translation>Eigenschaften der Gruppe %1</translation>
     </message>
     <message>
-        <source>Behaviour</source>
+        <source>Behavior</source>
         <translation>Verhalten</translation>
     </message>
     <message>
