@@ -69,7 +69,7 @@ install-indep:
 	rm -f $(INSTALL_DIR)/usr/share/kadu/themes/sounds/bns/sound.conf~
 	# Move cmake files to proper directory
 	mkdir -p $(INSTALL_DIR)/usr/share/cmake-2.8/Modules
-	mv $(INSTALL_DIR)/usr/lib/$(DEB_HOST_MULTIARCH)/cmake/Kadu/KaduConfig*.cmake $(INSTALL_DIR)/usr/share/cmake-2.8/Modules/
+	mv $(INSTALL_DIR)/usr/share/cmake/Kadu/KaduConfig*.cmake $(INSTALL_DIR)/usr/share/cmake-2.8/Modules/
 	dh_install -i
 
 install-arch:
