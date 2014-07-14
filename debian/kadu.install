@@ -1,6 +1,7 @@
 debian/kadu.desktop usr/share/applications
 debian/kadu.xpm /usr/share/pixmaps
 debian/tmp/usr/bin/kadu
+debian/tmp/usr/lib/*/kadu/libkadu.so
 debian/tmp/usr/lib/*/kadu/plugins/libantistring.so
 debian/tmp/usr/lib/*/kadu/plugins/libauto_hide.so
 debian/tmp/usr/lib/*/kadu/plugins/libautoaway.so
@@ -14,6 +15,7 @@ debian/tmp/usr/lib/*/kadu/plugins/libdocking.so
 debian/tmp/usr/lib/*/kadu/plugins/libemoticons.so
 debian/tmp/usr/lib/*/kadu/plugins/libencryption_ng.so
 debian/tmp/usr/lib/*/kadu/plugins/libencryption_ng_simlite.so
+debian/tmp/usr/lib/*/kadu/plugins/libencryption_otr.so
 debian/tmp/usr/lib/*/kadu/plugins/libexec_notify.so
 debian/tmp/usr/lib/*/kadu/plugins/libext_sound.so
 debian/tmp/usr/lib/*/kadu/plugins/libfalf_mediaplayer.so

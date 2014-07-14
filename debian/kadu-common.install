@@ -10,7 +10,6 @@ debian/tmp/usr/share/kadu/plugins/autostatus.desc
 debian/tmp/usr/share/kadu/plugins/cenzor.desc
 debian/tmp/usr/share/kadu/plugins/chat_notify.desc
 debian/tmp/usr/share/kadu/plugins/config_wizard.desc
-debian/tmp/usr/share/kadu/plugins/emoticons.desc
 debian/tmp/usr/share/kadu/plugins/configuration/antistring.ui
 debian/tmp/usr/share/kadu/plugins/configuration/auto_hide.ui
 debian/tmp/usr/share/kadu/plugins/configuration/autoaway.ui
@@ -55,8 +54,10 @@ debian/tmp/usr/share/kadu/plugins/data/sql_history/scripts/history-database-reco
 debian/tmp/usr/share/kadu/plugins/data/word_fix
 debian/tmp/usr/share/kadu/plugins/desktop_docking.desc
 debian/tmp/usr/share/kadu/plugins/docking.desc
+debian/tmp/usr/share/kadu/plugins/emoticons.desc
 debian/tmp/usr/share/kadu/plugins/encryption_ng.desc
 debian/tmp/usr/share/kadu/plugins/encryption_ng_simlite.desc
+debian/tmp/usr/share/kadu/plugins/encryption_otr.desc
 debian/tmp/usr/share/kadu/plugins/exec_notify.desc
 debian/tmp/usr/share/kadu/plugins/ext_sound.desc
 debian/tmp/usr/share/kadu/plugins/falf_mediaplayer.desc
@@ -92,9 +93,9 @@ debian/tmp/usr/share/kadu/plugins/sql_history.desc
 debian/tmp/usr/share/kadu/plugins/tabs.desc
 debian/tmp/usr/share/kadu/plugins/translations
 debian/tmp/usr/share/kadu/plugins/word_fix.desc
+debian/tmp/usr/share/kadu/qml
 debian/tmp/usr/share/kadu/scripts
 debian/tmp/usr/share/kadu/syntax
-debian/tmp/usr/share/kadu/qml
 debian/tmp/usr/share/kadu/themes/emoticons/penguins
 debian/tmp/usr/share/kadu/themes/icons/default
 debian/tmp/usr/share/kadu/themes/icons/faenza
