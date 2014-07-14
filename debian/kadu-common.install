@@ -11,7 +11,6 @@ debian/tmp/usr/share/kadu/plugins/cenzor.desc
 debian/tmp/usr/share/kadu/plugins/chat_notify.desc
 debian/tmp/usr/share/kadu/plugins/config_wizard.desc
 debian/tmp/usr/share/kadu/plugins/emoticons.desc
-debian/tmp/usr/share/kadu/plugins/otr.desc
 debian/tmp/usr/share/kadu/plugins/configuration/antistring.ui
 debian/tmp/usr/share/kadu/plugins/configuration/auto_hide.ui
 debian/tmp/usr/share/kadu/plugins/configuration/autoaway.ui
