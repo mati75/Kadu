@@ -2,7 +2,7 @@ kadu (1.0~rc2.5-1) unstable; urgency=low
 
   * New upstream release (Closes: #746102).
   * Cleaned-up debian/patches -- made those fit Kadu 1.0
-  * Added libarchive-dev and libotr5-dev to Build-Depends
+  * Added pkgconf, libarchive-dev and libotr5-dev to Build-Depends
   * Removed kadu-external-modules package
   * Updated debian/*.install files
   * Replaced hardening-wrapper with dpkg-buildflags
@@ -13,7 +13,7 @@ kadu (1.0~rc2.5-1) unstable; urgency=low
   * Added debian/patches/03-install_libkadu_in_proper_dir.patch
   * Added debian/post{inst,rm} to call ldconfig for libkadu.so
 
- -- Patryk Cisek <patryk@debian.org>  Tue, 15 Jul 2014 18:14:34 +0200
+ -- Patryk Cisek <patryk@debian.org>  Tue, 15 Jul 2014 19:05:09 +0200
 
 kadu (0.12.3-3) unstable; urgency=low
 
