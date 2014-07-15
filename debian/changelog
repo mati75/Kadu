@@ -11,8 +11,9 @@ kadu (1.0~rc2.5-1) unstable; urgency=low
   * Added -DCMAKE_SKIP_RPATH=True to cmake call
   * Bumped version of debhelper in Build-Depends
   * Added debian/patches/03-install_libkadu_in_proper_dir.patch
+  * Added debian/post{inst,rm} to call ldconfig for libkadu.so
 
- -- Patryk Cisek <patryk@debian.org>  Mon, 14 Jul 2014 21:00:54 +0200
+ -- Patryk Cisek <patryk@debian.org>  Tue, 15 Jul 2014 18:14:34 +0200
 
 kadu (0.12.3-3) unstable; urgency=low
 
