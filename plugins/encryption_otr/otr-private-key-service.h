@@ -3,8 +3,8 @@
  * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2009, 2010 Tomasz Rostański (rozteck@interia.pl)
- * Copyright 2011, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2011, 2013, 2014 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2014 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -31,16 +31,16 @@
 class Account;
 
 class OtrCreatePrivateKeyJob;
+class OtrPathService;
 class OtrUserStateService;
 
 class OtrPrivateKeyService : public QObject
 {
 	Q_OBJECT
 
+	QPointer<OtrPathService> PathService;
 	QPointer<OtrUserStateService> UserStateService;
 	QMap<Account, OtrCreatePrivateKeyJob *> CreateJobs;
-
-	QString privateStoreFileName() const;
 
 private slots:
 	void jobFinished(const Account &account, bool ok);
@@ -51,6 +51,7 @@ public:
 	explicit OtrPrivateKeyService(QObject *parent = 0);
 	virtual ~OtrPrivateKeyService();
 
+	void setPathService(OtrPathService *pathService);
 	void setUserStateService(OtrUserStateService *userStateService);
 
 	void createPrivateKey(const Account &account);

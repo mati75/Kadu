@@ -6,7 +6,7 @@
  * Copyright 2011 Piotr Dąbrowski (ultr@ultr.pl)
  * Copyright 2009 Michał Podsiadlik (michal@kadu.net)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
- * Copyright 2008, 2009, 2009, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2008, 2009, 2009, 2010, 2011, 2012, 2013, 2014 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2010, 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
@@ -109,6 +109,8 @@ ChatEditBox::ChatEditBox(const Chat &chat, QWidget *parent) :
 			this, SIGNAL(keyPressed(QKeyEvent *,CustomInput *,bool &)));
 	connect(InputBox, SIGNAL(fontChanged(QFont)), this, SLOT(fontChanged(QFont)));
 	connect(InputBox, SIGNAL(cursorPositionChanged()), this, SLOT(cursorPositionChanged()));
+
+	connect(ChatConfigurationHolder::instance(), SIGNAL(chatConfigurationUpdated()), this, SLOT(configurationUpdated()));
 
 	configurationUpdated();
 }

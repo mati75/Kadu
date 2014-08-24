@@ -8,7 +8,7 @@
  * Copyright 2004 Roman Krzystyniak (Ron_K@tlen.pl)
  * Copyright 2003, 2004 Adrian Smarzewski (adrian@kadu.net)
  * Copyright 2004 Tomasz Chiliński (chilek@chilan.com)
- * Copyright 2007, 2008, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2007, 2008, 2010, 2011, 2012, 2013, 2014 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2010, 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2007 Dawid Stawiarski (neeo@kadu.net)
  * Copyright 2004, 2005, 2006 Marcin Ślusarz (joi@kadu.net)
@@ -51,6 +51,16 @@
 AutoResponder::AutoResponder(QObject *parent) :
 		MessageFilter(parent)
 {
+}
+
+AutoResponder::~AutoResponder()
+{
+}
+
+bool AutoResponder::init(bool firstLoad)
+{
+	Q_UNUSED(firstLoad)
+
 	connect(Core::instance()->chatWidgetRepository(), SIGNAL(chatWidgetRemoved(ChatWidget *)),
 			this, SLOT(chatWidgetClosed(ChatWidget *)));
 
@@ -61,9 +71,11 @@ AutoResponder::AutoResponder(QObject *parent) :
 	Configurator->setAutoresponder(this);
 
 	Core::instance()->messageFilterService()->registerMessageFilter(this);
+
+	return true;
 }
 
-AutoResponder::~AutoResponder()
+void AutoResponder::done()
 {
 	Core::instance()->messageFilterService()->unregisterMessageFilter(this);
 
@@ -73,16 +85,6 @@ AutoResponder::~AutoResponder()
 	Configurator = 0;
 
 	disconnect(Core::instance()->chatWidgetRepository(), 0, this, 0);
-}
-
-bool AutoResponder::init(bool firstLoad)
-{
-	Q_UNUSED(firstLoad)
-	return true;
-}
-
-void AutoResponder::done()
-{
 }
 
 bool AutoResponder::acceptMessage(const Message &message)

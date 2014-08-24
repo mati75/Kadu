@@ -1,5 +1,6 @@
 /*
  * %kadu copyright begin%
+ * Copyright 2014 Michał Ziąbkowski (mziab@o2.pl)
  * Copyright 2014 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
@@ -27,10 +28,19 @@ bool SortedMessages::earlier(const Message &left, const Message &right)
 	if (left == right)
 		return false;
 
+	if (left.isNull() && !right.isNull())
+		return true;
+
+	if (!left.isNull() && right.isNull())
+		return true;
+
 	if (left.receiveDate() < right.receiveDate())
 		return true;
 
-	return false;
+	if (left.receiveDate() > right.receiveDate())
+		return false;
+
+	return left.content() < right.content();
 }
 
 bool SortedMessages::same(const Message &left, const Message &right)
@@ -44,10 +54,7 @@ bool SortedMessages::same(const Message &left, const Message &right)
 	if (left.type() != right.type())
 		return false;
 
-	// In our SQL history we store datetime with accuracy to one second,
-	// while for received XMPP messages we have a millisecond accuracy.
-	// So to have proper results, we need to truncate those additional milliseconds.
-	if (left.receiveDate().toTime_t() != right.receiveDate().toTime_t())
+	if (left.receiveDate() != right.receiveDate())
 		return false;
 
 	if (left.messageChat() != right.messageChat())

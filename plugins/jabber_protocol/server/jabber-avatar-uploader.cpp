@@ -3,7 +3,7 @@
  * Copyright 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009, 2009, 2010, 2010 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
- * Copyright 2009, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2009, 2010, 2011, 2012, 2013, 2014 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2010, 2011, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
@@ -68,7 +68,7 @@ void JabberAvatarUploader::uploadAvatarPEP()
 		return;
 
 	JabberAvatarPepUploader *pepUploader = new JabberAvatarPepUploader(PepService.data(), this);
-	connect(pepUploader, SIGNAL(avatarUploaded(bool)), this, SLOT(pepAvatarUploaded(bool)));
+	connect(pepUploader, SIGNAL(avatarUploaded(bool,QImage)), this, SLOT(pepAvatarUploaded(bool)));
 	pepUploader->uploadAvatar(Id, Password, UploadingAvatar);
 }
 

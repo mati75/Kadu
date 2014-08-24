@@ -5,7 +5,7 @@
  * Copyright 2010, 2011 Piotr Dąbrowski (ultr@ultr.pl)
  * Copyright 2009 Michał Podsiadlik (michal@kadu.net)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
- * Copyright 2009, 2010, 2011, 2012, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2009, 2010, 2011, 2012, 2013, 2014 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2010, 2011, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2009 Longer (longer89@gmail.com)
  * %kadu copyright end%
@@ -29,6 +29,7 @@
 #include "accounts/account-manager.h"
 #include "accounts/account.h"
 #include "chat/chat-manager.h"
+#include "configuration/chat-configuration-holder.h"
 #include "configuration/configuration-file.h"
 #include "contacts/contact-set.h"
 #include "contacts/contact.h"
@@ -289,8 +290,9 @@ void ChatWidgetActions::autoSendActionActivated(QAction *sender, bool toggled)
 		return;
 
 	config_file.writeEntry("Chat", "AutoSend", toggled);
- 	chatEditBox->setAutoSend(toggled);
 	autoSendActionCheck();
+
+	ChatConfigurationHolder::instance()->configurationUpdated();
 }
 
 void ChatWidgetActions::moreActionsActionActivated(QAction *sender, bool toggled)

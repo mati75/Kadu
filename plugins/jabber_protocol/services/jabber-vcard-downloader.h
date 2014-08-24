@@ -1,6 +1,7 @@
 /*
  * %kadu copyright begin%
- * Copyright 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2012, 2014 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2014 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -19,6 +20,8 @@
 
 #ifndef JABBER_VCARD_DOWNLOADER_H
 #define JABBER_VCARD_DOWNLOADER_H
+
+#include "accounts/account.h"
 
 #include <QtCore/QPointer>
 
@@ -47,6 +50,7 @@ class JabberVCardDownloader : public QObject
 {
 	Q_OBJECT
 
+	Account MyAccount;
 	QPointer<XMPP::Client> XmppClient;
 	QPointer<XMPP::JT_VCard> Task;
 
@@ -63,7 +67,7 @@ public:
 	 * @param client instance of XMPP::Client
 	 * @param parent QObject parent
 	 */
-	explicit JabberVCardDownloader(XMPP::Client *client, QObject *parent = 0);
+	explicit JabberVCardDownloader(Account account, XMPP::Client *client, QObject *parent = 0);
 	virtual ~JabberVCardDownloader();
 
 	/**

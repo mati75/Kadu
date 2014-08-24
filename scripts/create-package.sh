@@ -35,7 +35,15 @@ PACKAGE_NAME=kadu-$VERSION
 PACKAGE_DIR=$PACKAGE_NAME
 PACKAGE_FILE=$PACKAGE_NAME.tar.bz2
 
-git clone --recursive --depth 1 --branch $VERSION -- git@gitorious.org:kadu/kadu.git $PACKAGE_DIR
+if [ -d $PACKAGE_DIR ]; then
+	rm -rf $PACKAGE_DIR
+fi
+
+if [ -e $PACKAGE_FILE ]; then
+	rm -rf $PACKAGE_FILE
+fi
+
+git clone --recursive --depth 1 --branch $VERSION -- git://gitorious.org/kadu/kadu.git $PACKAGE_DIR
 find $PACKAGE_DIR -name ".git*" | xargs rm -rf
 
 tar cjf $PACKAGE_FILE $PACKAGE_DIR

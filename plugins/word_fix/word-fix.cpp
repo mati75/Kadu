@@ -3,7 +3,7 @@
  * Copyright 2008, 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009, 2012 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2010, 2010 Tomasz Rostański (rozteck@interia.pl)
- * Copyright 2008, 2009, 2010, 2011, 2012, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2008, 2009, 2010, 2011, 2012, 2013, 2014 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2010, 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
@@ -61,6 +61,31 @@ WordFix::WordFix(QObject *parent) :
 		valueEdit{},
 		list{}
 {
+}
+
+WordFix::~WordFix()
+{
+}
+
+void WordFix::setChatWidgetRepository(ChatWidgetRepository *chatWidgetRepository)
+{
+	this->chatWidgetRepository = chatWidgetRepository;
+
+	if (this->chatWidgetRepository)
+	{
+		connect(this->chatWidgetRepository.data(), SIGNAL(chatWidgetAdded(ChatWidget *)),
+			this, SLOT(chatWidgetAdded(ChatWidget *)));
+		connect(this->chatWidgetRepository.data(), SIGNAL(chatWidgetRemoved(ChatWidget*)),
+			this, SLOT(chatWidgetRemoved(ChatWidget *)));
+
+		for (auto chatWidget : this->chatWidgetRepository.data())
+			chatWidgetAdded(chatWidget);
+	}
+}
+
+bool WordFix::init(bool firstLoad)
+{
+	Q_UNUSED(firstLoad)
 	kdebugf();
 
 	ExtractBody.setPattern("<body[^>]*>.*</body>");
@@ -104,42 +129,6 @@ WordFix::WordFix(QObject *parent) :
 	}
 
 	kdebugf2();
-}
-
-WordFix::~WordFix()
-{
-	kdebugf();
-
-	if (chatWidgetRepository)
-	{
-		disconnect(chatWidgetRepository.data(), 0, this, 0);
-
-		for (auto chatWidget : chatWidgetRepository.data())
-			chatWidgetRemoved(chatWidget);
-	}
-
-	kdebugf2();
-}
-
-void WordFix::setChatWidgetRepository(ChatWidgetRepository *chatWidgetRepository)
-{
-	this->chatWidgetRepository = chatWidgetRepository;
-
-	if (this->chatWidgetRepository)
-	{
-		connect(this->chatWidgetRepository.data(), SIGNAL(chatWidgetAdded(ChatWidget *)),
-			this, SLOT(chatWidgetAdded(ChatWidget *)));
-		connect(this->chatWidgetRepository.data(), SIGNAL(chatWidgetRemoved(ChatWidget*)),
-			this, SLOT(chatWidgetRemoved(ChatWidget *)));
-
-		for (auto chatWidget : this->chatWidgetRepository.data())
-			chatWidgetAdded(chatWidget);
-	}
-}
-
-bool WordFix::init(bool firstLoad)
-{
-	Q_UNUSED(firstLoad)
 
 	kdebugf();
 	MainConfigurationWindow::registerUiFile(KaduPaths::instance()->dataPath() + QLatin1String("plugins/configuration/word_fix.ui"));
@@ -156,6 +145,18 @@ void WordFix::done()
 	kdebugf();
 	MainConfigurationWindow::unregisterUiHandler(this);
 	MainConfigurationWindow::unregisterUiFile(KaduPaths::instance()->dataPath() + QLatin1String("plugins/configuration/word_fix.ui"));
+	kdebugf2();
+
+	kdebugf();
+
+	if (chatWidgetRepository)
+	{
+		disconnect(chatWidgetRepository.data(), 0, this, 0);
+
+		for (auto chatWidget : chatWidgetRepository.data())
+			chatWidgetRemoved(chatWidget);
+	}
+
 	kdebugf2();
 }
 

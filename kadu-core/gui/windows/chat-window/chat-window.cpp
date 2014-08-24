@@ -6,7 +6,7 @@
  * Copyright 2010, 2011 Piotr Dąbrowski (ultr@ultr.pl)
  * Copyright 2008, 2009 Michał Podsiadlik (michal@kadu.net)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
- * Copyright 2007, 2008, 2009, 2009, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2007, 2008, 2009, 2009, 2010, 2011, 2012, 2013, 2014 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2010, 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2007 Dawid Stawiarski (neeo@kadu.net)
  * %kadu copyright end%
@@ -177,6 +177,7 @@ void ChatWindow::closeEvent(QCloseEvent *e)
 		}
 	}
 
+	m_chatWidget->requestClose();
  	QWidget::closeEvent(e);
 }
 
@@ -214,6 +215,8 @@ void ChatWindow::blinkTitle()
 			m_titleTimer->start(500);
 		}
 	}
+	else
+		setWindowTitle(m_chatWidget->title());
 }
 
 void ChatWindow::showNewMessagesNumInTitle()

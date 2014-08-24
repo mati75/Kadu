@@ -2,8 +2,8 @@
  * %kadu copyright begin%
  * Copyright 2009, 2012 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
- * Copyright 2007, 2008, 2009, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2013, 2014 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
@@ -28,8 +28,8 @@
 
 #include "jabber-vcard-downloader.h"
 
-JabberVCardDownloader::JabberVCardDownloader(XMPP::Client *client, QObject *parent) :
-		QObject(parent), XmppClient(client)
+JabberVCardDownloader::JabberVCardDownloader(Account account, XMPP::Client *client, QObject *parent) :
+		QObject(parent), MyAccount(account), XmppClient(client)
 {
 }
 
@@ -59,11 +59,8 @@ void JabberVCardDownloader::taskFinished()
 
 void JabberVCardDownloader::downloadVCard(const QString &id)
 {
-	Account account = AccountManager::instance()->byId("jabber", id);
-
-	XMPP::JabberProtocol *protocol = qobject_cast<XMPP::JabberProtocol *>(account.protocolHandler());
-
-	if (account && protocol->isConnected() && protocol->xmppClient())
+	XMPP::JabberProtocol *protocol = qobject_cast<XMPP::JabberProtocol *>(MyAccount.protocolHandler());
+	if (!MyAccount || !protocol || !protocol->isConnected() || !protocol->xmppClient())
 	{
 		failed();
 		return;

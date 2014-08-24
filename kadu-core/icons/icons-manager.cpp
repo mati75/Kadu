@@ -7,7 +7,7 @@
  * Copyright 2008 Michał Podsiadlik (michal@kadu.net)
  * Copyright 2005 Adrian Smarzewski (adrian@kadu.net)
  * Copyright 2005 Paweł Płuciennik (pawel_p@kadu.net)
- * Copyright 2007, 2008, 2009, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2010, 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2007, 2008 Dawid Stawiarski (neeo@kadu.net)
  * Copyright 2005, 2006, 2007 Marcin Ślusarz (joi@kadu.net)
@@ -123,9 +123,11 @@ QIcon IconsManager::buildPngIcon(const QString &themePath, const QString &path)
 		QLatin1String("22x22"),
 		QLatin1String("32x32"),
 		QLatin1String("64x64"),
-		QLatin1String("128x128")
+		QLatin1String("96x96"),
+		QLatin1String("128x128"),
+		QLatin1String("256x256")
 	};
-	static int sizes_count = 5;
+	static int sizes_count = 7;
 
 	QIcon icon;
 	for (int i = 0; i < sizes_count; i++)

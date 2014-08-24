@@ -1,7 +1,8 @@
 /*
  * %kadu copyright begin%
  * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
- * Copyright 2007, 2008, 2009, 2010, 2011, 2012, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2014 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
@@ -39,6 +40,7 @@ class OtrMessageEventService;
 class OtrMessageService;
 class OtrNotifier;
 class OtrOpDataFactory;
+class OtrPathService;
 class OtrPeerIdentityVerificationService;
 class OtrPeerIdentityVerificationWindowFactory;
 class OtrPeerIdentityVerificationWindowRepository;
@@ -71,6 +73,7 @@ class OtrPlugin : public QObject, public PluginRootComponent
 	QScopedPointer<OtrMessageService> MessageService;
 	QScopedPointer<OtrNotifier> Notifier;
 	QScopedPointer<OtrOpDataFactory> OpDataFactory;
+	QScopedPointer<OtrPathService> PathService;
 	QScopedPointer<OtrPeerIdentityVerificationService> PeerIdentityVerificationService;
 	QScopedPointer<OtrPeerIdentityVerificationWindowFactory> PeerIdentityVerificationWindowFactory;
 	QScopedPointer<OtrPeerIdentityVerificationWindowRepository> PeerIdentityVerificationWindowRepository;
@@ -120,6 +123,9 @@ class OtrPlugin : public QObject, public PluginRootComponent
 
 	void registerOtrOpDataFactory();
 	void unregisterOtrOpDataFactory();
+
+	void registerOtrPathService();
+	void unregisterOtrPathService();
 
 	void registerOtrPeerIdentityVerificationService();
 	void unregisterOtrPeerIdentityVerificationService();

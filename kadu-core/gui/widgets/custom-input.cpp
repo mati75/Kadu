@@ -4,8 +4,8 @@
  * Copyright 2008 Tomasz Rostański (rozteck@interia.pl)
  * Copyright 2011 Piotr Dąbrowski (ultr@ultr.pl)
  * Copyright 2006 Adrian Smarzewski (adrian@kadu.net)
- * Copyright 2007, 2008, 2009, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2013, 2014 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2011 Slawomir Stepien (s.stepien@interia.pl)
  * Copyright 2007 Dawid Stawiarski (neeo@kadu.net)
  * Copyright 2005, 2006, 2007 Marcin Ślusarz (joi@kadu.net)
@@ -36,6 +36,7 @@
 #include <QtGui/QKeyEvent>
 #include <QtGui/QMenu>
 
+#include "configuration/chat-configuration-holder.h"
 #include "core/core.h"
 #include "formatted-string/formatted-string-factory.h"
 #include "gui/hot-key.h"
@@ -78,6 +79,14 @@ std::unique_ptr<FormattedString> CustomInput::formattedString() const
 		return CurrentFormattedStringFactory->fromTextDocument(document());
 	else
 		return 0;
+}
+
+void CustomInput::showEvent(QShowEvent *e)
+{
+	QTextEdit::showEvent(e);
+
+	// see #2837 - windows bug
+	setFont(ChatConfigurationHolder::instance()->chatFont());
 }
 
 void CustomInput::keyPressEvent(QKeyEvent *e)

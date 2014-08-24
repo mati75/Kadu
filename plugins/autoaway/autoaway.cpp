@@ -10,7 +10,7 @@
  * Copyright 2003, 2004, 2005 Paweł Płuciennik (pawel_p@kadu.net)
  * Copyright 2002, 2003 Tomasz Chiliński (chilek@chilan.com)
  * Copyright 2010 badboy (badboy@gen2.org)
- * Copyright 2007, 2008, 2009, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2007, 2008, 2009, 2009, 2010, 2011, 2013, 2014 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2010, 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2007 Dawid Stawiarski (neeo@kadu.net)
  * Copyright 2004, 2005, 2006 Marcin Ślusarz (joi@kadu.net)
@@ -71,6 +71,16 @@ AutoAway::AutoAway() :
 		autoRefreshSpinBox{},
 		descriptionTextLineEdit{}
 {
+}
+
+AutoAway::~AutoAway()
+{
+}
+
+bool AutoAway::init(bool firstLoad)
+{
+	Q_UNUSED(firstLoad)
+
 	autoAwayStatusChanger = new AutoAwayStatusChanger(this, this);
 
 	timer = new QTimer(this);
@@ -80,16 +90,6 @@ AutoAway::AutoAway() :
 	configurationUpdated();
 
 	StatusChangerManager::instance()->registerStatusChanger(autoAwayStatusChanger);
-}
-
-AutoAway::~AutoAway()
-{
-	StatusChangerManager::instance()->unregisterStatusChanger(autoAwayStatusChanger);
-}
-
-bool AutoAway::init(bool firstLoad)
-{
-	Q_UNUSED(firstLoad)
 
 	MainConfigurationWindow::registerUiFile(KaduPaths::instance()->dataPath() + QLatin1String("plugins/configuration/autoaway.ui"));
 	MainConfigurationWindow::registerUiHandler(this);
@@ -101,6 +101,8 @@ void AutoAway::done()
 {
 	MainConfigurationWindow::unregisterUiHandler(this);
 	MainConfigurationWindow::unregisterUiFile(KaduPaths::instance()->dataPath() + QLatin1String("plugins/configuration/autoaway.ui"));
+
+	StatusChangerManager::instance()->unregisterStatusChanger(autoAwayStatusChanger);
 }
 
 AutoAwayStatusChanger::ChangeStatusTo AutoAway::changeStatusTo()

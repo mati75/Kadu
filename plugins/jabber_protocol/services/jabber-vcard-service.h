@@ -1,7 +1,7 @@
 /*
  * %kadu copyright begin%
- * Copyright 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2012 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2012, 2013, 2014 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2012, 2014 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -20,6 +20,8 @@
 
 #ifndef JABBER_VCARD_SERVICE_H
 #define JABBER_VCARD_SERVICE_H
+
+#include "accounts/account.h"
 
 #include <QtCore/QPointer>
 
@@ -51,6 +53,7 @@ class JabberVCardService : public QObject
 {
 	Q_OBJECT
 
+	Account MyAccount;
 	QPointer<XMPP::Client> XmppClient;
 
 public:
@@ -59,7 +62,7 @@ public:
 	 * @short Create new instance of JabberVCardService.
 	 * @param parent QObject parent
 	 */
-	explicit JabberVCardService(QObject *parent = 0);
+	explicit JabberVCardService(Account account, QObject *parent = 0);
 	virtual ~JabberVCardService();
 
 	/**

@@ -1,8 +1,8 @@
 /*
  * %kadu copyright begin%
  * Copyright 2012 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2012, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2013, 2014 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -100,7 +100,7 @@ void EmoticonsConfigurationUiHandler::mainConfigurationWindowCreated(MainConfigu
 
 void EmoticonsConfigurationUiHandler::installEmoticonTheme()
 {
-	QString fileName = QFileDialog::getOpenFileName(Widget.data(), tr("Open icon theme archive"), QDir::home().path(), tr("XZ archive (*.tar.xz)"));
+	QString fileName = QFileDialog::getOpenFileName(Widget.data(), tr("Open icon theme archive"), QDir::home().path(), tr("Archive (*.tar.xz *.tar.gz *.tar.bz2 *.tar *.zip)"));
 
 	if (fileName.isEmpty())
 		return;

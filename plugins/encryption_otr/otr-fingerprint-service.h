@@ -1,7 +1,8 @@
 /*
  * %kadu copyright begin%
  * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
- * Copyright 2007, 2008, 2009, 2010, 2011, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2007, 2008, 2009, 2010, 2011, 2013, 2014 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2014 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
@@ -28,6 +29,7 @@
 class Account;
 class Contact;
 class OtrContextConverter;
+class OtrPathService;
 class OtrUserStateService;
 
 class OtrFingerprintService : public QObject
@@ -35,9 +37,8 @@ class OtrFingerprintService : public QObject
 	Q_OBJECT
 
 	QPointer<OtrContextConverter> ContextConverter;
+	QPointer<OtrPathService> PathService;
 	QPointer<OtrUserStateService> UserStateService;
-
-	QString fingerprintsStoreFileName() const;
 
 public:
 	static void wrapperOtrWriteFingerprints(void *data);
@@ -52,6 +53,7 @@ public:
 	virtual ~OtrFingerprintService();
 
 	void setContextConverter(OtrContextConverter *contextConverter);
+	void setPathService(OtrPathService *pathService);
 	void setUserStateService(OtrUserStateService *userStateService);
 
 	void readFingerprints() const;

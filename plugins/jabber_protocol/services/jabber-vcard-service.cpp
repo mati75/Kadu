@@ -1,6 +1,6 @@
 /*
  * %kadu copyright begin%
- * Copyright 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2012, 2013, 2014 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
@@ -28,8 +28,8 @@
 namespace XMPP
 {
 
-JabberVCardService::JabberVCardService(QObject *parent) :
-		QObject(parent)
+JabberVCardService::JabberVCardService(Account account, QObject *parent) :
+		QObject(parent), MyAccount(account)
 {
 }
 
@@ -52,7 +52,7 @@ JabberVCardDownloader * JabberVCardService::createVCardDownloader()
 	if (!XmppClient)
 		return 0;
 
-	return new JabberVCardDownloader(XmppClient.data(), this);
+	return new JabberVCardDownloader(MyAccount, XmppClient.data(), this);
 }
 
 JabberVCardUploader * JabberVCardService::createVCardUploader()

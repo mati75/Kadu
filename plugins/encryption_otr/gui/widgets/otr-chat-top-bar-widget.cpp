@@ -2,7 +2,7 @@
  * %kadu copyright begin%
  * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
- * Copyright 2007, 2008, 2009, 2010, 2011, 2012, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
  * %kadu copyright end%
  *
@@ -82,7 +82,12 @@ void OtrChatTopBarWidget::trustLevelUpdated()
 {
 	OtrTrustLevelService::TrustLevel level = trustLevel();
 
+#if defined(Q_OS_WIN)
+	OtrStatusButton->setText(trustStatusString(level) + "    "); // see #2835
+#else
 	OtrStatusButton->setText(trustStatusString(level));
+#endif
+
 	bool isPrivate = level >= OtrTrustLevelService::TrustLevelUnverified;
 
 	if (isPrivate)

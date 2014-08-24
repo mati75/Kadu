@@ -2,7 +2,7 @@
  * %kadu copyright begin%
  * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2011 Piotr Dąbrowski (ultr@ultr.pl)
- * Copyright 2009, 2010, 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2009, 2010, 2011, 2012, 2013, 2014 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * %kadu copyright end%
  *
@@ -54,13 +54,14 @@ class KADUAPI OpenChatWith : public QWidget, DesktopAwareObject
 	BuddyListModel *ListModel;
 	ModelChain *Chain;
 
+	void focusQml();
+
 private slots:
 	void inputAccepted();
 	void inputChanged(const QString &text);
 	void itemActivated(int index);
 
 protected:
-	virtual bool eventFilter(QObject *obj, QEvent *e);
 	virtual void keyPressEvent(QKeyEvent *e);
 
 public:
