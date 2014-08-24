@@ -1,6 +1,7 @@
 kadu (1.0~rc8-1) UNRELEASED; urgency=medium
 
   * New upstream release
+  * Added libkadu package
 
  -- Patryk Cisek <patryk@debian.org>  Sun, 24 Aug 2014 12:44:35 +0200
 

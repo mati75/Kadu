@@ -39,6 +39,7 @@ Package: kadu
 Architecture: any
 Pre-Depends: ${misc:Pre-Depends}
 Depends: kadu-common (= ${source:Version}),
+         libkadu (= ${source:Version}),
          libqca2-plugin-ossl,
          libqt4-sql-sqlite,
          libqt4-svg,
@@ -52,6 +53,17 @@ Description: Gadu-Gadu/XMPP client for X11
  Kadu is a Qt4 client of Gadu-Gadu and XMPP for *nix systems.
  .
  This package provides Kadu along with plugins developed by Kadu developers.
+
+Package: libkadu
+Architecture: any
+Pre-Depends: ${misc:Pre-Depends}
+Depends: ${misc:Depends},
+         ${shlibs:Depends}
+Description: Gadu-Gadu/XMPP client for X11
+ Gadu-Gadu is a Windows instant messenger, very popular in Poland.
+ Kadu is a Qt4 client of Gadu-Gadu and XMPP for *nix systems.
+ .
+ This package contains libkadu, which is used by Kadu.
 
 Package: kadu-common
 Architecture: all
