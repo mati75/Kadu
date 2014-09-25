@@ -1,9 +1,9 @@
-kadu (1.0~rc10-1) UNRELEASED; urgency=medium
+kadu (1.0~rc10-1) unstable; urgency=medium
 
   * New upstream release
   * Added libkadu package
 
- -- Patryk Cisek <patryk@debian.org>  Sun, 24 Aug 2014 12:44:35 +0200
+ -- Patryk Cisek <patryk@debian.org>  Thu, 25 Sep 2014 18:39:45 +0200
 
 kadu (1.0~rc2.5-1) unstable; urgency=low
 
