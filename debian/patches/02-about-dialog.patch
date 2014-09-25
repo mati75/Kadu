@@ -1,0 +1,40 @@
+Description: Fixes contents of "About" dialog's tabs.
+ In Kadu, "About" dialog displays, among others, a license (GPLv2) and
+ ChangeLog's contents. Originally these two files are installed into
+ $(CMAKE_INSTALL_PREFIX)/share subdir. To achieve that, ChangeLog must not be
+ compressed (gzipped). To avoid Lintian's complaints, we change ChangeLog's
+ name to about-changes-tab.txt and (in this patch) change "About" dialog's
+ behavior to read this file instead of ChangeLog.
+ .
+ It's discouraged to ship license file if it is one of most commonly used
+ licenses (like GPL) and reference to /usr/share/common-licenses/. Originally
+ Kadu ships COPYING file containing GPLv2 license text. It's not installed in
+ Debian package, so we have to (and we do in this patch) instruct "About"
+ dialog to read /usr/share/common-licenses/GPL-2 instead of COPYING.
+Author: Patryk Cisek <patryk@debian.org>
+---
+diff --git a/kadu-core/gui/windows/about.cpp b/kadu-core/gui/windows/about.cpp
+index 25ab818..148a15d 100644
+--- a/kadu-core/gui/windows/about.cpp
++++ b/kadu-core/gui/windows/about.cpp
+@@ -151,7 +151,7 @@ About::About(QWidget *parent) :
+ 	tb_changelog->setOpenLinks(false);
+ 	tb_changelog->setFrameStyle(QFrame::NoFrame);
+ 	tb_changelog->viewport()->setAutoFillBackground(false);
+-	QString changelog = Qt::escape(loadFile("ChangeLog"));
++	QString changelog = Qt::escape(loadFile("about-changes-tab.txt"));
+ 	changelog.replace('\n', "<br/>");
+ 	// #bug_no -> Redmine URL
+ 	changelog.replace(QRegExp("#(\\d+)"), "<a href=\"http://www.kadu.im/redmine/issues/\\1\">#\\1</a>");
+@@ -232,7 +232,10 @@ QString About::loadFile(const QString &name)
+ {
+ 	kdebugf();
+ 
+-	QFile file(KaduPaths::instance()->dataPath() + name);
++	QString fullName = (QString("COPYING") == name ?
++			QString("/usr/share/common-licenses/GPL-2") :
++			QString("/usr/share/doc/kadu/" + name));
++	QFile file(fullName);
+ 	if (!file.open(QIODevice::ReadOnly))
+ 	{
+ 		kdebugm(KDEBUG_ERROR, "About::loadFile(%s) cannot open file\n", qPrintable(name));

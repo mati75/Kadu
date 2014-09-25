@@ -1,0 +1,23 @@
+Description: Selects all usable external themes
+ Kadu has a nice set of external (submitted by 3rd parties) themes and
+ plugins.
+ .
+ This patch makes all usable external themes to be installed
+Author: Patryk Cisek <patryk@debian.org>
+---
+diff --git a/varia/themes/sounds/CMakeLists.txt b/varia/themes/sounds/CMakeLists.txt
+index 51b567a..fcb3e4e 100644
+--- a/varia/themes/sounds/CMakeLists.txt
++++ b/varia/themes/sounds/CMakeLists.txt
+@@ -1,5 +1,11 @@
+ set (SOUND_THEMES
+ 	default
++	bns
++	drums
++	florkus
++	michalsrodek
++	percussion
++	ultr
+ )
+ 
+ if (SOUND_THEMES)
