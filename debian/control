@@ -39,7 +39,7 @@ Package: kadu
 Architecture: any
 Pre-Depends: ${misc:Pre-Depends}
 Depends: kadu-common (= ${source:Version}),
-         libkadu (= ${source:Version}),
+         libkadu (= ${binary:Version}),
          libqca2-plugin-ossl,
          libqt4-sql-sqlite,
          libqt4-svg,
