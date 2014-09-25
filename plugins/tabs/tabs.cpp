@@ -175,19 +175,12 @@ bool TabsManager::acceptChatWidget(ChatWidget *chatWidget) const
 	if (!chatWidget)
 		return false;
 
+	if (chatWidget->chat().property("tabs:attached", false).toBool())
+		return true;
 	if (chatWidget->chat().property("tabs:detached", false).toBool())
 		return false;
 
-	if (ConfigDefaultTabs && (ConfigConferencesInTabs || chatWidget->chat().contacts().count() == 1))
-	{
-		if (TabDialog->count() > 0)
-			return true;
-		if ((NewChats.count() + 1) >= ConfigMinTabs)
-			return true;
-		return false;
-	}
-	else
-		return true;
+	return ConfigDefaultTabs;
 }
 
 void TabsManager::addChatWidget(ChatWidget *chatWidget)
@@ -197,33 +190,15 @@ void TabsManager::addChatWidget(ChatWidget *chatWidget)
 	if (config_file.readBoolEntry("Chat", "SaveOpenedWindows", true))
 		chatWidget->chat().addProperty("tabs:fix2626", true, CustomProperties::Storable);
 
-	if (chatWidget->chat().property("tabs:detached", false).toBool())
+	auto attached = chatWidget->chat().property("tabs:attached", false).toBool();
+	if (!attached && chatWidget->chat().property("tabs:detached", false).toBool())
 	{
 		DetachedChats.append(chatWidget);
 		return;
 	}
 
-	if (ConfigDefaultTabs && (ConfigConferencesInTabs || chatWidget->chat().contacts().count() == 1))
-	{
-		// jesli jest juz otwarte okno z kartami to dodajemy bezwzglednie nowe rozmowy do kart
-		if (TabDialog->count() > 0)
-		{
-			insertTab(chatWidget);
-		}
-		else if ((NewChats.count() + 1) >= ConfigMinTabs)
-		{
-			foreach (ChatWidget *ch, NewChats)
-			{
-				// dodajemy karte tylko jesli jej jeszcze nie ma
-				if (ch && TabDialog->indexOf(ch)==-1)
-					insertTab(ch);
-			}
-			insertTab(chatWidget);
-			NewChats.clear();
-		}
-		else
-			NewChats.append(chatWidget);
-	}
+	if (attached || ConfigDefaultTabs)
+		insertTab(chatWidget);
 }
 
 void TabsManager::removeChatWidget(ChatWidget *chatWidget)
@@ -246,7 +221,6 @@ void TabsManager::onDestroyingChat(ChatWidget *chatWidget)
 	if (TabDialog->indexOf(chatWidget) != -1)
 		TabDialog->removeTab(TabDialog->indexOf(chatWidget));
 
-	NewChats.removeAll(chatWidget);
 	DetachedChats.removeAll(chatWidget);
 
 	disconnect(chatWidget->edit(), 0, TabDialog, 0);
@@ -323,13 +297,7 @@ void TabsManager::onNewTab(QAction *sender, bool toggled)
 		_activateWindow(chatWidget);
 	}
 	else
-	{
-		// w miejsce recznego dodawania chata do kart automatyczne ;)
-		if (!ConfigDefaultTabs && (chat.contacts().count() > 1) && !ConfigConferencesInTabs)
-			chat.addProperty("tabs:detached", true, CustomProperties::Storable);
-
 		Core::instance()->chatWidgetManager()->openChat(chat, OpenChatActivation::DoNotActivate);
-	}
 
 	kdebugf2();
 }
@@ -461,11 +429,9 @@ void TabsManager::onTabAttach(QAction *sender, bool toggled)
 		detachChat(chatWidget);
 	else
 	{
-		if (chatEditBox->actionContext()->contacts().count() != 1 && !ConfigConferencesInTabs)
-			return;
-		NewChats.clear();
 		auto chat = chatWidget->chat();
 		chat.removeProperty("tabs:detached");
+		chat.addProperty("tabs:attached", true, CustomProperties::Storable);
 		emit chatWidgetAcceptanceChanged(chatWidget);
 	}
 }
@@ -543,11 +509,6 @@ void TabsManager::attachToTabsActionCreated(Action *action)
 	if (!chatWidget)
 		return;
 
-	ContactSet contacts = action->context()->contacts();
-
-	if (contacts.count() != 1 && !ConfigConferencesInTabs && TabDialog->indexOf(chatWidget) == -1)
-		action->setEnabled(false);
-
 	action->setChecked(TabDialog->indexOf(chatWidget) != -1);
 }
 
@@ -559,6 +520,7 @@ void TabsManager::detachChat(ChatWidget *chatWidget)
 
 	auto chat = chatWidget->chat();
 	chat.addProperty("tabs:detached", true, CustomProperties::Storable);
+	chat.removeProperty("tabs:attached");
 	emit chatWidgetAcceptanceChanged(chatWidget);
 }
 
@@ -587,6 +549,8 @@ void TabsManager::load()
 
 		if (element.attribute("type") == "detachedChat")
 			chat.addProperty("tabs:detached", true, CustomProperties::Storable);
+		else if (element.attribute("type") == "tab")
+			chat.addProperty("tabs:attached", true, CustomProperties::Storable);
 
 		Core::instance()->chatWidgetManager()->openChat(chat, OpenChatActivation::DoNotActivate);
 	}
@@ -641,10 +605,8 @@ void TabsManager::mainConfigurationWindowCreated(MainConfigurationWindow *mainCo
 void TabsManager::configurationUpdated()
 {
 	kdebugf();
-	ConfigConferencesInTabs = config_file.readBoolEntry("Chat", "ConferencesInTabs");
 	ConfigTabsBelowChats = config_file.readBoolEntry("Chat", "TabsBelowChats");
 	ConfigDefaultTabs = config_file.readBoolEntry("Chat", "DefaultTabs");
-	ConfigMinTabs = config_file.readNumEntry("Chat", "MinTabs");
 	ConfigBlinkChatTitle = config_file.readBoolEntry("Chat", "BlinkChatTitle");
 	ConfigShowNewMessagesNum = config_file.readBoolEntry("Chat", "NewMessagesInChatTitle");
 
@@ -747,7 +709,6 @@ void TabsManager::createDefaultConfiguration()
 	config_file.addVariable("Chat", "ConferencesInTabs", "true");
 	config_file.addVariable("Chat", "TabsBelowChats", "false");
 	config_file.addVariable("Chat", "DefaultTabs", "true");
-	config_file.addVariable("Chat", "MinTabs", "1");
 	config_file.addVariable("Tabs", "CloseButton", "true");
 	config_file.addVariable("Tabs", "OpenChatButton", "true");
 	config_file.addVariable("Tabs", "OldStyleClosing", "false");
