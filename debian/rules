@@ -19,9 +19,7 @@ configure-stamp:
 	mkdir $(BUILD_DIR)
 	find . -name '*.o' -delete
 	bash debian/handle_external.sh copy
-	# Default to Linux
-	# If kfreebsd or hurd, modify .install files
-	cd $(BUILD_DIR) && cmake -DCMAKE_SKIP_RPATH=True -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr $(PKG_DIR)
+	cd $(BUILD_DIR) && cmake -DCMAKE_SKIP_RPATH=False -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr $(PKG_DIR)
 	touch configure-stamp
 
 #Architecture
@@ -66,8 +64,10 @@ install-arch:
 	dh_installdirs -s
 	cd $(BUILD_DIR) && $(MAKE) DESTDIR=$(INSTALL_DIR) install
 	cp $(INSTALL_DIR)/usr/share/kadu/ChangeLog debian/kadu/usr/share/doc/kadu/about-changes-tab.txt
+	# Rmove some cruft
 	rm -f $(INSTALL_DIR)/usr/share/kadu/modules/data/osd_hints/License
 	dh_install -s
+	dh_lintian
 
 # Must not depend on anything. This is to be called by
 # binary-arch/binary-indep
@@ -82,7 +82,7 @@ binary-common:
 	dh_installman
 	dh_link
 	dh_strip
-	dh_compress -XAUTHORS -XTHANKS -XLICENSE -Xabout-changes-tab.txt
+	dh_compress -XAUTHORS.html -XAUTHORS -XTHANKS -XLICENSE -Xabout-changes-tab.txt
 	dh_fixperms
 	dh_makeshlibs
 	dh_installdeb
