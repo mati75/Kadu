@@ -2,6 +2,7 @@ kadu (1.0-1) UNRELEASED; urgency=medium
 
   * New upstream release (Closes: #620690, #696761)
   * Fixed build on kfreebsd-* (Closes: #755105)
+  * Updated copyright information in debian/copyright
 
  -- Patryk Cisek <patryk@debian.org>  Tue, 30 Sep 2014 15:38:13 +0200
 
