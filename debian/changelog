@@ -3,8 +3,9 @@ kadu (1.0-1) unstable; urgency=medium
   * New upstream release (Closes: #620690, #696761)
   * Fixed build on kfreebsd-* (Closes: #755105)
   * Updated copyright information in debian/copyright
+  * Added debian/tmp/usr/share/kadu/AUTHORS.html to debian/kadu.docs
 
- -- Patryk Cisek <patryk@debian.org>  Tue, 30 Sep 2014 17:30:12 +0200
+ -- Patryk Cisek <patryk@debian.org>  Tue, 30 Sep 2014 19:15:28 +0200
 
 kadu (1.0~rc10-1) unstable; urgency=medium
 
