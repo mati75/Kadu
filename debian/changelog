@@ -1,3 +1,11 @@
+kadu (1.0-2) UNRELEASED; urgency=medium
+
+  * Using dpkg-buildflags to set compilation and linker flags
+  * Added 03-no-CMAKE_CXX_FLAGS-overwrite.patch to make it possible to set
+    compilation flags
+
+ -- Patryk Cisek <patryk@debian.org>  Thu, 02 Oct 2014 09:21:44 +0200
+
 kadu (1.0-1) unstable; urgency=medium
 
   * New upstream release (Closes: #620690, #696761)

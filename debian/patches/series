@@ -1,2 +1,3 @@
 01-external-themes.patch
 02-about-dialog.patch
+03-no-CMAKE_CXX_FLAGS-overwrite.patch
