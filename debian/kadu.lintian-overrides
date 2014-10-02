@@ -1,2 +1,0 @@
-#kadu: binary-or-shlib-defines-rpath usr/lib/x86_64-linux-gnu/kadu/plugins/libword_fix.so lib/x86_64-linux-gnu/kadu
-kadu: binary-or-shlib-defines-rpath usr/lib/*/kadu/plugins/* 

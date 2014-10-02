@@ -1,10 +1,13 @@
-kadu (1.0-2) UNRELEASED; urgency=medium
+kadu (1.0-2) unstable; urgency=medium
 
-  * Using dpkg-buildflags to set compilation and linker flags
+  * Using dpkg-buildflags to set compilation and linker flags.
   * Added 03-no-CMAKE_CXX_FLAGS-overwrite.patch to make it possible to set
-    compilation flags
+    compilation flags.
+  * Removed lintian override for RPATH in Kadu's plugins.
+  * Using chrpath to strip Kadu's plugins from RPATH, since they're not
+    needed there.
 
- -- Patryk Cisek <patryk@debian.org>  Thu, 02 Oct 2014 09:21:44 +0200
+ -- Patryk Cisek <patryk@debian.org>  Thu, 02 Oct 2014 11:55:19 +0200
 
 kadu (1.0-1) unstable; urgency=medium
 

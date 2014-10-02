@@ -6,6 +6,7 @@ export DEB_BUILD_HARDENING=1
 PKG_DIR=$(shell pwd)
 BUILD_DIR=$(CURDIR)/build-dir
 INSTALL_DIR=$(PKG_DIR)/debian/tmp
+DEB_HOST_MULTIARCH ?= $(shell dpkg-architecture -qDEB_HOST_MULTIARCH)
 
 CPPFLAGS:=$(shell dpkg-buildflags --get CPPFLAGS)
 CFLAGS:=$(shell dpkg-buildflags --get CFLAGS)
@@ -19,7 +20,7 @@ configure-stamp:
 	mkdir $(BUILD_DIR)
 	find . -name '*.o' -delete
 	bash debian/handle_external.sh copy
-	cd $(BUILD_DIR) && cmake -DCMAKE_SKIP_RPATH=False -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr $(PKG_DIR)
+	cd $(BUILD_DIR) && cmake -DCMAKE_C_FLAGS="$(CFLAGS)" -DCMAKE_CXX_FLAGS="$(CXXFLAGS) $(CPPFLAGS)" -DCMAKE_EXE_LINKER_FLAGS="$(LDFLAGS)" -DCMAKE_SKIP_RPATH=False -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr $(PKG_DIR)
 	touch configure-stamp
 
 #Architecture
@@ -66,8 +67,9 @@ install-arch:
 	cp $(INSTALL_DIR)/usr/share/kadu/ChangeLog debian/kadu/usr/share/doc/kadu/about-changes-tab.txt
 	# Rmove some cruft
 	rm -f $(INSTALL_DIR)/usr/share/kadu/modules/data/osd_hints/License
+	# Remove RPATH from all the plugins
+	chrpath -d debian/tmp/usr/lib/$(DEB_HOST_MULTIARCH)/kadu/plugins/*.so
 	dh_install -s
-	dh_lintian
 
 # Must not depend on anything. This is to be called by
 # binary-arch/binary-indep
