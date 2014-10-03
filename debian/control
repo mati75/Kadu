@@ -33,7 +33,7 @@ Build-Depends: bzip2,
                sharutils,
                x11proto-scrnsaver-dev,
                zlib1g-dev
-Standards-Version: 3.9.5
+Standards-Version: 3.9.6
 Homepage: http://kadu.net
 
 Package: kadu
@@ -68,6 +68,7 @@ Description: Gadu-Gadu/XMPP client for X11
 
 Package: kadu-common
 Architecture: all
+Pre-Depends: ${misc:Pre-Depends}
 Depends: ${misc:Depends}, ${shlibs:Depends}
 Breaks: kadu-external-modules (<< 0.10.0-2)
 Suggests: kadu-themes
@@ -79,7 +80,9 @@ Description: Gadu-Gadu/XMPP client for X11
 
 Package: kadu-dev
 Architecture: all
-Depends: ${misc:Depends}, ${shlibs:Depends}
+Pre-Depends: ${misc:Pre-Depends}
+Depends: kadu (= ${source:Version}),
+         libkadu (= ${source:Version}), ${misc:Depends}, ${shlibs:Depends}
 Description: Development files needed to compile plugins for kadu
  Gadu-Gadu is a Windows instant messenger, very popular in Poland.
  Kadu is a Qt4 client of Gadu-Gadu and XMPP for *nix systems.
@@ -88,8 +91,8 @@ Description: Development files needed to compile plugins for kadu
 
 Package: kadu-themes
 Architecture: all
-Depends: ${misc:Depends}
-Recommends: kadu
+Pre-Depends: ${misc:Pre-Depends}
+Depends: kadu (= ${source:Version}), ${misc:Depends}
 Description: Additional icons and emoticons for Kadu
  Gadu-Gadu is a Windows instant messenger, very popular in Poland.
  Kadu is a Qt4 client of Gadu-Gadu and XMPP for *nix systems.
