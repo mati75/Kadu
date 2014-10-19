@@ -2,6 +2,8 @@ kadu (1.1-1) UNRELEASED; urgency=medium
 
   * New upstream release.
   * Fixed package dependencies of kadu-common, kadu-dev and kadu-themes.
+  * Removed 03-no-CMAKE_CXX_FLAGS-overwrite.patch patch. It's been
+    included upstream.
 
  -- Patryk Cisek <patryk@debian.org>  Sun, 19 Oct 2014 08:17:16 +0200
 
