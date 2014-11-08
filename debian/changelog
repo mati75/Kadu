@@ -1,3 +1,9 @@
+kadu (1.2-1) unstable; urgency=medium
+
+  * New upstream release (Closes: #768463)
+
+ -- Patryk Cisek <patryk@debian.org>  Sat, 08 Nov 2014 15:17:42 +0100
+
 kadu (1.1-1) unstable; urgency=medium
 
   * New upstream release.
