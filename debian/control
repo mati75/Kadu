@@ -78,7 +78,7 @@ Description: Gadu-Gadu/XMPP client for X11
  This package provides data common for all architectures.
 
 Package: kadu-dev
-Architecture: all
+Architecture: any
 Depends: ${misc:Depends}, ${shlibs:Depends}
 Description: Development files needed to compile plugins for kadu
  Gadu-Gadu is a Windows instant messenger, very popular in Poland.
