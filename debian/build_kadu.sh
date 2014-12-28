@@ -12,11 +12,11 @@ debian_revision=$(echo $version | awk -F "-" '{printf $2}')
 
 git clean -d -f -x
 git reset --hard
-git co 1.0/upstream-kadu
-git br -D 1.0/master || true
-git co -b 1.0/master 1.0/upstream-kadu
-git merge -m "Merging 1.0/upstream-themes 1.0/debian" \
-    1.0/upstream-themes 1.0/debian
+git co ${upstream_version}/upstream-kadu
+git br -D ${upstream_version}/master || true
+git co -b ${upstream_version}/master ${upstream_version}/upstream-kadu
+git merge -m "Merging ${upstream_version}/upstream-themes ${upstream_version}/debian" \
+    ${upstream_version}/upstream-themes ${upstream_version}/debian
 
 if [ "$debian_revision" = 1 ]; then
     # Generate orig-externalthemes.tar.bz2, but only if it's first
