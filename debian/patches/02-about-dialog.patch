@@ -14,10 +14,19 @@ Description: Fixes contents of "About" dialog's tabs.
 Author: Patryk Cisek <patryk@debian.org>
 ---
 diff --git a/kadu-core/gui/windows/about.cpp b/kadu-core/gui/windows/about.cpp
-index 25ab818..148a15d 100644
+index 0376ab8..b71df6e 100644
 --- a/kadu-core/gui/windows/about.cpp
 +++ b/kadu-core/gui/windows/about.cpp
-@@ -151,7 +151,7 @@ About::About(QWidget *parent) :
+@@ -149,7 +149,7 @@ About::About(QWidget *parent) :
+ #ifdef Q_OS_WIN
+ 	tb_license->setText(loadFile("COPYING.WIN32"));
+ #else
+-	tb_license->setText(loadFile("COPYING.GPL2"));
++	tb_license->setText(loadFile("/usr/share/common-licenses/GPL-2"));
+ #endif
+ 
+ 	// changelog
+@@ -158,7 +158,7 @@ About::About(QWidget *parent) :
  	tb_changelog->setOpenLinks(false);
  	tb_changelog->setFrameStyle(QFrame::NoFrame);
  	tb_changelog->viewport()->setAutoFillBackground(false);
@@ -26,15 +35,3 @@ index 25ab818..148a15d 100644
  	changelog.replace('\n', "<br/>");
  	// #bug_no -> Redmine URL
  	changelog.replace(QRegExp("#(\\d+)"), "<a href=\"http://www.kadu.im/redmine/issues/\\1\">#\\1</a>");
-@@ -232,7 +232,10 @@ QString About::loadFile(const QString &name)
- {
- 	kdebugf();
- 
--	QFile file(KaduPaths::instance()->dataPath() + name);
-+	QString fullName = (QString("COPYING") == name ?
-+			QString("/usr/share/common-licenses/GPL-2") :
-+			QString("/usr/share/doc/kadu/" + name));
-+	QFile file(fullName);
- 	if (!file.open(QIODevice::ReadOnly))
- 	{
- 		kdebugm(KDEBUG_ERROR, "About::loadFile(%s) cannot open file\n", qPrintable(name));
