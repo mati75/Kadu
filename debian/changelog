@@ -2,6 +2,8 @@ kadu (2.1-1) UNRELEASED; urgency=medium
 
   * New upstream release (Closes: #795488)
   * Updated debian/patches/02-about-dialog.patch for Kadu 2.1
+  * Removed 03-exclude_unsupported_plugins.patch, as it's been applied
+    upstream.
 
  -- Patryk Cisek <patryk@debian.org>  Sat, 10 Oct 2015 15:31:05 +0200
 
