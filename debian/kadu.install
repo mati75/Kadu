@@ -27,7 +27,6 @@ debian/tmp/usr/lib/*/kadu/plugins/libhistory.so
 debian/tmp/usr/lib/*/kadu/plugins/libhistory_migration.so
 debian/tmp/usr/lib/*/kadu/plugins/libidle.so
 debian/tmp/usr/lib/*/kadu/plugins/libimagelink.so
-debian/tmp/usr/lib/*/kadu/plugins/libindicator_docking.so
 debian/tmp/usr/lib/*/kadu/plugins/libjabber_protocol.so
 debian/tmp/usr/lib/*/kadu/plugins/liblast_seen.so
 debian/tmp/usr/lib/*/kadu/plugins/libmediaplayer.so
@@ -38,7 +37,6 @@ debian/tmp/usr/lib/*/kadu/plugins/libphonon_sound.so
 debian/tmp/usr/lib/*/kadu/plugins/libprofiles_import.so
 debian/tmp/usr/lib/*/kadu/plugins/libqt4_docking.so
 debian/tmp/usr/lib/*/kadu/plugins/libqt4_docking_notify.so
-debian/tmp/usr/lib/*/kadu/plugins/libqt4_sound.so
 debian/tmp/usr/lib/*/kadu/plugins/libscreenshot.so
 debian/tmp/usr/lib/*/kadu/plugins/libsimpleview.so
 debian/tmp/usr/lib/*/kadu/plugins/libsingle_window.so

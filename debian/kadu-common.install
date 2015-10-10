@@ -1,5 +1,4 @@
 debian/tmp/usr/share/icons
-debian/tmp/usr/share/indicators/messages/applications/kadu
 debian/tmp/usr/share/kadu/configuration/dialog-look-chat-advanced.ui
 debian/tmp/usr/share/kadu/configuration/dialog.ui
 debian/tmp/usr/share/kadu/plugins/antistring.desc
@@ -70,7 +69,6 @@ debian/tmp/usr/share/kadu/plugins/history.desc
 debian/tmp/usr/share/kadu/plugins/history_migration.desc
 debian/tmp/usr/share/kadu/plugins/idle.desc
 debian/tmp/usr/share/kadu/plugins/imagelink.desc
-debian/tmp/usr/share/kadu/plugins/indicator_docking.desc
 debian/tmp/usr/share/kadu/plugins/jabber_protocol.desc
 debian/tmp/usr/share/kadu/plugins/last_seen.desc
 debian/tmp/usr/share/kadu/plugins/mediaplayer.desc
@@ -81,7 +79,6 @@ debian/tmp/usr/share/kadu/plugins/phonon_sound.desc
 debian/tmp/usr/share/kadu/plugins/profiles_import.desc
 debian/tmp/usr/share/kadu/plugins/qt4_docking.desc
 debian/tmp/usr/share/kadu/plugins/qt4_docking_notify.desc
-debian/tmp/usr/share/kadu/plugins/qt4_sound.desc
 debian/tmp/usr/share/kadu/plugins/screenshot.desc
 debian/tmp/usr/share/kadu/plugins/simpleview.desc
 debian/tmp/usr/share/kadu/plugins/single_window.desc
