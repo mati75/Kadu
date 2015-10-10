@@ -4,6 +4,9 @@ kadu (2.1-1) UNRELEASED; urgency=medium
   * Updated debian/patches/02-about-dialog.patch for Kadu 2.1
   * Removed 03-exclude_unsupported_plugins.patch, as it's been applied
     upstream.
+  * Removed kadu.menu, as there's a corresponding .desktop file in
+    place.
+  * Removed obsolete url from debian/watch
 
  -- Patryk Cisek <patryk@debian.org>  Sat, 10 Oct 2015 15:31:05 +0200
 
