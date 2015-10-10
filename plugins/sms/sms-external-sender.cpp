@@ -22,7 +22,9 @@
 
 #include <QtCore/QProcess>
 
-#include "configuration/configuration-file.h"
+#include "configuration/configuration.h"
+#include "configuration/deprecated-configuration-api.h"
+#include "core/application.h"
 
 #include "sms-external-sender.h"
 
@@ -40,9 +42,9 @@ QStringList SmsExternalSender::buildProgramArguments(const QString &message)
 {
 	QStringList programArguments;
 
-	if (config_file.readBoolEntry("SMS", "UseCustomString"))
+	if (Application::instance()->configuration()->deprecatedApi()->readBoolEntry("SMS", "UseCustomString"))
 	{
-		programArguments = config_file.readEntry("SMS", "SmsString").split(' ');
+		programArguments = Application::instance()->configuration()->deprecatedApi()->readEntry("SMS", "SmsString").split(' ');
 		programArguments.replaceInStrings("%k", number());
 		programArguments.replaceInStrings("%m", message);
 	}
@@ -59,7 +61,7 @@ void SmsExternalSender::sendMessage(const QString &message)
 {
 	Message = message;
 
-	QString smsAppPath = config_file.readEntry("SMS", "SmsApp");
+	QString smsAppPath = Application::instance()->configuration()->deprecatedApi()->readEntry("SMS", "SmsApp");
 
 	Process = new QProcess(this);
 	Process->start(smsAppPath, buildProgramArguments(message));

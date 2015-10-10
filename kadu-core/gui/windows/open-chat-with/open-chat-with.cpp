@@ -23,32 +23,33 @@
 
 #include <QtDeclarative/QDeclarativeContext>
 #include <QtDeclarative/QDeclarativeView>
-#include <QtGui/QApplication>
-#include <QtGui/QDesktopWidget>
-#include <QtGui/QDialogButtonBox>
-#include <QtGui/QGraphicsObject>
 #include <QtGui/QKeyEvent>
-#include <QtGui/QLabel>
-#include <QtGui/QPushButton>
-#include <QtGui/QStyle>
-#include <QtGui/QVBoxLayout>
+#include <QtWidgets/QApplication>
+#include <QtWidgets/QDesktopWidget>
+#include <QtWidgets/QDialogButtonBox>
+#include <QtWidgets/QGraphicsObject>
+#include <QtWidgets/QLabel>
+#include <QtWidgets/QPushButton>
+#include <QtWidgets/QStyle>
+#include <QtWidgets/QVBoxLayout>
 
 #include "buddies/buddy-manager.h"
 #include "buddies/buddy-set.h"
 #include "buddies/model/buddy-list-model.h"
 #include "chat/chat-manager.h"
 #include "chat/type/chat-type-contact.h"
-#include "configuration/xml-configuration-file.h"
+#include "configuration/configuration-api.h"
+#include "configuration/configuration.h"
 #include "contacts/contact.h"
+#include "core/application.h"
 #include "core/core.h"
 #include "gui/widgets/chat-widget/chat-widget-manager.h"
 #include "gui/widgets/filtered-tree-view.h"
 #include "gui/widgets/line-edit-with-clear-button.h"
-#include "misc/kadu-paths.h"
+#include "misc/paths-provider.h"
 #include "model/model-chain.h"
 #include "model/roles.h"
 #include "talkable/model/talkable-proxy-model.h"
-
 #include "activate.h"
 #include "debug.h"
 
@@ -108,7 +109,7 @@ OpenChatWith::OpenChatWith() :
 
 	BuddiesView->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 	BuddiesView->setResizeMode(QDeclarativeView::SizeRootObjectToView);
-	BuddiesView->setSource(QUrl("file:///" + KaduPaths::instance()->dataPath() + "qml/openChatWith.qml"));
+	BuddiesView->setSource(QUrl("file:///" + Application::instance()->pathsProvider()->dataPath() + "qml/openChatWith.qml"));
 
 	if (BuddiesView->rootObject())
 		connect(BuddiesView->rootObject(), SIGNAL(itemActivated(int)), this, SLOT(itemActivated(int)));

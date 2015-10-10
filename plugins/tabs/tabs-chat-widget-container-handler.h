@@ -31,6 +31,7 @@
 
 class TabsManager;
 class TabWidget;
+enum class OpenChatActivation;
 
 class TabsChatWidgetContainerHandler : public ChatWidgetContainerHandler
 {
@@ -43,12 +44,13 @@ public:
 	void setTabsManager(TabsManager *tabsManager);
 	void setTabWidget(TabWidget *tabWidget);
 
-	virtual bool acceptChatWidget(ChatWidget *chatWidget) const override;
-	virtual void addChatWidget(ChatWidget *chatWidget) override;
-	virtual void removeChatWidget(ChatWidget *chatWidget) override;
+	virtual bool acceptChat(Chat chat) const override;
+	virtual ChatWidget * addChat(Chat chat, OpenChatActivation activation) override;
+	virtual void removeChat(Chat chat) override;
 
 	virtual bool isChatWidgetActive(ChatWidget *chatWidget) override;
 	virtual void tryActivateChatWidget(ChatWidget *chatWidget) override;
+	virtual void tryMinimizeChatWidget(ChatWidget *chatWidget) override;
 
 public:
 	QPointer<TabsManager> m_tabsManager;

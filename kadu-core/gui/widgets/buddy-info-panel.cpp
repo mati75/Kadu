@@ -21,21 +21,22 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <QtWebKit/QWebFrame>
+#include <QtWebKitWidgets/QWebFrame>
 
 #include "accounts/account.h"
 #include "avatars/avatar.h"
 #include "avatars/avatar-manager.h"
 #include "buddies/buddy-preferred-manager.h"
 #include "buddies/buddy.h"
-#include "configuration/configuration-file.h"
+#include "configuration/configuration.h"
+#include "configuration/deprecated-configuration-api.h"
 #include "contacts/contact-manager.h"
+#include "core/application.h"
 #include "core/core.h"
 #include "dom/dom-processor-service.h"
 #include "misc/syntax-list.h"
 #include "parser/parser.h"
 #include "url-handlers/url-handler-manager.h"
-
 #include "debug.h"
 
 #include "buddy-info-panel.h"
@@ -64,7 +65,7 @@ BuddyInfoPanel::~BuddyInfoPanel()
 
 void BuddyInfoPanel::configurationUpdated()
 {
-	setUserFont(config_file.readFontEntry("Look", "PanelFont").toString(), true);
+	setUserFont(Application::instance()->configuration()->deprecatedApi()->readFontEntry("Look", "PanelFont").toString(), true);
 
 	update();
 }
@@ -77,10 +78,10 @@ void BuddyInfoPanel::buddyUpdated(const Buddy &buddy)
 
 void BuddyInfoPanel::update()
 {
-	if (Core::instance()->isClosing())
+	if (Core::instance() && Core::instance()->isClosing())
 		return;
 
-	QFont font = config_file.readFontEntry("Look", "PanelFont");
+	QFont font = Application::instance()->configuration()->deprecatedApi()->readFontEntry("Look", "PanelFont");
 	QString fontFamily = font.family();
 	QString fontSize;
 	if (font.pointSize() > 0)
@@ -91,10 +92,10 @@ void BuddyInfoPanel::update()
 	QString fontStyle = font.italic() ? "italic" : "normal";
 	QString fontWeight = font.bold() ? "bold" : "normal";
 	QString textDecoration = font.underline() ? "underline" : "none";
-	QString fontColor = config_file.readColorEntry("Look", "InfoPanelFgColor").name();
-	bool backgroundFilled = config_file.readBoolEntry("Look", "InfoPanelBgFilled");
+	QString fontColor = Application::instance()->configuration()->deprecatedApi()->readColorEntry("Look", "InfoPanelFgColor").name();
+	bool backgroundFilled = Application::instance()->configuration()->deprecatedApi()->readBoolEntry("Look", "InfoPanelBgFilled");
 	if (backgroundFilled)
-		BackgroundColor = config_file.readColorEntry("Look", "InfoPanelBgColor").name();
+		BackgroundColor = Application::instance()->configuration()->deprecatedApi()->readColorEntry("Look", "InfoPanelBgColor").name();
 	else
 		BackgroundColor = "transparent";
 
@@ -131,19 +132,20 @@ void BuddyInfoPanel::update()
 		"</html>"
 		).arg(fontColor, fontStyle, fontWeight, fontSize, fontFamily, textDecoration, BackgroundColor, "%1");
 
-	QString syntaxFile = config_file.readEntry("Look", "InfoPanelSyntaxFile", "ultr");
+	QString syntaxFile = Application::instance()->configuration()->deprecatedApi()->readEntry("Look", "InfoPanelSyntaxFile", "ultr");
 	if (syntaxFile == "default")
 	{
 		syntaxFile = "Old Default";
-		config_file.writeEntry("Look", "InfoPanelSyntaxFile", syntaxFile);
+		Application::instance()->configuration()->deprecatedApi()->writeEntry("Look", "InfoPanelSyntaxFile", syntaxFile);
 	}
 
 	Syntax = SyntaxList::readSyntax("infopanel", syntaxFile,
-		"<table><tr><td><img width=\"32\" height=\"32\" align=\"left\" valign=\"top\" src=\"file:///@{x-office-address-book:32x32}\"></td><td> "
+		"<table><tr><td><img width=\"32\" height=\"32\" align=\"left\" valign=\"top\" src=\"@{x-office-address-book:32x32}\"></td><td> "
 		"<div align=\"left\"> [<b>%a</b>][ (%u)] [<br>tel.: %m][<br>IP: %i]</div></td></tr></table> <hr> <b>%s</b> [<br>%d]");
+	Syntax = Syntax.remove("file:///");
 	displayItem(Item);
 
-	if (config_file.readBoolEntry("Look", "PanelVerticalScrollbar"))
+	if (Application::instance()->configuration()->deprecatedApi()->readBoolEntry("Look", "PanelVerticalScrollbar"))
 		page()->mainFrame()->setScrollBarPolicy(Qt::Vertical, Qt::ScrollBarAsNeeded);
 	else
 		page()->mainFrame()->setScrollBarPolicy(Qt::Vertical, Qt::ScrollBarAlwaysOff);

@@ -18,7 +18,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <QThread>
+#include <QtCore/QThread>
 
 extern "C" {
 #   include <libotr/privkey.h>

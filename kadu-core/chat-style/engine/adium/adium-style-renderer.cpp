@@ -26,28 +26,28 @@
 
 #include "avatars/avatar.h"
 #include "chat-style/chat-style-manager.h"
-#include "chat-style/engine/adium/adium-style.h"
 #include "chat-style/engine/adium/adium-style-engine.h"
+#include "chat-style/engine/adium/adium-style.h"
 #include "chat-style/engine/adium/adium-time-formatter.h"
-#include "configuration/chat-configuration-holder.h"
 #include "contacts/contact-set.h"
 #include "core/core.h"
+#include "gui/configuration/chat-configuration-holder.h"
 #include "icons/kadu-icon.h"
 #include "identities/identity.h"
 #include "message/message-html-renderer-service.h"
-#include "message/message-render-info.h"
 #include "message/message-render-info-factory.h"
+#include "message/message-render-info.h"
 #include "misc/date-time.h"
-#include "misc/kadu-paths.h"
 #include "misc/misc.h"
-#include "protocols/protocol.h"
+#include "misc/paths-provider.h"
 #include "protocols/protocol-factory.h"
+#include "protocols/protocol.h"
 #include "protocols/services/chat-image.h"
 
 #include <QtCore/QFile>
 #include <QtGui/QTextDocument>
-#include <QtWebKit/QWebPage>
-#include <QtWebKit/QWebFrame>
+#include <QtWebKitWidgets/QWebFrame>
+#include <QtWebKitWidgets/QWebPage>
 
 AdiumStyleRenderer::AdiumStyleRenderer(ChatStyleRendererConfiguration configuration, std::shared_ptr<AdiumStyle> style, QObject *parent) :
 		ChatStyleRenderer{std::move(configuration), parent},
@@ -135,7 +135,7 @@ void AdiumStyleRenderer::appendChatMessage(const Message &message, const Message
 QString AdiumStyleRenderer::preprocessStyleBaseHtml(bool useTransparency)
 {
 	QString styleBaseHtml = m_style->templateHtml();
-	styleBaseHtml.replace(styleBaseHtml.indexOf("%@"), 2, Qt::escape(KaduPaths::webKitPath(m_style->baseHref())));
+	styleBaseHtml.replace(styleBaseHtml.indexOf("%@"), 2, Qt::escape(PathsProvider::webKitPath(m_style->baseHref())));
 	styleBaseHtml.replace(styleBaseHtml.lastIndexOf("%@"), 2, replaceKeywords(m_style->baseHref(), m_style->footerHtml()));
 	styleBaseHtml.replace(styleBaseHtml.lastIndexOf("%@"), 2, replaceKeywords(m_style->baseHref(), m_style->headerHtml()));
 
@@ -148,8 +148,8 @@ QString AdiumStyleRenderer::preprocessStyleBaseHtml(bool useTransparency)
 	}
 	else
 	{
-		styleBaseHtml.replace(styleBaseHtml.lastIndexOf("%@"), 2, (m_style->styleViewVersion() < 3 && m_style->defaultVariant() == m_style->currentVariant()) ? Qt::escape(m_style->mainHref()) : "Variants/" + Qt::escape(m_style->currentVariant()));
-		styleBaseHtml.replace(styleBaseHtml.lastIndexOf("%@"), 2, (m_style->styleViewVersion() < 3) ? QString() : QString("@import url( \"" + Qt::escape(m_style->mainHref()) + "\" );"));
+		styleBaseHtml.replace(styleBaseHtml.lastIndexOf("%@"), 2, (m_style->styleViewVersion() < 3 && m_style->defaultVariant() == m_style->currentVariant()) ? Qt::escape(PathsProvider::webKitPath(m_style->mainHref())) : "Variants/" + Qt::escape(m_style->currentVariant()));
+		styleBaseHtml.replace(styleBaseHtml.lastIndexOf("%@"), 2, (m_style->styleViewVersion() < 3) ? QString() : QString("@import url( \"" + Qt::escape(PathsProvider::webKitPath(m_style->mainHref())) + "\" );"));
 	}
 
 	if (useTransparency && !m_style->defaultBackgroundIsTransparent())
@@ -201,18 +201,18 @@ QString AdiumStyleRenderer::replaceKeywords(const QString &styleHref, const QStr
 	{
 		const Avatar &avatar = configuration().chat().contacts().toContact().avatar(true);
 		if (!avatar.isEmpty())
-			photoIncoming = KaduPaths::webKitPath(avatar.smallFilePath());
+			photoIncoming = PathsProvider::webKitPath(avatar.smallFilePath());
 		else
-			photoIncoming = KaduPaths::webKitPath(styleHref + QLatin1String("Incoming/buddy_icon.png"));
+			photoIncoming = PathsProvider::webKitPath(styleHref + QLatin1String("Incoming/buddy_icon.png"));
 	}
 	else
-		photoIncoming = KaduPaths::webKitPath(styleHref + QLatin1String("Incoming/buddy_icon.png"));
+		photoIncoming = PathsProvider::webKitPath(styleHref + QLatin1String("Incoming/buddy_icon.png"));
 
 	const Avatar &avatar = configuration().chat().chatAccount().accountContact().avatar(true);
 	if (!avatar.isEmpty())
-		photoOutgoing = KaduPaths::webKitPath(avatar.smallFilePath());
+		photoOutgoing = PathsProvider::webKitPath(avatar.smallFilePath());
 	else
-		photoOutgoing = KaduPaths::webKitPath(styleHref + QLatin1String("Outgoing/buddy_icon.png"));
+		photoOutgoing = PathsProvider::webKitPath(styleHref + QLatin1String("Outgoing/buddy_icon.png"));
 
 	result.replace(QString("%incomingIconPath%"), Qt::escape(photoIncoming));
 	result.replace(QString("%outgoingIconPath%"), Qt::escape(photoOutgoing));
@@ -267,18 +267,18 @@ QString AdiumStyleRenderer::replaceKeywords(const QString &styleHref, const QStr
 
 		const Avatar &avatar = message.messageSender().avatar(true);
 		if (!avatar.isEmpty())
-			photoPath = Qt::escape(KaduPaths::webKitPath(avatar.smallFilePath()));
+			photoPath = Qt::escape(PathsProvider::webKitPath(avatar.smallFilePath()));
 		else
-			photoPath = Qt::escape(KaduPaths::webKitPath(styleHref + QLatin1String("Incoming/buddy_icon.png")));
+			photoPath = Qt::escape(PathsProvider::webKitPath(styleHref + QLatin1String("Incoming/buddy_icon.png")));
 	}
 	else if (message.type() == MessageTypeSent)
 	{
 		result.replace(QString("%messageClasses%"), "message outgoing");
 		const Avatar &avatar = message.messageChat().chatAccount().accountContact().avatar(true);
 		if (!avatar.isEmpty())
-			photoPath = Qt::escape(KaduPaths::webKitPath(avatar.smallFilePath()));
+			photoPath = Qt::escape(PathsProvider::webKitPath(avatar.smallFilePath()));
 		else
-			photoPath = Qt::escape(KaduPaths::webKitPath(styleHref + QLatin1String("Outgoing/buddy_icon.png")));
+			photoPath = Qt::escape(PathsProvider::webKitPath(styleHref + QLatin1String("Outgoing/buddy_icon.png")));
 	}
 	else
 		result.remove(QString("%messageClasses%"));

@@ -25,14 +25,15 @@
 #include <QtCore/QDateTime>
 #include <QtCore/QFile>
 #include <QtCore/QTextStream>
-#include <QtGui/QApplication>
-#include <QtGui/QMenu>
+#include <QtWidgets/QApplication>
+#include <QtWidgets/QMenu>
 
 #include "accounts/account-manager.h"
 #include "contacts/contact-manager.h"
+#include "core/application.h"
 #include "gui/actions/action-description.h"
 #include "gui/menu/menu-inventory.h"
-#include "misc/kadu-paths.h"
+#include "misc/paths-provider.h"
 #include "debug.h"
 #include "exports.h"
 
@@ -47,7 +48,7 @@ Infos::Infos(QObject *parent) :
 
 	triggerAllAccountsRegistered();
 
-	fileName = KaduPaths::instance()->profilePath() + QLatin1String("last_seen.data");
+	fileName = Application::instance()->pathsProvider()->profilePath() + QLatin1String("last_seen.data");
 
 	if (QFile::exists(fileName))
 	{

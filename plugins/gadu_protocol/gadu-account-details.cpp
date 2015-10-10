@@ -24,8 +24,10 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "configuration/configuration-file.h"
-#include "configuration/xml-configuration-file.h"
+#include "configuration/configuration-api.h"
+#include "configuration/configuration.h"
+#include "configuration/deprecated-configuration-api.h"
+#include "core/application.h"
 #include "gui/windows/open-chat-with/open-chat-with-runner-manager.h"
 #include "gui/windows/open-chat-with/open-chat-with-runner.h"
 #include "misc/misc.h"
@@ -82,26 +84,6 @@ void GaduAccountDetails::store()
 	storeValue("ExternalPort", ExternalPort);
 	storeValue("UserlistVersion", UserlistVersion);
 	storeValue("ReceiveSpam", ReceiveSpam);
-}
-
-void GaduAccountDetails::import_0_6_5_LastStatus()
-{
-	if (!isValidStorage())
-		return;
-
-	QString name;
-
-	int typeIndex = config_file.readNumEntry("General", "LastStatusType", -1);
-	switch (typeIndex)
-	{
-		case 0: name = "Online"; break;
-		case 1: name = "Away"; break;
-		case 2: name = "Invisible"; break;
-		default: name = "Offline"; break;
-	}
-
-	storeValue("LastStatusName", name);
-	storeValue("LastStatusDescription", config_file.readEntry("General", "LastStatusDescription"));
 }
 
 UinType GaduAccountDetails::uin()

@@ -24,7 +24,8 @@ extern "C" {
 
 #include "accounts/account.h"
 #include "contacts/contact.h"
-#include "misc/kadu-paths.h"
+#include "core/application.h"
+#include "misc/paths-provider.h"
 
 #include "otr-context-converter.h"
 #include "otr-op-data.h"
@@ -40,8 +41,7 @@ void OtrFingerprintService::wrapperOtrWriteFingerprints(void *data)
 		opData->fingerprintService()->writeFingerprints();
 }
 
-OtrFingerprintService::OtrFingerprintService(QObject *parent) :
-		QObject(parent)
+OtrFingerprintService::OtrFingerprintService()
 {
 }
 

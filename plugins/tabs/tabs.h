@@ -49,6 +49,8 @@ class ActionDescription;
 class ChatWidget;
 class ChatWidgetRepository;
 
+enum class OpenChatActivation;
+
 class TabsManager : public ConfigurationUiHandler, ConfigurationAwareObject, StorableObject
 {
 	Q_OBJECT
@@ -65,7 +67,7 @@ class TabsManager : public ConfigurationUiHandler, ConfigurationAwareObject, Sto
 	ActionDescription *AttachToTabsActionDescription;
 	TabWidget *TabDialog;
 	QTimer Timer;
-	QList<ChatWidget *> DetachedChats;
+	QList<Chat> DetachedChats;
 	QList<Chat> ClosedChats;
 
 	int TargetTabs;
@@ -130,9 +132,9 @@ public:
 
 	void updateTabTextAndTooltip(int index, const QString &text, const QString &tooltip);
 
-	bool acceptChatWidget(ChatWidget *chatWidget) const;
-	void addChatWidget(ChatWidget *chatWidget);
-	void removeChatWidget(ChatWidget *chatWidget);
+	bool acceptChat(Chat chat) const;
+	ChatWidget * addChat(Chat chat, OpenChatActivation activation);
+	void removeChat(Chat chat);
 
 public slots:
 	void onDestroyingChat(ChatWidget *chatWidget);
@@ -152,6 +154,6 @@ public slots:
 
 signals:
 	void chatWidgetActivated(ChatWidget *chatWidget);
-	void chatWidgetAcceptanceChanged(ChatWidget *chatWidget);
+	void chatAcceptanceChanged(Chat chat);
 
 };

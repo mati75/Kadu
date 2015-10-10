@@ -24,12 +24,14 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-#include <QtGui/QHBoxLayout>
-#include <QtGui/QLabel>
-#include <QtGui/QLineEdit>
-#include <QtGui/QPushButton>
+#include <QtWidgets/QHBoxLayout>
+#include <QtWidgets/QLabel>
+#include <QtWidgets/QLineEdit>
+#include <QtWidgets/QPushButton>
 
-#include "configuration/configuration-file.h"
+#include "configuration/configuration.h"
+#include "configuration/deprecated-configuration-api.h"
+#include "core/application.h"
 #include "gui/widgets/configuration/notify-group-box.h"
 #include "icons/kadu-icon.h"
 
@@ -61,7 +63,7 @@ void PCSpeakerConfigurationWidget::saveNotifyConfigurations()
 		Sounds[CurrentNotifyEvent] = soundEdit->text();
 
 	for (QMap<QString, QString>::const_iterator it = Sounds.constBegin(), end = Sounds.constEnd(); it != end; ++it)
-		config_file.writeEntry("PC Speaker", it.key() + "_Sound", it.value());
+		Application::instance()->configuration()->deprecatedApi()->writeEntry("PC Speaker", it.key() + "_Sound", it.value());
 }
 
 void PCSpeakerConfigurationWidget::switchToEvent(const QString &event)
@@ -74,7 +76,7 @@ void PCSpeakerConfigurationWidget::switchToEvent(const QString &event)
 	if (Sounds.contains(event))
 		soundEdit->setText(Sounds[event]);
 	else
-		soundEdit->setText(config_file.readEntry("PC Speaker", event + "_Sound"));
+		soundEdit->setText(Application::instance()->configuration()->deprecatedApi()->readEntry("PC Speaker", event + "_Sound"));
 }
 
 void PCSpeakerConfigurationWidget::test()

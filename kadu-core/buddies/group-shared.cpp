@@ -20,7 +20,9 @@
  */
 
 #include "buddies/group-manager.h"
-#include "configuration/configuration-file.h"
+#include "configuration/configuration.h"
+#include "configuration/deprecated-configuration-api.h"
+#include "core/application.h"
 #include "misc/change-notifier.h"
 
 #include "group-shared.h"
@@ -68,7 +70,7 @@ QString GroupShared::storageNodeName()
 void GroupShared::importConfiguration(const QString &name)
 {
 	Name = name;
-	Icon = config_file.readEntry("GroupIcon", name);
+	Icon = Application::instance()->configuration()->deprecatedApi()->readEntry("GroupIcon", name);
 	NotifyAboutStatusChanges = true;
 	ShowInAllGroup= true;
 	OfflineToGroup= false;

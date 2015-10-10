@@ -21,8 +21,9 @@
 #include "unread-message-repository.h"
 
 #include "buddies/buddy-manager.h"
-#include "chat/chat.h"
 #include "chat/chat-details-buddy.h"
+#include "chat/chat.h"
+#include "core/application.h"
 #include "message/message.h"
 #include "message/sorted-messages.h"
 
@@ -40,11 +41,11 @@ UnreadMessageRepository::~UnreadMessageRepository()
 
 bool UnreadMessageRepository::importFromPendingMessages()
 {
-	auto pendingMessagesNode = xml_config_file->getNode("PendingMessages", XmlConfigFile::ModeFind);
+	auto pendingMessagesNode = Application::instance()->configuration()->api()->getNode("PendingMessages", ConfigurationApi::ModeFind);
 	if (pendingMessagesNode.isNull())
 		return false;
 
-	auto messageElements = xml_config_file->getNodes(pendingMessagesNode, "Message");
+	auto messageElements = Application::instance()->configuration()->api()->getNodes(pendingMessagesNode, "Message");
 	for (const auto &messageElement : messageElements)
 	{
 		auto storagePoint = std::make_shared<StoragePoint>(storage()->storage(), messageElement);

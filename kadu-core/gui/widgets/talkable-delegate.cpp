@@ -25,8 +25,8 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <QtGui/QAbstractItemView>
 #include <QtGui/QKeyEvent>
+#include <QtWidgets/QAbstractItemView>
 
 #include "accounts/account.h"
 #include "buddies/buddy-preferred-manager.h"
@@ -50,9 +50,6 @@ TalkableDelegate::TalkableDelegate(TalkableTreeView *parent) :
 
 TalkableDelegate::~TalkableDelegate()
 {
-	disconnect(ContactManager::instance(), 0, this, 0);
-	disconnect(BuddyPreferredManager::instance(), 0, this, 0);
-	disconnect(Core::instance()->unreadMessageRepository(), 0, this, 0);
 }
 
 void TalkableDelegate::setChain(ModelChain *chain)

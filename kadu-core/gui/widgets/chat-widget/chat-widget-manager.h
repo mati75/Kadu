@@ -28,17 +28,21 @@
 
 #include <QtCore/QObject>
 #include <QtCore/QPointer>
+#include <injeqt/injeqt.h>
 
 class Chat;
 class ChatWidget;
 class ChatWidgetActivationService;
+class ChatWidgetContainerHandlerMapper;
 class ChatWidgetFactory;
 class ChatWidgetRepository;
 
 enum class OpenChatActivation
 {
+	Ignore,
 	DoNotActivate,
-	Activate
+	Activate,
+	Minimize
 };
 
 /**
@@ -56,12 +60,8 @@ class KADUAPI ChatWidgetManager : public QObject
 	Q_DISABLE_COPY(ChatWidgetManager)
 
 public:
-	explicit ChatWidgetManager(QObject *parent = nullptr);
+	Q_INVOKABLE explicit ChatWidgetManager(QObject *parent = nullptr);
 	virtual ~ChatWidgetManager();
-
-	void setChatWidgetActivationService(ChatWidgetActivationService *chatWidgetActivationService);
-	void setChatWidgetRepository(ChatWidgetRepository *chatWidgetRepository);
-	void setChatWidgetFactory(ChatWidgetFactory *chatWidgetFactory);
 
 public slots:
 	/**
@@ -69,23 +69,23 @@ public slots:
 	 *
 	 * If activation is set to OpenChatActivation::Activate then newly opened
 	 * chat will be activated.
+	 *
+	 * If activation is set to OpenChatActivation::Minimize and window is not yet
+	 * opened then it will be minimized after opening.
 	 */
-	void openChat(const Chat &chat, OpenChatActivation activation);
-
-	/**
-	 * @short Close given chat.
-	 */
-	void closeChat(const Chat &chat);
+	ChatWidget * openChat(const Chat &chat, OpenChatActivation activation);
 
 private:
 	QPointer<ChatWidgetActivationService> m_chatWidgetActivationService;
+	QPointer<ChatWidgetContainerHandlerMapper> m_chatWidgetContainerHandlerMapper;
 	QPointer<ChatWidgetRepository> m_chatWidgetRepository;
 	QPointer<ChatWidgetFactory> m_chatWidgetFactory;
 
-	ChatWidget * getOrCreateChatWidget(const Chat &chat);
-
 private slots:
-	void closeChatWidget(ChatWidget *chatWidget);
+	INJEQT_SETTER void setChatWidgetActivationService(ChatWidgetActivationService *chatWidgetActivationService);
+	INJEQT_SETTER void setChatWidgetContainerHandlerMapper(ChatWidgetContainerHandlerMapper *chatWidgetContainerHandlerMapper);
+	INJEQT_SETTER void setChatWidgetRepository(ChatWidgetRepository *chatWidgetRepository);
+	INJEQT_SETTER void setChatWidgetFactory(ChatWidgetFactory *chatWidgetFactory);
 
 };
 

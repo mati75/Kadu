@@ -23,7 +23,9 @@
 #include <QtCore/QProcess>
 #include <QtGui/QTextDocument>
 
-#include "configuration/configuration-file.h"
+#include "configuration/configuration.h"
+#include "configuration/deprecated-configuration-api.h"
+#include "core/application.h"
 #include "notify/notification-manager.h"
 #include "notify/notification/chat-notification.h"
 #include "notify/notification/notification.h"
@@ -67,12 +69,9 @@ Speech::Speech() :
 {
 	kdebugf();
 
-	import_0_5_0_Configuration();
-	import_0_6_5_configuration();
-
 	NotificationManager::instance()->registerNotifier(this);
 
-	config_file.addVariable("Notify", "NewChat_Speech", true);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Notify", "NewChat_Speech", true);
 
 	kdebugf2();
 }
@@ -83,76 +82,6 @@ Speech::~Speech()
 	NotificationManager::instance()->unregisterNotifier(this);
 
 	kdebugf2();
-}
-
-void Speech::import_0_5_0_ConfigurationFromTo(const QString &from, const QString &to)
-{
-	QString entry = config_file.readEntry("Speech", from + "Female", QString());
-	if (!entry.isEmpty())
-		config_file.writeEntry("Speech", from + "_Syntax/Female", entry);
-	config_file.removeVariable("Speech", from + "Female");
-
-	entry = config_file.readEntry("Speech", to + "Male", QString());
-	if (!entry.isEmpty())
-		config_file.writeEntry("Speech", to + "_Syntax/Male", entry);
-	config_file.removeVariable("Speech", to + "Male");
-}
-
-void Speech::import_0_5_0_Configuration()
-{
-	QString entry;
-
-	entry = config_file.readEntry("Speech", "ConnectionError", QString());
-	if (!entry.isEmpty())
-		config_file.writeEntry("Speech", "ConnectionError_Syntax", entry.replace("%1", "(#{errorServer}) #{error}"));
-	config_file.removeVariable("Speech", "ConnectionError");
-
-	entry = config_file.readEntry("Speech", "NotifyFormatFemale", QString());
-	if (!entry.isEmpty())
-	{
-		config_file.writeEntry("Speech", "StatusChanged/ToOnline_Syntax/Female", entry);
-		config_file.writeEntry("Speech", "StatusChanged/ToBusy_Syntax/Female", entry);
-		config_file.writeEntry("Speech", "StatusChanged/ToInvisible_Syntax/Female", entry);
-		config_file.writeEntry("Speech", "StatusChanged/ToOffline_Syntax/Female", entry);
-		config_file.writeEntry("Speech", "StatusChanged/ToTalkWithMe_Syntax/Female", entry);
-		config_file.writeEntry("Speech", "StatusChanged/ToDoNotDisturb_Syntax/Female", entry);
-	}
-	config_file.removeVariable("Speech", "NotifyFormatFemale");
-
-	entry = config_file.readEntry("Speech", "NotifyFormatMale", QString());
-	if (!entry.isEmpty())
-	{
-		config_file.writeEntry("Speech", "StatusChanged/ToOnline_Syntax/Male", entry);
-		config_file.writeEntry("Speech", "StatusChanged/ToBusy_Syntax/Male", entry);
-		config_file.writeEntry("Speech", "StatusChanged/ToInvisible_Syntax/Male", entry);
-		config_file.writeEntry("Speech", "StatusChanged/ToOffline_Syntax/Male", entry);
-		config_file.writeEntry("Speech", "StatusChanged/ToTalkWithMe_Syntax/Male", entry);
-		config_file.writeEntry("Speech", "StatusChanged/ToDoNotDisturb_Syntax/Male", entry);
-	}
-	config_file.removeVariable("Speech", "NotifyFormatMale");
-
-	import_0_5_0_ConfigurationFromTo("NewChat", "NewChat");
-	import_0_5_0_ConfigurationFromTo("NewMessage", "NewMessage");
-
-	bool arts = config_file.readBoolEntry("Speech", "UseArts", false);
-	bool esd = config_file.readBoolEntry("Speech", "UseEsd", false);
-	bool dsp = config_file.readBoolEntry("Speech", "UseDsp", false);
-
-	if (arts)
-		config_file.writeEntry("Speech", "SoundSystem", "aRts");
-	else if (esd)
-		config_file.writeEntry("Speech", "SoundSystem", "Eds");
-	else if (dsp)
-		config_file.writeEntry("Speech", "SoundSystem", "Dsp");
-
-	config_file.removeVariable("Speech", "UseArts");
-	config_file.removeVariable("Speech", "UseEsd");
-	config_file.removeVariable("Speech", "UseDsp");
-}
-
-void Speech::import_0_6_5_configuration()
-{
-
 }
 
 void Speech::say(const QString &s, const QString &path,
@@ -167,14 +96,14 @@ void Speech::say(const QString &s, const QString &path,
 
 	if (path.isEmpty())
 	{
-		t = config_file.readEntry("Speech","SpeechProgram", "powiedz");
-		klatt = config_file.readBoolEntry("Speech", "KlattSynt");
-		melody = config_file.readBoolEntry("Speech", "Melody");
-		soundSystem = config_file.readBoolEntry("Speech", "SoundSystem");
-		dev = config_file.readEntry("Speech", "DspDev", "/dev/dsp");
-		freq = config_file.readNumEntry("Speech", "Frequency");
-		tempo = config_file.readNumEntry("Speech", "Tempo");
-		basefreq = config_file.readNumEntry("Speech", "BaseFrequency");
+		t = Application::instance()->configuration()->deprecatedApi()->readEntry("Speech","SpeechProgram", "powiedz");
+		klatt = Application::instance()->configuration()->deprecatedApi()->readBoolEntry("Speech", "KlattSynt");
+		melody = Application::instance()->configuration()->deprecatedApi()->readBoolEntry("Speech", "Melody");
+		soundSystem = Application::instance()->configuration()->deprecatedApi()->readBoolEntry("Speech", "SoundSystem");
+		dev = Application::instance()->configuration()->deprecatedApi()->readEntry("Speech", "DspDev", "/dev/dsp");
+		freq = Application::instance()->configuration()->deprecatedApi()->readNumEntry("Speech", "Frequency");
+		tempo = Application::instance()->configuration()->deprecatedApi()->readNumEntry("Speech", "Tempo");
+		basefreq = Application::instance()->configuration()->deprecatedApi()->readNumEntry("Speech", "BaseFrequency");
 	}
 	else
 	{
@@ -238,14 +167,14 @@ void Speech::notify(Notification *notification)
 			sex = "Female";
 	}
 
-	QString syntax = config_file.readEntry("Speech", notification->type() + "_Syntax/" + sex, QString());
+	QString syntax = Application::instance()->configuration()->deprecatedApi()->readEntry("Speech", notification->type() + "_Syntax/" + sex, QString());
 	if (syntax.isEmpty())
 		text = notification->text();
 	else
 	{
 		QString details = notification->details().join(QLatin1String("\n"));
-		if (details.length() > config_file.readNumEntry("Speech", "MaxLength"))
-			syntax = config_file.readEntry("Speech", "MsgTooLong" + sex);
+		if (details.length() > Application::instance()->configuration()->deprecatedApi()->readNumEntry("Speech", "MaxLength"))
+			syntax = Application::instance()->configuration()->deprecatedApi()->readEntry("Speech", "MsgTooLong" + sex);
 
 		syntax = syntax.arg(details);
 

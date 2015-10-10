@@ -38,6 +38,7 @@
 
 #include "sound-exports.h"
 
+class QSound;
 class QThread;
 
 class SoundPlayer;
@@ -50,6 +51,7 @@ class SOUNDAPI SoundManager : public QObject
 	static SoundManager *Instance;
 
 	SoundPlayer *Player;
+	QSound *CurrentSound;
 
 	bool Mute;
 
@@ -59,7 +61,6 @@ class SOUNDAPI SoundManager : public QObject
 	SoundManager();
 	virtual ~SoundManager();
 
-	void import_0_6_5_configuration();
 	void createDefaultConfiguration();
 
 public slots:

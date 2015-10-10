@@ -20,8 +20,11 @@
 
 #include "os/generic/system-info.h"
 
-#include <QtCore/QCoreApplication>
+#include <QtCore/QChar>
+#include <QtCore/QDateTime>
 #include <QtCore/QLocale>
+#include <QtCore/QString>
+#include <QtWidgets/QApplication>
 
 namespace AdiumTimeFormatter
 {
@@ -212,11 +215,8 @@ while (length > NUM) \
 			case L'v':
 				// I don't understand the difference
 			case L'z':
-				if (length < 4)
-					str += SystemInfo::instance()->timezone();
-				else
-					// There should be localized name, but I don't know how get it
-					str += SystemInfo::instance()->timezone();
+				// There should be localized name, but I don't know how get it
+				str += SystemInfo::instance()->timezone();
 				break;
 			case L'Z':
 			{

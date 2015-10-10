@@ -25,15 +25,18 @@
 #include "avatars/avatar-manager.h"
 #include "avatars/avatar.h"
 #include "buddies/buddy-manager.h"
-#include "configuration/configuration-file.h"
+#include "configuration/configuration.h"
+#include "configuration/deprecated-configuration-api.h"
 #include "contacts/contact-details.h"
 #include "contacts/contact-manager.h"
+#include "core/application.h"
 #include "core/core.h"
 #include "misc/change-notifier.h"
 #include "protocols/protocol-factory.h"
 #include "protocols/protocol.h"
 #include "protocols/protocols-manager.h"
-#include "protocols/services/roster/roster-entry.h"
+#include "roster/roster-entry.h"
+#include "roster/roster-entry-state.h"
 
 #include "contact-shared.h"
 
@@ -59,7 +62,7 @@ ContactShared::ContactShared(const QUuid &uuid) :
 		Blocking(false), IgnoreNextStatusChange(false), Port(0)
 {
 	Entry = new RosterEntry(this);
-	connect(&Entry->changeNotifier(), SIGNAL(changed()), this, SIGNAL(dirtinessChanged()));
+	connect(&Entry->hasLocalChangesNotifier(), SIGNAL(changed()), this, SIGNAL(updatedLocally()));
 
 	ContactAccount = new Account();
 	ContactAvatar = new Avatar();
@@ -70,7 +73,6 @@ ContactShared::ContactShared(const QUuid &uuid) :
 	connect(ProtocolsManager::instance(), SIGNAL(protocolFactoryUnregistered(ProtocolFactory*)),
 	        this, SLOT(protocolFactoryUnregistered(ProtocolFactory*)));
 
-	connect(&Entry->changeNotifier(), SIGNAL(changed()), this, SLOT(changeNotifierChanged()));
 	connect(&changeNotifier(), SIGNAL(changed()), this, SLOT(changeNotifierChanged()));
 }
 
@@ -107,11 +109,6 @@ void ContactShared::load()
 	Id = loadValue<QString>("Id");
 	Priority = loadValue<int>("Priority", -1);
 
-	if (loadValue<bool>("Dirty", true))
-		Entry->setState(RosterEntryDesynchronized);
-	else
-		Entry->setState(RosterEntrySynchronized);
-
 	// It's an explicit hack for update path from 0.10.1-0.11.x to 0.12+. 0.10/0.11 didn't
 	// have Detached property. But they did have an explicit hack for totally ignoring
 	// what Facebook says about groups, thus allowing users to place their Facebook contacts
@@ -119,10 +116,16 @@ void ContactShared::load()
 	// by useless a Facebook-provided group until we try to upload something to roster
 	// for the first time, we fail and only then we set Detached to true, when group
 	// information is already lost.
-	if (!hasValue("Detached"))
-		Entry->setDetached(Id.endsWith(QLatin1String("@chat.facebook.com")));
+	bool detached = hasValue("Detached")
+		? loadValue<bool>("Detached", false)
+		: Id.endsWith(QLatin1String("@chat.facebook.com"));
+	bool dirty = loadValue<bool>("Dirty", true);
+	if (detached)
+		Entry->setDetached();
+	else if (dirty)
+		Entry->setHasLocalChanges();
 	else
-		Entry->setDetached(loadValue<bool>("Detached", false));
+		Entry->setSynchronized();
 
 	*ContactAccount = AccountManager::instance()->byUuid(loadValue<QString>("Account"));
 	doSetOwnerBuddy(BuddyManager::instance()->byUuid(loadValue<QString>("Buddy")));
@@ -158,9 +161,9 @@ void ContactShared::store()
 	storeValue("Id", Id);
 	storeValue("Priority", Priority);
 
-	storeValue("Dirty", RosterEntrySynchronized != Entry->state());
+	storeValue("Dirty", RosterEntryState::Synchronized != Entry->state());
 	// Detached property needs to be always stored, see the load() method.
-	storeValue("Detached", Entry->detached());
+	storeValue("Detached", RosterEntryState::Detached == Entry->state());
 
 	storeValue("Account", ContactAccount->uuid().toString());
 	storeValue("Buddy", !isAnonymous()
@@ -184,7 +187,7 @@ bool ContactShared::shouldStore()
 		return false;
 
 	// we dont need data for non-roster contacts only from 4 version of sql schema
-	if (config_file.readNumEntry("History", "Schema", 0) < 4)
+	if (Application::instance()->configuration()->deprecatedApi()->readNumEntry("History", "Schema", 0) < 4)
 		return true;
 
 	return !isAnonymous() || rosterEntry()->requiresSynchronization() || customProperties()->shouldStore();
@@ -220,8 +223,9 @@ void ContactShared::setOwnerBuddy(const Buddy &buddy)
 	doSetOwnerBuddy(buddy);
 	addToBuddy();
 
-	Entry->setState(RosterEntryDesynchronized);
+	Entry->setHasLocalChanges();
 	changeNotifier().notify();
+
 	emit buddyUpdated();
 }
 
@@ -308,7 +312,6 @@ void ContactShared::setId(const QString &id)
 	QString oldId = Id;
 	Id = id;
 
-	Entry->setState(RosterEntryDesynchronized);
 	changeNotifier().notify();
 }
 
@@ -375,7 +378,19 @@ void ContactShared::setContactAvatar(const Avatar &contactAvatar)
 		return;
 
 	doSetContactAvatar(contactAvatar);
+
 	changeNotifier().notify();
+}
+
+void ContactShared::setPriority(int priority)
+{
+	ensureLoaded();
+	if (Priority != priority)
+	{
+		Priority = priority;
+		changeNotifier().notify();
+		emit priorityUpdated();
+	}
 }
 
 bool ContactShared::isAnonymous()

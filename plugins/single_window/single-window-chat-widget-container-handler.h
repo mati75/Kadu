@@ -30,6 +30,7 @@
 #include <QtCore/QPointer>
 
 class SingleWindow;
+enum class OpenChatActivation;
 
 class SingleWindowChatWidgetContainerHandler : public ChatWidgetContainerHandler
 {
@@ -41,12 +42,13 @@ public:
 
 	void setSingleWindow(SingleWindow *singleWindow);
 
-	virtual bool acceptChatWidget(ChatWidget *chatWidget) const override;
-	virtual void addChatWidget(ChatWidget *chatWidget) override;
-	virtual void removeChatWidget(ChatWidget *chatWidget) override;
+	virtual bool acceptChat(Chat chat) const override;
+	virtual ChatWidget * addChat(Chat chat, OpenChatActivation activation) override;
+	virtual void removeChat(Chat chat) override;
 
 	virtual bool isChatWidgetActive(ChatWidget *chatWidget) override;
 	virtual void tryActivateChatWidget(ChatWidget *chatWidget) override;
+	virtual void tryMinimizeChatWidget(ChatWidget *chatWidget) override;
 
 private:
 	QPointer<SingleWindow> m_singleWindow;

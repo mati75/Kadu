@@ -31,7 +31,7 @@
 #include <QtCore/QList>
 #include <QtCore/QTimer>
 #include <QtGui/QIcon>
-#include <QtGui/QWidget>
+#include <QtWidgets/QWidget>
 
 #include "chat/chat.h"
 #include "configuration/configuration-aware-object.h"
@@ -62,9 +62,8 @@ class KADUAPI ChatWidget : public QWidget, public ConfigurationAwareObject
 	QPointer<FormattedStringFactory> CurrentFormattedStringFactory;
 
 	Chat CurrentChat;
-
 	ChatTopBarContainerWidget *TopBarContainer;
-	qobject_ptr<WebkitMessagesView> MessagesView;
+	owned_qptr<WebkitMessagesView> MessagesView;
 	FilteredTreeView *BuddiesWidget;
 	TalkableProxyModel *ProxyModel;
 	ChatEditBox *InputBox;
@@ -112,7 +111,7 @@ protected:
 	bool keyPressEventHandled(QKeyEvent *);
 
 public:
-	explicit ChatWidget(const Chat &chat, QWidget *parent = 0);
+	explicit ChatWidget(Chat chat, QWidget *parent = 0);
 	virtual ~ChatWidget();
 
 	void setFormattedStringFactory(FormattedStringFactory *formattedStringFactory);
@@ -152,15 +151,15 @@ public:
 	void kaduStoreGeometry();
 	void kaduRestoreGeometry();
 
+	void addMessages(const SortedMessages &messages);
+	void addMessage(const Message &message);
+	SortedMessages messages() const;
 	int countMessages() const;
 
 	void setUnreadMessagesCount(int unreadMessagesCount);
 	int unreadMessagesCount() const;
 
 public slots:
-	void appendMessages(const SortedMessages &messages);
-	void appendMessage(const Message &message);
-
 	void sendMessage();
 	void colorSelectorAboutToClose();
 	void clearChatWindow();

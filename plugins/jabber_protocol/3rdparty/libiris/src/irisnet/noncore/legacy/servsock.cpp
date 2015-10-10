@@ -103,7 +103,7 @@ ServSockSignal::ServSockSignal(QObject *parent)
 	setMaxPendingConnections(16);
 }
 
-void ServSockSignal::incomingConnection(int socketDescriptor)
+void ServSockSignal::incomingConnection(qintptr socketDescriptor)
 {
 	connectionReady(socketDescriptor);
 }

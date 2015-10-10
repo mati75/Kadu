@@ -31,15 +31,11 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <QtCore/QDir>
 #include <QtCore/QLibraryInfo>
-#include <QtCore/QLocale>
-#include <QtCore/QString>
-#include <QtCore/QStringList>
-#include <QtCore/QTimer>
 #include <QtCore/QTranslator>
-#include <QtGui/QApplication>
-#include <QtGui/QMessageBox>
+#include <QtCrypto/QtCrypto>
+#include <QtWidgets/QApplication>
+#include <QtWidgets/QMessageBox>
 
 #include <errno.h>
 #include <time.h>
@@ -49,23 +45,38 @@
 #include <sys/types.h>
 #include <pwd.h>
 #include <unistd.h>
-#else // !Q_OS_WIN32
-#include <winsock2.h>
 #endif // !Q_OS_WIN32
 
-#include "configuration/configuration-file.h"
-#include "configuration/xml-configuration-file.h"
+#include "configuration/configuration-api.h"
+#include "configuration/configuration-factory.h"
+#include "configuration/configuration-module.h"
+#include "configuration/configuration-path-provider.h"
+#include "configuration/configuration-unusable-exception.h"
+#include "configuration/configuration-writer.h"
+#include "configuration/configuration.h"
+#include "configuration/deprecated-configuration-api.h"
+#include "core/application.h"
 #include "core/core.h"
+#include "core/core-module.h"
+#include "execution-arguments/execution-arguments-parser.h"
+#include "execution-arguments/execution-arguments.h"
+#include "gui/gui-module.h"
+#include "gui/widgets/chat-widget/chat-widget-module.h"
+#include "gui/windows/chat-window/chat-window-module.h"
 #include "gui/windows/message-dialog.h"
-#include "os/qtsingleapplication/qtlocalpeer.h"
-#include "protocols/protocols-manager.h"
-
 #include "icons/icons-manager.h"
 #include "misc/date-time.h"
-#include "misc/kadu-paths.h"
+#include "misc/paths-provider.h"
+#include "os/single-application/single-application.h"
+#include "os/win/wsa-exception.h"
+#include "os/win/wsa-handler.h"
+#include "plugin/plugin-module.h"
+#include "protocols/protocols-manager.h"
+#include "roster/roster-module.h"
 #include "debug.h"
-#include "kadu-application.h"
 #include "kadu-config.h"
+
+#include <injeqt/injector.h>
 
 #ifndef Q_OS_WIN32
 #if HAVE_EXECINFO
@@ -134,28 +145,23 @@ static void kaduQtMessageHandler(QtMsgType type, const char *msg)
 extern KADUAPI bool showTimesInDebug;
 #endif
 
-static long int startTime, beforeExecTime, endingTime, exitingTime;
-static bool measureTime;
-
 // defined in main_unix.cpp and main_win32.cpp
 void enableSignalHandling();
 
 static void printVersion()
 {
-	printf("Kadu %s Copyright (c) 2001-2014 Kadu Team\n"
+	printf(
+		"Kadu %s Copyright (c) 2001-2014 Kadu Team\n"
 		"Compiled with Qt %s\nRunning on Qt %s\n",
 		qPrintable(Core::version()), QT_VERSION_STR, qVersion());
 }
 
 static void printUsage()
 {
-	printf("Usage: kadu [General Options] [Options]\n\n"
-		"Kadu Instant Messenger\n");
-}
-
-static void printKaduOptions()
-{
-	printf("\nGeneral Options:\n"
+	printf(
+		"Usage: kadu [General Options] [Options]\n\n"
+		"Kadu Instant Messenger\n"
+		"\nGeneral Options:\n"
 		"  --help                     Print Kadu options\n"
 		"  --version                  Print Kadu and Qt version\n"
 		"\nOptions:\n"
@@ -164,93 +170,70 @@ static void printKaduOptions()
 		"                             (overwrites CONFIG_DIR variable)\n");
 }
 
-int main(int argc, char *argv[])
+int main(int argc, char *argv[]) try
 {
-	bool ok;
-	long msec;
-	time_t sec;
-	FILE *logFile = 0;
-	QStringList ids;
+	WSAHandler wsaHandler;
 
-	getTime(&sec, &msec);
+	QCA::Initializer qcaInitializer;
 
-	beforeExecTime = 0;
-	endingTime = 0;
-	exitingTime = 0;
-	startTime = (sec % 1000) * 1000 + msec;
+	QApplication application{argc, argv};
+	application.setApplicationName("Kadu");
+	application.setQuitOnLastWindowClosed(false);
 
-#ifndef Q_OS_WIN32
-	// We want some sensible LC_COLLATE (i.e., not "C", if possible) to make
-	// QString::localeAwareCompare() work as expected.
-	QByteArray langEnv = qgetenv("LANG");
-	QByteArray lcAllEnv = qgetenv("LC_ALL");
-	if (langEnv.isEmpty() && lcAllEnv.isEmpty())
-		qputenv("LC_COLLATE", "en_US");
-	else if (lcAllEnv.isEmpty())
-		qputenv("LC_COLLATE", langEnv);
-#else // !Q_OS_WIN32
-	WSADATA wsaData;
-	if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0)
-		return 2;
-#endif // !Q_OS_WIN32
+	auto executionArgumentsParser = ExecutionArgumentsParser{};
+	// do not parse program name
+	auto executionArguments = executionArgumentsParser.parse(QCoreApplication::arguments().mid(1));
 
-	kdebugm(KDEBUG_INFO, "before creation of new KaduApplication\n");
-	new KaduApplication(argc, argv);
-	kdebugm(KDEBUG_INFO, "after creation of new KaduApplication\n");
-
-	auto arguments = QCoreApplication::arguments();
-	for (auto it = arguments.constBegin(); it != arguments.constEnd(); ++it)
+	if (executionArguments.queryVersion())
 	{
-		// do not parse program name
-		if (it == arguments.constBegin())
-			continue;
-
-		if (*it == QLatin1String("--version"))
-		{
-			printVersion();
-			delete qApp;
-#ifdef Q_OS_WIN32
-			WSACleanup();
-#endif
-			return 0;
-		}
-		else if (*it == QLatin1String("--help"))
-		{
-			printUsage();
-			printKaduOptions();
-			delete qApp;
-#ifdef Q_OS_WIN32
-			WSACleanup();
-#endif
-			return 0;
-		}
-		else if (*it == QLatin1String("--debug") && ++it != arguments.constEnd())
-		{
-			it->toInt(&ok);
-			if (ok)
-				qputenv("DEBUG_MASK", it->toUtf8());
-			else
-				fprintf(stderr, "Ignoring invalid debug mask '%s'\n", it->toUtf8().constData());
-		}
-		else if (*it == QLatin1String("--config-dir") && ++it != arguments.constEnd())
-			qputenv("CONFIG_DIR", it->toUtf8());
-		else if (QRegExp("^[a-zA-Z]*:(/){0,3}.*").exactMatch(*it))
-			ids.append(*it);
-		else
-			fprintf(stderr, "Ignoring unknown parameter '%s'\n", it->toUtf8().constData());
+		printVersion();
+		return 0;
 	}
 
-	// It has to be called after putting CONFIG_DIR environment variable.
-	KaduPaths::createInstance();
-
-	if (0 != qgetenv("SAVE_STDERR").toInt())
+	if (executionArguments.queryUsage())
 	{
-		const QByteArray logFilePath = QString(KaduPaths::instance()->profilePath() + QLatin1String("kadu.log.") + QDateTime::currentDateTime().toString("yyyy.MM.dd.hh.mm.ss")).toLocal8Bit();
-		logFile = freopen(logFilePath.constData(), "w", stderr);
-		if (!logFile)
-			printf("freopen failed: %s\nstderr is now broken\n", strerror(errno));
+		printUsage();
+		return 0;
+	}
+
+	if (!executionArguments.debugMask().isEmpty())
+	{
+		bool ok;
+		executionArguments.debugMask().toInt(&ok);
+		if (ok)
+			qputenv("DEBUG_MASK", executionArguments.debugMask().toUtf8());
 		else
-			printf("logging all stderr output to file: %s\n", logFilePath.constData());
+			fprintf(stderr, "Ignoring invalid debug mask '%s'\n", executionArguments.debugMask().toUtf8().constData());
+	}
+
+	auto profileDirectory = executionArguments.profileDirectory().isEmpty()
+			? QString::fromUtf8(qgetenv("CONFIG_DIR"))
+			: executionArguments.profileDirectory();
+
+	auto modules = std::vector<std::unique_ptr<injeqt::module>>{};
+	modules.emplace_back(make_unique<ChatWidgetModule>());
+	modules.emplace_back(make_unique<ChatWindowModule>());
+	modules.emplace_back(make_unique<CoreModule>(std::move(profileDirectory)));
+	modules.emplace_back(make_unique<ConfigurationModule>());
+	modules.emplace_back(make_unique<GuiModule>());
+	modules.emplace_back(make_unique<PluginModule>());
+	modules.emplace_back(make_unique<RosterModule>());
+
+	auto injector = injeqt::injector{std::move(modules)};
+
+	try
+	{
+		injector.get<Application>(); // force creation of Application object
+	}
+	catch (ConfigurationUnusableException &)
+	{
+		auto profilePath = injector.get<ConfigurationPathProvider>()->configurationDirectoryPath();
+		auto errorMessage = QCoreApplication::translate("@default", "We're sorry, but Kadu cannot be loaded. "
+				"Profile is inaccessible. Please check permissions in the '%1' directory.")
+				.arg(profilePath.left(profilePath.length() - 1));
+		QMessageBox::critical(0, QCoreApplication::translate("@default", "Profile Inaccessible"), errorMessage, QMessageBox::Abort);
+
+		throw;
 	}
 
 #ifndef Q_OS_WIN32
@@ -258,104 +241,92 @@ int main(int argc, char *argv[])
 	qInstallMsgHandler(kaduQtMessageHandler);
 #endif
 
-	xml_config_file = new XmlConfigFile();
-	if (!xml_config_file->isUsable())
-	{
-		QString errorMessage = QCoreApplication::translate("@default", "We're sorry, but Kadu cannot be loaded. "
-				"Profile is inaccessible. Please check permissions in the '%1' directory.")
-				.arg(KaduPaths::instance()->profilePath().left(KaduPaths::instance()->profilePath().length() - 1));
-		QMessageBox::critical(0, QCoreApplication::translate("@default", "Profile Inaccessible"), errorMessage, QMessageBox::Abort);
-		qFatal("%s", qPrintable(errorMessage));
-	}
-	config_file_ptr = new ConfigFile(KaduPaths::instance()->profilePath() + QLatin1String("kadu.conf"));
-
 #ifdef DEBUG_OUTPUT_ENABLED
 	showTimesInDebug = (0 != qgetenv("SHOW_TIMES").toInt());
 #endif
 
 	enableSignalHandling();
 
-	const QString lang = config_file.readEntry("General", "Language", QLocale::system().name().left(2));
-	QTranslator qt_qm, kadu_qm;
-	qt_qm.load("qt_" + lang, QLibraryInfo::location(QLibraryInfo::TranslationsPath));
-	kadu_qm.load("kadu_" + lang, KaduPaths::instance()->dataPath() + QLatin1String("translations"));
+	auto lang = Application::instance()->configuration()->deprecatedApi()->readEntry("General", "Language", QLocale::system().name().left(2));
+
+	QTranslator qt_qm;
+	QTranslator qtbase_qm;
+	QTranslator qtdeclarative_qm;
+	QTranslator qtmultimedia_qm;
+	QTranslator qtquick1_qm;
+	QTranslator qtscript_qm;
+	QTranslator qtxmlpatterns_qm;
+	QTranslator kadu_qm;
+
+	qt_qm.load("qt_" + lang, Application::instance()->pathsProvider()->dataPath() + QLatin1String("translations"));
+	qtbase_qm.load("qtbase_" + lang, Application::instance()->pathsProvider()->dataPath() + QLatin1String("translations"));
+	qtdeclarative_qm.load("qtdeclarative_" + lang, Application::instance()->pathsProvider()->dataPath() + QLatin1String("translations"));
+	qtmultimedia_qm.load("qtmultimedia_" + lang, Application::instance()->pathsProvider()->dataPath() + QLatin1String("translations"));
+	qtquick1_qm.load("qtquick1_" + lang, Application::instance()->pathsProvider()->dataPath() + QLatin1String("translations"));
+	qtscript_qm.load("qtscript_" + lang, Application::instance()->pathsProvider()->dataPath() + QLatin1String("translations"));
+	qtxmlpatterns_qm.load("qtxmlpatterns_" + lang, Application::instance()->pathsProvider()->dataPath() + QLatin1String("translations"));
+	kadu_qm.load("kadu_" + lang, Application::instance()->pathsProvider()->dataPath() + QLatin1String("translations"));
+
 	QCoreApplication::installTranslator(&qt_qm);
+	QCoreApplication::installTranslator(&qtbase_qm);
+	QCoreApplication::installTranslator(&qtdeclarative_qm);
+	QCoreApplication::installTranslator(&qtmultimedia_qm);
+	QCoreApplication::installTranslator(&qtquick1_qm);
+	QCoreApplication::installTranslator(&qtscript_qm);
+	QCoreApplication::installTranslator(&qtxmlpatterns_qm);
 	QCoreApplication::installTranslator(&kadu_qm);
 
-	QtLocalPeer *peer = new QtLocalPeer(qApp, KaduPaths::instance()->profilePath());
-	if (peer->isClient())
-	{
-		if (!ids.isEmpty())
-			foreach (const QString &id, ids)
-				peer->sendMessage(id, 1000);
+	auto ret = 0;
+	auto applicationId = QString{"kadu-%1"}.arg(Application::instance()->pathsProvider()->profilePath());
+
+	auto executeAsFirst = [&](){
+		Core::createInstance(injector);
+		Core::instance()->createGui();
+		Core::instance()->runGuiServices();
+
+		Core::instance()->activatePlugins();
+
+		for (auto const &id : executionArguments.openIds())
+			Core::instance()->executeRemoteCommand(id);
+
+		// it has to be called after loading modules (docking might want to block showing the window)
+		Core::instance()->showMainWindow();
+		Core::instance()->initialized();
+
+		ret = QApplication::exec();
+		kdebugm(KDEBUG_INFO, "after exec\n");
+		kdebugm(KDEBUG_INFO, "exiting main\n");
+	};
+
+	auto executeAsNext = [&](SingleApplication &singleApplication){
+		if (!executionArguments.openIds().isEmpty())
+			for (auto const &id : executionArguments.openIds())
+				singleApplication.sendMessage(id, 1000);
 		else
-			peer->sendMessage("activate", 1000);
+			singleApplication.sendMessage("activate", 1000);
 
-		delete config_file_ptr;
-		delete xml_config_file;
-		delete qApp;
-#ifdef Q_OS_WIN32
-		WSACleanup();
-#endif
+		ret = 1;
+	};
 
-		return 1;
-	}
+	auto receivedMessage = [&](const QString &message){
+		Core::instance()->executeRemoteCommand(message);
+	};
 
-	Core::instance()->createGui();
-	Core::instance()->runGuiServices();
-	QObject::connect(peer, SIGNAL(messageReceived(const QString &)),
-			Core::instance(), SLOT(receivedSignal(const QString &)));
-
-	Core::instance()->activatePlugins();
-
-	foreach (const QString &id, ids)
-		Core::instance()->receivedSignal(id);
-
-	/* for testing of startup / close time */
-	int closeAfter = qgetenv("CLOSE_AFTER").toInt(&ok);
-	if (ok && closeAfter >= 0)
-		QTimer::singleShot(closeAfter, qApp, SLOT(quit()));
-	if (0 != qgetenv("MEASURE_TIME").toInt())
-	{
-		getTime(&sec, &msec);
-		beforeExecTime = (sec % 1000) * 1000 + msec;
-	}
-
-	// it has to be called after loading modules (docking might want to block showing the window)
-	Core::instance()->showMainWindow();
-	Core::instance()->initialized();
-
-	int ret = qApp->exec();
-	kdebugm(KDEBUG_INFO, "after exec\n");
-
-	delete xml_config_file;
-	delete config_file_ptr;
-
-	xml_config_file = 0;
-	config_file_ptr = 0;
-
-	// On some systems it leads to crash with sms module.
-	// Reproducible by simply calling "delete new QScriptEngine();" in a module,
-	// so it's probably a bug in Qt. Sigh.
-	//delete qApp;
-
-#ifdef Q_OS_WIN32
-	WSACleanup();
-#endif
-
-	if (measureTime)
-	{
-		getTime(&sec, &msec);
-		exitingTime = (sec % 1000) * 1000 + msec;
-		fprintf(stderr, "init time: %ld, run time: %ld, ending time: %ld\n",
-				beforeExecTime - startTime, endingTime - beforeExecTime, exitingTime - endingTime);
-	}
-
-	kdebugm(KDEBUG_INFO, "exiting main\n");
-
-	if (logFile)
-		fclose(logFile);
-	KaduPaths::destroyInstance();
+	SingleApplication singleApplication{applicationId, executeAsFirst, executeAsNext, receivedMessage};
 
 	return ret;
+}
+#if defined(Q_OS_WIN32)
+catch (WSAException &)
+{
+	return 2;
+}
+#endif
+catch (ConfigurationUnusableException &)
+{
+	// already handled
+}
+catch (...)
+{
+	throw;
 }

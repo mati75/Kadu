@@ -24,9 +24,9 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <QtGui/QDialogButtonBox>
-#include <QtGui/QPushButton>
-#include <QtGui/QVBoxLayout>
+#include <QtWidgets/QDialogButtonBox>
+#include <QtWidgets/QPushButton>
+#include <QtWidgets/QVBoxLayout>
 
 #include "chat/buddy-chat-manager.h"
 #include "configuration/config-file-variant-wrapper.h"
@@ -143,7 +143,7 @@ void HistoryWindow::keyPressEvent(QKeyEvent *event)
 void HistoryWindow::storageChanged(HistoryStorage *historyStorage)
 {
 	// TODO: fix it right, this is workaround only for crash when closing kadu with this window open
-	if (Core::instance()->isClosing())
+	if (Core::instance() && Core::instance()->isClosing())
 		return;
 
 	if (historyStorage)

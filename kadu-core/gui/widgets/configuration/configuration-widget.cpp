@@ -26,15 +26,17 @@
  */
 
 #include <QtCore/QFile>
-#include <QtGui/QApplication>
-#include <QtGui/QDialogButtonBox>
-#include <QtGui/QHBoxLayout>
-#include <QtGui/QListWidget>
-#include <QtGui/QVBoxLayout>
-#include <QtGui/QWidget>
+#include <QtWidgets/QApplication>
+#include <QtWidgets/QDialogButtonBox>
+#include <QtWidgets/QHBoxLayout>
+#include <QtWidgets/QListWidget>
+#include <QtWidgets/QVBoxLayout>
+#include <QtWidgets/QWidget>
 #include <QtXml/QDomElement>
 
-#include "configuration/configuration-file.h"
+#include "configuration/configuration.h"
+#include "configuration/deprecated-configuration-api.h"
+#include "core/application.h"
 #include "gui/widgets/configuration/config-action-button.h"
 #include "gui/widgets/configuration/config-check-box.h"
 #include "gui/widgets/configuration/config-color-button.h"
@@ -60,7 +62,7 @@
 #include "gui/widgets/configuration/configuration-widget.h"
 #include "gui/windows/configuration-window.h"
 #include "icons/kadu-icon.h"
-#include "misc/kadu-paths.h"
+#include "misc/paths-provider.h"
 
 #include "debug.h"
 
@@ -95,7 +97,7 @@ ConfigurationWidget::ConfigurationWidget(ConfigurationWindowDataManager *dataMan
 ConfigurationWidget::~ConfigurationWidget()
 {
 	if (SectionsListWidget->currentItem())
-		config_file.writeEntry("General", "ConfigurationWindow_" + Name, SectionsListWidget->currentItem()->text());
+		Application::instance()->configuration()->deprecatedApi()->writeEntry("General", "ConfigurationWindow_" + Name, SectionsListWidget->currentItem()->text());
 
 	disconnect(SectionsListWidget, 0, this, 0);
 
@@ -109,11 +111,16 @@ ConfigurationWidget::~ConfigurationWidget()
 
 void ConfigurationWidget::init()
 {
-	QString lastSection = config_file.readEntry("General", "ConfigurationWindow_" + Name);
-	if (ConfigSections.contains(lastSection))
-		ConfigSections.value(lastSection)->activate();
+	auto lastSection = Application::instance()->configuration()->deprecatedApi()->readEntry("General", "ConfigurationWindow_" + Name);
+	auto section = ConfigSections.value(lastSection);
+	if (section)
+		section->activate();
 	else if (SectionsListWidget->count() > 0)
-		ConfigSections.value(SectionsListWidget->item(0)->text())->activate();
+	{
+		auto firstSection = ConfigSections.value(SectionsListWidget->item(0)->text());
+		if (firstSection)
+			firstSection->activate();
+	}
 }
 
 QList<ConfigWidget *> ConfigurationWidget::appendUiFile(const QString &fileName, bool load)
@@ -213,7 +220,7 @@ QList<ConfigWidget *> ConfigurationWidget::processUiSectionFromDom(QDomNode sect
 	QString iconPath = sectionElement.attribute("icon");
 	// Additional slash is needed so that QUrl would treat the rest as _path_, which is desired here.
 	if (iconPath.startsWith("datapath:///"))
-		iconPath = KaduPaths::instance()->dataPath() + iconPath.midRef(static_cast<int>(qstrlen("datapath:///")));
+		iconPath = Application::instance()->pathsProvider()->dataPath() + iconPath.midRef(static_cast<int>(qstrlen("datapath:///")));
 	configSection(KaduIcon(iconPath), QCoreApplication::translate("@default", sectionName.toUtf8().constData()), true);
 
 	const QDomNodeList children = sectionElement.childNodes();
@@ -527,8 +534,12 @@ void ConfigurationWidget::changeSection(const QString &newSectionName)
 		CurrentSection->hide();
 
 	CurrentSection = newSection;
-	newSection->show();
-	newSection->activate();
+
+	if (CurrentSection)
+	{
+		CurrentSection->show();
+		CurrentSection->activate();
+	}
 }
 
 void ConfigurationWidget::configSectionDestroyed(QObject *obj)

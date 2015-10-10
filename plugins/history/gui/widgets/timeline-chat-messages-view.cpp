@@ -19,19 +19,19 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <QtGui/QScrollBar>
-#include <QtGui/QSplitter>
-#include <QtGui/QTreeView>
-#include <QtGui/QVBoxLayout>
+#include <QtWidgets/QScrollBar>
+#include <QtWidgets/QSplitter>
+#include <QtWidgets/QTreeView>
+#include <QtWidgets/QVBoxLayout>
 
 #include "chat-style/engine/chat-style-renderer-factory-provider.h"
 #include "core/core.h"
 #include "gui/scoped-updates-disabler.h"
 #include "gui/web-view-highlighter.h"
-#include "gui/widgets/webkit-messages-view/webkit-messages-view.h"
-#include "gui/widgets/webkit-messages-view/webkit-messages-view-factory.h"
 #include "gui/widgets/search-bar.h"
 #include "gui/widgets/wait-overlay.h"
+#include "gui/widgets/webkit-messages-view/webkit-messages-view-factory.h"
+#include "gui/widgets/webkit-messages-view/webkit-messages-view.h"
 #include "message/sorted-messages.h"
 #include "model/roles.h"
 

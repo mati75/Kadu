@@ -33,8 +33,11 @@
 
 #include <QtCore/QFile>
 #include <QtCore/QThread>
+#include <QtMultimedia/QSound>
 
-#include "configuration/configuration-file.h"
+#include "configuration/configuration.h"
+#include "configuration/deprecated-configuration-api.h"
+#include "core/application.h"
 #include "debug.h"
 #include "themes.h"
 
@@ -58,15 +61,15 @@ void SoundManager::destroyInstance()
 }
 
 SoundManager::SoundManager() :
-		Player(0), Mute(false)
+		Player{nullptr},
+		CurrentSound{nullptr},
+		Mute{false}
 {
 	kdebugf();
 
-	import_0_6_5_configuration();
 	createDefaultConfiguration();
 
-	setMute(!config_file.readBoolEntry("Sounds", "PlaySound"));
-
+	setMute(!Application::instance()->configuration()->deprecatedApi()->readBoolEntry("Sounds", "PlaySound"));
 
 	PlayThread = new QThread();
 	PlayThreadObject = new SoundPlayThread();
@@ -87,38 +90,37 @@ SoundManager::~SoundManager()
 
 	PlayThreadObject->end();
 
-	PlayThread->wait(5000);
+	PlayThread->wait(500);
 	if (PlayThread->isRunning())
 	{
 		kdebugm(KDEBUG_WARNING, "terminating play_thread!\n");
 		PlayThread->terminate();
-		PlayThread->wait(2000);
+		PlayThread->wait(200);
 	}
+
+	PlayThread->deleteLater();
+	PlayThreadObject->deleteLater();
+
+	delete CurrentSound;
 
 	kdebugf2();
 }
 
-void SoundManager::import_0_6_5_configuration()
-{
-	config_file.addVariable("Notify", "StatusChanged/ToAway_Sound",
-			config_file.readEntry("Notify", "StatusChanged/ToAway_Sound"));
-}
-
 void SoundManager::createDefaultConfiguration()
 {
-	config_file.addVariable("Notify", "ConnectionError_Sound", false);
-	config_file.addVariable("Notify", "InvalidPassword_Sound", false);
-	config_file.addVariable("Notify", "NewChat_Sound", true);
-	config_file.addVariable("Notify", "NewMessage_Sound", true);
-	config_file.addVariable("Notify", "StatusChanged/ToFreeForChat", false);
-	config_file.addVariable("Notify", "StatusChanged/ToOnline_Sound", false);
-	config_file.addVariable("Notify", "StatusChanged/ToAway_Sound", false);
-	config_file.addVariable("Notify", "FileTransfer/IncomingFile_Sound", true);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Notify", "ConnectionError_Sound", false);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Notify", "InvalidPassword_Sound", false);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Notify", "NewChat_Sound", true);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Notify", "NewMessage_Sound", true);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Notify", "StatusChanged/ToFreeForChat", false);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Notify", "StatusChanged/ToOnline_Sound", false);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Notify", "StatusChanged/ToAway_Sound", false);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Notify", "FileTransfer/IncomingFile_Sound", true);
 
-	config_file.addVariable("Sounds", "PlaySound", true);
-	config_file.addVariable("Sounds", "SoundPaths", QString());
-	config_file.addVariable("Sounds", "SoundTheme", "default");
-	config_file.addVariable("Sounds", "SoundVolume", 100);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Sounds", "PlaySound", true);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Sounds", "SoundPaths", QString());
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Sounds", "SoundTheme", "default");
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Sounds", "SoundVolume", 100);
 }
 
 bool SoundManager::isMuted() const
@@ -136,8 +138,21 @@ void SoundManager::playFile(const QString &path, bool force)
 	if (isMuted() && !force)
 		return;
 
-	if (Player && QFile::exists(path))
+	if (!QFile::exists(path))
+		return;
+
+	if (CurrentSound && !CurrentSound->isFinished())
+		return;
+
+	if (Player)
+	{
 		PlayThreadObject->play(Player, path);
+		return;
+	}
+
+	delete CurrentSound;
+	CurrentSound = new QSound{path};
+	CurrentSound->play();
 }
 
 void SoundManager::playSoundByName(const QString &soundName)
@@ -145,7 +160,7 @@ void SoundManager::playSoundByName(const QString &soundName)
 	if (isMuted())
 		return;
 
-	QString file = config_file.readEntry("Sounds", soundName + "_sound");
+	QString file = Application::instance()->configuration()->deprecatedApi()->readEntry("Sounds", soundName + "_sound");
 	playFile(file);
 }
 

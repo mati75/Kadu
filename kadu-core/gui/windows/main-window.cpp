@@ -22,29 +22,31 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 #include <QtGui/QContextMenuEvent>
-#include <QtGui/QMenu>
+#include <QtWidgets/QMenu>
 
 #include "accounts/account-manager.h"
 #include "buddies/buddy-set.h"
 #include "buddies/buddy.h"
-#include "configuration/configuration-file.h"
+#include "configuration/configuration-api.h"
 #include "configuration/configuration-manager.h"
-#include "configuration/toolbar-configuration-manager.h"
-#include "configuration/xml-configuration-file.h"
+#include "configuration/configuration.h"
+#include "configuration/configuration.h"
+#include "configuration/deprecated-configuration-api.h"
+#include "core/application.h"
 #include "core/core.h"
 #include "gui/actions/action.h"
 #include "gui/actions/actions.h"
+#include "gui/configuration/toolbar-configuration-manager.h"
 #include "gui/widgets/talkable-tree-view.h"
 #include "gui/widgets/toolbar.h"
-
 #include "debug.h"
 
 #include "main-window.h"
 
-#ifdef Q_WS_X11
-#include <QtGui/QX11Info>
+#if defined(Q_OS_UNIX) && !defined(Q_OS_MAC)
+#include <QtX11Extras/QX11Info>
 
-#include "os/x11tools.h" // this should be included as last one,
+#include "os/x11/x11tools.h" // this should be included as last one,
 #undef KeyPress
 #undef Status            // and Status defined by Xlib.h must be undefined
 #endif
@@ -179,12 +181,12 @@ void MainWindow::loadToolBarsFromConfig(Qt::ToolBarArea area)
 
 bool MainWindow::loadOldToolBarsFromConfig(const QString &configName, Qt::ToolBarArea area)
 {
-	QDomElement toolbarsConfig = xml_config_file->findElement(xml_config_file->rootElement(), "Toolbars");
+	QDomElement toolbarsConfig = Application::instance()->configuration()->api()->findElement(Application::instance()->configuration()->api()->rootElement(), "Toolbars");
 
 	if (toolbarsConfig.isNull())
 		return false;
 
-	QDomElement dockareaConfig = xml_config_file->findElementByProperty(toolbarsConfig, "DockArea", "name", configName);
+	QDomElement dockareaConfig = Application::instance()->configuration()->api()->findElementByProperty(toolbarsConfig, "DockArea", "name", configName);
 	if (dockareaConfig.isNull())
 		return false;
 
@@ -196,9 +198,9 @@ bool MainWindow::loadOldToolBarsFromConfig(const QString &configName, Qt::ToolBa
 
 QDomElement MainWindow::getToolbarsConfigElement()
 {
-	QDomElement toolbarsConfig = xml_config_file->findElement(xml_config_file->rootElement(), "Toolbars");
+	QDomElement toolbarsConfig = Application::instance()->configuration()->api()->findElement(Application::instance()->configuration()->api()->rootElement(), "Toolbars");
 	if (toolbarsConfig.isNull())
-		toolbarsConfig = xml_config_file->createElement(xml_config_file->rootElement(), "Toolbars");
+		toolbarsConfig = Application::instance()->configuration()->api()->createElement(Application::instance()->configuration()->api()->rootElement(), "Toolbars");
 
 	return toolbarsConfig;
 }
@@ -234,10 +236,10 @@ QDomElement MainWindow::getDockAreaConfigElement(Qt::ToolBarArea area)
 
 QDomElement MainWindow::getDockAreaConfigElement(QDomElement toolbarsConfig, const QString &name)
 {
-	QDomElement dockAreaConfig = xml_config_file->findElementByProperty(toolbarsConfig, "DockArea", "name", name);
+	QDomElement dockAreaConfig = Application::instance()->configuration()->api()->findElementByProperty(toolbarsConfig, "DockArea", "name", name);
 	if (dockAreaConfig.isNull())
 	{
-		dockAreaConfig = xml_config_file->createElement(toolbarsConfig, "DockArea");
+		dockAreaConfig = Application::instance()->configuration()->api()->createElement(toolbarsConfig, "DockArea");
 		dockAreaConfig.setAttribute("name", name);
 	}
 
@@ -246,24 +248,24 @@ QDomElement MainWindow::getDockAreaConfigElement(QDomElement toolbarsConfig, con
 
 void MainWindow::addToolButton(QDomElement toolbarConfig, const QString &actionName, Qt::ToolButtonStyle style)
 {
-	QDomElement buttonConfig = xml_config_file->findElementByProperty(toolbarConfig, "ToolButton", "action_name", actionName);
+	QDomElement buttonConfig = Application::instance()->configuration()->api()->findElementByProperty(toolbarConfig, "ToolButton", "action_name", actionName);
 //don't add element if exists
 	if (!buttonConfig.isNull())
 		return;
-	buttonConfig = xml_config_file->createElement(toolbarConfig, "ToolButton");
+	buttonConfig = Application::instance()->configuration()->api()->createElement(toolbarConfig, "ToolButton");
 	buttonConfig.setAttribute("action_name", actionName);
 	buttonConfig.setAttribute("toolbutton_style", style);
 }
 
 QDomElement MainWindow::findExistingToolbarOnArea(const QString &areaName)
 {
-	QDomElement dockAreaConfig = xml_config_file->findElementByProperty(getToolbarsConfigElement(), "DockArea", "name", areaName);
+	QDomElement dockAreaConfig = Application::instance()->configuration()->api()->findElementByProperty(getToolbarsConfigElement(), "DockArea", "name", areaName);
 	QDomElement nullResult;
 
 	if (dockAreaConfig.isNull())
 		return nullResult;
 
-	QDomElement toolbarElement = xml_config_file->findElement(dockAreaConfig, "ToolBar");
+	QDomElement toolbarElement = Application::instance()->configuration()->api()->findElement(dockAreaConfig, "ToolBar");
 	if (toolbarElement.isNull())
 		return nullResult;
 
@@ -293,7 +295,7 @@ QDomElement MainWindow::findExistingToolbar(const QString &prefix)
 		return toolbarElement;
 
 	QDomElement dockAreaConfig = getDockAreaConfigElement(getToolbarsConfigElement(), realPrefix + "topDockArea");
-	return xml_config_file->createElement(dockAreaConfig, "ToolBar");
+	return Application::instance()->configuration()->api()->createElement(dockAreaConfig, "ToolBar");
 }
 
 void MainWindow::writeToolBarsToConfig()
@@ -307,7 +309,7 @@ void MainWindow::writeToolBarsToConfig()
 void MainWindow::writeToolBarsToConfig(Qt::ToolBarArea area)
 {
 	QDomElement dockAreaConfig = getDockAreaConfigElement(area);
-	xml_config_file->removeChildren(dockAreaConfig);
+	Application::instance()->configuration()->api()->removeChildren(dockAreaConfig);
 
 	// TODO: laaaaame
 	foreach(QObject *child, children())
@@ -333,7 +335,7 @@ void MainWindow::refreshToolBars()
 {
 	// We don't need it when closing.
 	// BTW, on Mac it caused crashes on exit. TODO: check out why, as there is probably a bug somewhere.
-	if (Core::instance()->isClosing())
+	if (Core::instance() && Core::instance()->isClosing())
 		return;
 
 	loadToolBarsFromConfig();
@@ -473,7 +475,7 @@ ActionContext * MainWindow::actionContext()
 
 void MainWindow::setBlur(bool enable)
 {
-#if !defined(Q_WS_X11)
+#if !defined(Q_OS_UNIX) || defined(Q_OS_MAC)
 	Q_UNUSED(enable);
 #else
 	BlurEnabled = enable;

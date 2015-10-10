@@ -34,15 +34,16 @@
 #include <QtCore/QProcess>
 #include <QtCore/QRegExp>
 #include <QtCore/QUrl>
-#include <QtGui/QApplication>
 #include <QtGui/QDesktopServices>
-#include <QtGui/QDesktopWidget>
+#include <QtWidgets/QApplication>
+#include <QtWidgets/QDesktopWidget>
 
 #include "accounts/account-manager.h"
 #include "accounts/account.h"
 #include "buddies/buddy-list.h"
 #include "buddies/buddy-set.h"
-#include "configuration/configuration-file.h"
+#include "configuration/configuration.h"
+#include "configuration/deprecated-configuration-api.h"
 #include "contacts/contact-manager.h"
 #include "gui/widgets/chat-widget/chat-widget-manager.h"
 #include "gui/windows/message-dialog.h"

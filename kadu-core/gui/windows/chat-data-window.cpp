@@ -23,14 +23,14 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <QtGui/QApplication>
-#include <QtGui/QCheckBox>
-#include <QtGui/QDialogButtonBox>
 #include <QtGui/QKeyEvent>
-#include <QtGui/QLabel>
-#include <QtGui/QLineEdit>
-#include <QtGui/QPushButton>
-#include <QtGui/QVBoxLayout>
+#include <QtWidgets/QApplication>
+#include <QtWidgets/QCheckBox>
+#include <QtWidgets/QDialogButtonBox>
+#include <QtWidgets/QLabel>
+#include <QtWidgets/QLineEdit>
+#include <QtWidgets/QPushButton>
+#include <QtWidgets/QVBoxLayout>
 
 #include "buddies/group.h"
 #include "chat/chat-manager.h"
@@ -45,8 +45,8 @@
 #include "gui/widgets/group-list.h"
 #include "gui/widgets/simple-configuration-value-state-notifier.h"
 #include "icons/icons-manager.h"
-#include "misc/change-notifier.h"
 #include "misc/change-notifier-lock.h"
+#include "misc/change-notifier.h"
 #include "os/generic/window-geometry-manager.h"
 #include "activate.h"
 
@@ -109,10 +109,13 @@ void ChatDataWindow::factoryUnregistered(ChatConfigurationWidgetFactory *factory
 	if (ChatConfigurationWidgets.contains(factory))
 	{
 		ChatConfigurationWidget *widget = ChatConfigurationWidgets.value(factory);
-		if (widget->stateNotifier())
-			ValueStateNotifier->removeConfigurationValueStateNotifier(widget->stateNotifier());
-		emit widgetRemoved(widget);
-		widget->deleteLater();
+		if (widget)
+		{
+			if (widget->stateNotifier())
+				ValueStateNotifier->removeConfigurationValueStateNotifier(widget->stateNotifier());
+			emit widgetRemoved(widget);
+			widget->deleteLater();
+		}
 		ChatConfigurationWidgets.remove(factory);
 	}
 }

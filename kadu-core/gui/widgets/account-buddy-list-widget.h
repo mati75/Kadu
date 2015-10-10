@@ -27,15 +27,14 @@
 #ifndef ACCOUNT_BUDDY_LIST_WIDGET_H
 #define ACCOUNT_BUDDY_LIST_WIDGET_H
 
-#include <QtGui/QPushButton>
-#include <QtGui/QWidget>
+#include <QtWidgets/QPushButton>
+#include <QtWidgets/QWidget>
 
 #include "accounts/account.h"
 #include "buddies/buddy-list.h"
 
 #include "exports.h"
 
-class ContactListService;
 class FilteredTreeView;
 
 class KADUAPI AccountBuddyListWidget : public QWidget

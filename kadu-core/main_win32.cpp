@@ -23,17 +23,19 @@
 
 #include <QtCore/QDateTime>
 #include <QtCore/QLibrary>
-#include <QtGui/QApplication>
-#include <QtGui/QMessageBox>
+#include <QtWidgets/QApplication>
+#include <QtWidgets/QMessageBox>
 
-#include "configuration/configuration-file.h"
+#include "configuration/configuration.h"
+#include "configuration/deprecated-configuration-api.h"
 #include "core/core.h"
 
 #include <windows.h>
 #ifdef _MSC_VER
 #include <dbghelp.h>
 #endif
-#include "configuration/xml-configuration-file.h"
+#include "configuration/configuration-api.h"
+#include "configuration/configuration.h"
 #include "core/crash-aware-object.h"
 
 #ifdef _MSC_VER
@@ -90,7 +92,7 @@ LONG WINAPI exception_handler(struct _EXCEPTION_POINTERS *e)
 	}
 
 	// if we cannot make crash dump only save config file to backup
-	xml_config_file->makeBackup();
+	KaduApplication::instance()->configuration()->backup();
 	return ret;
 #else
 	MessageBoxW(NULL, L"Mini dumps are not available in this build.", L"Kadu crashed", MB_OK | MB_ICONERROR);

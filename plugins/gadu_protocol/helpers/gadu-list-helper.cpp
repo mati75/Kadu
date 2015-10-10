@@ -32,7 +32,6 @@
 #include "contacts/contact-manager.h"
 #include "contacts/contact.h"
 #include "protocols/protocol.h"
-#include "protocols/roster.h"
 
 #include "misc/misc.h"
 #include "debug.h"
@@ -40,19 +39,6 @@
 #include "../gadu-contact-details.h"
 
 #include "gadu-list-helper.h"
-
-void GaduListHelper::setSupportedBuddyInformation(const Buddy &destination, const Buddy &source)
-{
-	destination.setFirstName(source.firstName());
-	destination.setLastName(source.lastName());
-	destination.setNickName(source.nickName());
-	destination.setDisplay(source.display());
-	destination.setMobile(source.mobile());
-	destination.setGroups(source.groups());
-	destination.setEmail(source.email());
-	destination.setOfflineTo(source.isOfflineTo());
-	destination.setHomePhone(source.homePhone());
-}
 
 QString GaduListHelper::contactToLine70(Contact contact)
 {
@@ -84,14 +70,19 @@ QString GaduListHelper::contactToLine70(Contact contact)
 
 QByteArray GaduListHelper::buddyListToByteArray(Account account, const BuddyList &buddies)
 {
-	kdebugf();
+	auto contacts = QVector<Contact>{};
+	for (auto &&buddy : buddies)
+		contacts += buddy.contacts(account);
+	return contactListToByteArray(contacts);
+}
 
-	QStringList result;
+QByteArray GaduListHelper::contactListToByteArray(const QVector<Contact> &contacts)
+{
+	auto result = QStringList{};
 	result.append("GG70ExportString");
 
-	foreach (const Buddy &buddy, buddies)
-		foreach (const Contact &contact, buddy.contacts(account))
-			result.append(contactToLine70(contact));
+	for (auto &&contact : contacts)
+		result.append(contactToLine70(contact));
 
 	return result.join("\n").toUtf8();
 }
@@ -258,8 +249,6 @@ BuddyList GaduListHelper::streamPost70ToBuddyList(const QString &line, Account a
 				contact.setId(numberElement.text());
 				contact.data()->setState(StorableObject::StateNew);
 				contact.setOwnerBuddy(buddy);
-
-				Roster::instance()->addContact(contact);
 			}
 
 			buddy.setAnonymous(false);
@@ -320,8 +309,6 @@ Buddy GaduListHelper::linePre70ToBuddy(Account account, QStringList &sections)
 				details->setState(StorableObject::StateNew);
 			contact.data()->setState(StorableObject::StateNew);
 			contact.setOwnerBuddy(buddy);
-
-			Roster::instance()->addContact(contact);
 		}
 	}
 
@@ -393,8 +380,6 @@ Buddy GaduListHelper::line70ToBuddy(Account account, QStringList &sections)
 				details->setState(StorableObject::StateNew);
 			contact.data()->setState(StorableObject::StateNew);
 			contact.setOwnerBuddy(buddy);
-
-			Roster::instance()->addContact(contact);
 		}
 	}
 

@@ -21,17 +21,17 @@
  */
 
 #include <QtCore/QFileInfo>
-#include <QtGui/QApplication>
-#include <QtGui/QCheckBox>
-#include <QtGui/QDialogButtonBox>
-#include <QtGui/QFormLayout>
-#include <QtGui/QLabel>
-#include <QtGui/QPushButton>
-#include <QtGui/QStyle>
+#include <QtWidgets/QApplication>
+#include <QtWidgets/QCheckBox>
+#include <QtWidgets/QDialogButtonBox>
+#include <QtWidgets/QFormLayout>
+#include <QtWidgets/QLabel>
+#include <QtWidgets/QPushButton>
+#include <QtWidgets/QStyle>
 
 #include "gui/windows/message-dialog.h"
 #include "identities/identity-manager.h"
-#include "misc/kadu-paths.h"
+#include "misc/paths-provider.h"
 
 #include "plugins/history_migration/history-importer-manager.h"
 #include "plugins/history_migration/history-importer.h"
@@ -113,7 +113,7 @@ void ImportProfilesWindow::accept()
 
 		QString path = QFileInfo(profile.Path).isAbsolute()
 				? profile.Path
-				: KaduPaths::homePath() + '/' + profile.Path;
+				: PathsProvider::homePath() + '/' + profile.Path;
 
 		ProfileImporter importer(path + "/kadu/kadu.conf.xml");
 		if (importer.import(IdentityManager::instance()->byName(profile.Name, true)))

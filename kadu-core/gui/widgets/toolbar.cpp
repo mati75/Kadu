@@ -31,20 +31,22 @@
 #include <QtGui/QContextMenuEvent>
 #include <QtGui/QCursor>
 #include <QtGui/QDragEnterEvent>
-#include <QtGui/QMenu>
 #include <QtGui/QPainter>
-#include <QtGui/QToolButton>
+#include <QtWidgets/QMenu>
+#include <QtWidgets/QToolButton>
 #include <QtXml/QDomElement>
 
-#include "configuration/configuration-file.h"
-#include "configuration/xml-configuration-file.h"
+#include "configuration/configuration-api.h"
+#include "configuration/configuration.h"
+#include "configuration/deprecated-configuration-api.h"
+#include "core/application.h"
 #include "gui/actions/actions.h"
 #include "gui/windows/main-window.h"
 #include "gui/windows/message-dialog.h"
 #include "icons/icons-manager.h"
 #include "icons/kadu-icon.h"
-#include "misc/change-notifier.h"
 #include "misc/change-notifier-lock.h"
+#include "misc/change-notifier.h"
 #include "misc/misc.h"
 #include "debug.h"
 
@@ -148,14 +150,18 @@ ToolBarSpacer * ToolBar::createSpacer(QAction *before, ToolBarAction &action)
 QToolButton * ToolBar::createPushButton(QAction *before, ToolBarAction &action)
 {
 	if (!Actions::instance()->contains(action.actionName))
-		return 0;
+		return nullptr;
 
 	MainWindow *kaduMainWindow = qobject_cast<MainWindow *>(parentWidget());
 	if (!kaduMainWindow)
-		return 0;
+		return nullptr;
 
-	if (!kaduMainWindow->supportsActionType(Actions::instance()->value(action.actionName)->type()))
-		return 0;
+	auto actionByName = Actions::instance()->value(action.actionName);
+	if (!actionByName)
+		return nullptr;
+
+	if (!kaduMainWindow->supportsActionType(actionByName->type()))
+		return nullptr;
 
 	action.action = Actions::instance()->createAction(action.actionName, kaduMainWindow->actionContext(), kaduMainWindow);
 	insertAction(before, action.action);
@@ -306,14 +312,21 @@ void ToolBar::dragEnterEvent(QDragEnterEvent *event)
 		QString actionName;
 		Qt::ToolButtonStyle style;
 
-		MainWindow *mainWindow = 0;
-		if (ActionDrag::decode(event, actionName, style) &&
-				(event->source() == this ||
-				(Actions::instance()->contains(actionName) &&
-					(mainWindow = qobject_cast<MainWindow *>(parentWidget())) &&
-					mainWindow->supportsActionType(Actions::instance()->value(actionName)->type())) ||
-				actionName.startsWith(QLatin1String("__separator")) ||
-				actionName.startsWith(QLatin1String("__spacer"))))
+		auto decoded = ActionDrag::decode(event, actionName, style);
+		if (!decoded)
+		{
+			event->ignore();
+			return;
+		}
+
+		auto mine = source == this;
+		auto action = Actions::instance()->value(actionName);
+		auto mainWindow = qobject_cast<MainWindow *>(parentWidget());
+		auto supportedAction = action && mainWindow && mainWindow->supportsActionType(action->type());
+		auto isSeparator = actionName.startsWith(QLatin1String("__separator"));
+		auto isSpacer = actionName.startsWith(QLatin1String("__spacer"));
+
+		if (mine || supportedAction || isSeparator || isSpacer)
 		{
 			dragging = true;
 			updateDropMarker();
@@ -557,7 +570,7 @@ void ToolBar::contextMenuEvent(QContextMenuEvent *e)
 
 void ToolBar::configurationUpdated()
 {
-	QDomElement toolbarsConfig = xml_config_file->findElement(xml_config_file->rootElement(), "Toolbars");
+	QDomElement toolbarsConfig = Application::instance()->configuration()->api()->findElement(Application::instance()->configuration()->api()->rootElement(), "Toolbars");
 
 	if (!toolbarsConfig.hasAttribute("blocked"))
 		toolbarsConfig.setAttribute("blocked", "1");
@@ -572,14 +585,14 @@ void ToolBar::configurationUpdated()
 void ToolBar::writeToConfig(const QDomElement &parent_element)
 {
 	kdebugf();
-	QDomElement toolbar_elem = xml_config_file->createElement(parent_element, "ToolBar");
+	QDomElement toolbar_elem = Application::instance()->configuration()->api()->createElement(parent_element, "ToolBar");
 
 	toolbar_elem.setAttribute("x_offset", pos().x());
 	toolbar_elem.setAttribute("y_offset", pos().y());
 
 	foreach (const ToolBarAction &toolBarAction, ToolBarActions)
 	{
-		QDomElement button_elem = xml_config_file->createElement(toolbar_elem, "ToolButton");
+		QDomElement button_elem = Application::instance()->configuration()->api()->createElement(toolbar_elem, "ToolButton");
 		if (toolBarAction.actionName.startsWith(QLatin1String("__separator")))
 			button_elem.setAttribute("action_name", "__separator");
 		else if (toolBarAction.actionName.startsWith(QLatin1String("__spacer")))
@@ -828,18 +841,18 @@ void ToolBar::removeToolbar()
 
 bool ToolBar::isBlockToolbars()
 {
-	QDomElement toolbarsConfig = xml_config_file->findElement(xml_config_file->rootElement(), "Toolbars");
+	QDomElement toolbarsConfig = Application::instance()->configuration()->api()->findElement(Application::instance()->configuration()->api()->rootElement(), "Toolbars");
 	if (toolbarsConfig.isNull())
-		toolbarsConfig = xml_config_file->createElement(xml_config_file->rootElement(), "Toolbars");
+		toolbarsConfig = Application::instance()->configuration()->api()->createElement(Application::instance()->configuration()->api()->rootElement(), "Toolbars");
 
 	return toolbarsConfig.attribute("blocked") == "1";
 }
 
 void ToolBar::setBlockToolbars(bool checked)
 {
-	QDomElement toolbarsConfig = xml_config_file->findElement(xml_config_file->rootElement(), "Toolbars");
+	QDomElement toolbarsConfig = Application::instance()->configuration()->api()->findElement(Application::instance()->configuration()->api()->rootElement(), "Toolbars");
 	if (toolbarsConfig.isNull())
-		toolbarsConfig = xml_config_file->createElement(xml_config_file->rootElement(), "Toolbars");
+		toolbarsConfig = Application::instance()->configuration()->api()->createElement(Application::instance()->configuration()->api()->rootElement(), "Toolbars");
 
 	toolbarsConfig.setAttribute("blocked", checked ? "1" : "0");
 	ConfigurationAwareObject::notifyAll();

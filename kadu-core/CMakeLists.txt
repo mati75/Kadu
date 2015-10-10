@@ -11,53 +11,36 @@ else ()
 	message (STATUS "Fast (re)linking disabled")
 endif ()
 
-if (UNIX AND NOT APPLE)
-	if (NOT DEFINED WITH_LIBINDICATE_QT OR WITH_LIBINDICATE_QT)
-		find_package (PkgConfig)
-		pkg_search_module (LIBINDICATE_QT indicate-qt)
-	endif ()
-
-	option (WITH_LIBINDICATE_QT "Compile with Messaging Menu (Ayatana) support through libindicate-qt" "${LIBINDICATE_QT_FOUND}")
-	set (KADU_WITH_LIBINDICATE_QT ${WITH_LIBINDICATE_QT} PARENT_SCOPE)  # Do not use it here, it's in parent scope
-
-	if (WITH_LIBINDICATE_QT)
-		if (NOT LIBINDICATE_QT_FOUND)
-			message (SEND_ERROR "Could NOT find libindicate-qt")
-		else ()
-			message (STATUS "Found libindicate-qt. Enabling Ayatana support")
-			# We need to link core to libindicate-qt so that indicator_docking
-			# doesn't crash at unloading. And it crashes mainly because dbus-glib
-			# doesn't support being dlclose()'d, so there is no better workaround.
-			link_directories (${LIBINDICATE_QT_LIBRARY_DIRS})
-			add_definitions (${LIBINDICATE_QT_CFLAGS_OTHER})
-			include_directories (${LIBINDICATE_QT_INCLUDE_DIRS})
-			list (APPEND ADDITIONAL_LIBRARIES ${LIBINDICATE_QT_LIBRARIES})
-		endif ()
-	else ()
-		message (STATUS "Could NOT find libindicate-qt. Disabling Ayatana support")
-	endif ()
-endif ()
-
-if (NOT DEFINED NETWORK_IMPLEMENTATION OR "${NETWORK_IMPLEMENTATION}" STREQUAL "ntrack")
-	find_package (QNtrack 010)
-endif ()
+# if ((NOT DEFINED NETWORK_IMPLEMENTATION AND NOT Qt5Core_FOUND) OR "${NETWORK_IMPLEMENTATION}" STREQUAL "ntrack")
+# 	find_package (QNtrack 010)
+# endif ()
 
 if (NOT DEFINED NETWORK_IMPLEMENTATION)
-	if (QNTRACK_FOUND)
-		message (STATUS "No NETWORK_IMPLEMENTATION defined. Autodetected implementation: ntrack")
-		set (NETWORK_IMPLEMENTATION "ntrack")
-	else ()
+#	if (QNTRACK_FOUND)
+#		message (STATUS "No NETWORK_IMPLEMENTATION defined. Autodetected implementation: ntrack")
+#		set (NETWORK_IMPLEMENTATION "ntrack")
+#	else ()
 		message (STATUS "No NETWORK_IMPLEMENTATION defined. Autodetected implementation: Qt")
 		set (NETWORK_IMPLEMENTATION "Qt")
-	endif ()
+#	endif ()
 endif ()
 
 set (NETWORK_IMPLEMENTATION "${NETWORK_IMPLEMENTATION}" CACHE STRING "Select network-aware implementation (Qt/ntrack/dummy)" FORCE)
 
 if ("${NETWORK_IMPLEMENTATION}" STREQUAL "ntrack")
-	list (APPEND ADDITIONAL_LIBRARIES ${QNTRACK_LIBRARIES})
+	list (APPEND ADDITIONAL_LIBKADU_LIBRARIES ${QNTRACK_LIBRARIES})
 endif ()
 # The rest of NETWORK_IMPLEMENTATION stuff is handled in network/CMakeLists.txt.
+
+# injeqt
+find_package (PkgConfig)
+pkg_check_modules (INJEQT REQUIRED injeqt>=1.0.0)
+set (INJEQT_DEFINITIONS ${INJEQT_CFLAGS_OTHER})
+include_directories (${INJEQT_INCLUDEDIR})
+link_directories (${INJEQT_LIBRARY_DIRS})
+
+list (APPEND ADDITIONAL_LIBKADU_LIBRARIES ${INJEQT_LIBRARIES})
+list (APPEND ADDITIONAL_LIBRARIES ${INJEQT_LIBRARIES})
 
 configure_file (kadu-config.h.in "${CMAKE_CURRENT_BINARY_DIR}/kadu-config.h" ESCAPE_QUOTES)
 include_directories ("${CMAKE_CURRENT_BINARY_DIR}")
@@ -65,34 +48,31 @@ include_directories ("${CMAKE_CURRENT_BINARY_DIR}")
 set (kadu_SRCS
 	activate.cpp
 	debug.cpp
-	kadu-application.cpp
 	languages-manager.cpp
 	themes.cpp
 	updates.cpp
 
-	os/qtsingleapplication/qtlocalpeer.cpp
-	os/qtsingleapplication/qtlockedfile.cpp
+	os/single-application/long-lived-lock-file.cpp
+	os/single-application/single-application.cpp
 )
 
 if (WIN32)
 	list (APPEND kadu_SRCS
-		os/qtsingleapplication/qtlockedfile_win.cpp
 		kadu.rc
-	)
-else ()
-	list (APPEND kadu_SRCS
-		os/qtsingleapplication/qtlockedfile_unix.cpp
 	)
 endif ()
 
 if (UNIX AND NOT APPLE)
 	list (APPEND kadu_SRCS
-		os/x11tools.cpp
+		os/x11/x11tools.cpp
 	)
 endif ()
 
 set (main_SRCS
 	main.cpp
+
+	os/single-application/long-lived-lock-file.cpp
+	os/single-application/single-application.cpp
 )
 
 if (WIN32)
@@ -107,11 +87,8 @@ else ()
 endif ()
 
 set (kadu_MOC_SRCS
-	kadu-application.h
 	themes.h
 	updates.h
-
-	os/qtsingleapplication/qtlocalpeer.h
 )
 
 set (kadu_SUBDIRS
@@ -125,6 +102,8 @@ set (kadu_SUBDIRS
 	contacts
 	core
 	dom
+	execution-arguments
+	file-system
 	file-transfer
 	formatted-string
 	gui
@@ -141,6 +120,7 @@ set (kadu_SUBDIRS
 	plugin
 	protocols
 	qt
+	roster
 	services
 	status
 	storage
@@ -148,11 +128,6 @@ set (kadu_SUBDIRS
 	themes
 	url-handlers
 )
-
-find_package (QCA2 REQUIRED)
-include_directories (${QCA2_INCLUDE_DIR})
-add_definitions (${QCA2_DEFINITIONS})
-list (APPEND ADDITIONAL_LIBRARIES ${QCA2_LIBRARIES})
 
 find_package (LibArchive 2.6.0 REQUIRED)
 include (CheckLibraryExists)
@@ -163,7 +138,7 @@ if (NOT have_libarchive_lzma_support OR NOT have_libarchive_xz_support)
 endif ()
 
 include_directories (${LibArchive_INCLUDE_DIRS})
-list (APPEND ADDITIONAL_LIBRARIES ${LibArchive_LIBRARIES})
+list (APPEND ADDITIONAL_LIBKADU_LIBRARIES ${LibArchive_LIBRARIES})
 
 if (UNIX AND NOT APPLE)
 	find_package (X11 REQUIRED COMPONENTS X11 Xutil Xfixes)
@@ -174,11 +149,11 @@ if (UNIX AND NOT APPLE)
 	endif ()
 
 	include_directories (${X11_INCLUDE_DIR})
-	list (APPEND ADDITIONAL_LIBRARIES ${X11_X11_LIB} ${X11_Xfixes_LIB})
+	list (APPEND ADDITIONAL_LIBKADU_LIBRARIES ${X11_X11_LIB} ${X11_Xfixes_LIB})
 endif ()
 
 if (APPLE)
-	list (APPEND ADDITIONAL_LIBRARIES "-framework carbon")
+	list (APPEND ADDITIONAL_LIBKADU_LIBRARIES "-framework carbon")
 endif ()
 
 macro (kadu_subdirectory SUBDIR SRCS MOC_SRCS ADDITIONAL_INCLUDES)
@@ -229,16 +204,27 @@ if (FAST_LINKING)
 	endif ()
 endif ()
 
-target_link_libraries (libkadu LINK_PRIVATE ${QT_LIBRARIES} ${ADDITIONAL_LIBRARIES})
+qt5_use_modules (libkadu LINK_PRIVATE Core Gui Widgets Xml Network WebKit WebKitWidgets Declarative)
+if (UNIX AND NOT APPLE)
+	qt5_use_modules (libkadu LINK_PRIVATE DBus X11Extras)
+endif ()
+
+message (${ADDITIONAL_LIBKADU_LIBRARIES})
+target_link_libraries (libkadu LINK_PRIVATE ${ADDITIONAL_LIBKADU_LIBRARIES})
+
+find_package (QCA2 REQUIRED)
 
 add_executable (kadu WIN32 ${main_SRCS})
 kadu_set_flags (kadu)
-target_link_libraries (kadu LINK_PRIVATE libkadu ${QT_LIBRARIES} ${QT_QTMAIN_LIBRARY})
+qt5_use_modules (kadu LINK_PRIVATE Core Gui Widgets Network Xml)
+target_link_libraries (kadu LINK_PRIVATE libkadu ${ADDITIONAL_LIBRARIES} ${QCA2_LIBRARIES})
+
 if (NOT IS_ABSOLUTE "${KADU_INSTALL_LIB_DIR}")
 	set (install_full_lib_dir "${CMAKE_INSTALL_PREFIX}/${KADU_INSTALL_LIB_DIR}")
 else ()
 	set (install_full_lib_dir "${KADU_INSTALL_LIB_DIR}")
 endif ()
+
 set_target_properties (kadu PROPERTIES
 	INSTALL_RPATH "${install_full_lib_dir}/kadu"
 	BUILD_WITH_INSTALL_RPATH TRUE
@@ -257,11 +243,21 @@ endif ()
 if (WIN32)
 	add_executable (kadu_c ${main_SRCS})
 	kadu_set_flags (kadu_c)
+	qt5_use_modules (kadu_c LINK_PRIVATE Core Gui Widgets Network Xml)
+	target_link_libraries (kadu_c LINK_PRIVATE libkadu ${ADDITIONAL_LIBRARIES} ${QCA2_LIBRARIES})
+
+	# Do not link against qtmain on Windows
+	cmake_policy(SET CMP0020 OLD)
 
 	set_property (TARGET kadu_c APPEND PROPERTY COMPILE_DEFINITIONS KADU_CONSOLE)
 
+	set_property (TARGET kadu_c PROPERTY Qt5_NO_LINK_QTMAIN TRUE)
+	set_property (TARGET kadu PROPERTY Qt5_NO_LINK_QTMAIN TRUE)
+	set_property (TARGET libkadu PROPERTY Qt5_NO_LINK_QTMAIN TRUE)
+
 	target_link_libraries (kadu LINK_PRIVATE ws2_32)
-	target_link_libraries (kadu_c LINK_PRIVATE libkadu ${QT_LIBRARIES} ws2_32)
+	target_link_libraries (libkadu LINK_PRIVATE ws2_32)
+	target_link_libraries (kadu_c LINK_PRIVATE ws2_32)
 
 	install (TARGETS kadu_c DESTINATION ${KADU_INSTALL_BIN_DIR})
 
@@ -310,6 +306,8 @@ kadu_api_directories (kadu-core
 	contacts/model
 	core
 	dom
+	execution-arguments
+	file-system
 	file-transfer
 	formatted-string
 	gui
@@ -322,6 +320,7 @@ kadu_api_directories (kadu-core
 	gui/widgets/configuration
 	gui/widgets/dialog
 	gui/widgets/chat-widget
+	gui/widgets/group-tab-bar
 	gui/widgets/webkit-messages-view
 	chat-style/engine
 	gui/windows
@@ -345,13 +344,17 @@ kadu_api_directories (kadu-core
 	os/qtsingleapplication
 	parser
 	plugin
+	plugin/activation
+	plugin/metadata
 	plugin/model
+	plugin/state
 	protocols
 	protocols/filter
 	protocols/model
 	protocols/services
 	protocols/services/roster
 	provider
+	roster
 	qt
 	services
 	status

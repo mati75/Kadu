@@ -25,8 +25,10 @@
 #include "notify/notification-manager.h"
 #include "notify/notification/notification.h"
 
-#include "configuration/configuration-file.h"
+#include "configuration/configuration.h"
+#include "configuration/deprecated-configuration-api.h"
 
+#include "core/application.h"
 #include "icons/icons-manager.h"
 #include "activate.h"
 #include "debug.h"
@@ -43,7 +45,6 @@ WindowNotifier::WindowNotifier(QObject *parent) :
 {
 	kdebugf();
 
-	import_0_6_5_configuration();
 	createDefaultConfiguration();
 	NotificationManager::instance()->registerNotifier(this);
 
@@ -76,14 +77,9 @@ void WindowNotifier::notificationClosed(Notification *notification)
 	notification->release(this);
 }
 
-void WindowNotifier::import_0_6_5_configuration()
-{
-    	config_file.addVariable("Notify", "StatusChanged/ToAway_Window", config_file.readEntry("Notify", "StatusChanged/ToBusy_Window"));
-}
-
 void WindowNotifier::createDefaultConfiguration()
 {
-	config_file.addVariable("Notify", "FileTransfer/IncomingFile_Window", true);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Notify", "FileTransfer/IncomingFile_Window", true);
 }
 
 /** @} */

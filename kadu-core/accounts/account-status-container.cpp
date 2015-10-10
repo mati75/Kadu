@@ -19,7 +19,8 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "configuration/configuration-file.h"
+#include "configuration/configuration.h"
+#include "configuration/deprecated-configuration-api.h"
 #include "icons/kadu-icon.h"
 #include "protocols/protocol-factory.h"
 #include "protocols/protocol.h"

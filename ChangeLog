@@ -1,3 +1,70 @@
++++ version 2.1
+* gui: #2970 fixed: Esc closes chat windows (Vogel)
+* gui: #2995 fixed: fix licence window on Linux (Vogel)
+* gadu: #2996 fixed: set status to offline after disconnected because of multilogin (Vogel)
+
++++ version 2.0
+* unity: #2699 fixed: force indicator_docking on Unity (Vogel)
+* translations: complete French translation (darkpumpkins)
+
++++ version 2.0-rc3
+* core: various crashes fixed (Vogel)
+* gui: #2732 implemented: do not download avatars when showing them is disabled (Vogel)
+* translations: update French translation (darkpumpkins)
+
++++ version 2.0-rc2
+* gui: #2940 fixed: crash on exit when not using tabs plugin (Vogel)
+* otr: #2947 fixed: <span> marks in GG messages when otr is enabled (Vogel)
+* translations: complete Turkish translation (kardanadam26)
+* hints: #2924 fixed: not displaying avatars (Vogel)
+
++++ version 2.0-rc1
+* translations: #2943 fixed: re-added Qt translation files (Vogel)
+* translations: add Turkish translation (kardanadam26)
+
++++ version 2.0-beta1
+* docking: #2921 done: change tooltip text on Windows (Vogel)
+* hints: #2922 fixed: invalid images on Windows (Vogel)
+* gui: #2920 fixed: problems with Open chat minimized option (Vogel)
+* windows: #2923 fixed: Kadu hangs for few seconds from time to time (Vogel)
+* gui: #2925 fixed: invalid plugin category names on Windows (Vogel)
+* chat: #2930 fixed: count of unread messages is now proper when chat window is minimized (Vogel)
+* chat: #2929 fixed: improve blinking timing on chat window with new messages (Vogel)
+* tabs: #2934 fixed: properly handle common close button settings (Vogel)
+* chat: #2928 fixed: properly hadnle disabling "Store opened chats" option (Vogel)
+* sound: #2931 fixed: player thread could block itself on exit and never end (Vogel)
+* windows: #2909 fixed: does not restore window geometry when "Start minimized" is on (Vogel)
+* sound: #2935 fixed: sound playing works properly (Vogel)
+
++++ version 2.0-alpha2
+* windows: #2858 fixed: blinking main window on Kadu exit (Vogel)
+* windows: #2910 fixed: unable to remove stale lock file (Vogel)
+* windows: #2915 fixed: invalid tray tooltip (Vogel)
+* windows: #2914 fixed: avatars not displayed properly in Open Chat with... window (Vogel)
+* gadu: #2893 fixed: never show as online to buddies with 'Offline to' option on (Vogel)
+* firewall: #2917 fixed: unable to set log file path (Vogel)
+
++++ version 2.0-alpha1
+* qt: port to Qt 5.2 (beevvy)
+* chat: #2669 implemented: store content of input box in chat widgets (Vogel)
+* mediaplayer: #943 fixed: disable mediaplayer statuses after changing it manually (Vogel)
+* chat: #1219 implemented: paste and send action added to chat widget (Vogel)
+* gui: #2818 implemented: add option to open chat windows minimized on incoming message (Vogel)
+* gui: #1510 implemented: hide description option also affects notifications (Vogel)
+* plugins: #2825 implemented: plugin categories are now translated (Vogel)
+* core: #2885 done: remove support for configuration files of Kadu 0.6.5 (Vogel)
+* indicator_docking: #2682 done: support for new versions of Unity (Vogel)
+* unity_integration: #2892 done: display number of unread messages in Unity Launcher (Vogel)
+* jabber: #2886 fixed: add option to stay in chat room after closing chat window (Vogel)
+
++++ version 1.5
+* otr: #2895 fixed: strange error messages when using libotr5-4.1.0 (Vogel)
+* history: #2902 fixed: clear history menu item dissappears after a second (Vogel)
+
++++ version 1.4
+* hints: #2905 fixed: crash after clicking on hint (Vogel)
+* gadu: #2906 fixed: random disconnections (Vogel)
+
 +++ version 1.3
 * gui: #2869 fixed: uuids visible in info panel after adding new buddy (Vogel)
 * bsd: #2894 fixed: fix build on FreeBSD (Pekala)
@@ -30,7 +97,6 @@
 
 +++ version 1.0-rc9
 * jabber: #2851 fixed: properly support special chars (Vogel)
-* jabber: #2850 fixed: long sign on time on windows (Vogel)
 
 +++ version 1.0-rc8
 * themes: #2844 fixed: more formats of archives supported (Vogel)
@@ -60,6 +126,10 @@
 +++ version 1.0-rc3
 * windows: fixed windows build (Vogel)
 * jabber: #2800 fixed: unable to change buddy name with Facebook account to its real name (Vogel)
+
++++ version 1.0-rc3
+* windows: build fixes (Vogel)
+* debian: build fixes (Vogel)
 
 +++ version 1.0-rc2
 * misc: misc fixes (Vogel)
@@ -1040,7 +1110,7 @@
 * mediaplayer: #1319 fixed: force mediaplayer to work only when we want it (Juzef)
 * gui: fixed minimized windows actiwation (ultr)
 * gui: #1260 fixed: icons for add-new-account and add-existing-account added (Juzef)
-* qt4_sound: many fixed (Dorr)
+* qt4_sound: many fixes (Dorr)
 * single_window: module ported to 0.6.6 (Dorr)
 * word_fix: module ported to 0.6.6 (Dorr)
 * pc_speaker: module ported to 0.6.6 (Dorr)

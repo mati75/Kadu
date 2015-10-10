@@ -36,12 +36,14 @@
  */
 
 #include <QtCore/QTimer>
-#include <QtGui/QApplication>
-#include <QtGui/QMenu>
 #include <QtGui/QMouseEvent>
 #include <QtGui/QTextDocument>
+#include <QtWidgets/QApplication>
+#include <QtWidgets/QMenu>
 
-#include "configuration/configuration-file.h"
+#include "configuration/configuration.h"
+#include "configuration/deprecated-configuration-api.h"
+#include "core/application.h"
 #include "core/core.h"
 #include "gui/widgets/chat-widget/chat-widget-manager.h"
 #include "gui/widgets/status-menu.h"
@@ -296,7 +298,7 @@ void DockingManager::defaultToolTip()
 	if (!CurrentDocker)
 		return;
 
-	if (config_file.readBoolEntry("General", "ShowTooltipInTray"))
+	if (Application::instance()->configuration()->deprecatedApi()->readBoolEntry("General", "ShowTooltipInTray"))
 	{
 		QString tiptext("");
 
@@ -306,7 +308,7 @@ void DockingManager::defaultToolTip()
 
 		Status status = StatusContainerManager::instance()->status();
 
-		tiptext += QString("%1:\n%1").arg(tr("Status"), status.displayName());
+		tiptext += QString("%1: %2").arg(tr("Status"), status.displayName());
 
 		if (!status.description().isEmpty())
 			tiptext += QString("\n\n%1:\n%2").arg(tr("Description"), status.description());
@@ -486,7 +488,7 @@ void DockingManager::setDocker(Docker *docker)
 		changeIcon();
 		defaultToolTip();
 #ifndef Q_OS_MAC
-		if (config_file.readBoolEntry("General", "RunDocked"))
+		if (Application::instance()->configuration()->deprecatedApi()->readBoolEntry("General", "RunDocked"))
 			Core::instance()->setShowMainWindowOnStart(false);
 		Core::instance()->kaduWindow()->setDocked(true);
 	}
@@ -630,7 +632,7 @@ void DockingManager::statusContainerUnregistered(StatusContainer *statusContaine
 
 void DockingManager::configurationUpdated()
 {
-	if (config_file.readBoolEntry("General", "ShowTooltipInTray"))
+	if (Application::instance()->configuration()->deprecatedApi()->readBoolEntry("General", "ShowTooltipInTray"))
 		defaultToolTip();
 	else
 	{
@@ -638,7 +640,7 @@ void DockingManager::configurationUpdated()
 			CurrentDocker->changeTrayTooltip(QString());
 	}
 
-	IconType it = (IconType)config_file.readNumEntry("Look", "NewMessageIcon");
+	IconType it = (IconType)Application::instance()->configuration()->deprecatedApi()->readNumEntry("Look", "NewMessageIcon");
 	if (newMessageIcon != it)
 	{
 		newMessageIcon = it;
@@ -648,9 +650,9 @@ void DockingManager::configurationUpdated()
 
 void DockingManager::createDefaultConfiguration()
 {
-	config_file.addVariable("General", "RunDocked", false);
-	config_file.addVariable("General", "ShowTooltipInTray", true);
-	config_file.addVariable("Look", "NewMessageIcon", 0);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("General", "RunDocked", false);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("General", "ShowTooltipInTray", true);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Look", "NewMessageIcon", 0);
 }
 
 void DockingManager::registerModuleAction(QAction *action)

@@ -21,8 +21,9 @@
 
 #include "exports.h"
 
-#include <QtCore/QObject>
 #include <QtCore/QList>
+#include <QtCore/QObject>
+#include <injeqt/injeqt.h>
 
 class ChatWidgetContainerHandler;
 
@@ -45,7 +46,7 @@ class KADUAPI ChatWidgetContainerHandlerRepository : public QObject
 public:
 	using iterator = QList<ChatWidgetContainerHandler *>::iterator;
 
-	explicit ChatWidgetContainerHandlerRepository(QObject *parent = nullptr);
+	Q_INVOKABLE explicit ChatWidgetContainerHandlerRepository(QObject *parent = nullptr);
 	virtual ~ChatWidgetContainerHandlerRepository();
 
 	void registerChatWidgetContainerHandler(ChatWidgetContainerHandler *chatWidgetContainerHandler);

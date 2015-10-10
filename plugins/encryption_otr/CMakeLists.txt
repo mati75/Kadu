@@ -36,6 +36,7 @@ set (SOURCES
 	otr-is-logged-in-service.cpp
 	otr-message-event-service.cpp
 	otr-message-service.cpp
+	otr-module.cpp
 	otr-notifier.cpp
 	otr-op-data.cpp
 	otr-op-data-factory.cpp

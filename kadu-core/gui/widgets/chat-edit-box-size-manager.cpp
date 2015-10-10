@@ -20,7 +20,9 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "configuration/configuration-file.h"
+#include "configuration/configuration.h"
+#include "configuration/deprecated-configuration-api.h"
+#include "core/application.h"
 
 #include "chat-edit-box-size-manager.h"
 
@@ -46,7 +48,7 @@ ChatEditBoxSizeManager::~ChatEditBoxSizeManager()
 
 void ChatEditBoxSizeManager::configurationUpdated()
 {
-	setCommonHeight(config_file.readNumEntry("Chat", "ChatEditBoxHeight", 0));
+	setCommonHeight(Application::instance()->configuration()->deprecatedApi()->readNumEntry("Chat", "ChatEditBoxHeight", 0));
 }
 
 void ChatEditBoxSizeManager::setCommonHeight(int height)
@@ -54,7 +56,7 @@ void ChatEditBoxSizeManager::setCommonHeight(int height)
 	if (height != CommonHeight)
 	{
 		CommonHeight = height;
-		config_file.writeEntry("Chat", "ChatEditBoxHeight", CommonHeight);
+		Application::instance()->configuration()->deprecatedApi()->writeEntry("Chat", "ChatEditBoxHeight", CommonHeight);
 		emit commonHeightChanged(CommonHeight);
 	}
 }

@@ -24,10 +24,10 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <QtConcurrent/QtConcurrentRun>
 #include <QtCore/QDir>
 #include <QtCore/QMutexLocker>
 #include <QtCore/QThread>
-#include <QtCore/QtConcurrentRun>
 #include <QtGui/QTextDocument>
 #include <QtSql/QSqlError>
 #include <QtSql/QSqlRecord>
@@ -40,7 +40,8 @@
 #include "chat/chat-details.h"
 #include "chat/chat-manager.h"
 #include "chat/type/chat-type-contact.h"
-#include "configuration/configuration-file.h"
+#include "configuration/configuration.h"
+#include "configuration/deprecated-configuration-api.h"
 #include "contacts/contact-manager.h"
 #include "contacts/contact-set.h"
 #include "core/core.h"
@@ -297,7 +298,7 @@ int HistorySqlStorage::findOrCreateDate(const QDate &date)
 	if (query.next())
 	{
 		dateId = query.value(0).toInt();
-		Q_ASSERT(!query.next());
+		// Q_ASSERT(!query.next());
 	}
 	else
 	{

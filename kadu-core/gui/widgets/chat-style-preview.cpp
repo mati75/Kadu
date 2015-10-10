@@ -20,15 +20,15 @@
 #include "chat-style-preview.h"
 
 #include "buddies/buddy-preferred-manager.h"
-#include "chat/chat-details-contact.h"
 #include "chat-style/engine/chat-style-renderer-factory-provider.h"
-#include "configuration/chat-configuration-holder.h"
+#include "chat/chat-details-contact.h"
 #include "core/core.h"
 #include "formatted-string/formatted-string-factory.h"
-#include "gui/widgets/webkit-messages-view/webkit-messages-view.h"
+#include "gui/configuration/chat-configuration-holder.h"
 #include "gui/widgets/webkit-messages-view/webkit-messages-view-factory.h"
+#include "gui/widgets/webkit-messages-view/webkit-messages-view.h"
 
-#include <QtGui/QHBoxLayout>
+#include <QtWidgets/QHBoxLayout>
 
 ChatStylePreview::ChatStylePreview(QWidget *parent) :
 		QFrame{parent}
@@ -37,7 +37,7 @@ ChatStylePreview::ChatStylePreview(QWidget *parent) :
 	setFixedHeight(250);
 	setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
 
-	auto layout = make_qobject<QHBoxLayout>(this);
+	auto layout = make_owned<QHBoxLayout>(this);
 	layout->setContentsMargins(0, 0, 0, 0);
 
 	m_view = preparePreview();
@@ -56,7 +56,7 @@ void ChatStylePreview::setRendererFactory(std::unique_ptr<ChatStyleRendererFacto
 	m_view.get()->setChatStyleRendererFactory(std::move(rendererFactory));
 }
 
-qobject_ptr<WebkitMessagesView> ChatStylePreview::preparePreview()
+owned_qptr<WebkitMessagesView> ChatStylePreview::preparePreview()
 {
 	auto example = Buddy::dummy();
 

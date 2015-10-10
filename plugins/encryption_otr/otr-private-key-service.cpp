@@ -24,7 +24,8 @@ extern "C" {
 
 #include "accounts/account-manager.h"
 #include "accounts/account.h"
-#include "misc/kadu-paths.h"
+#include "core/application.h"
+#include "misc/paths-provider.h"
 
 #include "otr-create-private-key-job.h"
 #include "otr-op-data.h"
@@ -46,8 +47,7 @@ void OtrPrivateKeyService::wrapperOtrCreatePrivateKey(void *data, const char *ac
 	}
 }
 
-OtrPrivateKeyService::OtrPrivateKeyService(QObject *parent) :
-		QObject(parent)
+OtrPrivateKeyService::OtrPrivateKeyService()
 {
 }
 

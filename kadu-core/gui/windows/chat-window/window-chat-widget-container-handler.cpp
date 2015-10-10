@@ -24,11 +24,14 @@
 
 #include "window-chat-widget-container-handler.h"
 
-#include "activate.h"
+#include "gui/widgets/chat-widget/chat-widget-manager.h"
 #include "gui/widgets/chat-widget/chat-widget.h"
-#include "gui/windows/chat-window/chat-window.h"
 #include "gui/windows/chat-window/chat-window-factory.h"
 #include "gui/windows/chat-window/chat-window-repository.h"
+#include "gui/windows/chat-window/chat-window.h"
+#include "activate.h"
+
+#include <QtWidgets/QApplication>
 
 WindowChatWidgetContainerHandler::WindowChatWidgetContainerHandler(QObject *parent) :
 		ChatWidgetContainerHandler{parent}
@@ -49,38 +52,50 @@ void WindowChatWidgetContainerHandler::setChatWindowRepository(ChatWindowReposit
 	m_chatWindowRepository = chatWindowRepository;
 }
 
-bool WindowChatWidgetContainerHandler::acceptChatWidget(ChatWidget *chatWidget) const
+bool WindowChatWidgetContainerHandler::acceptChat(Chat chat) const
 {
-	return chatWidget && m_chatWindowFactory && m_chatWindowRepository;
+	return chat && m_chatWindowFactory && m_chatWindowRepository;
 }
 
-void WindowChatWidgetContainerHandler::addChatWidget(ChatWidget *chatWidget)
+ChatWidget * WindowChatWidgetContainerHandler::addChat(Chat chat, OpenChatActivation activation)
 {
-	if (!chatWidget || !m_chatWindowFactory || !m_chatWindowRepository)
-		return;
+	if (!chat || !m_chatWindowFactory || !m_chatWindowRepository)
+		return nullptr;
 
-	auto chatWindow = m_chatWindowRepository.data()->windowForChat(chatWidget->chat());
+	auto chatWindow = m_chatWindowRepository.data()->windowForChat(chat);
 	if (!chatWindow)
 	{
-		auto newChatWindow = m_chatWindowFactory.data()->createChatWindow(chatWidget);
-		chatWindow = newChatWindow.get();
+		chatWindow = m_chatWindowFactory.data()->createChatWindow(chat).release();
 		if (!chatWindow)
-			return;
+			return nullptr;
 
-		m_chatWindowRepository.data()->addChatWindow(std::move(newChatWindow));
+		m_chatWindowRepository.data()->addChatWindow(chatWindow);
 		connect(chatWindow, SIGNAL(activated(ChatWindow*)), this, SLOT(chatWindowActivated(ChatWindow*)));
 	}
 
-	chatWindow->show();
+	switch (activation)
+	{
+		case OpenChatActivation::Minimize:
+			chatWindow->showMinimized();
+			break;
+		default:
+			chatWindow->show();
+			break;
+	}
+
+	if (chat.unreadMessagesCount() != 0)
+		qApp->alert(chatWindow);
+
+	return chatWindow->chatWidget();
 }
 
-void WindowChatWidgetContainerHandler::removeChatWidget(ChatWidget *chatWidget)
+void WindowChatWidgetContainerHandler::removeChat(Chat chat)
 {
-	if (!chatWidget || !m_chatWindowRepository)
+	if (!chat || !m_chatWindowRepository)
 		return;
 
-	auto chatWindow = m_chatWindowRepository.data()->windowForChat(chatWidget->chat());
-	m_chatWindowRepository.data()->removeChatWindow(chatWindow);
+	auto chatWindow = m_chatWindowRepository.data()->windowForChat(chat);
+	chatWindow->deleteLater();
 }
 
 bool WindowChatWidgetContainerHandler::isChatWidgetActive(ChatWidget *chatWidget)
@@ -89,7 +104,7 @@ bool WindowChatWidgetContainerHandler::isChatWidgetActive(ChatWidget *chatWidget
 		return false;
 
 	auto chatWindow = m_chatWindowRepository.data()->windowForChat(chatWidget->chat());
-	return chatWindow ? _isWindowActiveOrFullyVisible(chatWindow) : false;
+	return chatWindow ? chatWindow->isChatWidgetActive(chatWidget) : false;
 }
 
 void WindowChatWidgetContainerHandler::tryActivateChatWidget(ChatWidget *chatWidget)
@@ -100,6 +115,16 @@ void WindowChatWidgetContainerHandler::tryActivateChatWidget(ChatWidget *chatWid
 	auto chatWindow = m_chatWindowRepository.data()->windowForChat(chatWidget->chat());
 	if (chatWindow)
 		_activateWindow(chatWindow);
+}
+
+void WindowChatWidgetContainerHandler::tryMinimizeChatWidget(ChatWidget* chatWidget)
+{
+	if (!chatWidget || !m_chatWindowRepository)
+		return;
+
+	auto chatWindow = m_chatWindowRepository.data()->windowForChat(chatWidget->chat());
+	if (chatWindow)
+		chatWindow->showMinimized();
 }
 
 void WindowChatWidgetContainerHandler::chatWindowActivated(ChatWindow *chatWindow)

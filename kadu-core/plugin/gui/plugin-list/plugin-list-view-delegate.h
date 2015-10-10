@@ -28,10 +28,10 @@
 #include <QtCore/QEvent>
 #include <QtCore/QList>
 #include <QtCore/QPersistentModelIndex>
-#include <QtGui/QAbstractItemDelegate>
+#include <QtWidgets/QAbstractItemDelegate>
 
 
-#include <QtGui/QItemSelectionModel>
+#include <QtCore/QItemSelectionModel>
 
 class PluginListWidgetDelegate;
 class PluginListWidgetDelegateWidgets;

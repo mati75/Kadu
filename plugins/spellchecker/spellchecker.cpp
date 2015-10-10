@@ -25,11 +25,11 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <QtGui/QApplication>
-#include <QtGui/QGridLayout>
-#include <QtGui/QLabel>
-#include <QtGui/QListWidget>
-#include <QtGui/QPushButton>
+#include <QtWidgets/QApplication>
+#include <QtWidgets/QGridLayout>
+#include <QtWidgets/QLabel>
+#include <QtWidgets/QListWidget>
+#include <QtWidgets/QPushButton>
 
 #if defined(HAVE_ASPELL)
 #define ASPELL_STATIC
@@ -47,7 +47,7 @@
 #include "gui/widgets/configuration/configuration-widget.h"
 #include "gui/widgets/custom-input.h"
 #include "gui/windows/message-dialog.h"
-#include "misc/kadu-paths.h"
+#include "misc/paths-provider.h"
 
 #include "configuration/spellchecker-configuration.h"
 #include "highlighter.h"
@@ -99,9 +99,9 @@ SpellChecker::SpellChecker(QObject *parent) :
 	aspell_config_replace(SpellConfig, "sug-mode", "ultra");
 
 #if defined(Q_OS_WIN32)
-	aspell_config_replace(SpellConfig, "dict-dir", qPrintable(KaduPaths::instance()->dataPath() + QLatin1String("aspell")));
-	aspell_config_replace(SpellConfig, "data-dir", qPrintable(KaduPaths::instance()->dataPath() + QLatin1String("aspell")));
-	aspell_config_replace(SpellConfig, "prefix", qPrintable(KaduPaths::instance()->profilePath() + QLatin1String("dicts")));
+	aspell_config_replace(SpellConfig, "dict-dir", qPrintable(KaduApplication::instance()->pathsProvider()->dataPath() + QLatin1String("aspell")));
+	aspell_config_replace(SpellConfig, "data-dir", qPrintable(KaduApplication::instance()->pathsProvider()->dataPath() + QLatin1String("aspell")));
+	aspell_config_replace(SpellConfig, "prefix", qPrintable(KaduApplication::instance()->pathsProvider()->profilePath() + QLatin1String("dicts")));
 #endif
 #elif defined(HAVE_ENCHANT)
 	Broker = enchant_broker_init();

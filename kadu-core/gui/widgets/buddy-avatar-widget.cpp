@@ -21,11 +21,11 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <QtGui/QFileDialog>
 #include <QtGui/QImageReader>
-#include <QtGui/QLabel>
-#include <QtGui/QPushButton>
-#include <QtGui/QVBoxLayout>
+#include <QtWidgets/QFileDialog>
+#include <QtWidgets/QLabel>
+#include <QtWidgets/QPushButton>
+#include <QtWidgets/QVBoxLayout>
 
 #include "avatars/avatar.h"
 #include "avatars/avatar-manager.h"

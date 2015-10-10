@@ -28,11 +28,13 @@
 #include <signal.h>
 #include <stdio.h>
 
-#include "configuration/xml-configuration-file.h"
+#include "configuration/configuration-api.h"
+#include "configuration/configuration.h"
+#include "core/application.h"
 #include "core/core.h"
 #include "core/crash-aware-object.h"
 #include "gui/windows/kadu-window.h"
-#include "misc/kadu-paths.h"
+#include "misc/paths-provider.h"
 #include "plugin/activation/plugin-activation-service.h"
 #include "activate.h"
 #include "debug.h"
@@ -88,7 +90,7 @@ static void kadu_signal_handler(int signal)
 		fprintf(stderr, "======= END OF BACKTRACE  ======\n");
 		fflush(stderr);
 
-		FILE *backtraceFile = fopen(qPrintable(QString(KaduPaths::instance()->profilePath() + backtraceFileName)), "w");
+		FILE *backtraceFile = fopen(qPrintable(QString(Application::instance()->pathsProvider()->profilePath() + backtraceFileName)), "w");
 		if (backtraceFile)
 		{
 			fprintf(backtraceFile, "======= BEGIN OF BACKTRACE =====\n");
@@ -117,7 +119,7 @@ static void kadu_signal_handler(int signal)
 		kdebugm(KDEBUG_PANIC, "backtrace not available\n");
 #endif // HAVE_EXECINFO
 
-		xml_config_file->makeBackup();
+		Application::instance()->backupConfiguration();
 		abort();
 	}
 	else if (signal == SIGUSR1)

@@ -21,37 +21,65 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef GADU_USERLIST_HANDLER_H
-#define GADU_USERLIST_HANDLER_H
+#pragma once
 
-#include "protocols/services/roster/roster-service.h"
+#include "roster/roster-service.h"
 
 struct gg_session;
 
+class BuddyList;
 class GaduConnection;
+class GaduRosterStateMachine;
+class RosterNotifier;
+class RosterReplacer;
 
 class GaduRosterService : public RosterService
 {
 	Q_OBJECT
 
-	QPointer<GaduConnection> Connection;
-
-	void updateFlag(gg_session *session, int uin, int newFlags, int oldFlags, int flag) const;
-	void sendNewFlags(const Contact &contact, int newFlags) const;
-
-protected:
-	virtual void executeTask(const RosterTask &task);
-
 public:
-	static int notifyTypeFromContact(const Contact &contact);
-
-	explicit GaduRosterService(Account account, QObject *parent = 0);
+	explicit GaduRosterService(Protocol *protocol, const QVector<Contact> &contacts, QObject *parent = nullptr);
 	virtual ~GaduRosterService();
 
 	void setConnection(GaduConnection *connection);
+	void setRosterNotifier(RosterNotifier *rosterNotifier);
+	void setRosterReplacer(RosterReplacer *rosterReplacer);
 
-	virtual void prepareRoster(const QVector<Contact> &contacts);
+	void prepareRoster();
+
+signals:
+	// state machine signals
+	void stateMachinePutFinished();
+	void stateMachinePutFailed();
+
+	void stateMachineGetFinished();
+	void stateMachineGetFailed();
+
+	void stateMachineLocalDirty();
+	void stateMachineRemoteDirty();
+
+private:
+	QPointer<GaduConnection> m_connection;
+	QPointer<RosterNotifier> m_rosterNotifier;
+	QPointer<RosterReplacer> m_rosterReplacer;
+	GaduRosterStateMachine *m_stateMachine;
+	QVector<Contact> m_synchronizingContacts;
+
+	friend class GaduProtocolSocketNotifiers;
+	void handleEventUserlist100Version(struct gg_event *e);
+	void handleEventUserlist100PutReply(struct gg_event *e);
+	void handleEventUserlist100GetReply(struct gg_event *e);
+	void handleEventUserlist100Reply(struct gg_event *e);
+
+	void putFinished(bool ok);
+	void getFinished(bool ok);
+
+	bool haveToAskForAddingContacts() const;
+	void markSynchronizingAsSynchronized();
+
+private slots:
+	void exportContactList();
+	void importContactList();
+	void rosterChanged();
 
 };
-
-#endif // GADU_USERLIST_HANDLER_H

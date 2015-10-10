@@ -1115,6 +1115,14 @@ ihned po zřízení spojení se serverem</translation>
         <source>Unlimited</source>
         <translation>Neomezeně</translation>
     </message>
+    <message>
+        <source>Open chat window minimized</source>
+        <translation>Otevřít okno s rozhovory zmenšené</translation>
+    </message>
+    <message>
+        <source>Open chat window on new message in minimized mode</source>
+        <translation>Otevřít okno s rozhovory při příchodu nové zprávy zmenšené</translation>
+    </message>
 </context>
 <context>
     <name>About</name>
@@ -2139,6 +2147,10 @@ Chcete přesto tento obrázek přijmout?</translation>
         <source>Select All</source>
         <translation>Vybrat vše</translation>
     </message>
+    <message>
+        <source>Paste and send</source>
+        <translation>Vložit a poslat</translation>
+    </message>
 </context>
 <context>
     <name>DefaultProxyAction</name>
@@ -3136,6 +3148,49 @@ poradu</translation>
     <message>
         <source>Provides: %1</source>
         <translation>Poskytuje: %1</translation>
+    </message>
+</context>
+<context>
+    <name>PluginModel</name>
+    <message>
+        <source>Chat</source>
+        <translation>Rozhovor</translation>
+    </message>
+    <message>
+        <source>Chats history</source>
+        <translation>Historie rozhovorů</translation>
+    </message>
+    <message>
+        <source>Desktop</source>
+        <translation>Plocha</translation>
+    </message>
+    <message>
+        <source>Media players</source>
+        <translation>Přehrávače</translation>
+    </message>
+    <message>
+        <source>Notifications</source>
+        <translation>Oznámení</translation>
+    </message>
+    <message>
+        <source>Privacy</source>
+        <translation>Soukromí</translation>
+    </message>
+    <message>
+        <source>Protocols</source>
+        <translation>Protokoly</translation>
+    </message>
+    <message>
+        <source>Sound</source>
+        <translation>Zvuk</translation>
+    </message>
+    <message>
+        <source>Status</source>
+        <translation>Stav</translation>
+    </message>
+    <message>
+        <source>Misc</source>
+        <translation>Různé</translation>
     </message>
 </context>
 <context>

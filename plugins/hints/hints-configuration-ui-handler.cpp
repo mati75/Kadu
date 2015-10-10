@@ -22,17 +22,18 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <QtGui/QApplication>
-#include <QtGui/QCheckBox>
-#include <QtGui/QComboBox>
-#include <QtGui/QDesktopWidget>
-#include <QtGui/QFrame>
-#include <QtGui/QLabel>
-#include <QtGui/QPushButton>
-#include <QtGui/QSpinBox>
+#include <QtWidgets/QApplication>
+#include <QtWidgets/QCheckBox>
+#include <QtWidgets/QComboBox>
+#include <QtWidgets/QDesktopWidget>
+#include <QtWidgets/QFrame>
+#include <QtWidgets/QLabel>
+#include <QtWidgets/QPushButton>
+#include <QtWidgets/QSpinBox>
 
 #include "buddies/buddy-preferred-manager.h"
 #include "configuration/config-file-data-manager.h"
+#include "core/application.h"
 #include "core/core.h"
 #include "gui/widgets/configuration/config-group-box.h"
 #include "gui/widgets/configuration/configuration-widget.h"
@@ -42,7 +43,7 @@
 #include "hint-over-user-configuration-window.h"
 #include "hints-plugin.h"
 
-#include "misc/kadu-paths.h"
+#include "misc/paths-provider.h"
 #include "activate.h"
 
 #include "hints-configuration-ui-handler.h"
@@ -131,7 +132,7 @@ void HintsConfigurationUiHandler::showAdvanced()
 	if (!AdvancedWindow)
 	{
 		AdvancedWindow = new ConfigurationWindow("HintsAdvanced", tr("Advanced hints' configuration"), "Notification", MainConfigurationWindow::instanceDataManager());
-		AdvancedWindow->widget()->appendUiFile(KaduPaths::instance()->dataPath() + QLatin1String("plugins/configuration/hints-advanced.ui"));
+		AdvancedWindow->widget()->appendUiFile(Application::instance()->pathsProvider()->dataPath() + QLatin1String("plugins/configuration/hints-advanced.ui"));
 
 		newHintUnder = static_cast<QComboBox *>(AdvancedWindow->widget()->widgetById("hints/newHintUnder"));
 

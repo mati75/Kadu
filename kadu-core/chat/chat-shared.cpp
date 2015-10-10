@@ -31,8 +31,10 @@
 #include "chat/chat-manager.h"
 #include "chat/type/chat-type-manager.h"
 #include "chat/type/chat-type.h"
-#include "configuration/configuration-file.h"
+#include "configuration/configuration.h"
+#include "configuration/deprecated-configuration-api.h"
 #include "contacts/contact-set.h"
+#include "core/application.h"
 #include "misc/change-notifier.h"
 #include "parser/parser.h"
 #include "debug.h"
@@ -139,12 +141,12 @@ void ChatShared::load()
 
 	Shared::load();
 
-	XmlConfigFile *configurationStorage = storage()->storage();
+	ConfigurationApi *configurationStorage = storage()->storage();
 	QDomElement parent = storage()->point();
 
 	Groups.clear();
 
-	QDomElement groupsNode = configurationStorage->getNode(parent, "ChatGroups", XmlConfigFile::ModeFind);
+	QDomElement groupsNode = configurationStorage->getNode(parent, "ChatGroups", ConfigurationApi::ModeFind);
 	if (!groupsNode.isNull())
 	{
 		QDomNodeList groupsList = groupsNode.elementsByTagName("Group");
@@ -190,7 +192,7 @@ void ChatShared::store()
 
 	Shared::store();
 
-	XmlConfigFile *configurationStorage = storage()->storage();
+	ConfigurationApi *configurationStorage = storage()->storage();
 	QDomElement parent = storage()->point();
 
 	storeValue("Account", ChatAccount->uuid().toString());
@@ -205,7 +207,7 @@ void ChatShared::store()
 
 	if (!Groups.isEmpty())
 	{
-		QDomElement groupsNode = configurationStorage->getNode(parent, "ChatGroups", XmlConfigFile::ModeCreate);
+		QDomElement groupsNode = configurationStorage->getNode(parent, "ChatGroups", ConfigurationApi::ModeCreate);
 		foreach (const Group &group, Groups)
 			configurationStorage->appendTextNode(groupsNode, "Group", group.uuid().toString());
 	}
@@ -231,7 +233,7 @@ bool ChatShared::shouldStore()
 		return false;
 
 	// we dont need data for non-roster contacts only from 4 version of sql schema
-	if (config_file.readNumEntry("History", "Schema", 0) < 4)
+	if (Application::instance()->configuration()->deprecatedApi()->readNumEntry("History", "Schema", 0) < 4)
 		return true;
 
 	if (customProperties()->shouldStore())

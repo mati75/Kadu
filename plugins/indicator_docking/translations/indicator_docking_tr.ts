@@ -3,7 +3,7 @@
     <name>@default</name>
     <message>
         <source>Indicator</source>
-        <translation type="unfinished"/>
+        <translation>Gösterge</translation>
     </message>
 </context>
 </TS>

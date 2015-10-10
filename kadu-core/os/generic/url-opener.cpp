@@ -21,10 +21,12 @@
 
 #include <QtCore/QProcess>
 #include <QtCore/QUrl>
-#include <QtGui/QApplication>
 #include <QtGui/QDesktopServices>
+#include <QtWidgets/QApplication>
 
-#include "configuration/configuration-file.h"
+#include "configuration/configuration.h"
+#include "configuration/deprecated-configuration-api.h"
+#include "core/application.h"
 #include "gui/windows/message-dialog.h"
 
 #include "url-opener.h"
@@ -52,9 +54,9 @@ bool UrlOpener::openUrl(const QByteArray &urlForDesktopServices, const QByteArra
 void UrlOpener::openUrl(const QByteArray &url)
 {
 	QString browser;
-	bool useDefaultWebBrowser = config_file.readBoolEntry("Chat", "UseDefaultWebBrowser", true);
+	bool useDefaultWebBrowser = Application::instance()->configuration()->deprecatedApi()->readBoolEntry("Chat", "UseDefaultWebBrowser", true);
 	if (!useDefaultWebBrowser)
-		browser = config_file.readEntry("Chat", "WebBrowser");
+		browser = Application::instance()->configuration()->deprecatedApi()->readEntry("Chat", "WebBrowser");
 
 	if (!openUrl(url, url, browser))
 		MessageDialog::show(KaduIcon("dialog-error"), QCoreApplication::translate("@default", QT_TR_NOOP("Kadu")),
@@ -64,9 +66,10 @@ void UrlOpener::openUrl(const QByteArray &url)
 void UrlOpener::openEmail(const QByteArray &email)
 {
 	QString client;
-	bool useDefaultEMailClient = config_file.readBoolEntry("Chat", "UseDefaultEMailClient", true);
+
+	bool useDefaultEMailClient = Application::instance()->configuration()->deprecatedApi()->readBoolEntry("Chat", "UseDefaultEMailClient", true);
 	if (!useDefaultEMailClient)
-		client = config_file.readEntry("Chat", "MailClient");
+		client = Application::instance()->configuration()->deprecatedApi()->readEntry("Chat", "MailClient");
 
 	QByteArray urlForDesktopServices;
 	QByteArray urlForApplication;

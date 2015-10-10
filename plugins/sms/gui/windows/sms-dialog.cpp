@@ -20,24 +20,26 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <QtGui/QAction>
-#include <QtGui/QApplication>
-#include <QtGui/QCheckBox>
-#include <QtGui/QDialogButtonBox>
-#include <QtGui/QFormLayout>
-#include <QtGui/QHBoxLayout>
 #include <QtGui/QKeyEvent>
-#include <QtGui/QLabel>
-#include <QtGui/QLineEdit>
-#include <QtGui/QPushButton>
-#include <QtGui/QTextEdit>
-#include <QtGui/QVBoxLayout>
+#include <QtWidgets/QAction>
+#include <QtWidgets/QApplication>
+#include <QtWidgets/QCheckBox>
+#include <QtWidgets/QDialogButtonBox>
+#include <QtWidgets/QFormLayout>
+#include <QtWidgets/QHBoxLayout>
+#include <QtWidgets/QLabel>
+#include <QtWidgets/QLineEdit>
+#include <QtWidgets/QPushButton>
+#include <QtWidgets/QTextEdit>
+#include <QtWidgets/QVBoxLayout>
 
 #include "buddies/buddy-manager.h"
 #include "buddies/model/buddy-list-model.h"
 #include "buddies/model/buddy-manager-adapter.h"
 #include "configuration/config-file-variant-wrapper.h"
-#include "configuration/configuration-file.h"
+#include "configuration/configuration.h"
+#include "configuration/deprecated-configuration-api.h"
+#include "core/application.h"
 #include "core/core.h"
 #include "gui/widgets/select-talkable-combo-box.h"
 #include "gui/windows/message-dialog.h"
@@ -138,7 +140,7 @@ void SmsDialog::createGui()
 	LengthLabel = new QLabel("0", this);
 	formLayout->addRow(0, LengthLabel);
 
-	SignatureEdit = new QLineEdit(config_file.readEntry("SMS", "SmsNick"), this);
+	SignatureEdit = new QLineEdit(Application::instance()->configuration()->deprecatedApi()->readEntry("SMS", "SmsNick"), this);
 	connect(SignatureEdit, SIGNAL(returnPressed()), this, SLOT(editReturnPressed()));
 
 	formLayout->addRow(tr("Signature") + ':', SignatureEdit);
@@ -191,7 +193,7 @@ void SmsDialog::validate()
 
 void SmsDialog::configurationUpdated()
 {
-	ContentEdit->setFont(config_file.readFontEntry("Look", "ChatFont"));
+	ContentEdit->setFont(Application::instance()->configuration()->deprecatedApi()->readFontEntry("Look", "ChatFont"));
 }
 
 void SmsDialog::setRecipient(const QString &phone)
@@ -270,7 +272,7 @@ void SmsDialog::sendSms()
 
 	SmsSender *sender;
 
-	if (config_file.readBoolEntry("SMS", "BuiltInApp"))
+	if (Application::instance()->configuration()->deprecatedApi()->readBoolEntry("SMS", "BuiltInApp"))
 	{
 		int gatewayIndex = ProviderComboBox->currentIndex();
 		QString gatewayId = ProviderComboBox->itemData(gatewayIndex, Qt::UserRole).toString();
@@ -278,7 +280,7 @@ void SmsDialog::sendSms()
 	}
 	else
 	{
-		if (config_file.readEntry("SMS", "SmsApp").isEmpty())
+		if (Application::instance()->configuration()->deprecatedApi()->readEntry("SMS", "SmsApp").isEmpty())
 		{
 			MessageDialog::show(KaduIcon("dialog-warning"), tr("Kadu"),
 					tr("SMS application was not specified. Visit the configuration section"), QMessageBox::Ok, this);

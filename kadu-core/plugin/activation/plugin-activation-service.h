@@ -26,10 +26,12 @@
 #include <QtCore/QSet>
 #include <map>
 #include <memory>
+#include <injeqt/injeqt.h>
 
 class ActivePlugin;
 class PluginActivationErrorHandler;
 class PluginDependencyHandler;
+class PluginRootComponent;
 class PluginStateService;
 
 /**
@@ -51,12 +53,8 @@ class KADUAPI PluginActivationService : public QObject
 	Q_OBJECT
 
 public:
-	explicit PluginActivationService(QObject *parent = nullptr);
+	Q_INVOKABLE explicit PluginActivationService(QObject *parent = nullptr);
 	virtual ~PluginActivationService();
-
-	void setPluginActivationErrorHandler(PluginActivationErrorHandler *pluginActivationErrorHandler);
-	void setPluginDependencyHandler(PluginDependencyHandler *pluginDependencyHandler);
-	void setPluginStateService(PluginStateService *pluginStateService);
 
 	/**
 	 * @short Activates given plugin and all its dependencies.
@@ -90,6 +88,12 @@ public:
 	* @return Names of all currently active plugins.
 	*/
 	QSet<QString> activePlugins() const;
+
+	/**
+	 * @param pluginName name of plugin
+	 * @return root object from plugin with name pluginName
+	 */
+	PluginRootComponent * pluginRootComponent(const QString &pluginName) const;
 
 private:
 	using map = std::map<QString, std::unique_ptr<ActivePlugin>>;
@@ -128,6 +132,11 @@ private:
 	 * @return name of active plugins that conflicts provides given feature.
 	 */
 	QString findActiveProviding(const QString &feature) const;
+
+private slots:
+	INJEQT_SETTER void setPluginActivationErrorHandler(PluginActivationErrorHandler *pluginActivationErrorHandler);
+	INJEQT_SETTER void setPluginDependencyHandler(PluginDependencyHandler *pluginDependencyHandler);
+	INJEQT_SETTER void setPluginStateService(PluginStateService *pluginStateService);
 
 };
 

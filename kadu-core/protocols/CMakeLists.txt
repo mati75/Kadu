@@ -6,22 +6,17 @@ set (protocols_SRCS
 
 	services/account-service.cpp
 	services/avatar-service.cpp
+	services/buddy-list-serialization-service.cpp
 	services/chat-image.cpp
 	services/chat-image-service.cpp
 	services/chat-service.cpp
 	services/chat-state-service.cpp
-	services/contact-list-service.cpp
-
-	services/roster/roster-entry.cpp
-	services/roster/roster-notifier.cpp
-	services/roster/roster-service.cpp
-	services/roster/roster-task.cpp
+	services/protocol-service.cpp
 
 	connection-error-notification.cpp
 	protocol.cpp
 	protocols-manager.cpp
 	protocol-state-machine.cpp
-	roster.cpp
 )
 
 set (protocols_MOC_SRCS
@@ -38,7 +33,6 @@ set (protocols_MOC_SRCS
 	services/chat-image-service.h
 	services/chat-service.h
 	services/chat-state-service.h
-	services/contact-list-service.h
 	services/contact-personal-info-service.h
 	services/file-transfer-service.h
 	services/multilogon-service.h
@@ -51,7 +45,6 @@ set (protocols_MOC_SRCS
 	protocol-factory.h
 	protocols-manager.h
 	protocol-state-machine.h
-	roster.h
 )
 
 kadu_subdirectory (protocols "${protocols_SRCS}" "${protocols_MOC_SRCS}" "")

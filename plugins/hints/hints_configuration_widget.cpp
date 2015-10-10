@@ -23,12 +23,14 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <QtGui/QApplication>
-#include <QtGui/QGridLayout>
-#include <QtGui/QLabel>
-#include <QtGui/QPushButton>
+#include <QtWidgets/QApplication>
+#include <QtWidgets/QGridLayout>
+#include <QtWidgets/QLabel>
+#include <QtWidgets/QPushButton>
 
-#include "configuration/configuration-file.h"
+#include "configuration/configuration.h"
+#include "configuration/deprecated-configuration-api.h"
+#include "core/application.h"
 #include "gui/widgets/configuration/configuration-widget.h"
 #include "gui/widgets/configuration/notify-group-box.h"
 #include "activate.h"
@@ -80,10 +82,10 @@ void HintsConfigurationWidget::updatePreview()
 	QFont font(qApp->font());
 	QPalette palette(qApp->palette());
 
-	preview->setFont(config_file.readFontEntry("Hints", "Event_" + currentNotifyEvent + "_font", &font));
+	preview->setFont(Application::instance()->configuration()->deprecatedApi()->readFontEntry("Hints", "Event_" + currentNotifyEvent + "_font", &font));
 
-	QColor bcolor = config_file.readColorEntry("Hints", "Event_" + currentNotifyEvent + "_bgcolor", &palette.window().color());
-	QColor fcolor = config_file.readColorEntry("Hints", "Event_" + currentNotifyEvent + "_fgcolor", &palette.windowText().color());
+	QColor bcolor = Application::instance()->configuration()->deprecatedApi()->readColorEntry("Hints", "Event_" + currentNotifyEvent + "_bgcolor", &palette.window().color());
+	QColor fcolor = Application::instance()->configuration()->deprecatedApi()->readColorEntry("Hints", "Event_" + currentNotifyEvent + "_fgcolor", &palette.windowText().color());
 	QString style = QString("* {color:%1; background-color:%2}").arg(fcolor.name(), bcolor.name());
 	preview->setStyleSheet(style);
 }

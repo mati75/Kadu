@@ -28,6 +28,7 @@
 
 #include <QtCore/QObject>
 #include <QtCore/QPointer>
+#include <injeqt/injeqt.h>
 
 class ChatWindow;
 class ChatWindowFactory;
@@ -38,24 +39,25 @@ class WindowChatWidgetContainerHandler : public ChatWidgetContainerHandler
 	Q_OBJECT
 
 public:
-	explicit WindowChatWidgetContainerHandler(QObject *parent = nullptr);
+	Q_INVOKABLE explicit WindowChatWidgetContainerHandler(QObject *parent = nullptr);
 	virtual ~WindowChatWidgetContainerHandler();
 
-	void setChatWindowFactory(ChatWindowFactory *chatWindowFactory);
-	void setChatWindowRepository(ChatWindowRepository *chatWindowRepository);
-
-	virtual bool acceptChatWidget(ChatWidget *chatWidget) const override;
-	virtual void addChatWidget(ChatWidget *chatWidget) override;
-	virtual void removeChatWidget(ChatWidget *chatWidget) override;
+	virtual bool acceptChat(Chat chat) const override;
+	virtual ChatWidget * addChat(Chat chat, OpenChatActivation activation) override;
+	virtual void removeChat(Chat chat) override;
 
 	virtual bool isChatWidgetActive(ChatWidget *chatWidget) override;
 	virtual void tryActivateChatWidget(ChatWidget *chatWidget) override;
+    virtual void tryMinimizeChatWidget(ChatWidget *chatWidget) override;
 
 private:
 	QPointer<ChatWindowFactory> m_chatWindowFactory;
 	QPointer<ChatWindowRepository> m_chatWindowRepository;
 
 private slots:
+	INJEQT_SETTER void setChatWindowFactory(ChatWindowFactory *chatWindowFactory);
+	INJEQT_SETTER void setChatWindowRepository(ChatWindowRepository *chatWindowRepository);
+
 	void chatWindowActivated(ChatWindow *chatWindow);
 
 };

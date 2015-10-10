@@ -44,10 +44,10 @@ class QPixmap;
 
 class AccountShared;
 class AvatarService;
+class BuddyListSerializationService;
 class ChatImageService;
 class ChatService;
 class ChatStateService;
-class ContactListService;
 class ContactPersonalInfoService;
 class ContactSet;
 class FileTransferService;
@@ -130,11 +130,11 @@ public:
 	Account account() const { return CurrentAccount; }
 
 	virtual AvatarService * avatarService() { return 0; }
+	virtual BuddyListSerializationService * buddyListSerializationService() { return nullptr; }
 	virtual ChatImageService * chatImageService() { return 0; }
 	virtual ChatService * chatService();
 	virtual ChatStateService * chatStateService();
 	virtual ContactPersonalInfoService * contactPersonalInfoService() { return 0; }
-	virtual ContactListService * contactListService() { return 0; }
 	virtual FileTransferService * fileTransferService() { return 0; }
 	virtual MultilogonService * multilogonService() { return 0; }
 	virtual PersonalInfoService * personalInfoService() { return 0; }

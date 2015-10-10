@@ -24,7 +24,9 @@
 #include <QtNetwork/QNetworkReply>
 #include <QtScript/QScriptEngine>
 
-#include "configuration/configuration-file.h"
+#include "configuration/configuration.h"
+#include "configuration/deprecated-configuration-api.h"
+#include "core/application.h"
 #include "gui/windows/message-dialog.h"
 #include "debug.h"
 
@@ -115,7 +117,7 @@ void SmsInternalSender::gatewayQueryDone(const QString &gatewayId)
 
 QScriptValue SmsInternalSender::readFromConfiguration(const QString &group, const QString &name, const QString &defaultValue)
 {
-	return config_file.readEntry(group, name, defaultValue);
+	return Application::instance()->configuration()->deprecatedApi()->readEntry(group, name, defaultValue);
 }
 
 void SmsInternalSender::sendSms()

@@ -31,8 +31,9 @@
 #include "identities/identity.h"
 #include "model/roles.h"
 #include "protocols/protocol.h"
-#include "protocols/roster.h"
-#include "protocols/services/roster/roster-entry.h"
+#include "roster/roster.h"
+#include "roster/roster-entry.h"
+#include "roster/roster-entry-state.h"
 #include "protocols/services/subscription-service.h"
 
 #include "buddy-contacts-table-model.h"
@@ -150,14 +151,10 @@ void BuddyContactsTableModel::performItemActionEdit(BuddyContactsTableItem *item
 
 	if (contact.contactAccount() == item->itemAccount() && contact.id() == item->id())
 	{
-		// TODO fix this issue
-		// when user marks detached contact as non-detached we set it as Synchronized
-		// so next data from roster overrides our changes
-		// this is not perfect solution but i'm unable to figure out a perfect one now
-		if (!item->rosterDetached() && contact.rosterEntry()->detached())
-			contact.rosterEntry()->setState(RosterEntrySynchronized);
-
-		contact.rosterEntry()->setDetached(item->rosterDetached());
+		if (item->rosterDetached())
+			contact.rosterEntry()->setDetached();
+		else
+			contact.rosterEntry()->setSynchronized(); // set as synchronized so next remote update fixes our data
 		return;
 	}
 
@@ -169,7 +166,10 @@ void BuddyContactsTableModel::performItemActionEdit(BuddyContactsTableItem *item
 	Roster::instance()->removeContact(contact);
 	contact.setContactAccount(item->itemAccount());
 	contact.setId(item->id());
-	contact.rosterEntry()->setDetached(item->rosterDetached());
+	if (item->rosterDetached())
+		contact.rosterEntry()->setDetached();
+	else
+		contact.rosterEntry()->setSynchronized();
 	Roster::instance()->addContact(contact);
 	sendAuthorization(contact);
 }
@@ -179,7 +179,10 @@ void BuddyContactsTableModel::performItemActionAdd(BuddyContactsTableItem *item)
 	Contact contact = ContactManager::instance()->byId(item->itemAccount(), item->id(), ActionCreateAndAdd);
 	contact.setOwnerBuddy(ModelBuddy);
 	contact.setPriority(item->itemContactPriority());
-	contact.rosterEntry()->setDetached(item->rosterDetached());
+	if (item->rosterDetached())
+		contact.rosterEntry()->setDetached();
+	else
+		contact.rosterEntry()->setSynchronized();
 
 	Roster::instance()->addContact(contact);
 	sendAuthorization(contact);
@@ -310,7 +313,7 @@ Qt::ItemFlags BuddyContactsTableModel::flags(const QModelIndex &index) const
 		if ("gadu" == item->itemAccount().protocolName())
 			return QAbstractItemModel::flags(index);
 		else
-			return QAbstractItemModel::flags(index) | Qt::ItemIsEditable;
+			return (QAbstractItemModel::flags(index) | Qt::ItemIsSelectable | Qt::ItemIsUserCheckable) & ~Qt::ItemIsEditable;
 	}
 
 	return QAbstractItemModel::flags(index) | Qt::ItemIsEditable;
@@ -382,12 +385,11 @@ QVariant BuddyContactsTableModel::data(const QModelIndex &index, int role) const
 		{
 			switch (role)
 			{
-				case Qt::DisplayRole:
-				case Qt::EditRole:
+				case Qt::CheckStateRole:
 					if ("gadu" == item->itemAccount().protocolName())
-						return true;
+						return QVariant(Qt::Checked);
 					else
-						return !item->rosterDetached();
+						return item->rosterDetached() ? QVariant(Qt::Unchecked) : QVariant(Qt::Checked);
 			}
 
 			return QVariant();
@@ -416,8 +418,8 @@ bool BuddyContactsTableModel::setData(const QModelIndex &index, const QVariant &
 			break;
 
 		case 2:
-			if (Qt::EditRole == role && "gadu" != item->itemAccount().protocolName())
-				item->setRosterDetached(!value.toBool());
+			if (Qt::CheckStateRole == role && "gadu" != item->itemAccount().protocolName())
+				item->setRosterDetached(value.toInt() != Qt::Checked);
 			break;
 	}
 

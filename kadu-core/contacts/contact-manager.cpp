@@ -25,15 +25,18 @@
 
 #include "buddies/buddy-manager.h"
 #include "buddies/buddy.h"
-#include "configuration/configuration-file.h"
 #include "configuration/configuration-manager.h"
+#include "configuration/configuration.h"
+#include "configuration/deprecated-configuration-api.h"
 #include "contacts/contact-parser-tags.h"
+#include "core/application.h"
 #include "core/core.h"
 #include "message/unread-message-repository.h"
 #include "misc/change-notifier-lock.h"
 #include "protocols/protocol-factory.h"
 #include "protocols/protocol.h"
-#include "protocols/services/roster/roster-entry.h"
+#include "roster/roster-entry.h"
+#include "roster/roster-entry-state.h"
 #include "debug.h"
 
 #include "contact-manager.h"
@@ -89,23 +92,6 @@ void ContactManager::init()
 	        this, SLOT(unreadMessageRemoved(Message)));
 }
 
-void ContactManager::dirtinessChanged()
-{
-	QMutexLocker locker(&mutex());
-
-	Contact contact(sender());
-	if (!contact.isNull() && contact.ownerBuddy() != Core::instance()->myself())
-	{
-		if (contact.rosterEntry()->requiresSynchronization())
-		{
-			DirtyContacts.append(contact);
-			emit dirtyContactAdded(contact);
-		}
-		else
-			DirtyContacts.removeAll(contact);
-	}
-}
-
 void ContactManager::unreadMessageAdded(const Message &message)
 {
 	const Contact &contact = message.messageSender();
@@ -138,14 +124,7 @@ void ContactManager::itemRegistered(Contact item)
 	emit contactAdded(item);
 
 	if (Core::instance()->myself() == item.ownerBuddy())
-		item.rosterEntry()->setState(RosterEntrySynchronized);
-	else if (item.rosterEntry()->requiresSynchronization())
-	{
-		DirtyContacts.append(item);
-		emit dirtyContactAdded(item);
-	}
-
-	connect(item, SIGNAL(dirtinessChanged()), this, SLOT(dirtinessChanged()));
+		item.rosterEntry()->setSynchronized();
 }
 
 void ContactManager::itemAboutToBeUnregisterd(Contact item)
@@ -158,11 +137,6 @@ void ContactManager::itemAboutToBeUnregisterd(Contact item)
 
 void ContactManager::itemUnregistered(Contact item)
 {
-	disconnect(item, SIGNAL(dirtinessChanged()), this, SLOT(dirtinessChanged()));
-
-	if (item && item.rosterEntry()->requiresSynchronization())
-		DirtyContacts.removeAll(item);
-
 	emit contactRemoved(item);
 }
 
@@ -184,10 +158,9 @@ Contact ContactManager::byId(Account account, const QString &id, NotFoundAction 
 
 	Contact contact = Contact::create();
 
-	ChangeNotifierLock lock(contact.rosterEntry()->changeNotifier(), ChangeNotifierLock::ModeForget); // don't emit dirty signals
+	ChangeNotifierLock lock(contact.rosterEntry()->hasLocalChangesNotifier(), ChangeNotifierLock::ModeForget); // don't emit dirty signals
 	contact.setId(id);
 	contact.setContactAccount(account);
-	contact.rosterEntry()->setState(RosterEntrySynchronized); // TODO: setId desynchronized it, make a factory
 
 	if (action == ActionCreateAndAdd)
 		addItem(contact);
@@ -198,7 +171,6 @@ Contact ContactManager::byId(Account account, const QString &id, NotFoundAction 
 
 	Buddy buddy = Buddy::create();
 	contact.setOwnerBuddy(buddy);
-	contact.rosterEntry()->setState(RosterEntrySynchronized);
 
 	return contact;
 }
@@ -216,24 +188,6 @@ QVector<Contact> ContactManager::contacts(Account account, AnonymousInclusion in
 
 	foreach (const Contact &contact, allItems())
 		if (account == contact.contactAccount() && ((IncludeAnonymous == inclusion) || !contact.isAnonymous()))
-			contacts.append(contact);
-
-	return contacts;
-}
-
-QVector<Contact> ContactManager::dirtyContacts(Account account)
-{
-	QMutexLocker locker(&mutex());
-
-	ensureLoaded();
-
-	QVector<Contact> contacts;
-
-	if (account.isNull())
-		return contacts;
-
-	foreach (const Contact &contact, DirtyContacts)
-		if (account == contact.contactAccount())
 			contacts.append(contact);
 
 	return contacts;
@@ -275,14 +229,14 @@ void ContactManager::removeDuplicateContacts()
 			uniqueContacts.insert(qMakePair(contact.contactAccount(), contact.id()), contact);
 	}
 
-	config_file.writeEntry("General", "ContactsImportedFrom0_9", true);
+	Application::instance()->configuration()->deprecatedApi()->writeEntry("General", "ContactsImportedFrom0_9", true);
 }
 
 void ContactManager::loaded()
 {
 	Manager<Contact>::loaded();
 
-	if (!config_file.readBoolEntry("General", "ContactsImportedFrom0_9", false))
+	if (!Application::instance()->configuration()->deprecatedApi()->readBoolEntry("General", "ContactsImportedFrom0_9", false))
 		// delay it so that everything needed will be loaded when we call this method
 		QTimer::singleShot(0, this, SLOT(removeDuplicateContacts()));
 }

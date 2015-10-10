@@ -26,6 +26,7 @@
 #include "chat-widget-manager.h"
 
 #include "gui/widgets/chat-widget/chat-widget-activation-service.h"
+#include "gui/widgets/chat-widget/chat-widget-container-handler-mapper.h"
 #include "gui/widgets/chat-widget/chat-widget-factory.h"
 #include "gui/widgets/chat-widget/chat-widget-repository.h"
 #include "gui/widgets/chat-widget/chat-widget.h"
@@ -44,6 +45,11 @@ void ChatWidgetManager::setChatWidgetActivationService(ChatWidgetActivationServi
 	m_chatWidgetActivationService = chatWidgetActivationService;
 }
 
+void ChatWidgetManager::setChatWidgetContainerHandlerMapper(ChatWidgetContainerHandlerMapper *chatWidgetContainerHandlerMapper)
+{
+	m_chatWidgetContainerHandlerMapper = chatWidgetContainerHandlerMapper;
+}
+
 void ChatWidgetManager::setChatWidgetRepository(ChatWidgetRepository *chatWidgetRepository)
 {
 	m_chatWidgetRepository = chatWidgetRepository;
@@ -54,48 +60,33 @@ void ChatWidgetManager::setChatWidgetFactory(ChatWidgetFactory *chatWidgetFactor
 	m_chatWidgetFactory = chatWidgetFactory;
 }
 
-void ChatWidgetManager::openChat(const Chat &chat, OpenChatActivation activation)
+ChatWidget * ChatWidgetManager::openChat(const Chat &chat, OpenChatActivation activation)
 {
 	if (!chat || !m_chatWidgetFactory || !m_chatWidgetRepository)
-		return;
-
-	auto chatWidget = getOrCreateChatWidget(chat);
-	if (!chatWidget)
-		return;
-
-	if (activation == OpenChatActivation::Activate && m_chatWidgetActivationService)
-		m_chatWidgetActivationService.data()->tryActivateChatWidget(chatWidget);
-}
-
-ChatWidget * ChatWidgetManager::getOrCreateChatWidget(const Chat &chat)
-{
-	auto chatWidget = m_chatWidgetRepository.data()->widgetForChat(chat);
-	if (chatWidget)
-		return chatWidget;
-
-	auto newChatWidget = m_chatWidgetFactory.data()->createChatWidget(chat);
-	if (!newChatWidget)
 		return nullptr;
 
-	ChatWidget *rawChatWidget = newChatWidget.get();
-	m_chatWidgetRepository.data()->addChatWidget(std::move(newChatWidget));
-	connect(rawChatWidget, SIGNAL(closeRequested(ChatWidget*)), this, SLOT(closeChatWidget(ChatWidget*)));
-	return rawChatWidget;
-}
-
-void ChatWidgetManager::closeChat(const Chat &chat)
-{
 	auto chatWidget = m_chatWidgetRepository.data()->widgetForChat(chat);
-	if (chatWidget)
-		closeChatWidget(chatWidget);
-}
+	if (!chatWidget)
+	{
+		chatWidget = m_chatWidgetContainerHandlerMapper->createHandledChatWidget(chat, activation);
+		if (!chatWidget)
+			return nullptr;
+	}
 
-void ChatWidgetManager::closeChatWidget(ChatWidget *chatWidget)
-{
-	if (!chatWidget || !m_chatWidgetRepository)
-		return;
+	if (m_chatWidgetActivationService)
+		switch (activation)
+		{
+			case OpenChatActivation::Activate:
+				m_chatWidgetActivationService.data()->tryActivateChatWidget(chatWidget);
+				break;
+			case OpenChatActivation::Minimize:
+				m_chatWidgetActivationService.data()->tryMinimizeChatWidget(chatWidget);
+				break;
+			default:
+				break;
+		}
 
-	m_chatWidgetRepository.data()->removeChatWidget(chatWidget);
+	return chatWidget;
 }
 
 #include "moc_chat-widget-manager.cpp"

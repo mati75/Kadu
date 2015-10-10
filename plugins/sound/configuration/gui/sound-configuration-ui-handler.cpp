@@ -21,11 +21,13 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "configuration/configuration-file.h"
+#include "configuration/configuration.h"
+#include "configuration/deprecated-configuration-api.h"
+#include "core/application.h"
 #include "gui/widgets/configuration/config-combo-box.h"
 #include "gui/widgets/configuration/configuration-widget.h"
 #include "gui/widgets/path-list-edit.h"
-#include "misc/kadu-paths.h"
+#include "misc/paths-provider.h"
 #include "debug.h"
 #include "themes.h"
 
@@ -44,7 +46,7 @@ void SoundConfigurationUiHandler::registerConfigurationUi()
 
 	Instance = new SoundConfigurationUiHandler();
 
-	MainConfigurationWindow::registerUiFile(KaduPaths::instance()->dataPath() + QLatin1String("plugins/configuration/sound.ui"));
+	MainConfigurationWindow::registerUiFile(Application::instance()->pathsProvider()->dataPath() + QLatin1String("plugins/configuration/sound.ui"));
 	MainConfigurationWindow::registerUiHandler(Instance);
 }
 
@@ -56,7 +58,7 @@ void SoundConfigurationUiHandler::unregisterConfigurationUi()
 	delete Instance;
 	Instance = 0;
 
-	MainConfigurationWindow::unregisterUiFile(KaduPaths::instance()->dataPath() + QLatin1String("plugins/configuration/sound.ui"));
+	MainConfigurationWindow::unregisterUiFile(Application::instance()->pathsProvider()->dataPath() + QLatin1String("plugins/configuration/sound.ui"));
 }
 
 SoundConfigurationUiHandler * SoundConfigurationUiHandler::instance()

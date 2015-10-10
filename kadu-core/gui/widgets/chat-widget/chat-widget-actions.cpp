@@ -24,20 +24,22 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <QtGui/QMenu>
+#include <QtWidgets/QMenu>
 
 #include "accounts/account-manager.h"
 #include "accounts/account.h"
 #include "chat/chat-manager.h"
-#include "configuration/chat-configuration-holder.h"
-#include "configuration/configuration-file.h"
+#include "configuration/configuration.h"
+#include "configuration/deprecated-configuration-api.h"
 #include "contacts/contact-set.h"
 #include "contacts/contact.h"
+#include "core/application.h"
 #include "core/core.h"
 #include "gui/actions/action.h"
 #include "gui/actions/actions.h"
 #include "gui/actions/chat/leave-chat-action.h"
 #include "gui/actions/edit-talkable-action.h"
+#include "gui/configuration/chat-configuration-holder.h"
 #include "gui/menu/menu-inventory.h"
 #include "gui/widgets/chat-edit-box.h"
 #include "gui/widgets/chat-widget/chat-widget-manager.h"
@@ -247,7 +249,7 @@ void ChatWidgetActions::configurationUpdated()
 
 void ChatWidgetActions::autoSendActionCreated(Action *action)
 {
-	action->setChecked(config_file.readBoolEntry("Chat", "AutoSend"));
+	action->setChecked(Application::instance()->configuration()->deprecatedApi()->readBoolEntry("Chat", "AutoSend"));
 }
 
 void ChatWidgetActions::clearChatActionCreated(Action *action)
@@ -276,7 +278,7 @@ void ChatWidgetActions::sendActionCreated(Action *action)
 
 void ChatWidgetActions::autoSendActionCheck()
 {
- 	bool check = config_file.readBoolEntry("Chat", "AutoSend");
+ 	bool check = Application::instance()->configuration()->deprecatedApi()->readBoolEntry("Chat", "AutoSend");
  	foreach (Action *action, AutoSend->actions())
  		action->setChecked(check);
 }
@@ -289,7 +291,7 @@ void ChatWidgetActions::autoSendActionActivated(QAction *sender, bool toggled)
 	if (!chatEditBox)
 		return;
 
-	config_file.writeEntry("Chat", "AutoSend", toggled);
+	Application::instance()->configuration()->deprecatedApi()->writeEntry("Chat", "AutoSend", toggled);
 	autoSendActionCheck();
 
 	ChatConfigurationHolder::instance()->configurationUpdated();

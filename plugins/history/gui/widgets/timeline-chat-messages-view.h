@@ -25,7 +25,7 @@
 #define TIMELINE_CHAT_MESSAGES_VIEW_H
 
 #include <QtCore/QFutureWatcher>
-#include <QtGui/QWidget>
+#include <QtWidgets/QWidget>
 
 #include "misc/memory.h"
 
@@ -68,7 +68,7 @@ class TimelineChatMessagesView : public QWidget
 	HistoryQueryResultsModel *ResultsModel;
 	HistoryQueryResultsProxyModel *ResultsProxyModel;
 	WebViewHighlighter *Highlighter;
-	qobject_ptr<WebkitMessagesView> MessagesView;
+	owned_qptr<WebkitMessagesView> MessagesView;
 	SearchBar *MessagesSearchBar;
 
 	QFutureWatcher<QVector<HistoryQueryResult> > *ResultsFutureWatcher;

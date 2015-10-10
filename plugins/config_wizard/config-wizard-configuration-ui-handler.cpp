@@ -20,13 +20,14 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <QtGui/QAction>
+#include <QtWidgets/QAction>
 
-#include "configuration/configuration-file.h"
+#include "configuration/configuration.h"
+#include "configuration/deprecated-configuration-api.h"
 #include "gui/actions/action-description.h"
 #include "gui/menu/menu-inventory.h"
 #include "gui/widgets/configuration/configuration-widget.h"
-#include "misc/kadu-paths.h"
+#include "misc/paths-provider.h"
 #include "activate.h"
 #include "debug.h"
 

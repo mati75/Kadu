@@ -40,7 +40,7 @@ Nowa funkcjonalnosc - Dorregaray
 #include <QtCore/QFile>
 #include <QtCore/QStringList>
 #include <QtCore/QTimer>
-#include <QtGui/QMessageBox>
+#include <QtWidgets/QMessageBox>
 
 #include "plugins/history/history.h"
 
@@ -49,7 +49,9 @@ Nowa funkcjonalnosc - Dorregaray
 #include "buddies/buddy-manager.h"
 #include "chat/chat-manager.h"
 #include "chat/type/chat-type-contact.h"
-#include "configuration/configuration-file.h"
+#include "configuration/configuration.h"
+#include "configuration/deprecated-configuration-api.h"
+#include "core/application.h"
 #include "core/core.h"
 #include "formatted-string/formatted-string-factory.h"
 #include "gui/widgets/chat-widget/chat-widget-manager.h"
@@ -59,7 +61,7 @@ Nowa funkcjonalnosc - Dorregaray
 #include "gui/windows/search-window.h"
 #include "icons/icons-manager.h"
 #include "message/message-manager.h"
-#include "misc/kadu-paths.h"
+#include "misc/paths-provider.h"
 #include "notify/notification-manager.h"
 #include "notify/notification/notification.h"
 #include "services/message-filter-service.h"
@@ -90,8 +92,6 @@ Firewall::Firewall() :
 	kdebugf();
 
 	pattern.setCaseSensitivity(Qt::CaseSensitive);
-
-	import_0_6_5_configuration();
 
 	createDefaultConfiguration();
 
@@ -498,74 +498,53 @@ void Firewall::writeLog(const Contact &contact, const QString &message)
 	kdebugf2();
 }
 
-void Firewall::import_0_6_5_configuration()
-{
-	kdebugf();
-
-	QString loadedStr = config_file.readEntry("Firewall", "Secured_list");
-	QStringList secured = loadedStr.split(',', QString::SkipEmptyParts);
-
-	foreach (const QString &contact, secured)
-	{
-		Buddy buddy = BuddyManager::instance()->byDisplay(contact, ActionReturnNull);
-		if (buddy.isNull() || buddy.isAnonymous())
-			continue;
-
-		buddy.addProperty("firewall-secured-sending:FirewallSecuredSending", true, CustomProperties::Storable);
-	}
-
-	config_file.removeVariable("Firewall", "Secured_list");
-
-	kdebugf2();
-}
-
 void Firewall::configurationUpdated()
 {
-	CheckFloodingEmoticons = config_file.readBoolEntry("Firewall", "dos_emoticons", true);
-	EmoticonsAllowKnown = config_file.readBoolEntry("Firewall", "emoticons_allow_known", false);
-	WriteLog = config_file.readBoolEntry("Firewall", "write_log", true);
-	LogFilePath = config_file.readEntry("Firewall", "logFile", KaduPaths::instance()->profilePath() + QLatin1String("firewall.log"));
-	CheckDos = config_file.readBoolEntry("Firewall", "dos", true);
-	CheckChats = config_file.readBoolEntry("Firewall", "chats", true);
-	IgnoreConferences = config_file.readBoolEntry("Firewall", "ignore_conferences", true);
-	DropAnonymousWhenInvisible = config_file.readBoolEntry("Firewall", "drop_anonymous_when_invisible", false);
-	IgnoreInvisible = config_file.readBoolEntry("Firewall", "ignore_invisible", false);
-	Confirmation = config_file.readBoolEntry("Firewall", "confirmation", true);
-	ConfirmationText = config_file.readEntry("Firewall", "confirmation_text", tr("OK, now say hello, and introduce yourself ;-)"));
-	Search = config_file.readBoolEntry("Firewall", "search", true);
-	ConfirmationQuestion = config_file.readEntry("Firewall", "question", tr("This message has been generated AUTOMATICALLY!\n\nI'm a busy person and I don't have time for stupid chats. Find another person to chat with. If you REALLY want something from me, simple type \"I want something\" (capital doesn't matter)"));
-	WriteInHistory = config_file.readBoolEntry("Firewall", "write_history", true);
-	DosInterval = config_file.readNumEntry("Firewall", "dos_interval", 500);
-	MaxEmoticons = config_file.readNumEntry("Firewall", "emoticons_max", 15);
-	SafeSending = config_file.readBoolEntry("Firewall", "safe_sending", false);
+	CheckFloodingEmoticons = Application::instance()->configuration()->deprecatedApi()->readBoolEntry("Firewall", "dos_emoticons", true);
+	EmoticonsAllowKnown = Application::instance()->configuration()->deprecatedApi()->readBoolEntry("Firewall", "emoticons_allow_known", false);
+	WriteLog = Application::instance()->configuration()->deprecatedApi()->readBoolEntry("Firewall", "write_log", true);
+	LogFilePath = Application::instance()->configuration()->deprecatedApi()->readEntry("Firewall", "logFile", Application::instance()->pathsProvider()->profilePath() + QLatin1String("firewall.log"));
+	CheckDos = Application::instance()->configuration()->deprecatedApi()->readBoolEntry("Firewall", "dos", true);
+	CheckChats = Application::instance()->configuration()->deprecatedApi()->readBoolEntry("Firewall", "chats", true);
+	IgnoreConferences = Application::instance()->configuration()->deprecatedApi()->readBoolEntry("Firewall", "ignore_conferences", true);
+	DropAnonymousWhenInvisible = Application::instance()->configuration()->deprecatedApi()->readBoolEntry("Firewall", "drop_anonymous_when_invisible", false);
+	IgnoreInvisible = Application::instance()->configuration()->deprecatedApi()->readBoolEntry("Firewall", "ignore_invisible", false);
+	Confirmation = Application::instance()->configuration()->deprecatedApi()->readBoolEntry("Firewall", "confirmation", true);
+	ConfirmationText = Application::instance()->configuration()->deprecatedApi()->readEntry("Firewall", "confirmation_text", tr("OK, now say hello, and introduce yourself ;-)"));
+	Search = Application::instance()->configuration()->deprecatedApi()->readBoolEntry("Firewall", "search", true);
+	ConfirmationQuestion = Application::instance()->configuration()->deprecatedApi()->readEntry("Firewall", "question", tr("This message has been generated AUTOMATICALLY!\n\nI'm a busy person and I don't have time for stupid chats. Find another person to chat with. If you REALLY want something from me, simple type \"I want something\" (capital doesn't matter)"));
+	WriteInHistory = Application::instance()->configuration()->deprecatedApi()->readBoolEntry("Firewall", "write_history", true);
+	DosInterval = Application::instance()->configuration()->deprecatedApi()->readNumEntry("Firewall", "dos_interval", 500);
+	MaxEmoticons = Application::instance()->configuration()->deprecatedApi()->readNumEntry("Firewall", "emoticons_max", 15);
+	SafeSending = Application::instance()->configuration()->deprecatedApi()->readBoolEntry("Firewall", "safe_sending", false);
 
-	pattern.setPattern(config_file.readEntry("Firewall", "answer", tr("I want something")));
+	pattern.setPattern(Application::instance()->configuration()->deprecatedApi()->readEntry("Firewall", "answer", tr("I want something")));
 }
 
 void Firewall::createDefaultConfiguration()
 {
 	//domy�lne powiadamianie dymkiem
-	config_file.addVariable("Notify", "Firewall_Hints", config_file.readEntry("Firewall", "show_hint", "true"));
-	config_file.addVariable("Firewall", "notification_syntax", config_file.readEntry("Firewall", "hint_syntax", tr("%u writes")));
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Notify", "Firewall_Hints", Application::instance()->configuration()->deprecatedApi()->readEntry("Firewall", "show_hint", "true"));
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Firewall", "notification_syntax", Application::instance()->configuration()->deprecatedApi()->readEntry("Firewall", "hint_syntax", tr("%u writes")));
 	//domy�lne kolory dymk�w
-	config_file.addVariable("Hints", "Event_Firewall_fgcolor", config_file.readEntry("Firewall", "fg_color", "#000080"));//navy
-	config_file.addVariable("Hints", "Event_Firewall_bgcolor", config_file.readEntry("Firewall", "bg_color", "#add8e6"));//lightblue
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Hints", "Event_Firewall_fgcolor", Application::instance()->configuration()->deprecatedApi()->readEntry("Firewall", "fg_color", "#000080"));//navy
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Hints", "Event_Firewall_bgcolor", Application::instance()->configuration()->deprecatedApi()->readEntry("Firewall", "bg_color", "#add8e6"));//lightblue
 	//domy�lne warto�ci zmiennych konfiguracyjnych
-	config_file.addVariable("Firewall", "ignore_conferences", true);
-	config_file.addVariable("Firewall", "search", true);
-	config_file.addVariable("Firewall", "chats", true);
-	config_file.addVariable("Firewall", "question", tr("This message has been generated AUTOMATICALLY!\n\nI'm a busy person and I don't have time for stupid chats. Find another person to chat with. If you REALLY want something from me, simple type \"I want something\" (capital doesn't matter)") );
-	config_file.addVariable("Firewall", "answer", tr("I want something") );
-	config_file.addVariable("Firewall", "confirmation", true );
-	config_file.addVariable("Firewall", "confirmation_text", tr("OK, now say hello, and introduce yourself ;-)") );
-	config_file.addVariable("Firewall", "dos", true);
-	config_file.addVariable("Firewall", "dos_interval", 500);
-	config_file.addVariable("Firewall", "dos_emoticons", true);
-	config_file.addVariable("Firewall", "emoticons_max", 15);
-	config_file.addVariable("Firewall", "emoticons_allow_known", false);
-	config_file.addVariable("Firewall", "safe_sending", false);
-	config_file.addVariable("Firewall", "write_log", true);
-	config_file.addVariable("Firewall", "logFile", KaduPaths::instance()->profilePath() + QLatin1String("firewall.log"));
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Firewall", "ignore_conferences", true);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Firewall", "search", true);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Firewall", "chats", true);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Firewall", "question", tr("This message has been generated AUTOMATICALLY!\n\nI'm a busy person and I don't have time for stupid chats. Find another person to chat with. If you REALLY want something from me, simple type \"I want something\" (capital doesn't matter)") );
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Firewall", "answer", tr("I want something") );
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Firewall", "confirmation", true );
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Firewall", "confirmation_text", tr("OK, now say hello, and introduce yourself ;-)") );
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Firewall", "dos", true);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Firewall", "dos_interval", 500);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Firewall", "dos_emoticons", true);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Firewall", "emoticons_max", 15);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Firewall", "emoticons_allow_known", false);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Firewall", "safe_sending", false);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Firewall", "write_log", true);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Firewall", "logFile", Application::instance()->pathsProvider()->profilePath() + QLatin1String("firewall.log"));
 }
 
 #include "moc_firewall.cpp"

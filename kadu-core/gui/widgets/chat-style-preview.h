@@ -28,7 +28,7 @@
 #include "configuration/configuration-aware-object.h"
 #include "misc/memory.h"
 
-#include <QtGui/QFrame>
+#include <QtWidgets/QFrame>
 
 class WebkitMessagesView;
 
@@ -46,8 +46,8 @@ protected:
 	virtual void configurationUpdated();
 
 private:
-	qobject_ptr<WebkitMessagesView> m_view;
+	owned_qptr<WebkitMessagesView> m_view;
 
-	qobject_ptr<WebkitMessagesView> preparePreview();
+	owned_qptr<WebkitMessagesView> preparePreview();
 
 };

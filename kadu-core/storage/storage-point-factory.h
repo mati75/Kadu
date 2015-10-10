@@ -19,25 +19,27 @@
 
 #pragma once
 
-#include <memory>
+#include "exports.h"
+
 #include <QtCore/QObject>
+#include <memory>
 
 class StoragePoint;
-class XmlConfigFile;
+class ConfigurationApi;
 
-class StoragePointFactory : public QObject
+class KADUAPI StoragePointFactory : public QObject
 {
 	Q_OBJECT
 
 public:
-	explicit StoragePointFactory(QObject *parent = 0);
+	Q_INVOKABLE explicit StoragePointFactory(QObject *parent = 0);
 	virtual ~StoragePointFactory();
 
-	void setConfigurationFile(XmlConfigFile *configurationFile);
+	void setConfigurationFile(ConfigurationApi *configurationFile);
 
 	std::unique_ptr<StoragePoint> createStoragePoint(const QString &nodeName, StoragePoint *parent = 0);
 
 private:
-	XmlConfigFile *m_configurationFile;
+	ConfigurationApi *m_configurationFile;
 
 };

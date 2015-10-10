@@ -5,6 +5,8 @@ cmake_minimum_required (VERSION 2.8)
 # Needed for FindQCA2.cmake when building externally
 list (INSERT CMAKE_MODULE_PATH 0 "${CMAKE_CURRENT_SOURCE_DIR}/../../cmake/Modules")
 
+set (EXTERNAL_LIBIRS "" CACHE STRING "Path to directory with libiris.a and libirisnet.a file")
+
 find_package (Kadu REQUIRED CONFIG)
 
 find_package (PkgConfig)
@@ -90,6 +92,7 @@ set (SOURCES
 	services/jabber-file-transfer-service.cpp
 	services/jabber-pep-service.cpp
 	services/jabber-personal-info-service.cpp
+	services/jabber-room-chat-service.cpp
 	services/jabber-roster-service.cpp
 	services/jabber-server-info-service.cpp
 	services/jabber-stream-debug-service.cpp
@@ -183,35 +186,34 @@ set (MOC_SOURCES
 )
 
 add_definitions (${QCA2_DEFINITIONS} ${IDN_CFLAGS_OTHER} ${ZLIB_CFLAGS_OTHER} -DIRISNET_STATIC)
-add_subdirectory (3rdparty)
 
-if (WIN32)
-	include_directories (
-		${QCA2_INCLUDE_DIR}
-
-		${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/libiris-win/include
-		${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/libiris-win/include/iris
-		${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/libiris-win/src/irisnet/corelib
-		${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/libiris-win/src/xmpp/base64/
-		${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/libiris-win/src/xmpp/jid/
-		${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/libiris-win/src/xmpp/xmpp-core/
-		${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/libiris-win/src
-	)
+if ("${EXTERNAL_LIBIRS}" STREQUAL "")
+	add_subdirectory (3rdparty)
+	set (LIBRARIES 3rdparty)
 else ()
-	include_directories (
-		${QCA2_INCLUDE_DIR}
-
-		${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/libiris/include
-		${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/libiris/include/iris
-		${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/libiris/src/irisnet/corelib
-		${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/libiris/src/xmpp/base64/
-		${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/libiris/src/xmpp/jid/
-		${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/libiris/src/xmpp/xmpp-core/
-		${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/libiris/src
-	)
+	set (LIBRARIES "${EXTERNAL_LIBIRS}/lib/libiris.a" "${EXTERNAL_LIBIRS}/lib/libirisnet.a")
+	include_directories ("${EXTERNAL_LIBIRS}/include/")
+	include_directories ("${EXTERNAL_LIBIRS}/include/iris/")
+	include_directories ("${EXTERNAL_LIBIRS}/src/irisnet/corelib/")
+	include_directories ("${EXTERNAL_LIBIRS}/src/xmpp/base64/")
+	include_directories ("${EXTERNAL_LIBIRS}/src/xmpp/jid/")
+	include_directories ("${EXTERNAL_LIBIRS}/src/xmpp/xmpp-core/")
+	include_directories ("${EXTERNAL_LIBIRS}/src/")
 endif ()
 
-set (LIBRARIES 3rdparty ${QCA2_LIBRARIES} ${IDN_LIBRARIES} ${ZLIB_LIBRARIES} ${QT_LIBRARIES})
+include_directories (
+	${QCA2_INCLUDE_DIR}
+
+	${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/libiris/include
+	${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/libiris/include/iris
+	${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/libiris/src/irisnet/corelib
+	${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/libiris/src/xmpp/base64/
+	${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/libiris/src/xmpp/jid/
+	${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/libiris/src/xmpp/xmpp-core/
+	${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/libiris/src
+)
+
+set (LIBRARIES ${LIBRARIES} ${QCA2_LIBRARIES} ${IDN_LIBRARIES} ${ZLIB_LIBRARIES})
 if (WIN32)
 	set (LIBRARIES ${LIBRARIES} advapi32 ws2_32)
 endif ()

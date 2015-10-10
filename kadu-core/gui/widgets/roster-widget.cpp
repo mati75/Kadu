@@ -19,17 +19,19 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <QtGui/QButtonGroup>
-#include <QtGui/QHBoxLayout>
-#include <QtGui/QPushButton>
-#include <QtGui/QScrollBar>
-#include <QtGui/QStackedWidget>
+#include <QtWidgets/QButtonGroup>
+#include <QtWidgets/QHBoxLayout>
+#include <QtWidgets/QPushButton>
+#include <QtWidgets/QScrollBar>
+#include <QtWidgets/QStackedWidget>
 
-#include "configuration/configuration-file.h"
+#include "configuration/configuration.h"
+#include "configuration/deprecated-configuration-api.h"
+#include "core/application.h"
 #include "gui/widgets/filter-widget.h"
 #include "gui/widgets/filtered-tree-view.h"
-#include "gui/widgets/group-tab-bar/group-tab-bar.h"
 #include "gui/widgets/group-tab-bar/group-tab-bar-configurator.h"
+#include "gui/widgets/group-tab-bar/group-tab-bar.h"
 #include "gui/widgets/talkable-tree-view.h"
 #include "gui/windows/proxy-action-context.h"
 #include "model/model-chain.h"
@@ -90,12 +92,12 @@ void RosterWidget::createGui()
 
 void RosterWidget::configurationUpdated()
 {
-	QString bgColor = config_file.readColorEntry("Look","UserboxBgColor").name();
-	QString alternateBgColor = config_file.readColorEntry("Look","UserboxAlternateBgColor").name();
+	QString bgColor = Application::instance()->configuration()->deprecatedApi()->readColorEntry("Look","UserboxBgColor").name();
+	QString alternateBgColor = Application::instance()->configuration()->deprecatedApi()->readColorEntry("Look","UserboxAlternateBgColor").name();
 
-	if (CompositingEnabled && config_file.readBoolEntry("Look", "UserboxTransparency"))
+	if (CompositingEnabled && Application::instance()->configuration()->deprecatedApi()->readBoolEntry("Look", "UserboxTransparency"))
 	{
-		int alpha = config_file.readNumEntry("Look", "UserboxAlpha");
+		int alpha = Application::instance()->configuration()->deprecatedApi()->readNumEntry("Look", "UserboxAlpha");
 
 		QColor color(bgColor);
 		bgColor = QString("rgba(%1,%2,%3,%4)").arg(color.red()).arg(color.green()).arg(color.blue()).arg(alpha);
@@ -107,9 +109,9 @@ void RosterWidget::configurationUpdated()
 			alternateBgColor = QString("transparent");
 	}
 
-	if (config_file.readBoolEntry("Look", "UseUserboxBackground", true))
+	if (Application::instance()->configuration()->deprecatedApi()->readBoolEntry("Look", "UseUserboxBackground", true))
 	{
-		QString typeName = config_file.readEntry("Look", "UserboxBackgroundDisplayStyle");
+		QString typeName = Application::instance()->configuration()->deprecatedApi()->readEntry("Look", "UserboxBackgroundDisplayStyle");
 
 		KaduTreeView::BackgroundMode type;
 		if (typeName == "Centered")
@@ -123,7 +125,7 @@ void RosterWidget::configurationUpdated()
 		else
 			type = KaduTreeView::BackgroundNone;
 
-		TalkableTree->setBackground(bgColor, alternateBgColor, config_file.readEntry("Look", "UserboxBackground"), type);
+		TalkableTree->setBackground(bgColor, alternateBgColor, Application::instance()->configuration()->deprecatedApi()->readEntry("Look", "UserboxBackground"), type);
 	}
 	else
 	{
@@ -141,7 +143,7 @@ void RosterWidget::storeConfiguration()
 
 void RosterWidget::compositingEnabled()
 {
-	if (!config_file.readBoolEntry("Look", "UserboxTransparency"))
+	if (!Application::instance()->configuration()->deprecatedApi()->readBoolEntry("Look", "UserboxTransparency"))
 	{
 		compositingDisabled();
 		return;

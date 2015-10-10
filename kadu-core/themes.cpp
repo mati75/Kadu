@@ -24,12 +24,15 @@
 
 #include <QtCore/QDir>
 #include <QtCore/QFile>
+#include <QtCore/QSettings>
 
-#include "configuration/configuration-file.h"
+#include "configuration/configuration.h"
+#include "configuration/deprecated-configuration-api.h"
 
+#include "core/application.h"
 #include "gui/windows/message-dialog.h"
-#include "misc/kadu-paths.h"
 #include "misc/misc.h"
+#include "misc/paths-provider.h"
 #include "debug.h"
 
 #include "themes.h"
@@ -102,10 +105,16 @@ void Themes::setTheme(const QString &theme)
 		ActualTheme = theme;
 		if (theme != "Custom" && !ConfigName.isEmpty())
 		{
-			PlainConfigFile theme_file(
-			themePath() +  fixFileName(themePath(), ConfigName));
-			theme_file.read();
-			entries = theme_file.getGroupSection(Name);
+			QSettings themeSettings(themePath() +  fixFileName(themePath(), ConfigName), QSettings::IniFormat);
+			themeSettings.setIniCodec("ISO8859-2");
+
+			themeSettings.beginGroup(Name);
+			auto keys = themeSettings.allKeys();
+			for (auto key : keys)
+			{
+				entries.insert(key, themeSettings.value(key).toString());
+			}
+			themeSettings.endGroup();
 		}
 		emit themeChanged(ActualTheme);
 	}
@@ -124,7 +133,7 @@ void Themes::setPaths(const QStringList &paths)
 	ThemesList.clear();
 	ThemesPaths.clear();
 	additional.clear();
-	QStringList temp = paths + defaultKaduPathsWithThemes();
+	QStringList temp = paths + defaultPathsProviderWithThemes();
 	foreach(const QString &it, temp)
 	{
 		if (validateDir(it))
@@ -142,15 +151,15 @@ void Themes::setPaths(const QStringList &paths)
 	kdebugf2();
 }
 
-QStringList Themes::defaultKaduPathsWithThemes() const
+QStringList Themes::defaultPathsProviderWithThemes() const
 {
 	QStringList result;
 
-	foreach(const QString &it, getSubDirs(KaduPaths::instance()->dataPath() + QLatin1String("themes/") + Name))
-		result << (KaduPaths::instance()->dataPath() + QLatin1String("themes/") + Name + '/' + it + '/');
+	foreach(const QString &it, getSubDirs(Application::instance()->pathsProvider()->dataPath() + QLatin1String("themes/") + Name))
+		result << (Application::instance()->pathsProvider()->dataPath() + QLatin1String("themes/") + Name + '/' + it + '/');
 
-	foreach(const QString &it, getSubDirs(KaduPaths::instance()->profilePath() + Name))
-		result << (KaduPaths::instance()->profilePath() + Name + '/' + it + '/');
+	foreach(const QString &it, getSubDirs(Application::instance()->pathsProvider()->profilePath() + Name))
+		result << (Application::instance()->pathsProvider()->profilePath() + Name + '/' + it + '/');
 
 	return result;
 }

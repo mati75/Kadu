@@ -157,7 +157,8 @@ Section -section_generic_libraries
 	SetOverwrite on
 
 	SetOutPath "$INSTDIR"
-	File "${BIN_DIR}\bz2-1.dll"
+	File "${BIN_DIR}\libbz2-1.dll"
+	File "${BIN_DIR}\libinjeqt.dll"
 	File "${BIN_DIR}\libarchive-12.dll"
 	File "${BIN_DIR}\libcrypto-10.dll"
 	File "${BIN_DIR}\libffi-6.dll"
@@ -178,7 +179,7 @@ Section -section_generic_libraries
 	File "${BIN_DIR}\libp11-kit-0.dll"
 	File "${BIN_DIR}\libpng16-16.dll"
 	File "${BIN_DIR}\libprotobuf-c-1.dll"
-	File "${BIN_DIR}\libqca.dll"
+	File "${BIN_DIR}\libqca-qt5.dll"
 	File "${BIN_DIR}\libsqlite3-0.dll"
 	File "${BIN_DIR}\libssl-10.dll"
 	File "${BIN_DIR}\libstdc++-6.dll"
@@ -188,22 +189,29 @@ Section -section_generic_libraries
 	File "${BIN_DIR}\zlib1.dll"
 	File "${BIN_DIR}\libotr-5.dll"
 	File "${BIN_DIR}\libssp-0.dll"
+	File "${BIN_DIR}\icudata53.dll"
+	File "${BIN_DIR}\icui18n53.dll"
+	File "${BIN_DIR}\icuio53.dll"
+	File "${BIN_DIR}\icule53.dll"
+	File "${BIN_DIR}\iculx53.dll"
+	File "${BIN_DIR}\icutest53.dll"
+	File "${BIN_DIR}\icutu53.dll"
+	File "${BIN_DIR}\icuuc53.dll"
+	File "${BIN_DIR}\libEGL.dll"
+	File "${BIN_DIR}\libGLESv2.dll"
+	File "${BIN_DIR}\libexslt-0.dll"
+	File "${BIN_DIR}\libpcre-1.dll"
+	File "${BIN_DIR}\libpcre16-0.dll"
+	File "${BIN_DIR}\libwebp-4.dll"
+	File "${BIN_DIR}\libxml2-2.dll"
+	File "${BIN_DIR}\libxslt-1.dll"
 SectionEnd
 
 Section -section_qt
 	SetOverwrite on
 
 	SetOutPath "$INSTDIR"
-	File "${BIN_DIR}\QtCore4.dll"
-	File "${BIN_DIR}\QtDeclarative4.dll"
-	File "${BIN_DIR}\QtGui4.dll"
-	File "${BIN_DIR}\QtNetwork4.dll"
-	File "${BIN_DIR}\QtScript4.dll"
-	File "${BIN_DIR}\QtSql4.dll"
-	File "${BIN_DIR}\QtSvg4.dll"
-	File "${BIN_DIR}\QtWebKit4.dll"
-	File "${BIN_DIR}\QtXml4.dll"
-	File "${BIN_DIR}\QtXmlPatterns4.dll"
+	File "${BIN_DIR}\Qt5*.dll"
 	File "${BIN_DIR}\qt.conf"
 
 	SetOutPath "$INSTDIR\qt-plugins"
@@ -316,6 +324,8 @@ SectionGroupEnd
 	File /nonfatal "${DATA_DIR}\kadu\plugins\translations\${name}_cs.qm"
 	File /nonfatal "${DATA_DIR}\kadu\plugins\translations\${name}_en.qm"
 	File /nonfatal "${DATA_DIR}\kadu\plugins\translations\${name}_pl.qm"
+	File /nonfatal "${DATA_DIR}\kadu\plugins\translations\${name}_tr.qm"
+	File /nonfatal "${DATA_DIR}\kadu\plugins\translations\${name}_fr.qm"
 !macroend
 
 !macro kadu_plugin_data_files name
@@ -464,7 +474,6 @@ SectionGroup $(section_plugins) SectionPlugins
 		!insertmacro kadu_plugin_file libqt4_docking_notify
 	SectionEnd
 
-	!insertmacro kadu_plugin qt4_sound qt4_sound
 	!insertmacro kadu_plugin screenshot screenshot
 	!insertmacro kadu_plugin simpleview simpleview
 	!insertmacro kadu_plugin single_window single_window
@@ -505,8 +514,8 @@ SectionGroup $(section_external_plugins) SectionExternalPlugins
 	!insertmacro kadu_external_plugin anonymous_check anonymous_check
 	!insertmacro kadu_external_plugin import_history import_history
 	!insertmacro kadu_external_plugin kadu_completion kadu_completion
-	!insertmacro kadu_external_plugin lednotify lednotify
-	!insertmacro kadu_external_plugin messagessplitter messagessplitter
+#	!insertmacro kadu_external_plugin lednotify lednotify
+#	!insertmacro kadu_external_plugin messagessplitter messagessplitter
 
 	Section /o mime_tex
 		!insertmacro kadu_plugin_content mime_tex
@@ -515,9 +524,9 @@ SectionGroup $(section_external_plugins) SectionExternalPlugins
 		File /r "${LIB_DIR}\kadu\plugins\bin\mime_tex\mimetex.exe"
 	SectionEnd
 
-	!insertmacro kadu_external_plugin networkping networkping
-	!insertmacro kadu_external_plugin nextinfo nextinfo
-	!insertmacro kadu_external_plugin senthistory senthistory
+#	!insertmacro kadu_external_plugin networkping networkping
+#	!insertmacro kadu_external_plugin nextinfo nextinfo
+#	!insertmacro kadu_external_plugin senthistory senthistory
 
 SectionGroupEnd
 

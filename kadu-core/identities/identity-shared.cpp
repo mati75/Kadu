@@ -22,13 +22,13 @@
  */
 
 #include "accounts/account-manager.h"
-#include "configuration/main-configuration-holder.h"
 #include "contacts/contact.h"
 #include "core/core.h"
 #include "icons/kadu-icon.h"
 #include "identities/identity-manager.h"
 #include "misc/misc.h"
 #include "protocols/protocol.h"
+#include "status/status-configuration-holder.h"
 
 #include "status/status-type-manager.h"
 #include "status/status-type.h"
@@ -117,7 +117,7 @@ void IdentityShared::addAccount(const Account &account)
 
 	Accounts.append(account);
 	connect(account.statusContainer(), SIGNAL(statusUpdated(StatusContainer *)), this, SIGNAL(statusUpdated(StatusContainer *)));
-	if (MainConfigurationHolder::instance()->isSetStatusPerIdentity())
+	if (StatusConfigurationHolder::instance()->isSetStatusPerIdentity())
 		account.statusContainer()->setStatus(LastSetStatus, SourceStatusChanger);
 
 	emit statusUpdated(this);

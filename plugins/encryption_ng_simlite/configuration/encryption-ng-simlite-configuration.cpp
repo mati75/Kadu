@@ -22,7 +22,9 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "configuration/configuration-file.h"
+#include "configuration/configuration.h"
+#include "configuration/deprecated-configuration-api.h"
+#include "core/application.h"
 
 #include "encryption-ng-simlite-configuration.h"
 
@@ -58,11 +60,11 @@ EncryptionNgSimliteConfiguration::~EncryptionNgSimliteConfiguration()
 
 void EncryptionNgSimliteConfiguration::createDefaultConfiguration()
 {
-	config_file.removeVariable("Chat", "Encryption");
-	config_file.addVariable("Chat", "EncryptAfterReceiveEncryptedMessage", true);
+	Application::instance()->configuration()->deprecatedApi()->removeVariable("Chat", "Encryption");
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Chat", "EncryptAfterReceiveEncryptedMessage", true);
 }
 
 void EncryptionNgSimliteConfiguration::configurationUpdated()
 {
-	EncryptAfterReceiveEncryptedMessage = config_file.readBoolEntry("Chat", "EncryptAfterReceiveEncryptedMessage", true);
+	EncryptAfterReceiveEncryptedMessage = Application::instance()->configuration()->deprecatedApi()->readBoolEntry("Chat", "EncryptAfterReceiveEncryptedMessage", true);
 }

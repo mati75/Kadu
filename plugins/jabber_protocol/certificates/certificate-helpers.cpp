@@ -27,18 +27,18 @@
  * See COPYING for details.
  */
 
-#include <QDebug>
-#include <QDir>
-#include <QDomDocument>
-#include <QFile>
-#include <QMessageBox>
-#include <QStringList>
+#include <QtCore/QDir>
+#include <QtCore/QFile>
+#include <QtCore/QStringList>
+#include <QtCore/QtDebug>
+#include <QtWidgets/QMessageBox>
+#include <QtXml/QDomDocument>
 #include <QtCrypto>
-#include <QtDebug>
 
 #include "xmpp.h"
 
-#include "misc/kadu-paths.h"
+#include "core/application.h"
+#include "misc/paths-provider.h"
 
 #include "certificates/certificate-helpers.h"
 #include "certificates/trusted-certificates-manager.h"
@@ -233,6 +233,6 @@ bool CertificateHelpers::checkCertificate(QCA::TLS* tls, XMPP::QCATLSHandler *tl
 QStringList CertificateHelpers::getCertificateStoreDirs()
 {
 	QStringList l;
-	l += KaduPaths::instance()->profilePath() + QLatin1String("certs");
+	l += Application::instance()->pathsProvider()->profilePath() + QLatin1String("certs");
 	return l;
 }

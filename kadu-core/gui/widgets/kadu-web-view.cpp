@@ -35,37 +35,38 @@
 #include <QtCore/QFile>
 #include <QtCore/QMimeData>
 #include <QtCore/QPoint>
+#include <QtCore/QPointer>
 #include <QtCore/QString>
 #include <QtCore/QTimer>
 #include <QtCore/QUrl>
-#include <QtCore/QPointer>
-#include <QtGui/QAction>
-#include <QtGui/QApplication>
 #include <QtGui/QClipboard>
 #include <QtGui/QContextMenuEvent>
 #include <QtGui/QDrag>
-#include <QtGui/QFileDialog>
 #include <QtGui/QImage>
-#include <QtGui/QMenu>
 #include <QtGui/QMouseEvent>
-#include <QtGui/QStyle>
 #include <QtGui/QTextDocument>
 #include <QtWebKit/QWebHistory>
-#include <QtWebKit/QWebHitTestResult>
-#include <QtWebKit/QWebPage>
+#include <QtWebKitWidgets/QWebHitTestResult>
+#include <QtWebKitWidgets/QWebPage>
+#include <QtWidgets/QAction>
+#include <QtWidgets/QApplication>
+#include <QtWidgets/QFileDialog>
+#include <QtWidgets/QMenu>
+#include <QtWidgets/QStyle>
 
 #ifdef DEBUG_ENABLED
-#	include <QtWebKit/QWebInspector>
+#	include <QtWebKitWidgets/QWebInspector>
 #endif
 
-#include "configuration/configuration-file.h"
+#include "configuration/configuration.h"
+#include "configuration/deprecated-configuration-api.h"
+#include "core/application.h"
 #include "core/core.h"
 #include "gui/services/clipboard-html-transformer-service.h"
 #include "gui/windows/message-dialog.h"
 #include "protocols/services/chat-image-service.h"
 #include "services/image-storage-service.h"
 #include "url-handlers/url-handler-manager.h"
-
 #include "debug.h"
 
 #include "kadu-web-view.h"
@@ -280,7 +281,7 @@ void KaduWebView::saveImage()
 	QPointer<QFileDialog> fd = new QFileDialog(this);
 	fd->setFileMode(QFileDialog::AnyFile);
 	fd->setAcceptMode(QFileDialog::AcceptSave);
-	fd->setDirectory(config_file.readEntry("Chat", "LastImagePath"));
+	fd->setDirectory(Application::instance()->configuration()->deprecatedApi()->readEntry("Chat", "LastImagePath"));
 	fd->setNameFilter(QString("%1 (*%2)").arg(QCoreApplication::translate("ImageDialog", "Images"), fileExt));
 	fd->setLabelText(QFileDialog::FileName, imageFullPath.section('/', -1));
 	fd->setWindowTitle(tr("Save image"));
@@ -305,11 +306,11 @@ void KaduWebView::saveImage()
 				if (!removeMe.remove())
 				{
 					MessageDialog::show(KaduIcon("dialog-warning"), tr("Kadu"), tr("Cannot save image: %1").arg(removeMe.errorString()));
-					continue;
+					break;
 				}
 			}
 			else
-				continue;
+				break;
 		}
 
 		QString dst = file;
@@ -321,7 +322,7 @@ void KaduWebView::saveImage()
 			if (!image.save(dst, "PNG"))
 			{
 				MessageDialog::show(KaduIcon("dialog-warning"), tr("Kadu"), tr("Cannot save image"));
-				continue;
+				break;
 			}
 		}
 		else
@@ -330,11 +331,11 @@ void KaduWebView::saveImage()
 			if (!src.copy(dst))
 			{
 				MessageDialog::show(KaduIcon("dialog-warning"), tr("Kadu"), tr("Cannot save image: %1").arg(src.errorString()));
-				continue;
+				break;
 			}
 		}
 
-		config_file.writeEntry("Chat", "LastImagePath", fd->directory().absolutePath());
+		Application::instance()->configuration()->deprecatedApi()->writeEntry("Chat", "LastImagePath", fd->directory().absolutePath());
 	} while (false);
 
 	delete fd.data();

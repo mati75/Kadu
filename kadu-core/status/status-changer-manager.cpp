@@ -77,10 +77,11 @@ void StatusChangerManager::unregisterStatusChanger(StatusChanger *statusChanger)
 	kdebugf2();
 }
 
-void StatusChangerManager::setStatus(StatusContainer *statusContainer, Status status)
+void StatusChangerManager::setStatusManually(StatusContainer *statusContainer, Status status)
 {
 	if (statusContainer)
 	{
+		emit manualStatusAboutToBeChanged(statusContainer, status);
 		Statuses.insert(statusContainer, status);
 		statusChanged(statusContainer, SourceUser);
 	}

@@ -20,8 +20,9 @@
 
 #include "plugin-loader.h"
 
-#include "misc/kadu-paths.h"
+#include "core/application.h"
 #include "misc/memory.h"
+#include "misc/paths-provider.h"
 #include "plugin/activation/plugin-activation-error-exception.h"
 #include "plugin/plugin-root-component.h"
 #include "debug.h"
@@ -44,7 +45,7 @@
 
 PluginLoader::PluginLoader(const QString &pluginName, QObject *parent) noexcept(false) :
 		QObject{parent},
-		m_pluginLoader{make_unique<QPluginLoader>(KaduPaths::instance()->pluginsLibPath() + "/" + QLatin1String{SO_PREFIX} + pluginName + QLatin1String{"." SO_EXT})}
+		m_pluginLoader{make_unique<QPluginLoader>(Application::instance()->pathsProvider()->pluginsLibPath() + "/" + QLatin1String{SO_PREFIX} + pluginName + QLatin1String{"." SO_EXT})}
 {
 	m_pluginLoader->setLoadHints(QLibrary::ExportExternalSymbolsHint);
 
@@ -67,7 +68,17 @@ PluginLoader::~PluginLoader() noexcept
 		// belonging to already unloaded plugins, which can result in segfaults.
 
 		QCoreApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
-		m_pluginLoader->unload();
+
+		// probably we don't really need to unload plugins
+		// root component gets its done() method called anyways, need to check
+		// multiple loads/unloads if any problems arise
+		// unloading plugins has some problems and disabling it is very easy way
+		// to fix them
+		// for example: if plugin after load adds some static data to glib,
+		// like messaging-menu used in indicator-docking does, then after unload
+		// and next load we are in trouble - application crashes
+		// anyway, I don't expect users to unload plugins very frequently
+		// m_pluginLoader->unload();
 	}
 }
 

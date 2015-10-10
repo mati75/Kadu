@@ -39,10 +39,10 @@
 #include "configuration/configuration-aware-object.h"
 
 #include "services/gadu-avatar-service.h"
+#include "services/gadu-buddy-list-serialization-service.h"
 #include "services/gadu-chat-image-service.h"
 #include "services/gadu-chat-service.h"
 #include "services/gadu-chat-state-service.h"
-#include "services/gadu-contact-list-service.h"
 #include "services/gadu-contact-personal-info-service.h"
 #include "services/gadu-file-transfer-service.h"
 #include "services/gadu-multilogon-service.h"
@@ -59,6 +59,7 @@
 class DccManager;
 class GaduContactDetails;
 class GaduContactListHandler;
+class GaduNotifyService;
 class GaduProtocolSocketNotifiers;
 class ProtocolGaduConnection;
 
@@ -91,15 +92,16 @@ private:
 	ProtocolGaduConnection *Connection;
 
 	GaduAvatarService *CurrentAvatarService;
+	GaduBuddyListSerializationService *CurrentBuddyListSerializationService;
 	GaduChatImageService *CurrentChatImageService;
 	GaduChatService *CurrentChatService;
-	GaduContactListService *CurrentContactListService;
 	GaduContactPersonalInfoService *CurrentContactPersonalInfoService;
 	GaduFileTransferService *CurrentFileTransferService;
 	GaduPersonalInfoService *CurrentPersonalInfoService;
 	GaduSearchService *CurrentSearchService;
 	GaduMultilogonService *CurrentMultilogonService;
 	GaduChatStateService *CurrentChatStateService;
+	GaduNotifyService *CurrentNotifyService;
 
 	GaduServersManager::GaduServer ActiveServer;
 
@@ -150,8 +152,8 @@ public:
 	virtual ~GaduProtocol();
 
 	virtual AvatarService * avatarService() { return CurrentAvatarService; }
+	virtual BuddyListSerializationService * buddyListSerializationService() { return CurrentBuddyListSerializationService; }
 	virtual ChatImageService * chatImageService() { return CurrentChatImageService; }
-	virtual ContactListService * contactListService() { return CurrentContactListService; }
 	virtual ContactPersonalInfoService * contactPersonalInfoService() { return CurrentContactPersonalInfoService; }
 	virtual FileTransferService * fileTransferService() { return CurrentFileTransferService; }
 	virtual PersonalInfoService * personalInfoService() { return CurrentPersonalInfoService; }

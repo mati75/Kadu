@@ -29,13 +29,15 @@
 #include <QtCore/QPoint>
 #include <QtCore/QVariant>
 #include <QtGui/QDrag>
-#include <QtGui/QHBoxLayout>
-#include <QtGui/QMenu>
+#include <QtWidgets/QHBoxLayout>
+#include <QtWidgets/QMenu>
 
 #include "chat/chat.h"
 #include "chat/model/chat-data-extractor.h"
 #include "chat/recent-chat-manager.h"
-#include "configuration/configuration-file.h"
+#include "configuration/configuration.h"
+#include "configuration/deprecated-configuration-api.h"
+#include "core/application.h"
 #include "core/core.h"
 #include "gui/hot-key.h"
 #include "gui/widgets/chat-widget/chat-widget-manager.h"
@@ -48,7 +50,6 @@
 #include "message/unread-message-repository.h"
 #include "misc/misc.h"
 #include "activate.h"
-#include "kadu-application.h"
 
 #include "tab-bar.h"
 #include "tabs.h"
@@ -204,15 +205,24 @@ void TabWidget::tryActivateChatWidget(ChatWidget *chatWidget)
 	chatWidget->edit()->setFocus();
 }
 
-void TabWidget::closeTab(QWidget *tabWidget)
+void TabWidget::tryMinimizeChatWidget(ChatWidget *chatWidget)
 {
-	ChatWidget *chatWidget = qobject_cast<ChatWidget *>(tabWidget);
+	int index = indexOf(chatWidget);
+	if (index < 0)
+		return;
+
+	if (count() == 1)
+		window()->showMinimized();
+}
+
+void TabWidget::closeTab(ChatWidget *chatWidget)
+{
 	if (!chatWidget)
 		return;
 
-	if (config_file.readBoolEntry("Chat", "ChatCloseTimer"))
+	if (Application::instance()->configuration()->deprecatedApi()->readBoolEntry("Chat", "ChatCloseTimer"))
 	{
-		unsigned int period = config_file.readUnsignedNumEntry("Chat",
+		unsigned int period = Application::instance()->configuration()->deprecatedApi()->readUnsignedNumEntry("Chat",
 			"ChatCloseTimerPeriod", 2);
 
 		if (QDateTime::currentDateTime() < chatWidget->lastReceivedMessageTime().addSecs(period))
@@ -226,7 +236,7 @@ void TabWidget::closeTab(QWidget *tabWidget)
 		}
 	}
 
-	chatWidget->requestClose();
+	delete chatWidget;
 }
 
 bool TabWidget::isChatWidgetActive(const ChatWidget *chatWidget)
@@ -245,10 +255,10 @@ void TabWidget::closeEvent(QCloseEvent *e)
 
 	//w zaleznosci od opcji w konfiguracji zamykamy wszystkie karty, lub tylko aktywna
 	if (config_oldStyleClosing)
-		closeTab(currentWidget());
+		closeTab(static_cast<ChatWidget *>(currentWidget()));
 	else
 		for (int i = count() - 1; i >= 0; i--)
-			closeTab(widget(i));
+			closeTab(static_cast<ChatWidget *>(widget(i)));
 
 	if (count() > 0)
 		e->ignore();
@@ -280,25 +290,25 @@ void TabWidget::chatKeyPressed(QKeyEvent *e, CustomInput *k, bool &handled)
 	#else
 		#define TAB_SWITCH_MODIFIER "Alt"
 	#endif
-	else if (HotKey::keyEventToString(e) == TAB_SWITCH_MODIFIER "+0")
+	else if (HotKey::keyEventToString(e, QKeySequence::PortableText) == TAB_SWITCH_MODIFIER "+0")
 		setCurrentIndex(count() - 1);
-	else if (HotKey::keyEventToString(e) == TAB_SWITCH_MODIFIER "+1")
+	else if (HotKey::keyEventToString(e, QKeySequence::PortableText) == TAB_SWITCH_MODIFIER "+1")
 		setCurrentIndex(0);
-	else if (HotKey::keyEventToString(e) == TAB_SWITCH_MODIFIER "+2")
+	else if (HotKey::keyEventToString(e, QKeySequence::PortableText) == TAB_SWITCH_MODIFIER "+2")
 		setCurrentIndex(1);
-	else if (HotKey::keyEventToString(e) == TAB_SWITCH_MODIFIER "+3")
+	else if (HotKey::keyEventToString(e, QKeySequence::PortableText) == TAB_SWITCH_MODIFIER "+3")
 		setCurrentIndex(2);
-	else if (HotKey::keyEventToString(e) == TAB_SWITCH_MODIFIER "+4")
+	else if (HotKey::keyEventToString(e, QKeySequence::PortableText) == TAB_SWITCH_MODIFIER "+4")
 		setCurrentIndex(3);
-	else if (HotKey::keyEventToString(e) == TAB_SWITCH_MODIFIER "+5")
+	else if (HotKey::keyEventToString(e, QKeySequence::PortableText) == TAB_SWITCH_MODIFIER "+5")
 		setCurrentIndex(4);
-	else if (HotKey::keyEventToString(e) == TAB_SWITCH_MODIFIER "+6")
+	else if (HotKey::keyEventToString(e, QKeySequence::PortableText) == TAB_SWITCH_MODIFIER "+6")
 		setCurrentIndex(5);
-	else if (HotKey::keyEventToString(e) == TAB_SWITCH_MODIFIER "+7")
+	else if (HotKey::keyEventToString(e, QKeySequence::PortableText) == TAB_SWITCH_MODIFIER "+7")
 		setCurrentIndex(6);
-	else if (HotKey::keyEventToString(e) == TAB_SWITCH_MODIFIER "+8")
+	else if (HotKey::keyEventToString(e, QKeySequence::PortableText) == TAB_SWITCH_MODIFIER "+8")
 		setCurrentIndex(7);
-	else if (HotKey::keyEventToString(e) == TAB_SWITCH_MODIFIER "+9")
+	else if (HotKey::keyEventToString(e, QKeySequence::PortableText) == TAB_SWITCH_MODIFIER "+9")
 		setCurrentIndex(8);
 	else
 		// skrot nie zostal znaleziony i wykonany. Przekazujemy zdarzenie dalej
@@ -332,7 +342,7 @@ void TabWidget::moveTab(int from, int to)
 
 void TabWidget::onDeleteTab(int id)
 {
-	closeTab(widget(id));
+	closeTab(static_cast<ChatWidget *>(widget(id)));
 }
 
 void TabWidget::switchTabLeft()
@@ -412,7 +422,10 @@ void TabWidget::changeEvent(QEvent *event)
 		kdebugf();
 		ChatWidget *chatWidget = static_cast<ChatWidget *>(currentWidget());
 		if (chatWidget && _isActiveWindow(this))
+		{
+			chatWidget->setUnreadMessagesCount(0);
 			emit chatWidgetActivated(chatWidget);
+		}
 		kdebugf2();
 	}
 }
@@ -450,17 +463,18 @@ void TabWidget::openRecentChat(QAction *action)
 
 void TabWidget::deleteTab()
 {
-	closeTab(currentWidget());
+	closeTab(static_cast<ChatWidget *>(currentWidget()));
 }
 
 void TabWidget::tabInserted(int index)
 {
 	Q_UNUSED(index)
 
+	auto chatWidget = static_cast<ChatWidget *>(widget(index));
+	connect(chatWidget, SIGNAL(closeRequested(ChatWidget*)), this, SLOT(closeTab(ChatWidget*)));
+
 	updateTabsListButton();
 	updateTabsMenu();
-
-	show();
 }
 
 void TabWidget::tabRemoved(int index)
@@ -476,7 +490,7 @@ void TabWidget::tabRemoved(int index)
 
 void TabWidget::compositingEnabled()
 {
-	if (config_file.readBoolEntry("Chat", "UseTransparency", false))
+	if (Application::instance()->configuration()->deprecatedApi()->readBoolEntry("Chat", "UseTransparency", false))
 	{
 		setAutoFillBackground(false);
 		setAttribute(Qt::WA_TranslucentBackground, true);
@@ -498,13 +512,13 @@ void TabWidget::configurationUpdated()
 
 	CloseChatButton->setIcon(KaduIcon("kadu_icons/tab-remove").icon());
 
-	setTabsClosable(config_file.readBoolEntry("Tabs", "CloseButtonOnTab"));
-	config_oldStyleClosing = config_file.readBoolEntry("Tabs", "OldStyleClosing");
+	setTabsClosable(Application::instance()->configuration()->deprecatedApi()->readBoolEntry("Tabs", "CloseButtonOnTab"));
+	config_oldStyleClosing = Application::instance()->configuration()->deprecatedApi()->readBoolEntry("Tabs", "OldStyleClosing");
 
 	bool isOpenChatButtonEnabled = (cornerWidget(Qt::TopLeftCorner) == OpenChatButtonsWidget);
-	bool shouldEnableOpenChatButton = config_file.readBoolEntry("Tabs", "OpenChatButton");
-	bool isCloseButtonEnabled = (cornerWidget(Qt::TopRightCorner) == CloseChatButton);
-	bool shouldEnableCloseButton = config_file.readBoolEntry("Tabs", "CloseButton");
+	bool shouldEnableOpenChatButton = Application::instance()->configuration()->deprecatedApi()->readBoolEntry("Tabs", "OpenChatButton");
+	bool isCloseButtonEnabled = CloseChatButton->isVisible();
+	bool shouldEnableCloseButton = Application::instance()->configuration()->deprecatedApi()->readBoolEntry("Tabs", "CloseButton");
 
 	if (isOpenChatButtonEnabled != shouldEnableOpenChatButton)
 	{

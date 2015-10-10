@@ -38,9 +38,9 @@
 #include "icons/kadu-icon.h"
 #include "protocols/protocol-factory.h"
 #include "protocols/protocol-state-machine.h"
+#include "roster/roster-service.h"
 #include "services/chat-service.h"
 #include "services/chat-state-service.h"
-#include "services/roster/roster-service.h"
 #include "status/status-adapter.h"
 #include "status/status-type-manager.h"
 #include "status/status.h"
@@ -99,7 +99,7 @@ void Protocol::passwordProvided()
 
 void Protocol::setAllOffline()
 {
-	if (Core::instance()->isClosing())
+	if (Core::instance() && Core::instance()->isClosing())
 		return;
 
 	Status status;

@@ -31,14 +31,15 @@
 #include <QtCore/QMimeData>
 #include <QtCore/QScopedPointer>
 #include <QtCore/QUrl>
-#include <QtGui/QAction>
 #include <QtGui/QImageReader>
 #include <QtGui/QKeyEvent>
-#include <QtGui/QMenu>
+#include <QtWidgets/QAction>
+#include <QtWidgets/QMenu>
 
-#include "configuration/chat-configuration-holder.h"
 #include "core/core.h"
 #include "formatted-string/formatted-string-factory.h"
+#include "formatted-string/formatted-string-html-visitor.h"
+#include "gui/configuration/chat-configuration-holder.h"
 #include "gui/hot-key.h"
 #include "protocols/protocol.h"
 #include "protocols/services/chat-image-service.h"
@@ -71,6 +72,13 @@ void CustomInput::setImageStorageService(ImageStorageService *imageStorageServic
 void CustomInput::setFormattedStringFactory(FormattedStringFactory *formattedStringFactory)
 {
 	CurrentFormattedStringFactory = formattedStringFactory;
+}
+
+void CustomInput::setFormattedString(const FormattedString &formattedString)
+{
+	FormattedStringHtmlVisitor html{};
+	formattedString.accept(&html);
+	setHtml(html.result());
 }
 
 std::unique_ptr<FormattedString> CustomInput::formattedString() const
@@ -226,6 +234,10 @@ void CustomInput::contextMenuEvent(QContextMenuEvent *e)
 	connect(paste, SIGNAL(triggered()), this, SLOT(paste()));
 	menu->addAction(paste);
 
+	auto pasteAndSend = new QAction(tr("Paste and send"), menu.data());
+	connect(pasteAndSend, SIGNAL(triggered()), this, SLOT(pasteAndSend()));
+	menu->addAction(pasteAndSend);
+
 	QAction *clear = new QAction(tr("Clear"), menu.data());
 	connect(clear, SIGNAL(triggered()), this, SLOT(clear()));
 	menu->addAction(clear);
@@ -255,6 +267,12 @@ void CustomInput::setCopyPossible(bool available)
 	CopyPossible = available;
 }
 
+void CustomInput::pasteAndSend()
+{
+	paste();
+	emit sendMessage();
+}
+
 bool CustomInput::canInsertFromMimeData(const QMimeData *source) const
 {
 	if (CurrentChat.chatAccount().protocolHandler() && CurrentChat.chatAccount().protocolHandler()->chatImageService())
@@ -280,10 +298,10 @@ void CustomInput::insertFromMimeData(const QMimeData *source)
 	if (source->hasUrls() && !source->urls().isEmpty())
 	{
 		QUrl url = source->urls().first();
-		if (CurrentImageStorageService)
+		if (!url.toString().isEmpty() && CurrentImageStorageService)
 			url = CurrentImageStorageService->toFileUrl(url);
 
-		if (!url.isEmpty() && url.scheme() == "file")
+		if (!url.toString().isEmpty() && url.scheme() == "file")
 		{
 			path = QDir::cleanPath(url.path());
 			if (QImage(path).isNull())

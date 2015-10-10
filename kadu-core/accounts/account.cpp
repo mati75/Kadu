@@ -27,9 +27,9 @@
 #include "accounts/account-details.h"
 #include "accounts/account-manager.h"
 #include "buddies/buddy-manager.h"
-#include "configuration/configuration-file.h"
-#include "configuration/main-configuration-holder.h"
-#include "configuration/xml-configuration-file.h"
+#include "configuration/configuration-api.h"
+#include "configuration/configuration.h"
+#include "configuration/deprecated-configuration-api.h"
 #include "contacts/contact-details.h"
 #include "contacts/contact-manager.h"
 #include "contacts/contact.h"
@@ -38,6 +38,7 @@
 #include "protocols/protocol-factory.h"
 #include "protocols/protocol.h"
 #include "protocols/protocols-manager.h"
+#include "status/status-configuration-holder.h"
 
 #include "account.h"
 

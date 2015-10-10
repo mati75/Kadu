@@ -21,8 +21,8 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <QtGui/QApplication>
 #include <QtGui/QTextDocument>
+#include <QtWidgets/QApplication>
 
 #include "accounts/account.h"
 #include "chat/chat-manager.h"
@@ -107,7 +107,7 @@ void StatusChangedNotification::unregisterEvents()
 	StatusChangedToOfflineNotifyEvent = 0;
 }
 
-StatusChangedNotification::StatusChangedNotification(const QString &toStatus, const Contact &contact) :
+StatusChangedNotification::StatusChangedNotification(const QString &toStatus, const Contact &contact, const QString &statusDisplayName, const QString &description) :
 		ChatNotification(ChatTypeContact::findChat(contact, ActionCreateAndAdd),
 		QString("StatusChanged") + toStatus, contact.contactAccount().protocolHandler()->statusIcon(contact.currentStatus().type()))
 {
@@ -115,9 +115,9 @@ StatusChangedNotification::StatusChangedNotification(const QString &toStatus, co
 	Status status = contact.currentStatus();
 
 	setText(tr("<b>%1</b> changed status to <i>%2</i>").arg(
-			Qt::escape(contact.display(true)), Qt::escape(status.displayName())));
+			Qt::escape(contact.display(true)), Qt::escape(statusDisplayName)));
 
-	setDetails(Qt::escape(status.description()));
+	setDetails(Qt::escape(description));
 
 	setTitle(tr("Status changed"));
 }

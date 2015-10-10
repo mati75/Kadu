@@ -22,18 +22,18 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <QtGui/QApplication>
-#include <QtGui/QHBoxLayout>
-#include <QtGui/QPushButton>
+#include <QtWidgets/QApplication>
+#include <QtWidgets/QHBoxLayout>
+#include <QtWidgets/QPushButton>
 
-#include "configuration/notifier-configuration-data-manager.h"
+#include "core/application.h"
 #include "gui/widgets/configuration/config-combo-box.h"
 #include "gui/widgets/configuration/configuration-widget.h"
 #include "gui/widgets/configuration/notify-group-box.h"
 #include "gui/windows/configuration-window.h"
 #include "gui/windows/main-configuration-window.h"
-#include "misc/kadu-paths.h"
-
+#include "misc/paths-provider.h"
+#include "notify/notifier-configuration-data-manager.h"
 #include "activate.h"
 #include "debug.h"
 
@@ -69,7 +69,7 @@ void Qt4NotifyConfigurationWidget::showConfigurationWindow()
 
 	dataManager->configurationWindowCreated(configWindow);
 
-	configWindow->widget()->appendUiFile(KaduPaths::instance()->dataPath() + QLatin1String("plugins/configuration/qt4-docking-notify.ui"));
+	configWindow->widget()->appendUiFile(Application::instance()->pathsProvider()->dataPath() + QLatin1String("plugins/configuration/qt4-docking-notify.ui"));
 
 	QString tooltip = QCoreApplication::translate("@default", MainConfigurationWindow::SyntaxTextNotify) +
 	tr("\n%&t - title (eg. New message) %&m - notification text (eg. Message from Jim), %&d - details (eg. message quotation),\n%&i - notification icon");

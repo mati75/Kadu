@@ -23,10 +23,12 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <QtGui/QApplication>
+#include <QtWidgets/QApplication>
 
-#include "configuration/toolbar-configuration-manager.h"
-#include "configuration/xml-configuration-file.h"
+#include "configuration/configuration-api.h"
+#include "configuration/configuration.h"
+#include "core/application.h"
+#include "gui/configuration/toolbar-configuration-manager.h"
 #include "storage/storable-object.h"
 
 #include "configuration-manager.h"
@@ -61,11 +63,11 @@ ConfigurationManager::~ConfigurationManager()
 
 void ConfigurationManager::load()
 {
-	xml_config_file->makeBackup();
+	Application::instance()->backupConfiguration();
 
 	importConfiguration();
 
-	Uuid = xml_config_file->rootElement().attribute("uuid");
+	Uuid = Application::instance()->configuration()->api()->rootElement().attribute("uuid");
 	if (Uuid.isNull())
 		Uuid = QUuid::createUuid();
 }
@@ -75,8 +77,8 @@ void ConfigurationManager::flush()
 	foreach (StorableObject *object, RegisteredStorableObjects)
 		object->ensureStored();
 
-	xml_config_file->rootElement().setAttribute("uuid", Uuid.toString());
-	xml_config_file->sync();
+	Application::instance()->configuration()->api()->rootElement().setAttribute("uuid", Uuid.toString());
+	Application::instance()->flushConfiguration();
 }
 
 void ConfigurationManager::registerStorableObject(StorableObject *object)
@@ -104,10 +106,12 @@ void ConfigurationManager::unregisterStorableObject(StorableObject *object)
 
 void ConfigurationManager::importConfiguration()
 {
-	QDomElement root = xml_config_file->rootElement();
-	QDomElement general = xml_config_file->findElementByProperty(root.firstChild().firstChild().toElement(), "Group", "name", "General");
-	QDomElement mainConfiguration = xml_config_file->findElementByProperty(general, "Entry", "name", "ConfigGeometry");
+	QDomElement root = Application::instance()->configuration()->api()->rootElement();
+	QDomElement general = Application::instance()->configuration()->api()->findElementByProperty(root.firstChild().firstChild().toElement(), "Group", "name", "General");
+	QDomElement mainConfiguration = Application::instance()->configuration()->api()->findElementByProperty(general, "Entry", "name", "ConfigGeometry");
 
 	if (!mainConfiguration.isNull())
 		  mainConfiguration.setAttribute("name", "MainConfiguration_Geometry");
 }
+
+#include "moc_configuration-manager.cpp"

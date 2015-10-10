@@ -37,6 +37,7 @@ class FileTransferService;
 class Identity;
 class Protocol;
 class ProtocolFactory;
+class RosterTask;
 class StatusContainer;
 
 class KADUAPI AccountShared : public QObject, public Shared
@@ -74,8 +75,8 @@ class KADUAPI AccountShared : public QObject, public Shared
 
 	void importNetworkProxy();
 
-	void loadRosterTasks();
-	void storeRosterTasks();
+	QVector<RosterTask> loadRosterTasks();
+	void storeRosterTasks(const QVector<RosterTask> &tasks);
 
 private slots:
 	void protocolRegistered(ProtocolFactory *protocolHandler);

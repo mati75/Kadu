@@ -20,7 +20,9 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "configuration/configuration-file.h"
+#include "configuration/configuration.h"
+#include "configuration/deprecated-configuration-api.h"
+#include "core/application.h"
 
 #include "simpleview-config-ui.h"
 
@@ -63,9 +65,9 @@ void SimpleViewConfigUi::mainConfigurationWindowDestroyed()
 
 void SimpleViewConfigUi::createDefaultConfiguration()
 {
-	config_file.addVariable("Look", "SimpleViewKeepSize", true);
-	config_file.addVariable("Look", "SimpleViewNoScrollBar", true);
-	config_file.addVariable("Look", "SimpleViewBorderless", true);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Look", "SimpleViewKeepSize", true);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Look", "SimpleViewNoScrollBar", true);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Look", "SimpleViewBorderless", true);
 }
 
 

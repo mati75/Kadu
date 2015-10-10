@@ -31,19 +31,22 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <QtGui/QApplication>
-#include <QtGui/QCheckBox>
-#include <QtGui/QLineEdit>
-#include <QtGui/QLineEdit>
-#include <QtGui/QSpinBox>
+#include <QtWidgets/QApplication>
+#include <QtWidgets/QCheckBox>
+#include <QtWidgets/QLineEdit>
+#include <QtWidgets/QLineEdit>
+#include <QtWidgets/QSpinBox>
 
 #include "accounts/account.h"
-#include "configuration/configuration-file.h"
+#include "configuration/configuration.h"
+#include "configuration/deprecated-configuration-api.h"
+#include "core/application.h"
 #include "core/core.h"
 #include "gui/widgets/configuration/configuration-widget.h"
 #include "gui/windows/main-configuration-window.h"
-#include "misc/kadu-paths.h"
+#include "misc/paths-provider.h"
 #include "parser/parser.h"
+#include "plugin/activation/plugin-activation-service.h"
 #include "status/status-changer-manager.h"
 #include "debug.h"
 
@@ -60,7 +63,18 @@
 AutoAway::AutoAway() :
 		autoAwayStatusChanger{},
 		timer{},
+		checkInterval{},
+		autoAwayTime{},
+		autoExtendedAwayTime{},
+		autoDisconnectTime{},
+		autoInvisibleTime{},
+		autoAwayEnabled{},
+		autoExtendedAwayEnabled{},
+		autoInvisibleEnabled{},
+		autoDisconnectEnabled{},
+		parseAutoStatus{},
 		StatusChanged{false},
+		idle{},
 		idleTime{},
 		refreshStatusTime{},
 		refreshStatusInterval{},
@@ -69,7 +83,8 @@ AutoAway::AutoAway() :
 		autoInvisibleSpinBox{},
 		autoOfflineSpinBox{},
 		autoRefreshSpinBox{},
-		descriptionTextLineEdit{}
+		descriptionTextLineEdit{},
+		changeTo{AutoAwayStatusChanger::NoChangeDescription}
 {
 }
 
@@ -91,7 +106,10 @@ bool AutoAway::init(bool firstLoad)
 
 	StatusChangerManager::instance()->registerStatusChanger(autoAwayStatusChanger);
 
-	MainConfigurationWindow::registerUiFile(KaduPaths::instance()->dataPath() + QLatin1String("plugins/configuration/autoaway.ui"));
+	auto idleRootComponent = Core::instance()->pluginActivationService()->pluginRootComponent("idle");
+	idle = dynamic_cast<IdlePlugin *>(idleRootComponent)->idle();
+
+	MainConfigurationWindow::registerUiFile(Application::instance()->pathsProvider()->dataPath() + QLatin1String("plugins/configuration/autoaway.ui"));
 	MainConfigurationWindow::registerUiHandler(this);
 
 	return true;
@@ -100,14 +118,14 @@ bool AutoAway::init(bool firstLoad)
 void AutoAway::done()
 {
 	MainConfigurationWindow::unregisterUiHandler(this);
-	MainConfigurationWindow::unregisterUiFile(KaduPaths::instance()->dataPath() + QLatin1String("plugins/configuration/autoaway.ui"));
+	MainConfigurationWindow::unregisterUiFile(Application::instance()->pathsProvider()->dataPath() + QLatin1String("plugins/configuration/autoaway.ui"));
 
 	StatusChangerManager::instance()->unregisterStatusChanger(autoAwayStatusChanger);
 }
 
 AutoAwayStatusChanger::ChangeStatusTo AutoAway::changeStatusTo()
 {
-	idleTime = IdlePlugin::idle()->secondsIdle();
+	idleTime = idle->secondsIdle();
 
 	if (idleTime >= autoDisconnectTime && autoDisconnectEnabled)
 		return AutoAwayStatusChanger::ChangeStatusToOffline;
@@ -139,7 +157,7 @@ void AutoAway::checkIdleTime()
 {
 	kdebugf();
 
-	idleTime = IdlePlugin::idle()->secondsIdle();
+	idleTime = idle->secondsIdle();
 
 	if (refreshStatusInterval > 0 && idleTime >= refreshStatusTime)
 	{
@@ -190,25 +208,25 @@ void AutoAway::mainConfigurationWindowCreated(MainConfigurationWindow *mainConfi
 
 void AutoAway::configurationUpdated()
 {
-	checkInterval = config_file.readUnsignedNumEntry("General","AutoAwayCheckTime");
-	refreshStatusTime = config_file.readUnsignedNumEntry("General","AutoRefreshStatusTime");
-	autoAwayTime = config_file.readUnsignedNumEntry("General","AutoAwayTimeMinutes")*60;
-	autoExtendedAwayTime = config_file.readUnsignedNumEntry("General","AutoExtendedAwayTimeMinutes")*60;
-	autoDisconnectTime = config_file.readUnsignedNumEntry("General","AutoDisconnectTimeMinutes")*60;
-	autoInvisibleTime = config_file.readUnsignedNumEntry("General","AutoInvisibleTimeMinutes")*60;
+	checkInterval = Application::instance()->configuration()->deprecatedApi()->readUnsignedNumEntry("General","AutoAwayCheckTime");
+	refreshStatusTime = Application::instance()->configuration()->deprecatedApi()->readUnsignedNumEntry("General","AutoRefreshStatusTime");
+	autoAwayTime = Application::instance()->configuration()->deprecatedApi()->readUnsignedNumEntry("General","AutoAwayTimeMinutes")*60;
+	autoExtendedAwayTime = Application::instance()->configuration()->deprecatedApi()->readUnsignedNumEntry("General","AutoExtendedAwayTimeMinutes")*60;
+	autoDisconnectTime = Application::instance()->configuration()->deprecatedApi()->readUnsignedNumEntry("General","AutoDisconnectTimeMinutes")*60;
+	autoInvisibleTime = Application::instance()->configuration()->deprecatedApi()->readUnsignedNumEntry("General","AutoInvisibleTimeMinutes")*60;
 
-	autoAwayEnabled = config_file.readBoolEntry("General","AutoAway");
-	autoExtendedAwayEnabled = config_file.readBoolEntry("General","AutoExtendedAway");
-	autoInvisibleEnabled = config_file.readBoolEntry("General","AutoInvisible");
-	autoDisconnectEnabled = config_file.readBoolEntry("General","AutoDisconnect");
-	parseAutoStatus = config_file.readBoolEntry("General", "ParseStatus");
+	autoAwayEnabled = Application::instance()->configuration()->deprecatedApi()->readBoolEntry("General","AutoAway");
+	autoExtendedAwayEnabled = Application::instance()->configuration()->deprecatedApi()->readBoolEntry("General","AutoExtendedAway");
+	autoInvisibleEnabled = Application::instance()->configuration()->deprecatedApi()->readBoolEntry("General","AutoInvisible");
+	autoDisconnectEnabled = Application::instance()->configuration()->deprecatedApi()->readBoolEntry("General","AutoDisconnect");
+	parseAutoStatus = Application::instance()->configuration()->deprecatedApi()->readBoolEntry("General", "ParseStatus");
 
 	refreshStatusInterval = refreshStatusTime;
 
-	autoStatusText = config_file.readEntry("General", "AutoStatusText");
+	autoStatusText = Application::instance()->configuration()->deprecatedApi()->readEntry("General", "AutoStatusText");
 	DescriptionAddon = parseDescription(autoStatusText);
 
-	changeTo = (AutoAwayStatusChanger::ChangeDescriptionTo)config_file.readNumEntry("General", "AutoChangeDescription");
+	changeTo = (AutoAwayStatusChanger::ChangeDescriptionTo)Application::instance()->configuration()->deprecatedApi()->readNumEntry("General", "AutoChangeDescription");
 
 	autoAwayStatusChanger->update();
 
@@ -270,31 +288,31 @@ QString AutoAway::parseDescription(const QString &parseDescription)
 
 static int denominatedInverval(const QString &name, unsigned int def)
 {
-	int ret = config_file.readUnsignedNumEntry("General", name, def * 60);
+	int ret = Application::instance()->configuration()->deprecatedApi()->readUnsignedNumEntry("General", name, def * 60);
 	// This AutoAwayTimesDenominated thing was living shortly in 1.0-git.
-	return config_file.readBoolEntry("General", "AutoAwayTimesDenominated", false)
+	return Application::instance()->configuration()->deprecatedApi()->readBoolEntry("General", "AutoAwayTimesDenominated", false)
 			? ret
 			: (ret + 59) / 60;
 }
 
 void AutoAway::createDefaultConfiguration()
 {
-	config_file.addVariable("General", "AutoAway", true);
-	config_file.addVariable("General", "AutoAwayCheckTime", 10);
-	config_file.addVariable("General", "AutoAwayTimeMinutes", denominatedInverval("AutoAwayTime", 5));
-	config_file.addVariable("General", "AutoExtendedAway", true);
-	config_file.addVariable("General", "AutoExtendedAwayTimeMinutes", denominatedInverval("AutoExtendedAwayTime", 15));
-	config_file.addVariable("General", "AutoChangeDescription", 0);
-	config_file.addVariable("General", "AutoDisconnect", false);
-	config_file.addVariable("General", "AutoDisconnectTimeMinutes", denominatedInverval("AutoDisconnectTime", 60));
-	config_file.addVariable("General", "AutoInvisible", false);
-	config_file.addVariable("General", "AutoInvisibleTimeMinutes", denominatedInverval("AutoInvisibleTime", 30));
-	config_file.addVariable("General", "AutoRefreshStatusTime", 0);
-	config_file.addVariable("General", "AutoStatusText", QString());
+	Application::instance()->configuration()->deprecatedApi()->addVariable("General", "AutoAway", true);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("General", "AutoAwayCheckTime", 10);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("General", "AutoAwayTimeMinutes", denominatedInverval("AutoAwayTime", 5));
+	Application::instance()->configuration()->deprecatedApi()->addVariable("General", "AutoExtendedAway", true);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("General", "AutoExtendedAwayTimeMinutes", denominatedInverval("AutoExtendedAwayTime", 15));
+	Application::instance()->configuration()->deprecatedApi()->addVariable("General", "AutoChangeDescription", 0);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("General", "AutoDisconnect", false);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("General", "AutoDisconnectTimeMinutes", denominatedInverval("AutoDisconnectTime", 60));
+	Application::instance()->configuration()->deprecatedApi()->addVariable("General", "AutoInvisible", false);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("General", "AutoInvisibleTimeMinutes", denominatedInverval("AutoInvisibleTime", 30));
+	Application::instance()->configuration()->deprecatedApi()->addVariable("General", "AutoRefreshStatusTime", 0);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("General", "AutoStatusText", QString());
 
 	// AutoAwayCheckTime has been mistakenly denominated in 1.0-git.
-	if (0 == config_file.readUnsignedNumEntry("General", "AutoAwayCheckTime"))
-		config_file.writeEntry("General", "AutoAwayCheckTime", 10);
+	if (0 == Application::instance()->configuration()->deprecatedApi()->readUnsignedNumEntry("General", "AutoAwayCheckTime"))
+		Application::instance()->configuration()->deprecatedApi()->writeEntry("General", "AutoAwayCheckTime", 10);
 }
 
 

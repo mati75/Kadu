@@ -18,10 +18,10 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <QtGui/QApplication>
+#include "configuration/configuration.h"
+#include "configuration/deprecated-configuration-api.h"
 
-#include "configuration/configuration-file.h"
-
+#include "core/application.h"
 #include "url-handlers/standard-url-expander-configuration.h"
 #include "url-handlers/standard-url-expander.h"
 
@@ -37,8 +37,8 @@ void StandardUrlExpanderConfigurator::setStandardUrlExpander(StandardUrlExpander
 
 void StandardUrlExpanderConfigurator::createDefaultConfiguration()
 {
-	config_file.addVariable("Chat", "FoldLink", true);
-	config_file.addVariable("Chat", "LinkFoldTreshold", 50);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Chat", "FoldLink", true);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Chat", "LinkFoldTreshold", 50);
 }
 
 void StandardUrlExpanderConfigurator::configurationUpdated()
@@ -48,8 +48,8 @@ void StandardUrlExpanderConfigurator::configurationUpdated()
 
 	StandardUrlExpanderConfiguration configuration;
 
-	configuration.setFoldLink(config_file.readBoolEntry("Chat", "FoldLink"));
-	configuration.setFoldLinkThreshold(config_file.readNumEntry("Chat", "LinkFoldTreshold"));
+	configuration.setFoldLink(Application::instance()->configuration()->deprecatedApi()->readBoolEntry("Chat", "FoldLink"));
+	configuration.setFoldLinkThreshold(Application::instance()->configuration()->deprecatedApi()->readNumEntry("Chat", "LinkFoldTreshold"));
 
 	ConfigurableStandardUrlExpander->setConfiguration(configuration);
 }

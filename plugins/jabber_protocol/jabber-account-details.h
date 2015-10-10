@@ -42,7 +42,7 @@ public:
 		Encryption_Auto = 2,
 		Encryption_Legacy = 3
 	};
-	
+
 	enum AllowPlainType
 	{
 		NoAllowPlain = 0,
@@ -65,6 +65,7 @@ private:
 	PROPERTY_DEC(bool, SendTypingNotification)
 	PROPERTY_DEC(bool, SendGoneNotification)
 	PROPERTY_DEC(bool, PublishSystemInfo)
+
 protected:
 	virtual void load();
 	virtual void store();

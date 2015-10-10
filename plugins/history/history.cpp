@@ -35,11 +35,11 @@
 
 #include <QtCore/QList>
 #include <QtCore/QMutex>
-#include <QtGui/QGridLayout>
 #include <QtGui/QKeyEvent>
-#include <QtGui/QLabel>
-#include <QtGui/QMenu>
-#include <QtGui/QPushButton>
+#include <QtWidgets/QGridLayout>
+#include <QtWidgets/QLabel>
+#include <QtWidgets/QMenu>
+#include <QtWidgets/QPushButton>
 
 #include "accounts/account-manager.h"
 #include "accounts/account.h"
@@ -48,8 +48,10 @@
 #include "chat/buddy-chat-manager.h"
 #include "chat/chat-manager.h"
 #include "chat/chat.h"
-#include "configuration/configuration-file.h"
+#include "configuration/configuration.h"
+#include "configuration/deprecated-configuration-api.h"
 #include "contacts/contact-set.h"
+#include "core/application.h"
 #include "core/core.h"
 #include "gui/actions/actions.h"
 #include "gui/menu/menu-inventory.h"
@@ -233,7 +235,7 @@ void History::chatWidgetAdded(ChatWidget *chatWidget)
 	HistoryQuery query;
 	query.setTalkable(chat ? chat : chatWidget->chat());
 	query.setFromDateTime(QDateTime::currentDateTime().addSecs(ChatHistoryQuotationTime * 3600));
-	query.setLimit(config_file.readNumEntry("History", "ChatHistoryCitation", 10));
+	query.setLimit(Application::instance()->configuration()->deprecatedApi()->readNumEntry("History", "ChatHistoryCitation", 10));
 
 	new HistoryMessagesPrepender(CurrentStorage->messages(query), chatMessagesView);
 }
@@ -390,13 +392,13 @@ void History::configurationUpdated()
 {
 	kdebugf();
 
-	ChatHistoryCitation = config_file.readNumEntry("History", "ChatHistoryCitation");
-	ChatHistoryQuotationTime = config_file.readNumEntry("History", "ChatHistoryQuotationTime", -24);
+	ChatHistoryCitation = Application::instance()->configuration()->deprecatedApi()->readNumEntry("History", "ChatHistoryCitation");
+	ChatHistoryQuotationTime = Application::instance()->configuration()->deprecatedApi()->readNumEntry("History", "ChatHistoryQuotationTime", -24);
 
-	SaveChats = config_file.readBoolEntry("History", "SaveChats", true);
-	SaveChatsWithAnonymous = config_file.readBoolEntry("History", "SaveChatsWithAnonymous", true);
-	SaveStatuses = config_file.readBoolEntry("History", "SaveStatusChanges", false);
-	SaveOnlyStatusesWithDescription = config_file.readBoolEntry("History", "SaveOnlyStatusWithDescription", false);
+	SaveChats = Application::instance()->configuration()->deprecatedApi()->readBoolEntry("History", "SaveChats", true);
+	SaveChatsWithAnonymous = Application::instance()->configuration()->deprecatedApi()->readBoolEntry("History", "SaveChatsWithAnonymous", true);
+	SaveStatuses = Application::instance()->configuration()->deprecatedApi()->readBoolEntry("History", "SaveStatusChanges", false);
+	SaveOnlyStatusesWithDescription = Application::instance()->configuration()->deprecatedApi()->readBoolEntry("History", "SaveOnlyStatusWithDescription", false);
 
 	kdebugf2();
 }
@@ -440,19 +442,19 @@ void History::unregisterStorage(HistoryStorage *storage)
 
 void History::createDefaultConfiguration()
 {
-	config_file.addVariable("History", "SaveChats", config_file.readBoolEntry("History", "Logging", true));
-	config_file.removeVariable("History", "Logging");
+	Application::instance()->configuration()->deprecatedApi()->addVariable("History", "SaveChats", Application::instance()->configuration()->deprecatedApi()->readBoolEntry("History", "Logging", true));
+	Application::instance()->configuration()->deprecatedApi()->removeVariable("History", "Logging");
 
-	config_file.addVariable("ShortCuts", "kadu_viewhistory", "Ctrl+H");
+	Application::instance()->configuration()->deprecatedApi()->addVariable("ShortCuts", "kadu_viewhistory", "Ctrl+H");
 
-	config_file.addVariable("History", "SaveStatusChanges", true);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("History", "SaveStatusChanges", true);
 
-	config_file.addVariable("History", "SaveChatsWithAnonymous", true);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("History", "SaveChatsWithAnonymous", true);
 
-	config_file.addVariable("History", "SaveOnlyStatusWithDescription", true);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("History", "SaveOnlyStatusWithDescription", true);
 
-	config_file.addVariable("History", "ChatHistoryCitation", 10);
-	config_file.addVariable("History", "ChatHistoryQuotationTime", -24);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("History", "ChatHistoryCitation", 10);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("History", "ChatHistoryQuotationTime", -24);
 }
 
 void History::forceSync()

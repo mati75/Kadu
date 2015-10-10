@@ -40,8 +40,8 @@ void TabsChatWidgetContainerHandler::setTabsManager(TabsManager *tabsManager)
 {
 	m_tabsManager = tabsManager;
 
-	connect(m_tabsManager.data(), SIGNAL(chatWidgetAcceptanceChanged(ChatWidget*)),
-			this, SIGNAL(chatWidgetAcceptanceChanged(ChatWidget*)));
+	connect(m_tabsManager.data(), SIGNAL(chatAcceptanceChanged(Chat)),
+			this, SIGNAL(chatAcceptanceChanged(Chat)));
 	connect(m_tabsManager.data(), SIGNAL(chatWidgetActivated(ChatWidget*)),
 			this, SIGNAL(chatWidgetActivated(ChatWidget*)));
 }
@@ -53,28 +53,28 @@ void TabsChatWidgetContainerHandler::setTabWidget(TabWidget *tabWidget)
 			this, SIGNAL(chatWidgetActivated(ChatWidget*)));
 }
 
-bool TabsChatWidgetContainerHandler::acceptChatWidget(ChatWidget *chatWidget) const
+bool TabsChatWidgetContainerHandler::acceptChat(Chat chat) const
 {
-	if (!chatWidget || !m_tabsManager)
+	if (!chat || !m_tabsManager)
 		return false;
 
-	return m_tabsManager.data()->acceptChatWidget(chatWidget);
+	return m_tabsManager.data()->acceptChat(chat);
 }
 
-void TabsChatWidgetContainerHandler::addChatWidget(ChatWidget *chatWidget)
+ChatWidget * TabsChatWidgetContainerHandler::addChat(Chat chat, OpenChatActivation activation)
 {
-	if (!chatWidget || !m_tabsManager)
-		return;
+	if (!chat || !m_tabsManager)
+		return nullptr;
 
-	m_tabsManager.data()->addChatWidget(chatWidget);
+	return m_tabsManager.data()->addChat(chat, activation);
 }
 
-void TabsChatWidgetContainerHandler::removeChatWidget(ChatWidget *chatWidget)
+void TabsChatWidgetContainerHandler::removeChat(Chat chat)
 {
-	if (!chatWidget || !m_tabsManager)
+	if (!chat || !m_tabsManager)
 		return;
 
-	return m_tabsManager.data()->removeChatWidget(chatWidget);
+	return m_tabsManager.data()->removeChat(chat);
 }
 
 bool TabsChatWidgetContainerHandler::isChatWidgetActive(ChatWidget *chatWidget)
@@ -86,4 +86,10 @@ void TabsChatWidgetContainerHandler::tryActivateChatWidget(ChatWidget *chatWidge
 {
 	if (m_tabWidget)
 		m_tabWidget.data()->tryActivateChatWidget(chatWidget);
+}
+
+void TabsChatWidgetContainerHandler::tryMinimizeChatWidget(ChatWidget *chatWidget)
+{
+	if (m_tabWidget)
+		m_tabWidget.data()->tryMinimizeChatWidget(chatWidget);
 }

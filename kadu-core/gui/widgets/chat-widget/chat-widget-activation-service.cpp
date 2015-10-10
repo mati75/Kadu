@@ -19,9 +19,10 @@
 
 #include "chat-widget-activation-service.h"
 
-#include "gui/widgets/chat-widget/chat-widget-container-handler.h"
 #include "gui/widgets/chat-widget/chat-widget-container-handler-mapper.h"
 #include "gui/widgets/chat-widget/chat-widget-container-handler-repository.h"
+#include "gui/widgets/chat-widget/chat-widget-container-handler.h"
+#include "gui/widgets/chat-widget/chat-widget.h"
 
 ChatWidgetActivationService::ChatWidgetActivationService(QObject *parent) :
 		QObject{parent}
@@ -70,7 +71,7 @@ bool ChatWidgetActivationService::isChatWidgetActive(ChatWidget *chatWidget) con
 	if (!m_chatWidgetContainerHandlerMapper || !chatWidget)
 		return false;
 
-	auto chatWidgetContainerHandler = m_chatWidgetContainerHandlerMapper.data()->chatWidgetContainerHandlerForWidget(chatWidget);
+	auto chatWidgetContainerHandler = m_chatWidgetContainerHandlerMapper.data()->chatWidgetContainerHandlerForChat(chatWidget->chat());
 	return chatWidgetContainerHandler ? chatWidgetContainerHandler->isChatWidgetActive(chatWidget) : false;
 }
 
@@ -79,9 +80,19 @@ void ChatWidgetActivationService::tryActivateChatWidget(ChatWidget *chatWidget)
 	if (!m_chatWidgetContainerHandlerMapper || !chatWidget)
 		return;
 
-	auto chatWidgetContainerHandler = m_chatWidgetContainerHandlerMapper.data()->chatWidgetContainerHandlerForWidget(chatWidget);
+	auto chatWidgetContainerHandler = m_chatWidgetContainerHandlerMapper.data()->chatWidgetContainerHandlerForChat(chatWidget->chat());
 	if (chatWidgetContainerHandler)
 		chatWidgetContainerHandler->tryActivateChatWidget(chatWidget);
+}
+
+void ChatWidgetActivationService::tryMinimizeChatWidget(ChatWidget* chatWidget)
+{
+	if (!m_chatWidgetContainerHandlerMapper || !chatWidget)
+		return;
+
+	auto chatWidgetContainerHandler = m_chatWidgetContainerHandlerMapper.data()->chatWidgetContainerHandlerForChat(chatWidget->chat());
+	if (chatWidgetContainerHandler)
+		chatWidgetContainerHandler->tryMinimizeChatWidget(chatWidget);
 }
 
 #include "moc_chat-widget-activation-service.cpp"

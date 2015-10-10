@@ -32,23 +32,23 @@
 #include <QtCore/QLocale>
 #include <QtCore/QSettings>
 #include <QtCore/QTimer>
-#include <QtGui/QApplication>
-
-#include <QtCrypto>
+#include <QtWidgets/QApplication>
+#include <injeqt/injector.h>
 
 #include "accounts/account-manager.h"
 #include "avatars/avatar-manager.h"
 #include "buddies/buddy-manager.h"
 #include "buddies/group-manager.h"
-#include "chat/buddy-chat-manager.h"
-#include "chat/chat-manager.h"
 #include "chat-style/chat-style-manager.h"
 #include "chat-style/engine/chat-style-renderer-factory-provider.h"
 #include "chat-style/engine/configured-chat-style-renderer-factory-provider.h"
-#include "configuration/configuration-file.h"
+#include "chat/buddy-chat-manager.h"
+#include "chat/chat-manager.h"
 #include "configuration/configuration-manager.h"
-#include "configuration/main-configuration-holder.h"
+#include "configuration/configuration.h"
+#include "configuration/deprecated-configuration-api.h"
 #include "contacts/contact-manager.h"
+#include "core/application.h"
 #include "dom/dom-processor-service.h"
 #include "file-transfer/file-transfer-manager.h"
 #include "formatted-string/formatted-string-factory.h"
@@ -64,9 +64,10 @@
 #include "gui/widgets/chat-widget/chat-widget-container-handler-repository.h"
 #include "gui/widgets/chat-widget/chat-widget-factory.h"
 #include "gui/widgets/chat-widget/chat-widget-manager.h"
-#include "gui/widgets/chat-widget/chat-widget-message-handler.h"
 #include "gui/widgets/chat-widget/chat-widget-message-handler-configurator.h"
+#include "gui/widgets/chat-widget/chat-widget-message-handler.h"
 #include "gui/widgets/chat-widget/chat-widget-repository.h"
+#include "gui/widgets/chat-widget/chat-widget-state-persistence-service.h"
 #include "gui/widgets/webkit-messages-view/webkit-messages-view-display-factory.h"
 #include "gui/widgets/webkit-messages-view/webkit-messages-view-factory.h"
 #include "gui/widgets/webkit-messages-view/webkit-messages-view-handler-factory.h"
@@ -74,9 +75,9 @@
 #include "gui/windows/chat-data-window-repository.h"
 #include "gui/windows/chat-window/chat-window-factory.h"
 #include "gui/windows/chat-window/chat-window-manager.h"
-#include "gui/windows/chat-window/chat-window-storage.h"
-#include "gui/windows/chat-window/chat-window-storage-configurator.h"
 #include "gui/windows/chat-window/chat-window-repository.h"
+#include "gui/windows/chat-window/chat-window-storage-configurator.h"
+#include "gui/windows/chat-window/chat-window-storage.h"
 #include "gui/windows/chat-window/window-chat-widget-container-handler.h"
 #include "gui/windows/kadu-window.h"
 #include "gui/windows/search-window.h"
@@ -84,17 +85,17 @@
 #include "icons/kadu-icon.h"
 #include "message/message-html-renderer-service.h"
 #include "message/message-manager.h"
-#include "message/message-render-info.h"
 #include "message/message-render-info-factory.h"
+#include "message/message-render-info.h"
 #include "message/unread-message-repository.h"
 #include "misc/change-notifier-lock.h"
 #include "misc/date-time-parser-tags.h"
-#include "misc/kadu-paths.h"
+#include "misc/paths-provider.h"
 #include "notify/notification-manager.h"
 #include "parser/parser.h"
-#include "plugin/dependency-graph/plugin-dependency-graph-builder.h"
 #include "plugin/activation/plugin-activation-error-handler.h"
 #include "plugin/activation/plugin-activation-service.h"
+#include "plugin/dependency-graph/plugin-dependency-graph-builder.h"
 #include "plugin/metadata/plugin-metadata-finder.h"
 #include "plugin/metadata/plugin-metadata-reader.h"
 #include "plugin/plugin-conflict-resolver.h"
@@ -105,7 +106,8 @@
 #include "plugin/state/plugin-state-storage.h"
 #include "protocols/protocol-factory.h"
 #include "protocols/protocol.h"
-#include "protocols/services/roster/roster-notifier.h"
+#include "roster/roster-notifier.h"
+#include "roster/roster-replacer.h"
 #include "provider/default-provider.h"
 #include "provider/simple-provider.h"
 #include "services/chat-image-request-service-configurator.h"
@@ -115,6 +117,7 @@
 #include "services/message-transformer-service.h"
 #include "services/notification-service.h"
 #include "services/raw-message-transformer-service.h"
+#include "status/status-configuration-holder.h"
 #include "status/status-container-manager.h"
 #include "status/status-setter.h"
 #include "status/status-type-manager.h"
@@ -124,7 +127,6 @@
 #include "url-handlers/url-handler-manager.h"
 #include "activate.h"
 #include "debug.h"
-#include "kadu-application.h"
 #include "kadu-config.h"
 #include "updates.h"
 
@@ -136,14 +138,14 @@
 
 Core * Core::Instance = 0;
 
+void Core::createInstance(injeqt::injector &injector)
+{
+	Instance = new Core(injector);
+	Instance->init();
+}
+
 Core * Core::instance()
 {
-	if (!Instance)
-	{
-		Instance = new Core();
-		Instance->init();
-	}
-
 	return Instance;
 }
 
@@ -162,12 +164,13 @@ QString Core::nameWithVersion()
 	return name() + QLatin1String(" ")  + version();
 }
 
-KaduApplication * Core::application()
+Application * Core::application()
 {
-	return static_cast<KaduApplication *>(qApp);
+	return Application::instance();
 }
 
-Core::Core() :
+Core::Core(injeqt::injector &injector) :
+		m_injector(injector),
 		KaduWindowProvider{new SimpleProvider<QWidget *>(0)},
 		MainWindowProvider{new DefaultProvider<QWidget *>(KaduWindowProvider)},
 		CurrentBuddyDataWindowRepository{nullptr},
@@ -180,7 +183,6 @@ Core::Core() :
 		CurrentMessageRenderInfoFactory{nullptr},
 		CurrentMessageTransformerService{nullptr},
 		CurrentNotificationService{nullptr},
-		CurrentFormattedStringFactory{nullptr},
 		CurrentRawMessageTransformerService{nullptr},
 		CurrentClipboardHtmlTransformerService{nullptr},
 		CurrentAccountConfigurationWidgetFactoryRepository{nullptr},
@@ -188,50 +190,27 @@ Core::Core() :
 		CurrentChatConfigurationWidgetFactoryRepository{nullptr},
 		CurrentChatTopBarWidgetFactoryRepository{nullptr},
 		CurrentUnreadMessageRepository{nullptr},
-		CurrentRosterNotifier{nullptr},
 		CurrentChatWidgetActions{nullptr},
-		CurrentChatWidgetActivationService{nullptr},
-		CurrentChatWidgetContainerHandlerMapper{nullptr},
-		CurrentChatWidgetContainerHandlerRepository{nullptr},
-		CurrentChatWidgetFactory{nullptr},
-		CurrentChatWidgetManager{nullptr},
 		CurrentChatWidgetMessageHandler{nullptr},
-		CurrentChatWidgetRepository{nullptr},
-		CurrentChatWindowFactory{nullptr},
-		CurrentChatWindowManager{nullptr},
-		CurrentChatWindowStorage{nullptr},
-		CurrentChatWindowRepository{nullptr},
-		CurrentStoragePointFactory{nullptr},
-		CurrentPluginActivationService{nullptr},
-		CurrentPluginActivationErrorHandler{nullptr},
-		CurrentPluginConflictResolver{nullptr},
-		CurrentPluginDependencyGraphBuilder{nullptr},
-		CurrentPluginDependencyHandler{nullptr},
-		CurrentPluginMetadataFinder{nullptr},
-		CurrentPluginMetadataReader{nullptr},
-		CurrentPluginStateManager{nullptr},
-		CurrentPluginStateService{nullptr},
-		CurrentPluginManager{nullptr},
 		Window(0),
 		Myself(Buddy::create()), IsClosing(false),
-		ShowMainWindowOnStart(true), QcaInit(new QCA::Initializer())
+		ShowMainWindowOnStart(true)
 {
 	// must be created first
-	CurrentStoragePointFactory = new StoragePointFactory(this);
-	CurrentStoragePointFactory->setConfigurationFile(xml_config_file);
+	// TODO: should be maybe created by factory factory?
+	m_injector.get<StoragePointFactory>()->setConfigurationFile(Application::instance()->configuration()->api());
 	Instance = this; // TODO: fix this hack
 
 	connect(qApp, SIGNAL(aboutToQuit()), this, SLOT(quit()));
 
-	import_0_6_5_configuration();
 	createDefaultConfiguration();
 	configurationUpdated();
 
-	MainConfigurationHolder::createInstance();
+	StatusConfigurationHolder::createInstance();
 
-	Parser::GlobalVariables.insert(QLatin1String("DATA_PATH"), KaduPaths::instance()->dataPath());
-	Parser::GlobalVariables.insert(QLatin1String("HOME"), KaduPaths::homePath());
-	Parser::GlobalVariables.insert(QLatin1String("KADU_CONFIG"), KaduPaths::instance()->profilePath());
+	Parser::GlobalVariables.insert(QLatin1String("DATA_PATH"), Application::instance()->pathsProvider()->dataPath());
+	Parser::GlobalVariables.insert(QLatin1String("HOME"), PathsProvider::homePath());
+	Parser::GlobalVariables.insert(QLatin1String("KADU_CONFIG"), Application::instance()->pathsProvider()->profilePath());
 	DateTimeParserTags::registerParserTags();
 
 	importPre10Configuration();
@@ -241,20 +220,25 @@ Core::~Core()
 {
 	IsClosing = true;
 
-	CurrentPluginStateManager->storePluginStates();
+	m_injector.get<PluginStateManager>()->storePluginStates();
+	// CurrentPluginStateManager->storePluginStates();
 
 	// unloading modules does that
 	/*StatusContainerManager::instance()->disconnectAndStoreLastStatus(disconnectWithCurrentDescription, disconnectDescription);*/
-	CurrentChatWindowManager->storeOpenedChatWindows();
+	m_injector.get<ChatWindowManager>()->storeOpenedChatWindows();
+
+	// some plugins crash on deactivation
+	// ensure we have at least some configuration stored
 	ConfigurationManager::instance()->flush();
-// 	delete Configuration;
-// 	Configuration = 0;
+	Application::instance()->backupConfiguration();
 
-	xml_config_file->makeBackup();
-
-	CurrentPluginManager->deactivatePlugins();
+	m_injector.get<PluginManager>()->deactivatePlugins();
+	// CurrentPluginManager->deactivatePlugins();
 
 	stopServices();
+
+	ConfigurationManager::instance()->flush();
+	Application::instance()->backupConfiguration();
 
 #ifdef Q_OS_MAC
 	QApplication::setWindowIcon(KaduIcon("kadu_icons/kadu").icon());
@@ -266,25 +250,14 @@ Core::~Core()
 	Window = 0;
 	delete hiddenParent;
 
-	MainConfigurationHolder::destroyInstance();
+	StatusConfigurationHolder::destroyInstance();
 
 	triggerAllAccountsUnregistered();
-
-	// Sometimes it causes crash which I don't understand. For me 100% reproducible
-	// if Kadu was compiled with Clang and we logged in to a jabber account. --beevvy
-	// TODO: fix it
-	// delete QcaInit;
-	// QcaInit = 0;
-}
-
-void Core::import_0_6_5_configuration()
-{
-	config_file.addVariable("Look", "UserboxAlternateBgColor", config_file.readEntry("Look", "UserboxBgColor"));
 }
 
 void Core::importPre10Configuration()
 {
-	if (config_file.readBoolEntry("General", "ImportedPre10"))
+	if (Application::instance()->configuration()->deprecatedApi()->readBoolEntry("General", "ImportedPre10"))
 	{
 		return;
 	}
@@ -294,7 +267,7 @@ void Core::importPre10Configuration()
 		if (buddy.isNull() || buddy.isAnonymous())
 			continue;
 
-		bool notify = buddy.property("notify:Notify", false).toBool() || config_file.readBoolEntry("Notify", "NotifyAboutAll");
+		bool notify = buddy.property("notify:Notify", false).toBool() || Application::instance()->configuration()->deprecatedApi()->readBoolEntry("Notify", "NotifyAboutAll");
 
 		if (notify)
 			buddy.removeProperty("notify:Notify");
@@ -302,77 +275,78 @@ void Core::importPre10Configuration()
 			buddy.addProperty("notify:Notify", false, CustomProperties::Storable);
 	}
 
-	config_file.addVariable("General", "ImportedPre10", true);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("General", "ImportedPre10", true);
 }
 
 void Core::createDefaultConfiguration()
 {
 	QWidget w;
 
-	config_file.addVariable("Chat", "AutoSend", true);
-	config_file.addVariable("Chat", "BlinkChatTitle", true);
-	config_file.addVariable("Chat", "ChatCloseTimer", true);
-	config_file.addVariable("Chat", "ChatCloseTimerPeriod", 2);
-	config_file.addVariable("Chat", "ChatPrune", false);
-	config_file.addVariable("Chat", "ChatPruneLen", 0);
-	config_file.addVariable("Chat", "ConfirmChatClear", true);
-	config_file.addVariable("Chat", "IgnoreAnonymousRichtext", true);
-	config_file.addVariable("Chat", "IgnoreAnonymousUsers", false);
-	config_file.addVariable("Chat", "IgnoreAnonymousUsersInConferences", false);
-	config_file.addVariable("Chat", "LastImagePath", QDir::homePath() + '/');
-	config_file.addVariable("Chat", "NewMessagesInChatTitle", false);
-	config_file.addVariable("Chat", "OpenChatOnMessage", false);
-	config_file.addVariable("Chat", "OpenChatOnMessageWhenOnline", false);
-	config_file.addVariable("Chat", "SaveOpenedWindows", true);
-	config_file.addVariable("Chat", "ReceiveMessages", true);
-	config_file.addVariable("Chat", "RecentChatsTimeout", 240);
-	config_file.addVariable("Chat", "RecentChatsClear", false);
-	config_file.addVariable("Chat", "RememberPosition", true);
-	config_file.addVariable("Chat", "ShowEditWindowLabel", true);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Chat", "AutoSend", true);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Chat", "BlinkChatTitle", true);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Chat", "ChatCloseTimer", true);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Chat", "ChatCloseTimerPeriod", 2);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Chat", "ChatPrune", false);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Chat", "ChatPruneLen", 0);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Chat", "ConfirmChatClear", true);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Chat", "IgnoreAnonymousRichtext", true);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Chat", "IgnoreAnonymousUsers", false);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Chat", "IgnoreAnonymousUsersInConferences", false);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Chat", "LastImagePath", QDir::homePath() + '/');
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Chat", "NewMessagesInChatTitle", false);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Chat", "OpenChatOnMessage", false);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Chat", "OpenChatOnMessageWhenOnline", true);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Chat", "OpenChatOnMessageMinimized", false);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Chat", "SaveOpenedWindows", true);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Chat", "ReceiveMessages", true);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Chat", "RecentChatsTimeout", 240);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Chat", "RecentChatsClear", false);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Chat", "RememberPosition", true);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Chat", "ShowEditWindowLabel", true);
 
-	config_file.addVariable("General", "AllowExecutingFromParser", false);
-	config_file.addVariable("General", "CheckUpdates", true);
-	config_file.addVariable("General", "DEBUG_MASK", KDEBUG_ALL & ~KDEBUG_FUNCTION_END);
-	config_file.addVariable("General", "DescriptionHeight", 60);
-	config_file.addVariable("General", "DisconnectWithCurrentDescription", true);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("General", "AllowExecutingFromParser", false);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("General", "CheckUpdates", true);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("General", "DEBUG_MASK", KDEBUG_ALL & ~KDEBUG_FUNCTION_END);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("General", "DescriptionHeight", 60);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("General", "DisconnectWithCurrentDescription", true);
 #ifdef Q_OS_WIN32
-	config_file.addVariable("General", "HideMainWindowFromTaskbar", false);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("General", "HideMainWindowFromTaskbar", false);
 #endif
-	config_file.addVariable("General", "Language",  QLocale::system().name().left(2));
-	config_file.addVariable("General", "Nick", tr("Me"));
-	config_file.addVariable("General", "NumberOfDescriptions", 20);
-	config_file.addVariable("General", "ParseStatus", false);
-	config_file.addVariable("General", "ShowBlocked", true);
-	config_file.addVariable("General", "ShowBlocking", true);
-	config_file.addVariable("General", "ShowMyself", false);
-	config_file.addVariable("General", "ShowOffline", true);
-	config_file.addVariable("General", "ShowOnlineAndDescription", false);
-	config_file.addVariable("General", "ShowWithoutDescription", true);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("General", "Language",  QLocale::system().name().left(2));
+	Application::instance()->configuration()->deprecatedApi()->addVariable("General", "Nick", tr("Me"));
+	Application::instance()->configuration()->deprecatedApi()->addVariable("General", "NumberOfDescriptions", 20);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("General", "ParseStatus", false);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("General", "ShowBlocked", true);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("General", "ShowBlocking", true);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("General", "ShowMyself", false);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("General", "ShowOffline", true);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("General", "ShowOnlineAndDescription", false);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("General", "ShowWithoutDescription", true);
 
-	if (config_file.readBoolEntry("General", "AdvancedMode", false))
+	if (Application::instance()->configuration()->deprecatedApi()->readBoolEntry("General", "AdvancedMode", false))
 	{
-		config_file.addVariable("General", "StatusContainerType", "Account");
-		config_file.addVariable("Look", "ShowExpandingControl", true);
+		Application::instance()->configuration()->deprecatedApi()->addVariable("General", "StatusContainerType", "Account");
+		Application::instance()->configuration()->deprecatedApi()->addVariable("Look", "ShowExpandingControl", true);
 	}
 	else
 	{
-		config_file.addVariable("General", "StatusContainerType", "Identity");
-		config_file.addVariable("Look", "ShowExpandingControl", false);
+		Application::instance()->configuration()->deprecatedApi()->addVariable("General", "StatusContainerType", "Identity");
+		Application::instance()->configuration()->deprecatedApi()->addVariable("Look", "ShowExpandingControl", false);
 	}
 
-	config_file.addVariable("General", "StartupLastDescription", true);
-	config_file.addVariable("General", "StartupStatus", "LastStatus");
-	config_file.addVariable("General", "StartupStatusInvisibleWhenLastWasOffline", false);
-	config_file.addVariable("General", "UserBoxHeight", 300);
-	config_file.addVariable("General", "WindowActivationMethod", 0);
-	config_file.addVariable("General", "MainConfiguration_Geometry", "50, 50, 790, 580");
-	config_file.addVariable("General", "LookChatAdvanced_Geometry", "50, 50, 620, 540");
+	Application::instance()->configuration()->deprecatedApi()->addVariable("General", "StartupLastDescription", true);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("General", "StartupStatus", "LastStatus");
+	Application::instance()->configuration()->deprecatedApi()->addVariable("General", "StartupStatusInvisibleWhenLastWasOffline", false);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("General", "UserBoxHeight", 300);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("General", "WindowActivationMethod", 0);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("General", "MainConfiguration_Geometry", "50, 50, 790, 580");
+	Application::instance()->configuration()->deprecatedApi()->addVariable("General", "LookChatAdvanced_Geometry", "50, 50, 620, 540");
 
-	config_file.addVariable("Look", "AlignUserboxIconsTop", true);
-	config_file.addVariable("Look", "AvatarBorder", false);
-	config_file.addVariable("Look", "AvatarGreyOut", true);
-	config_file.addVariable("Look", "ChatContents", QString());
-	config_file.addVariable("Look", "ForceCustomChatFont", false);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Look", "AlignUserboxIconsTop", true);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Look", "AvatarBorder", false);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Look", "AvatarGreyOut", true);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Look", "ChatContents", QString());
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Look", "ForceCustomChatFont", false);
 	QFont chatFont = qApp->font();
 #ifdef Q_OS_WIN32
 	// On Windows default app font is often "MS Shell Dlg 2", and the default sans
@@ -382,105 +356,105 @@ void Core::createDefaultConfiguration()
 	chatFont.setStyleHint(QFont::SansSerif);
 	chatFont.setFamily(chatFont.defaultFamily());
 #endif
-	config_file.addVariable("Look", "ChatFont", chatFont);
-	config_file.addVariable("Look", "ChatBgFilled", // depends on configuration imported from older version
-		config_file.readColorEntry("Look", "ChatBgColor").isValid() &&
-		config_file.readColorEntry("Look", "ChatBgColor") != QColor("#ffffff"));
-	config_file.addVariable("Look", "ChatBgColor", QColor("#ffffff"));
-	config_file.addVariable("Look", "ChatMyBgColor", QColor("#E0E0E0"));
-	config_file.addVariable("Look", "ChatMyFontColor", QColor("#000000"));
-	config_file.addVariable("Look", "ChatMyNickColor", QColor("#000000"));
-	config_file.addVariable("Look", "ChatUsrBgColor", QColor("#F0F0F0"));
-	config_file.addVariable("Look", "ChatUsrFontColor", QColor("#000000"));
-	config_file.addVariable("Look", "ChatUsrNickColor", QColor("#000000"));
-	config_file.addVariable("Look", "ChatTextCustomColors", // depends on configuration imported from older version
-		config_file.readColorEntry("Look", "ChatTextBgColor").isValid() &&
-		config_file.readColorEntry("Look", "ChatTextBgColor") != QColor("#ffffff"));
-	config_file.addVariable("Look", "ChatTextBgColor", QColor("#ffffff"));
-	config_file.addVariable("Look", "ChatTextFontColor", QColor("#000000"));
-	config_file.addVariable("Look", "ConferenceContents", QString());
-	config_file.addVariable("Look", "ConferencePrefix", QString());
-	config_file.addVariable("Look", "DescriptionColor", w.palette().text().color());
-	config_file.addVariable("Look", "DisplayGroupTabs", true);
-	config_file.addVariable("Look", "HeaderSeparatorHeight", 1);
-	config_file.addVariable("Look", "InfoPanelFgColor", w.palette().text().color());
-	config_file.addVariable("Look", "InfoPanelBgFilled", false);
-	config_file.addVariable("Look", "InfoPanelBgColor", w.palette().base().color());
-	config_file.addVariable("Look", "InfoPanelSyntaxFile", "ultr");
-	config_file.addVariable("Look", "NiceDateFormat", true);
-	config_file.addVariable("Look", "NoHeaderInterval", 30);
-	config_file.addVariable("Look", "NoHeaderRepeat", true);
-	config_file.addVariable("Look", "NoServerTime", true);
-	config_file.addVariable("Look", "NoServerTimeDiff", 60);
-	config_file.addVariable("Look", "PanelFont", qApp->font());
-	config_file.addVariable("Look", "PanelVerticalScrollbar", false);
-	config_file.addVariable("Look", "ParagraphSeparator", 4);
-	config_file.addVariable("Look", "ShowAvatars", true);
-	config_file.addVariable("Look", "IconTheme", IconThemeManager::defaultTheme());
-	config_file.addVariable("Look", "ShowGroupAll", true);
-	config_file.addVariable("Look", "ShowBold", true);
-	config_file.addVariable("Look", "ShowDesc", true);
-	config_file.addVariable("Look", "ShowInfoPanel", false);
-	config_file.addVariable("Look", "ShowMultilineDesc", true);
-	config_file.addVariable("Look", "ShowStatusButton", true);
-	config_file.addVariable("Look", "Style", "Satin");
-	config_file.addVariable("Look", "UserboxBackgroundDisplayStyle", "Stretched");
-	config_file.addVariable("Look", "UserboxTransparency", false);
-	config_file.addVariable("Look", "UserboxAlpha", 0);
-	config_file.addVariable("Look", "UserboxBlur", true);
-	config_file.addVariable("Look", "UserboxBgColor", w.palette().base().color());
-	config_file.addVariable("Look", "UserboxAlternateBgColor", w.palette().alternateBase().color());
-	config_file.addVariable("Look", "UserBoxColumnCount", 1);
-	config_file.addVariable("Look", "UserboxFgColor", w.palette().text().color());
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Look", "ChatFont", chatFont);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Look", "ChatBgFilled", // depends on configuration imported from older version
+		Application::instance()->configuration()->deprecatedApi()->readColorEntry("Look", "ChatBgColor").isValid() &&
+		Application::instance()->configuration()->deprecatedApi()->readColorEntry("Look", "ChatBgColor") != QColor("#ffffff"));
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Look", "ChatBgColor", QColor("#ffffff"));
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Look", "ChatMyBgColor", QColor("#E0E0E0"));
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Look", "ChatMyFontColor", QColor("#000000"));
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Look", "ChatMyNickColor", QColor("#000000"));
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Look", "ChatUsrBgColor", QColor("#F0F0F0"));
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Look", "ChatUsrFontColor", QColor("#000000"));
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Look", "ChatUsrNickColor", QColor("#000000"));
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Look", "ChatTextCustomColors", // depends on configuration imported from older version
+		Application::instance()->configuration()->deprecatedApi()->readColorEntry("Look", "ChatTextBgColor").isValid() &&
+		Application::instance()->configuration()->deprecatedApi()->readColorEntry("Look", "ChatTextBgColor") != QColor("#ffffff"));
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Look", "ChatTextBgColor", QColor("#ffffff"));
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Look", "ChatTextFontColor", QColor("#000000"));
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Look", "ConferenceContents", QString());
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Look", "ConferencePrefix", QString());
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Look", "DescriptionColor", w.palette().text().color());
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Look", "DisplayGroupTabs", true);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Look", "HeaderSeparatorHeight", 1);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Look", "InfoPanelFgColor", w.palette().text().color());
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Look", "InfoPanelBgFilled", false);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Look", "InfoPanelBgColor", w.palette().base().color());
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Look", "InfoPanelSyntaxFile", "ultr");
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Look", "NiceDateFormat", true);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Look", "NoHeaderInterval", 30);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Look", "NoHeaderRepeat", true);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Look", "NoServerTime", true);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Look", "NoServerTimeDiff", 60);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Look", "PanelFont", qApp->font());
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Look", "PanelVerticalScrollbar", false);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Look", "ParagraphSeparator", 4);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Look", "ShowAvatars", true);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Look", "IconTheme", IconThemeManager::defaultTheme());
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Look", "ShowGroupAll", true);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Look", "ShowBold", true);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Look", "ShowDesc", true);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Look", "ShowInfoPanel", false);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Look", "ShowMultilineDesc", true);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Look", "ShowStatusButton", true);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Look", "Style", "Satin");
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Look", "UserboxBackgroundDisplayStyle", "Stretched");
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Look", "UserboxTransparency", false);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Look", "UserboxAlpha", 0);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Look", "UserboxBlur", true);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Look", "UserboxBgColor", w.palette().base().color());
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Look", "UserboxAlternateBgColor", w.palette().alternateBase().color());
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Look", "UserBoxColumnCount", 1);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Look", "UserboxFgColor", w.palette().text().color());
 	QFont userboxfont(qApp->font());
 	userboxfont.setPointSize(qApp->font().pointSize() + 1);
-	config_file.addVariable("Look", "UserboxFont", userboxfont);
-	config_file.addVariable("Look", "UseUserboxBackground", false);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Look", "UserboxFont", userboxfont);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Look", "UseUserboxBackground", false);
 #ifdef Q_OS_MAC
 	/* Dorr: for MacOS X define the icon notification to animated which
 	 * will prevent from blinking the dock icon
 	 */
-	config_file.addVariable("Look", "NewMessageIcon", 2);
+	KaduApplication::instance()->configuration()->deprecatedApi()->addVariable("Look", "NewMessageIcon", 2);
 #endif
 
-	config_file.addVariable("Network", "AllowDCC", true);
-	config_file.addVariable("Network", "DefaultPort", 0);
-	config_file.addVariable("Network", "isDefServers", true);
-	config_file.addVariable("Network", "Server", QString());
-	config_file.addVariable("Network", "UseProxy", false);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Network", "AllowDCC", true);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Network", "DefaultPort", 0);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Network", "isDefServers", true);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Network", "Server", QString());
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Network", "UseProxy", false);
 
 #ifdef Q_OS_MAC
 	/* Dorr: for MacOS X define the function keys with 'apple' button
 	 * as it is the default system configuration */
-	config_file.addVariable("ShortCuts", "chat_clear", "Ctrl+F9");
-	config_file.addVariable("ShortCuts", "kadu_configure", "Ctrl+F2");
-	config_file.addVariable("ShortCuts", "kadu_modulesmanager", "Ctrl+F4");
-	config_file.addVariable("ShortCuts", "kadu_showoffline", "Ctrl+F9");
-	config_file.addVariable("ShortCuts", "kadu_showonlydesc", "Ctrl+F10");
+	KaduApplication::instance()->configuration()->deprecatedApi()->addVariable("ShortCuts", "chat_clear", "Ctrl+F9");
+	KaduApplication::instance()->configuration()->deprecatedApi()->addVariable("ShortCuts", "kadu_configure", "Ctrl+F2");
+	KaduApplication::instance()->configuration()->deprecatedApi()->addVariable("ShortCuts", "kadu_modulesmanager", "Ctrl+F4");
+	KaduApplication::instance()->configuration()->deprecatedApi()->addVariable("ShortCuts", "kadu_showoffline", "Ctrl+F9");
+	KaduApplication::instance()->configuration()->deprecatedApi()->addVariable("ShortCuts", "kadu_showonlydesc", "Ctrl+F10");
 #else
-	config_file.addVariable("ShortCuts", "chat_clear", "F9");
-	config_file.addVariable("ShortCuts", "kadu_configure", "F2");
-	config_file.addVariable("ShortCuts", "kadu_modulesmanager", "F4");
-	config_file.addVariable("ShortCuts", "kadu_showoffline", "F9");
-	config_file.addVariable("ShortCuts", "kadu_showonlydesc", "F10");
+	Application::instance()->configuration()->deprecatedApi()->addVariable("ShortCuts", "chat_clear", "F9");
+	Application::instance()->configuration()->deprecatedApi()->addVariable("ShortCuts", "kadu_configure", "F2");
+	Application::instance()->configuration()->deprecatedApi()->addVariable("ShortCuts", "kadu_modulesmanager", "F4");
+	Application::instance()->configuration()->deprecatedApi()->addVariable("ShortCuts", "kadu_showoffline", "F9");
+	Application::instance()->configuration()->deprecatedApi()->addVariable("ShortCuts", "kadu_showonlydesc", "F10");
 #endif
-	config_file.addVariable("ShortCuts", "chat_bold", "Ctrl+B");
-	config_file.addVariable("ShortCuts", "chat_close", "Esc");
-	config_file.addVariable("ShortCuts", "chat_italic", "Ctrl+I");
-	config_file.addVariable("ShortCuts", "chat_underline", "Ctrl+U");
-	config_file.addVariable("ShortCuts", "kadu_adduser", "Ctrl+N");
-	config_file.addVariable("ShortCuts", "kadu_deleteuser", "Del");
-	config_file.addVariable("ShortCuts", "kadu_openchatwith", "Ctrl+L");
-	config_file.addVariable("ShortCuts", "kadu_persinfo", "Ins");
-	config_file.addVariable("ShortCuts", "kadu_searchuser", "Ctrl+F");
-	config_file.addVariable("ShortCuts", "kadu_exit", "Ctrl+Q");
+	Application::instance()->configuration()->deprecatedApi()->addVariable("ShortCuts", "chat_bold", "Ctrl+B");
+	Application::instance()->configuration()->deprecatedApi()->addVariable("ShortCuts", "chat_close", "Esc");
+	Application::instance()->configuration()->deprecatedApi()->addVariable("ShortCuts", "chat_italic", "Ctrl+I");
+	Application::instance()->configuration()->deprecatedApi()->addVariable("ShortCuts", "chat_underline", "Ctrl+U");
+	Application::instance()->configuration()->deprecatedApi()->addVariable("ShortCuts", "kadu_adduser", "Ctrl+N");
+	Application::instance()->configuration()->deprecatedApi()->addVariable("ShortCuts", "kadu_deleteuser", "Del");
+	Application::instance()->configuration()->deprecatedApi()->addVariable("ShortCuts", "kadu_openchatwith", "Ctrl+L");
+	Application::instance()->configuration()->deprecatedApi()->addVariable("ShortCuts", "kadu_persinfo", "Ins");
+	Application::instance()->configuration()->deprecatedApi()->addVariable("ShortCuts", "kadu_searchuser", "Ctrl+F");
+	Application::instance()->configuration()->deprecatedApi()->addVariable("ShortCuts", "kadu_exit", "Ctrl+Q");
 
-	config_file.addVariable("Chat", "UseDefaultWebBrowser", config_file.readEntry("Chat", "WebBrowser").isEmpty());
-	config_file.addVariable("Chat", "UseDefaultEMailClient", config_file.readEntry("Chat", "MailClient").isEmpty());
-	config_file.addVariable("Chat", "ContactStateChats", true);
-	config_file.addVariable("Chat", "ContactStateWindowTitle", true);
-	config_file.addVariable("Chat", "ContactStateWindowTitleSyntax", QString());
-	config_file.addVariable("Chat", "ContactStateWindowTitlePosition", 1);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Chat", "UseDefaultWebBrowser", Application::instance()->configuration()->deprecatedApi()->readEntry("Chat", "WebBrowser").isEmpty());
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Chat", "UseDefaultEMailClient", Application::instance()->configuration()->deprecatedApi()->readEntry("Chat", "MailClient").isEmpty());
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Chat", "ContactStateChats", true);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Chat", "ContactStateWindowTitle", true);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Chat", "ContactStateWindowTitleSyntax", QString());
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Chat", "ContactStateWindowTitlePosition", 1);
 
 	createAllDefaultToolbars();
 }
@@ -488,18 +462,18 @@ void Core::createDefaultConfiguration()
 void Core::createAllDefaultToolbars()
 {
 	// don't use getToolbarsConfigElement here, we have to be sure that this element don'e exists
-	QDomElement toolbarsConfig = xml_config_file->findElement(xml_config_file->rootElement(), "Toolbars");
+	QDomElement toolbarsConfig = Application::instance()->configuration()->api()->findElement(Application::instance()->configuration()->api()->rootElement(), "Toolbars");
 
 	if (!toolbarsConfig.isNull())
 		return; // no need for defaults...
 
-	toolbarsConfig = xml_config_file->createElement(xml_config_file->rootElement(), "Toolbars");
+	toolbarsConfig = Application::instance()->configuration()->api()->createElement(Application::instance()->configuration()->api()->rootElement(), "Toolbars");
 
 	KaduWindow::createDefaultToolbars(toolbarsConfig);
 	ChatEditBox::createDefaultToolbars(toolbarsConfig);
 	SearchWindow::createDefaultToolbars(toolbarsConfig);
 
-	xml_config_file->sync();
+	Application::instance()->flushConfiguration();
 }
 
 void Core::init()
@@ -511,12 +485,12 @@ void Core::init()
 	// protocol modules should be loaded before gui
 	// it fixes crash on loading pending messages from config, contacts import from 0.6.5, and maybe other issues
 	{
-		auto changeNotifierLock = ChangeNotifierLock{CurrentPluginStateService->changeNotifier()};
-		CurrentPluginManager->activateProtocolPlugins();
+		auto changeNotifierLock = ChangeNotifierLock{m_injector.get<PluginStateService>()->changeNotifier()};
+		m_injector.get<PluginManager>()->activateProtocolPlugins();
 	}
 
 	Myself.setAnonymous(false);
-	Myself.setDisplay(config_file.readEntry("General", "Nick", tr("Me")));
+	Myself.setDisplay(Application::instance()->configuration()->deprecatedApi()->readEntry("General", "Nick", tr("Me")));
 
 	new Updates(this);
 
@@ -551,25 +525,25 @@ void Core::deleteOldConfigurationFiles()
 {
 	kdebugf();
 
-	QDir oldConfigs(KaduPaths::instance()->profilePath(), "kadu-0.12.conf.xml.backup.*", QDir::Name, QDir::Files);
+	QDir oldConfigs(Application::instance()->pathsProvider()->profilePath(), "kadu-0.12.conf.xml.backup.*", QDir::Name, QDir::Files);
 	if (oldConfigs.count() > 20)
 		for (unsigned int i = 0, max = oldConfigs.count() - 20; i < max; ++i)
-			QFile::remove(KaduPaths::instance()->profilePath() + oldConfigs[static_cast<int>(i)]);
+			QFile::remove(Application::instance()->pathsProvider()->profilePath() + oldConfigs[static_cast<int>(i)]);
 
-	QDir oldConfigs2(KaduPaths::instance()->profilePath(), "kadu-0.6.6.conf.xml.backup.*", QDir::Name, QDir::Files);
+	QDir oldConfigs2(Application::instance()->pathsProvider()->profilePath(), "kadu-0.6.6.conf.xml.backup.*", QDir::Name, QDir::Files);
 	if (oldConfigs2.count() > 20)
 		for (unsigned int i = 0, max = oldConfigs2.count() - 20; i < max; ++i)
-			QFile::remove(KaduPaths::instance()->profilePath() + oldConfigs2[static_cast<int>(i)]);
+			QFile::remove(Application::instance()->pathsProvider()->profilePath() + oldConfigs2[static_cast<int>(i)]);
 
-	QDir oldBacktraces(KaduPaths::instance()->profilePath(), "kadu.backtrace.*", QDir::Name, QDir::Files);
+	QDir oldBacktraces(Application::instance()->pathsProvider()->profilePath(), "kadu.backtrace.*", QDir::Name, QDir::Files);
 	if (oldBacktraces.count() > 20)
 		for (unsigned int i = 0, max = oldBacktraces.count() - 20; i < max; ++i)
-			QFile::remove(KaduPaths::instance()->profilePath() + oldBacktraces[static_cast<int>(i)]);
+			QFile::remove(Application::instance()->pathsProvider()->profilePath() + oldBacktraces[static_cast<int>(i)]);
 
-	QDir oldDebugs(KaduPaths::instance()->profilePath(), "kadu.log.*", QDir::Name, QDir::Files);
+	QDir oldDebugs(Application::instance()->pathsProvider()->profilePath(), "kadu.log.*", QDir::Name, QDir::Files);
 	if (oldDebugs.count() > 20)
 		for (unsigned int i = 0, max = oldDebugs.count() - 20; i < max; ++i)
-			QFile::remove(KaduPaths::instance()->profilePath() + oldDebugs[static_cast<int>(i)]);
+			QFile::remove(Application::instance()->pathsProvider()->profilePath() + oldDebugs[static_cast<int>(i)]);
 
 	kdebugf2();
 }
@@ -612,7 +586,7 @@ void Core::configurationUpdated()
 #ifdef Q_OS_WIN
 	QSettings settings("HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Run",
 		       QSettings::NativeFormat);
-	if(config_file.readBoolEntry("General", "RunOnStartup"))
+	if(Application::instance()->configuration()->deprecatedApi()->readBoolEntry("General", "RunOnStartup"))
 		settings.setValue("Kadu",
 				QDir::toNativeSeparators(QCoreApplication::applicationFilePath()));
 	else
@@ -621,9 +595,9 @@ void Core::configurationUpdated()
 
 	bool ok;
 	int newMask = qgetenv("DEBUG_MASK").toInt(&ok);
-	debug_mask = ok ? newMask : config_file.readNumEntry("General", "DEBUG_MASK", KDEBUG_ALL & ~KDEBUG_FUNCTION_END);
+	debug_mask = ok ? newMask : Application::instance()->configuration()->deprecatedApi()->readNumEntry("General", "DEBUG_MASK", KDEBUG_ALL & ~KDEBUG_FUNCTION_END);
 
-	Myself.setDisplay(config_file.readEntry("General", "Nick", tr("Me")));
+	Myself.setDisplay(Application::instance()->configuration()->deprecatedApi()->readEntry("General", "Nick", tr("Me")));
 }
 
 void Core::createGui()
@@ -646,7 +620,6 @@ void Core::runServices()
 	CurrentMessageFilterService = new MessageFilterService(this);
 	CurrentMessageHtmlRendererService = new MessageHtmlRendererService(this);
 	CurrentMessageTransformerService = new MessageTransformerService(this);
-	CurrentFormattedStringFactory = new FormattedStringFactory();
 	CurrentRawMessageTransformerService = new RawMessageTransformerService(this);
 	CurrentClipboardHtmlTransformerService = new ClipboardHtmlTransformerService(this);
 	CurrentAccountConfigurationWidgetFactoryRepository = new AccountConfigurationWidgetFactoryRepository(this);
@@ -655,59 +628,27 @@ void Core::runServices()
 	CurrentChatTopBarWidgetFactoryRepository = new ChatTopBarWidgetFactoryRepository(this);
 	CurrentUnreadMessageRepository = new UnreadMessageRepository(this);
 
-	CurrentRosterNotifier = new RosterNotifier(this);
-	foreach (const auto &notifyEvent, CurrentRosterNotifier->notifyEvents())
+	auto rosterNotifier = m_injector.get<RosterNotifier>();
+	for (auto &&notifyEvent : rosterNotifier->notifyEvents())
 		NotificationManager::instance()->registerNotifyEvent(notifyEvent);
 
 	CurrentChatWidgetActions = new ChatWidgetActions(this);
 
-	CurrentChatWidgetFactory = new ChatWidgetFactory(this);
-	CurrentChatWidgetFactory->setFormattedStringFactory(CurrentFormattedStringFactory);
-
-	CurrentChatWidgetRepository = new ChatWidgetRepository(this);
-
-	CurrentChatWindowFactory = new ChatWindowFactory(this);
-	CurrentChatWindowRepository = new ChatWindowRepository(this);
-
-	auto windowChatWidgetContainerHandler = new WindowChatWidgetContainerHandler(this);
-	windowChatWidgetContainerHandler->setChatWindowFactory(CurrentChatWindowFactory);
-	windowChatWidgetContainerHandler->setChatWindowRepository(CurrentChatWindowRepository);
-
-	CurrentChatWidgetContainerHandlerRepository = new ChatWidgetContainerHandlerRepository(this);
-	CurrentChatWidgetContainerHandlerRepository->registerChatWidgetContainerHandler(windowChatWidgetContainerHandler);
-
-	CurrentChatWidgetContainerHandlerMapper = new ChatWidgetContainerHandlerMapper(this);
-	CurrentChatWidgetContainerHandlerMapper->setChatWidgetContainerHandlerRepository(CurrentChatWidgetContainerHandlerRepository);
-	CurrentChatWidgetContainerHandlerMapper->setChatWidgetRepository(CurrentChatWidgetRepository);
-
-	CurrentChatWidgetActivationService = new ChatWidgetActivationService(this);
-	CurrentChatWidgetActivationService->setChatWidgetContainerHandlerMapper(CurrentChatWidgetContainerHandlerMapper);
-	CurrentChatWidgetActivationService->setChatWidgetContainerHandlerRepository(CurrentChatWidgetContainerHandlerRepository);
-
-	CurrentChatWidgetManager = new ChatWidgetManager(this);
-	CurrentChatWidgetManager->setChatWidgetActivationService(CurrentChatWidgetActivationService);
-	CurrentChatWidgetManager->setChatWidgetFactory(CurrentChatWidgetFactory);
-	CurrentChatWidgetManager->setChatWidgetRepository(CurrentChatWidgetRepository);
+	auto chatWidgetContainerHandlerRepository = m_injector.get<ChatWidgetContainerHandlerRepository>();
+	chatWidgetContainerHandlerRepository->registerChatWidgetContainerHandler(m_injector.get<WindowChatWidgetContainerHandler>());
 
 	CurrentChatWidgetMessageHandler = new ChatWidgetMessageHandler(this);
-	CurrentChatWidgetMessageHandler->setChatWidgetActivationService(CurrentChatWidgetActivationService);
-	CurrentChatWidgetMessageHandler->setChatWidgetManager(CurrentChatWidgetManager);
-	CurrentChatWidgetMessageHandler->setChatWidgetRepository(CurrentChatWidgetRepository);
+	CurrentChatWidgetMessageHandler->setChatWidgetActivationService(m_injector.get<ChatWidgetActivationService>());
+	CurrentChatWidgetMessageHandler->setChatWidgetManager(m_injector.get<ChatWidgetManager>());
+	CurrentChatWidgetMessageHandler->setChatWidgetRepository(m_injector.get<ChatWidgetRepository>());
 	CurrentChatWidgetMessageHandler->setMessageManager(MessageManager::instance());
 	CurrentChatWidgetMessageHandler->setUnreadMessageRepository(CurrentUnreadMessageRepository);
 	auto chatWidgetMessageHandlerConfigurator = new ChatWidgetMessageHandlerConfigurator(); // this is basically a global so we do not care about relesing it
 	chatWidgetMessageHandlerConfigurator->setChatWidgetMessageHandler(CurrentChatWidgetMessageHandler);
 
-	CurrentChatWindowStorage = new ChatWindowStorage(this);
-	CurrentChatWindowStorage->setChatManager(ChatManager::instance());
-	CurrentChatWindowStorage->setStoragePointFactory(CurrentStoragePointFactory);
+	m_injector.get<ChatWindowStorage>()->setChatManager(ChatManager::instance());
 	auto chatWindowStorageConfigurator = new ChatWindowStorageConfigurator(); // this is basically a global so we do not care about relesing it
-	chatWindowStorageConfigurator->setChatWindowStorage(CurrentChatWindowStorage);
-
-	CurrentChatWindowManager = new ChatWindowManager(this);
-	CurrentChatWindowManager->setChatWidgetManager(CurrentChatWidgetManager);
-	CurrentChatWindowManager->setChatWindowRepository(CurrentChatWindowRepository);
-	CurrentChatWindowManager->setChatWindowStorage(CurrentChatWindowStorage);
+	chatWindowStorageConfigurator->setChatWindowStorage(m_injector.get<ChatWindowStorage>());
 
 	// this instance lives forever
 	// TODO: maybe make it QObject and make CurrentChatImageRequestService its parent
@@ -720,72 +661,40 @@ void Core::runServices()
 
 	MessageManager::instance()->setMessageFilterService(CurrentMessageFilterService);
 	MessageManager::instance()->setMessageTransformerService(CurrentMessageTransformerService);
-	MessageManager::instance()->setFormattedStringFactory(CurrentFormattedStringFactory);
+	MessageManager::instance()->setFormattedStringFactory(m_injector.get<FormattedStringFactory>());
 
-	CurrentFormattedStringFactory->setImageStorageService(CurrentImageStorageService);
+	m_injector.get<FormattedStringFactory>()->setImageStorageService(CurrentImageStorageService);
 
-	ChatStyleManager::instance()->setFormattedStringFactory(CurrentFormattedStringFactory);
+	ChatStyleManager::instance()->setFormattedStringFactory(m_injector.get<FormattedStringFactory>());
 
 	CurrentMessageHtmlRendererService->setDomProcessorService(CurrentDomProcessorService);
 	CurrentMessageRenderInfoFactory = new MessageRenderInfoFactory();
 	CurrentMessageRenderInfoFactory->setChatStyleManager(ChatStyleManager::instance());
 
-	CurrentPluginActivationErrorHandler = new PluginActivationErrorHandler{this};
-	CurrentPluginActivationService = new PluginActivationService(this);
+	m_injector.get<PluginMetadataFinder>()->setDirectory(Application::instance()->pathsProvider()->dataPath() + QLatin1String{"plugins"});
+	m_injector.get<PluginDependencyHandler>()->initialize();
+	m_injector.get<PluginStateManager>()->loadPluginStates();
 
-	CurrentPluginMetadataFinder = new PluginMetadataFinder(this);
-	CurrentPluginMetadataReader = new PluginMetadataReader(this);
-	CurrentPluginStateManager = new PluginStateManager(this);
-	CurrentPluginStateService = new PluginStateService(this);
-
-	CurrentPluginDependencyGraphBuilder = new PluginDependencyGraphBuilder(this);
-
-	CurrentPluginMetadataFinder->setDirectory(KaduPaths::instance()->dataPath() + QLatin1String{"plugins"});
-	CurrentPluginMetadataFinder->setPluginMetadataReader(CurrentPluginMetadataReader);
-
-	CurrentPluginDependencyHandler = new PluginDependencyHandler(this);
-	CurrentPluginDependencyHandler->setPluginDependencyGraphBuilder(CurrentPluginDependencyGraphBuilder);
-	CurrentPluginDependencyHandler->setPluginMetadataProvider(CurrentPluginMetadataFinder);
-
-	CurrentPluginConflictResolver = new PluginConflictResolver{this};
-	CurrentPluginConflictResolver->setPluginDependencyHandler(CurrentPluginDependencyHandler);
-
-	CurrentPluginActivationService->setPluginActivationErrorHandler(CurrentPluginActivationErrorHandler);
-	CurrentPluginActivationService->setPluginDependencyHandler(CurrentPluginDependencyHandler);
-	CurrentPluginActivationService->setPluginStateService(CurrentPluginStateService);
-
-	CurrentPluginManager = new PluginManager(this);
-	CurrentPluginManager->setPluginActivationService(CurrentPluginActivationService);
-	CurrentPluginManager->setPluginDependencyHandler(CurrentPluginDependencyHandler);
-	CurrentPluginManager->setPluginStateService(CurrentPluginStateService);
-
-	CurrentPluginActivationErrorHandler->setPluginActivationService(CurrentPluginActivationService);
-	CurrentPluginActivationErrorHandler->setPluginStateService(CurrentPluginStateService);
-
-	CurrentPluginStateManager->setPluginDependencyHandler(CurrentPluginDependencyHandler);
-	CurrentPluginStateManager->setPluginStateService(CurrentPluginStateService);
-	CurrentPluginStateManager->setStoragePointFactory(CurrentStoragePointFactory);
-
-	CurrentPluginDependencyHandler->initialize();
-	CurrentPluginStateManager->loadPluginStates();
-
-	CurrentChatStyleRendererFactoryProvider = make_qobject<ConfiguredChatStyleRendererFactoryProvider>(this);
+	CurrentChatStyleRendererFactoryProvider = make_owned<ConfiguredChatStyleRendererFactoryProvider>(this);
 
 	ChatStyleManager::instance()->setConfiguredChatStyleRendererFactoryProvider(CurrentChatStyleRendererFactoryProvider.get());
 
-	CurrentWebkitMessagesViewDisplayFactory = make_qobject<WebkitMessagesViewDisplayFactory>(this);
+	CurrentWebkitMessagesViewDisplayFactory = make_owned<WebkitMessagesViewDisplayFactory>(this);
 	CurrentWebkitMessagesViewDisplayFactory->setChatStyleManager(ChatStyleManager::instance());
 	CurrentWebkitMessagesViewDisplayFactory->setMessageRenderInfoFactory(CurrentMessageRenderInfoFactory);
 
-	CurrentWebkitMessagesViewHandlerFactory = make_qobject<WebkitMessagesViewHandlerFactory>(this);
+	CurrentWebkitMessagesViewHandlerFactory = make_owned<WebkitMessagesViewHandlerFactory>(this);
 	CurrentWebkitMessagesViewHandlerFactory->setChatStyleManager(ChatStyleManager::instance());
 	CurrentWebkitMessagesViewHandlerFactory->setWebkitMessagesViewDisplayFactory(CurrentWebkitMessagesViewDisplayFactory.get());
 
-	CurrentWebkitMessagesViewFactory = make_qobject<WebkitMessagesViewFactory>(this);
+	CurrentWebkitMessagesViewFactory = make_owned<WebkitMessagesViewFactory>(this);
 	CurrentWebkitMessagesViewFactory->setChatImageRequestService(CurrentChatImageRequestService);
 	CurrentWebkitMessagesViewFactory->setChatStyleRendererFactoryProvider(CurrentChatStyleRendererFactoryProvider.get());
 	CurrentWebkitMessagesViewFactory->setImageStorageService(CurrentImageStorageService);
 	CurrentWebkitMessagesViewFactory->setWebkitMessagesViewHandlerFactory(CurrentWebkitMessagesViewHandlerFactory.get());
+
+	// instantiate = run in case of services
+	m_injector.get<ChatWidgetStatePersistenceService>();
 
 	// moved here because of #2758
 	ContactManager::instance()->init();
@@ -796,20 +705,21 @@ void Core::runGuiServices()
 	CurrentNotificationService = new NotificationService(this);
 	CurrentChatWidgetMessageHandler->setNotificationService(CurrentNotificationService);
 
-	CurrentChatWindowManager->openStoredChatWindows();
+	m_injector.get<ChatWindowManager>()->openStoredChatWindows();
 }
 
 void Core::stopServices()
 {
-	delete CurrentChatWidgetRepository;
-	CurrentChatWidgetRepository = 0;
+	auto chatWidgetRepository = m_injector.get<ChatWidgetRepository>();
+	while (begin(chatWidgetRepository) != end(chatWidgetRepository))
+		chatWidgetRepository->removeChatWidget(*begin(chatWidgetRepository));
 }
 
 void Core::activatePlugins()
 {
-	auto changeNotifierLock = ChangeNotifierLock{CurrentPluginStateService->changeNotifier()};
-	CurrentPluginManager->activatePlugins();
-	CurrentPluginManager->activateReplacementPlugins();
+	auto changeNotifierLock = ChangeNotifierLock{m_injector.get<PluginStateService>()->changeNotifier()};
+	m_injector.get<PluginManager>()->activatePlugins();
+	m_injector.get<PluginManager>()->activateReplacementPlugins();
 }
 
 BuddyDataWindowRepository * Core::buddyDataWindowRepository() const
@@ -864,7 +774,7 @@ NotificationService * Core::notificationService() const
 
 FormattedStringFactory * Core::formattedStringFactory() const
 {
-	return CurrentFormattedStringFactory;
+	return m_injector.get<FormattedStringFactory>();
 }
 
 RawMessageTransformerService * Core::rawMessageTransformerService() const
@@ -904,17 +814,12 @@ UnreadMessageRepository * Core::unreadMessageRepository() const
 
 RosterNotifier * Core::rosterNotifier() const
 {
-	return CurrentRosterNotifier;
-}
-
-ChatWidgetContainerHandlerMapper * Core::chatWidgetContainerHandlerMapper() const
-{
-	return CurrentChatWidgetContainerHandlerMapper;
+	return m_injector.get<RosterNotifier>();
 }
 
 ChatWidgetContainerHandlerRepository * Core::chatWidgetContainerHandlerRepository() const
 {
-	return CurrentChatWidgetContainerHandlerRepository;
+	return m_injector.get<ChatWidgetContainerHandlerRepository>();
 }
 
 ChatWidgetActions * Core::chatWidgetActions() const
@@ -922,94 +827,49 @@ ChatWidgetActions * Core::chatWidgetActions() const
 	return CurrentChatWidgetActions;
 }
 
-ChatWidgetActivationService * Core::chatWidgetActivationService() const
-{
-	return CurrentChatWidgetActivationService;
-}
-
 ChatWidgetManager * Core::chatWidgetManager() const
 {
-	return CurrentChatWidgetManager;
+	return m_injector.get<ChatWidgetManager>();
 }
 
 ChatWidgetFactory * Core::chatWidgetFactory() const
 {
-	return CurrentChatWidgetFactory;
+	return m_injector.get<ChatWidgetFactory>();
 }
 
 ChatWidgetRepository * Core::chatWidgetRepository() const
 {
-	return CurrentChatWidgetRepository;
-}
-
-ChatWindowFactory * Core::chatWindowFactory() const
-{
-	return CurrentChatWindowFactory;
-}
-
-ChatWindowManager * Core::chatWindowManager() const
-{
-	return CurrentChatWindowManager;
-}
-
-ChatWindowRepository * Core::chatWindowRepository() const
-{
-	return CurrentChatWindowRepository;
+	return m_injector.get<ChatWidgetRepository>();
 }
 
 StoragePointFactory * Core::storagePointFactory() const
 {
-	return CurrentStoragePointFactory;
-}
-
-PluginActivationErrorHandler * Core::pluginActivationErrorHandler() const
-{
-	return CurrentPluginActivationErrorHandler;
+	return m_injector.get<StoragePointFactory>();
 }
 
 PluginActivationService * Core::pluginActivationService() const
 {
-	return CurrentPluginActivationService;
+	return m_injector.get<PluginActivationService>();
 }
 
 PluginConflictResolver * Core::pluginConflictResolver() const
 {
-	return CurrentPluginConflictResolver;
-}
-
-PluginDependencyGraphBuilder * Core::pluginDependencyGraphBuilder() const
-{
-	return CurrentPluginDependencyGraphBuilder;
+	return m_injector.get<PluginConflictResolver>();
 }
 
 PluginDependencyHandler * Core::pluginDependencyHandler() const
 {
-	return CurrentPluginDependencyHandler;
-}
-
-PluginMetadataProvider * Core::pluginMetadataProvider() const
-{
-	return CurrentPluginMetadataFinder;
-}
-
-PluginMetadataReader * Core::pluginMetadataReader() const
-{
-	return CurrentPluginMetadataReader;
+	return m_injector.get<PluginDependencyHandler>();
 }
 
 PluginStateManager * Core::pluginStateManager() const
 {
-	return CurrentPluginStateManager;
+	return m_injector.get<PluginStateManager>();
 }
 
 PluginStateService * Core::pluginStateService() const
 {
-	return CurrentPluginStateService;
-}
-
-PluginManager * Core::pluginManager() const
-{
-	return CurrentPluginManager;
+	return m_injector.get<PluginStateService>();
 }
 
 ChatStyleRendererFactoryProvider * Core::chatStyleRendererFactoryProvider() const
@@ -1037,6 +897,11 @@ WebkitMessagesViewHandlerFactory * Core::webkitMessagesViewHandlerFactory() cons
 	return CurrentWebkitMessagesViewHandlerFactory.get();
 }
 
+RosterReplacer * Core::rosterReplacer() const
+{
+	return m_injector.get<RosterReplacer>();
+}
+
 void Core::showMainWindow()
 {
 	if (ShowMainWindowOnStart)
@@ -1061,12 +926,12 @@ const std::shared_ptr<DefaultProvider<QWidget *>> & Core::mainWindowProvider() c
 	return MainWindowProvider;
 }
 
-void Core::receivedSignal(const QString &signal)
+void Core::executeRemoteCommand(const QString &remoteCommand)
 {
-	if ("activate" == signal)
+	if ("activate" == remoteCommand)
 		_activateWindow(MainWindowProvider->provide());
 	else
-		UrlHandlerManager::instance()->openUrl(signal.toUtf8(), true);
+		UrlHandlerManager::instance()->openUrl(remoteCommand.toUtf8(), true);
 }
 
 void Core::quit()

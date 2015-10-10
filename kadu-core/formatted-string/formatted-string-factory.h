@@ -21,9 +21,9 @@
 #ifndef FORMATTED_STRING_FACTORY_H
 #define FORMATTED_STRING_FACTORY_H
 
+#include <QtCore/QPointer>
 #include <memory>
 #include <vector>
-#include <QtCore/QPointer>
 
 #include "formatted-string/formatted-string.h"
 #include "exports.h"
@@ -58,6 +58,9 @@ class KADUAPI FormattedStringFactory : public QObject
 	std::vector<std::unique_ptr<FormattedString>> partsFromQTextBlock(const QTextBlock &textBlock, bool firstBlock);
 
 public:
+	Q_INVOKABLE FormattedStringFactory();
+	virtual ~FormattedStringFactory();
+
 	/**
 	 * @short Set ImageStorageService to use by this factory.
 	 * @author Rafał 'Vogel' Malinowski

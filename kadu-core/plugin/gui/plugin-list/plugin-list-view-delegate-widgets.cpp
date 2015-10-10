@@ -27,6 +27,7 @@
 
 #include <math.h>
 
+#include <QtCore/QAbstractProxyModel>
 #include <QtCore/QHash>
 #include <QtCore/QList>
 #include <QtCore/QMetaMethod>
@@ -34,11 +35,10 @@
 #include <QtCore/QMetaProperty>
 #include <QtCore/QPair>
 #include <QtCore/qobjectdefs.h>
-#include <QtGui/QAbstractItemView>
-#include <QtGui/QAbstractProxyModel>
-#include <QtGui/QApplication>
 #include <QtGui/QInputEvent>
-#include <QtGui/QWidget>
+#include <QtWidgets/QAbstractItemView>
+#include <QtWidgets/QApplication>
+#include <QtWidgets/QWidget>
 
 #include "plugin/gui/plugin-list/plugin-list-view-delegate.h"
 
@@ -224,13 +224,8 @@ bool PluginListWidgetDelegateEventListener::eventFilter(QObject *watched, QEvent
                         {
                                 QTabletEvent *tabletEvent = static_cast<QTabletEvent*>(event);
                                 QTabletEvent evt(event->type(),
-#if QT_VERSION >= 0x050000
                                                  QPointF(viewport->mapFromGlobal(tabletEvent->globalPos())),
                                                  tabletEvent->globalPosF(),
-#else
-                                                 viewport->mapFromGlobal(tabletEvent->globalPos()), tabletEvent->globalPos(),
-                                                 tabletEvent->hiResGlobalPos(),
-#endif
                                                  tabletEvent->device(),
                                                  tabletEvent->pointerType(), tabletEvent->pressure(), tabletEvent->xTilt(),
                                                  tabletEvent->yTilt(), tabletEvent->tangentialPressure(), tabletEvent->rotation(),

@@ -21,13 +21,16 @@
  */
 
 #include <QtCore/QFile>
+#include <QtCore/QSettings>
 
-#include "configuration/configuration-file.h"
+#include "configuration/configuration.h"
+#include "configuration/deprecated-configuration-api.h"
+#include "core/application.h"
 #include "core/core.h"
 #include "gui/windows/main-configuration-window.h"
 #include "plugin/metadata/plugin-metadata.h"
-#include "plugin/state/plugin-state.h"
 #include "plugin/state/plugin-state-service.h"
+#include "plugin/state/plugin-state.h"
 
 #include "plugins/mediaplayer/mediaplayer.h"
 
@@ -100,32 +103,34 @@ void MPRISPlayer::replacePlugin()
 
 void MPRISPlayer::choosePlayer(const QString &key, const QString &value)
 {
-	PlainConfigFile globalPlayersFile(MPRISPlayer::globalPlayersListFileName());
-	PlainConfigFile userPlayersFile(MPRISPlayer::userPlayersListFileName());
-
 	// Save service value from mpris_mediaplayer module
 	if (key == "mpris_mediaplayer")
 	{
-		QString oldMPRISService = config_file.readEntry("MediaPlayer", "MPRISService");
+		QString oldMPRISService = Application::instance()->configuration()->deprecatedApi()->readEntry("MediaPlayer", "MPRISService");
+		QSettings userPlayersSettings(MPRISPlayer::userPlayersListFileName(), QSettings::IniFormat);
+		userPlayersSettings.setIniCodec("ISO8859-2");
 
-		userPlayersFile.writeEntry(value, "player", value);
-		userPlayersFile.writeEntry(value, "service", oldMPRISService);
-		userPlayersFile.sync();
+		userPlayersSettings.setValue(value + "/player", value);
+		userPlayersSettings.setValue(value +  "/service", oldMPRISService);
+		userPlayersSettings.sync();
 
-		config_file.writeEntry("MPRISPlayer", "Player", value);
-		config_file.writeEntry("MPRISPlayer", "Service", oldMPRISService);
+		Application::instance()->configuration()->deprecatedApi()->writeEntry("MPRISPlayer", "Player", value);
+		Application::instance()->configuration()->deprecatedApi()->writeEntry("MPRISPlayer", "Service", oldMPRISService);
 	}
 	else // Choose player based on old module loaded.
 	{
-		config_file.writeEntry("MPRISPlayer", "Player", value);
-		config_file.writeEntry("MPRISPlayer", "Service", globalPlayersFile.readEntry(value, "service"));
+		QSettings globalPlayersSettings(MPRISPlayer::globalPlayersListFileName(), QSettings::IniFormat);
+		globalPlayersSettings.setIniCodec("ISO8859-2");
+
+		Application::instance()->configuration()->deprecatedApi()->writeEntry("MPRISPlayer", "Player", value);
+		Application::instance()->configuration()->deprecatedApi()->writeEntry("MPRISPlayer", "Service", globalPlayersSettings.value(value + "/service").toString());
 	}
 }
 
 void MPRISPlayer::configurationApplied()
 {
-	setName(config_file.readEntry("MPRISPlayer", "Player"));
-	setService(config_file.readEntry("MPRISPlayer", "Service"));
+	setName(Application::instance()->configuration()->deprecatedApi()->readEntry("MPRISPlayer", "Player"));
+	setService(Application::instance()->configuration()->deprecatedApi()->readEntry("MPRISPlayer", "Service"));
 
 	if (!MediaPlayer::instance()->registerMediaPlayer(MPRISPlayer::instance(), MPRISPlayer::instance()))
 	{

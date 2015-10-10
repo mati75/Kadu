@@ -26,7 +26,8 @@
 #include <QtCore/QMap>
 
 #include "configuration/configuration-aware-object.h"
-#include "configuration/configuration-file.h"
+#include "configuration/configuration.h"
+#include "configuration/deprecated-configuration-api.h"
 #include "gui/windows/main-configuration-window.h"
 
 class QComboBox;
@@ -43,7 +44,7 @@ class MPRISPlayerConfigurationUiHandler : public ConfigurationUiHandler
 	MPRISPlayerConfigurationUiHandler();
 	virtual ~MPRISPlayerConfigurationUiHandler();
 
-	void loadPlayersListFromFile(const QString &globalFileName, const QString &userFileName);
+	void loadPlayersListFromFile();
 	void fillPlayersBox();
 
 private slots:

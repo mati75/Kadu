@@ -22,24 +22,26 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <QtGui/QApplication>
-#include <QtGui/QCheckBox>
-#include <QtGui/QComboBox>
-#include <QtGui/QDialogButtonBox>
-#include <QtGui/QFormLayout>
-#include <QtGui/QGridLayout>
-#include <QtGui/QGroupBox>
-#include <QtGui/QLabel>
-#include <QtGui/QLineEdit>
-#include <QtGui/QPushButton>
-#include <QtGui/QSpinBox>
-#include <QtGui/QTabWidget>
-#include <QtGui/QVBoxLayout>
+#include <QtWidgets/QApplication>
+#include <QtWidgets/QCheckBox>
+#include <QtWidgets/QComboBox>
+#include <QtWidgets/QDialogButtonBox>
+#include <QtWidgets/QFormLayout>
+#include <QtWidgets/QGridLayout>
+#include <QtWidgets/QGroupBox>
+#include <QtWidgets/QLabel>
+#include <QtWidgets/QLineEdit>
+#include <QtWidgets/QPushButton>
+#include <QtWidgets/QSpinBox>
+#include <QtWidgets/QTabWidget>
+#include <QtWidgets/QVBoxLayout>
 
 #include "accounts/account-manager.h"
 #include "accounts/account.h"
-#include "configuration/configuration-file.h"
+#include "configuration/configuration.h"
+#include "configuration/deprecated-configuration-api.h"
 #include "contacts/contact-manager.h"
+#include "core/application.h"
 #include "gui/widgets/account-avatar-widget.h"
 #include "gui/widgets/account-buddy-list-widget.h"
 #include "gui/widgets/account-configuration-widget-tab-adapter.h"
@@ -52,9 +54,7 @@
 #include "os/generic/url-opener.h"
 #include "protocols/protocol.h"
 #include "protocols/services/avatar-service.h"
-#include "protocols/services/contact-list-service.h"
 
-#include "services/gadu-contact-list-service.h"
 #include "gadu-account-details.h"
 #include "gadu-id-validator.h"
 
@@ -350,8 +350,8 @@ void GaduEditAccountWidget::apply()
 		Details->setExternalPort(ExternalPort->text().toUInt());
 	}
 
-	config_file.writeEntry("Network", "isDefServers", useDefaultServers->isChecked());
-	config_file.writeEntry("Network", "Server", ipAddresses->text());
+	Application::instance()->configuration()->deprecatedApi()->writeEntry("Network", "isDefServers", useDefaultServers->isChecked());
+	Application::instance()->configuration()->deprecatedApi()->writeEntry("Network", "Server", ipAddresses->text());
 	GaduServersManager::instance()->buildServerList();
 
 	if (gpiw->isModified())
@@ -396,8 +396,8 @@ void GaduEditAccountWidget::dataChanged()
 
 		&& Details->allowDcc() == AllowFileTransfers->isChecked()
 
-		&& config_file.readBoolEntry("Network", "isDefServers", true) == useDefaultServers->isChecked()
-		&& config_file.readEntry("Network", "Server") == ipAddresses->text()
+		&& Application::instance()->configuration()->deprecatedApi()->readBoolEntry("Network", "isDefServers", true) == useDefaultServers->isChecked()
+		&& Application::instance()->configuration()->deprecatedApi()->readEntry("Network", "Server") == ipAddresses->text()
 		&& (!gg_libgadu_check_feature(GG_LIBGADU_FEATURE_SSL) || Details->tlsEncryption() == UseTlsEncryption->isChecked())
 		&& Details->sendTypingNotification() == SendTypingNotification->isChecked()
 		&& Details->receiveSpam() != ReceiveSpam->isChecked()
@@ -447,8 +447,8 @@ void GaduEditAccountWidget::loadAccountData()
 		ExternalPort->setText(QString::number(details->externalPort()));
 	}
 
-	useDefaultServers->setChecked(config_file.readBoolEntry("Network", "isDefServers", true));
-	ipAddresses->setText(config_file.readEntry("Network", "Server"));
+	useDefaultServers->setChecked(Application::instance()->configuration()->deprecatedApi()->readBoolEntry("Network", "isDefServers", true));
+	ipAddresses->setText(Application::instance()->configuration()->deprecatedApi()->readEntry("Network", "Server"));
 
 	simpleStateNotifier()->setState(StateNotChanged);
 }

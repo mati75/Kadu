@@ -21,16 +21,18 @@
  */
 
 #include <QtCore/QLocale>
-#include <QtGui/QApplication>
-#include <QtGui/QCheckBox>
-#include <QtGui/QDialogButtonBox>
 #include <QtGui/QKeyEvent>
-#include <QtGui/QLabel>
-#include <QtGui/QPushButton>
-#include <QtGui/QStyle>
-#include <QtGui/QVBoxLayout>
+#include <QtWidgets/QApplication>
+#include <QtWidgets/QCheckBox>
+#include <QtWidgets/QDialogButtonBox>
+#include <QtWidgets/QLabel>
+#include <QtWidgets/QPushButton>
+#include <QtWidgets/QStyle>
+#include <QtWidgets/QVBoxLayout>
 
-#include "configuration/configuration-file.h"
+#include "configuration/configuration.h"
+#include "configuration/deprecated-configuration-api.h"
+#include "core/application.h"
 #include "os/generic/url-opener.h"
 
 #include "updates-dialog.h"
@@ -61,7 +63,7 @@ UpdatesDialog::UpdatesDialog(const QString &newestVersion, QWidget *parent) :
 	connect(messageLabel, SIGNAL(linkActivated(QString)), this, SLOT(downloadClicked()));
 
 	CheckForUpdates = new QCheckBox(tr("Check for updates when Kadu is opened"));
-	CheckForUpdates->setChecked(config_file.readBoolEntry("General", "CheckUpdates", true));
+	CheckForUpdates->setChecked(Application::instance()->configuration()->deprecatedApi()->readBoolEntry("General", "CheckUpdates", true));
 
 	QDialogButtonBox *buttons = new QDialogButtonBox(Qt::Horizontal, this);
 
@@ -85,7 +87,7 @@ UpdatesDialog::~UpdatesDialog()
 
 void UpdatesDialog::downloadClicked()
 {
-	if (config_file.readEntry("General", "Language") == "pl")
+	if (Application::instance()->configuration()->deprecatedApi()->readEntry("General", "Language") == "pl")
 		UrlOpener::openUrl("http://www.kadu.im/w/Pobierz");
 	else
 		UrlOpener::openUrl("http://www.kadu.im/w/English:Download");
@@ -93,7 +95,7 @@ void UpdatesDialog::downloadClicked()
 
 void UpdatesDialog::accepted()
 {
-	config_file.writeEntry("General", "CheckUpdates", CheckForUpdates->isChecked());
+	Application::instance()->configuration()->deprecatedApi()->writeEntry("General", "CheckUpdates", CheckForUpdates->isChecked());
 
 	close();
 }

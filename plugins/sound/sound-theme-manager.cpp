@@ -19,7 +19,11 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "configuration/configuration-file.h"
+#include "configuration/configuration-api.h"
+#include "configuration/configuration.h"
+#include "configuration/deprecated-configuration-api.h"
+#include "core/application.h"
+#include "misc/memory.h"
 #include "themes.h"
 
 #include "sound-theme-manager.h"
@@ -44,16 +48,16 @@ SoundThemeManager * SoundThemeManager::instance()
 }
 
 SoundThemeManager::SoundThemeManager() :
-		MyThemes(new Themes("sounds", "sound.conf"))
+		MyThemes{make_unique<Themes>("sounds", "sound.conf")}
 {
-	MyThemes->setPaths(config_file.readEntry("Sounds", "SoundPaths").split('&', QString::SkipEmptyParts));
+	MyThemes->setPaths(Application::instance()->configuration()->deprecatedApi()->readEntry("Sounds", "SoundPaths").split('&', QString::SkipEmptyParts));
 
 	QStringList soundThemes = themes()->themes();
-	QString soundTheme = config_file.readEntry("Sounds", "SoundTheme");
+	QString soundTheme = Application::instance()->configuration()->deprecatedApi()->readEntry("Sounds", "SoundTheme");
 	if (!soundThemes.isEmpty() && (soundTheme != "Custom") && !soundThemes.contains(soundTheme))
 	{
 		soundTheme = "default";
-		config_file.writeEntry("Sounds", "SoundTheme", "default");
+		Application::instance()->configuration()->deprecatedApi()->writeEntry("Sounds", "SoundTheme", "default");
 	}
 
 	if (soundTheme != "custom")
@@ -62,8 +66,6 @@ SoundThemeManager::SoundThemeManager() :
 
 SoundThemeManager::~SoundThemeManager()
 {
-	delete MyThemes;
-	MyThemes = 0;
 }
 
 void SoundThemeManager::applyTheme(const QString &themeName)
@@ -74,7 +76,7 @@ void SoundThemeManager::applyTheme(const QString &themeName)
 
 	while (i != entries.constEnd())
 	{
-		config_file.writeEntry("Sounds", i.key() + "_sound", MyThemes->themePath() + i.value());
+		Application::instance()->configuration()->deprecatedApi()->writeEntry("Sounds", i.key() + "_sound", MyThemes->themePath() + i.value());
 		++i;
 	}
 }

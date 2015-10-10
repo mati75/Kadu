@@ -21,18 +21,19 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <QtGui/QApplication>
-#include <QtGui/QDialogButtonBox>
-#include <QtGui/QLabel>
-#include <QtGui/QPushButton>
-#include <QtGui/QVBoxLayout>
+#include <QtWidgets/QApplication>
+#include <QtWidgets/QDialogButtonBox>
+#include <QtWidgets/QLabel>
+#include <QtWidgets/QPushButton>
+#include <QtWidgets/QVBoxLayout>
 
 #include "buddies/buddy-manager.h"
 #include "contacts/contact-manager.h"
 #include "gui/windows/add-buddy-window.h"
 #include "icons/icons-manager.h"
 #include "model/roles.h"
-#include "protocols/services/roster/roster-entry.h"
+#include "roster/roster-entry.h"
+#include "roster/roster-entry-state.h"
 
 #include "subscription-window.h"
 
@@ -58,8 +59,6 @@ SubscriptionWindow::SubscriptionWindow(Contact contact, QWidget *parent) :
 	Contact knownContact = ContactManager::instance()->byId(CurrentContact.contactAccount(), CurrentContact.id(), ActionReturnNull);
 	if (knownContact)
 		CurrentContact = knownContact;
-	else if (CurrentContact)
-		CurrentContact.rosterEntry()->setState(RosterEntrySynchronized);
 
 	QGridLayout *layout = new QGridLayout(this);
 	layout->setColumnStretch(2, 4);

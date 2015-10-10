@@ -27,10 +27,12 @@
 #include "accounts/account.h"
 #include "chat/chat-manager.h"
 #include "chat/chat.h"
-#include "configuration/configuration-file.h"
+#include "configuration/configuration.h"
+#include "configuration/deprecated-configuration-api.h"
 #include "contacts/contact-manager.h"
 #include "contacts/contact-set.h"
 #include "contacts/contact.h"
+#include "core/application.h"
 
 #include "storage/sql-accounts-mapping.h"
 #include "storage/sql-chats-mapping.h"
@@ -681,7 +683,7 @@ void SqlImport::performImport(QSqlDatabase &database)
 
 	initKaduSchemaTable(database);
 
-	config_file.writeEntry("History", "Schema", CURRENT_SCHEMA_VERSION);
+	Application::instance()->configuration()->deprecatedApi()->writeEntry("History", "Schema", CURRENT_SCHEMA_VERSION);
 }
 
 #include "moc_sql-import.cpp"

@@ -59,11 +59,11 @@
     </message>
     <message>
         <source>Put statuses switch to dock menu</source>
-        <translation type="unfinished"/>
+        <translation>Mettre le bouton d&apos;état dans le dock menu </translation>
     </message>
     <message>
         <source>Enable this to put MediaPlayer statuses switch into docked icon menu.</source>
-        <translation type="unfinished"/>
+        <translation>Activer cette option pour mettre le statut de lecteur multimédia dans le menu dock</translation>
     </message>
     <message>
         <source>Signature Cutting</source>
@@ -103,23 +103,23 @@ Meta+Entrée/Espace/Gauche/Droite/Haut/Bas.</translation>
     </message>
     <message>
         <source>Extras</source>
-        <translation type="unfinished"/>
+        <translation>Suppléments</translation>
     </message>
     <message>
         <source>Media Player</source>
-        <translation type="unfinished"/>
+        <translation>Lecteur Multimédia</translation>
     </message>
     <message>
         <source>MediaPlayer message format in chat window</source>
-        <translation type="unfinished"/>
+        <translation>Format des messages de lecteur multimédia dans la fenêtre de conversation</translation>
     </message>
     <message>
         <source>Enable signature cutting</source>
-        <translation type="unfinished"/>
+        <translation>Activer la découpe de la signature</translation>
     </message>
     <message>
         <source>Enable removing non-essential stuff from audio file titles</source>
-        <translation type="unfinished"/>
+        <translation>Activer la suppression des éléments superflus  du titre du fichier audio</translation>
     </message>
 </context>
 <context>
@@ -146,7 +146,7 @@ Meta+Entrée/Espace/Gauche/Droite/Haut/Bas.</translation>
     </message>
     <message>
         <source>Enable MediaPlayer statuses</source>
-        <translation type="unfinished"/>
+        <translation>Activer des états MediaPlayer</translation>
     </message>
     <message>
         <source>MediaPlayer</source>
@@ -214,15 +214,15 @@ Meta+Entrée/Espace/Gauche/Droite/Haut/Bas.</translation>
     </message>
     <message>
         <source>Send anyway</source>
-        <translation type="unfinished"/>
+        <translation>Envoyer malgré tout</translation>
     </message>
     <message>
         <source>Cancel</source>
-        <translation type="unfinished"/>
+        <translation>Annuler</translation>
     </message>
     <message>
         <source>Send</source>
-        <translation type="unfinished"/>
+        <translation>Envoyer</translation>
     </message>
 </context>
 </TS>

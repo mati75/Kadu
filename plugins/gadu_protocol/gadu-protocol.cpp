@@ -47,7 +47,8 @@
 #include "buddies/buddy-manager.h"
 #include "chat/chat-manager.h"
 #include "chat/chat.h"
-#include "configuration/configuration-file.h"
+#include "configuration/configuration.h"
+#include "configuration/deprecated-configuration-api.h"
 #include "contacts/contact-manager.h"
 #include "core/core.h"
 #include "formatted-string/composite-formatted-string.h"
@@ -58,6 +59,7 @@
 #include "status/status-type.h"
 #include "status/status.h"
 
+#include "core/application.h"
 #include "icons/icons-manager.h"
 #include "misc/misc.h"
 #include "debug.h"
@@ -70,6 +72,7 @@
 #include "helpers/gadu-protocol-helper.h"
 #include "helpers/gadu-proxy-helper.h"
 #include "server/gadu-writable-session-token.h"
+#include "services/gadu-notify-service.h"
 #include "services/gadu-roster-service.h"
 #include "gadu-account-details.h"
 #include "gadu-contact-details.h"
@@ -85,6 +88,8 @@ GaduProtocol::GaduProtocol(Account account, ProtocolFactory *factory) :
 
 	CurrentAvatarService = new GaduAvatarService(account, this);
 
+	CurrentBuddyListSerializationService = new GaduBuddyListSerializationService{account, this};
+
 	CurrentChatImageService = new GaduChatImageService(account, this);
 	CurrentChatImageService->setConnection(Connection);
 
@@ -95,10 +100,6 @@ GaduProtocol::GaduProtocol(Account account, ProtocolFactory *factory) :
 	CurrentChatService->setImageStorageService(Core::instance()->imageStorageService());
 	CurrentChatService->setRawMessageTransformerService(Core::instance()->rawMessageTransformerService());
 	CurrentChatImageService->setGaduChatService(CurrentChatService);
-
-	CurrentContactListService = new GaduContactListService(account, this);
-	CurrentContactListService->setConnection(Connection);
-	CurrentContactListService->setRosterNotifier(Core::instance()->rosterNotifier());
 
 	CurrentContactPersonalInfoService = new GaduContactPersonalInfoService(account, this);
 	CurrentContactPersonalInfoService->setConnection(Connection);
@@ -118,9 +119,16 @@ GaduProtocol::GaduProtocol(Account account, ProtocolFactory *factory) :
 	connect(CurrentChatService, SIGNAL(messageReceived(Message)),
 	        CurrentChatStateService, SLOT(messageReceived(Message)));
 
-	GaduRosterService *rosterService = new GaduRosterService(account, this);
+	auto contacts = ContactManager::instance()->contacts(account, ContactManager::ExcludeAnonymous);
+	auto rosterService = new GaduRosterService(this, contacts, this);
 	rosterService->setConnection(Connection);
-	rosterService->setProtocol(this);
+	rosterService->setRosterNotifier(Core::instance()->rosterNotifier());
+	rosterService->setRosterReplacer(Core::instance()->rosterReplacer());
+
+	CurrentNotifyService = new GaduNotifyService{Connection, this};
+	connect(rosterService, SIGNAL(contactAdded(Contact)), CurrentNotifyService, SLOT(contactAdded(Contact)));
+	connect(rosterService, SIGNAL(contactRemoved(Contact)), CurrentNotifyService, SLOT(contactRemoved(Contact)));
+	connect(rosterService, SIGNAL(contactUpdatedLocally(Contact)), CurrentNotifyService, SLOT(contactUpdatedLocally(Contact)));
 
 	setChatService(CurrentChatService);
 	setChatStateService(CurrentChatStateService);
@@ -327,8 +335,11 @@ void GaduProtocol::afterLoggedIn()
 	// set up DCC if needed
 	setUpFileTransferService();
 
-	// we do not need to wait for "rosterReady" signal in GaduGadu
-	rosterService()->prepareRoster(ContactManager::instance()->contacts(account(), ContactManager::ExcludeAnonymous));
+	auto contacts = ContactManager::instance()->contacts(account(), ContactManager::ExcludeAnonymous);
+	CurrentNotifyService->sendInitialData(contacts);
+
+	static_cast<GaduRosterService *>(rosterService())->prepareRoster();
+
 	sendStatusToServer();
 }
 
@@ -386,7 +397,11 @@ void GaduProtocol::setupLoginParams()
 
 	GaduLoginParams.async = 1;
 
-	GaduLoginParams.status = (GaduProtocolHelper::gaduStatusFromStatus(loginStatus()) | (account().privateStatus() ? GG_STATUS_FRIENDS_MASK : 0));
+	// always start with inivisible, after sending notify data new status is resent again
+	auto gaduStatus = loginStatus().description().isEmpty()
+		? GG_STATUS_INVISIBLE
+		: GG_STATUS_INVISIBLE_DESCR;
+	GaduLoginParams.status = gaduStatus | (account().privateStatus() ? GG_STATUS_FRIENDS_MASK : 0);
 
 	if (!loginStatus().description().isEmpty())
 		GaduLoginParams.status_descr = qstrdup(loginStatus().description().toUtf8().constData());
@@ -423,9 +438,9 @@ void GaduProtocol::setupLoginParams()
 	GaduLoginParams.encoding = GG_ENCODING_UTF8;
 
 	GaduLoginParams.has_audio = false;
-	GaduLoginParams.last_sysmsg = config_file.readNumEntry("General", "SystemMsgIndex", 1389);
+	GaduLoginParams.last_sysmsg = Application::instance()->configuration()->deprecatedApi()->readNumEntry("General", "SystemMsgIndex", 1389);
 
-	GaduLoginParams.image_size = qMax(qMin(config_file.readNumEntry("Chat", "MaximumImageSizeInKiloBytes", 255), 255), 0);
+	GaduLoginParams.image_size = qMax(qMin(Application::instance()->configuration()->deprecatedApi()->readNumEntry("Chat", "MaximumImageSizeInKiloBytes", 255), 255), 0);
 
 	setStatusFlags();
 }

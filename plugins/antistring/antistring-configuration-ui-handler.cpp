@@ -20,16 +20,17 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <QtGui/QGridLayout>
-#include <QtGui/QLabel>
-#include <QtGui/QLineEdit>
-#include <QtGui/QListWidget>
-#include <QtGui/QPushButton>
-#include <QtGui/QSpinBox>
+#include <QtWidgets/QGridLayout>
+#include <QtWidgets/QLabel>
+#include <QtWidgets/QLineEdit>
+#include <QtWidgets/QListWidget>
+#include <QtWidgets/QPushButton>
+#include <QtWidgets/QSpinBox>
 
+#include "core/application.h"
 #include "gui/widgets/configuration/config-group-box.h"
 #include "gui/widgets/configuration/configuration-widget.h"
-#include "misc/kadu-paths.h"
+#include "misc/paths-provider.h"
 
 #include "antistring-configuration.h"
 #include "antistring.h"
@@ -43,7 +44,7 @@ void AntistringConfigurationUiHandler::registerUiHandler()
 	if (!Instance)
 	{
 		Instance = new AntistringConfigurationUiHandler();
-		MainConfigurationWindow::registerUiFile(KaduPaths::instance()->dataPath() + QLatin1String("plugins/configuration/antistring.ui"));
+		MainConfigurationWindow::registerUiFile(Application::instance()->pathsProvider()->dataPath() + QLatin1String("plugins/configuration/antistring.ui"));
 		MainConfigurationWindow::registerUiHandler(Instance);
 	}
 }
@@ -53,7 +54,7 @@ void AntistringConfigurationUiHandler::unregisterUiHandler()
 	if (Instance)
 	{
 		MainConfigurationWindow::unregisterUiHandler(Instance);
-		MainConfigurationWindow::unregisterUiFile(KaduPaths::instance()->dataPath() + QLatin1String("plugins/configuration/antistring.ui"));
+		MainConfigurationWindow::unregisterUiFile(Application::instance()->pathsProvider()->dataPath() + QLatin1String("plugins/configuration/antistring.ui"));
 		delete Instance;
 		Instance = 0;
 	}

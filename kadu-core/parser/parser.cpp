@@ -26,19 +26,22 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <QtCore/QFile>
+#include <QtCore/QFileInfo>
 #include <QtCore/QProcess>
 #include <QtCore/QStack>
 #include <QtCore/QVariant>
-#include <QtGui/QApplication>
 #include <QtGui/QTextDocument>
 #include <QtNetwork/QHostAddress>
+#include <QtWidgets/QApplication>
 
 #include "accounts/account-manager.h"
 #include "buddies/group.h"
 #include "chat/model/chat-data-extractor.h"
-#include "configuration/configuration-file.h"
+#include "configuration/configuration.h"
+#include "configuration/deprecated-configuration-api.h"
 #include "contacts/contact.h"
+#include "core/application.h"
+#include "icons/icons-manager.h"
 #include "icons/kadu-icon.h"
 #include "misc/misc.h"
 #include "parser/parser-token.h"
@@ -47,8 +50,6 @@
 #include "status/status-type-data.h"
 #include "status/status-type-manager.h"
 #include "status/status-type.h"
-
-#include "icons/icons-manager.h"
 #include "debug.h"
 
 #include "parser.h"
@@ -69,7 +70,7 @@ static void prepareSearchChars(bool forceExecSeachChars = false)
 		foreach (QChar c, QString(SEARCH_CHARS))
 			chars.insert(c);
 
-	bool allowExec = forceExecSeachChars || config_file.readBoolEntry("General", "AllowExecutingFromParser", false);
+	bool allowExec = forceExecSeachChars || Application::instance()->configuration()->deprecatedApi()->readBoolEntry("General", "AllowExecutingFromParser", false);
 	foreach (QChar c, QString(EXEC_SEARCH_CHARS))
 		if (allowExec)
 			chars.insert(c);
@@ -292,7 +293,7 @@ ParserToken Parser::parsePercentSyntax(const QString &s, int &idx, const Talkabl
 
 				pe.setContent(description);
 
-				if (config_file.readBoolEntry("Look", "ShowMultilineDesc"))
+				if (Application::instance()->configuration()->deprecatedApi()->readBoolEntry("Look", "ShowMultilineDesc"))
 				{
 					QString content = pe.decodedContent();
 					content.replace('\n', QLatin1String("<br/>"));
@@ -668,11 +669,16 @@ QString Parser::parse(const QString &s, Talkable talkable, const ParserData * co
 							filePath = joinParserTokens(tokens.mid(0, firstSpaceTokenIdx)) +
 									tokens.at(firstSpaceTokenIdx).rawContent().left(spacePos);
 
-						if (filePath.startsWith(QLatin1String("file://")))
+#ifdef Q_OS_WIN
+						if (filePath.startsWith(QLatin1String("file:///")))
+							filePath = filePath.mid(static_cast<int>(qstrlen("file:///")));
+#else
+						if (filePath.startsWith(QLatin1String("file:///")))
 							filePath = filePath.mid(static_cast<int>(qstrlen("file://")));
+#endif
 
 						bool checkFileExists = (pe2.type() == PT_CHECK_FILE_EXISTS);
-						if (QFile::exists(filePath) == checkFileExists)
+						if (QFileInfo::exists(filePath) == checkFileExists)
 						{
 							pe.setType(PT_STRING);
 

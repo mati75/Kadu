@@ -17,11 +17,13 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <QtGui/QCheckBox>
-#include <QtGui/QLabel>
-#include <QtGui/QVBoxLayout>
+#include <QtWidgets/QCheckBox>
+#include <QtWidgets/QLabel>
+#include <QtWidgets/QVBoxLayout>
 
-#include "configuration/configuration-file.h"
+#include "configuration/configuration.h"
+#include "configuration/deprecated-configuration-api.h"
+#include "core/application.h"
 #include "gui/widgets/simple-configuration-value-state-notifier.h"
 
 #include "history-buddy-configuration-widget.h"
@@ -54,7 +56,7 @@ void HistoryBuddyConfigurationWidget::createGui()
 
 void HistoryBuddyConfigurationWidget::configurationUpdated()
 {
-	GlobalStoreHistory = config_file.readBoolEntry("History", "SaveChats", true);
+	GlobalStoreHistory = Application::instance()->configuration()->deprecatedApi()->readBoolEntry("History", "SaveChats", true);
 	StoreHistoryCheckBox->setEnabled(GlobalStoreHistory);
 }
 

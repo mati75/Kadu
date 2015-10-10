@@ -21,14 +21,14 @@
  */
 
 #include <QtCore/QTimer>
-#include <QtGui/QApplication>
-#include <QtGui/QDesktopWidget>
 #include <QtGui/QKeyEvent>
-#include <QtGui/QLabel>
 #include <QtGui/QPixmap>
-#include <QtGui/QPushButton>
-#include <QtGui/QStyle>
-#include <QtGui/QVBoxLayout>
+#include <QtWidgets/QApplication>
+#include <QtWidgets/QDesktopWidget>
+#include <QtWidgets/QLabel>
+#include <QtWidgets/QPushButton>
+#include <QtWidgets/QStyle>
+#include <QtWidgets/QVBoxLayout>
 
 #include "gui/widgets/chat-widget/chat-widget.h"
 #include "icons/kadu-icon.h"
@@ -161,5 +161,7 @@ void ScreenshotTaker::takeShot()
 
 	emit screenshotTaken(pixmap, true);
 }
+
+#undef Bool
 
 #include "moc_screenshot-taker.cpp"

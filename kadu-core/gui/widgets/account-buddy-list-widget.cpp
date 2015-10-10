@@ -22,9 +22,9 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <QtGui/QFileDialog>
-#include <QtGui/QHBoxLayout>
-#include <QtGui/QVBoxLayout>
+#include <QtWidgets/QFileDialog>
+#include <QtWidgets/QHBoxLayout>
+#include <QtWidgets/QVBoxLayout>
 
 #include "buddies/buddy-manager.h"
 #include "buddies/model/buddy-list-model.h"
@@ -32,6 +32,7 @@
 #include "contacts/contact-details.h"
 #include "contacts/contact-manager.h"
 #include "contacts/contact.h"
+#include "core/core.h"
 #include "gui/widgets/filtered-tree-view.h"
 #include "gui/widgets/talkable-tree-view.h"
 #include "gui/windows/message-dialog.h"
@@ -42,7 +43,9 @@
 #include "talkable/model/talkable-proxy-model.h"
 
 #include "protocols/protocol.h"
-#include "protocols/services/contact-list-service.h"
+#include "roster/roster.h"
+#include "roster/roster-replacer.h"
+#include "protocols/services/buddy-list-serialization-service.h"
 #include "debug.h"
 
 #include "account-buddy-list-widget.h"
@@ -99,7 +102,7 @@ AccountBuddyListWidget::AccountBuddyListWidget(Account account, QWidget *parent)
 
 void AccountBuddyListWidget::restoreFromFile()
 {
-	ContactListService *service = CurrentAccount.protocolHandler()->contactListService();
+	auto service = CurrentAccount.protocolHandler()->buddyListSerializationService();
 	if (!service)
 		return;
 
@@ -114,7 +117,7 @@ void AccountBuddyListWidget::restoreFromFile()
 		QTextStream stream(file.readAll());
 		file.close();
 
-		QList<Buddy> list = service->loadBuddyList(stream);
+		auto list = service->deserialize(stream);
 
 		if (list.isEmpty())
 		{
@@ -123,13 +126,39 @@ void AccountBuddyListWidget::restoreFromFile()
 			return;
 		}
 
-		service->setBuddiesList(list, false);
+		auto result = Core::instance()->rosterReplacer()->replaceRoster(CurrentAccount, list, false);
+		auto unImportedContacts = result.second;
+		auto contactsList = QStringList{};
+		for (auto &&contact : unImportedContacts)
+			contactsList.append(contact.display(true) + " (" + contact.id() + ')');
+
+		if (!unImportedContacts.isEmpty())
+		{
+			MessageDialog *dialog = MessageDialog::create(KaduIcon("dialog-question"),
+				tr("Kadu"),
+				tr("The following contacts from your list were not found in file:<br/><b>%1</b>.<br/>"
+				"Do you want to remove them from contact list?").arg(contactsList.join("</b>, <b>")));
+			dialog->addButton(QMessageBox::Yes, tr("Remove"));
+			dialog->addButton(QMessageBox::No, tr("Cancel"));
+
+			if (dialog->ask())
+			{
+				for (auto &&contact : unImportedContacts)
+				{
+					Buddy ownerBuddy = contact.ownerBuddy();
+					contact.setOwnerBuddy(Buddy::null);
+					// remove even if it still has some data, e.g. mobile number
+					BuddyManager::instance()->removeBuddyIfEmpty(ownerBuddy, true);
+					Roster::instance()->removeContact(contact);
+				}
+			}
+		}
 	}
 }
 
 void AccountBuddyListWidget::storeToFile()
 {
-	ContactListService *service = CurrentAccount.protocolHandler()->contactListService();
+	auto service = CurrentAccount.protocolHandler()->buddyListSerializationService();
 	if (!service)
 		return;
 
@@ -141,7 +170,7 @@ void AccountBuddyListWidget::storeToFile()
 
 	if (file.open(QFile::WriteOnly))
 	{
-		file.write(service->storeBuddyList(BuddyManager::instance()->buddies(CurrentAccount)));
+		file.write(service->serialize(BuddyManager::instance()->buddies(CurrentAccount)));
 		file.close();
 	}
 }

@@ -25,8 +25,8 @@
 #include "plugin/activation/plugin-activation-error-exception.h"
 #include "plugin/activation/plugin-activation-error-handler.h"
 #include "plugin/plugin-dependency-handler.h"
-#include "plugin/state/plugin-state.h"
 #include "plugin/state/plugin-state-service.h"
+#include "plugin/state/plugin-state.h"
 
 PluginActivationService::PluginActivationService(QObject *parent) :
 		QObject{parent}
@@ -133,4 +133,13 @@ QSet<QString> PluginActivationService::activePlugins() const
 	for (auto const &activePlugin : m_activePlugins)
 		result.insert(activePlugin.first);
 	return result;
+}
+
+PluginRootComponent * PluginActivationService::pluginRootComponent(const QString &pluginName) const
+{
+	if (!isActive(pluginName))
+		return nullptr;
+
+	auto &activePlugin = m_activePlugins.at(pluginName);
+	return activePlugin->pluginRootComponent();
 }

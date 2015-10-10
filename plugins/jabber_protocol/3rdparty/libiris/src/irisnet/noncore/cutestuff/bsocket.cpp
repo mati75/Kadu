@@ -245,6 +245,7 @@ void BSocket::connectToHost(const QString &host, quint16 port, QAbstractSocket::
 			d->resolver->setProtocol(XMPP::ServiceResolver::IPv4);
 			break;
 		case QAbstractSocket::UnknownNetworkLayerProtocol:
+		case QAbstractSocket::AnyIPProtocol:
 			/* use ServiceResolver's default in this case */
 			break;
 	}

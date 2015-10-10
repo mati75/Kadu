@@ -28,24 +28,28 @@
 #include "chat-style/engine/adium/adium-style-engine.h"
 #include "chat-style/engine/configured-chat-style-renderer-factory-provider.h"
 #include "chat-style/engine/kadu/kadu-style-engine.h"
-#include "configuration/chat-configuration-holder.h"
-#include "configuration/configuration-file.h"
+#include "configuration/configuration.h"
+#include "configuration/deprecated-configuration-api.h"
+#include "core/application.h"
 #include "core/core.h"
 #include "formatted-string/formatted-string-factory.h"
+#include "gui/configuration/chat-configuration-holder.h"
 #include "gui/widgets/chat-style-preview.h"
 #include "gui/widgets/configuration/config-group-box.h"
 #include "gui/widgets/configuration/configuration-widget.h"
 #include "gui/windows/main-configuration-window.h"
 #include "misc/algorithm.h"
-#include "misc/kadu-paths.h"
 #include "misc/memory.h"
+#include "misc/paths-provider.h"
 
 #include <QtCore/QCoreApplication>
 #include <QtCore/QDir>
-#include <QtGui/QCheckBox>
-#include <QtGui/QComboBox>
-#include <QtGui/QHBoxLayout>
-#include <QtGui/QLabel>
+#include <QtGui/QPalette>
+#include <QtWidgets/QCheckBox>
+#include <QtWidgets/QComboBox>
+#include <QtWidgets/QHBoxLayout>
+#include <QtWidgets/QLabel>
+#include <QtWidgets/QPushButton>
 
 static bool caseInsensitiveLessThan(const QString &s1, const QString &s2)
 {
@@ -115,18 +119,18 @@ void ChatStyleManager::unregisterChatStyleEngine(const QString &name)
 
 void ChatStyleManager::configurationUpdated()
 {
-	if (config_file.readBoolEntry("Chat", "ChatPrune", true))
-		Prune = config_file.readNumEntry("Chat", "ChatPruneLen");
+	if (Application::instance()->configuration()->deprecatedApi()->readBoolEntry("Chat", "ChatPrune", true))
+		Prune = Application::instance()->configuration()->deprecatedApi()->readNumEntry("Chat", "ChatPruneLen");
 	else
 	{
-		config_file.writeEntry("Chat", "ChatPrune", true);
-		config_file.writeEntry("Chat", "ChatPruneLen", 0);
+		Application::instance()->configuration()->deprecatedApi()->writeEntry("Chat", "ChatPrune", true);
+		Application::instance()->configuration()->deprecatedApi()->writeEntry("Chat", "ChatPruneLen", 0);
 		Prune = 0;
 	}
 
-	ParagraphSeparator = config_file.readNumEntry("Look", "ParagraphSeparator");
+	ParagraphSeparator = Application::instance()->configuration()->deprecatedApi()->readNumEntry("Look", "ParagraphSeparator");
 
-	QFont font = config_file.readFontEntry("Look","ChatFont");
+	QFont font = Application::instance()->configuration()->deprecatedApi()->readFontEntry("Look","ChatFont");
 
 	QString fontFamily = font.family();
 	QString fontSize;
@@ -168,13 +172,13 @@ void ChatStyleManager::configurationUpdated()
 		"	padding: 3px;"
 		"}").arg(fontStyle, fontWeight, fontSize, fontFamily, textDecoration, QString::number(ParagraphSeparator), backgroundColor);
 
-	CfgNoHeaderRepeat = config_file.readBoolEntry("Look", "NoHeaderRepeat", true);
+	CfgNoHeaderRepeat = Application::instance()->configuration()->deprecatedApi()->readBoolEntry("Look", "NoHeaderRepeat", true);
 
 	// headers removal stuff
 	if (CfgNoHeaderRepeat)
 	{
-		CfgHeaderSeparatorHeight = config_file.readNumEntry("Look", "HeaderSeparatorHeight");
-		CfgNoHeaderInterval = config_file.readNumEntry("Look", "NoHeaderInterval");
+		CfgHeaderSeparatorHeight = Application::instance()->configuration()->deprecatedApi()->readNumEntry("Look", "HeaderSeparatorHeight");
+		CfgNoHeaderInterval = Application::instance()->configuration()->deprecatedApi()->readNumEntry("Look", "NoHeaderInterval");
 	}
 	else
 	{
@@ -182,10 +186,10 @@ void ChatStyleManager::configurationUpdated()
 		CfgNoHeaderInterval = 0;
 	}
 
-	NoServerTime = config_file.readBoolEntry("Look", "NoServerTime");
-	NoServerTimeDiff = config_file.readNumEntry("Look", "NoServerTimeDiff");
+	NoServerTime = Application::instance()->configuration()->deprecatedApi()->readBoolEntry("Look", "NoServerTime");
+	NoServerTimeDiff = Application::instance()->configuration()->deprecatedApi()->readNumEntry("Look", "NoServerTimeDiff");
 
-	auto newChatStyle = ChatStyle{config_file.readEntry("Look", "Style"), config_file.readEntry("Look", "ChatStyleVariant")};
+	auto newChatStyle = ChatStyle{Application::instance()->configuration()->deprecatedApi()->readEntry("Look", "Style"), Application::instance()->configuration()->deprecatedApi()->readEntry("Look", "ChatStyleVariant")};
 
 	// if Style was changed, load new Style
 	if (!CurrentEngine || newChatStyle != m_currentChatStyle)
@@ -248,7 +252,7 @@ void ChatStyleManager::loadStyles()
 	QFileInfo fi;
 	QStringList files;
 
-	path = KaduPaths::instance()->profilePath() + QLatin1String("syntax/chat/");
+	path = Application::instance()->pathsProvider()->profilePath() + QLatin1String("syntax/chat/");
 	dir.setPath(path);
 
 	files = dir.entryList();
@@ -273,7 +277,7 @@ void ChatStyleManager::loadStyles()
 		}
 	}
 
-	path = KaduPaths::instance()->dataPath() + QLatin1String("syntax/chat/");
+	path = Application::instance()->pathsProvider()->dataPath() + QLatin1String("syntax/chat/");
 	dir.setPath(path);
 
 	files = dir.entryList();
@@ -350,8 +354,8 @@ void ChatStyleManager::mainConfigurationWindowCreated(MainConfigurationWindow *w
 
 void ChatStyleManager::configurationApplied()
 {
-	config_file.writeEntry("Look", "Style", SyntaxListCombo->currentText());
-	config_file.writeEntry("Look", "ChatStyleVariant", VariantListCombo->currentText());
+	Application::instance()->configuration()->deprecatedApi()->writeEntry("Look", "Style", SyntaxListCombo->currentText());
+	Application::instance()->configuration()->deprecatedApi()->writeEntry("Look", "ChatStyleVariant", VariantListCombo->currentText());
 }
 
 void ChatStyleManager::styleChangedSlot(const QString &styleName)

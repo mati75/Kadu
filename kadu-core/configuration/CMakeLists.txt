@@ -1,26 +1,17 @@
 set (configuration_SRCS
-	chat-configuration-holder.cpp
 	config-file-data-manager.cpp
 	config-file-variant-wrapper.cpp
+	configuration.cpp
+	configuration-api.cpp
 	configuration-aware-object.cpp
-	configuration-file.cpp
+	configuration-factory.cpp
 	configuration-holder.cpp
 	configuration-manager.cpp
-	main-configuration-holder.cpp
-	notifier-configuration-data-manager.cpp
-	toolbar-configuration-manager.cpp
-	xml-configuration-file.cpp
+	configuration-module.cpp
+	configuration-path-provider.cpp
+	configuration-window-data-manager.cpp
+	configuration-writer.cpp
+	deprecated-configuration-api.cpp
 )
 
-set (configuration_MOC_SRCS
-	chat-configuration-holder.h
-	config-file-data-manager.h
-	configuration-holder.h
-	configuration-window-data-manager.h
-	configuration-manager.h
-	main-configuration-holder.h
-	notifier-configuration-data-manager.h
-	toolbar-configuration-manager.h
-)
-
-kadu_subdirectory (configuration "${configuration_SRCS}" "${configuration_MOC_SRCS}" "")
+kadu_subdirectory (configuration "${configuration_SRCS}" "" "")

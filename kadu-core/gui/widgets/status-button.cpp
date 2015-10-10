@@ -26,17 +26,17 @@
 
 #include <QtCore/QEvent>
 #include <QtCore/QTimer>
-#include <QtGui/QMenu>
 #include <QtGui/QTextDocument>
-#include <QtGui/QWidgetAction>
+#include <QtWidgets/QMenu>
+#include <QtWidgets/QWidgetAction>
 
 #include "accounts/account-manager.h"
 #include "accounts/account.h"
-#include "configuration/main-configuration-holder.h"
 #include "gui/status-icon.h"
 #include "gui/widgets/status-menu.h"
 #include "icons/kadu-icon.h"
 #include "protocols/protocol.h"
+#include "status/status-configuration-holder.h"
 #include "status/status-container.h"
 
 #include "status-button.h"
@@ -114,7 +114,7 @@ void StatusButton::updateStatus()
 	}
 	else
 	{
-		if (MainConfigurationHolder::instance()->isSetStatusPerIdentity())
+		if (StatusConfigurationHolder::instance()->isSetStatusPerIdentity())
 		{
 			setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
 			setText(MyStatusContainer->statusContainerName());

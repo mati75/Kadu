@@ -22,10 +22,11 @@
 
 #include "gui/windows/chat-window/chat-window-storage-configuration.h"
 
-#include <memory>
 #include <QtCore/QObject>
-#include <QtCore/QVector>
 #include <QtCore/QPointer>
+#include <QtCore/QVector>
+#include <injeqt/injeqt.h>
+#include <memory>
 
 class Chat;
 class ChatManager;
@@ -49,11 +50,10 @@ class ChatWindowStorage : public QObject
 	Q_OBJECT
 
 public:
-	explicit ChatWindowStorage(QObject *parent = nullptr);
+	Q_INVOKABLE explicit ChatWindowStorage(QObject *parent = nullptr);
 	virtual ~ChatWindowStorage();
 
 	void setChatManager(ChatManager *chatManager);
-	void setStoragePointFactory(StoragePointFactory *storagePointFactory);
 
 	void setConfiguration(ChatWindowStorageConfiguration configuration);
 
@@ -73,6 +73,9 @@ private:
 	ChatWindowStorageConfiguration m_configuration;
 
 	std::unique_ptr<StoragePoint> storagePoint() const;
+
+private slots:
+	INJEQT_SETTER void setStoragePointFactory(StoragePointFactory *storagePointFactory);
 
 };
 

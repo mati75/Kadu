@@ -20,9 +20,9 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "QtGui/QTextEdit"
 #include "QtGui/QTextFrame"
-#include "QtGui/QVBoxLayout"
+#include "QtWidgets/QTextEdit"
+#include "QtWidgets/QVBoxLayout"
 
 #include "services/jabber-stream-debug-service.h"
 #include "jabber-protocol.h"

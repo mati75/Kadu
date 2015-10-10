@@ -21,7 +21,9 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "configuration/configuration-file.h"
+#include "configuration/configuration.h"
+#include "configuration/deprecated-configuration-api.h"
+#include "core/application.h"
 #include "gui/actions/action-context.h"
 #include "gui/actions/action-description.h"
 #include "gui/actions/action.h"
@@ -40,7 +42,7 @@
 #include "status/status-type-data.h"
 #include "status/status-type-manager.h"
 
-#if defined(Q_WS_X11)
+#if defined(Q_OS_UNIX) && !defined(Q_OS_MAC)
 #include "notify/x11-screen-mode-checker.h"
 #elif defined(Q_OS_WIN32)
 #include "notify/windows-screen-mode-checker.h"
@@ -184,7 +186,7 @@ void NotificationService::setSilentMode(bool newSilentMode)
 	foreach (Action *action, SilentModeActionDescription->actions())
 		action->setChecked(SilentMode);
 
-	config_file.writeEntry("Notify", "SilentMode", SilentMode);
+	Application::instance()->configuration()->deprecatedApi()->writeEntry("Notify", "SilentMode", SilentMode);
 
 	if (silentMode() != wasSilent)
 		emit silentModeToggled(silentMode());
@@ -192,7 +194,7 @@ void NotificationService::setSilentMode(bool newSilentMode)
 
 bool NotificationService::silentMode()
 {
-	return SilentMode || (IsFullScreen && config_file.readBoolEntry("Notify", "FullscreenSilentMode", false));
+	return SilentMode || (IsFullScreen && Application::instance()->configuration()->deprecatedApi()->readBoolEntry("Notify", "FullscreenSilentMode", false));
 }
 
 bool NotificationService::ignoreNotifications()
@@ -202,12 +204,12 @@ bool NotificationService::ignoreNotifications()
 
 void NotificationService::configurationUpdated()
 {
-	NewMessageOnlyIfInactive = config_file.readBoolEntry("Notify", "NewMessageOnlyIfInactive");
-	NotifyIgnoreOnConnection = config_file.readBoolEntry("Notify", "NotifyIgnoreOnConnection");
-	IgnoreOnlineToOnline = config_file.readBoolEntry("Notify", "IgnoreOnlineToOnline");
-	SilentModeWhenDnD = config_file.readBoolEntry("Notify", "AwaySilentMode", false);
-	SilentModeWhenFullscreen = config_file.readBoolEntry("Notify", "FullscreenSilentMode", false);
-	setSilentMode(config_file.readBoolEntry("Notify", "SilentMode", false));
+	NewMessageOnlyIfInactive = Application::instance()->configuration()->deprecatedApi()->readBoolEntry("Notify", "NewMessageOnlyIfInactive");
+	NotifyIgnoreOnConnection = Application::instance()->configuration()->deprecatedApi()->readBoolEntry("Notify", "NotifyIgnoreOnConnection");
+	IgnoreOnlineToOnline = Application::instance()->configuration()->deprecatedApi()->readBoolEntry("Notify", "IgnoreOnlineToOnline");
+	SilentModeWhenDnD = Application::instance()->configuration()->deprecatedApi()->readBoolEntry("Notify", "AwaySilentMode", false);
+	SilentModeWhenFullscreen = Application::instance()->configuration()->deprecatedApi()->readBoolEntry("Notify", "FullscreenSilentMode", false);
+	setSilentMode(Application::instance()->configuration()->deprecatedApi()->readBoolEntry("Notify", "SilentMode", false));
 
 	if (SilentModeWhenFullscreen)
 		startScreenModeChecker();
@@ -220,7 +222,7 @@ void NotificationService::startScreenModeChecker()
 	if (FullscreenChecker)
 		return;
 
-#if defined(Q_WS_X11)
+#if defined(Q_OS_UNIX) && !defined(Q_OS_MAC)
 	FullscreenChecker = new X11ScreenModeChecker();
 #elif defined(Q_OS_WIN32)
 	FullscreenChecker = new WindowsScreenModeChecker();
@@ -253,9 +255,9 @@ void NotificationService::fullscreenToggled(bool inFullscreen)
 
 void NotificationService::createDefaultConfiguration()
 {
-	config_file.addVariable("Notify", "IgnoreOnlineToOnline", false);
-	config_file.addVariable("Notify", "NewMessageOnlyIfInactive", true);
-	config_file.addVariable("Notify", "NotifyIgnoreOnConnection", true);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Notify", "IgnoreOnlineToOnline", false);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Notify", "NewMessageOnlyIfInactive", true);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Notify", "NotifyIgnoreOnConnection", true);
 }
 
 void NotificationService::notify(Notification* notification)
@@ -284,6 +286,6 @@ void checkNotify(Action *action)
 	action->setChecked(notifyAll);
 }
 
-
+#undef Bool
 
 #include "moc_notification-service.cpp"

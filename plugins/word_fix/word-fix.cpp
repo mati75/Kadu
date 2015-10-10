@@ -25,17 +25,19 @@
 #include <QtCore/QRegExp>
 #include <QtCore/QString>
 #include <QtCore/QTextStream>
-#include <QtGui/QGridLayout>
-#include <QtGui/QGroupBox>
-#include <QtGui/QHBoxLayout>
-#include <QtGui/QLabel>
-#include <QtGui/QLineEdit>
-#include <QtGui/QPushButton>
-#include <QtGui/QScrollBar>
-#include <QtGui/QTreeWidget>
-#include <QtGui/QTreeWidgetItem>
+#include <QtWidgets/QGridLayout>
+#include <QtWidgets/QGroupBox>
+#include <QtWidgets/QHBoxLayout>
+#include <QtWidgets/QLabel>
+#include <QtWidgets/QLineEdit>
+#include <QtWidgets/QPushButton>
+#include <QtWidgets/QScrollBar>
+#include <QtWidgets/QTreeWidget>
+#include <QtWidgets/QTreeWidgetItem>
 
-#include "configuration/configuration-file.h"
+#include "configuration/configuration.h"
+#include "configuration/deprecated-configuration-api.h"
+#include "core/application.h"
 #include "core/core.h"
 #include "formatted-string/formatted-string-html-visitor.h"
 #include "formatted-string/formatted-string.h"
@@ -44,7 +46,7 @@
 #include "gui/widgets/configuration/config-group-box.h"
 #include "gui/widgets/configuration/configuration-widget.h"
 #include "gui/widgets/custom-input.h"
-#include "misc/kadu-paths.h"
+#include "misc/paths-provider.h"
 #include "debug.h"
 
 #include "word-fix-formatted-string-visitor.h"
@@ -91,10 +93,10 @@ bool WordFix::init(bool firstLoad)
 	ExtractBody.setPattern("<body[^>]*>.*</body>");
 
 	// Loading list
-	QString data = config_file.readEntry("word_fix", "WordFix_list");
+	QString data = Application::instance()->configuration()->deprecatedApi()->readEntry("word_fix", "WordFix_list");
 	if (data.isEmpty())
 	{
-		QFile defList(KaduPaths::instance()->dataPath() + QLatin1String("plugins/data/word_fix/wf_default_list.data"));
+		QFile defList(Application::instance()->pathsProvider()->dataPath() + QLatin1String("plugins/data/word_fix/wf_default_list.data"));
 		if (defList.open(QIODevice::ReadOnly))
 		{
 			QTextStream s(&defList);
@@ -131,7 +133,7 @@ bool WordFix::init(bool firstLoad)
 	kdebugf2();
 
 	kdebugf();
-	MainConfigurationWindow::registerUiFile(KaduPaths::instance()->dataPath() + QLatin1String("plugins/configuration/word_fix.ui"));
+	MainConfigurationWindow::registerUiFile(Application::instance()->pathsProvider()->dataPath() + QLatin1String("plugins/configuration/word_fix.ui"));
 	MainConfigurationWindow::registerUiHandler(this);
 
 	setChatWidgetRepository(Core::instance()->chatWidgetRepository());
@@ -144,7 +146,7 @@ void WordFix::done()
 {
 	kdebugf();
 	MainConfigurationWindow::unregisterUiHandler(this);
-	MainConfigurationWindow::unregisterUiFile(KaduPaths::instance()->dataPath() + QLatin1String("plugins/configuration/word_fix.ui"));
+	MainConfigurationWindow::unregisterUiFile(Application::instance()->pathsProvider()->dataPath() + QLatin1String("plugins/configuration/word_fix.ui"));
 	kdebugf2();
 
 	kdebugf();
@@ -172,7 +174,7 @@ void WordFix::chatWidgetRemoved(ChatWidget *chatWidget)
 
 void WordFix::sendRequest(ChatWidget* chat)
 {
-	if (!config_file.readBoolEntry("PowerKadu", "enable_word_fix", false))
+	if (!Application::instance()->configuration()->deprecatedApi()->readBoolEntry("PowerKadu", "enable_word_fix", false))
 		return;
 
 	auto formattedString = chat->edit()->formattedString();
@@ -415,7 +417,7 @@ void WordFix::saveList()
 	for (QMap<QString, QString>::const_iterator i = wordsList.constBegin(); i != wordsList.constEnd(); ++i)
 		list.append(i.key() + '\t' + i.value());
 
-	config_file.writeEntry("word_fix", "WordFix_list", list.join("\t\t"));
+	Application::instance()->configuration()->deprecatedApi()->writeEntry("word_fix", "WordFix_list", list.join("\t\t"));
 
 	kdebugf2();
 }

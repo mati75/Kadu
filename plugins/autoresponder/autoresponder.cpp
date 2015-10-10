@@ -28,8 +28,8 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <QtGui/QApplication>
-#include <QtGui/QLineEdit>
+#include <QtWidgets/QApplication>
+#include <QtWidgets/QLineEdit>
 
 #include "contacts/contact-set.h"
 #include "core/core.h"
@@ -49,7 +49,9 @@
 #include "autoresponder.h"
 
 AutoResponder::AutoResponder(QObject *parent) :
-		MessageFilter(parent)
+		MessageFilter(parent),
+		UiHandler(nullptr),
+		Configurator{nullptr}
 {
 }
 

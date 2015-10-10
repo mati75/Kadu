@@ -38,27 +38,6 @@
 
 using namespace XMPP;
 
-// printArray
-//
-// This function prints out an array of bytes as latin characters, converting
-// non-printable bytes into hex values as necessary.  Useful for displaying
-// QByteArrays for debugging purposes.
-static QString printArray(const QByteArray &a)
-{
-	QString s;
-	for(int n = 0; n < a.size(); ++n) {
-		unsigned char c = (unsigned char)a[(int)n];
-		if(c < 32 || c >= 127) {
-			QString str;
-			str.sprintf("[%02x]", c);
-			s += str;
-		}
-		else
-			s += c;
-	}
-	return s;
-}
-
 // firstChildElement
 //
 // Get an element's first child element
@@ -849,6 +828,8 @@ bool CoreProtocol::stepRequiresElement() const
 
 void CoreProtocol::stringSend(const QString &s)
 {
+	Q_UNUSED(s);
+
 #ifdef XMPP_TEST
 	TD::outgoingTag(s);
 #endif
@@ -856,6 +837,8 @@ void CoreProtocol::stringSend(const QString &s)
 
 void CoreProtocol::stringRecv(const QString &s)
 {
+	Q_UNUSED(s);
+
 #ifdef XMPP_TEST
 	TD::incomingTag(s);
 #endif
@@ -914,6 +897,8 @@ void CoreProtocol::handleStreamOpen(const Parser::Event &pe)
 
 void CoreProtocol::elementSend(const QDomElement &e)
 {
+	Q_UNUSED(e);
+
 #ifdef XMPP_TEST
 	TD::outgoingXml(e);
 #endif
@@ -921,6 +906,8 @@ void CoreProtocol::elementSend(const QDomElement &e)
 
 void CoreProtocol::elementRecv(const QDomElement &e)
 {
+	Q_UNUSED(e);
+
 #ifdef XMPP_TEST
 	TD::incomingXml(e);
 #endif

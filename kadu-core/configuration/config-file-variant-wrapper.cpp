@@ -21,7 +21,9 @@
 
 #include <QtCore/QVariant>
 
-#include "configuration/configuration-file.h"
+#include "configuration/configuration.h"
+#include "configuration/deprecated-configuration-api.h"
+#include "core/application.h"
 
 #include "config-file-variant-wrapper.h"
 
@@ -36,10 +38,10 @@ ConfigFileVariantWrapper::~ConfigFileVariantWrapper()
 
 QVariant ConfigFileVariantWrapper::get(const QVariant &defaultValue) const
 {
-	return config_file.readEntry(Group, Name, defaultValue.toString());
+	return Application::instance()->configuration()->deprecatedApi()->readEntry(Group, Name, defaultValue.toString());
 }
 
 void ConfigFileVariantWrapper::set(const QVariant &value)
 {
-	config_file.writeEntry(Group, Name, value.toString());
+	Application::instance()->configuration()->deprecatedApi()->writeEntry(Group, Name, value.toString());
 }

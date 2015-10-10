@@ -42,12 +42,13 @@
  */
 
 #include <QtCore/QVariant>
-#include <QtGui/QApplication>
-#include <QtGui/QDesktopWidget>
-#include <QtGui/QWidget>
+#include <QtGui/QWindow>
+#include <QtWidgets/QApplication>
+#include <QtWidgets/QDesktopWidget>
+#include <QtWidgets/QWidget>
 
 #ifdef Q_OS_MAC
-#include <QtGui/QMainWindow>
+#include <QtWidgets/QMainWindow>
 #endif
 
 #include "misc/misc.h"
@@ -90,7 +91,11 @@ bool WindowGeometryManager::eventFilter(QObject *watched, QEvent *event)
 		QWidget *parentWidget = qobject_cast<QWidget *>(parent());
 		Q_ASSERT(parentWidget);
 
-		if (event->type() == QEvent::Move || event->type() == QEvent::Resize)
+		if (event->type() == QEvent::QEvent::Show)
+		{
+			restoreGeometry();
+		}
+		else if (event->type() == QEvent::Move || event->type() == QEvent::Resize)
 		{
 			if (parentWidget->isWindow())
 			{
@@ -106,7 +111,7 @@ bool WindowGeometryManager::eventFilter(QObject *watched, QEvent *event)
 				restoreGeometry();
 		}
 
-		return false;
+		return QObject::eventFilter(watched, event);
 	}
 
 	return QObject::eventFilter(watched, event);
@@ -116,6 +121,9 @@ void WindowGeometryManager::saveGeometry()
 {
 	QWidget *parentWidget = qobject_cast<QWidget *>(parent());
 	Q_ASSERT(parentWidget);
+
+	if (!parentWidget->isVisible())
+		return;
 
 #ifdef Q_OS_MAC
 	/* Dorr: workaround for Qt window geometry bug when unified toolbars enabled */
@@ -148,6 +156,11 @@ void WindowGeometryManager::restoreGeometry()
 {
 	QWidget *parentWidget = qobject_cast<QWidget *>(parent());
 	Q_ASSERT(parentWidget);
+
+	if (!parentWidget->window()->isVisible())
+	{
+		return;
+	}
 
 #ifdef Q_OS_MAC
 	/* Dorr: workaround for Qt window geometry bug when unified toolbars enabled */

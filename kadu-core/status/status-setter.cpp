@@ -17,7 +17,9 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "configuration/configuration-file.h"
+#include "configuration/configuration.h"
+#include "configuration/deprecated-configuration-api.h"
+#include "core/application.h"
 #include "status/status-changer-manager.h"
 #include "status/status-container-manager.h"
 #include "status/status-type-manager.h"
@@ -59,7 +61,7 @@ void StatusSetter::setDefaultStatus(StatusContainer *statusContainer)
 	else if (StatusTypeOffline == status.type() && OfflineToInvisible)
 		status.setType(StatusTypeInvisible);
 
-	StatusSetter::instance()->setStatus(statusContainer, status);
+	StatusSetter::instance()->setStatusManually(statusContainer, status);
 }
 
 void StatusSetter::coreInitialized()
@@ -70,10 +72,10 @@ void StatusSetter::coreInitialized()
 
 void StatusSetter::configurationUpdated()
 {
-	StartupStatus = config_file.readEntry("General", "StartupStatus");
-	StartupLastDescription = config_file.readBoolEntry("General", "StartupLastDescription");
-	StartupDescription = config_file.readEntry("General", "StartupDescription");
-	OfflineToInvisible = config_file.readBoolEntry("General", "StartupStatusInvisibleWhenLastWasOffline") && StartupStatus != "Offline";
+	StartupStatus = Application::instance()->configuration()->deprecatedApi()->readEntry("General", "StartupStatus");
+	StartupLastDescription = Application::instance()->configuration()->deprecatedApi()->readBoolEntry("General", "StartupLastDescription");
+	StartupDescription = Application::instance()->configuration()->deprecatedApi()->readEntry("General", "StartupDescription");
+	OfflineToInvisible = Application::instance()->configuration()->deprecatedApi()->readBoolEntry("General", "StartupStatusInvisibleWhenLastWasOffline") && StartupStatus != "Offline";
 
 	if (StartupStatus.isEmpty())
 		StartupStatus = "LastStatus";
@@ -92,9 +94,9 @@ void StatusSetter::statusContainerUnregistered(StatusContainer *statusContainer)
 	Q_UNUSED(statusContainer);
 }
 
-void StatusSetter::setStatus(StatusContainer *statusContainer, Status status)
+void StatusSetter::setStatusManually(StatusContainer *statusContainer, Status status)
 {
-	StatusChangerManager::instance()->setStatus(statusContainer, status);
+	StatusChangerManager::instance()->setStatusManually(statusContainer, status);
 }
 
 Status StatusSetter::manuallySetStatus(StatusContainer *statusContainer)

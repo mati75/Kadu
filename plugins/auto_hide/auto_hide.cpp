@@ -21,13 +21,16 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <QtGui/QSpinBox>
+#include <QtWidgets/QSpinBox>
 
-#include "configuration/configuration-file.h"
+#include "configuration/configuration.h"
+#include "configuration/deprecated-configuration-api.h"
+#include "core/application.h"
 #include "core/core.h"
 #include "gui/widgets/configuration/configuration-widget.h"
 #include "gui/windows/kadu-window.h"
-#include "misc/kadu-paths.h"
+#include "misc/paths-provider.h"
+#include "plugin/activation/plugin-activation-service.h"
 
 #include "plugins/idle/idle-plugin.h"
 #include "plugins/idle/idle.h"
@@ -35,7 +38,10 @@
 #include "auto_hide.h"
 
 AutoHide::AutoHide(QObject *parent) :
-		ConfigurationUiHandler(parent), IdleTime(0)
+		ConfigurationUiHandler{parent},
+		MyIdle{nullptr},
+		IdleTime{0},
+		Enabled{false}
 {
 }
 
@@ -51,7 +57,10 @@ bool AutoHide::init(bool firstLoad)
 
 	configurationUpdated();
 
-	MainConfigurationWindow::registerUiFile(KaduPaths::instance()->dataPath() + QLatin1String("plugins/configuration/auto_hide.ui"));
+	auto idleRootComponent = Core::instance()->pluginActivationService()->pluginRootComponent("idle");
+	MyIdle = dynamic_cast<IdlePlugin *>(idleRootComponent)->idle();
+
+	MainConfigurationWindow::registerUiFile(Application::instance()->pathsProvider()->dataPath() + QLatin1String("plugins/configuration/auto_hide.ui"));
 	MainConfigurationWindow::registerUiHandler(this);
 
 	return true;
@@ -62,14 +71,14 @@ void AutoHide::done()
 	Timer.stop();
 
 	MainConfigurationWindow::unregisterUiHandler(this);
-	MainConfigurationWindow::unregisterUiFile(KaduPaths::instance()->dataPath() + QLatin1String("plugins/configuration/auto_hide.ui"));
+	MainConfigurationWindow::unregisterUiFile(Application::instance()->pathsProvider()->dataPath() + QLatin1String("plugins/configuration/auto_hide.ui"));
 }
 
 void AutoHide::timerTimeoutSlot()
 {
 	if (Enabled)
 	{
-		if (IdlePlugin::idle()->secondsIdle() >= IdleTime)
+		if (MyIdle->secondsIdle() >= IdleTime)
 		{
 			KaduWindow *window = Core::instance()->kaduWindow();
 			if (window->docked())
@@ -80,8 +89,8 @@ void AutoHide::timerTimeoutSlot()
 
 void AutoHide::configurationUpdated()
 {
-	IdleTime = config_file.readNumEntry("PowerKadu", "auto_hide_idle_time", 5 * 60);
-	Enabled = config_file.readBoolEntry("PowerKadu", "auto_hide_use_auto_hide");
+	IdleTime = Application::instance()->configuration()->deprecatedApi()->readNumEntry("PowerKadu", "auto_hide_idle_time", 5 * 60);
+	Enabled = Application::instance()->configuration()->deprecatedApi()->readBoolEntry("PowerKadu", "auto_hide_use_auto_hide");
 
 	if (Enabled && !Timer.isActive())
 		Timer.start(1000);

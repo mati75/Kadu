@@ -20,8 +20,9 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "core/application.h"
 #include "gui/windows/main-configuration-window.h"
-#include "misc/kadu-paths.h"
+#include "misc/paths-provider.h"
 
 #include "docking.h"
 
@@ -36,14 +37,14 @@ bool DockingPlugin::init(bool firstLoad)
 	Q_UNUSED(firstLoad)
 
 	DockingManager::createInstance();
-	MainConfigurationWindow::registerUiFile(KaduPaths::instance()->dataPath() + QLatin1String("plugins/configuration/docking.ui"));
+	MainConfigurationWindow::registerUiFile(Application::instance()->pathsProvider()->dataPath() + QLatin1String("plugins/configuration/docking.ui"));
 
 	return true;
 }
 
 void DockingPlugin::done()
 {
-	MainConfigurationWindow::unregisterUiFile(KaduPaths::instance()->dataPath() + QLatin1String("plugins/configuration/docking.ui"));
+	MainConfigurationWindow::unregisterUiFile(Application::instance()->pathsProvider()->dataPath() + QLatin1String("plugins/configuration/docking.ui"));
 	DockingManager::destroyInstance();
 }
 

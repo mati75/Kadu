@@ -18,7 +18,9 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "configuration/configuration-file.h"
+#include "configuration/configuration.h"
+#include "configuration/deprecated-configuration-api.h"
+#include "core/application.h"
 
 #include "configuration/image-link-configuration.h"
 #include "image-expander-dom-visitor-provider.h"
@@ -54,15 +56,15 @@ void ImageLinkConfigurator::configure()
 
 void ImageLinkConfigurator::createDefaultConfiguration()
 {
-	config_file.addVariable("Imagelink", "show_image", true);
-	config_file.addVariable("Imagelink", "show_yt", true);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Imagelink", "show_image", true);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Imagelink", "show_yt", true);
 }
 
 void ImageLinkConfigurator::configurationUpdated()
 {
 	ImageLinkConfiguration configuration;
-	configuration.setShowImages(config_file.readBoolEntry("Imagelink", "show_image", true));
-	configuration.setShowVideos(config_file.readBoolEntry("Imagelink", "show_yt", true));
+	configuration.setShowImages(Application::instance()->configuration()->deprecatedApi()->readBoolEntry("Imagelink", "show_image", true));
+	configuration.setShowVideos(Application::instance()->configuration()->deprecatedApi()->readBoolEntry("Imagelink", "show_yt", true));
 
 	if (ImageExpander)
 		ImageExpander->setConfiguration(configuration);

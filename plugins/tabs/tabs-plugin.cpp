@@ -20,13 +20,14 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "core/application.h"
 #include "core/core.h"
 #include "gui/widgets/chat-widget/chat-widget-container-handler-repository.h"
 #include "gui/windows/main-configuration-window.h"
-#include "misc/kadu-paths.h"
+#include "misc/paths-provider.h"
 
-#include "tabs.h"
 #include "tabs-chat-widget-container-handler.h"
+#include "tabs.h"
 
 #include "tabs-plugin.h"
 
@@ -48,7 +49,7 @@ bool TabsPlugin::init(bool firstLoad)
 	ChatWidgetContainerHandler.reset(new TabsChatWidgetContainerHandler());
 	TabsManagerInstance = new TabsManager(this);
 	TabsManagerInstance->setChatWidgetRepository(Core::instance()->chatWidgetRepository());
-	MainConfigurationWindow::registerUiFile(KaduPaths::instance()->dataPath() + QLatin1String("plugins/configuration/tabs.ui"));
+	MainConfigurationWindow::registerUiFile(Application::instance()->pathsProvider()->dataPath() + QLatin1String("plugins/configuration/tabs.ui"));
 	MainConfigurationWindow::registerUiHandler(TabsManagerInstance);
 
 	ChatWidgetContainerHandler.data()->setTabsManager(TabsManagerInstance);
@@ -67,7 +68,7 @@ void TabsPlugin::done()
 	Core::instance()->chatWidgetContainerHandlerRepository()->unregisterChatWidgetContainerHandler(ChatWidgetContainerHandler.data());
 
 	MainConfigurationWindow::unregisterUiHandler(TabsManagerInstance);
-	MainConfigurationWindow::unregisterUiFile(KaduPaths::instance()->dataPath() + QLatin1String("plugins/configuration/tabs.ui"));
+	MainConfigurationWindow::unregisterUiFile(Application::instance()->pathsProvider()->dataPath() + QLatin1String("plugins/configuration/tabs.ui"));
 	delete TabsManagerInstance;
 	TabsManagerInstance = 0;
 	ChatWidgetContainerHandler.reset();

@@ -17,7 +17,9 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "configuration/configuration-file.h"
+#include "configuration/configuration.h"
+#include "configuration/deprecated-configuration-api.h"
+#include "core/application.h"
 #include "services/chat-image-request-service-configuration.h"
 #include "services/chat-image-request-service.h"
 
@@ -37,9 +39,9 @@ void ChatImageRequestServiceConfigurator::configurationUpdated()
 
 	ChatImageRequestServiceConfiguration configuration;
 
-	configuration.setLimitImageSize(config_file.readBoolEntry("Chat", "LimitImageSize", true));
-	configuration.setMaximumImageSizeInKiloBytes(config_file.readUnsignedNumEntry("Chat", "MaximumImageSizeInKiloBytes", 255));
-	configuration.setAllowBiggerImagesAfterAsking(config_file.readBoolEntry("Chat", "AllowBiggerImagesAfterAsking", true));
+	configuration.setLimitImageSize(Application::instance()->configuration()->deprecatedApi()->readBoolEntry("Chat", "LimitImageSize", true));
+	configuration.setMaximumImageSizeInKiloBytes(Application::instance()->configuration()->deprecatedApi()->readUnsignedNumEntry("Chat", "MaximumImageSizeInKiloBytes", 255));
+	configuration.setAllowBiggerImagesAfterAsking(Application::instance()->configuration()->deprecatedApi()->readBoolEntry("Chat", "AllowBiggerImagesAfterAsking", true));
 
 	Service.data()->setConfiguration(configuration);
 }

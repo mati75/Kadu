@@ -19,9 +19,11 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "configuration/configuration-file.h"
+#include "configuration/configuration.h"
+#include "configuration/deprecated-configuration-api.h"
 
 #include "configuration/emoticon-configuration.h"
+#include "core/application.h"
 #include "expander/emoticon-expander-dom-visitor-provider.h"
 #include "gui/insert-emoticon-action.h"
 #include "theme/emoticon-theme-manager.h"
@@ -52,10 +54,10 @@ void EmoticonConfigurator::configure()
 
 void EmoticonConfigurator::createDefaultConfiguration()
 {
-	config_file.addVariable("Chat", "EmoticonsPaths", QString());
-	config_file.addVariable("Chat", "EnableEmoticonAnimations", 1 != config_file.readNumEntry("Chat", "EmoticonsStyle", 2));
-	config_file.addVariable("Chat", "EmoticonsTheme", ThemeManager->defaultTheme());
-	config_file.addVariable("Chat", "EnableEmoticons", config_file.readEntry("Chat", "EmoticonsTheme") != "None");
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Chat", "EmoticonsPaths", QString());
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Chat", "EnableEmoticonAnimations", 1 != Application::instance()->configuration()->deprecatedApi()->readNumEntry("Chat", "EmoticonsStyle", 2));
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Chat", "EmoticonsTheme", ThemeManager->defaultTheme());
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Chat", "EnableEmoticons", Application::instance()->configuration()->deprecatedApi()->readEntry("Chat", "EmoticonsTheme") != "None");
 }
 
 void EmoticonConfigurator::configurationUpdated()
@@ -65,14 +67,14 @@ void EmoticonConfigurator::configurationUpdated()
 
 	ThemeManager->loadThemes();
 
-	Configuration.setEnabled(config_file.readBoolEntry("Chat", "EnableEmoticons", true));
-	Configuration.setAnimate(config_file.readBoolEntry("Chat", "EnableEmoticonAnimations", true));
+	Configuration.setEnabled(Application::instance()->configuration()->deprecatedApi()->readBoolEntry("Chat", "EnableEmoticons", true));
+	Configuration.setAnimate(Application::instance()->configuration()->deprecatedApi()->readBoolEntry("Chat", "EnableEmoticonAnimations", true));
 
 	if (Configuration.enabled())
 	{
-		if (LastLoadedThemeName != config_file.readEntry("Chat", "EmoticonsTheme"))
+		if (LastLoadedThemeName != Application::instance()->configuration()->deprecatedApi()->readEntry("Chat", "EmoticonsTheme"))
 		{
-			LastLoadedThemeName = config_file.readEntry("Chat", "EmoticonsTheme");
+			LastLoadedThemeName = Application::instance()->configuration()->deprecatedApi()->readEntry("Chat", "EmoticonsTheme");
 			ThemeManager->setCurrentTheme(LastLoadedThemeName);
 
 			GaduEmoticonThemeLoader loader;

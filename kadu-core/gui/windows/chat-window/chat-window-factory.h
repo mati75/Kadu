@@ -19,12 +19,15 @@
 
 #pragma once
 
-#include <memory>
 #include <QtCore/QObject>
+#include <QtCore/QPointer>
+#include <injeqt/injeqt.h>
+#include <memory>
 
 #include "exports.h"
 
-class ChatWidget;
+class Chat;
+class ChatWidgetFactory;
 class ChatWindow;
 
 /**
@@ -41,10 +44,16 @@ class KADUAPI ChatWindowFactory : public QObject
 	Q_OBJECT
 
 public:
-	explicit ChatWindowFactory(QObject *parent = 0);
+	Q_INVOKABLE explicit ChatWindowFactory(QObject *parent = 0);
 	virtual ~ChatWindowFactory();
 
-	std::unique_ptr<ChatWindow> createChatWindow(ChatWidget *chatWidget);
+	std::unique_ptr<ChatWindow> createChatWindow(Chat chat);
+
+private slots:
+	INJEQT_SETTER void setChatWidgetFactory(ChatWidgetFactory *chatWidgetFactory);
+
+private:
+	QPointer<ChatWidgetFactory> m_chatWidgetFactory;
 
 };
 

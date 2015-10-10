@@ -21,8 +21,9 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <QtGui/QFormLayout>
-#include <QtGui/QLineEdit>
+#include <QtWidgets/QCheckBox>
+#include <QtWidgets/QFormLayout>
+#include <QtWidgets/QLineEdit>
 
 #include "accounts/filter/protocol-filter.h"
 #include "chat/chat-details-room.h"
@@ -76,6 +77,11 @@ void ChatRoomEditWidget::createGui()
 	connect(PasswordEdit, SIGNAL(textChanged(QString)), this, SLOT(dataChanged()));
 
 	layout->addRow(tr("Password:"), PasswordEdit);
+
+	StayInRoomAfterClosingWindowCheckBox = new QCheckBox{tr("Stay in chat room after closing chat window"), this};
+	connect(StayInRoomAfterClosingWindowCheckBox, SIGNAL(toggled(bool)), this, SLOT(dataChanged()));
+
+	layout->addRow(StayInRoomAfterClosingWindowCheckBox);
 }
 
 void ChatRoomEditWidget::dataChanged()
@@ -86,7 +92,8 @@ void ChatRoomEditWidget::dataChanged()
 	if (AccountCombo->currentAccount() == chat().chatAccount()
 			&& RoomEdit->text() == RoomDetails->room()
 			&& NickEdit->text() == RoomDetails->nick()
-			&& PasswordEdit->text() == RoomDetails->password())
+			&& PasswordEdit->text() == RoomDetails->password()
+			&& StayInRoomAfterClosingWindowCheckBox->isChecked() == RoomDetails->stayInRoomAfterClosingWindow())
 	{
 		simpleStateNotifier()->setState(StateNotChanged);
 		return;
@@ -117,6 +124,7 @@ void ChatRoomEditWidget::loadChatData()
 	RoomEdit->setText(RoomDetails->room());
 	NickEdit->setText(RoomDetails->nick());
 	PasswordEdit->setText(RoomDetails->password());
+	StayInRoomAfterClosingWindowCheckBox->setChecked(RoomDetails->stayInRoomAfterClosingWindow());
 }
 
 void ChatRoomEditWidget::apply()
@@ -128,6 +136,7 @@ void ChatRoomEditWidget::apply()
 	RoomDetails->setRoom(RoomEdit->text());
 	RoomDetails->setNick(NickEdit->text());
 	RoomDetails->setPassword(PasswordEdit->text());
+	RoomDetails->setStayInRoomAfterClosingWindow(StayInRoomAfterClosingWindowCheckBox->isChecked());
 
 	simpleStateNotifier()->setState(StateNotChanged);
 }

@@ -28,8 +28,10 @@
 #include "plugin/activation/plugin-root-component-handler.h"
 #include "plugin/activation/plugin-translations-loader.h"
 
-#include <memory>
 #include <QtCore/QScopedPointer>
+#include <memory>
+
+class PluginRootComponent;
 
 /**
  * @addtogroup Plugin
@@ -69,6 +71,11 @@ public:
 	 * destroyed and memory is freed in this case.
 	 */
 	explicit ActivePlugin(const QString &pluginName, bool firstLoad);
+
+	/**
+	 * @return Root component of plugin.
+	 */
+	PluginRootComponent * pluginRootComponent() const;
 
 private:
 	// translations must be loaded first and uloaded last, see #2177

@@ -61,7 +61,7 @@ signals:
 
 protected:
 	// reimplemented
-	void incomingConnection(int socketDescriptor);
+	virtual void incomingConnection(qintptr socketDescriptor) override;
 };
 
 // CS_NAMESPACE_END

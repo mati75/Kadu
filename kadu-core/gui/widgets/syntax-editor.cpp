@@ -22,12 +22,13 @@
 
 #include <QtCore/QFile>
 #include <QtCore/QTextStream>
-#include <QtGui/QComboBox>
-#include <QtGui/QHBoxLayout>
-#include <QtGui/QPushButton>
+#include <QtWidgets/QComboBox>
+#include <QtWidgets/QHBoxLayout>
+#include <QtWidgets/QPushButton>
 
+#include "core/application.h"
 #include "gui/windows/message-dialog.h"
-#include "misc/kadu-paths.h"
+#include "misc/paths-provider.h"
 #include "misc/syntax-list.h"
 
 #include "syntax-editor.h"
@@ -86,9 +87,9 @@ void SyntaxEditor::syntaxChangedSlot(const QString &newSyntax)
 
 	SyntaxInfo info = (*syntaxList)[newSyntax];
 	if (info.global)
-		fileName = KaduPaths::instance()->dataPath() + QLatin1String("syntax/") + category.toLower() + '/' + newSyntax + QLatin1String(".syntax");
+		fileName = Application::instance()->pathsProvider()->dataPath() + QLatin1String("syntax/") + category.toLower() + '/' + newSyntax + QLatin1String(".syntax");
 	else
-		fileName = KaduPaths::instance()->profilePath() + QLatin1String("syntax/") + category.toLower() + '/' + newSyntax + QLatin1String(".syntax");
+		fileName = Application::instance()->pathsProvider()->profilePath() + QLatin1String("syntax/") + category.toLower() + '/' + newSyntax + QLatin1String(".syntax");
 
 	file.setFileName(fileName);
 	if (!file.open(QIODevice::ReadOnly))

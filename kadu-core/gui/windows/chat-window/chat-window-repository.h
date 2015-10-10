@@ -21,6 +21,7 @@
 
 #include <QtCore/QMap>
 #include <QtCore/QObject>
+#include <injeqt/injeqt.h>
 
 #include "chat/chat.h"
 #include "misc/iterator.h"
@@ -50,13 +51,13 @@ class KADUAPI ChatWindowRepository : public QObject
 {
 	Q_OBJECT
 
-	using Storage = std::map<Chat, std::unique_ptr<ChatWindow>>;
+	using Storage = std::map<Chat, ChatWindow *>;
 	using WrappedIterator = Storage::iterator;
 
 public:
 	using Iterator = IteratorWrapper<WrappedIterator, ChatWindow *>;
 
-	explicit ChatWindowRepository(QObject *parent = nullptr);
+	Q_INVOKABLE explicit ChatWindowRepository(QObject *parent = nullptr);
 	virtual ~ChatWindowRepository();
 
 	/**
@@ -68,20 +69,6 @@ public:
 	 * @short Begin iterator that returns ChatWindow *.
 	 */
 	Iterator end();
-
-	/**
-	 * @short Add new chatWindow to repository.
-	 *
-	 * Add new chatWindow to repository only if it is valid and not already in repository.
-	 */
-	void addChatWindow(std::unique_ptr<ChatWindow> chatWindow);
-
-	/**
-	 * @short Remove chatWindow from repository.
-	 *
-	 * Remove chatWindow from repository only if it is  already in repository.
-	 */
-	void removeChatWindow(ChatWindow *chatWindow);
 
 	/**
 	 * @short Return true if repository has chat window for given chat.
@@ -97,6 +84,21 @@ public:
 	 * it is returned. Else nullptr is returned.
 	 */
 	ChatWindow * windowForChat(const Chat &chat);
+
+public slots:
+	/**
+	 * @short Add new chatWindow to repository.
+	 *
+	 * Add new chatWindow to repository only if it is valid and not already in repository.
+	 */
+	void addChatWindow(ChatWindow *chatWindow);
+
+	/**
+	 * @short Remove chatWindow from repository.
+	 *
+	 * Remove chatWindow from repository only if it is  already in repository.
+	 */
+	void removeChatWindow(ChatWindow *chatWindow);
 
 private:
 	static ChatWindow * converter(WrappedIterator iterator);

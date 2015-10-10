@@ -21,62 +21,36 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef JABBER_CHAT_SERVICE_H
-#define JABBER_CHAT_SERVICE_H
-
-#include <QtCore/QMap>
-#include <QtCore/QPointer>
-
-#include <im.h>
-#include <xmpp.h>
+#pragma once
 
 #include "protocols/services/chat-service.h"
 
-class Chat;
-class ChatDetailsRoom;
-class FormattedStringFactory;
-class JabberProtocol;
+#include <im.h>
+#include <xmpp.h>
+#include <QtCore/QMap>
+#include <QtCore/QPointer>
 
-Q_DECLARE_METATYPE(XMPP::Status)
+class Chat;
+class FormattedStringFactory;
 
 namespace XMPP
 {
 
 class Client;
+class JabberRoomChatService;
 
 class JabberChatService : public ChatService
 {
 	Q_OBJECT
 
-	QPointer<FormattedStringFactory> CurrentFormattedStringFactory;
-	QPointer<Client> XmppClient;
-
-	QMap<QString, QString> ContactMessageTypes;
-	QMap<QString, Chat> OpenedRoomChats;
- 	QMap<QString, Chat> ClosedRoomChats;
-
-	void connectClient();
-	void disconnectClient();
-
-	ChatDetailsRoom * myRoomChatDetails(const Chat &chat) const;
-	XMPP::Jid chatJid(const Chat &chat);
-	QString chatMessageType(const Chat &chat, const XMPP::Jid &jid);
-
-private slots:
-	void chatOpened(const Chat &chat);
-	void chatClosed(const Chat &chat);
-
-	void groupChatJoined(const Jid &jid);
-	void groupChatLeft(const Jid &jid);
-	void groupChatPresence(const Jid &jid, const Status &status);
-
 public:
-	explicit JabberChatService(Account account, QObject *parent = 0);
+	explicit JabberChatService(Account account, QObject *parent = nullptr);
 	virtual ~JabberChatService();
 
 	void setFormattedStringFactory(FormattedStringFactory *formattedStringFactory);
 
 	void setXmppClient(Client *xmppClient);
+	void setRoomChatService(JabberRoomChatService *roomChatService);
 
 	virtual int maxMessageLength() const;
 
@@ -84,13 +58,27 @@ public slots:
 	virtual bool sendMessage(const ::Message &message);
 	virtual bool sendRawMessage(const Chat &chat, const QByteArray &rawMessage);
 
+	/**
+	 * @short If @p chat is a room chat, leave it. Otherwise do nothing.
+	 */
+	virtual void leaveChat(const Chat &chat);
+
 	void handleReceivedMessage(const Message &msg);
 
 signals:
 	void messageAboutToSend(Message &message);
 
+private:
+	QPointer<FormattedStringFactory> m_formattedStringFactory;
+	QPointer<Client> m_client;
+	QPointer<JabberRoomChatService> m_roomChatService;
+
+	QMap<QString, QString> m_contactMessageTypes;
+
+	XMPP::Jid chatJid(const Chat &chat);
+	QString chatMessageType(const Chat &chat, const XMPP::Jid &jid);
+	::Message handleNormalReceivedMessage(const Message &msg);
+
 };
 
 }
-
-#endif // JABBER_CHAT_SERVICE_H

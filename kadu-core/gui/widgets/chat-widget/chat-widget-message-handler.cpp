@@ -20,12 +20,14 @@
 #include "chat-widget-message-handler.h"
 
 #include "chat/buddy-chat-manager.h"
-#include "configuration/configuration-file.h"
+#include "configuration/configuration-api.h"
+#include "configuration/deprecated-configuration-api.h"
+#include "core/application.h"
 #include "core/core.h"
-#include "gui/widgets/chat-widget/chat-widget.h"
 #include "gui/widgets/chat-widget/chat-widget-activation-service.h"
 #include "gui/widgets/chat-widget/chat-widget-manager.h"
 #include "gui/widgets/chat-widget/chat-widget-repository.h"
+#include "gui/widgets/chat-widget/chat-widget.h"
 #include "gui/windows/kadu-window.h"
 #include "message/message-manager.h"
 #include "message/sorted-messages.h"
@@ -33,7 +35,7 @@
 #include "protocols/protocol.h"
 #include "services/notification-service.h"
 
-#include <QtGui/QApplication>
+#include <QtWidgets/QApplication>
 
 ChatWidgetMessageHandler::ChatWidgetMessageHandler(QObject *parent) :
 		QObject{parent}
@@ -133,11 +135,13 @@ void ChatWidgetMessageHandler::appendAllUnreadMessages(ChatWidget *chatWidget)
 	auto unreadMessagesAppended = chat.property("message:unreadMessagesAppended", false).toBool();
 
 	auto messages = unreadMessagesAppended ? m_unreadMessageRepository.data()->unreadMessagesForChat(chat) : loadAllUnreadMessages(chat);
-	m_unreadMessageRepository.data()->markMessagesAsRead(messages);
+	auto chatIsActive = m_chatWidgetActivationService ? m_chatWidgetActivationService.data()->isChatWidgetActive(chatWidget) : false;
+	if (chatIsActive)
+		m_unreadMessageRepository.data()->markMessagesAsRead(messages);
 
 	if (!unreadMessagesAppended)
 	{
-		chatWidget->appendMessages(messages);
+		chatWidget->addMessages(messages);
 		chat.addProperty("message:unreadMessagesAppended", true, CustomProperties::NonStorable);
 	}
 }
@@ -164,16 +168,21 @@ void ChatWidgetMessageHandler::messageReceived(const Message &message)
 
 	if (chatWidget)
 	{
-		chatWidget->appendMessage(message);
+		chatWidget->addMessage(message);
 		return;
 	}
 
 	if (shouldOpenChatWidget(chat))
-		m_chatWidgetManager.data()->openChat(chat, OpenChatActivation::Activate);
+	{
+		auto activation = m_configuration.openChatOnMessageMinimized()
+			? OpenChatActivation::Minimize
+			: OpenChatActivation::Activate;
+		m_chatWidgetManager.data()->openChat(chat, activation);
+	}
 	else
 	{
 #ifdef Q_OS_WIN32
-		if (!config_file.readBoolEntry("General", "HideMainWindowFromTaskbar"))
+		if (!Core::instance()->application()->configuration()->deprecatedApi()->readBoolEntry("General", "HideMainWindowFromTaskbar"))
 			qApp->alert(Core::instance()->kaduWindow());
 #else
 		qApp->alert(Core::instance()->kaduWindow());
@@ -208,7 +217,7 @@ void ChatWidgetMessageHandler::messageSent(const Message &message)
 	auto chat = message.messageChat();
 	auto chatWidget = m_chatWidgetRepository.data()->widgetForChat(chat);
 	if (chatWidget)
-		chatWidget->appendMessage(message);
+		chatWidget->addMessage(message);
 }
 
 void ChatWidgetMessageHandler::handleUnreadMessageChange(const Message &message)

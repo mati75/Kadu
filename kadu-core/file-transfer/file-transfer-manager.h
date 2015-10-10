@@ -28,8 +28,8 @@
 #define FILE_TRANSFER_MANAGER_H
 
 #include <QtCore/QObject>
-#include <QtCore/QUuid>
 #include <QtCore/QPointer>
+#include <QtCore/QUuid>
 
 #include "accounts/accounts-aware-object.h"
 #include "file-transfer/file-transfer-enums.h"
@@ -40,7 +40,7 @@
 
 class FileTransferActions;
 class FileTransferWindow;
-class XmlConfigFile;
+class ConfigurationApi;
 
 class KADUAPI FileTransferManager : public QObject, public SimpleManager<FileTransfer>, AccountsAwareObject
 {

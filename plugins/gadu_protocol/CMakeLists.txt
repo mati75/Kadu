@@ -5,14 +5,9 @@ cmake_minimum_required (VERSION 2.8)
 # Needed for FindQCA2.cmake when building externally
 list (INSERT CMAKE_MODULE_PATH 0 "${CMAKE_CURRENT_SOURCE_DIR}/../../cmake/Modules")
 
-set (QT_USE_QTXML 1)
-set (QT_USE_QTXMLPATTERNS 1)
-set (QT_USE_QTNETWORK 1)
-set (QT_USE_QTWEBKIT 1)
-
 find_package (Kadu REQUIRED CONFIG)
 
-set (LIBGADU_MIN_VERSION "1.12.0")
+set (LIBGADU_MIN_VERSION "1.12.1")
 
 kadu_api_directories (plugins/gadu_protocol
 	dcc
@@ -65,16 +60,17 @@ set (SOURCES
 	server/protocol-gadu-connection.cpp
 
 	services/gadu-avatar-service.cpp
+	services/gadu-buddy-list-serialization-service.cpp
 	services/gadu-chat-image-service.cpp
 	services/gadu-chat-service.cpp
 	services/gadu-chat-state-service.cpp
-	services/gadu-contact-list-service.cpp
-	services/gadu-contact-list-state-machine.cpp
 	services/gadu-contact-personal-info-service.cpp
 	services/gadu-file-transfer-service.cpp
 	services/gadu-multilogon-service.cpp
+	services/gadu-notify-service.cpp
 	services/gadu-personal-info-service.cpp
 	services/gadu-roster-service.cpp
+	services/gadu-roster-state-machine.cpp
 	services/gadu-search-service.cpp
 
 	services/multilogon/gadu-multilogon-session.cpp
@@ -121,8 +117,6 @@ set (MOC_SOURCES
 	services/gadu-chat-image-service.h
 	services/gadu-chat-service.h
 	services/gadu-chat-state-service.h
-	services/gadu-contact-list-service.h
-	services/gadu-contact-list-state-machine.h
 	services/gadu-contact-personal-info-service.h
 	services/gadu-file-transfer-service.h
 	services/gadu-multilogon-service.h
@@ -172,7 +166,7 @@ else ()
 	message (FATAL_ERROR " * libgadu (version ${LIBGADU_MIN_VERSION}) was NOT FOUND")
 endif ()
 
-set (LIBRARIES ${LIBGADU_LIBRARIES} ${QCA2_LIBRARIES} ${QT_LIBRARIES} ${QT_QTXMLPATTERNS_LIBRARY})
+set (LIBRARIES ${LIBGADU_LIBRARIES} ${QCA2_LIBRARIES})
 if (WIN32)
 	list (APPEND LIBRARIES ws2_32)
 endif ()
@@ -183,4 +177,5 @@ kadu_plugin (gadu_protocol
 	PLUGIN_CONFIGURATION_FILES ${CONFIGURATION_FILES}
 	PLUGIN_LIBRARIES ${LIBRARIES}
 	PLUGIN_DATA_FILES ${SERVERS_FILE}
+	PLUGIN_ADDITIONAL_QT_MODULES XmlPatterns
 )

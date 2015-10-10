@@ -19,7 +19,8 @@
 
 #include "plugin-state-storage.h"
 
-#include "configuration/xml-configuration-file.h"
+#include "configuration/configuration-api.h"
+#include "configuration/configuration.h"
 #include "plugin/state/plugin-state.h"
 #include "storage/storage-point.h"
 
@@ -49,7 +50,7 @@ void PluginStateStorage::store(StoragePoint &storagePoint, const QMap<QString, P
 		auto stateString = pluginStateToString(pluginStates.value(name));
 		if (!stateString.isEmpty())
 		{
-			auto node = storagePoint.storage()->getNamedNode(storagePoint.point(), QLatin1String{"Plugin"}, name, XmlConfigFile::ModeAppend);
+			auto node = storagePoint.storage()->getNamedNode(storagePoint.point(), QLatin1String{"Plugin"}, name, ConfigurationApi::ModeAppend);
 			storagePoint.storage()->appendTextNode(node, QLatin1String{"State"}, stateString);
 		}
 	}

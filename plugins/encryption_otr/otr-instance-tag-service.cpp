@@ -18,7 +18,8 @@
  */
 
 #include "accounts/account.h"
-#include "misc/kadu-paths.h"
+#include "core/application.h"
+#include "misc/paths-provider.h"
 
 #include "otr-op-data.h"
 #include "otr-path-service.h"
@@ -36,8 +37,7 @@ void OtrInstanceTagService::wrapperOtrCreateInstanceTag(void *data, const char *
 		opData->instanceTagService()->createInstanceTag(opData->contact().contactAccount());
 }
 
-OtrInstanceTagService::OtrInstanceTagService(QObject *parent) :
-		QObject(parent)
+OtrInstanceTagService::OtrInstanceTagService()
 {
 }
 

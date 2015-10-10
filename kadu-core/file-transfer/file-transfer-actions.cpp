@@ -21,10 +21,12 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <QtGui/QFileDialog>
+#include <QtWidgets/QFileDialog>
 
-#include "configuration/configuration-file.h"
+#include "configuration/configuration.h"
+#include "configuration/deprecated-configuration-api.h"
 #include "contacts/contact-set.h"
+#include "core/application.h"
 #include "core/core.h"
 #include "file-transfer/file-transfer-handler.h"
 #include "file-transfer/file-transfer-manager.h"
@@ -141,7 +143,7 @@ QStringList FileTransferActions::selectFilesToSend()
 {
 	return QFileDialog::getOpenFileNames(
 			0, tr("Select file location"),
-			config_file.readEntry("Network", "LastUploadDirectory"));
+			Application::instance()->configuration()->deprecatedApi()->readEntry("Network", "LastUploadDirectory"));
 }
 
 void FileTransferActions::selectFilesAndSend(const ContactSet &contacts)

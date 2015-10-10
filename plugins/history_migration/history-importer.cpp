@@ -25,15 +25,17 @@
 #include <QtCore/QList>
 #include <QtCore/QThread>
 #include <QtCore/QTimer>
-#include <QtGui/QProgressDialog>
+#include <QtWidgets/QProgressDialog>
 
 #include "accounts/account-manager.h"
 #include "accounts/account.h"
-#include "configuration/configuration-file.h"
+#include "configuration/configuration.h"
+#include "configuration/deprecated-configuration-api.h"
+#include "core/application.h"
 #include "core/core.h"
 #include "gui/windows/kadu-window.h"
 #include "gui/windows/message-dialog.h"
-#include "misc/kadu-paths.h"
+#include "misc/paths-provider.h"
 #include "plugins/history/history.h"
 #include "debug.h"
 
@@ -131,9 +133,9 @@ void HistoryImporter::updateProgressWindow()
 
 void HistoryImporter::threadFinished()
 {
-	if (HistoryImport && !HistoryImport->wasCanceled() && SourceDirectory == KaduPaths::instance()->profilePath() + QLatin1String("history/"))
+	if (HistoryImport && !HistoryImport->wasCanceled() && SourceDirectory == Application::instance()->pathsProvider()->profilePath() + QLatin1String("history/"))
 	{
-		config_file.writeEntry("History", "Imported_from_0.6.5", true);
+		Application::instance()->configuration()->deprecatedApi()->writeEntry("History", "Imported_from_0.6.5", true);
 		// this is no longer useful
 		HistoryMigrationActions::unregisterActions();
 	}

@@ -31,10 +31,10 @@
 #include <QtCore/QDir>
 #include <QtCore/QList>
 #include <QtCore/QPair>
-#include <QtGui/QApplication>
-#include <QtGui/QFileDialog>
-#include <QtGui/QLabel>
-#include <QtGui/QStyleFactory>
+#include <QtWidgets/QApplication>
+#include <QtWidgets/QFileDialog>
+#include <QtWidgets/QLabel>
+#include <QtWidgets/QStyleFactory>
 
 #include "configuration/config-file-data-manager.h"
 
@@ -44,8 +44,10 @@
 #include "chat-style/chat-style-manager.h"
 #include "chat-style/engine/chat-style-engine.h"
 #include "compression/archive-extractor.h"
-#include "configuration/configuration-file.h"
+#include "configuration/configuration.h"
+#include "configuration/deprecated-configuration-api.h"
 #include "contacts/contact.h"
+#include "core/application.h"
 #include "core/core.h"
 #include "gui/widgets/buddy-info-panel.h"
 #include "gui/widgets/configuration/buddy-list-background-colors-widget.h"
@@ -62,7 +64,7 @@
 #include "gui/widgets/tool-tip-class-manager.h"
 #include "gui/windows/kadu-window.h"
 #include "gui/windows/message-dialog.h"
-#include "misc/kadu-paths.h"
+#include "misc/paths-provider.h"
 #include "network/proxy/network-proxy.h"
 #include "plugin/gui/plugin-list/plugin-list-widget.h"
 #include "status/status-container.h"
@@ -75,8 +77,8 @@
 
 #include "main-configuration-window.h"
 
-#ifdef Q_WS_X11
-#include "os/x11tools.h" // this should be included as last one,
+#if defined(Q_OS_UNIX) && !defined(Q_OS_MAC)
+#include "os/x11/x11tools.h" // this should be included as last one,
 #undef KeyPress
 #undef Status            // and Status defined by Xlib.h must be undefined
 #endif
@@ -173,7 +175,7 @@ MainConfigurationWindow::MainConfigurationWindow() :
 {
 	setWindowRole("kadu-configuration");
 
-	widget()->appendUiFile(KaduPaths::instance()->dataPath() + QLatin1String("configuration/dialog.ui"));
+	widget()->appendUiFile(Application::instance()->pathsProvider()->dataPath() + QLatin1String("configuration/dialog.ui"));
 
 #ifndef DEBUG_ENABLED
 	widget()->widgetById("debug")->hide();
@@ -184,15 +186,15 @@ MainConfigurationWindow::MainConfigurationWindow() :
 	widget()->widgetById("hideMainWindowFromTaskbar")->hide();
 #endif
 
-#ifndef Q_WS_X11
+#if !defined(Q_OS_UNIX) || defined(Q_OS_MAC)
 	widget()->widgetById("windowActivationMethod")->hide();
 #endif
 
-#if !defined(Q_WS_X11) && !defined(Q_OS_WIN32)
+#if !(defined(Q_OS_UNIX) && !defined(Q_OS_MAC)) && !defined(Q_OS_WIN32)
 	widget()->widgetById("notify/fullscreenSilentMode")->hide();
 #endif
 
-#if !defined(Q_WS_X11)
+#if !defined(Q_OS_UNIX) || defined(Q_OS_MAC)
 	widget()->widgetById("useTransparency")->hide();
 	widget()->widgetById("userboxTransparency")->hide();
 	widget()->widgetById("userboxAlpha")->hide();
@@ -309,7 +311,7 @@ void MainConfigurationWindow::installIconTheme()
 	if (fileName.isEmpty())
 		return;
 
-	const QString &profilePath = KaduPaths::instance()->profilePath();
+	const QString &profilePath = Application::instance()->pathsProvider()->profilePath();
 	ArchiveExtractor extractor;
 	bool success = extractor.extract(fileName, profilePath + "icons");
 	if (success)
@@ -394,7 +396,7 @@ void MainConfigurationWindow::showLookChatAdvanced()
 	if (!lookChatAdvanced)
 	{
 		lookChatAdvanced = new ConfigurationWindow("LookChatAdvanced", tr("Advanced chat's look configuration"), "General", instanceDataManager());
-		lookChatAdvanced.data()->widget()->appendUiFile(KaduPaths::instance()->dataPath() + QLatin1String("configuration/dialog-look-chat-advanced.ui"));
+		lookChatAdvanced.data()->widget()->appendUiFile(Application::instance()->pathsProvider()->dataPath() + QLatin1String("configuration/dialog-look-chat-advanced.ui"));
 
 		lookChatAdvanced.data()->widget()->widgetById("chatSyntax")->setToolTip(QCoreApplication::translate("@default", SyntaxText));
 		lookChatAdvanced.data()->widget()->widgetById("conferencePrefix")->setToolTip(QCoreApplication::translate("@default", SyntaxText));

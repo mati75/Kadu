@@ -24,19 +24,19 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <QtGui/QApplication>
-#include <QtGui/QDialogButtonBox>
-#include <QtGui/QLabel>
-#include <QtGui/QListWidget>
-#include <QtGui/QPushButton>
-#include <QtGui/QStyle>
-#include <QtGui/QVBoxLayout>
+#include <QtWidgets/QApplication>
+#include <QtWidgets/QDialogButtonBox>
+#include <QtWidgets/QLabel>
+#include <QtWidgets/QListWidget>
+#include <QtWidgets/QPushButton>
+#include <QtWidgets/QStyle>
+#include <QtWidgets/QVBoxLayout>
 
 #include "buddies/buddy-additional-data-delete-handler-manager.h"
 #include "buddies/buddy-additional-data-delete-handler.h"
 #include "buddies/buddy-manager.h"
 #include "icons/kadu-icon.h"
-#include "protocols/roster.h"
+#include "roster/roster.h"
 
 #include "buddy-delete-window.h"
 

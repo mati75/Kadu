@@ -43,27 +43,27 @@ void SingleWindowChatWidgetContainerHandler::setSingleWindow(SingleWindow *singl
 			this, SIGNAL(chatWidgetActivated(ChatWidget*)));
 }
 
-bool SingleWindowChatWidgetContainerHandler::acceptChatWidget(ChatWidget *chatWidget) const
+bool SingleWindowChatWidgetContainerHandler::acceptChat(Chat chat) const
 {
-	Q_UNUSED(chatWidget);
+	Q_UNUSED(chat);
 
-	return m_singleWindow;
+	return m_singleWindow != nullptr;
 }
 
-void SingleWindowChatWidgetContainerHandler::addChatWidget(ChatWidget *chatWidget)
+ChatWidget * SingleWindowChatWidgetContainerHandler::addChat(Chat chat, OpenChatActivation activation)
 {
-	if (!chatWidget || !m_singleWindow)
-		return;
+	if (!chat || !m_singleWindow)
+		return nullptr;
 
-	m_singleWindow.data()->addChatWidget(chatWidget);
+	return m_singleWindow.data()->addChat(chat, activation);
 }
 
-void SingleWindowChatWidgetContainerHandler::removeChatWidget(ChatWidget *chatWidget)
+void SingleWindowChatWidgetContainerHandler::removeChat(Chat chat)
 {
-	if (!chatWidget || !m_singleWindow)
+	if (!chat || !m_singleWindow)
 		return;
 
-	m_singleWindow.data()->removeChatWidget(chatWidget);
+	m_singleWindow.data()->removeChat(chat);
 }
 
 bool SingleWindowChatWidgetContainerHandler::isChatWidgetActive(ChatWidget *chatWidget)
@@ -75,4 +75,8 @@ void SingleWindowChatWidgetContainerHandler::tryActivateChatWidget(ChatWidget *c
 {
 	if (m_singleWindow)
 		m_singleWindow.data()->tryActivateChatWidget(chatWidget);
+}
+
+void SingleWindowChatWidgetContainerHandler::tryMinimizeChatWidget(ChatWidget *)
+{
 }

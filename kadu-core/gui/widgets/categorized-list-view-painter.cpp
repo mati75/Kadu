@@ -19,9 +19,9 @@
   */
 
 
-#include <QApplication>
-#include <QPainter>
-#include <QStyleOption>
+#include <QtGui/QPainter>
+#include <QtWidgets/QApplication>
+#include <QtWidgets/QStyleOption>
 
 #include "gui/widgets/categorized-list-view.h"
 #include "model/categorized-sort-filter-proxy-model.h"
@@ -125,7 +125,7 @@ void CategorizedListViewPainter::drawCategory(const QModelIndex &index,
                 QColor penColor(option.palette.text().color());
                 penColor.setAlphaF(0.6);
                 painter->setPen(penColor);
-                painter->drawText(textRect, Qt::AlignLeft | Qt::AlignVCenter, tr(category.toLocal8Bit().data()));
+                painter->drawText(textRect, Qt::AlignLeft | Qt::AlignVCenter, category);
                 painter->restore();
         }
 

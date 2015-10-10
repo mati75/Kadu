@@ -3,7 +3,11 @@
 
 #include <QtCore/QObject>
 #include <QtCore/QString>
-#include <QtGui/QWidget>
+#include <QtWidgets/QWidget>
+
+#if defined(Q_OS_UNIX) && !defined(Q_OS_MAC)
+#include <QtX11Extras/QX11Info>
+#endif
 
 #include "gui/windows/main-configuration-window.h"
 #include "notify/notifier.h"
@@ -33,7 +37,7 @@ class PCSpeaker : public Notifier, public PluginRootComponent
 		static PCSpeaker *instance() { return Instance; }
 
 	private:
-#ifdef Q_WS_X11
+#if defined(Q_OS_UNIX) && !defined(Q_OS_MAC)
 		Display *xdisplay;
 #endif
 		PCSpeakerConfigurationWidget *configWidget;

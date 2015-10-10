@@ -45,11 +45,6 @@
 template<class T>
 class DefaultProvider;
 
-namespace QCA
-{
-	class Initializer;
-}
-
 class AccountConfigurationWidgetFactoryRepository;
 class BuddyConfigurationWidgetFactoryRepository;
 class BuddyDataWindowRepository;
@@ -59,23 +54,17 @@ class ChatImageRequestService;
 class ChatTopBarWidgetFactoryRepository;
 class ChatStyleRendererFactoryProvider;
 class ChatWidgetActions;
-class ChatWidgetActivationService;
-class ChatWidgetContainerHandlerMapper;
 class ChatWidgetContainerHandlerRepository;
 class ChatWidgetFactory;
 class ChatWidgetManager;
 class ChatWidgetMessageHandler;
 class ChatWidgetRepository;
-class ChatWindowFactory;
-class ChatWindowManager;
-class ChatWindowStorage;
-class ChatWindowRepository;
 class ClipboardHtmlTransformerService;
 class ConfiguredChatStyleRendererFactoryProvider;
 class DomProcessorService;
 class FormattedStringFactory;
 class ImageStorageService;
-class KaduApplication;
+class Application;
 class KaduIcon;
 class KaduWindow;
 class Message;
@@ -84,24 +73,21 @@ class MessageHtmlRendererService;
 class MessageRenderInfoFactory;
 class MessageTransformerService;
 class NotificationService;
-class PluginActivationErrorHandler;
 class PluginActivationService;
 class PluginConflictResolver;
-class PluginDependencyGraphBuilder;
 class PluginDependencyHandler;
-class PluginManager;
-class PluginMetadataFinder;
-class PluginMetadataProvider;
-class PluginMetadataReader;
 class PluginStateManager;
 class PluginStateService;
 class RawMessageTransformerService;
 class RosterNotifier;
+class RosterReplacer;
 class StoragePointFactory;
 class UnreadMessageRepository;
 class WebkitMessagesViewDisplayFactory;
 class WebkitMessagesViewFactory;
 class WebkitMessagesViewHandlerFactory;
+
+namespace injeqt { namespace v1 { class injector; } }
 
 class KADUAPI Core : public QObject, private AccountsAwareObject, public ConfigurationAwareObject
 {
@@ -110,6 +96,7 @@ class KADUAPI Core : public QObject, private AccountsAwareObject, public Configu
 
 	static Core *Instance;
 
+	injeqt::v1::injector &m_injector;
 	std::shared_ptr<SimpleProvider<QWidget *>> KaduWindowProvider;
 	std::shared_ptr<DefaultProvider<QWidget *>> MainWindowProvider;
 
@@ -123,7 +110,6 @@ class KADUAPI Core : public QObject, private AccountsAwareObject, public Configu
 	MessageRenderInfoFactory *CurrentMessageRenderInfoFactory;
 	MessageTransformerService *CurrentMessageTransformerService;
 	NotificationService *CurrentNotificationService;
-	FormattedStringFactory *CurrentFormattedStringFactory;
 	RawMessageTransformerService *CurrentRawMessageTransformerService;
 	ClipboardHtmlTransformerService *CurrentClipboardHtmlTransformerService;
 	AccountConfigurationWidgetFactoryRepository *CurrentAccountConfigurationWidgetFactoryRepository;
@@ -131,34 +117,13 @@ class KADUAPI Core : public QObject, private AccountsAwareObject, public Configu
 	ChatConfigurationWidgetFactoryRepository *CurrentChatConfigurationWidgetFactoryRepository;
 	ChatTopBarWidgetFactoryRepository *CurrentChatTopBarWidgetFactoryRepository;
 	UnreadMessageRepository *CurrentUnreadMessageRepository;
-	RosterNotifier *CurrentRosterNotifier;
 	ChatWidgetActions *CurrentChatWidgetActions;
-	ChatWidgetActivationService *CurrentChatWidgetActivationService;
-	ChatWidgetContainerHandlerMapper *CurrentChatWidgetContainerHandlerMapper;
-	ChatWidgetContainerHandlerRepository *CurrentChatWidgetContainerHandlerRepository;
-	ChatWidgetFactory *CurrentChatWidgetFactory;
-	ChatWidgetManager *CurrentChatWidgetManager;
 	ChatWidgetMessageHandler *CurrentChatWidgetMessageHandler;
-	ChatWidgetRepository *CurrentChatWidgetRepository;
-	ChatWindowFactory *CurrentChatWindowFactory;
-	ChatWindowManager *CurrentChatWindowManager;
-	ChatWindowStorage *CurrentChatWindowStorage;
-	ChatWindowRepository *CurrentChatWindowRepository;
-	StoragePointFactory *CurrentStoragePointFactory;
-	PluginActivationService *CurrentPluginActivationService;
-	PluginActivationErrorHandler *CurrentPluginActivationErrorHandler;
-	PluginConflictResolver *CurrentPluginConflictResolver;
-	PluginDependencyGraphBuilder *CurrentPluginDependencyGraphBuilder;
-	PluginDependencyHandler *CurrentPluginDependencyHandler;
-	PluginMetadataFinder *CurrentPluginMetadataFinder;
-	PluginMetadataReader *CurrentPluginMetadataReader;
-	PluginStateManager *CurrentPluginStateManager;
-	PluginStateService *CurrentPluginStateService;
-	PluginManager *CurrentPluginManager;
-	qobject_ptr<ConfiguredChatStyleRendererFactoryProvider> CurrentChatStyleRendererFactoryProvider;
-	qobject_ptr<WebkitMessagesViewDisplayFactory> CurrentWebkitMessagesViewDisplayFactory;
-	qobject_ptr<WebkitMessagesViewFactory> CurrentWebkitMessagesViewFactory;
-	qobject_ptr<WebkitMessagesViewHandlerFactory> CurrentWebkitMessagesViewHandlerFactory;
+
+	owned_qptr<ConfiguredChatStyleRendererFactoryProvider> CurrentChatStyleRendererFactoryProvider;
+	owned_qptr<WebkitMessagesViewDisplayFactory> CurrentWebkitMessagesViewDisplayFactory;
+	owned_qptr<WebkitMessagesViewFactory> CurrentWebkitMessagesViewFactory;
+	owned_qptr<WebkitMessagesViewHandlerFactory> CurrentWebkitMessagesViewHandlerFactory;
 
 	KaduWindow *Window;
 
@@ -167,15 +132,9 @@ class KADUAPI Core : public QObject, private AccountsAwareObject, public Configu
 	bool IsClosing;
 	bool ShowMainWindowOnStart; // TODO: 0.11.0, it is a hack
 
-	// NOTE: Kadu core itself doesn't use QCA, but important plugins do. And QCA lib
-	// isn't very well suited to be unloaded, so we just link to it in core and initialize
-	// here.
-	QCA::Initializer *QcaInit;
-
-	Core();
+	Core(injeqt::v1::injector &injector);
 	virtual ~Core();
 
-	void import_0_6_5_configuration();
 	void importPre10Configuration();
 	void createDefaultConfiguration();
 	void createAllDefaultToolbars();
@@ -195,12 +154,13 @@ protected:
 	virtual void configurationUpdated();
 
 public:
+	static void createInstance(injeqt::v1::injector &injector);
 	static Core * instance();
 
 	static QString name();
 	static QString version();
 	static QString nameWithVersion();
-	static KaduApplication * application();
+	static Application * application();
 
 	bool isClosing() { return IsClosing; }
 	Buddy myself() { return Myself; }
@@ -232,32 +192,24 @@ public:
 	UnreadMessageRepository * unreadMessageRepository() const;
 	RosterNotifier * rosterNotifier() const;
 	ChatWidgetActions * chatWidgetActions() const;
-	ChatWidgetActivationService * chatWidgetActivationService() const;
-	ChatWidgetContainerHandlerMapper * chatWidgetContainerHandlerMapper() const;
 	ChatWidgetContainerHandlerRepository * chatWidgetContainerHandlerRepository() const;
 	ChatWidgetFactory * chatWidgetFactory() const;
 	ChatWidgetManager * chatWidgetManager() const;
 	ChatWidgetRepository * chatWidgetRepository() const;
-	ChatWindowFactory * chatWindowFactory() const;
-	ChatWindowManager * chatWindowManager() const;
-	ChatWindowStorage * chatWindowStorage() const;
-	ChatWindowRepository * chatWindowRepository() const;
 	StoragePointFactory * storagePointFactory() const;
-	PluginActivationErrorHandler * pluginActivationErrorHandler() const;
+
 	PluginActivationService * pluginActivationService() const;
 	PluginConflictResolver * pluginConflictResolver() const;
-	PluginDependencyGraphBuilder * pluginDependencyGraphBuilder() const;
 	PluginDependencyHandler * pluginDependencyHandler() const;
-	PluginMetadataProvider * pluginMetadataProvider() const;
-	PluginMetadataReader * pluginMetadataReader() const;
-	PluginManager * pluginManager() const;
 	PluginStateManager * pluginStateManager() const;
 	PluginStateService * pluginStateService() const;
+
 	ChatStyleRendererFactoryProvider * chatStyleRendererFactoryProvider() const;
 	ConfiguredChatStyleRendererFactoryProvider * configuredChatStyleRendererFactoryProvider() const;
 	WebkitMessagesViewDisplayFactory * webkitMessagesViewDisplayFactory() const;
 	WebkitMessagesViewFactory * webkitMessagesViewFactory() const;
 	WebkitMessagesViewHandlerFactory * webkitMessagesViewHandlerFactory() const;
+	RosterReplacer * rosterReplacer() const;
 
 	void setShowMainWindowOnStart(bool show);
 	void setMainWindow(QWidget *window);
@@ -270,7 +222,7 @@ public:
 	const std::shared_ptr<DefaultProvider<QWidget *>> & mainWindowProvider() const;
 
 public slots:
-	void receivedSignal(const QString &signal);
+	void executeRemoteCommand(const QString &signal);
 
 	void quit();
 

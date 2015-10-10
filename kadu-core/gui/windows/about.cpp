@@ -36,22 +36,23 @@
 #include <QtCore/QString>
 #include <QtCore/QTextStream>
 #include <QtCore/QUrl>
-#include <QtGui/QApplication>
-#include <QtGui/QHBoxLayout>
 #include <QtGui/QKeyEvent>
 #include <QtGui/QMouseEvent>
-#include <QtGui/QPushButton>
-#include <QtGui/QStyle>
-#include <QtGui/QTabWidget>
-#include <QtGui/QTextBrowser>
-#include <QtGui/QTextEdit>
-#include <QtGui/QVBoxLayout>
+#include <QtWidgets/QApplication>
+#include <QtWidgets/QHBoxLayout>
+#include <QtWidgets/QPushButton>
+#include <QtWidgets/QStyle>
+#include <QtWidgets/QTabWidget>
+#include <QtWidgets/QTextBrowser>
+#include <QtWidgets/QTextEdit>
+#include <QtWidgets/QVBoxLayout>
 
 #include "configuration/config-file-variant-wrapper.h"
+#include "core/application.h"
 #include "core/core.h"
 #include "dom/dom-processor-service.h"
 #include "icons/kadu-icon.h"
-#include "misc/kadu-paths.h"
+#include "misc/paths-provider.h"
 #include "os/generic/url-opener.h"
 #include "os/generic/window-geometry-manager.h"
 #include "url-handlers/url-handler-manager.h"
@@ -107,7 +108,7 @@ About::About(QWidget *parent) :
 	about_layout->addWidget(new QLabel(tr("Support:"), wb_about));
 	about_layout->addWidget(new KaduLink("http://www.kadu.im/forum/", wb_about));
 	about_layout->addSpacing(20);
-	about_layout->addWidget(new QLabel("(C) 2001-2014 Kadu Team", wb_about));
+	about_layout->addWidget(new QLabel("(C) 2001-2015 Kadu Team", wb_about));
 	about_layout->addWidget(new KaduLink("http://www.kadu.im/", wb_about));
 	about_layout->addStretch(100);
 
@@ -148,7 +149,7 @@ About::About(QWidget *parent) :
 #ifdef Q_OS_WIN
 	tb_license->setText(loadFile("COPYING.WIN32"));
 #else
-	tb_license->setText(loadFile("COPYING"));
+	tb_license->setText(loadFile("COPYING.GPL2"));
 #endif
 
 	// changelog
@@ -238,7 +239,7 @@ QString About::loadFile(const QString &name)
 {
 	kdebugf();
 
-	QFile file(KaduPaths::instance()->dataPath() + name);
+	QFile file(Application::instance()->pathsProvider()->dataPath() + name);
 	if (!file.open(QIODevice::ReadOnly))
 	{
 		kdebugm(KDEBUG_ERROR, "About::loadFile(%s) cannot open file\n", qPrintable(name));

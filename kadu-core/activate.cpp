@@ -1,13 +1,16 @@
-#include <QtGui/QWidget>
+#include <QtWidgets/QWidget>
 
 #include "activate.h"
 
-#ifdef Q_WS_X11
+#include "core/application.h"
 
-	#include <QtGui/QX11Info>
+#if defined(Q_OS_UNIX) && !defined(Q_OS_MAC)
 
-	#include "configuration/configuration-file.h"
-	#include "os/x11tools.h"
+	#include <QtX11Extras/QX11Info>
+
+	#include "configuration/configuration.h"
+	#include "configuration/deprecated-configuration-api.h"
+	#include "os/x11/x11tools.h"
 	#undef KeyPress
 	#undef Status
 
@@ -15,6 +18,12 @@
 	{
 		// we need to ensure we operate on widget's window, if not passed
 		window = window->window();
+
+		if (X11_isWindowShaded(QX11Info::display(), window->winId())) // not needed in Qt 5.4
+			return false;
+		if (X11_isWindowMinimized(QX11Info::display(), window->winId())) // not needed in Qt 5.4
+			return false;
+
 		// desktop
 		unsigned long desktopofwindow = X11_getDesktopOfWindow( QX11Info::display(), window->winId() );
 		if( ( desktopofwindow != X11_ALLDESKTOPS ) && ( desktopofwindow != X11_NODESKTOP ) && ( desktopofwindow != X11_getCurrentDesktop( QX11Info::display() ) ) )
@@ -35,7 +44,7 @@
 		if( X11_isWindowShaded( QX11Info::display(), window->winId() ) )
 			X11_shadeWindow( QX11Info::display(), window->winId(), false );
 		// read user settings
-		int action = config_file.readNumEntry( "General", "WindowActivationMethod" );
+		int action = Application::instance()->configuration()->deprecatedApi()->readNumEntry( "General", "WindowActivationMethod" );
 		// window & desktop
 		if( X11_getDesktopsCount( QX11Info::display() ) > 1 )
 		{
@@ -103,9 +112,14 @@
 
 bool _isWindowActiveOrFullyVisible( QWidget *window )
 {
-#ifdef Q_WS_X11
+#if defined(Q_OS_UNIX) && !defined(Q_OS_MAC)
 	if( _isActiveWindow( window ) )
 		return true;
+
+	if (X11_isWindowShaded(QX11Info::display(), window->winId())) // not needed in Qt 5.4
+		return false;
+	if (X11_isWindowMinimized(QX11Info::display(), window->winId())) // not needed in Qt 5.4
+		return false;
 
 	// we need to ensure we operate on widget's window, if not passed
 	window = window->window();

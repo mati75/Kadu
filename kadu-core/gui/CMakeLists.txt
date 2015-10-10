@@ -13,11 +13,12 @@ set (gui_SRCS
 	actions/edit-talkable-action.cpp
 	actions/recent-chats-action.cpp
 
+	configuration/chat-configuration-holder.cpp
+	configuration/toolbar-configuration-manager.cpp
+
 	menu/kadu-menu.cpp
 	menu/menu-inventory.cpp
 	menu/menu-item.cpp
-
-	model/checkbox-styled-item-delegate.cpp
 
 	services/clipboard-html-transformer-service.cpp
 
@@ -32,7 +33,9 @@ set (gui_SRCS
 	widgets/chat-widget/chat-widget-message-handler.cpp
 	widgets/chat-widget/chat-widget-message-handler-configuration.cpp
 	widgets/chat-widget/chat-widget-message-handler-configurator.cpp
+	widgets/chat-widget/chat-widget-module.cpp
 	widgets/chat-widget/chat-widget-repository.cpp
+	widgets/chat-widget/chat-widget-state-persistence-service.cpp
 
 	widgets/group-tab-bar/group-filter-tab-data.cpp
 	widgets/group-tab-bar/group-tab-bar.cpp
@@ -172,6 +175,7 @@ set (gui_SRCS
 	windows/chat-window/chat-window.cpp
 	windows/chat-window/chat-window-factory.cpp
 	windows/chat-window/chat-window-manager.cpp
+	windows/chat-window/chat-window-module.cpp
 	windows/chat-window/chat-window-repository.cpp
 	windows/chat-window/chat-window-storage.cpp
 	windows/chat-window/chat-window-storage-configuration.cpp
@@ -215,6 +219,7 @@ set (gui_SRCS
 	windows/open-chat-with/open-chat-with-contact-list-runner.cpp
 	windows/open-chat-with/open-chat-with-runner-manager.cpp
 
+	gui-module.cpp
 	hot-key.cpp
 	status-icon.cpp
 	web-view-highlighter.cpp
@@ -239,8 +244,6 @@ set (gui_MOC_SRCS
 
 	menu/kadu-menu.h
 	menu/menu-inventory.h
-
-	model/checkbox-styled-item-delegate.h
 
 	services/clipboard-html-transformer-service.h
 

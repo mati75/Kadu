@@ -51,8 +51,6 @@ set (DEFAULT_PLUGINS
 	phonon_sound
 	# External sound player support
 	ext_sound
-	# QtSound sound support
-	qt4_sound
 
 # mediaplayer
 	# Media players support plugin
@@ -117,6 +115,14 @@ endif (UNIX)
 if (UNIX AND NOT APPLE)
 	list (APPEND DEFAULT_PLUGINS
 
+	# docking
+		# Indicator docking support
+		indicator_docking
+
+	# integration
+		# integration with Unity
+		unity_integration
+
 	# notifiers
 		# Freedesktop notification support
 		freedesktop_notify
@@ -129,15 +135,6 @@ if (UNIX AND NOT APPLE)
 		# MPD mediaplayer support
 		mpd_mediaplayer
 	)
-
-	if (KADU_WITH_LIBINDICATE_QT)
-		list (APPEND DEFAULT_PLUGINS
-
-		# docking
-			# Indicator docking support
-			indicator_docking
-		)
-	endif ()
 endif (UNIX AND NOT APPLE)
 
 if (APPLE)

@@ -24,16 +24,16 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <QtGui/QAction>
-#include <QtGui/QApplication>
-#include <QtGui/QCheckBox>
-#include <QtGui/QComboBox>
-#include <QtGui/QDialogButtonBox>
-#include <QtGui/QFormLayout>
-#include <QtGui/QLabel>
-#include <QtGui/QLineEdit>
-#include <QtGui/QPushButton>
-#include <QtGui/QSortFilterProxyModel>
+#include <QtCore/QSortFilterProxyModel>
+#include <QtWidgets/QAction>
+#include <QtWidgets/QApplication>
+#include <QtWidgets/QCheckBox>
+#include <QtWidgets/QComboBox>
+#include <QtWidgets/QDialogButtonBox>
+#include <QtWidgets/QFormLayout>
+#include <QtWidgets/QLabel>
+#include <QtWidgets/QLineEdit>
+#include <QtWidgets/QPushButton>
 
 #include "accounts/account-manager.h"
 #include "accounts/account.h"
@@ -51,18 +51,18 @@
 #include "contacts/contact-manager.h"
 #include "contacts/contact.h"
 #include "core/core.h"
+#include "gui/scoped-updates-disabler.h"
 #include "gui/widgets/accounts-combo-box.h"
 #include "gui/widgets/groups-combo-box.h"
 #include "gui/widgets/select-talkable-combo-box.h"
-#include "gui/scoped-updates-disabler.h"
 #include "icons/kadu-icon.h"
 #include "identities/identity.h"
 #include "model/roles.h"
 #include "os/generic/window-geometry-manager.h"
 #include "protocols/protocol-factory.h"
 #include "protocols/protocol.h"
-#include "protocols/roster.h"
-#include "protocols/services/roster/roster-service.h"
+#include "roster/roster.h"
+#include "roster/roster-service.h"
 #include "protocols/services/subscription-service.h"
 #include "talkable/filter/exclude-buddy-talkable-filter.h"
 #include "url-handlers/url-handler-manager.h"

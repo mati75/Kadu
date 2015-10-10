@@ -25,6 +25,8 @@
 #ifndef CHAT_SERVICE_H
 #define CHAT_SERVICE_H
 
+#include <QtCore/QPointer>
+
 #include "buddies/buddy-list.h"
 
 #include "chat/chat.h"
@@ -107,6 +109,14 @@ public slots:
 	 * This message won't be altered by RawMessageTransformerService.
 	 */
 	virtual bool sendRawMessage(const Chat &chat, const QByteArray &rawMessage) = 0;
+
+	/**
+	 * @short Leave @p chat.
+	 *
+	 * Use to leave chats in GG and room chats in XMPP. In current implemntations does nothing for single
+	 * contact chats in XMPP. May change in future.
+	 */
+	virtual void leaveChat(const Chat &chat) = 0;
 
 signals:
 	/**

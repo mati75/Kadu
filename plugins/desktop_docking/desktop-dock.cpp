@@ -26,13 +26,15 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <QtGui/QApplication>
 #include <QtGui/QBitmap>
-#include <QtGui/QDesktopWidget>
-#include <QtGui/QMenu>
 #include <QtGui/QMovie>
+#include <QtWidgets/QApplication>
+#include <QtWidgets/QDesktopWidget>
+#include <QtWidgets/QMenu>
 
-#include "configuration/configuration-file.h"
+#include "configuration/configuration.h"
+#include "configuration/deprecated-configuration-api.h"
+#include "core/application.h"
 #include "icons/kadu-icon.h"
 #include "debug.h"
 
@@ -74,7 +76,7 @@ DesktopDock::DesktopDock(QObject *parent) :
 	MoveMenuAction = new QAction(tr("Move"), DockWindow);
 	connect(MoveMenuAction, SIGNAL(triggered()), DockWindow, SLOT(startMoving()));
 
-	if (config_file.readBoolEntry("Desktop Dock", "MoveInMenu"))
+	if (Application::instance()->configuration()->deprecatedApi()->readBoolEntry("Desktop Dock", "MoveInMenu"))
 		createMenu();
 
 	kdebugf2();
@@ -141,18 +143,18 @@ void DesktopDock::updateMenu(bool b)
 
 void DesktopDock::configurationUpdated()
 {
-	updateMenu(config_file.readBoolEntry("Desktop Dock", "MoveInMenu"));
+	updateMenu(Application::instance()->configuration()->deprecatedApi()->readBoolEntry("Desktop Dock", "MoveInMenu"));
 }
 
 void DesktopDock::createDefaultConfiguration()
 {
 	QWidget w;
 
-	config_file.addVariable("Desktop Dock", "DockingColor", w.palette().color(QPalette::Active, QPalette::Window));
-	config_file.addVariable("Desktop Dock", "DockingTransparency", true);
-	config_file.addVariable("Desktop Dock", "MoveInMenu", true);
-	config_file.addVariable("Desktop Dock", "PositionX", 0);
-	config_file.addVariable("Desktop Dock", "PositionY", 0);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Desktop Dock", "DockingColor", w.palette().color(QPalette::Active, QPalette::Window));
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Desktop Dock", "DockingTransparency", true);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Desktop Dock", "MoveInMenu", true);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Desktop Dock", "PositionX", 0);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Desktop Dock", "PositionY", 0);
 }
 
 #include "moc_desktop-dock.cpp"

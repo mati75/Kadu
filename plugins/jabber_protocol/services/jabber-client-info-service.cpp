@@ -102,9 +102,7 @@ void JabberClientInfoService::fillStatusCapsData(XMPP::Status &status)
 
 	status.setCapsNode(XmppClient->capsNode());
 	status.setCapsVersion(XmppClient->capsVersion());
-#ifndef Q_OS_WIN
 	status.setCapsHashAlgorithm(QLatin1String("sha-1"));
-#endif
 	status.setCapsExt(XmppClient->capsExt());
 }
 

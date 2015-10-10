@@ -26,11 +26,11 @@
 #include <QtGui/QBitmap>
 #include <QtGui/QPainter>
 #include <QtGui/QPixmap>
-#ifdef Q_WS_X11
-#include <QtGui/QX11Info>
+#if defined(Q_OS_UNIX) && !defined(Q_OS_MAC)
+#include <QtX11Extras/QX11Info>
 #else
-#include <QtGui/QApplication>
-#include <QtGui/QDesktopWidget>
+#include <QtWidgets/QApplication>
+#include <QtWidgets/QDesktopWidget>
 #endif
 #ifdef Q_OS_MAC
 #include <Carbon/Carbon.h>
@@ -38,6 +38,7 @@
 #ifdef Q_OS_WIN32
 #include <QtCore/QLibrary>
 #include <windows.h>
+#include <QtWinExtras/QtWinExtras>
 #undef MessageBox
 typedef BOOL (WINAPI *PrintWindow_t)(HWND hwnd, HDC  hdcBlt, UINT nFlags);
 #include <debug.h>
@@ -47,7 +48,7 @@ typedef BOOL (WINAPI *PrintWindow_t)(HWND hwnd, HDC  hdcBlt, UINT nFlags);
 
 #define MINIMUM_SIZE 8
 
-#ifdef Q_WS_X11
+#if defined(Q_OS_UNIX) && !defined(Q_OS_MAC)
 
 //////////////////////////////////////////////////////////////////
 // Code below is copied (and changed a little) from KSnapShot,
@@ -283,7 +284,7 @@ QPixmap PixmapGrabber::grabCurrent()
 			DeleteDC(hdcMem);
 			ReleaseDC(winId, hDC);
 
-			QPixmap ret = QPixmap::fromWinHBITMAP(hBitmap);
+			QPixmap ret = QtWin::fromHBITMAP(hBitmap);
 
 			DeleteObject(hBitmap);
 			return ret;

@@ -19,7 +19,9 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "configuration/configuration-file.h"
+#include "configuration/configuration.h"
+#include "configuration/deprecated-configuration-api.h"
+#include "core/application.h"
 #include "gui/widgets/talkable-tree-view.h"
 #include "icons/kadu-icon.h"
 
@@ -38,22 +40,22 @@ TalkableDelegateConfiguration::TalkableDelegateConfiguration(TalkableTreeView *l
 
 void TalkableDelegateConfiguration::configurationUpdated()
 {
-	Font = QFont(config_file.readFontEntry("Look", "UserboxFont"), ListView);
+	Font = QFont(Application::instance()->configuration()->deprecatedApi()->readFontEntry("Look", "UserboxFont"), ListView);
 	BoldFont = Font;
 	BoldFont.setBold(true);
 
 	DescriptionFont = Font;
 	DescriptionFont.setPointSize(Font.pointSize() - 2);
 
-	ShowAvatars = config_file.readBoolEntry("Look", "ShowAvatars");
-	AvatarBorder = config_file.readBoolEntry("Look", "AvatarBorder");
-	AvatarGreyOut = config_file.readBoolEntry("Look", "AvatarGreyOut");
-	AlignTop = config_file.readBoolEntry("Look", "AlignUserboxIconsTop");
-	ShowBold = config_file.readBoolEntry("Look", "ShowBold");
-	ShowDescription = config_file.readBoolEntry("Look", "ShowDesc");
-	ShowMultiLineDescription = config_file.readBoolEntry("Look", "ShowMultilineDesc");
-	DescriptionColor = config_file.readColorEntry("Look", "DescriptionColor");
-	FontColor = config_file.readColorEntry("Look", "UserboxFgColor");
+	ShowAvatars = Application::instance()->configuration()->deprecatedApi()->readBoolEntry("Look", "ShowAvatars");
+	AvatarBorder = Application::instance()->configuration()->deprecatedApi()->readBoolEntry("Look", "AvatarBorder");
+	AvatarGreyOut = Application::instance()->configuration()->deprecatedApi()->readBoolEntry("Look", "AvatarGreyOut");
+	AlignTop = Application::instance()->configuration()->deprecatedApi()->readBoolEntry("Look", "AlignUserboxIconsTop");
+	ShowBold = Application::instance()->configuration()->deprecatedApi()->readBoolEntry("Look", "ShowBold");
+	ShowDescription = Application::instance()->configuration()->deprecatedApi()->readBoolEntry("Look", "ShowDesc");
+	ShowMultiLineDescription = Application::instance()->configuration()->deprecatedApi()->readBoolEntry("Look", "ShowMultilineDesc");
+	DescriptionColor = Application::instance()->configuration()->deprecatedApi()->readColorEntry("Look", "DescriptionColor");
+	FontColor = Application::instance()->configuration()->deprecatedApi()->readColorEntry("Look", "UserboxFgColor");
 
 	ListView->scheduleDelayedItemsLayout();
 }

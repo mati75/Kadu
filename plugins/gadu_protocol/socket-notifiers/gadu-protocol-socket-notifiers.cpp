@@ -36,10 +36,13 @@
 
 #include "accounts/account.h"
 #include "buddies/buddy-set.h"
-#include "configuration/configuration-file.h"
+#include "configuration/configuration.h"
+#include "configuration/deprecated-configuration-api.h"
 #include "contacts/contact-manager.h"
 #include "misc/misc.h"
 #include "debug.h"
+
+#include "services/gadu-roster-service.h"
 
 #include "gadu-protocol-socket-notifiers.h"
 
@@ -189,6 +192,7 @@ void GaduProtocolSocketNotifiers::handleEventDisconnect(struct gg_event *e)
 	watchFor(0);
 
 	CurrentProtocol->disconnectedFromServer();
+	CurrentProtocol->setStatus(Status{}, SourceUser);
 }
 
 void GaduProtocolSocketNotifiers::socketEvent()
@@ -328,11 +332,11 @@ void GaduProtocolSocketNotifiers::socketEvent()
 			break;
 
 		case GG_EVENT_USERLIST100_VERSION:
-			CurrentProtocol->CurrentContactListService->handleEventUserlist100Version(e);
+			static_cast<GaduRosterService *>(CurrentProtocol->rosterService())->handleEventUserlist100Version(e);
 			break;
 
 		case GG_EVENT_USERLIST100_REPLY:
-			CurrentProtocol->CurrentContactListService->handleEventUserlist100Reply(e);
+			static_cast<GaduRosterService *>(CurrentProtocol->rosterService())->handleEventUserlist100Reply(e);
 			break;
 	}
 

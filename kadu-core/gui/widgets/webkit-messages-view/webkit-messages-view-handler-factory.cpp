@@ -22,10 +22,10 @@
 #include "chat-style/chat-style-manager.h"
 #include "chat-style/engine/chat-style-renderer.h"
 #include "gui/widgets/webkit-messages-view/message-limit-policy.h"
-#include "gui/widgets/webkit-messages-view/webkit-messages-view-display.h"
 #include "gui/widgets/webkit-messages-view/webkit-messages-view-display-factory.h"
+#include "gui/widgets/webkit-messages-view/webkit-messages-view-display.h"
 #include "gui/widgets/webkit-messages-view/webkit-messages-view-handler.h"
-#include "misc/kadu-paths.h"
+#include "misc/paths-provider.h"
 
 WebkitMessagesViewHandlerFactory::WebkitMessagesViewHandlerFactory(QObject *parent) :
 		QObject{parent}
@@ -46,11 +46,11 @@ void WebkitMessagesViewHandlerFactory::setWebkitMessagesViewDisplayFactory(Webki
 	m_webkitMessagesViewDisplayFactory = webkitMessagesViewDisplayFactory;
 }
 
-qobject_ptr<WebkitMessagesViewHandler> WebkitMessagesViewHandlerFactory::createWebkitMessagesViewHandler(qobject_ptr<ChatStyleRenderer> chatStyleRenderer, QObject *parent)
+owned_qptr<WebkitMessagesViewHandler> WebkitMessagesViewHandlerFactory::createWebkitMessagesViewHandler(not_owned_qptr<ChatStyleRenderer> chatStyleRenderer, QObject *parent)
 {
 	auto display = m_webkitMessagesViewDisplayFactory->createWebkitMessagesViewDisplay(*chatStyleRenderer.get());
 
-	auto result = make_qobject<WebkitMessagesViewHandler>(std::move(chatStyleRenderer), std::move(display), parent);
+	auto result = make_owned<WebkitMessagesViewHandler>(std::move(chatStyleRenderer), std::move(display), parent);
 	result->setMessageLimit(m_chatStyleManager->prune());
 	result->setMessageLimitPolicy(0 == m_chatStyleManager->prune()
 			? MessageLimitPolicy::None

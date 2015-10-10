@@ -6,6 +6,7 @@ set (status_SRCS
 	status-actions.cpp
 	status-changer.cpp
 	status-changer-manager.cpp
+	status-configuration-holder.cpp
 	status-container.cpp
 	status-container-aware-object.cpp
 	status-container-manager.cpp

@@ -20,8 +20,10 @@
 
 #include <QtXml/QDomElement>
 
-#include "configuration/configuration-file.h"
-#include "configuration/xml-configuration-file.h"
+#include "configuration/configuration-api.h"
+#include "configuration/configuration.h"
+#include "configuration/deprecated-configuration-api.h"
+#include "core/application.h"
 #include "storage/storage-point.h"
 
 #include "network-proxy-manager.h"
@@ -61,13 +63,13 @@ void NetworkProxyManager::store()
 
 void NetworkProxyManager::configurationUpdated()
 {
-	DefaultProxy = byUuid(config_file.readEntry("Network", "DefaultProxy"));
+	DefaultProxy = byUuid(Application::instance()->configuration()->deprecatedApi()->readEntry("Network", "DefaultProxy"));
 }
 
 void NetworkProxyManager::setDefaultProxy(const NetworkProxy &proxy)
 {
 	DefaultProxy = proxy;
-	config_file.writeEntry("Network", "DefaultProxy", DefaultProxy.uuid().toString());
+	Application::instance()->configuration()->deprecatedApi()->writeEntry("Network", "DefaultProxy", DefaultProxy.uuid().toString());
 }
 
 const NetworkProxy & NetworkProxyManager::defaultProxy()

@@ -23,7 +23,7 @@
 
 ChatWidget * ChatWidgetRepository::converter(ChatWidgetRepository::WrappedIterator iterator)
 {
-	return iterator->second.get();
+	return iterator->second;
 }
 
 ChatWidgetRepository::ChatWidgetRepository(QObject *parent) :
@@ -33,9 +33,6 @@ ChatWidgetRepository::ChatWidgetRepository(QObject *parent) :
 
 ChatWidgetRepository::~ChatWidgetRepository()
 {
-	// neeed to emit signals on finish
-	while (!m_widgets.empty())
-		removeChatWidget((*m_widgets.begin()).second.get());
 }
 
 ChatWidgetRepository::Iterator ChatWidgetRepository::begin()
@@ -48,22 +45,29 @@ ChatWidgetRepository::Iterator ChatWidgetRepository::end()
 	return Iterator{m_widgets.end(), converter};
 }
 
-void ChatWidgetRepository::addChatWidget(std::unique_ptr<ChatWidget> chatWidget)
+void ChatWidgetRepository::addChatWidget(ChatWidget *chatWidget)
 {
-	if (!chatWidget || hasWidgetForChat(chatWidget.get()->chat()))
+	if (!chatWidget || hasWidgetForChat(chatWidget->chat()))
 		return;
 
-	emit chatWidgetAdded(chatWidget.get());
-	m_widgets.insert(std::make_pair(chatWidget->chat(), std::move(chatWidget)));
+	emit chatWidgetAdded(chatWidget);
+	m_widgets.insert(std::make_pair(chatWidget->chat(), chatWidget));
+
+	connect(chatWidget, SIGNAL(widgetDestroyed(ChatWidget*)), this, SLOT(removeChatWidget(ChatWidget*)));
 }
 
 void ChatWidgetRepository::removeChatWidget(ChatWidget *chatWidget)
 {
-	if (!chatWidget || !hasWidgetForChat(chatWidget->chat()))
+	if (!chatWidget || (widgetForChat(chatWidget->chat()) != chatWidget))
 		return;
 
-	emit chatWidgetRemoved(chatWidget);
 	m_widgets.erase(chatWidget->chat());
+	emit chatWidgetRemoved(chatWidget);
+}
+
+void ChatWidgetRepository::removeChatWidget(Chat chat)
+{
+	removeChatWidget(widgetForChat(chat));
 }
 
 bool ChatWidgetRepository::hasWidgetForChat(const Chat &chat) const
@@ -78,7 +82,7 @@ ChatWidget * ChatWidgetRepository::widgetForChat(const Chat &chat)
 
 	auto it = m_widgets.find(chat);
 	return it != m_widgets.end()
-			? it->second.get()
+			? it->second
 			: nullptr;
 }
 

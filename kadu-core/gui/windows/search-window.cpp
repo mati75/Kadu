@@ -23,19 +23,19 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <QtGui/QAction>
-#include <QtGui/QButtonGroup>
-#include <QtGui/QCheckBox>
-#include <QtGui/QComboBox>
-#include <QtGui/QGridLayout>
-#include <QtGui/QGroupBox>
 #include <QtGui/QKeyEvent>
-#include <QtGui/QLabel>
-#include <QtGui/QLineEdit>
-#include <QtGui/QRadioButton>
-#include <QtGui/QStatusBar>
-#include <QtGui/QTreeWidget>
-#include <QtGui/QTreeWidgetItem>
+#include <QtWidgets/QAction>
+#include <QtWidgets/QButtonGroup>
+#include <QtWidgets/QCheckBox>
+#include <QtWidgets/QComboBox>
+#include <QtWidgets/QGridLayout>
+#include <QtWidgets/QGroupBox>
+#include <QtWidgets/QLabel>
+#include <QtWidgets/QLineEdit>
+#include <QtWidgets/QRadioButton>
+#include <QtWidgets/QStatusBar>
+#include <QtWidgets/QTreeWidget>
+#include <QtWidgets/QTreeWidgetItem>
 
 #include "accounts/account-manager.h"
 #include "buddies/buddy-manager.h"
@@ -44,10 +44,12 @@
 #include "chat/type/chat-type-contact-set.h"
 #include "chat/type/chat-type-contact.h"
 #include "configuration/config-file-variant-wrapper.h"
-#include "configuration/configuration-file.h"
+#include "configuration/configuration.h"
+#include "configuration/deprecated-configuration-api.h"
 #include "contacts/contact-manager.h"
 #include "contacts/contact-set.h"
 #include "contacts/contact.h"
+#include "core/application.h"
 #include "core/core.h"
 #include "gui/actions/base-action-context.h"
 #include "gui/widgets/chat-widget/chat-widget-manager.h"
@@ -69,7 +71,7 @@
 void SearchWindow::createDefaultToolbars(const QDomElement &toolbarsConfig)
 {
 	QDomElement dockAreaConfig = getDockAreaConfigElement(toolbarsConfig, "search_bottomDockArea");
-	QDomElement toolbarConfig = xml_config_file->createElement(dockAreaConfig, "ToolBar");
+	QDomElement toolbarConfig = Application::instance()->configuration()->api()->createElement(dockAreaConfig, "ToolBar");
 
 	addToolButton(toolbarConfig, "firstSearchAction", Qt::ToolButtonTextUnderIcon);
 	addToolButton(toolbarConfig, "nextResultsAction", Qt::ToolButtonTextUnderIcon);

@@ -22,7 +22,7 @@
  */
 
 #include <QtCore/QDateTime>
-#include <QtGui/QApplication>
+#include <QtWidgets/QApplication>
 
 #ifdef Q_OS_WIN
 #include <sys/timeb.h>
@@ -31,8 +31,9 @@
 #endif
 #include <time.h>
 
-#include "configuration/chat-configuration-holder.h"
-#include "configuration/configuration-file.h"
+#include "configuration/configuration.h"
+#include "configuration/deprecated-configuration-api.h"
+#include "gui/configuration/chat-configuration-holder.h"
 
 #include "date-time.h"
 

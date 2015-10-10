@@ -35,48 +35,49 @@
 
 #include <QtCore/QFileInfo>
 #include <QtCore/QMimeData>
-#include <QtGui/QApplication>
 #include <QtGui/QIcon>
-#include <QtGui/QInputDialog>
 #include <QtGui/QKeyEvent>
-#include <QtGui/QShortcut>
-#include <QtGui/QSplitter>
-#include <QtGui/QToolBar>
-#include <QtGui/QVBoxLayout>
+#include <QtWidgets/QApplication>
+#include <QtWidgets/QInputDialog>
+#include <QtWidgets/QShortcut>
+#include <QtWidgets/QSplitter>
+#include <QtWidgets/QToolBar>
+#include <QtWidgets/QVBoxLayout>
 
 #include "accounts/account-manager.h"
 #include "accounts/account.h"
 #include "buddies/buddy-set.h"
 #include "buddies/buddy.h"
 #include "buddies/model/buddy-list-model.h"
-#include "chat/chat-manager.h"
 #include "chat-style/engine/chat-style-renderer-factory-provider.h"
+#include "chat/chat-manager.h"
 #include "chat/type/chat-type-manager.h"
-#include "configuration/chat-configuration-holder.h"
-#include "configuration/configuration-file.h"
+#include "configuration/configuration.h"
+#include "configuration/deprecated-configuration-api.h"
 #include "contacts/contact-set.h"
 #include "contacts/contact.h"
 #include "contacts/model/chat-adapter.h"
 #include "contacts/model/contact-data-extractor.h"
 #include "contacts/model/contact-list-model.h"
+#include "core/application.h"
 #include "core/core.h"
 #include "formatted-string/formatted-string-factory.h"
 #include "gui/actions/action.h"
 #include "gui/actions/actions.h"
+#include "gui/configuration/chat-configuration-holder.h"
 #include "gui/hot-key.h"
 #include "gui/web-view-highlighter.h"
-#include "gui/widgets/chat-edit-box.h"
 #include "gui/widgets/chat-edit-box-size-manager.h"
+#include "gui/widgets/chat-edit-box.h"
 #include "gui/widgets/chat-top-bar-container-widget.h"
 #include "gui/widgets/chat-widget/chat-widget-actions.h"
-#include "gui/widgets/chat-widget/chat-widget-manager.h"
 #include "gui/widgets/color-selector.h"
 #include "gui/widgets/custom-input.h"
 #include "gui/widgets/filtered-tree-view.h"
 #include "gui/widgets/search-bar.h"
 #include "gui/widgets/talkable-tree-view.h"
+#include "gui/widgets/webkit-messages-view/webkit-messages-view-factory.h"
 #include "gui/widgets/webkit-messages-view/webkit-messages-view.h"
-#include <gui/widgets/webkit-messages-view/webkit-messages-view-factory.h>
 #include "gui/windows/kadu-window.h"
 #include "gui/windows/message-dialog.h"
 #include "icons/icons-manager.h"
@@ -94,11 +95,17 @@
 
 #include "chat-widget.h"
 
-ChatWidget::ChatWidget(const Chat &chat, QWidget *parent) :
-		QWidget(parent), CurrentChat(chat),
-		BuddiesWidget(0), ProxyModel(0), InputBox(0), HorizontalSplitter(0),
-		IsComposing(false), CurrentContactActivity(ChatStateService::StateNone),
-		SplittersInitialized(false), UnreadMessagesCount(0)
+ChatWidget::ChatWidget(Chat chat, QWidget *parent) :
+		QWidget{parent},
+		CurrentChat{chat},
+		BuddiesWidget{0},
+		ProxyModel{0},
+		InputBox{0},
+		HorizontalSplitter{0},
+		IsComposing{false},
+		CurrentContactActivity{ChatStateService::StateNone},
+		SplittersInitialized{false},
+		UnreadMessagesCount{CurrentChat.unreadMessagesCount()}
 {
 	kdebugf();
 
@@ -463,7 +470,7 @@ QIcon ChatWidget::icon()
 	return KaduIcon("internet-group-chat").icon();
 }
 
-void ChatWidget::appendMessages(const SortedMessages &messages)
+void ChatWidget::addMessages(const SortedMessages &messages)
 {
 	if (messages.empty())
 		return;
@@ -478,7 +485,7 @@ void ChatWidget::appendMessages(const SortedMessages &messages)
 		LastReceivedMessageTime = QDateTime::currentDateTime();
 }
 
-void ChatWidget::appendMessage(const Message &message)
+void ChatWidget::addMessage(const Message &message)
 {
 	MessagesView->add(message);
 
@@ -487,6 +494,11 @@ void ChatWidget::appendMessage(const Message &message)
 
 	LastReceivedMessageTime = QDateTime::currentDateTime();
 	emit messageReceived(this);
+}
+
+SortedMessages ChatWidget::messages() const
+{
+	return MessagesView->messages();
 }
 
 void ChatWidget::appendSystemMessage(const QString &content)
@@ -533,7 +545,7 @@ void ChatWidget::clearChatWindow()
 	dialog->addButton(QMessageBox::Yes, tr("Clear chat window"));
 	dialog->addButton(QMessageBox::No, tr("Cancel"));
 
-	if (!config_file.readBoolEntry("Chat", "ConfirmChatClear") || dialog->ask())
+	if (!Application::instance()->configuration()->deprecatedApi()->readBoolEntry("Chat", "ConfirmChatClear") || dialog->ask())
 	{
 		MessagesView->clearMessages();
 		MessagesView->setForcePruneDisabled(false);

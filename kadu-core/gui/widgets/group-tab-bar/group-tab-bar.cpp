@@ -31,10 +31,10 @@
  */
 
 #include <QtCore/QMimeData>
-#include <QtGui/QApplication>
 #include <QtGui/QDragEnterEvent>
-#include <QtGui/QInputDialog>
-#include <QtGui/QMenu>
+#include <QtWidgets/QApplication>
+#include <QtWidgets/QInputDialog>
+#include <QtWidgets/QMenu>
 
 #include "buddies/buddy-list-mime-data-helper.h"
 #include "buddies/group-manager.h"
@@ -53,8 +53,8 @@
 
 #include "debug.h"
 
-#include "group-tab-bar.h"
 #include "group-filter-tab-data.h"
+#include "group-tab-bar.h"
 
 GroupTabBar::GroupTabBar(QWidget *parent) :
 		QTabBar(parent)

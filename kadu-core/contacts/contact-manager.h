@@ -43,8 +43,6 @@ class KADUAPI ContactManager : public QObject, public Manager<Contact>
 
 	static ContactManager * Instance;
 
-	QList<Contact> DirtyContacts;
-
 	ContactManager();
 	virtual ~ContactManager();
 
@@ -54,7 +52,6 @@ private slots:
 	void removeDuplicateContacts();
 
 	void contactDataUpdated();
-	void dirtinessChanged();
 
 	void unreadMessageAdded(const Message &message);
 	void unreadMessageRemoved(const Message &message);
@@ -82,15 +79,11 @@ public:
 	Contact byId(Account account, const QString &id, NotFoundAction action);
 	QVector<Contact> contacts(Account account, AnonymousInclusion inclusion = IncludeAnonymous);
 
-	QVector<Contact> dirtyContacts(Account account);
-
 signals:
 	void contactAboutToBeAdded(Contact contact);
 	void contactAdded(Contact contact);
 	void contactAboutToBeRemoved(Contact contact);
 	void contactRemoved(Contact contact);
-
-	void dirtyContactAdded(Contact contact);
 
 	void contactUpdated(const Contact &contact);
 

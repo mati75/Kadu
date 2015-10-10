@@ -55,6 +55,7 @@ public:
 
 	void add(const Message &message);
 	void add(const SortedMessages &messages);
+	SortedMessages messages() const;
 
 	int countMessages();
 
@@ -96,7 +97,7 @@ private:
 	QPointer<WebkitMessagesViewHandlerFactory> m_webkitMessagesViewHandlerFactory;
 
 	Chat m_chat;
-	qobject_ptr<WebkitMessagesViewHandler> m_handler;
+	owned_qptr<WebkitMessagesViewHandler> m_handler;
 	bool m_forcePruneDisabled;
 	std::shared_ptr<ChatStyleRendererFactory> m_chatStyleRendererFactory;
 
@@ -107,7 +108,7 @@ private:
 	void disconnectChat();
 
 	ChatStyleRendererConfiguration rendererConfiguration();
-	void setWebkitMessagesViewHandler(qobject_ptr<WebkitMessagesViewHandler> handler);
+	void setWebkitMessagesViewHandler(owned_qptr<WebkitMessagesViewHandler> handler);
 
 private slots:
 	void chatImageStored(const ChatImage &chatImage, const QString &fullFilePath);

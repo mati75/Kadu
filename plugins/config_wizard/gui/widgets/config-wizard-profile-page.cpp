@@ -20,14 +20,16 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <QtGui/QApplication>
-#include <QtGui/QComboBox>
-#include <QtGui/QFormLayout>
-#include <QtGui/QLabel>
-#include <QtGui/QLineEdit>
-#include <QtGui/QPushButton>
+#include <QtWidgets/QApplication>
+#include <QtWidgets/QComboBox>
+#include <QtWidgets/QFormLayout>
+#include <QtWidgets/QLabel>
+#include <QtWidgets/QLineEdit>
+#include <QtWidgets/QPushButton>
 
-#include "configuration/configuration-file.h"
+#include "configuration/configuration.h"
+#include "configuration/deprecated-configuration-api.h"
+#include "core/application.h"
 #include "core/core.h"
 #include "languages-manager.h"
 
@@ -74,19 +76,19 @@ void ConfigWizardProfilePage::setLanguages()
 
 void ConfigWizardProfilePage::initializePage()
 {
-	int languageIndex = LanguagesCombo->findData(config_file.readEntry("General", "Language"));
+	int languageIndex = LanguagesCombo->findData(Application::instance()->configuration()->deprecatedApi()->readEntry("General", "Language"));
 	if (-1 == languageIndex)
 		languageIndex = LanguagesCombo->findData("en");
 	if (-1 != languageIndex)
 		LanguagesCombo->setCurrentIndex(languageIndex);
 
-	NickNameEdit->setText(config_file.readEntry("General", "Nick", "Me"));
+	NickNameEdit->setText(Application::instance()->configuration()->deprecatedApi()->readEntry("General", "Nick", "Me"));
 }
 
 void ConfigWizardProfilePage::acceptPage()
 {
-	config_file.writeEntry("General", "Language", LanguagesCombo->itemData(LanguagesCombo->currentIndex()).toString());
-	config_file.writeEntry("General", "Nick", NickNameEdit->text());
+	Application::instance()->configuration()->deprecatedApi()->writeEntry("General", "Language", LanguagesCombo->itemData(LanguagesCombo->currentIndex()).toString());
+	Application::instance()->configuration()->deprecatedApi()->writeEntry("General", "Nick", NickNameEdit->text());
 
 	Core::instance()->myself().setDisplay(NickNameEdit->text());
 }

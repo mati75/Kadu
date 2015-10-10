@@ -19,9 +19,9 @@
 
 #pragma once
 
+#include <QtCore/QObject>
 #include <map>
 #include <set>
-#include <QtCore/QObject>
 
 #include "plugin/dependency-graph/plugin-dependency-graph.h"
 #include "exports.h"
@@ -42,7 +42,7 @@ class KADUAPI PluginDependencyGraphBuilder : public QObject
 	Q_OBJECT
 
 public:
-	explicit PluginDependencyGraphBuilder(QObject *parent = nullptr);
+	Q_INVOKABLE explicit PluginDependencyGraphBuilder(QObject *parent = nullptr);
 	virtual ~PluginDependencyGraphBuilder();
 
 	/**

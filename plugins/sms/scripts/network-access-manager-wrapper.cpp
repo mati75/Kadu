@@ -30,7 +30,9 @@
 #include <QtNetwork/QNetworkRequest>
 #include <QtScript/QScriptEngine>
 
-#include "configuration/configuration-file.h"
+#include "configuration/configuration.h"
+#include "configuration/deprecated-configuration-api.h"
+#include "core/application.h"
 #include "network/proxy/network-proxy-manager.h"
 
 #include "scripts/network-reply-wrapper.h"
@@ -51,10 +53,10 @@ void NetworkAccessManagerWrapper::configurationUpdated()
 {
 	NetworkProxy networkProxy;
 
-	if (config_file.readBoolEntry("SMS", "DefaultProxy", true))
+	if (Application::instance()->configuration()->deprecatedApi()->readBoolEntry("SMS", "DefaultProxy", true))
 		networkProxy = NetworkProxyManager::instance()->defaultProxy();
 	else
-		networkProxy = NetworkProxyManager::instance()->byUuid(config_file.readEntry("SMS", "Proxy"));
+		networkProxy = NetworkProxyManager::instance()->byUuid(Application::instance()->configuration()->deprecatedApi()->readEntry("SMS", "Proxy"));
 
 	QNetworkProxy proxy;
 

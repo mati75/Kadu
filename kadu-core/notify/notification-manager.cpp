@@ -29,9 +29,11 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <QtGui/QApplication>
+#include <QtWidgets/QApplication>
 
-#include "configuration/configuration-file.h"
+#include "configuration/configuration.h"
+#include "configuration/deprecated-configuration-api.h"
+#include "core/application.h"
 #include "gui/windows/message-dialog.h"
 #include "notify/notification/aggregate-notification.h"
 #include "notify/notifier.h"
@@ -189,7 +191,7 @@ void NotificationManager::notify(Notification *rawNotification)
 
 	for (auto notifier : Notifiers)
 	{
-		if (config_file.readBoolEntry("Notify", notifyType + '_' + notifier->name()))
+		if (Application::instance()->configuration()->deprecatedApi()->readBoolEntry("Notify", notifyType + '_' + notifier->name()))
 		{
 			notifier->notify(notification);
 			foundNotifier = true;
@@ -258,7 +260,7 @@ QString NotificationManager::notifyConfigurationKey(const QString &eventType)
 		if (-1 == slashPosition)
 			return event;
 
-		if (config_file.readBoolEntry("Notify", event + "_UseCustomSettings", false))
+		if (Application::instance()->configuration()->deprecatedApi()->readBoolEntry("Notify", event + "_UseCustomSettings", false))
 			return event;
 
 		event = event.left(slashPosition);

@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include <QtGui/QDialog>
+#include <QtWidgets/QDialog>
 
 class StringListDialog : public QDialog
 {

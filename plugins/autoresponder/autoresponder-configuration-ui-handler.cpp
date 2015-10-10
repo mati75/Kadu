@@ -21,23 +21,24 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <QtGui/QApplication>
-#include <QtGui/QLineEdit>
+#include <QtWidgets/QApplication>
+#include <QtWidgets/QLineEdit>
 
+#include "core/application.h"
 #include "gui/widgets/configuration/configuration-widget.h"
-#include "misc/kadu-paths.h"
+#include "misc/paths-provider.h"
 
 #include "autoresponder-configuration-ui-handler.h"
 
 AutoresponderConfigurationUiHolder::AutoresponderConfigurationUiHolder(QObject *parent) :
 		ConfigurationUiHandler(parent)
 {
-	MainConfigurationWindow::registerUiFile(KaduPaths::instance()->dataPath() + QLatin1String("plugins/configuration/autoresponder.ui"));
+	MainConfigurationWindow::registerUiFile(Application::instance()->pathsProvider()->dataPath() + QLatin1String("plugins/configuration/autoresponder.ui"));
 }
 
 AutoresponderConfigurationUiHolder::~AutoresponderConfigurationUiHolder()
 {
-	MainConfigurationWindow::unregisterUiFile(KaduPaths::instance()->dataPath() + QLatin1String("plugins/configuration/autoresponder.ui"));
+	MainConfigurationWindow::unregisterUiFile(Application::instance()->pathsProvider()->dataPath() + QLatin1String("plugins/configuration/autoresponder.ui"));
 }
 
 void AutoresponderConfigurationUiHolder::mainConfigurationWindowCreated(MainConfigurationWindow *mainConfigurationWindow)

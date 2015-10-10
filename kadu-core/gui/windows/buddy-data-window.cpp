@@ -32,20 +32,20 @@
  */
 
 #include <QtCore/QTimer>
-#include <QtGui/QApplication>
-#include <QtGui/QCheckBox>
-#include <QtGui/QComboBox>
-#include <QtGui/QDialogButtonBox>
 #include <QtGui/QIntValidator>
 #include <QtGui/QKeyEvent>
-#include <QtGui/QLabel>
-#include <QtGui/QLineEdit>
-#include <QtGui/QPushButton>
-#include <QtGui/QScrollArea>
-#include <QtGui/QScrollBar>
-#include <QtGui/QTabWidget>
-#include <QtGui/QVBoxLayout>
 #include <QtNetwork/QHostInfo>
+#include <QtWidgets/QApplication>
+#include <QtWidgets/QCheckBox>
+#include <QtWidgets/QComboBox>
+#include <QtWidgets/QDialogButtonBox>
+#include <QtWidgets/QLabel>
+#include <QtWidgets/QLineEdit>
+#include <QtWidgets/QPushButton>
+#include <QtWidgets/QScrollArea>
+#include <QtWidgets/QScrollBar>
+#include <QtWidgets/QTabWidget>
+#include <QtWidgets/QVBoxLayout>
 
 #include "accounts/account-manager.h"
 #include "accounts/account.h"
@@ -53,8 +53,10 @@
 #include "buddies/group-manager.h"
 #include "buddies/group.h"
 #include "configuration/config-file-variant-wrapper.h"
-#include "configuration/configuration-file.h"
-#include "configuration/xml-configuration-file.h"
+#include "configuration/configuration-api.h"
+#include "configuration/configuration.h"
+#include "configuration/configuration.h"
+#include "configuration/deprecated-configuration-api.h"
 #include "contacts/contact.h"
 #include "core/core.h"
 #include "gui/widgets/buddy-configuration-widget-factory-repository.h"
@@ -67,8 +69,8 @@
 #include "gui/widgets/buddy-personal-info-configuration-widget.h"
 #include "gui/widgets/composite-configuration-value-state-notifier.h"
 #include "gui/windows/message-dialog.h"
-#include "misc/change-notifier.h"
 #include "misc/change-notifier-lock.h"
+#include "misc/change-notifier.h"
 #include "os/generic/window-geometry-manager.h"
 #include "protocols/protocol-factory.h"
 #include "protocols/protocol.h"
@@ -137,10 +139,13 @@ void BuddyDataWindow::factoryUnregistered(BuddyConfigurationWidgetFactory *facto
 	if (BuddyConfigurationWidgets.contains(factory))
 	{
 		BuddyConfigurationWidget *widget = BuddyConfigurationWidgets.value(factory);
-		if (widget->stateNotifier())
-			ValueStateNotifier->removeConfigurationValueStateNotifier(widget->stateNotifier());
-		emit widgetRemoved(widget);
-		widget->deleteLater();
+		if (widget)
+		{
+			if (widget->stateNotifier())
+				ValueStateNotifier->removeConfigurationValueStateNotifier(widget->stateNotifier());
+			emit widgetRemoved(widget);
+			widget->deleteLater();
+		}
 		BuddyConfigurationWidgets.remove(factory);
 	}
 }
@@ -239,11 +244,11 @@ void BuddyDataWindow::updateBuddy()
 
 	ChangeNotifierLock lock(MyBuddy.changeNotifier());
 
-	applyBuddyConfigurationWidgets();
-
-	ContactTab->save();
+	ContactTab->save(); // first update contacts
 	GroupsTab->save();
 	OptionsTab->save();
+
+	applyBuddyConfigurationWidgets();
 }
 
 void BuddyDataWindow::updateBuddyAndClose()

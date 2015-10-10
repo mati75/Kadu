@@ -31,6 +31,8 @@
 #include "notify/notifier.h"
 #include "hint.h"
 
+#include <QtCore/QPointer>
+
 class QHBoxLayout;
 class QFrame;
 
@@ -44,9 +46,9 @@ class HintManager : public Notifier, public AbstractToolTip, public Configuratio
 {
 	Q_OBJECT
 
-	QFrame *frame;
-	QTimer *hint_timer;
-	QFrame *tipFrame;
+	QPointer<QFrame> frame;
+	QPointer<QTimer> hint_timer;
+	QPointer<QFrame> tipFrame;
 	QVBoxLayout *layout;
 	QString Style;
 	double Opacity;
@@ -67,11 +69,7 @@ class HintManager : public Notifier, public AbstractToolTip, public Configuratio
 	**/
 	void setLayoutDirection();
 
-	// TODO: usun�� w 0.6
-	void realCopyConfiguration(const QString &fromCategory, const QString &fromHint, const QString &toHint);
 	void createDefaultConfiguration();
-
-	void import_0_6_5_configuration();
 
 private slots:
 	/**

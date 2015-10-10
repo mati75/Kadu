@@ -29,15 +29,18 @@
 
 #include <QtCore/QDateTime>
 #include <QtCore/QTimer>
-#include <QtGui/QApplication>
 #include <QtGui/QCloseEvent>
-#include <QtGui/QDesktopWidget>
-#include <QtGui/QVBoxLayout>
+#include <QtWidgets/QApplication>
+#include <QtWidgets/QDesktopWidget>
+#include <QtWidgets/QVBoxLayout>
 
 #include "chat/chat-details.h"
 #include "chat/type/chat-type.h"
-#include "configuration/configuration-file.h"
+#include "configuration/configuration.h"
+#include "configuration/deprecated-configuration-api.h"
 #include "contacts/contact-set.h"
+#include "core/application.h"
+#include "gui/widgets/chat-widget/chat-widget-factory.h"
 #include "gui/widgets/chat-widget/chat-widget-manager.h"
 #include "gui/widgets/chat-widget/chat-widget.h"
 #include "gui/widgets/custom-input.h"
@@ -48,23 +51,25 @@
 #include "activate.h"
 #include "debug.h"
 
-ChatWindow::ChatWindow(ChatWidget *chatWidget, QWidget *parent) :
-		QWidget(parent), DesktopAwareObject(this), m_chatWidget(chatWidget),
+ChatWindow::ChatWindow(ChatWidgetFactory *chatWidgetFactory, Chat chat, QWidget *parent) :
+		QWidget(parent), DesktopAwareObject(this),
 		m_titleTimer(new QTimer(this)), m_showNewMessagesNum(false), m_blinkChatTitle(true)
 {
 	kdebugf();
 
 	setWindowRole("kadu-chat");
-	if (chatWidget && chatWidget->chat().details() && chatWidget->chat().details()->type())
-		setWindowRole(chatWidget->chat().details()->type()->windowRole());
+
+	m_chatWidget = chatWidgetFactory->createChatWidget(chat, this).release();
+	connect(m_chatWidget, SIGNAL(closeRequested(ChatWidget*)), this, SLOT(close()));
+
+	if (m_chatWidget && m_chatWidget->chat().details() && m_chatWidget->chat().details()->type())
+		setWindowRole(m_chatWidget->chat().details()->type()->windowRole());
 
 #ifdef Q_OS_MAC
 	setAttribute(Qt::WA_MacBrushedMetal);
 #endif
 	setAttribute(Qt::WA_DeleteOnClose);
 
-	m_chatWidget->setParent(this);
-	m_chatWidget->show();
 	m_chatWidget->edit()->setFocus();
 	m_chatWidget->kaduRestoreGeometry();
 
@@ -92,8 +97,6 @@ ChatWindow::ChatWindow(ChatWidget *chatWidget, QWidget *parent) :
 
 ChatWindow::~ChatWindow()
 {
-	m_chatWidget->setParent(nullptr);
-
 	emit windowDestroyed(this);
 }
 
@@ -101,16 +104,16 @@ void ChatWindow::configurationUpdated()
 {
 	triggerCompositingStateChanged();
 
-	m_showNewMessagesNum = config_file.readBoolEntry("Chat", "NewMessagesInChatTitle", false);
-	m_blinkChatTitle = config_file.readBoolEntry("Chat", "BlinkChatTitle", true);
+	m_showNewMessagesNum = Application::instance()->configuration()->deprecatedApi()->readBoolEntry("Chat", "NewMessagesInChatTitle", false);
+	m_blinkChatTitle = Application::instance()->configuration()->deprecatedApi()->readBoolEntry("Chat", "BlinkChatTitle", true);
 
-	if (m_chatWidget->chat().unreadMessagesCount())
+	if (m_chatWidget->chat().unreadMessagesCount() && !m_titleTimer->isActive())
 		blinkTitle();
 }
 
 void ChatWindow::compositingEnabled()
 {
-	if (config_file.readBoolEntry("Chat", "UseTransparency", false))
+	if (Application::instance()->configuration()->deprecatedApi()->readBoolEntry("Chat", "UseTransparency", false))
 	{
 		setAutoFillBackground(false);
 		setAttribute(Qt::WA_TranslucentBackground, true);
@@ -159,9 +162,9 @@ void ChatWindow::closeEvent(QCloseEvent *e)
 {
 	kdebugf();
 
-	if (config_file.readBoolEntry("Chat", "ChatCloseTimer"))
+	if (Application::instance()->configuration()->deprecatedApi()->readBoolEntry("Chat", "ChatCloseTimer"))
 	{
-		int period = config_file.readNumEntry("Chat", "ChatCloseTimerPeriod", 2);
+		int period = Application::instance()->configuration()->deprecatedApi()->readNumEntry("Chat", "ChatCloseTimerPeriod", 2);
 
 		if (QDateTime::currentDateTime() < m_chatWidget->lastReceivedMessageTime().addSecs(period))
 		{
@@ -177,7 +180,6 @@ void ChatWindow::closeEvent(QCloseEvent *e)
 		}
 	}
 
-	m_chatWidget->requestClose();
  	QWidget::closeEvent(e);
 }
 
@@ -189,10 +191,6 @@ void ChatWindow::updateIcon()
 void ChatWindow::updateTitle()
 {
 	setWindowTitle(m_chatWidget->title());
-
-	// TODO 0.10.0: is that really needed here? this method is called only on chat widget title change
-	if (m_showNewMessagesNum && m_chatWidget->chat().unreadMessagesCount()) // if we don't have new messages or don't want them to be shown
-		showNewMessagesNumInTitle();
 }
 
 void ChatWindow::blinkTitle()
@@ -216,13 +214,19 @@ void ChatWindow::blinkTitle()
 		}
 	}
 	else
-		setWindowTitle(m_chatWidget->title());
+		if (!m_showNewMessagesNum) // if we don't show number od new messages waiting
+			setWindowTitle(m_chatWidget->title());
+		else
+			showNewMessagesNumInTitle();
 }
 
 void ChatWindow::showNewMessagesNumInTitle()
 {
-	if (!_isActiveWindow(this))
-		setWindowTitle('[' + QString::number(m_chatWidget->chat().unreadMessagesCount()) + "] " + m_chatWidget->title());
+	auto count = m_chatWidget->chat().unreadMessagesCount();
+	if (count > 0)
+		setWindowTitle('[' + QString::number(count) + "] " + m_chatWidget->title());
+	else
+		setWindowTitle(m_chatWidget->title());
 }
 
 void ChatWindow::changeEvent(QEvent *event)

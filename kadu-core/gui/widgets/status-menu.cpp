@@ -22,9 +22,9 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <QtGui/QAction>
-#include <QtGui/QActionGroup>
-#include <QtGui/QMenu>
+#include <QtWidgets/QAction>
+#include <QtWidgets/QActionGroup>
+#include <QtWidgets/QMenu>
 
 #include "core/core.h"
 #include "gui/window-manager.h"
@@ -72,12 +72,12 @@ void StatusMenu::changeStatus(QAction *action)
 {
 	StatusType statusType = action->data().value<StatusType>();
 
-	foreach (StatusContainer *container, Container->subStatusContainers())
+	for (auto &&container : Container->subStatusContainers())
 	{
 		Status status(StatusSetter::instance()->manuallySetStatus(container));
 		status.setType(statusType);
 
-		StatusSetter::instance()->setStatus(container, status);
+		StatusSetter::instance()->setStatusManually(container, status);
 		container->storeStatus(status);
 	}
 }

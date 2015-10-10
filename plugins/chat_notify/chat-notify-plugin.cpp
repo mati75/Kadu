@@ -21,7 +21,9 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "configuration/configuration-file.h"
+#include "configuration/configuration.h"
+#include "configuration/deprecated-configuration-api.h"
+#include "core/application.h"
 #include "core/core.h"
 #include "notify/notification-manager.h"
 
@@ -54,16 +56,16 @@ void ChatNotifyPlugin::done()
 
 void ChatNotifyPlugin::createDefaultConfiguration()
 {
-	config_file.addVariable("Notify", "FileTransfer_ChatNotifier", true);
-	config_file.addVariable("Notify", "FileTransfer/IncomingFile_ChatNotifier", true);
-	config_file.addVariable("Notify", "StatusChanged_ChatNotifier", true);
-	config_file.addVariable("Notify", "StatusChanged/ToAway_ChatNotifier", true);
-	config_file.addVariable("Notify", "StatusChanged/ToDoNotDisturb_ChatNotifier", true);
-	config_file.addVariable("Notify", "StatusChanged/ToFreeForChat_ChatNotifier", true);
-	config_file.addVariable("Notify", "StatusChanged/ToNotAvailable_ChatNotifier", true);
-	config_file.addVariable("Notify", "StatusChanged/ToOffline_ChatNotifier", true);
-	config_file.addVariable("Notify", "StatusChanged/ToOnline_ChatNotifier", true);
-	config_file.addVariable("Notify", "OTR_ChatNotifier", true);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Notify", "FileTransfer_ChatNotifier", true);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Notify", "FileTransfer/IncomingFile_ChatNotifier", true);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Notify", "StatusChanged_ChatNotifier", true);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Notify", "StatusChanged/ToAway_ChatNotifier", true);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Notify", "StatusChanged/ToDoNotDisturb_ChatNotifier", true);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Notify", "StatusChanged/ToFreeForChat_ChatNotifier", true);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Notify", "StatusChanged/ToNotAvailable_ChatNotifier", true);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Notify", "StatusChanged/ToOffline_ChatNotifier", true);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Notify", "StatusChanged/ToOnline_ChatNotifier", true);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Notify", "OTR_ChatNotifier", true);
 }
 
 Q_EXPORT_PLUGIN2(chat_notify, ChatNotifyPlugin)

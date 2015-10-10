@@ -19,9 +19,11 @@
 
 #include "chat-widget-message-handler-configurator.h"
 
-#include "configuration/configuration-file.h"
-#include "gui/widgets/chat-widget/chat-widget-message-handler.h"
+#include "configuration/configuration.h"
+#include "configuration/deprecated-configuration-api.h"
+#include "core/application.h"
 #include "gui/widgets/chat-widget/chat-widget-message-handler-configuration.h"
+#include "gui/widgets/chat-widget/chat-widget-message-handler.h"
 
 ChatWidgetMessageHandlerConfigurator::ChatWidgetMessageHandlerConfigurator()
 {
@@ -42,14 +44,16 @@ void ChatWidgetMessageHandlerConfigurator::configurationUpdated()
 
 void ChatWidgetMessageHandlerConfigurator::createDefaultConfiguration() const
 {
-	config_file.addVariable("Chat", "OpenChatOnMessage", false);
-	config_file.addVariable("Chat", "OpenChatOnMessageWhenOnline", true);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Chat", "OpenChatOnMessage", false);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Chat", "OpenChatOnMessageWhenOnline", true);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Chat", "OpenChatOnMessageMinimized", false);
 }
 
 ChatWidgetMessageHandlerConfiguration ChatWidgetMessageHandlerConfigurator::loadConfiguration() const
 {
 	auto configuration = ChatWidgetMessageHandlerConfiguration();
-	configuration.setOpenChatOnMessage(config_file.readBoolEntry("Chat", "OpenChatOnMessage", false));
-	configuration.setOpenChatOnMessageOnlyWhenOnline(config_file.readBoolEntry("Chat", "OpenChatOnMessageWhenOnline", true));
+	configuration.setOpenChatOnMessage(Application::instance()->configuration()->deprecatedApi()->readBoolEntry("Chat", "OpenChatOnMessage", false));
+	configuration.setOpenChatOnMessageOnlyWhenOnline(Application::instance()->configuration()->deprecatedApi()->readBoolEntry("Chat", "OpenChatOnMessageWhenOnline", true));
+	configuration.setOpenChatOnMessageMinimized(Application::instance()->configuration()->deprecatedApi()->readBoolEntry("Chat", "OpenChatOnMessageMinimized", false));
 	return configuration;
 }

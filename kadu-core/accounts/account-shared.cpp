@@ -24,8 +24,10 @@
 #include "accounts/account-details.h"
 #include "accounts/account-manager.h"
 #include "accounts/account-status-container.h"
-#include "configuration/configuration-file.h"
+#include "configuration/configuration.h"
+#include "configuration/deprecated-configuration-api.h"
 #include "contacts/contact-manager.h"
+#include "core/application.h"
 #include "icons/kadu-icon.h"
 #include "identities/identity-manager.h"
 #include "identities/identity.h"
@@ -34,7 +36,9 @@
 #include "network/proxy/network-proxy-manager.h"
 #include "protocols/protocol.h"
 #include "protocols/protocols-manager.h"
-#include "protocols/services/roster/roster-service.h"
+#include "roster/roster-service.h"
+#include "roster/roster-task-collection-storage.h"
+#include "roster/roster-service-tasks.h"
 #include "status/status-setter.h"
 
 #include "account-shared.h"
@@ -143,33 +147,13 @@ void AccountShared::importNetworkProxy()
 	removeValue("ProxyPassword");
 }
 
-void AccountShared::loadRosterTasks()
+QVector<RosterTask> AccountShared::loadRosterTasks()
 {
 	if (!isValidStorage())
-		return;
+		return {};
 
-	if (!protocolHandler() || !protocolHandler()->rosterService())
-		return;
-
-	XmlConfigFile *configurationStorage = storage()->storage();
-	QDomElement rosterTasksNode = configurationStorage->getNode(storage()->point(), "RosterTasks");
-
-	QDomNodeList rosterTaskNodes = rosterTasksNode.childNodes();
-	const int rosterTaskCount = rosterTaskNodes.count();
-
-	for (int i = 0; i < rosterTaskCount; i++)
-	{
-		QDomElement rosterTaskElement = rosterTaskNodes.at(i).toElement();
-		if (rosterTaskElement.isNull() || rosterTaskElement.text().isEmpty())
-			continue;
-
-		if (rosterTaskElement.nodeName() == "Add")
-			protocolHandler()->rosterService()->addTask(RosterTask(RosterTaskAdd, rosterTaskElement.text()));
-		else if (rosterTaskElement.nodeName() == "Delete")
-			protocolHandler()->rosterService()->addTask(RosterTask(RosterTaskDelete, rosterTaskElement.text()));
-		else if (rosterTaskElement.nodeName() == "Update")
-			protocolHandler()->rosterService()->addTask(RosterTask(RosterTaskUpdate, rosterTaskElement.text()));
-	}
+	auto tasksStorage = RosterTaskCollectionStorage{storage()};
+	return tasksStorage.loadRosterTasks();
 }
 
 void AccountShared::load()
@@ -214,39 +198,17 @@ void AccountShared::load()
 			protocolRegistered(factory);
 	}
 
-	loadRosterTasks();
+	if (protocolHandler() && protocolHandler()->rosterService() && protocolHandler()->rosterService()->tasks())
+		protocolHandler()->rosterService()->tasks()->addTasks(loadRosterTasks());
 }
 
-void AccountShared::storeRosterTasks()
+void AccountShared::storeRosterTasks(const QVector<RosterTask> &tasks)
 {
 	if (!isValidStorage())
 		return;
 
-	if (!protocolHandler() || !protocolHandler()->rosterService())
-		return;
-
-	XmlConfigFile *configurationStorage = storage()->storage();
-	QDomElement rosterTasksNode = configurationStorage->getNode(storage()->point(), "RosterTasks");
-
-	while (!rosterTasksNode.childNodes().isEmpty())
-		rosterTasksNode.removeChild(rosterTasksNode.childNodes().at(0));
-
-	QVector<RosterTask> tasks = protocolHandler()->rosterService()->tasks();
-	foreach (const RosterTask &task, tasks)
-		switch (task.type())
-		{
-			case RosterTaskAdd:
-				configurationStorage->createTextNode(rosterTasksNode, "Add", task.id());
-				break;
-			case RosterTaskDelete:
-				configurationStorage->createTextNode(rosterTasksNode, "Delete", task.id());
-				break;
-			case RosterTaskUpdate:
-				configurationStorage->createTextNode(rosterTasksNode, "Update", task.id());
-				break;
-			default:
-				break;
-		}
+	auto tasksStorage = RosterTaskCollectionStorage{storage()};
+	tasksStorage.storeRosterTasks(tasks);
 }
 
 void AccountShared::store()
@@ -277,7 +239,8 @@ void AccountShared::store()
 	if (Details)
 		Details->ensureStored();
 
-	storeRosterTasks();
+	if (protocolHandler() && protocolHandler()->rosterService() && protocolHandler()->rosterService()->tasks())
+		storeRosterTasks(protocolHandler()->rosterService()->tasks()->tasks());
 }
 
 bool AccountShared::shouldStore()
@@ -313,8 +276,8 @@ void AccountShared::setDisconnectStatus()
 	if (!ProtocolHandler->isConnected() && !ProtocolHandler->isDisconnecting())
 		return;
 
-	bool disconnectWithCurrentDescription = config_file.readBoolEntry("General", "DisconnectWithCurrentDescription");
-	QString disconnectDescription = config_file.readEntry("General", "DisconnectDescription");
+	bool disconnectWithCurrentDescription = Application::instance()->configuration()->deprecatedApi()->readBoolEntry("General", "DisconnectWithCurrentDescription");
+	QString disconnectDescription = Application::instance()->configuration()->deprecatedApi()->readEntry("General", "DisconnectDescription");
 
 	Status disconnectStatus;
 	disconnectStatus.setType(StatusTypeOffline);
@@ -324,7 +287,7 @@ void AccountShared::setDisconnectStatus()
 	else
 		disconnectStatus.setDescription(disconnectDescription);
 
-	StatusSetter::instance()->setStatus(MyStatusContainer, disconnectStatus);
+	StatusSetter::instance()->setStatusManually(MyStatusContainer, disconnectStatus);
 }
 
 void AccountShared::protocolRegistered(ProtocolFactory *factory)
@@ -351,7 +314,8 @@ void AccountShared::protocolRegistered(ProtocolFactory *factory)
 	connect(ProtocolHandler, SIGNAL(connected(Account)), this, SIGNAL(connected()));
 	connect(ProtocolHandler, SIGNAL(disconnected(Account)), this, SIGNAL(disconnected()));
 
-	loadRosterTasks();
+	if (protocolHandler() && protocolHandler()->rosterService() && protocolHandler()->rosterService()->tasks())
+		protocolHandler()->rosterService()->tasks()->addTasks(loadRosterTasks());
 
 	MyStatusContainer->triggerStatusUpdated();
 
@@ -370,7 +334,8 @@ void AccountShared::protocolUnregistered(ProtocolFactory* factory)
 	if (!ProtocolHandler || (factory->name() != ProtocolName) || !Details)
 		return;
 
-	storeRosterTasks();
+	if (protocolHandler() && protocolHandler()->rosterService() && protocolHandler()->rosterService()->tasks())
+		storeRosterTasks(protocolHandler()->rosterService()->tasks()->tasks());
 
 	disconnect(ProtocolHandler, SIGNAL(statusChanged(Account, Status)), MyStatusContainer, SLOT(triggerStatusUpdated()));
 	disconnect(ProtocolHandler, 0, this, 0);

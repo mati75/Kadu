@@ -27,25 +27,26 @@
 #include "webkit-messages-view.h"
 
 #include "chat-style/chat-style-manager.h"
-#include "chat-style/engine/chat-style-renderer.h"
 #include "chat-style/engine/chat-style-renderer-configuration.h"
 #include "chat-style/engine/chat-style-renderer-factory.h"
-#include "configuration/chat-configuration-holder.h"
+#include "chat-style/engine/chat-style-renderer.h"
 #include "contacts/contact-set.h"
+#include "core/application.h"
 #include "core/core.h"
+#include "gui/configuration/chat-configuration-holder.h"
 #include "gui/scoped-updates-disabler.h"
 #include "gui/widgets/chat-view-network-access-manager.h"
 #include "gui/widgets/webkit-messages-view/message-limit-policy.h"
-#include "gui/widgets/webkit-messages-view/webkit-messages-view-handler.h"
 #include "gui/widgets/webkit-messages-view/webkit-messages-view-handler-factory.h"
-#include "misc/kadu-paths.h"
+#include "gui/widgets/webkit-messages-view/webkit-messages-view-handler.h"
+#include "misc/paths-provider.h"
 #include "protocols/protocol.h"
 #include "protocols/services/chat-image-service.h"
 #include "protocols/services/chat-service.h"
 #include "services/chat-image-request-service.h"
 
 #include <QtGui/QKeyEvent>
-#include <QtWebKit/QWebFrame>
+#include <QtWebKitWidgets/QWebFrame>
 
 WebkitMessagesView::WebkitMessagesView(const Chat &chat, bool supportTransparency, QWidget *parent) :
 		KaduWebView{parent},
@@ -55,7 +56,7 @@ WebkitMessagesView::WebkitMessagesView(const Chat &chat, bool supportTransparenc
 		m_atBottom{true}
 {
 	auto oldManager = page()->networkAccessManager();
-	auto newManager = make_qobject<ChatViewNetworkAccessManager>(oldManager, this);
+	auto newManager = make_owned<ChatViewNetworkAccessManager>(oldManager, this);
 	newManager->setImageStorageService(Core::instance()->imageStorageService());
 	page()->setNetworkAccessManager(newManager.get());
 
@@ -210,7 +211,7 @@ void WebkitMessagesView::refreshView()
 
 ChatStyleRendererConfiguration WebkitMessagesView::rendererConfiguration()
 {
-	QFile file{KaduPaths::instance()->dataPath() + QLatin1String("scripts/chat-scripts.js")};
+	QFile file{Application::instance()->pathsProvider()->dataPath() + QLatin1String("scripts/chat-scripts.js")};
 	auto javaScript = file.open(QIODevice::ReadOnly | QIODevice::Text)
 			? file.readAll()
 			: QString{};
@@ -218,7 +219,7 @@ ChatStyleRendererConfiguration WebkitMessagesView::rendererConfiguration()
 	return ChatStyleRendererConfiguration{chat(), *page()->mainFrame(), javaScript, transparency};
 }
 
-void WebkitMessagesView::setWebkitMessagesViewHandler(qobject_ptr<WebkitMessagesViewHandler> handler)
+void WebkitMessagesView::setWebkitMessagesViewHandler(owned_qptr<WebkitMessagesViewHandler> handler)
 {
 	ScopedUpdatesDisabler updatesDisabler{*this};
 	auto scrollBarPosition = page()->mainFrame()->scrollBarValue(Qt::Vertical);
@@ -262,6 +263,11 @@ void WebkitMessagesView::add(const SortedMessages &messages)
 	ScopedUpdatesDisabler updatesDisabler{*this};
 	m_handler->add(messages);
 	emit messagesUpdated();
+}
+
+SortedMessages WebkitMessagesView::messages() const
+{
+	return m_handler->messages();
 }
 
 void WebkitMessagesView::setChatStyleRendererFactory(std::shared_ptr<ChatStyleRendererFactory> chatStyleRendererFactory)

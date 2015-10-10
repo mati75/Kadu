@@ -27,13 +27,15 @@
  */
 
 #include <QtCore/QTimer>
-#include <QtGui/QApplication>
 #include <QtGui/QKeyEvent>
-#include <QtGui/QMenu>
-#include <QtGui/QTextEdit>
-#include <QtGui/QToolTip>
+#include <QtWidgets/QApplication>
+#include <QtWidgets/QMenu>
+#include <QtWidgets/QTextEdit>
+#include <QtWidgets/QToolTip>
 
-#include "configuration/configuration-file.h"
+#include "configuration/configuration.h"
+#include "configuration/deprecated-configuration-api.h"
+#include "core/application.h"
 #include "core/core.h"
 #include "gui/actions/action-description.h"
 #include "gui/actions/action.h"
@@ -55,7 +57,7 @@
 #include "plugins/docking/docking.h"
 
 #include "notify/mediaplayer-notification.h"
-#include "mp_status_changer.h"
+#include "media-player-status-changer.h"
 #include "player_commands.h"
 #include "player_info.h"
 
@@ -190,10 +192,12 @@ MediaPlayer::MediaPlayer()
 
 	Changer = new MediaPlayerStatusChanger(this);
 	StatusChangerManager::instance()->registerStatusChanger(Changer);
+	connect(StatusChangerManager::instance(), SIGNAL(manualStatusAboutToBeChanged(StatusContainer*,Status)),
+			this, SLOT(statusAboutToBeChanged()));
 
 	createDefaultConfiguration();
 
-	Changer->changePositionInStatus((MediaPlayerStatusChanger::ChangeDescriptionTo)config_file.readNumEntry("MediaPlayer", "statusPosition"));
+	Changer->changePositionInStatus((MediaPlayerStatusChanger::ChangeDescriptionTo)Application::instance()->configuration()->deprecatedApi()->readNumEntry("MediaPlayer", "statusPosition"));
 
 	setControlsEnabled(false);
 	isPaused = true;
@@ -308,7 +312,7 @@ void MediaPlayer::chatKeyPressed(QKeyEvent *e, CustomInput *k, bool &handled)
 	if (handled)
 		return;
 
-	if (!config_file.readBoolEntry("MediaPlayer", "chatShortcuts", true))
+	if (!Application::instance()->configuration()->deprecatedApi()->readBoolEntry("MediaPlayer", "chatShortcuts", true))
 		return;
 
 	if (e->key() == SHORTCUT_KEY)
@@ -401,7 +405,7 @@ void MediaPlayer::putSongTitle(int ident)
 	switch (id)
 	{
 		case 0:
-			title = parse(config_file.readEntry("MediaPlayer", "chatString"));
+			title = parse(Application::instance()->configuration()->deprecatedApi()->readEntry("MediaPlayer", "chatString"));
 			break;
 		case 1:
 			title = getTitle();
@@ -693,11 +697,17 @@ void MediaPlayer::mediaPlayerStatusChangerActivated(QAction *sender, bool toggle
 	toggleStatuses(toggled);
 }
 
+void MediaPlayer::statusAboutToBeChanged()
+{
+	if (Changer->changeDescriptionTo() == MediaPlayerStatusChanger::DescriptionReplace)
+		toggleStatuses(false);
+}
+
 void MediaPlayer::toggleStatuses(bool toggled)
 {
 	if (!isActive() && toggled)
 	{
-		foreach (Action *action, enableMediaPlayerStatuses->actions())
+		for (auto &&action : enableMediaPlayerStatuses->actions())
 			action->setChecked(false);
 
 		if (!getPlayerName().isEmpty())
@@ -707,6 +717,9 @@ void MediaPlayer::toggleStatuses(bool toggled)
 
 		return;
 	}
+
+	for (auto &&action : enableMediaPlayerStatuses->actions())
+		action->setChecked(toggled);
 
 	Changer->setDisable(!toggled);
 	if (toggled)
@@ -743,10 +756,10 @@ void MediaPlayer::checkTitle()
 	int pos = getCurrentPos();
 
 	// If OSD is enabled and current track position is betwean 0 and 1000 ms, then shows OSD
-	if (config_file.readBoolEntry("MediaPlayer", "osd", true) && pos < 1000 && pos > 0)
+	if (Application::instance()->configuration()->deprecatedApi()->readBoolEntry("MediaPlayer", "osd", true) && pos < 1000 && pos > 0)
 		MediaPlayerNotification::notifyTitleHint(getTitle());
 
-	Changer->setTitle(parse(config_file.readEntry("MediaPlayer", "statusTagString")));
+	Changer->setTitle(parse(Application::instance()->configuration()->deprecatedApi()->readEntry("MediaPlayer", "statusTagString")));
 }
 
 void MediaPlayer::configurationUpdated()
@@ -756,7 +769,7 @@ void MediaPlayer::configurationUpdated()
 	// Statuses switch
 	bool enabled = !Changer->isDisabled();
 
-	if (config_file.readBoolEntry("MediaPlayer", "dockMenu", false))
+	if (Application::instance()->configuration()->deprecatedApi()->readBoolEntry("MediaPlayer", "dockMenu", false))
 	{
 		MenuInventory::instance()
 			->menu("main")
@@ -788,7 +801,7 @@ void MediaPlayer::configurationUpdated()
 		}
 	}
 
-	Changer->changePositionInStatus((MediaPlayerStatusChanger::ChangeDescriptionTo)config_file.readNumEntry("MediaPlayer", "statusPosition"));
+	Changer->changePositionInStatus((MediaPlayerStatusChanger::ChangeDescriptionTo)Application::instance()->configuration()->deprecatedApi()->readNumEntry("MediaPlayer", "statusPosition"));
 }
 
 bool MediaPlayer::playerInfoSupported()
@@ -937,9 +950,9 @@ QString MediaPlayer::getTitle()
 		QString title = playerInfo->getTitle();
 
 		// Lets cut nasty signatures
-		if (config_file.readBoolEntry("MediaPlayer", "signature", true))
+		if (Application::instance()->configuration()->deprecatedApi()->readBoolEntry("MediaPlayer", "signature", true))
 		{
-			QStringList sigList(config_file.readEntry("MediaPlayer", "signatures", DEFAULT_SIGNATURES).split('\n'));
+			QStringList sigList(Application::instance()->configuration()->deprecatedApi()->readEntry("MediaPlayer", "signatures", DEFAULT_SIGNATURES).split('\n'));
 			for (int i = 0; i < sigList.count(); i++)
 				title.remove(sigList[i]);
 		}
@@ -1023,14 +1036,14 @@ QStringList MediaPlayer::getPlayListFiles()
 
 void MediaPlayer::createDefaultConfiguration()
 {
-	config_file.addVariable("MediaPlayer", "chatString", "MediaPlayer: %t [%c / %l]");
-	config_file.addVariable("MediaPlayer", "statusTagString", "%r - %t");
-	config_file.addVariable("MediaPlayer", "osd", true);
-	config_file.addVariable("MediaPlayer", "signature", true);
-	config_file.addVariable("MediaPlayer", "signatures", DEFAULT_SIGNATURES);
-	config_file.addVariable("MediaPlayer", "chatShortcuts", true);
-	config_file.addVariable("MediaPlayer", "dockMenu", false);
-	config_file.addVariable("MediaPlayer", "statusPosition", 0);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("MediaPlayer", "chatString", "MediaPlayer: %t [%c / %l]");
+	Application::instance()->configuration()->deprecatedApi()->addVariable("MediaPlayer", "statusTagString", "%r - %t");
+	Application::instance()->configuration()->deprecatedApi()->addVariable("MediaPlayer", "osd", true);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("MediaPlayer", "signature", true);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("MediaPlayer", "signatures", DEFAULT_SIGNATURES);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("MediaPlayer", "chatShortcuts", true);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("MediaPlayer", "dockMenu", false);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("MediaPlayer", "statusPosition", 0);
 }
 
 void MediaPlayer::insertFormattedSong()

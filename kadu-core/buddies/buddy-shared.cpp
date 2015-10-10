@@ -32,12 +32,14 @@
 #include "buddies/buddy-manager.h"
 #include "buddies/group-manager.h"
 #include "buddies/group.h"
-#include "configuration/xml-configuration-file.h"
+#include "configuration/configuration-api.h"
+#include "configuration/configuration.h"
 #include "contacts/contact-manager.h"
 #include "contacts/contact.h"
 #include "core/core.h"
 #include "misc/change-notifier.h"
-#include "protocols/services/roster/roster-entry.h"
+#include "roster/roster-entry.h"
+#include "roster/roster-entry-state.h"
 #include "storage/storage-point.h"
 
 #include "buddy-shared.h"
@@ -82,34 +84,26 @@ void BuddyShared::collectGarbage()
 
 	// 1 is for current Buddy
 	const int numberOfReferences = 1 + Contacts.length();
-#if QT_VERSION >= 0x050000
 	if (numberOfReferences != ref.load())
-#else
-	if (numberOfReferences != (int)ref)
-#endif
 	{
 		CollectingGarbage = false;
 		return;
 	}
 
-	foreach (const Contact &contact, Contacts)
+	for (auto &&contact : Contacts)
 	{
 		Q_ASSERT(!contact.isNull());
 
 		// 1 is for current BuddyShared
 		const int contactNumberOfReferences = 1;
-#if QT_VERSION >= 0x050000
 		if (contactNumberOfReferences != contact.data()->ref.load())
-#else
-		if (contactNumberOfReferences != (int)(contact.data()->ref))
-#endif
 		{
 			CollectingGarbage = false;
 			return;
 		}
 	}
 
-	foreach (const Contact &contact, Contacts)
+	for (auto &&contact : Contacts)
 		contact.setOwnerBuddy(Buddy::null);
 
 	CollectingGarbage = false;
@@ -148,7 +142,7 @@ void BuddyShared::importConfiguration(const QDomElement &parent)
 void BuddyShared::importConfiguration()
 {
 	QStringList groups = CustomData["groups"].split(',', QString::SkipEmptyParts);
-	foreach (const QString &group, groups)
+	for (auto &&group : groups)
 		doAddToGroup(GroupManager::instance()->byName(group));
 
 	CustomData.remove("groups");
@@ -169,10 +163,10 @@ void BuddyShared::load()
 
 	Shared::load();
 
-	XmlConfigFile *configurationStorage = storage()->storage();
+	ConfigurationApi *configurationStorage = storage()->storage();
 	QDomElement parent = storage()->point();
 
-	QDomElement customDataValues = configurationStorage->getNode(parent, "CustomDataValues", XmlConfigFile::ModeFind);
+	QDomElement customDataValues = configurationStorage->getNode(parent, "CustomDataValues", ConfigurationApi::ModeFind);
 	QDomNodeList customDataValuesList = customDataValues.elementsByTagName("CustomDataValue");
 
 	int count = customDataValuesList.count();
@@ -189,7 +183,7 @@ void BuddyShared::load()
 	}
 
 	Groups.clear();
-	QDomElement groupsNode = configurationStorage->getNode(parent, "ContactGroups", XmlConfigFile::ModeFind);
+	QDomElement groupsNode = configurationStorage->getNode(parent, "ContactGroups", ConfigurationApi::ModeFind);
 	if (!groupsNode.isNull())
 	{
 		QDomNodeList groupsList = groupsNode.elementsByTagName("Group");
@@ -231,10 +225,10 @@ void BuddyShared::store()
 
 	Shared::store();
 
-	XmlConfigFile *configurationStorage = storage()->storage();
+	ConfigurationApi *configurationStorage = storage()->storage();
 	QDomElement parent = storage()->point();
 
-	QDomElement customDataValues = configurationStorage->getNode(parent, "CustomDataValues", XmlConfigFile::ModeCreate);
+	QDomElement customDataValues = configurationStorage->getNode(parent, "CustomDataValues", ConfigurationApi::ModeCreate);
 
 	for (QMap<QString, QString>::const_iterator it = CustomData.constBegin(), end = CustomData.constEnd(); it != end; ++it)
 		configurationStorage->createNamedTextNode(customDataValues, "CustomDataValue", it.key(), it.value());
@@ -268,8 +262,8 @@ void BuddyShared::store()
 
 	if (!Groups.isEmpty())
 	{
-		QDomElement groupsNode = configurationStorage->getNode(parent, "ContactGroups", XmlConfigFile::ModeCreate);
-		foreach (const Group &group, Groups)
+		QDomElement groupsNode = configurationStorage->getNode(parent, "ContactGroups", ConfigurationApi::ModeCreate);
+		for (auto &&group : Groups)
 			configurationStorage->appendTextNode(groupsNode, "Group", group.uuid().toString());
 	}
 	else
@@ -322,6 +316,7 @@ void BuddyShared::addContact(const Contact &contact)
 
 	emit contactAdded(contact);
 
+	connect(contact, SIGNAL(priorityUpdated()), &changeNotifier(), SLOT(notify()));
 	changeNotifier().notify();
 }
 
@@ -331,6 +326,8 @@ void BuddyShared::removeContact(const Contact &contact)
 
 	if (!contact || !Contacts.contains(contact))
 		return;
+
+	disconnect(contact, SIGNAL(priorityUpdated()), &changeNotifier(), SLOT(notify()));
 
 	emit contactAboutToBeRemoved(contact);
 	Contacts.removeAll(contact);
@@ -346,7 +343,7 @@ QVector<Contact> BuddyShared::contacts(const Account &account)
 	ensureLoaded();
 
 	QVector<Contact> contacts;
-	foreach (const Contact &contact, Contacts)
+	for (auto &&contact :  Contacts)
 		if (contact.contactAccount() == account)
 			contacts.append(contact);
 
@@ -385,7 +382,7 @@ void BuddyShared::sortContacts()
 void BuddyShared::normalizePriorities()
 {
 	int priority = 0;
-	foreach (const Contact &contact, Contacts)
+	for (auto &&contact : Contacts)
 		contact.setPriority(priority++);
 }
 
@@ -432,11 +429,11 @@ void BuddyShared::setGroups(const QSet<Group> &groups)
 
 	QSet<Group> groupsToRemove = Groups;
 
-	foreach (const Group &group, groups)
+	for (auto &&group : groups)
 		if (!groupsToRemove.remove(group))
 			doAddToGroup(group);
 
-	foreach (const Group &group, groupsToRemove)
+	for (auto &&group : groupsToRemove)
 		doRemoveFromGroup(group);
 
 	changeNotifier().notify();
@@ -454,7 +451,7 @@ bool BuddyShared::showInAllGroup()
 {
 	ensureLoaded();
 
-	foreach (const Group &group, Groups)
+	for (auto &&group : Groups)
 		if (group && !group.showInAllGroup())
 			return false;
 
@@ -526,9 +523,9 @@ void BuddyShared::markContactsDirty()
 {
 	ensureLoaded();
 
-	foreach (const Contact &contact, Contacts)
+	for (auto &&contact : Contacts)
 		if (contact.rosterEntry())
-			contact.rosterEntry()->setState(RosterEntryDesynchronized);
+			contact.rosterEntry()->setHasLocalChanges();
 }
 
 quint16 BuddyShared::unreadMessagesCount()
@@ -536,7 +533,7 @@ quint16 BuddyShared::unreadMessagesCount()
 	ensureLoaded();
 
 	quint16 result = 0;
-	foreach (const Contact &contact, Contacts)
+	for (auto &&contact : Contacts)
 		result += contact.unreadMessagesCount();
 
 	return result;

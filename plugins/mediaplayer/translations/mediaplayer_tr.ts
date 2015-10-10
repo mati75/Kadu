@@ -7,214 +7,222 @@
 %l - song length (MM:SS), %c - current song position (MM:SS),
 %p - percents of played song, %n - player name, %v - player version
 </source>
-        <translation type="unfinished"/>
+        <translation>Sözdizimi: %t - şarkı başlığı,
+%a - albüm, %r - sanatçı, %f - dosya adı,
+%l - şarkı uzunluğu (MM:SS), %c - şimdiki şarkının konumu (MM:SS),
+%p - çalan şarkının yüzdesi, %n - oynatıcı adı, %v - oynatıcı versiyon
+</translation>
     </message>
     <message>
         <source>Pseudo-OSD for MediaPlayer</source>
-        <translation type="unfinished"/>
+        <translation>Pseudo-OSD için MediaPlayer</translation>
     </message>
     <message>
         <source>General</source>
-        <translation type="unfinished"/>
+        <translation>Genel</translation>
     </message>
     <message>
         <source>MediaPlayer statuses in description</source>
-        <translation type="unfinished"/>
+        <translation>Medya Oynatıcı durumlardaki tanımı</translation>
     </message>
     <message>
         <source>Replace</source>
-        <translation type="unfinished"/>
+        <translation>Değiştir</translation>
     </message>
     <message>
         <source>MediaPlayer description format</source>
-        <translation type="unfinished"/>
+        <translation>Medya Oynatıcı tanım formatı</translation>
     </message>
     <message>
         <source>Here specify format which will replace &apos;#{player}&apos; tag when you will use it in description while setting status.</source>
-        <translation type="unfinished"/>
+        <translation>Durum ayarlanırken açıklama olarak kullanılacak &apos;#{player}&apos; etiketini buradaki formatla değiştir.</translation>
     </message>
     <message>
         <source>Signatures to cut</source>
-        <translation type="unfinished"/>
+        <translation>İmzaları kes</translation>
     </message>
     <message>
         <source>Crap to cut</source>
-        <translation type="unfinished"/>
+        <translation>Gereksizleri kes</translation>
     </message>
     <message>
         <source>Enable pseudo-OSD</source>
-        <translation type="unfinished"/>
+        <translation>pseudo-OSD açık</translation>
     </message>
     <message>
         <source>Enables pseudo-OSD done by Kadu hints. Shows currently played title in hint.</source>
-        <translation type="unfinished"/>
+        <translation>Kadu ipucu olarak pseudo-OSD izin ver. Şuan oynatılanın başlığını ipucu olarak göster.</translation>
     </message>
     <message>
         <source>Enable MediaPlayer keyboard shortcuts in chat window</source>
-        <translation type="unfinished"/>
+        <translation>Konuşma penceresinde Medya Oynatıcı klavye kısayol tuşları açık</translation>
     </message>
     <message>
         <source>Put statuses switch to dock menu</source>
-        <translation type="unfinished"/>
+        <translation>Dock menü üzerinden durumları değiştirmeyi koyun</translation>
     </message>
     <message>
         <source>Enable this to put MediaPlayer statuses switch into docked icon menu.</source>
-        <translation type="unfinished"/>
+        <translation>Medya Oynatıcı durumlarını değiştirmek için dock simge menüsüne koyun</translation>
     </message>
     <message>
         <source>Signature Cutting</source>
-        <translation type="unfinished"/>
+        <translation>İmza Kesiliyor</translation>
     </message>
     <message>
         <source>Other Settings</source>
-        <translation type="unfinished"/>
+        <translation>Diğer Ayarlar</translation>
     </message>
     <message>
         <source>With this option enabled you'll be able to control
 your MediaPlayer in chat window by keyboard shortcuts:
 Control+ Enter/Backspace/Left/Right/Up/Down.</source>
-        <translation type="unfinished"/>
+        <translation>Bu seçeneği aktif ettiğinizde konuşma penceresinde Medya 
+Oynatıcınızı klavye kısayol tuşlarıyla kontrol edebilceksiniz:
+Control+ Enter/Backspace/Left/Right/Up/Down.</translation>
     </message>
     <message>
         <source>With this option enabled you'll be able to control
 your MediaPlayer in chat window by keyboard shortcuts:
 Win+ Enter/Backspace/Left/Right/Up/Down.</source>
-        <translation type="unfinished"/>
+        <translation>Bu seçeneği aktif ettiğinizde konuşma penceresinde Medya 
+Oynatıcınızı klavye kısayol tuşlarıyla kontrol edebilceksiniz:
+Win+ Enter/Backspace/Left/Right/Up/Down.</translation>
     </message>
     <message>
         <source>Add in the Front</source>
-        <translation type="unfinished"/>
+        <translation>Önüne Ekle</translation>
     </message>
     <message>
         <source>Add at the Back</source>
-        <translation type="unfinished"/>
+        <translation>Arkasına Ekle</translation>
     </message>
     <message>
         <source>Replace &apos;#{player}&apos; Tag</source>
-        <translation type="unfinished"/>
+        <translation>&apos;#{player}&apos; Etiketini Değiştir</translation>
     </message>
     <message>
         <source>Extras</source>
-        <translation type="unfinished"/>
+        <translation>Ekstralar</translation>
     </message>
     <message>
         <source>Media Player</source>
-        <translation type="unfinished"/>
+        <translation>Medya Oynatıcı</translation>
     </message>
     <message>
         <source>MediaPlayer message format in chat window</source>
-        <translation type="unfinished"/>
+        <translation>Konuşma penceresinde Medya Oynatıcı mesaj formatı</translation>
     </message>
     <message>
         <source>Enable signature cutting</source>
-        <translation type="unfinished"/>
+        <translation>İmza kesimini etkinleştir</translation>
     </message>
     <message>
         <source>Enable removing non-essential stuff from audio file titles</source>
-        <translation type="unfinished"/>
+        <translation>Ses dosya başlıklarının gerekli olmayan kısımlarını kaldır</translation>
     </message>
 </context>
 <context>
     <name>MediaPlayer</name>
     <message>
         <source>Put formated string</source>
-        <translation type="unfinished"/>
+        <translation>Formatlı dize koyun</translation>
     </message>
     <message>
         <source>Put song title</source>
-        <translation type="unfinished"/>
+        <translation>Şarkı başlığını koy</translation>
     </message>
     <message>
         <source>Put song file name</source>
-        <translation type="unfinished"/>
+        <translation>Şarkı dosyası adını koy</translation>
     </message>
     <message>
         <source>Send all playlist titles</source>
-        <translation type="unfinished"/>
+        <translation>Bütün çalma listesi başlıklarını gönder</translation>
     </message>
     <message>
         <source>Send all playlist files</source>
-        <translation type="unfinished"/>
+        <translation>Bütün çalma listesi dosyalarını gönder</translation>
     </message>
     <message>
         <source>Enable MediaPlayer statuses</source>
-        <translation type="unfinished"/>
+        <translation>Medya Oynatıcı durumları açık</translation>
     </message>
     <message>
         <source>MediaPlayer</source>
-        <translation type="unfinished"/>
+        <translation>Medya Oynatıcı</translation>
     </message>
     <message>
         <source>%1 isn&apos;t running!</source>
-        <translation type="unfinished"/>
+        <translation>%1 çalışmıyor!</translation>
     </message>
     <message>
         <source>You&apos;re trying to send %1 entries of %2 playlist.&lt;br&gt;It will be split and sent in few messages&lt;br&gt;Are you sure to do that?</source>
-        <translation type="unfinished"/>
+        <translation>%2 çalma listesinin %1 girdilerini göndermeye çalışıyorsunuz.&lt;br&gt;Bunlar ayırılacak ve bir kaç mesaj halinde gönderilecek&lt;br&gt;Bunu yapmak istediğinizden emin misiniz?</translation>
     </message>
     <message>
         <source>Playback stopped.</source>
-        <translation type="unfinished"/>
+        <translation>Playback durduruldu.</translation>
     </message>
     <message>
         <source>Player turned off.</source>
-        <translation type="unfinished"/>
+        <translation>Oynatıcı kapandı.</translation>
     </message>
     <message>
         <source>Enable MediaPlayer Statuses</source>
-        <translation type="unfinished"/>
+        <translation>Medya Oynatıcı Durumları Açık</translation>
     </message>
     <message>
         <source>Play</source>
-        <translation type="unfinished"/>
+        <translation>Yürüt</translation>
     </message>
     <message>
         <source>Stop</source>
-        <translation type="unfinished"/>
+        <translation>Durdur</translation>
     </message>
     <message>
         <source>Previous Track</source>
-        <translation type="unfinished"/>
+        <translation>Önceki Parça</translation>
     </message>
     <message>
         <source>Next Track</source>
-        <translation type="unfinished"/>
+        <translation>Sonraki Parça</translation>
     </message>
     <message>
         <source>Volume Up</source>
-        <translation type="unfinished"/>
+        <translation>Sesi Yükselt</translation>
     </message>
     <message>
         <source>Volume Down</source>
-        <translation type="unfinished"/>
+        <translation>Sesi Alçalt</translation>
     </message>
     <message>
         <source>Kadu</source>
-        <translation type="unfinished"/>
+        <translation>Kadu</translation>
     </message>
     <message>
         <source>More than 1/10 of titles you&apos;re trying to send are empty.&lt;br&gt;Perhaps %1 hasn&apos;t read all titles yet, give its some more time.&lt;br&gt;Do you want to send playlist anyway?</source>
-        <translation type="unfinished"/>
+        <translation>1/10 dan fazla boş başlık göndermeye çalışıyorsunuz.&lt;br&gt; Muhtemelen %1 bütün başlıkları henüz okuyamayacak, biraz daha fazla zaman verin.&lt;br&gt;Yinede çalma listesini göndermek istediğinizden emin  misiniz?</translation>
     </message>
     <message>
         <source>Pause</source>
-        <translation type="unfinished"/>
+        <translation>Duraklat</translation>
     </message>
     <message>
         <source>Player isn&apos;t running!</source>
-        <translation type="unfinished"/>
+        <translation>Oynatıcı çalışmıyor!</translation>
     </message>
     <message>
         <source>Send anyway</source>
-        <translation type="unfinished"/>
+        <translation>Yinede gönder</translation>
     </message>
     <message>
         <source>Cancel</source>
-        <translation type="unfinished"/>
+        <translation>İptal</translation>
     </message>
     <message>
         <source>Send</source>
-        <translation type="unfinished"/>
+        <translation>Gönder</translation>
     </message>
 </context>
 </TS>

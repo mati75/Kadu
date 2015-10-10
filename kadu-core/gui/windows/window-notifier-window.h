@@ -24,7 +24,7 @@
 #ifndef WINDOW_NOTIFIER_WINDOW_H
 #define WINDOW_NOTIFIER_WINDOW_H
 
-#include <QtGui/QDialog>
+#include <QtWidgets/QDialog>
 
 #include "os/generic/desktop-aware-object.h"
 
@@ -37,7 +37,7 @@ class WindowNotifierWindow : public QDialog, DesktopAwareObject
 	Notification *CurrentNotification;
 
 	void createGui();
-	void addButton(QWidget *parent, const QString &caption, const char *slot);
+	void addButton(Notification *notification, QWidget *parent, const QString &caption, const char *slot);
 
 public:
 	explicit WindowNotifierWindow(Notification *notification, QWidget *parent = 0);

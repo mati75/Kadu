@@ -1,6 +1,6 @@
 project (Kadu)
 
-cmake_minimum_required (VERSION 2.8.10)
+cmake_minimum_required (VERSION 2.8.11)
 
 # Options (some of them)
 
@@ -27,7 +27,7 @@ endif ()
 
 # C++11 support, warnings and other flags
 
-set (DEFINITIONS QT_USE_QSTRINGBUILDER QT_NO_CAST_TO_ASCII)
+set (DEFINITIONS QT_USE_QSTRINGBUILDER QT_NO_CAST_TO_ASCII QT_DISABLE_DEPRECATED_BEFORE=0x040900)
 if (BUILD_TESTING)
 	list (APPEND DEFINITIONS KADU_EXPORT_TESTS)
 endif ()
@@ -195,8 +195,8 @@ foreach (install_var ${install_vars})
 	endif ()
 endforeach ()
 
-set (INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}")
-set (path_vars INSTALL_PREFIX)
+set (KADU_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}")
+set (path_vars KADU_INSTALL_PREFIX)
 if (UNIX AND NOT APPLE)
 	list (APPEND path_vars DESKTOP_FILE_DIR)
 endif ()
@@ -258,7 +258,7 @@ if (NOT WIN32)
 	endif ()
 endif ()
 
-include_directories (${CMAKE_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/kadu-core ${QT_INCLUDES})
+include_directories (${CMAKE_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/kadu-core)
 
 add_subdirectory (kadu-core)
 add_subdirectory (varia)
@@ -307,5 +307,5 @@ install (FILES AUTHORS AUTHORS.html HISTORY README THANKS ChangeLog ChangeLog.OL
 if (WIN32)
 	install (FILES COPYING.WIN32 DESTINATION "${KADU_INSTALL_DATA_DIR}")
 else ()
-	install (FILES COPYING DESTINATION "${KADU_INSTALL_DATA_DIR}")
+	install (FILES COPYING.GPL2 COPYING.LGPL2.1 DESTINATION "${KADU_INSTALL_DATA_DIR}")
 endif ()

@@ -24,14 +24,15 @@
 #include "accounts/account.h"
 
 #include "buddies/buddy-list.h"
+#include "configuration/configuration-api.h"
 #include "configuration/configuration-manager.h"
-#include "configuration/xml-configuration-file.h"
+#include "configuration/configuration.h"
 #include "contacts/contact-manager.h"
 #include "contacts/contact.h"
+#include "core/application.h"
 #include "core/core.h"
-#include "protocols/roster.h"
+#include "roster/roster.h"
 #include "storage/storage-point.h"
-
 #include "debug.h"
 
 #include "buddy-manager.h"
@@ -62,20 +63,20 @@ void BuddyManager::init()
 	QMutexLocker locker(&mutex());
 
 	int itemsSize = items().size();
-	QDomElement buddiesNode = xml_config_file->getNode("Buddies", XmlConfigFile::ModeFind);
-	QDomElement oldContactsNode = xml_config_file->getNode("OldContacts", XmlConfigFile::ModeFind);
+	QDomElement buddiesNode = Application::instance()->configuration()->api()->getNode("Buddies", ConfigurationApi::ModeFind);
+	QDomElement oldContactsNode = Application::instance()->configuration()->api()->getNode("OldContacts", ConfigurationApi::ModeFind);
 	if (oldContactsNode.isNull() && (buddiesNode.isNull() || (itemsSize == 0 && !buddiesNode.hasAttribute("imported"))))
 	{
-		importConfiguration(xml_config_file);
+		importConfiguration(Application::instance()->configuration()->api());
 		buddiesNode.setAttribute("imported", "true");
 	}
 }
 
-void BuddyManager::importConfiguration(XmlConfigFile *configurationStorage)
+void BuddyManager::importConfiguration(ConfigurationApi *configurationStorage)
 {
 	QMutexLocker locker(&mutex());
 
-	QDomElement contactsNode = configurationStorage->getNode("Contacts", XmlConfigFile::ModeFind);
+	QDomElement contactsNode = configurationStorage->getNode("Contacts", ConfigurationApi::ModeFind);
 	if (contactsNode.isNull())
 		return;
 

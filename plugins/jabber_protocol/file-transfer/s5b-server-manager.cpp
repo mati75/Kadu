@@ -18,7 +18,9 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "configuration/configuration-file.h"
+#include "configuration/configuration.h"
+#include "configuration/deprecated-configuration-api.h"
+#include "core/application.h"
 
 #include "s5b-server-manager.h"
 
@@ -49,14 +51,14 @@ S5BServerManager::~S5BServerManager()
 
 void S5BServerManager::createDefaultConfiguration()
 {
-	config_file.addVariable("XMPP", "DataTransferPort", 8010);
-	config_file.addVariable("XMPP", "DataTransferExternalAddress", "");
+	Application::instance()->configuration()->deprecatedApi()->addVariable("XMPP", "DataTransferPort", 8010);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("XMPP", "DataTransferExternalAddress", "");
 }
 
 void S5BServerManager::configurationUpdated()
 {
-	int port = config_file.readNumEntry("XMPP", "DataTransferPort", 8010);
-	QString externalAddress = config_file.readEntry("XMPP", "DataTransferExternalAddress", "");
+	int port = Application::instance()->configuration()->deprecatedApi()->readNumEntry("XMPP", "DataTransferPort", 8010);
+	QString externalAddress = Application::instance()->configuration()->deprecatedApi()->readEntry("XMPP", "DataTransferExternalAddress", "");
 
 	if (externalAddress != ExternalAddress)
 	{

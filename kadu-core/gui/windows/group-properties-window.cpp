@@ -21,23 +21,25 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <QtGui/QApplication>
-#include <QtGui/QCheckBox>
-#include <QtGui/QDialogButtonBox>
-#include <QtGui/QFileDialog>
-#include <QtGui/QGroupBox>
-#include <QtGui/QHBoxLayout>
 #include <QtGui/QKeyEvent>
-#include <QtGui/QLabel>
-#include <QtGui/QPushButton>
-#include <QtGui/QStyle>
-#include <QtGui/QVBoxLayout>
+#include <QtWidgets/QApplication>
+#include <QtWidgets/QCheckBox>
+#include <QtWidgets/QDialogButtonBox>
+#include <QtWidgets/QFileDialog>
+#include <QtWidgets/QGroupBox>
+#include <QtWidgets/QHBoxLayout>
+#include <QtWidgets/QLabel>
+#include <QtWidgets/QPushButton>
+#include <QtWidgets/QStyle>
+#include <QtWidgets/QVBoxLayout>
 
 #include "buddies/group.h"
-#include "configuration/configuration-file.h"
+#include "configuration/configuration.h"
+#include "configuration/deprecated-configuration-api.h"
+#include "core/application.h"
 #include "icons/kadu-icon.h"
-#include "misc/change-notifier.h"
 #include "misc/change-notifier-lock.h"
+#include "misc/change-notifier.h"
 #include "misc/misc.h"
 
 #include "group-properties-window.h"
@@ -137,12 +139,12 @@ GroupPropertiesWindow::GroupPropertiesWindow(Group editedGroup, QWidget *parent)
 
 void GroupPropertiesWindow::selectIcon()
 {
-	QString file = QFileDialog::getOpenFileName(this, tr("Choose an icon"), config_file.readEntry("GroupIcon", "recentPath", "~/"),
+	QString file = QFileDialog::getOpenFileName(this, tr("Choose an icon"), Application::instance()->configuration()->deprecatedApi()->readEntry("GroupIcon", "recentPath", "~/"),
 					tr("Images (*.png *.xpm *.jpg);;All Files (*)"));
 	if (!file.isEmpty())
 	{
 		QFileInfo fileInfo(file);
-		config_file.writeEntry("GroupIcon", "recentPath", fileInfo.absolutePath());
+		Application::instance()->configuration()->deprecatedApi()->writeEntry("GroupIcon", "recentPath", fileInfo.absolutePath());
 		icon->setText(QString());
 		icon->setIcon(QIcon(file));
 		iconPath = file;

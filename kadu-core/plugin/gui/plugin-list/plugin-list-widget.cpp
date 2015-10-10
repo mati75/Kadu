@@ -33,18 +33,18 @@
 #include "gui/windows/main-configuration-window.h"
 #include "gui/windows/string-list-dialog.h"
 #include "misc/change-notifier-lock.h"
-#include "plugin/model/plugin-model.h"
-#include "plugin/model/plugin-proxy-model.h"
 #include "plugin/activation/plugin-activation-service.h"
 #include "plugin/gui/plugin-list/plugin-list-view-delegate.h"
 #include "plugin/gui/plugin-list/plugin-list-widget-item-delegate.h"
+#include "plugin/model/plugin-model.h"
+#include "plugin/model/plugin-proxy-model.h"
 #include "plugin/plugin-conflict-resolver.h"
 #include "plugin/plugin-dependency-handler.h"
-#include "plugin/state/plugin-state.h"
 #include "plugin/state/plugin-state-manager.h"
 #include "plugin/state/plugin-state-service.h"
+#include "plugin/state/plugin-state.h"
 
-#include <QtGui/QBoxLayout>
+#include <QtWidgets/QBoxLayout>
 
 PluginListWidget::PluginListWidget(MainConfigurationWindow *window) :
 		QWidget{window}, m_listView{0}, m_processingChange{false}
