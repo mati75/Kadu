@@ -1,0 +1,109 @@
+Source: kadu
+Section: net
+Priority: optional
+Maintainer: Patryk Cisek <patryk@debian.org>
+Vcs-Git: git://git.debian.org/users/patryk/kadu.git
+Vcs-Browser: http://git.debian.org/?p=users/patryk/kadu.git
+Build-Depends: bzip2,
+               chrpath,
+               cmake (>=2.6),
+               debhelper (>= 9),
+               enchant,
+               libarchive-dev,
+               libasound2-dev,
+               libaudio-dev,
+               libdbus-1-dev,
+               libenchant-dev,
+               libgadu-dev,
+               libidn11-dev,
+               libindicate-qt-dev,
+               libinjeqt-dev,
+               libmpdclient-dev,
+               libotr5-dev,
+               libphonon4qt5-dev,
+               libqca-qt5-2-dev,
+               libqca2-dev,
+               libqt4-dev,
+               libqt5webkit5-dev,
+               libqt5x11extras5-dev,
+               libqt5xmlpatterns5-dev,
+               libqtwebkit-dev,
+               libsndfile1-dev (>= 1.0),
+               libsqlite3-dev,
+               libxfixes-dev,
+               libxss-dev,
+               libxtst-dev,
+               patchutils (>= 0.2.25),
+               pkgconf,
+               qtbase5-dev,
+               qtmultimedia5-dev,
+               qtquick1-5-dev,
+               qtscript5-dev,
+               qttools5-dev,
+               qttools5-dev-tools,
+               sharutils,
+               x11proto-scrnsaver-dev,
+               zlib1g-dev
+Standards-Version: 3.9.6
+Homepage: http://kadu.net
+
+Package: kadu
+Architecture: any
+Pre-Depends: ${misc:Pre-Depends}
+Depends: kadu-common (= ${source:Version}),
+         libkadu (= ${binary:Version}),
+         libqca2-plugin-ossl,
+         libqt4-sql-sqlite,
+         libqt4-svg,
+         ${misc:Depends},
+         ${shlibs:Depends}
+Breaks: kadu-external-modules (<< 1.0)
+Replaces: kadu-external-modules (<< 1.0)
+Suggests: kadu-themes
+Description: Gadu-Gadu/XMPP client for X11
+ Gadu-Gadu is a Windows instant messenger, very popular in Poland.
+ Kadu is a Qt4 client of Gadu-Gadu and XMPP for *nix systems.
+ .
+ This package provides Kadu along with plugins developed by Kadu developers.
+
+Package: libkadu
+Architecture: any
+Pre-Depends: ${misc:Pre-Depends}
+Depends: ${misc:Depends},
+         ${shlibs:Depends}
+Description: Gadu-Gadu/XMPP client for X11
+ Gadu-Gadu is a Windows instant messenger, very popular in Poland.
+ Kadu is a Qt4 client of Gadu-Gadu and XMPP for *nix systems.
+ .
+ This package contains libkadu, which is used by Kadu.
+
+Package: kadu-common
+Architecture: all
+Depends: ${misc:Depends}, ${shlibs:Depends}
+Breaks: kadu-external-modules (<< 0.10.0-2)
+Suggests: kadu-themes
+Description: Gadu-Gadu/XMPP client for X11
+ Gadu-Gadu is a Windows instant messenger, very popular in Poland.
+ Kadu is a Qt4 client of Gadu-Gadu and XMPP for *nix systems.
+ .
+ This package provides data common for all architectures.
+
+Package: kadu-dev
+Architecture: any
+Depends: ${misc:Depends}, ${shlibs:Depends}
+Description: Development files needed to compile plugins for kadu
+ Gadu-Gadu is a Windows instant messenger, very popular in Poland.
+ Kadu is a Qt4 client of Gadu-Gadu and XMPP for *nix systems.
+ .
+ This package provides development files needed to compile plugins for Kadu.
+
+Package: kadu-themes
+Architecture: all
+Depends: ${misc:Depends}
+Recommends: kadu
+Description: Additional icons and emoticons for Kadu
+ Gadu-Gadu is a Windows instant messenger, very popular in Poland.
+ Kadu is a Qt4 client of Gadu-Gadu and XMPP for *nix systems.
+ .
+ This package provides additional icons, sounds and emoticons themes for
+ Kadu.
