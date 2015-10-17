@@ -1,3 +1,4 @@
 01-external-themes.patch
 02-about-dialog.patch
 03-exclude_unsupported_plugins.patch
+04-int_narrowing_fix.patch
