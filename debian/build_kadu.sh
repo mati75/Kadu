@@ -31,6 +31,7 @@ if [ "$debian_revision" = 1 ]; then
     # Generate orig-externalthemes.tar.bz2, but only if it's first
     # Debian revision for particular upstream version
     tar c externalthemes | bzip2 -9 > ../kadu_$upstream_version.orig-externalthemes.tar.bz2
+    tar c externalplugins | bzip2 -9 > ../kadu_$upstream_version.orig-externalplugins.tar.bz2
 fi
 
 if [ "$version_override" = "no" ]; then
