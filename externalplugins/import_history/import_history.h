@@ -20,7 +20,7 @@
 #define ImportHistory_H
 
 #include <QtCore/QObject>
-#include <plugins/generic-plugin.h>
+#include <plugin/plugin-root-component.h>
 
 class QAction;
 
@@ -31,16 +31,17 @@ class ActionDescription;
  * @defgroup import_history "Import history"
  * @{
  */
-class ImportHistory : public QObject, public GenericPlugin
+class ImportHistory : public QObject, public PluginRootComponent
 {
-    Q_OBJECT
-    Q_INTERFACES(GenericPlugin)
+	Q_OBJECT
+	Q_INTERFACES(PluginRootComponent)
+	Q_PLUGIN_METADATA(IID "im.kadu.PluginRootComponent")
 
   public:
     ImportHistory();
     virtual ~ImportHistory();
-    
-    virtual int init(bool);
+
+    virtual bool init(bool);
     virtual void done();
 
   private:

@@ -155,7 +155,7 @@ void Import::ggProceed()
     case 0:
       imThread=new ImportFromGG(accountList[ui->accountCBox->currentIndex()], ui->ggPath->text(), this);
       break;
-      
+
     case 1:
       imThread=new ImportFromGG8(accountList[ui->accountCBox->currentIndex()], ui->gg8Path->text(), this);
       break;
@@ -217,5 +217,7 @@ void Import::updateProgress()
 {
   ui->progressBar->setValue(imThread->getPosition());
 }
+
+#include "moc_gui.cpp"
 
 /** @} */

@@ -26,6 +26,9 @@
 #include "contacts/contact-manager.h"
 #include "plugins/history/history.h"
 #include "protocols/services/chat-image-service.h"
+#include <core/core.h>
+#include <services/image-storage-service.h>
+#include <formatted-string/formatted-string-factory.h>
 
 #include "gg8importer.h"
 
@@ -47,7 +50,7 @@ ImportFromGG8::ImportFromGG8(const Account& acc, QString d, QObject* p): Importe
   else   //upewniamy się że w katalogu ~/.kadu jest katalog `images`
   {
     QDir images;
-    images.mkpath(ChatImageService::imagesPath());
+    images.mkpath(Core::instance()->imageStorageService()->storagePath());
   }
 }
 
@@ -72,9 +75,9 @@ QString ImportFromGG8::decode(QString msg)
       int fileName=path.indexOf("ImgCache");           //trzeba takie cyrki bo raz jest / a raz \ i QFileInfo sobie z tym nie radzi
       path.remove(0, fileName+9);
       QFile srcImage(dir+"/ImgCache/"+path);
-      srcImage.copy(ChatImageService::imagesPath()+path);
+      srcImage.copy(Core::instance()->imageStorageService()->storagePath()+path);
 
-      qDebug() << dir+"/ImgCache/"+path << "to" << ChatImageService::imagesPath()+path;
+      qDebug() << dir+"/ImgCache/"+path << "to" << Core::instance()->imageStorageService()->storagePath()+path;
 
       //podmien scieżkę
       msg.replace(pathBegin+5, pathEnd-pathBegin-5, "kaduimg:///"+path);
@@ -185,7 +188,9 @@ void ImportFromGG8::run()
                      :ContactManager::instance()->byId(account, QString(uinsList[0]), ActionCreateAndAdd);
         message.setMessageChat(chatFromUinsList(uinsList));
         message.setMessageSender(user);
-        message.setContent(decode(codec->toUnicode(msg)));
+
+		auto content = Core::instance()->formattedStringFactory()->fromText(decode(codec->toUnicode(msg)));
+        message.setContent(std::move(content));
         message.setSendDate(date);
         message.setReceiveDate(date);
         message.setType(sent? MessageTypeSent : MessageTypeReceived);
@@ -207,3 +212,5 @@ void ImportFromGG8::run()
 
   sqlite3_close(db);
 }
+
+#include "moc_gg8importer.cpp"

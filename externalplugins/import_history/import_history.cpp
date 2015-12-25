@@ -19,6 +19,7 @@
 #include "kadu-core/debug.h"
 #include "gui/actions/action-description.h"
 #include "gui/windows/kadu-window.h"
+#include <gui/menu/menu-inventory.h>
 #include "misc/misc.h"
 
 #include "import_history.h"
@@ -41,7 +42,7 @@ ImportHistory::~ImportHistory()
 }
 
 
-int ImportHistory::init(bool)
+bool ImportHistory::init(bool)
 {
   kdebugf();
   //dopisz się do menu kadu
@@ -49,9 +50,14 @@ int ImportHistory::init(bool)
     this, ActionDescription::TypeMainMenu, "importHistoryAction",
     this, SLOT(importHistory(QAction *, bool)),KaduIcon(),tr("Import history")
   );
-  Core::instance()->kaduWindow()->insertMenuActionDescription(importMenuActionDescription, KaduWindow::MenuTools, 5);
+
+	MenuInventory::instance()
+		->menu("tools")
+		->addAction(importMenuActionDescription, KaduMenu::SectionTools)
+		->update();
+
   kdebugf2();
-  return 0;
+  return true;
 }
 
 
@@ -59,7 +65,12 @@ void ImportHistory::done()
 {
   kdebugf();
   Import::destroyInstance();
-  Core::instance()->kaduWindow()->removeMenuActionDescription(importMenuActionDescription);
+
+	MenuInventory::instance()
+		->menu("tools")
+		->removeAction(importMenuActionDescription)
+		->update();
+
   kdebugf2();
 }
 
@@ -70,5 +81,7 @@ void ImportHistory::importHistory(QAction *, bool)
 }
 
 Q_EXPORT_PLUGIN2(import_history, ImportHistory)
+
+#include "moc_import_history.cpp"
 
 /** @} */
