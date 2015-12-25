@@ -18,13 +18,16 @@
 #include "gui/actions/action-context.h"
 #include "kadu-core/chat/chat-manager.h"
 #include "kadu-core/contacts/contact-set.h"
-#include "kadu-core/configuration/configuration-file.h"
+#include "kadu-core/configuration/configuration-api.h"
+#include "kadu-core/configuration/deprecated-configuration-api.h"
 #include "kadu-core/icons/icons-manager.h"
-#include "kadu-core/gui/widgets/chat-widget-manager.h"
-#include "kadu-core/gui/widgets/chat-widget.h"
+#include "kadu-core/gui/widgets/chat-widget/chat-widget.h"
+#include "kadu-core/gui/widgets/chat-widget/chat-widget-repository.h"
 #include "kadu-core/gui/windows/main-window.h"
-#include "kadu-core/misc/kadu-paths.h"
+#include "kadu-core/misc/paths-provider.h"
 #include "kadu-core/debug.h"
+#include "kadu-core/core/core.h"
+#include "kadu-core/core/application.h"
 
 MimeTeX::MimeTeX * MimeTeX::MimeTeX::Instance = 0;
 
@@ -49,18 +52,18 @@ MimeTeX::MimeTeX::MimeTeX(QObject *parent)
 : QObject(parent)
 {
 	kdebugf();
-	
-	config_file.addVariable("MimeTeX", "mimetex_font_size", MimeTeX::defaultFontSize());
-	
+
+	Application::instance()->configuration()->deprecatedApi()->addVariable("MimeTeX", "mimetex_font_size", MimeTeX::defaultFontSize());
+
 	TeXActionDescription = new ActionDescription(
 			this,
 			ActionDescription::TypeChat,
 			"TeXformulaAction",
 			this,
 			SLOT(TeXActionActivated(QAction *, bool)),
-			KaduIcon(KaduPaths::instance()->dataPath() + "plugins/data/mime_tex/mime_tex_icons/tex_icon.png"),
+			KaduIcon(Application::instance()->pathsProvider()->dataPath() + "plugins/data/mime_tex/mime_tex_icons/tex_icon.png"),
 			tr("Insert TeX formula"));
-	
+
 	kdebugf2();
 }
 
@@ -69,7 +72,7 @@ MimeTeX::MimeTeX::~MimeTeX()
 	kdebugf();
 	emit deleting();
 
-	if(config_file.readBoolEntry("MimeTeX", "mimetex_remove_tmp_files", false))
+	if(Application::instance()->configuration()->deprecatedApi()->readBoolEntry("MimeTeX", "mimetex_remove_tmp_files", false))
 	{
 		kdebugm(KDEBUG_INFO, "Removing tmp GIFs\n");
 		QStringList::ConstIterator it;
@@ -90,7 +93,7 @@ void MimeTeX::MimeTeX::TeXActionActivated(QAction *action, bool)
 
 	Chat chat = qobject_cast<Action *>(action)->context()->chat();
 
-	ChatWidget *chatWidget = ChatWidgetManager::instance()->byChat(chat, false);
+	ChatWidget *chatWidget = Core::instance()->chatWidgetRepository()->widgetForChat(chat);
 	if (!chatWidget)
 		return;
 	TeXFormulaDialog *formulaDialog = new TeXFormulaDialog(chatWidget);
@@ -104,3 +107,5 @@ int MimeTeX::MimeTeX::defaultFontSize()
 	kdebugf();
 	return 4; // \Large
 }
+
+#include "moc_mime_tex.cpp"

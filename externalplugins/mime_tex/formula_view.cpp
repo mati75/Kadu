@@ -34,3 +34,4 @@ void MimeTeX::FormulaView::fillView()
 	kdebugf2();
 }
 
+#include "moc_formula_view.cpp"

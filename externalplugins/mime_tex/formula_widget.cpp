@@ -76,3 +76,5 @@ void MimeTeX::FormulaWidget::paintEvent (QPaintEvent *)
 	fillView(p);
 	kdebugf2();
 }
+
+#include "moc_formula_widget.cpp"

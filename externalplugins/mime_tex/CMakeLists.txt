@@ -2,11 +2,10 @@ project (mime_tex)
 
 # minimal required versions
 cmake_minimum_required (VERSION 2.8)
-set (QT_MIN_VERSION "4.7.0")
+set (QT_MIN_VERSION "4.8.0")
 set (CMAKE_MIN_VERSION "2.8.0")
 
-set (KADU_FIND_REQUIRED true)
-include (FindKadu)
+find_package (Kadu REQUIRED CONFIG)
 
 add_subdirectory (mimetex)
 set (SOURCES
@@ -15,18 +14,6 @@ set (SOURCES
 	mime_tex.cpp
 	mime_tex_plugin.cpp
 	tex_formula_dialog.cpp
-)
-
-set (MOC_SOURCES
-	formula_view.h
-	formula_widget.h
-	mime_tex.h
-	mime_tex_plugin.h
-	tex_formula_dialog.h
-)
-
-set (TRANSLATION_SOURCES
-	translations/mime_tex_pl.ts
 )
 
 set (CONFIGURATION_FILES
@@ -189,15 +176,13 @@ set (DATA_FILES_MIME_TEX_ICONS
 
 kadu_plugin (mime_tex
 	PLUGIN_SOURCES ${SOURCES}
-	PLUGIN_MOC_SOURCES ${MOC_SOURCES}
-	PLUGIN_TRANSLATION_SOURCES ${TRANSLATION_SOURCES}
 	PLUGIN_CONFIGURATION_FILES ${CONFIGURATION_FILES}
 )
 
 install (FILES ${DATA_FILES}
-	DESTINATION ${KADU_PLUGINS_DIR}/data/mime_tex)
+	DESTINATION ${KADU_INSTALL_PLUGINS_DATA_DIR}/data/mime_tex)
 install (FILES ${DATA_FILES_EDITOR_ICONS}
-	DESTINATION ${KADU_PLUGINS_DIR}/data/mime_tex/editor_icons)
+	DESTINATION ${KADU_INSTALL_PLUGINS_DATA_DIR}/data/mime_tex/editor_icons)
 install (FILES ${DATA_FILES_MIME_TEX_ICONS}
-	DESTINATION ${KADU_PLUGINS_DIR}/data/mime_tex/mime_tex_icons)
+	DESTINATION ${KADU_INSTALL_PLUGINS_DATA_DIR}/data/mime_tex/mime_tex_icons)
 

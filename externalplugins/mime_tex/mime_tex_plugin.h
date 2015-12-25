@@ -3,18 +3,19 @@
 
 #include <QtCore/QObject>
 
-#include "plugins/generic-plugin.h"
+#include "plugin/plugin-root-component.h"
 
 namespace MimeTeX {
-	class MimeTeXPlugin : public QObject, public GenericPlugin
+	class MimeTeXPlugin : public QObject, public PluginRootComponent
 	{
-		Q_OBJECT
-		Q_INTERFACES(GenericPlugin)
+	Q_OBJECT
+	Q_INTERFACES(PluginRootComponent)
+	Q_PLUGIN_METADATA(IID "im.kadu.PluginRootComponent")
 
 		public:
 			virtual ~MimeTeXPlugin();
 
-			virtual int init(bool firstLoad);
+			virtual bool init(bool firstLoad);
 			virtual void done();
 	};
 }

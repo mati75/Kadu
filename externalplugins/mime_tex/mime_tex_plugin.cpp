@@ -7,8 +7,9 @@
  *                                                                         *
  ***************************************************************************/
 
+#include "core/application.h"
 #include "gui/windows/main-configuration-window.h"
-#include "misc/kadu-paths.h"
+#include "misc/paths-provider.h"
 
 #include "mime_tex.h"
 
@@ -18,20 +19,22 @@ MimeTeX::MimeTeXPlugin::~MimeTeXPlugin()
 {
 }
 
-int MimeTeX::MimeTeXPlugin::init(bool firstLoad)
+bool MimeTeX::MimeTeXPlugin::init(bool firstLoad)
 {
 	Q_UNUSED(firstLoad)
 
-	MainConfigurationWindow::registerUiFile(KaduPaths::instance()->dataPath() + "plugins/configuration/mime_tex.ui");
+	MainConfigurationWindow::registerUiFile(Application::instance()->pathsProvider()->dataPath() + "plugins/configuration/mime_tex.ui");
 	MimeTeX::createInstance();
 
-	return 0;
+	return true;
 }
 
 void MimeTeX::MimeTeXPlugin::done()
 {
 	MimeTeX::destroyInstance();
-	MainConfigurationWindow::unregisterUiFile(KaduPaths::instance()->dataPath() + "plugins/configuration/mime_tex.ui");
+	MainConfigurationWindow::unregisterUiFile(Application::instance()->pathsProvider()->dataPath() + "plugins/configuration/mime_tex.ui");
 }
 
 Q_EXPORT_PLUGIN2(mime_tex, MimeTeX::MimeTeXPlugin)
+
+#include "moc_mime_tex_plugin.cpp"
