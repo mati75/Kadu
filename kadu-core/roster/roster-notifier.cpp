@@ -1,6 +1,6 @@
 /*
  * %kadu copyright begin%
- * Copyright 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2014 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -17,9 +17,10 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "notify/notification-manager.h"
-#include "notify/notification/account-notification.h"
-#include "notify/notify-event.h"
+#include "core/core.h"
+#include "notification/notification-manager.h"
+#include "notification/notification/notification.h"
+#include "notification/notification-event.h"
 
 #include "roster-notifier.h"
 
@@ -32,39 +33,39 @@ QString RosterNotifier::sm_exportFailedNotifyTopic("Roster/ExportFailed");
 RosterNotifier::RosterNotifier(QObject *parent) :
 		QObject{parent}
 {
-	m_rosterNotifyEvent.reset(new NotifyEvent{sm_rosterNotifyTopic, NotifyEvent::CallbackNotRequired,
-			QT_TRANSLATE_NOOP("@default", "Roster")});
-	m_importSucceededNotifyEvent.reset(new NotifyEvent{sm_importSucceededNotifyTopic, NotifyEvent::CallbackNotRequired,
-			QT_TRANSLATE_NOOP("@default", "Import from server succeeded")});
-	m_importFailedNotifyEvent.reset(new NotifyEvent{sm_importFailedNotifyTopic, NotifyEvent::CallbackNotRequired,
-			QT_TRANSLATE_NOOP("@default", "Import from server failed")});
-	m_exportSucceededNotifyEvent.reset(new NotifyEvent{sm_exportSucceededNotifyTopic, NotifyEvent::CallbackNotRequired,
-			QT_TRANSLATE_NOOP("@default", "Export to server succeeded")});
-	m_exportFailedNotifyEvent.reset(new NotifyEvent{sm_exportFailedNotifyTopic, NotifyEvent::CallbackNotRequired,
-			QT_TRANSLATE_NOOP("@default", "Export to server failed")});
+	m_rosterNotificationEvent = NotificationEvent{sm_rosterNotifyTopic,
+			QT_TRANSLATE_NOOP("@default", "Roster")};
+	m_importSucceededNotificationEvent = NotificationEvent{sm_importSucceededNotifyTopic,
+			QT_TRANSLATE_NOOP("@default", "Import from server succeeded")};
+	m_importFailedNotificationEvent = NotificationEvent{sm_importFailedNotifyTopic,
+			QT_TRANSLATE_NOOP("@default", "Import from server failed")};
+	m_exportSucceededNotificationEvent = NotificationEvent{sm_exportSucceededNotifyTopic,
+			QT_TRANSLATE_NOOP("@default", "Export to server succeeded")};
+	m_exportFailedNotificationEvent = NotificationEvent{sm_exportFailedNotifyTopic,
+			QT_TRANSLATE_NOOP("@default", "Export to server failed")};
 }
 
 RosterNotifier::~RosterNotifier()
 {
 }
 
-QList<NotifyEvent *> RosterNotifier::notifyEvents()
+QList<NotificationEvent> RosterNotifier::notifyEvents()
 {
-	return QList<NotifyEvent *>{}
-			<< m_rosterNotifyEvent.data()
-			<< m_importSucceededNotifyEvent.data()
-			<< m_importFailedNotifyEvent.data()
-			<< m_exportSucceededNotifyEvent.data()
-			<< m_exportFailedNotifyEvent.data();
+	return QList<NotificationEvent>{}
+			<< m_rosterNotificationEvent
+			<< m_importSucceededNotificationEvent
+			<< m_importFailedNotificationEvent
+			<< m_exportSucceededNotificationEvent
+			<< m_exportFailedNotificationEvent;
 }
 
 void RosterNotifier::notify(const QString &topic, const Account &account, const QString &message)
 {
-	auto notification = new AccountNotification{account, topic, KaduIcon{}};
+	auto notification = new Notification{account, Chat::null, topic, KaduIcon{}};
 	notification->setTitle(tr("Roster"));
 	notification->setText(message);
 
-	NotificationManager::instance()->notify(notification);
+	Core::instance()->notificationManager()->notify(notification);
 }
 
 void RosterNotifier::notifyImportSucceeded(const Account &account)

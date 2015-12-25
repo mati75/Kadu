@@ -2,8 +2,8 @@
  * %kadu copyright begin%
  * Copyright 2011 Tomasz Rostanski (rozteck@interia.pl)
  * Copyright 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2010, 2011, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2014 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2011, 2013, 2014 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -35,10 +35,10 @@
 #ifdef Q_OS_MAC
 #include <Carbon/Carbon.h>
 #endif
-#ifdef Q_OS_WIN32
+#ifdef Q_OS_WIN
 #include <QtCore/QLibrary>
-#include <windows.h>
 #include <QtWinExtras/QtWinExtras>
+#include <windows.h>
 #undef MessageBox
 typedef BOOL (WINAPI *PrintWindow_t)(HWND hwnd, HDC  hdcBlt, UINT nFlags);
 #include <debug.h>
@@ -229,7 +229,7 @@ Window PixmapGrabber::findRealWindow( Window w, int depth )
 // End of code copied from KSnapShot
 //////////////////////////////////////////////////////////////////
 
-#elif defined Q_OS_WIN32
+#elif defined Q_OS_WIN
 
 QPixmap PixmapGrabber::grabCurrent()
 {

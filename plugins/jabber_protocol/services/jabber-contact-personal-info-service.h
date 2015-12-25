@@ -1,10 +1,7 @@
 /*
  * %kadu copyright begin%
- * Copyright 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2010, 2010 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
- * Copyright 2009, 2010, 2011, 2012, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2014 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2011, 2012, 2013, 2014 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -24,30 +21,29 @@
 #ifndef JABBER_CONTACT_PERSONAL_INFO_SERVICE_H
 #define JABBER_CONTACT_PERSONAL_INFO_SERVICE_H
 
-#include <xmpp_vcard.h>
-
 #include "protocols/services/contact-personal-info-service.h"
 
-namespace XMPP
-{
-	class JabberVCardService;
-}
+#include <QtCore/QPointer>
+
+class JabberVCardService;
+
+class QXmppVCardIq;
 
 class JabberContactPersonalInfoService : public ContactPersonalInfoService
 {
 	Q_OBJECT
 
-	QPointer<XMPP::JabberVCardService> VCardService;
+	QPointer<JabberVCardService> VCardService;
 	Buddy CurrentBuddy;
 
 private slots:
-	void vCardDownloaded(bool ok, XMPP::VCard vCard);
+	void vCardDownloaded(bool ok, const QXmppVCardIq &vCard);
 
 public:
 	explicit JabberContactPersonalInfoService(Account account, QObject *parent = 0);
 	virtual ~JabberContactPersonalInfoService();
 
-	void setVCardService(XMPP::JabberVCardService *vCardService);
+	void setVCardService(JabberVCardService *vCardService);
 
 	virtual void fetchPersonalInfo(Contact contact);
 

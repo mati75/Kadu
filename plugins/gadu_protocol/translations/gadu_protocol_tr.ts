@@ -1,4 +1,6 @@
-<?xml version="1.0" ?><!DOCTYPE TS><TS language="tr" version="2.0">
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE TS>
+<TS version="2.1" language="tr">
 <context>
     <name>@default</name>
     <message>
@@ -150,22 +152,6 @@
         <translation>Devlet / İl</translation>
     </message>
     <message>
-        <source>IP Address</source>
-        <translation>IP Adresi</translation>
-    </message>
-    <message>
-        <source>Port</source>
-        <translation>Port</translation>
-    </message>
-    <message>
-        <source>DNS Name</source>
-        <translation>IP Adresi</translation>
-    </message>
-    <message>
-        <source>Protocol Version</source>
-        <translation>Protokol Versiyonu</translation>
-    </message>
-    <message>
         <source>Female</source>
         <translation>Kadın</translation>
     </message>
@@ -241,10 +227,6 @@
         <translation>Hesabı kaldır</translation>
     </message>
     <message>
-        <source>External port</source>
-        <translation>Harici port</translation>
-    </message>
-    <message>
         <source>You have to compile libgadu with SSL support to be able to enable encrypted connection</source>
         <translation>Şifreli bağlantı yapabilmek için SSL destekli libgadu derlemeniz lazım</translation>
     </message>
@@ -305,16 +287,8 @@
         <translation>Özel sunucu IP adresi</translation>
     </message>
     <message>
-        <source>Enable file transfers</source>
-        <translation>Dosya aktarımına izin ver</translation>
-    </message>
-    <message>
         <source>Network</source>
         <translation>Ağ</translation>
-    </message>
-    <message>
-        <source>External IP</source>
-        <translation>Harici IP</translation>
     </message>
     <message>
         <source>Confrim Account Removal</source>
@@ -349,6 +323,28 @@ Müsait olduğunuzu bilmelerine izin veriyor musunuz?</translation>
     <message>
         <source>Remind Password</source>
         <translation>Şifreyi Hatırlat</translation>
+    </message>
+</context>
+<context>
+    <name>GaduFileTransferService</name>
+    <message>
+        <source>Connect before sending files.</source>
+        <translation>Dosyaları göndermeden önce bağlanın.</translation>
+    </message>
+    <message>
+        <source>Enable SSL in account configuration and reconnect before sending files.</source>
+        <translation>Dosyaları göndermeden önce yeniden bağlanın ve hesap ayarlarından SSL açın.</translation>
+    </message>
+    <message>
+        <source>Unable to login to GG Drive. Reconnect before sending files.</source>
+        <translation>GG Drive&apos;da oturum açılamıyor. Dosyaları göndermeden önce yeniden bağlanın.</translation>
+    </message>
+</context>
+<context>
+    <name>GaduOutgoingFileTransferHandler</name>
+    <message>
+        <source>Valid GG Drive ticket not available</source>
+        <translation>Geçerli GG Drive bileti bulunmuyor</translation>
     </message>
 </context>
 <context>
@@ -421,6 +417,20 @@ Müsait olduğunuzu bilmelerine izin veriyor musunuz?</translation>
     <message>
         <source>Cannot load Gadu-Gadu Protocol plugin. Please compile libgadu with zlib support.</source>
         <translation>Gadu-Gadu Protocol eklentisi yüklenemiyor. Lütfen libgadu yu zlib ile derleyiniz.</translation>
+    </message>
+</context>
+<context>
+    <name>GaduSendGiftAction</name>
+    <message>
+        <source>Send Gift...</source>
+        <translation>Hediye Gönder...</translation>
+    </message>
+</context>
+<context>
+    <name>GaduUrlIncomingFileTransferHandler</name>
+    <message>
+        <source>Network error: %1</source>
+        <translation>Ağ hatası: %1</translation>
     </message>
 </context>
 </TS>

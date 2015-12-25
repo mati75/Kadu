@@ -1,6 +1,6 @@
 /*
  * %kadu copyright begin%
- * Copyright 2014 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2014 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -32,6 +32,7 @@ bool UnityIntegrationPlugin::init(bool firstLoad)
 	Q_UNUSED(firstLoad)
 
 	m_unityIntegration.reset(new UnityIntegration{});
+	m_unityIntegration->setFileTransferManager(Core::instance()->fileTransferManager());
 	m_unityIntegration->setUnreadMessageRepository(Core::instance()->unreadMessageRepository());
 
 	return true;

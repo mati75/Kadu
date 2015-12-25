@@ -1,17 +1,17 @@
 /*
  * %kadu copyright begin%
  * Copyright 2011 Tomasz Rostanski (rozteck@interia.pl)
- * Copyright 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2010, 2010, 2011 Przemysław Rudy (prudy1@o2.pl)
- * Copyright 2009, 2010, 2010, 2011, 2012 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2010, 2010, 2010 Tomasz Rostański (rozteck@interia.pl)
+ * Copyright 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2010, 2011 Przemysław Rudy (prudy1@o2.pl)
+ * Copyright 2009, 2010, 2011, 2012 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2010 Tomasz Rostański (rozteck@interia.pl)
  * Copyright 2010, 2011 Piotr Dąbrowski (ultr@ultr.pl)
  * Copyright 2009 Michał Podsiadlik (michal@kadu.net)
  * Copyright 2009, 2010 Maciej Płaza (plaza.maciej@gmail.com)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
  * Copyright 2010 badboy (badboy@gen2.org)
- * Copyright 2009, 2009, 2010, 2011, 2012, 2013, 2014 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2010, 2011, 2012, 2013, 2014 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -50,6 +50,7 @@
 #include "contacts/contact-manager.h"
 #include "core/application.h"
 #include "dom/dom-processor-service.h"
+#include "file-transfer/file-transfer-handler-manager.h"
 #include "file-transfer/file-transfer-manager.h"
 #include "formatted-string/formatted-string-factory.h"
 #include "gui/services/clipboard-html-transformer-service.h"
@@ -91,7 +92,11 @@
 #include "misc/change-notifier-lock.h"
 #include "misc/date-time-parser-tags.h"
 #include "misc/paths-provider.h"
-#include "notify/notification-manager.h"
+#include "notification/notification-callback-repository.h"
+#include "notification/notification-event-repository.h"
+#include "notification/notification-event.h"
+#include "notification/notification-manager.h"
+#include "notification/notification-service.h"
 #include "parser/parser.h"
 #include "plugin/activation/plugin-activation-error-handler.h"
 #include "plugin/activation/plugin-activation-service.h"
@@ -106,17 +111,17 @@
 #include "plugin/state/plugin-state-storage.h"
 #include "protocols/protocol-factory.h"
 #include "protocols/protocol.h"
-#include "roster/roster-notifier.h"
-#include "roster/roster-replacer.h"
 #include "provider/default-provider.h"
 #include "provider/simple-provider.h"
+#include "roster/roster-notifier.h"
+#include "roster/roster-replacer.h"
 #include "services/chat-image-request-service-configurator.h"
 #include "services/chat-image-request-service.h"
 #include "services/image-storage-service.h"
 #include "services/message-filter-service.h"
 #include "services/message-transformer-service.h"
-#include "services/notification-service.h"
 #include "services/raw-message-transformer-service.h"
+#include "ssl/ssl-certificate-manager.h"
 #include "status/status-configuration-holder.h"
 #include "status/status-container-manager.h"
 #include "status/status-setter.h"
@@ -126,6 +131,7 @@
 #include "themes/icon-theme-manager.h"
 #include "url-handlers/url-handler-manager.h"
 #include "activate.h"
+#include "attention-service.h"
 #include "debug.h"
 #include "kadu-config.h"
 #include "updates.h"
@@ -182,7 +188,6 @@ Core::Core(injeqt::injector &injector) :
 		CurrentMessageHtmlRendererService{nullptr},
 		CurrentMessageRenderInfoFactory{nullptr},
 		CurrentMessageTransformerService{nullptr},
-		CurrentNotificationService{nullptr},
 		CurrentRawMessageTransformerService{nullptr},
 		CurrentClipboardHtmlTransformerService{nullptr},
 		CurrentAccountConfigurationWidgetFactoryRepository{nullptr},
@@ -225,6 +230,7 @@ Core::~Core()
 
 	// unloading modules does that
 	/*StatusContainerManager::instance()->disconnectAndStoreLastStatus(disconnectWithCurrentDescription, disconnectDescription);*/
+	m_injector.get<SslCertificateManager>()->storePersistentSslCertificates();
 	m_injector.get<ChatWindowManager>()->storeOpenedChatWindows();
 
 	// some plugins crash on deactivation
@@ -239,10 +245,6 @@ Core::~Core()
 
 	ConfigurationManager::instance()->flush();
 	Application::instance()->backupConfiguration();
-
-#ifdef Q_OS_MAC
-	QApplication::setWindowIcon(KaduIcon("kadu_icons/kadu").icon());
-#endif // Q_OS_MAC
 
 	KaduWindowProvider->provideValue(0);
 	QWidget *hiddenParent = Window->parentWidget();
@@ -283,7 +285,7 @@ void Core::createDefaultConfiguration()
 	QWidget w;
 
 	Application::instance()->configuration()->deprecatedApi()->addVariable("Chat", "AutoSend", true);
-	Application::instance()->configuration()->deprecatedApi()->addVariable("Chat", "BlinkChatTitle", true);
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Chat", "BlinkChatTitle", false);
 	Application::instance()->configuration()->deprecatedApi()->addVariable("Chat", "ChatCloseTimer", true);
 	Application::instance()->configuration()->deprecatedApi()->addVariable("Chat", "ChatCloseTimerPeriod", 2);
 	Application::instance()->configuration()->deprecatedApi()->addVariable("Chat", "ChatPrune", false);
@@ -309,7 +311,7 @@ void Core::createDefaultConfiguration()
 	Application::instance()->configuration()->deprecatedApi()->addVariable("General", "DEBUG_MASK", KDEBUG_ALL & ~KDEBUG_FUNCTION_END);
 	Application::instance()->configuration()->deprecatedApi()->addVariable("General", "DescriptionHeight", 60);
 	Application::instance()->configuration()->deprecatedApi()->addVariable("General", "DisconnectWithCurrentDescription", true);
-#ifdef Q_OS_WIN32
+#ifdef Q_OS_WIN
 	Application::instance()->configuration()->deprecatedApi()->addVariable("General", "HideMainWindowFromTaskbar", false);
 #endif
 	Application::instance()->configuration()->deprecatedApi()->addVariable("General", "Language",  QLocale::system().name().left(2));
@@ -345,10 +347,9 @@ void Core::createDefaultConfiguration()
 	Application::instance()->configuration()->deprecatedApi()->addVariable("Look", "AlignUserboxIconsTop", true);
 	Application::instance()->configuration()->deprecatedApi()->addVariable("Look", "AvatarBorder", false);
 	Application::instance()->configuration()->deprecatedApi()->addVariable("Look", "AvatarGreyOut", true);
-	Application::instance()->configuration()->deprecatedApi()->addVariable("Look", "ChatContents", QString());
 	Application::instance()->configuration()->deprecatedApi()->addVariable("Look", "ForceCustomChatFont", false);
 	QFont chatFont = qApp->font();
-#ifdef Q_OS_WIN32
+#ifdef Q_OS_WIN
 	// On Windows default app font is often "MS Shell Dlg 2", and the default sans
 	// family (Arial, at least in Qt 4.8) is better. Though, on X11 the default
 	// sans family is the same while most users will have some nice default app
@@ -372,8 +373,6 @@ void Core::createDefaultConfiguration()
 		Application::instance()->configuration()->deprecatedApi()->readColorEntry("Look", "ChatTextBgColor") != QColor("#ffffff"));
 	Application::instance()->configuration()->deprecatedApi()->addVariable("Look", "ChatTextBgColor", QColor("#ffffff"));
 	Application::instance()->configuration()->deprecatedApi()->addVariable("Look", "ChatTextFontColor", QColor("#000000"));
-	Application::instance()->configuration()->deprecatedApi()->addVariable("Look", "ConferenceContents", QString());
-	Application::instance()->configuration()->deprecatedApi()->addVariable("Look", "ConferencePrefix", QString());
 	Application::instance()->configuration()->deprecatedApi()->addVariable("Look", "DescriptionColor", w.palette().text().color());
 	Application::instance()->configuration()->deprecatedApi()->addVariable("Look", "DisplayGroupTabs", true);
 	Application::instance()->configuration()->deprecatedApi()->addVariable("Look", "HeaderSeparatorHeight", 1);
@@ -410,14 +409,7 @@ void Core::createDefaultConfiguration()
 	userboxfont.setPointSize(qApp->font().pointSize() + 1);
 	Application::instance()->configuration()->deprecatedApi()->addVariable("Look", "UserboxFont", userboxfont);
 	Application::instance()->configuration()->deprecatedApi()->addVariable("Look", "UseUserboxBackground", false);
-#ifdef Q_OS_MAC
-	/* Dorr: for MacOS X define the icon notification to animated which
-	 * will prevent from blinking the dock icon
-	 */
-	KaduApplication::instance()->configuration()->deprecatedApi()->addVariable("Look", "NewMessageIcon", 2);
-#endif
 
-	Application::instance()->configuration()->deprecatedApi()->addVariable("Network", "AllowDCC", true);
 	Application::instance()->configuration()->deprecatedApi()->addVariable("Network", "DefaultPort", 0);
 	Application::instance()->configuration()->deprecatedApi()->addVariable("Network", "isDefServers", true);
 	Application::instance()->configuration()->deprecatedApi()->addVariable("Network", "Server", QString());
@@ -426,11 +418,11 @@ void Core::createDefaultConfiguration()
 #ifdef Q_OS_MAC
 	/* Dorr: for MacOS X define the function keys with 'apple' button
 	 * as it is the default system configuration */
-	KaduApplication::instance()->configuration()->deprecatedApi()->addVariable("ShortCuts", "chat_clear", "Ctrl+F9");
-	KaduApplication::instance()->configuration()->deprecatedApi()->addVariable("ShortCuts", "kadu_configure", "Ctrl+F2");
-	KaduApplication::instance()->configuration()->deprecatedApi()->addVariable("ShortCuts", "kadu_modulesmanager", "Ctrl+F4");
-	KaduApplication::instance()->configuration()->deprecatedApi()->addVariable("ShortCuts", "kadu_showoffline", "Ctrl+F9");
-	KaduApplication::instance()->configuration()->deprecatedApi()->addVariable("ShortCuts", "kadu_showonlydesc", "Ctrl+F10");
+	Application::instance()->configuration()->deprecatedApi()->addVariable("ShortCuts", "chat_clear", "Ctrl+F9");
+	Application::instance()->configuration()->deprecatedApi()->addVariable("ShortCuts", "kadu_configure", "Ctrl+F2");
+	Application::instance()->configuration()->deprecatedApi()->addVariable("ShortCuts", "kadu_modulesmanager", "Ctrl+F4");
+	Application::instance()->configuration()->deprecatedApi()->addVariable("ShortCuts", "kadu_showoffline", "Ctrl+F9");
+	Application::instance()->configuration()->deprecatedApi()->addVariable("ShortCuts", "kadu_showonlydesc", "Ctrl+F10");
 #else
 	Application::instance()->configuration()->deprecatedApi()->addVariable("ShortCuts", "chat_clear", "F9");
 	Application::instance()->configuration()->deprecatedApi()->addVariable("ShortCuts", "kadu_configure", "F2");
@@ -499,7 +491,7 @@ void Core::init()
 	QTimer::singleShot(15000, this, SLOT(deleteOldConfigurationFiles()));
 
 	// TODO: add some life-cycle management
-	NotificationManager::instance();
+	notificationManager();
 
 	AccountManager::instance()->ensureLoaded();
 	BuddyManager::instance()->ensureLoaded();
@@ -607,7 +599,8 @@ void Core::createGui()
 	KaduWindowProvider->provideValue(Window);
 
 	// initialize file transfers
-	FileTransferManager::instance();
+	m_injector.get<FileTransferHandlerManager>();
+	m_injector.get<FileTransferManager>();
 }
 
 void Core::runServices()
@@ -630,7 +623,7 @@ void Core::runServices()
 
 	auto rosterNotifier = m_injector.get<RosterNotifier>();
 	for (auto &&notifyEvent : rosterNotifier->notifyEvents())
-		NotificationManager::instance()->registerNotifyEvent(notifyEvent);
+		Core::instance()->notificationEventRepository()->addNotificationEvent(notifyEvent);
 
 	CurrentChatWidgetActions = new ChatWidgetActions(this);
 
@@ -695,6 +688,7 @@ void Core::runServices()
 
 	// instantiate = run in case of services
 	m_injector.get<ChatWidgetStatePersistenceService>();
+	m_injector.get<AttentionService>()->setUnreadMessageRepository(unreadMessageRepository());
 
 	// moved here because of #2758
 	ContactManager::instance()->init();
@@ -702,10 +696,10 @@ void Core::runServices()
 
 void Core::runGuiServices()
 {
-	CurrentNotificationService = new NotificationService(this);
-	CurrentChatWidgetMessageHandler->setNotificationService(CurrentNotificationService);
+	CurrentChatWidgetMessageHandler->setNotificationService(m_injector.get<NotificationService>());
 
 	m_injector.get<ChatWindowManager>()->openStoredChatWindows();
+	m_injector.get<SslCertificateManager>()->loadPersistentSslCertificates();
 }
 
 void Core::stopServices()
@@ -720,6 +714,11 @@ void Core::activatePlugins()
 	auto changeNotifierLock = ChangeNotifierLock{m_injector.get<PluginStateService>()->changeNotifier()};
 	m_injector.get<PluginManager>()->activatePlugins();
 	m_injector.get<PluginManager>()->activateReplacementPlugins();
+}
+
+AttentionService * Core::attentionService() const
+{
+	return m_injector.get<AttentionService>();
 }
 
 BuddyDataWindowRepository * Core::buddyDataWindowRepository() const
@@ -767,9 +766,24 @@ MessageTransformerService * Core::messageTransformerService() const
 	return CurrentMessageTransformerService;
 }
 
+NotificationCallbackRepository * Core::notificationCallbackRepository() const
+{
+	return m_injector.get<NotificationCallbackRepository>();
+}
+
+NotificationEventRepository * Core::notificationEventRepository() const
+{
+	return m_injector.get<NotificationEventRepository>();
+}
+
+NotificationManager * Core::notificationManager() const
+{
+	return m_injector.get<NotificationManager>();
+}
+
 NotificationService * Core::notificationService() const
 {
-	return CurrentNotificationService;
+	return m_injector.get<NotificationService>();
 }
 
 FormattedStringFactory * Core::formattedStringFactory() const
@@ -900,6 +914,21 @@ WebkitMessagesViewHandlerFactory * Core::webkitMessagesViewHandlerFactory() cons
 RosterReplacer * Core::rosterReplacer() const
 {
 	return m_injector.get<RosterReplacer>();
+}
+
+SslCertificateManager * Core::sslCertificateManager() const
+{
+	return m_injector.get<SslCertificateManager>();
+}
+
+FileTransferHandlerManager * Core::fileTransferHandlerManager() const
+{
+	return m_injector.get<FileTransferHandlerManager>();
+}
+
+FileTransferManager * Core::fileTransferManager() const
+{
+	return m_injector.get<FileTransferManager>();
 }
 
 void Core::showMainWindow()

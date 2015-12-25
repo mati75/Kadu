@@ -1,13 +1,7 @@
 /*
  * %kadu copyright begin%
- * Copyright 2008, 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2009, 2010 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2008 Michał Podsiadlik (michal@kadu.net)
- * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
- * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
- * Copyright 2007, 2008, 2009, 2010, 2011, 2013, 2014 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
+ * Copyright 2013, 2014 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2011, 2013, 2014 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -45,7 +39,8 @@ class QLineEdit;
 class QPushButton;
 
 class ChooseIdentityWidget;
-class JabberServerRegisterAccount;
+class JabberServersService;
+class Jid;
 
 class JabberCreateAccountWidget : public AccountCreateWidget
 {
@@ -56,42 +51,22 @@ class JabberCreateAccountWidget : public AccountCreateWidget
 	QLineEdit *NewPassword;
 	QLineEdit *ReNewPassword;
 	QCheckBox *RememberPassword;
+	QLineEdit *EMail;
 	IdentitiesComboBox *IdentityCombo;
 	QPushButton *RegisterAccountButton;
 
-	QPushButton *ExpandConnectionOptionsButton;
-	QWidget *OptionsWidget;
-	QCheckBox *CustomHostPort;
-	QHBoxLayout *HostPortLayout;
-	QLabel *CustomHostLabel;
-	QLineEdit *CustomHost;
-	QLabel *CustomPortLabel;
-	QLineEdit *CustomPort;
-	QLabel *EncryptionModeLabel;
-	QComboBox *EncryptionMode;
-	QCheckBox *LegacySSLProbe;
-
-	int ssl_;
-	bool opt_host_, legacy_ssl_probe_;
-	QString host_;
-	uint port_;
-	bool ShowConnectionOptions;
-
 	void createGui(bool showButtons);
-	bool checkSSL();
 	void resetGui();
 
 private slots:
 	void dataChanged();
-	void connectionOptionsChanged();
-	void hostToggled(bool on);
-	void sslActivated(int i);
-
-	void jidRegistered(const QString &jid, const QString &tlsDomain);
+	void jidRegistered(const Jid &jid);
 
 public:
 	explicit JabberCreateAccountWidget(bool showButtons, QWidget *parent = 0);
 	virtual ~JabberCreateAccountWidget();
+
+	void setJabberServersService(JabberServersService *serversService);
 
 public slots:
 	virtual void apply();

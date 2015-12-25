@@ -1,11 +1,6 @@
 /*
  * %kadu copyright begin%
- * Copyright 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2008 Tomasz Rostański (rozteck@interia.pl)
- * Copyright 2008 Michał Podsiadlik (michal@kadu.net)
- * Copyright 2007, 2008, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2011, 2014 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -31,7 +26,7 @@
 
 #include "gui/widgets/configuration/notifier-configuration-widget.h"
 
-#include "notify/notifier.h"
+#include "notification/notifier.h"
 
 
 class QLineEdit;
@@ -40,7 +35,7 @@ class ExecConfigurationWidget : public NotifierConfigurationWidget
 {
 	Q_OBJECT
 
-	QString currentNotifyEvent;
+	QString currentNotificationEvent;
 	QMap<QString, QString> Commands;
 
 	QLineEdit *commandLineEdit;

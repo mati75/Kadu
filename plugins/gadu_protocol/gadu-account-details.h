@@ -1,11 +1,7 @@
 /*
  * %kadu copyright begin%
- * Copyright 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2010 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2011 Piotr Dąbrowski (ultr@ultr.pl)
- * Copyright 2008 Michał Podsiadlik (michal@kadu.net)
- * Copyright 2009, 2010, 2011, 2012, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2011, 2012, 2013, 2014, 2015 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -32,14 +28,11 @@
 
 class GaduAccountDetails : public AccountDetails
 {
-	PROPERTY_DEC(bool, AllowDcc)
 	PROPERTY_DEC(bool, ReceiveImagesDuringInvisibility)
 	PROPERTY_DEC(bool, ChatImageSizeWarning)
 	PROPERTY_DEC(bool, InitialRosterImport)
 	PROPERTY_DEC(bool, TlsEncryption)
 	PROPERTY_DEC(bool, SendTypingNotification)
-	PROPERTY_DEC(QString, ExternalIp)
-	PROPERTY_DEC(unsigned int, ExternalPort)
 	PROPERTY_DEC(int, UserlistVersion)
 	PROPERTY_DEC(bool, ReceiveSpam)
 
@@ -55,14 +48,11 @@ public:
 
 	UinType uin();
 
-	PROPERTY_DEF(bool, allowDcc, setAllowDcc, AllowDcc)
 	PROPERTY_DEF(bool, receiveImagesDuringInvisibility, setReceiveImagesDuringInvisibility, ReceiveImagesDuringInvisibility)
 	PROPERTY_DEF(bool, chatImageSizeWarning, setChatImageSizeWarning, ChatImageSizeWarning)
 	PROPERTY_DEF(bool, initialRosterImport, setInitialRosterImport, InitialRosterImport)
 	PROPERTY_DEF(bool, tlsEncryption, setTlsEncryption, TlsEncryption)
 	PROPERTY_DEF(bool, sendTypingNotification, setSendTypingNotification, SendTypingNotification)
-	PROPERTY_DEF(QString, externalIp, setExternalIp, ExternalIp)
-	PROPERTY_DEF(unsigned int, externalPort, setExternalPort, ExternalPort)
 	PROPERTY_DEF(int, userlistVersion, setUserlistVersion, UserlistVersion)
 	PROPERTY_DEF(bool, receiveSpam, setReceiveSpam, ReceiveSpam)
 

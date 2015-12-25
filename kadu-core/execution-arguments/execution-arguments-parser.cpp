@@ -1,6 +1,6 @@
 /*
  * %kadu copyright begin%
- * Copyright 2014 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2014 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -21,6 +21,8 @@
 
 #include "execution-arguments/execution-arguments-builder.h"
 #include "execution-arguments/execution-arguments.h"
+
+#include <cstdio>
 
 ExecutionArguments ExecutionArgumentsParser::parse(const QStringList &arguments) const
 {

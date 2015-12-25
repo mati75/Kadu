@@ -1,14 +1,12 @@
 /*
  * %kadu copyright begin%
- * Copyright 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009, 2010, 2012 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2009 Michał Podsiadlik (michal@kadu.net)
  * Copyright 2010 Maciej Płaza (plaza.maciej@gmail.com)
  * Copyright 2010 Bartłomiej Zimoń (uzi18@o2.pl)
- * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
- * Copyright 2007, 2008, 2009, 2009, 2010, 2011, 2012, 2013, 2014 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2010, 2011, 2012, 2014 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
+ * Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -46,6 +44,7 @@ template<class T>
 class DefaultProvider;
 
 class AccountConfigurationWidgetFactoryRepository;
+class AttentionService;
 class BuddyConfigurationWidgetFactoryRepository;
 class BuddyDataWindowRepository;
 class ChatConfigurationWidgetFactoryRepository;
@@ -62,6 +61,8 @@ class ChatWidgetRepository;
 class ClipboardHtmlTransformerService;
 class ConfiguredChatStyleRendererFactoryProvider;
 class DomProcessorService;
+class FileTransferHandlerManager;
+class FileTransferManager;
 class FormattedStringFactory;
 class ImageStorageService;
 class Application;
@@ -72,6 +73,9 @@ class MessageFilterService;
 class MessageHtmlRendererService;
 class MessageRenderInfoFactory;
 class MessageTransformerService;
+class NotificationCallbackRepository;
+class NotificationEventRepository;
+class NotificationManager;
 class NotificationService;
 class PluginActivationService;
 class PluginConflictResolver;
@@ -81,6 +85,7 @@ class PluginStateService;
 class RawMessageTransformerService;
 class RosterNotifier;
 class RosterReplacer;
+class SslCertificateManager;
 class StoragePointFactory;
 class UnreadMessageRepository;
 class WebkitMessagesViewDisplayFactory;
@@ -109,7 +114,6 @@ class KADUAPI Core : public QObject, private AccountsAwareObject, public Configu
 	MessageHtmlRendererService *CurrentMessageHtmlRendererService;
 	MessageRenderInfoFactory *CurrentMessageRenderInfoFactory;
 	MessageTransformerService *CurrentMessageTransformerService;
-	NotificationService *CurrentNotificationService;
 	RawMessageTransformerService *CurrentRawMessageTransformerService;
 	ClipboardHtmlTransformerService *CurrentClipboardHtmlTransformerService;
 	AccountConfigurationWidgetFactoryRepository *CurrentAccountConfigurationWidgetFactoryRepository;
@@ -172,6 +176,7 @@ public:
 
 	void activatePlugins();
 
+	AttentionService * attentionService() const;
 	BuddyDataWindowRepository * buddyDataWindowRepository() const;
 	ChatDataWindowRepository * chatDataWindowRepository() const;
 	ChatImageRequestService * chatImageRequestService() const;
@@ -181,6 +186,9 @@ public:
 	MessageHtmlRendererService * messageHtmlRendererService() const;
 	MessageRenderInfoFactory * messageRenderInfoFactory() const;
 	MessageTransformerService * messageTransformerService() const;
+	NotificationCallbackRepository * notificationCallbackRepository() const;
+	NotificationEventRepository * notificationEventRepository() const;
+	NotificationManager * notificationManager() const;
 	NotificationService * notificationService() const;
 	FormattedStringFactory * formattedStringFactory() const;
 	RawMessageTransformerService * rawMessageTransformerService() const;
@@ -210,6 +218,10 @@ public:
 	WebkitMessagesViewFactory * webkitMessagesViewFactory() const;
 	WebkitMessagesViewHandlerFactory * webkitMessagesViewHandlerFactory() const;
 	RosterReplacer * rosterReplacer() const;
+	SslCertificateManager * sslCertificateManager() const;
+
+	FileTransferHandlerManager * fileTransferHandlerManager() const;
+	FileTransferManager * fileTransferManager() const;
 
 	void setShowMainWindowOnStart(bool show);
 	void setMainWindow(QWidget *window);

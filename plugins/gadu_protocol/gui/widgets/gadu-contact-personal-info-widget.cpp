@@ -1,15 +1,7 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2009, 2010, 2010 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2004 Michał Podsiadlik (michal@kadu.net)
- * Copyright 2009, 2009 Bartłomiej Zimoń (uzi18@o2.pl)
- * Copyright 2002, 2003, 2004, 2005 Adrian Smarzewski (adrian@kadu.net)
- * Copyright 2002, 2003, 2004 Tomasz Chiliński (chilek@chilan.com)
- * Copyright 2007, 2009, 2010, 2011, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2007 Dawid Stawiarski (neeo@kadu.net)
- * Copyright 2005 Marcin Ślusarz (joi@kadu.net)
+ * Copyright 2012, 2013, 2014 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2011, 2013, 2014 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -94,18 +86,6 @@ void GaduContactPersonalInfoWidget::createGui()
 	StateProvinceText = new QLabel(this);
 	infoLayout->addRow(new QLabel(tr("State/Province") + ':', infoWidget), StateProvinceText);
 
-	IpText = new QLabel(this);
-	infoLayout->addRow(new QLabel(tr("IP Address") + ':', infoWidget), IpText);
-
-	PortText = new QLabel(this);
-	infoLayout->addRow(new QLabel(tr("Port") + ':', infoWidget), PortText);
-
-	DnsNameText = new QLabel(this);
-	infoLayout->addRow(new QLabel(tr("DNS Name") + ':', infoWidget), DnsNameText);
-
-	ProtocolVerText = new QLabel(this);
-	infoLayout->addRow(new QLabel(tr("Protocol Version") + ':', infoWidget), ProtocolVerText);
-
 	layout->addWidget(infoWidget);
 	layout->addStretch(100);
 }
@@ -119,10 +99,6 @@ void GaduContactPersonalInfoWidget::reset()
 	BirthdateText->clear();
 	CityText->clear();
 	StateProvinceText->clear();
-	IpText->clear();
-	PortText->clear();
-	DnsNameText->clear();
-	ProtocolVerText->clear();
 }
 
 void GaduContactPersonalInfoWidget::personalInfoAvailable(Buddy buddy)
@@ -159,10 +135,6 @@ void GaduContactPersonalInfoWidget::personalInfoAvailable(Buddy buddy)
 
 	CityText->setText(buddy.city());
 	StateProvinceText->clear(); // do not have any info, do we need this control anyway?
-	IpText->setText(contact.address().toString());
-	PortText->setText(QString::number(contact.port()));
-	DnsNameText->setText(contact.dnsName());
-	ProtocolVerText->setText(contact.protocolVersion());
 }
 
 #include "moc_gadu-contact-personal-info-widget.cpp"

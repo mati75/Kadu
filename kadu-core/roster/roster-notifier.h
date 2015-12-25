@@ -1,6 +1,6 @@
 /*
  * %kadu copyright begin%
- * Copyright 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2014 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -19,12 +19,13 @@
 
 #pragma once
 
+#include "notification/notification-event.h"
 #include "exports.h"
 
 #include <QtCore/QObject>
 
 class Account;
-class NotifyEvent;
+class NotificationEvent;
 
 /**
  * @addtogroup Roster
@@ -36,11 +37,11 @@ class NotifyEvent;
  * @short Notifier for roster-based events.
  *
  * Provides five user events:
- * * rosterNotifyEvent;
- * * importSucceededNotifyEvent;
- * * importFailedNotifyEvent;
- * * exportSucceededNotifyEvent;
- * * exportFailedNotifyEvent;
+ * * rosterNotificationEvent;
+ * * importSucceededNotificationEvent;
+ * * importFailedNotificationEvent;
+ * * exportSucceededNotificationEvent;
+ * * exportFailedNotificationEvent;
  *
  * First one is used as a base for rest.
  */
@@ -52,7 +53,7 @@ public:
 	Q_INVOKABLE explicit RosterNotifier(QObject *parent = nullptr);
 	virtual ~RosterNotifier();
 
-	QList<NotifyEvent *> notifyEvents();
+	QList<NotificationEvent> notifyEvents();
 
 public slots:
 	void notifyImportSucceeded(const Account &account);
@@ -67,11 +68,11 @@ private:
 	static QString sm_exportSucceededNotifyTopic;
 	static QString sm_exportFailedNotifyTopic;
 
-	QScopedPointer<NotifyEvent> m_rosterNotifyEvent;
-	QScopedPointer<NotifyEvent> m_importSucceededNotifyEvent;
-	QScopedPointer<NotifyEvent> m_importFailedNotifyEvent;
-	QScopedPointer<NotifyEvent> m_exportSucceededNotifyEvent;
-	QScopedPointer<NotifyEvent> m_exportFailedNotifyEvent;
+	NotificationEvent m_rosterNotificationEvent;
+	NotificationEvent m_importSucceededNotificationEvent;
+	NotificationEvent m_importFailedNotificationEvent;
+	NotificationEvent m_exportSucceededNotificationEvent;
+	NotificationEvent m_exportFailedNotificationEvent;
 
 	void notify(const QString &topic, const Account &account, const QString &message);
 

@@ -1,19 +1,7 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Tomasz Rostanski (rozteck@interia.pl)
- * Copyright 2008, 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2010, 2012 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2004 Tomasz Jarzynka (tomee@cpi.pl)
- * Copyright 2008, 2009 Michał Podsiadlik (michal@kadu.net)
- * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
- * Copyright 2002, 2003, 2005 Adrian Smarzewski (adrian@kadu.net)
- * Copyright 2005 Paweł Płuciennik (pawel_p@kadu.net)
- * Copyright 2002, 2003 Tomasz Chiliński (chilek@chilan.com)
- * Copyright 2007, 2008, 2009, 2010, 2011, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011, 2012, 2013, 2014 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2007 Dawid Stawiarski (neeo@kadu.net)
- * Copyright 2004, 2005, 2006, 2007 Marcin Ślusarz (joi@kadu.net)
- * Copyright 2002, 2003 Dariusz Jagodzik (mast3r@kadu.net)
+ * Copyright 2014 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2013, 2014, 2015 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -40,11 +28,10 @@
 #include "buddies/group-manager.h"
 #include "buddies/group.h"
 #include "chat/chat-list-mime-data-helper.h"
+#include "core/application.h"
 #include "core/core.h"
-#include "gui/widgets/dialog/add-group-dialog-widget.h"
-#include "gui/widgets/dialog/edit-group-dialog-widget.h"
 #include "gui/windows/add-buddy-window.h"
-#include "gui/windows/group-properties-window.h"
+#include "gui/windows/group-edit-window.h"
 #include "gui/windows/kadu-dialog.h"
 #include "gui/windows/kadu-window.h"
 #include "gui/windows/message-dialog.h"
@@ -60,11 +47,6 @@ GroupTabBar::GroupTabBar(QWidget *parent) :
 		QTabBar(parent)
 {
 	setSizePolicy(QSizePolicy(QSizePolicy::Minimum, QSizePolicy::Expanding));
-
-#ifdef Q_OS_MAC
-	setDocumentMode(true);
-	setUsesScrollButtons(true);
-#endif
 
  	setAcceptDrops(true);
 	setDrawBase(false);
@@ -116,7 +98,10 @@ void GroupTabBar::setConfiguration(GroupTabBarConfiguration configuration)
 			setCurrentIndex(configuration.currentGroupTab());
 	}
 	else
-		emit currentGroupFilterChanged(GroupFilter{GroupFilterEverybody});
+	{
+		CurrentGroupFilter = GroupFilter{GroupFilterEverybody};
+		emit currentGroupFilterChanged(CurrentGroupFilter);
+	}
 }
 
 void GroupTabBar::updateUngrouppedTab()
@@ -173,10 +158,12 @@ void GroupTabBar::currentChangedSlot(int index)
 {
 	Configuration.setCurrentGroupTab(index);
 	if (Configuration.displayGroupTabs())
-		emit currentGroupFilterChanged(groupFilterAt(index));
+		CurrentGroupFilter = groupFilterAt(index);
 	else
-		emit currentGroupFilterChanged(GroupFilter{GroupFilterEverybody});
-		
+		CurrentGroupFilter = GroupFilter{GroupFilterEverybody};
+
+	emit currentGroupFilterChanged(CurrentGroupFilter);
+
 }
 
 void GroupTabBar::contextMenuEvent(QContextMenuEvent *event)
@@ -189,17 +176,11 @@ void GroupTabBar::contextMenuEvent(QContextMenuEvent *event)
 	addBuddyAction->setEnabled(group);
 	addBuddyAction->setData(group);
 
-	QAction *renameGroupAction = menu.addAction(tr("Rename Group"), this, SLOT(renameGroup()));
-	renameGroupAction->setEnabled(group);
-	renameGroupAction->setData(group);
-
-	menu.addSeparator();
+	menu.addAction(tr("Add Group"), this, SLOT(createNewGroup()));
 
 	QAction *deleteGroupAction = menu.addAction(tr("Delete Group"), this, SLOT(deleteGroup()));
 	deleteGroupAction->setEnabled(group);
 	deleteGroupAction->setData(group);
-
-	menu.addAction(tr("Add Group"), this, SLOT(createNewGroup()));
 
 	menu.addSeparator();
 
@@ -303,7 +284,8 @@ void GroupTabBar::dropEvent(QDropEvent *event)
 	if (clickedGroup)
 	{
 		QMenu menu;
-		menu.addAction(tr("Move to group %1").arg(clickedGroup.name()), this, SLOT(moveToGroup()))->setData(clickedGroup);
+		if (CurrentGroupFilter.filterType() == GroupFilterRegular)
+			menu.addAction(tr("Move to group %1").arg(clickedGroup.name()), this, SLOT(moveToGroup()))->setData(clickedGroup);
 		menu.addAction(tr("Add to group %1").arg(clickedGroup.name()), this, SLOT(addToGroup()))->setData(clickedGroup);
 		menu.exec(QCursor::pos());
 	}
@@ -322,24 +304,6 @@ void GroupTabBar::addBuddy()
 	AddBuddyWindow *addBuddyWindow = new AddBuddyWindow(Core::instance()->kaduWindow());
 	addBuddyWindow->setGroup(action->data().value<Group>());
 	addBuddyWindow->show();
-}
-
-void GroupTabBar::renameGroup()
-{
-	QAction *action = qobject_cast<QAction *>(sender());
-	if (!action)
-		return;
-
-	const Group &group = action->data().value<Group>();
-	if (!group)
-		return;
-
-	EditGroupDialogWidget *groupWidget = new EditGroupDialogWidget(group,
-								       tr("Please enter a new name for the <i>%0</i> group").arg(group.name()),
-								       Core::instance()->kaduWindow());
-	KaduDialog *window = new KaduDialog(groupWidget, Core::instance()->kaduWindow());
-	window->setAcceptButtonText(tr("Edit Group"));
-	window->exec();
 }
 
 void GroupTabBar::deleteGroup()
@@ -365,10 +329,8 @@ void GroupTabBar::deleteGroup()
 
 void GroupTabBar::createNewGroup()
 {
-	AddGroupDialogWidget *groupWidget = new AddGroupDialogWidget(tr("Please enter the name for the new group"), Core::instance()->kaduWindow());
-	KaduDialog *window = new KaduDialog(groupWidget, Core::instance()->kaduWindow());
-	window->setAcceptButtonText(tr("Add Group"));
-	window->exec();
+	auto editWindow = new GroupEditWindow{GroupManager::instance(), Application::instance()->configuration()->deprecatedApi(), Group::null, Core::instance()->kaduWindow()};
+	editWindow->show();
 }
 
 void GroupTabBar::groupProperties()
@@ -377,9 +339,12 @@ void GroupTabBar::groupProperties()
 	if (!action)
 		return;
 
-	const Group &group = action->data().value<Group>();
-	if (group)
-		(new GroupPropertiesWindow(group, Core::instance()->kaduWindow()))->show();
+	auto group = action->data().value<Group>();
+	if (!group)
+		return;
+
+	auto editWindow = new GroupEditWindow{GroupManager::instance(), Application::instance()->configuration()->deprecatedApi(), group, Core::instance()->kaduWindow()};
+	editWindow->show();
 }
 
 void GroupTabBar::addToGroup()

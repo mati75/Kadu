@@ -1,9 +1,7 @@
 /*
  * %kadu copyright begin%
- * Copyright 2008 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2007, 2008, 2009, 2010, 2011, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2011, 2013, 2014, 2015 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -20,15 +18,21 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "ext-sound-plugin.h"
+
+#include "external-player.h"
+
+#include "plugins/sound/sound-manager.h"
+#include "plugins/sound/sound-plugin.h"
+
 #include "core/application.h"
 #include "gui/windows/main-configuration-window.h"
 #include "misc/paths-provider.h"
 
-#include "plugins/sound/sound-manager.h"
-
-#include "external-player.h"
-
-#include "ext-sound-plugin.h"
+ExtSoundPlugin::ExtSoundPlugin(QObject *parent) :
+		QObject{parent}
+{
+}
 
 ExtSoundPlugin::~ExtSoundPlugin()
 {
@@ -38,18 +42,20 @@ bool ExtSoundPlugin::init(bool firstLoad)
 {
 	Q_UNUSED(firstLoad)
 
-	ExternalPlayer::createInstance();
-	SoundManager::instance()->setPlayer(ExternalPlayer::instance());
-	MainConfigurationWindow::registerUiFile(Application::instance()->pathsProvider()->dataPath() + QLatin1String("plugins/configuration/ext_sound.ui"));
+	m_externalPlayer = new ExternalPlayer{this};
+	SoundPlugin::soundManager()->setPlayer(m_externalPlayer);
+	MainConfigurationWindow::registerUiFile(Application::instance()->pathsProvider()->dataPath() + QLatin1String{"plugins/configuration/ext_sound.ui"});
 
 	return true;
 }
 
 void ExtSoundPlugin::done()
 {
-	MainConfigurationWindow::unregisterUiFile(Application::instance()->pathsProvider()->dataPath() + QLatin1String("plugins/configuration/ext_sound.ui"));
-	SoundManager::instance()->setPlayer(0);
-	ExternalPlayer::destroyInstance();
+	MainConfigurationWindow::unregisterUiFile(Application::instance()->pathsProvider()->dataPath() + QLatin1String{"plugins/configuration/ext_sound.ui"});
+	SoundPlugin::soundManager()->setPlayer(nullptr);
+
+	if (m_externalPlayer)
+		m_externalPlayer->deleteLater();
 }
 
 Q_EXPORT_PLUGIN2(ext_sound, ExtSoundPlugin)

@@ -1,6 +1,6 @@
 /*
  * %kadu copyright begin%
- * Copyright 2014 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2014 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -21,6 +21,7 @@
 
 #include "libqunity/qunity.h"
 
+#include "file-transfer/file-transfer-manager.h"
 #include "message/unread-message-repository.h"
 
 UnityIntegration::UnityIntegration(QObject *parent) :
@@ -31,10 +32,18 @@ UnityIntegration::UnityIntegration(QObject *parent) :
 
 UnityIntegration::~UnityIntegration()
 {
-	disconnect(m_unreadMessageRepository, SIGNAL(unreadMessageAdded(Message)), this, SLOT(unreadMessagesChanged()));
-	disconnect(m_unreadMessageRepository, SIGNAL(unreadMessageRemoved(Message)), this, SLOT(unreadMessagesChanged()));
-
 	unreadMessagesChanged();
+}
+
+void UnityIntegration::setFileTransferManager(FileTransferManager *fileTransferManager)
+{
+	connect(fileTransferManager, SIGNAL(totalProgressChanged(int)), this, SLOT(fileTransferProgressChanged(int)));
+	fileTransferProgressChanged(fileTransferManager->totalProgress());
+}
+
+void UnityIntegration::fileTransferProgressChanged(int progress)
+{
+	m_unity->updateProgress(progress);
 }
 
 void UnityIntegration::setUnreadMessageRepository(UnreadMessageRepository *unreadMessageRepository)

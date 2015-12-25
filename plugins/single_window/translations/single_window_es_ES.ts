@@ -1,4 +1,6 @@
-<?xml version="1.0" ?><!DOCTYPE TS><TS language="es_ES" version="2.0">
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE TS>
+<TS version="2.1" language="es_ES">
 <context>
     <name>@default</name>
     <message>
@@ -30,10 +32,6 @@
         <translation>Derecha</translation>
     </message>
     <message>
-        <source>Show number of messages on tab</source>
-        <translation>Mostrar el número de mensajes en la pestaña</translation>
-    </message>
-    <message>
         <source>Shortcuts</source>
         <translation>Atajos</translation>
     </message>
@@ -55,14 +53,7 @@
     </message>
     <message>
         <source>Behavior</source>
-        <translation type="unfinished"/>
-    </message>
-</context>
-<context>
-    <name>SingleWindow</name>
-    <message>
-        <source>Conference [%1]</source>
-        <translation>Conferencia [%1]</translation>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 </TS>

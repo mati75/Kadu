@@ -1,6 +1,6 @@
 /*
  * %kadu copyright begin%
- * Copyright 2014 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2014 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This library is free software; you can redistribute it and/or
@@ -33,6 +33,7 @@ public:
 	virtual ~QUnity();
 
 	void updateCount(int count);
+	void updateProgress(int progress);
 
 private:
 	UnityLauncherEntry *m_launcher;

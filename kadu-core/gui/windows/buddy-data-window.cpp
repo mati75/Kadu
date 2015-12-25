@@ -1,20 +1,10 @@
 /*
  * %kadu copyright begin%
- * Copyright 2008, 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2009, 2009 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2008 Tomasz Rostański (rozteck@interia.pl)
+ * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2010 Piotr Dąbrowski (ultr@ultr.pl)
- * Copyright 2002, 2004 Tomasz Jarzynka (tomee@cpi.pl)
- * Copyright 2004, 2009 Michał Podsiadlik (michal@kadu.net)
- * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
- * Copyright 2002, 2003, 2004, 2005 Adrian Smarzewski (adrian@kadu.net)
- * Copyright 2004 Paweł Płuciennik (pawel_p@kadu.net)
- * Copyright 2002, 2003, 2004 Tomasz Chiliński (chilek@chilan.com)
- * Copyright 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2007, 2008 Dawid Stawiarski (neeo@kadu.net)
- * Copyright 2004, 2005, 2006, 2007 Marcin Ślusarz (joi@kadu.net)
- * Copyright 2003, 2004 Dariusz Jagodzik (mast3r@kadu.net)
+ * Copyright 2009 Michał Podsiadlik (michal@kadu.net)
+ * Copyright 2010, 2011, 2012, 2013, 2014 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -61,7 +51,7 @@
 #include "core/core.h"
 #include "gui/widgets/buddy-configuration-widget-factory-repository.h"
 #include "gui/widgets/buddy-configuration-widget-factory.h"
-#include "gui/widgets/buddy-configuration-widget-tab-adapter.h"
+#include "gui/widgets/buddy-configuration-widget-group-boxes-adapter.h"
 #include "gui/widgets/buddy-configuration-widget.h"
 #include "gui/widgets/buddy-general-configuration-widget.h"
 #include "gui/widgets/buddy-groups-configuration-widget.h"
@@ -139,6 +129,7 @@ void BuddyDataWindow::factoryUnregistered(BuddyConfigurationWidgetFactory *facto
 	if (BuddyConfigurationWidgets.contains(factory))
 	{
 		BuddyConfigurationWidget *widget = BuddyConfigurationWidgets.value(factory);
+		BuddyConfigurationWidgets.remove(factory);
 		if (widget)
 		{
 			if (widget->stateNotifier())
@@ -146,7 +137,6 @@ void BuddyDataWindow::factoryUnregistered(BuddyConfigurationWidgetFactory *facto
 			emit widgetRemoved(widget);
 			widget->deleteLater();
 		}
-		BuddyConfigurationWidgets.remove(factory);
 	}
 }
 
@@ -180,13 +170,13 @@ void BuddyDataWindow::createTabs(QLayout *layout)
 {
 	TabWidget = new QTabWidget(this);
 
-	new BuddyConfigurationWidgetTabAdapter(this, TabWidget, this);
-
 	createGeneralTab(TabWidget);
 	createGroupsTab(TabWidget);
 	createPersonalInfoTab(TabWidget);
 	createOptionsTab(TabWidget);
 	layout->addWidget(TabWidget);
+
+	new BuddyConfigurationWidgetGroupBoxesAdapter(this, OptionsTab);
 }
 
 void BuddyDataWindow::createGeneralTab(QTabWidget *tabWidget)

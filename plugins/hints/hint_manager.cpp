@@ -1,19 +1,10 @@
 /*
  * %kadu copyright begin%
- * Copyright 2008, 2009, 2010, 2010, 2011, 2011, 2012 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2010, 2012 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2008, 2009 Tomasz Rostański (rozteck@interia.pl)
+ * Copyright 2012 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2012 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2011 Piotr Dąbrowski (ultr@ultr.pl)
- * Copyright 2011 Sławomir Stępień (s.stepien@interia.pl)
- * Copyright 2008 Michał Podsiadlik (michal@kadu.net)
- * Copyright 2009, 2010 Maciej Płaza (plaza.maciej@gmail.com)
- * Copyright 2009, 2009 Bartłomiej Zimoń (uzi18@o2.pl)
- * Copyright 2004 Roman Krzystyniak (Ron_K@tlen.pl)
- * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
- * Copyright 2005 Paweł Płuciennik (pawel_p@kadu.net)
- * Copyright 2007, 2008, 2009, 2010, 2011, 2013, 2014 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011, 2012, 2013, 2014 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2004, 2005, 2006 Marcin Ślusarz (joi@kadu.net)
+ * Copyright 2011, 2012, 2013, 2014 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2011, 2013, 2014, 2015 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -48,8 +39,8 @@
 #include "message/sorted-messages.h"
 #include "message/unread-message-repository.h"
 #include "misc/misc.h"
-#include "notify/notification-manager.h"
-#include "notify/notification/chat-notification.h"
+#include "notification/notification-manager.h"
+#include "notification/notification/notification.h"
 #include "parser/parser.h"
 
 #include "icons/icons-manager.h"
@@ -112,7 +103,7 @@ HintManager::HintManager(QObject *parent) :
 
 	connect(this, SIGNAL(searchingForTrayPosition(QPoint &)), Core::instance(), SIGNAL(searchingForTrayPosition(QPoint &)));
 
-	NotificationManager::instance()->registerNotifier(this);
+	Core::instance()->notificationManager()->registerNotifier(this);
 	ToolTipClassManager::instance()->registerToolTipClass(QT_TRANSLATE_NOOP("@default", "Hints"), this);
 
 	configurationUpdated();
@@ -131,7 +122,11 @@ HintManager::~HintManager()
 		hint_timer->stop();
 
 	ToolTipClassManager::instance()->unregisterToolTipClass("Hints");
-	NotificationManager::instance()->unregisterNotifier(this);
+
+	if (Core::instance()) // TODO: hack
+	{
+		Core::instance()->notificationManager()->unregisterNotifier(this);
+	}
 
 	disconnect();
 
@@ -388,7 +383,7 @@ void HintManager::chatUpdated(const Chat &chat)
 
 	foreach (Hint *h, hints)
 	{
-		if (h->chat() == chat && !h->requireManualClosing())
+		if (h->chat() == chat)
 			deleteHint(h);
 	}
 
@@ -402,11 +397,8 @@ void HintManager::deleteAllHints()
 
 	foreach (Hint *h, hints)
 	{
-		if (!h->requireManualClosing())
-		{
-			h->discardNotification();
-			deleteHint(h);
-		}
+		h->discardNotification();
+		deleteHint(h);
 	}
 
 	if (hints.isEmpty())

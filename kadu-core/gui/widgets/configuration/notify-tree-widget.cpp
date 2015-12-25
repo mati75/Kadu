@@ -1,8 +1,8 @@
 /*
  * %kadu copyright begin%
  * Copyright 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2010, 2011, 2013, 2014 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2010, 2011, 2013, 2014 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2010, 2011, 2013, 2014 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -18,7 +18,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-/* This classes are based on the KNotifyEventList* classes, which are the part
+/* This classes are based on the KNotificationEventList* classes, which are the part
  * of KDE libraries (see kde.org) and distributed under the terms
  * of the GNU Library General Public License version 2 as published
  * by the Free Software Foundation
@@ -30,10 +30,12 @@
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QHeaderView>
 
-#include "notify/notification-manager.h"
-#include "notify/notifier.h"
-#include "notify/notify-configuration-ui-handler.h"
-#include "notify/notify-event.h"
+#include "core/core.h"
+#include "notification/notification-manager.h"
+#include "notification/notifier.h"
+#include "notification/notify-configuration-ui-handler.h"
+#include "notification/notification-event.h"
+#include "notification/notification-event-repository.h"
 
 #include "notify-tree-widget.h"
 
@@ -59,7 +61,7 @@ void NotifyTreeWidgetDelegate::paint(QPainter *painter, const QStyleOptionViewIt
 	int iconWidth = option.decorationSize.width();
 	int iconHeight = option.decorationSize.height();
 
-	foreach (Notifier *notifier, NotificationManager::instance()->notifiers())
+	foreach (Notifier *notifier, Core::instance()->notificationManager()->notifiers())
 	{
 		if (notifiers.contains(notifier->name()))
 			notifier->icon().icon().paint(painter, rect.left() + position + 4, rect.top() + (rect.height() - iconHeight) / 2, iconWidth, iconHeight);
@@ -104,28 +106,28 @@ void NotifyTreeWidget::refresh()
 	clear();
 	TreeItems.clear();
 
-	ColumnWidth = (IconWidth + 4) * NotificationManager::instance()->notifiers().count();
+	ColumnWidth = (IconWidth + 4) * Core::instance()->notificationManager()->notifiers().count();
 	header()->resizeSection(0, eventColumnWidth());
 
 	const QMap<Notifier *, NotifierConfigurationGuiItem> &notifierGuiItems = UiHandler->notifierGui();
-	const QMap<QString, NotifyEventConfigurationItem> &notifyEventItem = UiHandler->notifyEvents();
+	const QMap<QString, NotificationEventConfigurationItem> &notifyEventItem = UiHandler->notifyEvents();
 
 	QStringList notifiersNames;
 	QString eventName;
-	foreach (NotifyEvent *notifyEvent, NotificationManager::instance()->notifyEvents())
+	for (auto &&notifyEvent : Core::instance()->notificationEventRepository()->notificationEvents())
 	{
-		eventName = notifyEvent->name();
-		foreach (Notifier *notifier, NotificationManager::instance()->notifiers())
+		eventName = notifyEvent.name();
+		foreach (Notifier *notifier, Core::instance()->notificationManager()->notifiers())
 			if (notifierGuiItems[notifier].Events[eventName])
 				notifiersNames << notifier->name();
 
-		if (notifyEvent->category().isEmpty())
+		if (notifyEvent.category().isEmpty())
 			TreeItems.insert(eventName, new NotifyTreeWidgetItem(this, eventName,
-						notifyEvent->description(), notifiersNames));
+						notifyEvent.description(), notifiersNames));
 		else
 		{
-			TreeItems[eventName] = new NotifyTreeWidgetItem(TreeItems[notifyEvent->category()], eventName,
-						notifyEvent->description(), notifiersNames);
+			TreeItems[eventName] = new NotifyTreeWidgetItem(TreeItems[notifyEvent.category()], eventName,
+						notifyEvent.description(), notifiersNames);
 			TreeItems[eventName]->useCustomSettingsChecked(notifyEventItem[eventName].useCustomSettings);
 		}
 		notifiersNames.clear();
@@ -172,24 +174,24 @@ void NotifyTreeWidget::resizeEvent(QResizeEvent *event)
 	header()->resizeSection(0, eventColumnWidth());
 }
 
-NotifyTreeWidgetItem::NotifyTreeWidgetItem(QTreeWidget *parent, const QString &eventName, const char *name, QStringList &notifiers)
+NotifyTreeWidgetItem::NotifyTreeWidgetItem(QTreeWidget *parent, const QString &eventName, const QString &name, QStringList &notifiers)
 	: QTreeWidgetItem(parent), ActiveNotifiers(notifiers), useCustomSettings(true)
 {
 	setChildIndicatorPolicy(QTreeWidgetItem::DontShowIndicatorWhenChildless);
 
 	setData(1, Qt::UserRole, QVariant(ActiveNotifiers));
 	setData(0, Qt::UserRole, QVariant(eventName));
-	setText(0, QCoreApplication::translate("@default", name));
+	setText(0, QCoreApplication::translate("@default", name.toUtf8()));
 }
 
-NotifyTreeWidgetItem::NotifyTreeWidgetItem(NotifyTreeWidgetItem *parent, const QString &eventName, const char *name, QStringList &notifiers)
+NotifyTreeWidgetItem::NotifyTreeWidgetItem(NotifyTreeWidgetItem *parent, const QString &eventName, const QString &name, QStringList &notifiers)
 	: QTreeWidgetItem(parent), ActiveNotifiers(notifiers), useCustomSettings(true)
 {
 	setChildIndicatorPolicy(QTreeWidgetItem::DontShowIndicatorWhenChildless);
 
 	setData(1, Qt::UserRole, QVariant(ActiveNotifiers));
 	setData(0, Qt::UserRole, QVariant(eventName));
-	setText(0, QCoreApplication::translate("@default", name));
+	setText(0, QCoreApplication::translate("@default", name.toUtf8()));
 }
 
 void NotifyTreeWidgetItem::notifierChecked(Notifier *notifier, bool checked)

@@ -1,6 +1,6 @@
 /*
  * %kadu copyright begin%
- * Copyright 2013, 2014 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2014 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -23,7 +23,9 @@
 #include "plugin/plugin-root-component.h"
 
 PluginRootComponentHandler::PluginRootComponentHandler(const QString &pluginName, bool firstLoad, PluginRootComponent *pluginRootComponent, QObject *parent) noexcept(false) :
-		QObject{parent}, m_pluginRootComponent{pluginRootComponent}
+		// using C++ initializers breaks Qt's lupdate
+		QObject(parent),
+		m_pluginRootComponent(pluginRootComponent)
 {
 	if (!m_pluginRootComponent)
 		throw PluginActivationErrorException{pluginName, tr("Cannot find required object in plugin %1.\nMaybe it's not Kadu-compatible plugin.").arg(pluginName)};

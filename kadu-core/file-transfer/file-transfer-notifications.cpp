@@ -1,8 +1,8 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2010, 2011, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2010, 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2009, 2010, 2011, 2013, 2015 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -19,56 +19,86 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <QtGui/QTextDocument>
-
-#include "chat/type/chat-type-contact.h"
-#include "file-transfer/file-transfer-manager.h"
-#include "identities/identity.h"
-#include "misc/misc.h"
-#include "notify/notification-manager.h"
-#include "notify/notify-event.h"
-#include "debug.h"
-
 #include "file-transfer-notifications.h"
 
-NotifyEvent * NewFileTransferNotification::FileTransferNotifyEvent = 0;
-NotifyEvent * NewFileTransferNotification::FileTransferIncomingFileNotifyEvent = 0;
+#include "chat/type/chat-type-contact.h"
+#include "core/core.h"
+#include "file-transfer/file-transfer-manager.h"
+#include "file-transfer/file-transfer-type.h"
+#include "identities/identity.h"
+#include "misc/misc.h"
+#include "notification/notification-callback-repository.h"
+#include "notification/notification-callback.h"
+#include "notification/notification-event-repository.h"
+#include "notification/notification-manager.h"
+#include "notification/notification-event.h"
+
+#include <QtGui/QTextDocument>
 
 void NewFileTransferNotification::registerEvents()
 {
-	if (FileTransferNotifyEvent)
-		return;
+	Core::instance()->notificationEventRepository()->addNotificationEvent(NotificationEvent{"FileTransfer", QT_TRANSLATE_NOOP("@default", "File transfer")});
+	Core::instance()->notificationEventRepository()->addNotificationEvent(NotificationEvent{"FileTransfer/IncomingFile", QT_TRANSLATE_NOOP("@default", "Incoming file transfer")});
 
-	FileTransferNotifyEvent = new NotifyEvent("FileTransfer", NotifyEvent::CallbackRequired,
-			QT_TRANSLATE_NOOP("@default", "File transfer"));
-	FileTransferIncomingFileNotifyEvent = new NotifyEvent("FileTransfer/IncomingFile", NotifyEvent::CallbackRequired,
-			QT_TRANSLATE_NOOP("@default", "Incoming file transfer"));
-
-	NotificationManager::instance()->registerNotifyEvent(FileTransferNotifyEvent);
-	NotificationManager::instance()->registerNotifyEvent(FileTransferIncomingFileNotifyEvent);
+	auto acceptTransferCallback = NotificationCallback{
+		"file-transfer-accept",
+		tr("Accept"),
+		[](Notification *notification){
+			auto fileTransferNotification = qobject_cast<NewFileTransferNotification *>(notification);
+			if (fileTransferNotification)
+				fileTransferNotification->callbackAccept();
+		}
+	};
+	auto saveTransferCallback = NotificationCallback{
+		"file-transfer-save",
+		tr("Save"),
+		[](Notification *notification){
+			auto fileTransferNotification = qobject_cast<NewFileTransferNotification *>(notification);
+			if (fileTransferNotification)
+				fileTransferNotification->callbackAccept();
+		}
+	};
+	auto rejectTransferCallback = NotificationCallback{
+		"file-transfer-reject",
+		tr("Reject"),
+		[](Notification *notification){
+			auto fileTransferNotification = qobject_cast<NewFileTransferNotification *>(notification);
+			if (fileTransferNotification)
+				fileTransferNotification->callbackReject();
+		}
+	};
+	auto ignoreTransferCallback = NotificationCallback{
+		"file-transfer-ignore",
+		tr("Ignore"),
+		[](Notification *notification){
+			auto fileTransferNotification = qobject_cast<NewFileTransferNotification *>(notification);
+			if (fileTransferNotification)
+				fileTransferNotification->callbackReject();
+		}
+	};
+	Core::instance()->notificationCallbackRepository()->addCallback(acceptTransferCallback);
+	Core::instance()->notificationCallbackRepository()->addCallback(saveTransferCallback);
+	Core::instance()->notificationCallbackRepository()->addCallback(rejectTransferCallback);
+	Core::instance()->notificationCallbackRepository()->addCallback(ignoreTransferCallback);
 }
 
 void NewFileTransferNotification::unregisterEvents()
 {
-	if (!FileTransferNotifyEvent)
-		return;
-
-	NotificationManager::instance()->unregisterNotifyEvent(FileTransferNotifyEvent);
-	NotificationManager::instance()->unregisterNotifyEvent(FileTransferIncomingFileNotifyEvent);
-
-	delete FileTransferNotifyEvent;
-	delete FileTransferIncomingFileNotifyEvent;
+	if (Core::instance()) // TODO: hack
+	{
+		Core::instance()->notificationEventRepository()->removeNotificationEvent(NotificationEvent{"FileTransfer", QT_TRANSLATE_NOOP("@default", "File transfer")});
+		Core::instance()->notificationEventRepository()->removeNotificationEvent(NotificationEvent{"FileTransfer/IncomingFile", QT_TRANSLATE_NOOP("@default", "Incoming file transfer")});
+	}
 }
 
 void NewFileTransferNotification::notifyIncomingFileTransfer(const FileTransfer &fileTransfer)
 {
-	Chat chat = ChatTypeContact::findChat(fileTransfer.peer(), ActionCreateAndAdd);
-	NewFileTransferNotification *notification = new NewFileTransferNotification("FileTransfer/IncomingFile", fileTransfer,
-			chat, fileTransfer.localFileName().isEmpty() ? StartNew : StartRestore);
+	auto chat = ChatTypeContact::findChat(fileTransfer.peer(), ActionCreateAndAdd);
+	auto notification = new NewFileTransferNotification{chat, "FileTransfer/IncomingFile", fileTransfer};
 	notification->setTitle(tr("Incoming transfer"));
 
-	QString textFileSize = QString("%1 kB");
-	double size = (double) fileTransfer.fileSize() / 1024.0;
+	auto textFileSize = QString("%1 kB");
+	auto size = static_cast<double>(fileTransfer.fileSize()) / 1024.0;
 
 	if (size > 1024.0)
 	{
@@ -76,76 +106,69 @@ void NewFileTransferNotification::notifyIncomingFileTransfer(const FileTransfer 
 		textFileSize = "%1 MB";
 	}
 
-	if (fileTransfer.localFileName().isEmpty())
-		notification->setText(tr("User <b>%1</b> wants to send you a file <b>%2</b><br/>of size <b>%3</b> using account <b>%4</b>.<br/>Accept transfer?")
+	auto text = QString{};
+	if (fileTransfer.fileSize() > 0)
+		if (fileTransfer.localFileName().isEmpty())
+			text = tr("User <b>%1</b> wants to send you a file <b>%2</b><br/>of size <b>%3</b> using account <b>%4</b>.<br/>Accept transfer?")
 				.arg(Qt::escape(fileTransfer.peer().display(true)))
 				.arg(Qt::escape(fileTransfer.remoteFileName()))
 				.arg(Qt::escape(textFileSize.arg(size, 0, 'f', 2)))
-				.arg(Qt::escape(chat.chatAccount().accountIdentity().name())));
-	else
-		notification->setText(tr("User <b>%1</b> wants to send you a file <b/>%2</b><br/>of size <b>%3</b> using account <b>%4</b>.<br/>"
+				.arg(Qt::escape(chat.chatAccount().accountIdentity().name()));
+		else
+			text = tr("User <b>%1</b> wants to send you a file <b/>%2</b><br/>of size <b>%3</b> using account <b>%4</b>.<br/>"
 				"This is probably a next part of <b>%5</b><br/>What should I do?")
 				.arg(Qt::escape(fileTransfer.peer().display(true)))
 				.arg(Qt::escape(fileTransfer.remoteFileName()))
 				.arg(Qt::escape(textFileSize.arg(size, 0, 'f', 2)))
 				.arg(Qt::escape(chat.chatAccount().accountIdentity().name()))
-				.arg(Qt::escape(fileTransfer.localFileName())));
+				.arg(Qt::escape(fileTransfer.localFileName()));
+	else
+		if (fileTransfer.localFileName().isEmpty())
+			text = tr("User <b>%1</b> wants to send you a file <b>%2</b><br/>using account <b>%3</b>.<br/>Accept transfer?")
+				.arg(Qt::escape(fileTransfer.peer().display(true)))
+				.arg(Qt::escape(fileTransfer.remoteFileName()))
+				.arg(Qt::escape(chat.chatAccount().accountIdentity().name()));
+		else
+			text = tr("User <b>%1</b> wants to send you a file <b/>%2</b><br/>using account <b>%3</b>.<br/>"
+				"This is probably a next part of <b>%4</b><br/>What should I do?")
+				.arg(Qt::escape(fileTransfer.peer().display(true)))
+				.arg(Qt::escape(fileTransfer.remoteFileName()))
+				.arg(Qt::escape(chat.chatAccount().accountIdentity().name()))
+				.arg(Qt::escape(fileTransfer.localFileName()));
 
-	NotificationManager::instance()->notify(notification);
+	notification->setText(text);
+
+	Core::instance()->notificationManager()->notify(notification);
 }
 
-NewFileTransferNotification::NewFileTransferNotification(const QString &type, FileTransfer ft, Chat chat, StartType startType) :
-		ChatNotification(chat, type, KaduIcon()), ft(ft)
+NewFileTransferNotification::NewFileTransferNotification(Chat chat, const QString &type, FileTransfer transfer) :
+		Notification{Account::null, chat, type, KaduIcon{}},
+		m_transfer{transfer}
 {
-	if (startType == StartRestore)
+	if (m_transfer.transferType() == FileTransferType::Stream)
 	{
-		addCallback(tr("Continue"), SLOT(callbackAccept()), "callbackAccept()");
-		addCallback(tr("Save file under new name"), SLOT(callbackAcceptAsNew()), "callbackAcceptAsNew()");
-		addCallback(tr("Ignore transfer"), SLOT(callbackDiscard()), "callbackDiscard()");
-
-		Continue = true;
+		addCallback("file-transfer-accept");
+		addCallback("file-transfer-reject");
 	}
 	else
 	{
-		addCallback(tr("Accept"), SLOT(callbackAccept()), "callbackAccept()");
-		addCallback(tr("Reject"), SLOT(callbackReject()), "callbackReject()");
-
-		Continue = false;
+		addCallback("file-transfer-save");
+		addCallback("file-transfer-ignore");
 	}
-
-	setDefaultCallback(30 * 60 * 1000, SLOT(callbackDiscard()));
-}
-
-void NewFileTransferNotification::callbackAcceptAsNew()
-{
-	kdebugf();
-
-	close();
-
-	// let user choose new file name
-	ft.setLocalFileName(QString());
-	FileTransferManager::instance()->acceptFileTransfer(ft);
 }
 
 void NewFileTransferNotification::callbackAccept()
 {
-	kdebugf();
-
 	close();
 
-	if (!Continue) // let user choose new file name
-		ft.setLocalFileName(QString());
-
-	FileTransferManager::instance()->acceptFileTransfer(ft);
+	Core::instance()->fileTransferManager()->acceptFileTransfer(m_transfer, m_transfer.localFileName());
 }
 
 void NewFileTransferNotification::callbackReject()
 {
-	kdebugf();
-
 	close();
 
-	FileTransferManager::instance()->rejectFileTransfer(ft);
+	Core::instance()->fileTransferManager()->rejectFileTransfer(m_transfer);
 }
 
 #include "moc_file-transfer-notifications.cpp"

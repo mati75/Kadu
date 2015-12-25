@@ -1,10 +1,7 @@
 /*
  * %kadu copyright begin%
- * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
- * Copyright 2007, 2008, 2009, 2010, 2011, 2012, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
+ * Copyright 2011, 2012, 2013, 2014 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -25,7 +22,7 @@
 #include "configuration/deprecated-configuration-api.h"
 #include "core/application.h"
 #include "core/core.h"
-#include "notify/notification-manager.h"
+#include "notification/notification-manager.h"
 
 #include "chat-notifier.h"
 
@@ -44,14 +41,17 @@ bool ChatNotifyPlugin::init(bool firstLoad)
 	NotifierInstance->setChatWidgetRepository(Core::instance()->chatWidgetRepository());
 	NotifierInstance->setFormattedStringFactory(Core::instance()->formattedStringFactory());
 
-	NotificationManager::instance()->registerNotifier(NotifierInstance);
+	Core::instance()->notificationManager()->registerNotifier(NotifierInstance);
 
 	return true;
 }
 
 void ChatNotifyPlugin::done()
 {
-	NotificationManager::instance()->unregisterNotifier(NotifierInstance);
+	if (Core::instance()) // TODO: hack
+	{
+		Core::instance()->notificationManager()->unregisterNotifier(NotifierInstance);
+	}
 }
 
 void ChatNotifyPlugin::createDefaultConfiguration()

@@ -1,11 +1,8 @@
 /*
  * %kadu copyright begin%
- * Copyright 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2011 Piotr Dąbrowski (ultr@ultr.pl)
- * Copyright 2010 Bartłomiej Zimoń (uzi18@o2.pl)
- * Copyright 2009, 2010, 2011, 2012, 2013, 2014 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2011, 2014 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2011, 2012, 2013, 2014, 2015 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -38,6 +35,7 @@ class QTimer;
 class FormattedStringFactory;
 class GaduChatImageService;
 class GaduConnection;
+class GaduFileTransferService;
 class ImageStorageService;
 class RawMessage;
 
@@ -59,6 +57,7 @@ class GaduChatService : public ChatService
 	Q_OBJECT
 
 	QPointer<GaduChatImageService> CurrentGaduChatImageService;
+	QPointer<GaduFileTransferService> CurrentFileTransferService;
 	QPointer<ImageStorageService> CurrentImageStorageService;
 	QPointer<FormattedStringFactory> CurrentFormattedStringFactory;
 
@@ -92,6 +91,8 @@ public:
 	 * @param gaduChatImageService chat image service for this service
 	 */
 	void setGaduChatImageService(GaduChatImageService *gaduChatImageService);
+
+	void setGaduFileTransferService(GaduFileTransferService *gaduFileTransferService);
 
 	/**
 	 * @short Set image storage service for this service.

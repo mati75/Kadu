@@ -1,14 +1,10 @@
 /*
  * %kadu copyright begin%
- * Copyright 2008, 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2010, 2012 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2008, 2010 Tomasz Rostański (rozteck@interia.pl)
+ * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2012 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2011 Piotr Dąbrowski (ultr@ultr.pl)
- * Copyright 2009 Michał Podsiadlik (michal@kadu.net)
- * Copyright 2007, 2008, 2009, 2010, 2011, 2012, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2010, 2011, 2012, 2013, 2014 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2007 Dawid Stawiarski (neeo@kadu.net)
- * Copyright 2005, 2006, 2007 Marcin Ślusarz (joi@kadu.net)
+ * Copyright 2010, 2011, 2012, 2013, 2014 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -84,7 +80,15 @@ KaduWebView::KaduWebView(QWidget *parent) :
 	setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing |
 	               QPainter::SmoothPixmapTransform | QPainter::HighQualityAntialiasing);
 
-	setPage(page());
+	page()->setLinkDelegationPolicy(QWebPage::DelegateAllLinks);
+
+	page()->history()->setMaximumItemCount(0);
+
+	connect(page(), SIGNAL(linkClicked(const QUrl &)), this, SLOT(hyperlinkClicked(const QUrl &)));
+	connect(page(), SIGNAL(loadStarted()), this, SLOT(loadStarted()));
+	connect(page(), SIGNAL(loadFinished(bool)), this, SLOT(loadFinishedSlot(bool)));
+	connect(pageAction(QWebPage::Copy), SIGNAL(triggered()), this, SLOT(textCopied()));
+	connect(pageAction(QWebPage::DownloadImageToDisk), SIGNAL(triggered()), this, SLOT(saveImage()));
 
 	connect(RefreshTimer, SIGNAL(timeout()), this, SLOT(reload()));
 
@@ -103,20 +107,6 @@ void KaduWebView::setImageStorageService(ImageStorageService *imageStorageServic
 ImageStorageService * KaduWebView::imageStorageService() const
 {
 	return CurrentImageStorageService.data();
-}
-
-void KaduWebView::setPage(QWebPage *page)
-{
-	QWebView::setPage(page);
-	page->setLinkDelegationPolicy(QWebPage::DelegateAllLinks);
-
-	page->history()->setMaximumItemCount(0);
-
-	connect(page, SIGNAL(linkClicked(const QUrl &)), this, SLOT(hyperlinkClicked(const QUrl &)));
-	connect(page, SIGNAL(loadStarted()), this, SLOT(loadStarted()));
-	connect(page, SIGNAL(loadFinished(bool)), this, SLOT(loadFinishedSlot(bool)));
-	connect(pageAction(QWebPage::Copy), SIGNAL(triggered()), this, SLOT(textCopied()));
-	connect(pageAction(QWebPage::DownloadImageToDisk), SIGNAL(triggered()), this, SLOT(saveImage()));
 }
 
 void KaduWebView::contextMenuEvent(QContextMenuEvent *e)
@@ -221,7 +211,7 @@ void KaduWebView::mouseReleaseEvent(QMouseEvent *e)
 	QWebView::mouseReleaseEvent(e);
 	DraggingPossible = false;
 
-#if defined(Q_OS_UNIX) && !defined(Q_OS_MAC)
+#if defined(Q_OS_UNIX)
 	if (!page()->selectedText().isEmpty())
 		convertClipboardHtml(QClipboard::Selection);
 #endif

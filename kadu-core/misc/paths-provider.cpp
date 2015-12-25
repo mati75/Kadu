@@ -1,7 +1,6 @@
 /*
  * %kadu copyright begin%
- * Copyright 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2012 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2014 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -69,27 +68,17 @@ PathsProvider::~PathsProvider()
 
 void PathsProvider::initBasicPaths()
 {
-#if defined(Q_OS_UNIX) && !defined(Q_OS_MAC)
+#if defined(Q_OS_UNIX)
 	DesktopFilePath = QCoreApplication::applicationDirPath() + QLatin1String("/" KADU_DESKTOP_FILE_PATH_RELATIVE_TO_BIN);
 	DesktopFilePath = QFileInfo(DesktopFilePath).canonicalFilePath();
 #endif
 
-#ifdef Q_OS_MAC
-	// TODO: Remove this OS X-specific code. Needs small changes to CMake and create_macosx_bundle.sh scripts.
-	DataPath = QCoreApplication::applicationDirPath() + QLatin1String("/../../kadu");
-#else
 	DataPath = QCoreApplication::applicationDirPath() + QLatin1String("/" KADU_DATADIR_RELATIVE_TO_BIN);
-#endif
 	QString canonicalPath = QDir(DataPath).canonicalPath();
 	if (!canonicalPath.isEmpty())
 		DataPath = canonicalPath + '/';
 
-#ifdef Q_OS_MAC
-	// TODO: Remove this OS X-specific code. Needs small changes to CMake and create_macosx_bundle.sh scripts.
-	PluginsLibPath = QCoreApplication::applicationDirPath() + QLatin1String("/../../kadu/plugins/");
-#else
 	PluginsLibPath = QCoreApplication::applicationDirPath() + QLatin1String("/" KADU_PLUGINS_LIBDIR_RELATIVE_TO_BIN);
-#endif
 	canonicalPath = QDir(PluginsLibPath).canonicalPath();
 	if (!canonicalPath.isEmpty())
 		PluginsLibPath = canonicalPath + '/';
@@ -97,10 +86,7 @@ void PathsProvider::initBasicPaths()
 
 void PathsProvider::initProfilePath(const QString &customProfileDir)
 {
-#if defined(Q_OS_MAC)
-	const QString defaultConfigDirRelativeToHome = QLatin1String("Library/Kadu");
-	const QString oldMidConfigDir = QLatin1String("Kadu");
-#elif defined(Q_OS_WIN)
+#if defined(Q_OS_WIN)
 	const QString defaultConfigDirRelativeToHome = QLatin1String("Kadu");
 	const QString &oldMidConfigDir = defaultConfigDirRelativeToHome;
 #else

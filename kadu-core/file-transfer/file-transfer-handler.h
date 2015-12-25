@@ -1,13 +1,9 @@
 /*
  * %kadu copyright begin%
  * Copyright 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2010 Tomasz Rostański (rozteck@interia.pl)
- * Copyright 2009 Michał Podsiadlik (michal@kadu.net)
- * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
- * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
+ * Copyright 2009, 2010, 2011, 2015 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -24,33 +20,26 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef FILE_TRANSFER_HANDLER_H
-#define FILE_TRANSFER_HANDLER_H
-
-#include <QtCore/QObject>
+#pragma once
 
 #include "file-transfer/file-transfer.h"
 #include "exports.h"
+
+#include <QtCore/QObject>
+
+class QIODevice;
 
 class KADUAPI FileTransferHandler : public QObject
 {
 	Q_OBJECT
 
-	FileTransfer Transfer;
-
 public:
-	FileTransferHandler(FileTransfer transfer) { Transfer = transfer; }
-	virtual ~FileTransferHandler() {}
+	explicit FileTransferHandler(FileTransfer transfer, QObject *parent = nullptr);
+	virtual ~FileTransferHandler();
 
-	FileTransfer transfer() { return Transfer; }
-	void setTransfer(FileTransfer transfer) { Transfer = transfer; }
+	FileTransfer transfer() const;
 
-	virtual void send() = 0;
-	virtual void stop() = 0;
-
-	virtual bool accept(const QString &fileName, bool resumeTransfer) = 0;
-	virtual void reject() = 0;
+private:
+	FileTransfer m_transfer;
 
 };
-
-#endif // FILE_TRANSFER_HANDLER_H

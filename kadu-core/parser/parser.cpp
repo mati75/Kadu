@@ -1,15 +1,11 @@
 /*
  * %kadu copyright begin%
- * Copyright 2008, 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2010, 2011 Piotr Dąbrowski (ultr@ultr.pl)
  * Copyright 2011 Sławomir Stępień (s.stepien@interia.pl)
- * Copyright 2008 Michał Podsiadlik (michal@kadu.net)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
- * Copyright 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2010, 2011, 2012, 2013, 2014 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2007, 2009 Dawid Stawiarski (neeo@kadu.net)
- * Copyright 2006, 2007 Marcin Ślusarz (joi@kadu.net)
+ * Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -305,24 +301,12 @@ ParserToken Parser::parsePercentSyntax(const QString &s, int &idx, const Talkabl
 			break;
 		case 'i':
 			++idx;
-
-			if (contact)
-				pe.setContent(contact.address().toString());
-
 			break;
 		case 'v':
 			++idx;
-
-			if (contact)
-				pe.setContent(contact.dnsName());
-
 			break;
 		case 'p':
 			++idx;
-
-			if (contact && contact.port())
-				pe.setContent(QString::number(contact.port()));
-
 			break;
 		case 'u':
 			++idx;
@@ -335,10 +319,6 @@ ParserToken Parser::parsePercentSyntax(const QString &s, int &idx, const Talkabl
 			break;
 		case 'h':
 			++idx;
-
-			if (contact && !contact.currentStatus().isDisconnected())
-				pe.setContent(contact.protocolVersion());
-
 			break;
 		case 'n':
 		{
@@ -493,7 +473,7 @@ QString Parser::joinParserTokens(const ContainerClass &parseStack)
 
 QString Parser::parse(const QString &s, Talkable talkable, const ParserData * const parserData, ParserEscape escape = ParserEscape::HtmlEscape)
 {
-	kdebugmf(KDEBUG_DUMP, "%s htmlEscape=%i\n", qPrintable(s), escape);
+	kdebugmf(KDEBUG_DUMP, "%s htmlEscape=%i\n", qPrintable(s), static_cast<int>(escape));
 
 	prepareSearchChars();
 

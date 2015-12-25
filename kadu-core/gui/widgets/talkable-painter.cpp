@@ -1,10 +1,8 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2011, 2012 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2010 Piotr Dąbrowski (ultr@ultr.pl)
- * Copyright 2010, 2011, 2012, 2013, 2014 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011, 2012, 2014 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2011, 2012, 2014 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2011, 2012, 2013, 2014, 2015 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -41,11 +39,11 @@
 
 #include "talkable-painter.h"
 
-#ifdef Q_OS_WIN32
+#ifdef Q_OS_WIN
 #include <windows.h>
 #endif
 
-#ifdef Q_OS_WIN32
+#ifdef Q_OS_WIN
 bool TalkablePainter::useColorsWorkaround()
 {
 	static bool checked = false;
@@ -184,6 +182,9 @@ bool TalkablePainter::showMessagePixmap() const
 
 bool TalkablePainter::showIdentityName() const
 {
+	if (Configuration.alwaysShowIdentityName())
+		return true;
+
 	if (!Configuration.showIdentityName())
 		return false;
 
@@ -214,7 +215,7 @@ void TalkablePainter::computeCheckboxRect()
 	option.state = QStyle::State_Enabled;
 
 	QSize size = Style->sizeFromContents(QStyle::CT_CheckBox, &option, QSize());
-#ifdef Q_OS_WIN32
+#ifdef Q_OS_WIN
 	size.setWidth(size.width() + Style->pixelMetric(QStyle::PM_CheckBoxLabelSpacing, &option));
 #endif
 	CheckboxRect.setSize(size);

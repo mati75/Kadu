@@ -1,15 +1,9 @@
 /*
  * %kadu copyright begin%
- * Copyright 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2010, 2012 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2009 Tomasz Rostański (rozteck@interia.pl)
- * Copyright 2011 Piotr Dąbrowski (ultr@ultr.pl)
+ * Copyright 2012 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2011 Sławomir Stępień (s.stepien@interia.pl)
- * Copyright 2008, 2009 Michał Podsiadlik (michal@kadu.net)
- * Copyright 2010 Bartłomiej Zimoń (uzi18@o2.pl)
- * Copyright 2010 badboy (badboy@gen2.org)
- * Copyright 2008, 2010, 2011, 2012, 2013, 2014 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011, 2012, 2013, 2014 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2011, 2012, 2013, 2014 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2011, 2012, 2013, 2014 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -48,15 +42,16 @@
 #include "gui/widgets/custom-input.h"
 #include "gui/windows/message-dialog.h"
 #include "icons/kadu-icon.h"
-#include "notify/notification-manager.h"
-#include "notify/notification/notification.h"
-#include "notify/notify-event.h"
+#include "notification/notification-manager.h"
+#include "notification/notification/notification.h"
+#include "notification/notification-event.h"
 #include "status/status-changer-manager.h"
 #include "debug.h"
 
 #include "plugins/docking/docking.h"
+#include "plugins/docking/docking-menu-action-repository.h"
 
-#include "notify/mediaplayer-notification.h"
+#include "notification/mediaplayer-notification.h"
 #include "media-player-status-changer.h"
 #include "player_commands.h"
 #include "player_info.h"
@@ -235,7 +230,7 @@ MediaPlayer::~MediaPlayer()
 		->update();
 
 	if (DockedMediaplayerStatus)
-		DockingManager::instance()->dockMenu()->removeAction(DockedMediaplayerStatus);
+		Docking::instance()->dockingMenuActionRepository()->removeAction(DockedMediaplayerStatus);
 }
 
 void MediaPlayer::setChatWidgetRepository(ChatWidgetRepository *chatWidgetRepository)
@@ -783,7 +778,7 @@ void MediaPlayer::configurationUpdated()
 			DockedMediaplayerStatus->setChecked(enabled);
 			connect(DockedMediaplayerStatus, SIGNAL(toggled(bool)), this, SLOT(toggleStatuses(bool)));
 
-			DockingManager::instance()->registerModuleAction(DockedMediaplayerStatus);
+			Docking::instance()->dockingMenuActionRepository()->addAction(DockedMediaplayerStatus);
 		}
 	}
 	else
@@ -795,7 +790,7 @@ void MediaPlayer::configurationUpdated()
 
 		if (DockedMediaplayerStatus)
 		{
-			DockingManager::instance()->unregisterModuleAction(DockedMediaplayerStatus);
+			Docking::instance()->dockingMenuActionRepository()->removeAction(DockedMediaplayerStatus);
 			delete DockedMediaplayerStatus;
 			DockedMediaplayerStatus = 0;
 		}

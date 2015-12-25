@@ -1,10 +1,8 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2010, 2011, 2012 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
- * Copyright 2009, 2010, 2011, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011, 2012 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2011, 2013, 2014 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -21,17 +19,18 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef JABBER_ACCOUNT
-#define JABBER_ACCOUNT
+#pragma once
 
-#include <QtCore/QString>
+#include <QtCore/QObject>
 
 #include "accounts/account-details.h"
 #include "open-chat-with/jabber-open-chat-with-runner.h"
 #include "protocols/protocol.h"
 
-class JabberAccountDetails : public AccountDetails
+class JabberAccountDetails : public QObject, public AccountDetails
 {
+	Q_OBJECT
+
 	JabberOpenChatWithRunner *OpenChatRunner;
 
 public:
@@ -62,6 +61,7 @@ private:
 	PROPERTY_DEC(QByteArray, TlsOverrideCert)
 	PROPERTY_DEC(QString, TlsOverrideDomain)
 	PROPERTY_DEC(QString, DataTransferProxy)
+	PROPERTY_DEC(bool, RequireDataTransferProxy)
 	PROPERTY_DEC(bool, SendTypingNotification)
 	PROPERTY_DEC(bool, SendGoneNotification)
 	PROPERTY_DEC(bool, PublishSystemInfo)
@@ -76,7 +76,6 @@ public:
 
 	PROPERTY_DEF(QString, resource, setResource, Resource)
 	PROPERTY_DEF(bool, autoResource, setAutoResource, AutoResource)
-	PROPERTY_DEF(int, priority, setPriority, Priority)
 	PROPERTY_DEF(bool, useCustomHostPort, setUseCustomHostPort, UseCustomHostPort)
 	PROPERTY_DEF(QString, customHost, setCustomHost, CustomHost)
 	PROPERTY_DEF(int, customPort, setCustomPort, CustomPort)
@@ -84,11 +83,21 @@ public:
 	PROPERTY_DEF(AllowPlainType, plainAuthMode, setPlainAuthMode, PlainAuthMode)
 	PROPERTY_DEF(QByteArray, tlsOverrideCert, setTlsOverrideCert, TlsOverrideCert)
 	PROPERTY_DEF(QString, tlsOverrideDomain, setTlsOverrideDomain, TlsOverrideDomain)
-	PROPERTY_DEF(QString, dataTransferProxy, setDataTransferProxy, DataTransferProxy)
 	PROPERTY_DEF(bool, sendTypingNotification, setSendTypingNotification, SendTypingNotification)
 	PROPERTY_DEF(bool, sendGoneNotification, setSendGoneNotification, SendGoneNotification)
 	PROPERTY_DEF(bool, publishSystemInfo, setPublishSystemInfo, PublishSystemInfo)
 
-};
+	int priority();
+	void setPriority(int priority);
 
-#endif // JABBER_ACCOUNT
+	QString dataTransferProxy();
+	void setDataTransferProxy(const QString &dataTransferProxy);
+
+	bool requireDataTransferProxy();
+	void setRequireDataTransferProxy(bool requireDataTransferProxy);
+
+signals:
+	void priorityChanged();
+	void dataTransferProxyChanged();
+
+};

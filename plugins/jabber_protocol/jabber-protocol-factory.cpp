@@ -1,12 +1,8 @@
 /*
  * %kadu copyright begin%
- * Copyright 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2009, 2010, 2010 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2010 Piotr Pełzowski (floss@pelzowski.eu)
  * Copyright 2012 Piotr Dąbrowski (ultr@ultr.pl)
- * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
- * Copyright 2009, 2010, 2011, 2012, 2013, 2014 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2011, 2012, 2013, 2014 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -33,8 +29,9 @@
 #include "gui/widgets/jabber-contact-personal-info-widget.h"
 #include "gui/widgets/jabber-create-account-widget.h"
 #include "gui/widgets/jabber-edit-account-widget.h"
+#include "services/jabber-servers-service.h"
+#include "facebook-depreceated-message.h"
 #include "jabber-account-details.h"
-#include "jabber-contact-details.h"
 #include "jabber-id-validator.h"
 #include "jabber-protocol-factory.h"
 #include "jabber-protocol.h"
@@ -74,7 +71,10 @@ KaduIcon JabberProtocolFactory::icon()
 
 Protocol * JabberProtocolFactory::createProtocolHandler(Account account)
 {
-	return new XMPP::JabberProtocol(account, this);
+	if (account.id().toLower().endsWith("@chat.facebook.com"))
+		FacebookDepreceatedMessage::instance()->showIfNotSeen();
+
+	return new JabberProtocol(account, this);
 }
 
 AccountDetails * JabberProtocolFactory::createAccountDetails(AccountShared *accountShared)
@@ -82,21 +82,18 @@ AccountDetails * JabberProtocolFactory::createAccountDetails(AccountShared *acco
 	return new JabberAccountDetails(accountShared);
 }
 
-ContactDetails * JabberProtocolFactory::createContactDetails(ContactShared *contactShared)
-{
-	return new JabberContactDetails(contactShared);
-}
-
 AccountAddWidget * JabberProtocolFactory::newAddAccountWidget(bool showButtons, QWidget *parent)
 {
-	JabberAddAccountWidget *result = new JabberAddAccountWidget(this, showButtons, parent);
+	auto result = new JabberAddAccountWidget(this, showButtons, parent);
+	result->setJabberServersService(new JabberServersService{result});
 	connect(this, SIGNAL(destroyed()), result, SLOT(deleteLater()));
 	return result;
 }
 
 AccountCreateWidget * JabberProtocolFactory::newCreateAccountWidget(bool showButtons, QWidget *parent)
 {
-	JabberCreateAccountWidget *result = new JabberCreateAccountWidget(showButtons, parent);
+	auto result = new JabberCreateAccountWidget(showButtons, parent);
+	result->setJabberServersService(new JabberServersService{result});
 	connect(this, SIGNAL(destroyed()), result, SLOT(deleteLater()));
 	return result;
 }

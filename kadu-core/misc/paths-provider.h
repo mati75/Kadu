@@ -1,6 +1,6 @@
 /*
  * %kadu copyright begin%
- * Copyright 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2014 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -134,7 +134,7 @@ public:
 	 *
 	 * The default path to the current user profile may overwritten by existence
 	 * of file named "portable" in directory returned by the dataPath() method. Then
-	 * current user profile is located in the same location as KaduApplication::instance()->pathsProvider()->dataPath() + QLatin1String("config")
+	 * current user profile is located in the same location as Application::instance()->pathsProvider()->dataPath() + QLatin1String("config")
 	 * would give. It may be also overwritten by CONFIG_DIR environment variable
 	 * and --config-dir command-line option (the latter takes precedence). We will
 	 * call it CONFIG_DIR in this description, not matter which way it was set.

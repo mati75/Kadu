@@ -1,8 +1,8 @@
 /*
  * %kadu copyright begin%
  * Copyright 2009, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2010, 2011, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2010, 2014 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2010, 2011, 2013, 2014 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -18,7 +18,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-/* This classes are based on the KNotifyEventList* classes, which are the part
+/* This classes are based on the KNotificationEventList* classes, which are the part
  * of KDE libraries (see kde.org) and distributed under the terms
  * of the GNU Library General Public License version 2 as published
  * by the Free Software Foundation
@@ -32,7 +32,7 @@
 #include <QtWidgets/QTreeWidget>
 #include <QtWidgets/QTreeWidgetItem>
 
-#include "notify/notify-configuration-ui-handler.h"
+#include "notification/notify-configuration-ui-handler.h"
 
 class Notifier;
 
@@ -53,8 +53,8 @@ class NotifyTreeWidgetItem : public QTreeWidgetItem
 	bool useCustomSettings;
 
 public:
-	NotifyTreeWidgetItem(QTreeWidget *parent , const QString &eventName, const char *name, QStringList &notifiers);
-	NotifyTreeWidgetItem(NotifyTreeWidgetItem *parent , const QString &eventName, const char *name, QStringList &notifiers);
+	NotifyTreeWidgetItem(QTreeWidget *parent , const QString &eventName, const QString &name, QStringList &notifiers);
+	NotifyTreeWidgetItem(NotifyTreeWidgetItem *parent , const QString &eventName, const QString &name, QStringList &notifiers);
 
 	void notifierChecked(Notifier *notifier, bool checked);
 	void parentNotifierChecked();

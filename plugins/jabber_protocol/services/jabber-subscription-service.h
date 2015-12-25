@@ -1,10 +1,7 @@
 /*
  * %kadu copyright begin%
- * Copyright 2008, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2008 Michał Podsiadlik (michal@kadu.net)
- * Copyright 2007, 2008, 2009, 2010, 2011, 2012, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2014 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2007, 2008 Dawid Stawiarski (neeo@kadu.net)
+ * Copyright 2011, 2012, 2013, 2014 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -21,46 +18,43 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef JABBER_SUBSCRIPTION_SERVICE_H
-#define JABBER_SUBSCRIPTION_SERVICE_H
-
-#include <QtCore/QObject>
-
-#include <iris/xmpp_jid.h>
+#pragma once
 
 #include "protocols/services/subscription-service.h"
 
-namespace XMPP
-{
-
-class Client;
+#include <QtCore/QObject>
+#include <QtCore/QPointer>
 
 class JabberProtocol;
+
+class ContactManager;
+
+class QXmppRosterManager;
 
 class JabberSubscriptionService : public SubscriptionService
 {
 	Q_OBJECT
 
-	JabberProtocol *Protocol;
-	QPointer<Client> XmppClient;
-
-private slots:
-	void subscription(const Jid &jid, const QString &type, const QString &nick);
-
 public:
-	explicit JabberSubscriptionService(JabberProtocol *protocol);
+	explicit JabberSubscriptionService(QXmppRosterManager *roster, JabberProtocol *protocol);
+	virtual ~JabberSubscriptionService();
+
+	void setContactManager(ContactManager *contactManager);
 
 	virtual void resendSubscription(const Contact &contact);
 	virtual void removeSubscription(const Contact &contact);
 	virtual void requestSubscription(const Contact &contact);
 
-	void sendSubsription(const Contact &contact, const QString &subscription);
-
 public slots:
 	virtual void authorizeContact(Contact contact, bool authorized);
 
+private:
+	QPointer<QXmppRosterManager> m_roster;
+	JabberProtocol *m_protocol;
+
+	QPointer<ContactManager> m_contactManager;
+
+private slots:
+	void subscriptionReceived(const QString &bareJid);
+
 };
-
-}
-
-#endif // JABBER_SUBSCRIPTION_SERVICE_H

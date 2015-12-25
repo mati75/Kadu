@@ -2,8 +2,8 @@
  * %kadu copyright begin%
  * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2010 Piotr Dąbrowski (ultr@ultr.pl)
- * Copyright 2009, 2009, 2010, 2011, 2012, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2010, 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2009, 2010, 2011, 2012, 2013, 2014 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -31,10 +31,10 @@
 #include "identities/identity.h"
 #include "model/roles.h"
 #include "protocols/protocol.h"
-#include "roster/roster.h"
-#include "roster/roster-entry.h"
-#include "roster/roster-entry-state.h"
 #include "protocols/services/subscription-service.h"
+#include "roster/roster-entry-state.h"
+#include "roster/roster-entry.h"
+#include "roster/roster.h"
 
 #include "buddy-contacts-table-model.h"
 

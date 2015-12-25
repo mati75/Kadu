@@ -1,10 +1,8 @@
 /*
  * %kadu copyright begin%
- * Copyright 2009, 2010, 2010, 2011, 2012 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
- * Copyright 2009, 2010, 2011, 2012, 2013, 2014 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011, 2012 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2012 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2011, 2012 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2011, 2012, 2013, 2014 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -35,8 +33,6 @@
 
 #include "misc/misc.h"
 #include "debug.h"
-
-#include "../gadu-contact-details.h"
 
 #include "gadu-list-helper.h"
 
@@ -243,9 +239,6 @@ BuddyList GaduListHelper::streamPost70ToBuddyList(const QString &line, Account a
 			{
 				Contact contact = Contact::create();
 				contact.setContactAccount(account);
-				GaduContactDetails *details = dynamic_cast<GaduContactDetails *>(contact.details());
-				if (details)
-					details->setState(StorableObject::StateNew);
 				contact.setId(numberElement.text());
 				contact.data()->setState(StorableObject::StateNew);
 				contact.setOwnerBuddy(buddy);
@@ -304,9 +297,6 @@ Buddy GaduListHelper::linePre70ToBuddy(Account account, QStringList &sections)
 			Contact contact = Contact::create();
 			contact.setContactAccount(account);
 			contact.setId(QString::number(uin));
-			GaduContactDetails *details = dynamic_cast<GaduContactDetails *>(contact.details());
-			if (details)
-				details->setState(StorableObject::StateNew);
 			contact.data()->setState(StorableObject::StateNew);
 			contact.setOwnerBuddy(buddy);
 		}
@@ -375,9 +365,6 @@ Buddy GaduListHelper::line70ToBuddy(Account account, QStringList &sections)
 			Contact contact = Contact::create();
 			contact.setContactAccount(account);
 			contact.setId(QString::number(uin));
-			GaduContactDetails *details = dynamic_cast<GaduContactDetails *>(contact.details());
-			if (details)
-				details->setState(StorableObject::StateNew);
 			contact.data()->setState(StorableObject::StateNew);
 			contact.setOwnerBuddy(buddy);
 		}

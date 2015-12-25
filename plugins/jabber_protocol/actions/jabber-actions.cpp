@@ -1,8 +1,7 @@
 /*
  * %kadu copyright begin%
- * Copyright 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2011, 2012, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2011, 2012, 2013, 2014 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -37,6 +36,9 @@
 static void disableNoRosterContact(Action *action)
 {
 	action->setEnabled(false);
+
+	if (action->context()->buddies().isAnyTemporary())
+		return;
 
 	const Contact &contact = action->context()->contacts().toContact();
 	if (!contact)
@@ -105,7 +107,7 @@ Contact JabberActions::contactFromAction(QAction *action)
 
 SubscriptionService * JabberActions::subscriptionServiceFromContact(const Contact &contact)
 {
-	XMPP::JabberProtocol *jabberProtocolHandler = qobject_cast<XMPP::JabberProtocol *>(contact.contactAccount().protocolHandler());
+	JabberProtocol *jabberProtocolHandler = qobject_cast<JabberProtocol *>(contact.contactAccount().protocolHandler());
 	if (!jabberProtocolHandler)
 		return 0;
 

@@ -1,4 +1,6 @@
-<?xml version="1.0" ?><!DOCTYPE TS><TS language="fr" version="2.0">
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE TS>
+<TS version="2.1" language="fr">
 <context>
     <name>@default</name>
     <message>
@@ -72,18 +74,6 @@
     <message>
         <source>Maximum time difference</source>
         <translation>Différence maximal de temps</translation>
-    </message>
-    <message>
-        <source>Chat window title syntax</source>
-        <translation>Syntaxe du titre de la fenêtre</translation>
-    </message>
-    <message>
-        <source>Conference window title prefix</source>
-        <translation>Préfixe du titre de la fenêtre de conférence</translation>
-    </message>
-    <message>
-        <source>Conference window title syntax</source>
-        <translation>Syntaxe du titre de la fenêtre de conférence</translation>
     </message>
     <message>
         <source>Kadu</source>
@@ -195,7 +185,7 @@
     </message>
     <message>
         <source>Colors</source>
-        <translation>Couleur</translation>
+        <translation>Couleurs</translation>
     </message>
     <message>
         <source>Chat window</source>
@@ -207,7 +197,7 @@
     </message>
     <message>
         <source>Font</source>
-        <translation>Fonte</translation>
+        <translation>Police</translation>
     </message>
     <message>
         <source>Descriptions font</source>
@@ -223,7 +213,7 @@
     </message>
     <message>
         <source>Fonts</source>
-        <translation>Les fontes</translation>
+        <translation>Polices</translation>
     </message>
     <message>
         <source>Show number of new messages on chat title</source>
@@ -244,10 +234,6 @@
     <message>
         <source>Display group tabs</source>
         <translation>Afficher le groupe d&apos;onglets</translation>
-    </message>
-    <message>
-        <source>Descriptions</source>
-        <translation>Descriptions</translation>
     </message>
     <message>
         <source>Use background image</source>
@@ -466,10 +452,6 @@
         <translation>Heure du serveur</translation>
     </message>
     <message>
-        <source>Window Title</source>
-        <translation>Titre de la fenêtre</translation>
-    </message>
-    <message>
         <source>Nickname</source>
         <translation>Pseudonyme</translation>
     </message>
@@ -538,10 +520,6 @@
         <translation>Afficher les contacts connectés en gras</translation>
     </message>
     <message>
-        <source>Buddy Photos</source>
-        <translation>Photos des amis</translation>
-    </message>
-    <message>
         <source>Grey out offline buddies&apos; photos</source>
         <translation>Griser les images des contacts hors ligne</translation>
     </message>
@@ -594,7 +572,7 @@
         <translation>Modifier l&apos;état</translation>
     </message>
     <message>
-        <source>This option will supersede tooltips with buddies' status
+        <source>This option will supersede tooltips with buddies&apos; status
 changes upon establishing connection to the server</source>
         <translation>Cette option va remplacer les infobulles par l&apos;état du contact
 les changements interviendront à la connexion du serveur</translation>
@@ -629,11 +607,17 @@ les changements interviendront à la connexion du serveur</translation>
     </message>
     <message numerus="yes">
         <source>%n minute(s)</source>
-        <translation><numerusform>%n minute</numerusform><numerusform>%n minutes</numerusform></translation>
+        <translation>
+            <numerusform>%n minute</numerusform>
+            <numerusform>%n minutes</numerusform>
+        </translation>
     </message>
     <message numerus="yes">
         <source>%n second(s)</source>
-        <translation><numerusform>%n seconde</numerusform><numerusform>%n secondes</numerusform></translation>
+        <translation>
+            <numerusform>%n seconde</numerusform>
+            <numerusform>%n secondes</numerusform>
+        </translation>
     </message>
     <message>
         <source>Send message</source>
@@ -644,20 +628,12 @@ les changements interviendront à la connexion du serveur</translation>
         <translation>Afficher une fenêtre avec notification</translation>
     </message>
     <message>
-        <source>Contact state change notification position</source>
-        <translation>Position de la notification lors du changement d&apos;état d&apos;un contact</translation>
-    </message>
-    <message>
         <source>Beginning of title</source>
         <translation>Début du titre</translation>
     </message>
     <message>
         <source>End of title</source>
         <translation>Fin du titre</translation>
-    </message>
-    <message>
-        <source>Custom composing notification syntax</source>
-        <translation>Personnaliser la syntaxe des notifications pendant la composition</translation>
     </message>
     <message>
         <source>Move the Window to the Active Desktop</source>
@@ -921,7 +897,7 @@ les changements interviendront à la connexion du serveur</translation>
     </message>
     <message>
         <source>Show buddy information panel</source>
-        <translation>Afficher le panneau d&apos;information</translation>
+        <translation>Afficher panneau d&apos;information</translation>
     </message>
     <message>
         <source>Displays buddy information panel below the buddy list</source>
@@ -1123,6 +1099,14 @@ les changements interviendront à la connexion du serveur</translation>
         <source>Open chat window on new message in minimized mode</source>
         <translation>Ouvrir la fenêtre de conversation lors d&apos;un nouveau message en mode réduit</translation>
     </message>
+    <message>
+        <source>Always show identity</source>
+        <translation>Toujours afficher l&apos;identifient du contact</translation>
+    </message>
+    <message>
+        <source>Notification position</source>
+        <translation>Position notification</translation>
+    </message>
 </context>
 <context>
     <name>About</name>
@@ -1219,6 +1203,18 @@ les changements interviendront à la connexion du serveur</translation>
     <message>
         <source>Contact List Files (*.txt)</source>
         <translation>Fichiers Liste de Contacts (*.txt)</translation>
+    </message>
+    <message>
+        <source>The following contacts from your list were not found in file:&lt;br/&gt;&lt;b&gt;%1&lt;/b&gt;.&lt;br/&gt;Do you want to remove them from contact list?</source>
+        <translation>Le contact suivant de votre liste n&apos;a pas été trouvé dans le fichier: &lt;br/&gt;&lt;b&gt;%1&lt;/b&gt;.&lt;br/&gt; Voulez vous le supprimer de votre liste de contacts ?</translation>
+    </message>
+    <message>
+        <source>Remove</source>
+        <translation>Supprimer</translation>
+    </message>
+    <message>
+        <source>Cancel</source>
+        <translation>Annuler</translation>
     </message>
 </context>
 <context>
@@ -1417,17 +1413,6 @@ les changements interviendront à la connexion du serveur</translation>
     <message>
         <source>Enter visible name to add this conference to roster</source>
         <translation>Saisir un nom visible pour ajouter cette conférence à roster</translation>
-    </message>
-</context>
-<context>
-    <name>AddGroupDialogWidget</name>
-    <message>
-        <source>Add Group</source>
-        <translation>Ajouter un Groupe</translation>
-    </message>
-    <message>
-        <source>Group Name</source>
-        <translation>Nom du Groupe</translation>
     </message>
 </context>
 <context>
@@ -1744,6 +1729,10 @@ les changements interviendront à la connexion du serveur</translation>
         <source>Hide description</source>
         <translation>Masquer la description</translation>
     </message>
+    <message>
+        <source>General</source>
+        <translation>Général</translation>
+    </message>
 </context>
 <context>
     <name>BuddyPersonalInfoConfigurationWidget</name>
@@ -1770,10 +1759,6 @@ les changements interviendront à la connexion du serveur</translation>
         <translation>Nom visible</translation>
     </message>
     <message>
-        <source>Add this chat to the groups below by checking the box next to the appropriate groups.</source>
-        <translation>Ajouter cette conversation aux groupes ci-dessous en cochant en face des groupes appropriés.</translation>
-    </message>
-    <message>
         <source>OK</source>
         <translation>OK</translation>
     </message>
@@ -1792,6 +1777,14 @@ les changements interviendront à la connexion du serveur</translation>
     <message>
         <source>Chat</source>
         <translation>Conversation</translation>
+    </message>
+    <message>
+        <source>Groups</source>
+        <translation>Groupes</translation>
+    </message>
+    <message>
+        <source>Options</source>
+        <translation>Options</translation>
     </message>
 </context>
 <context>
@@ -1842,6 +1835,13 @@ les changements interviendront à la connexion du serveur</translation>
     </message>
 </context>
 <context>
+    <name>ChatGroupsConfigurationWidget</name>
+    <message>
+        <source>Add &lt;b&gt;%1&lt;/b&gt; to the groups below by checking the box next to the appropriate groups.</source>
+        <translation>Ajouter &lt;b&gt;%1&lt;/b&gt; aux groupes ci-dessous en cochant en face des groupes appropriés.</translation>
+    </message>
+</context>
+<context>
     <name>ChatImageRequestService</name>
     <message>
         <source>Buddy %1 is attempting to send you an image of %2 KiB in size.
@@ -1869,17 +1869,6 @@ Voulez vous malgré tout accepter cette image ?</translation>
     </message>
 </context>
 <context>
-    <name>ChatNotification</name>
-    <message>
-        <source>Chat</source>
-        <translation>Chat</translation>
-    </message>
-    <message>
-        <source>Ignore</source>
-        <translation>Ignorer</translation>
-    </message>
-</context>
-<context>
     <name>ChatRoomEditWidget</name>
     <message>
         <source>Account:</source>
@@ -1897,6 +1886,10 @@ Voulez vous malgré tout accepter cette image ?</translation>
         <source>Password:</source>
         <translation>Mot de passe :</translation>
     </message>
+    <message>
+        <source>Stay in chat room after closing chat window</source>
+        <translation>Rester dans le groupe après avoir fermé la fenêtre de conversation</translation>
+    </message>
 </context>
 <context>
     <name>ChatStylePreview</name>
@@ -1911,14 +1904,6 @@ Voulez vous malgré tout accepter cette image ?</translation>
 </context>
 <context>
     <name>ChatWidget</name>
-    <message>
-        <source>Conference with </source>
-        <translation>Conférence avec </translation>
-    </message>
-    <message>
-        <source>Chat with </source>
-        <translation>Conversation avec</translation>
-    </message>
     <message>
         <source>Chat window will be cleared. Continue?</source>
         <translation>La fenêtre du message sera effacée. Voulez vous continuer?</translation>
@@ -1938,14 +1923,6 @@ Voulez vous malgré tout accepter cette image ?</translation>
     <message>
         <source>%1 ended the conversation</source>
         <translation>%1 a terminé la conversation</translation>
-    </message>
-    <message>
-        <source>(Composing...)</source>
-        <translation>(écrit...)</translation>
-    </message>
-    <message>
-        <source>(Inactive)</source>
-        <translation>(inactif)</translation>
     </message>
     <message>
         <source>Clear chat window</source>
@@ -2008,6 +1985,21 @@ Voulez vous malgré tout accepter cette image ?</translation>
     </message>
 </context>
 <context>
+    <name>ChatWidgetTitle</name>
+    <message>
+        <source>Conference [%1]</source>
+        <translation>Conférence [%1]</translation>
+    </message>
+    <message>
+        <source>(Composing...)</source>
+        <translation>(écrit...)</translation>
+    </message>
+    <message>
+        <source>(Inactive)</source>
+        <translation>(Inactif)</translation>
+    </message>
+</context>
+<context>
     <name>ChatWindow</name>
     <message>
         <source>New message received, close window anyway?</source>
@@ -2031,6 +2023,13 @@ Voulez vous malgré tout accepter cette image ?</translation>
     <message>
         <source>Create new description...</source>
         <translation>Créer une nouvelle description...</translation>
+    </message>
+</context>
+<context>
+    <name>CollapseAction</name>
+    <message>
+        <source>Collapse</source>
+        <translation>Replier</translation>
     </message>
 </context>
 <context>
@@ -2061,53 +2060,6 @@ Voulez vous malgré tout accepter cette image ?</translation>
     <message>
         <source>Ignore</source>
         <translation>Ignorer</translation>
-    </message>
-</context>
-<context>
-    <name>ContactListService</name>
-    <message>
-        <source>Kadu</source>
-        <translation>Kadu</translation>
-    </message>
-    <message>
-        <source>The following contacts from your list were not found in file:&lt;br/&gt;&lt;b&gt;%1&lt;/b&gt;.&lt;br/&gt;Do you want to remove them from contact list?</source>
-        <translation>Le contact suivant de votre liste n&apos;a pas été trouvé dans le fichier: &lt;br/&gt;&lt;b&gt;%1&lt;/b&gt;.&lt;br/&gt; Voulez vous le supprimer de votre liste de contacts ?</translation>
-    </message>
-    <message>
-        <source>Kadu since version 0.10.0 automatically synchronizes Gadu-Gadu contact list with server. Now the first synchronization will be performed.&lt;br/&gt;&lt;br/&gt;</source>
-        <translation>Depuis la version 0.10.0 Kadu synchronise la liste de contacts de Gadu-Gadu sur le serveur. Maintenant la première synchronisation va s&apos;effectuer.&lt;br/&gt;&lt;br/&gt;</translation>
-    </message>
-    <message>
-        <source>The following contacts present on the server were not found on your local contact list:&lt;br/&gt;&lt;b&gt;%1&lt;/b&gt;.&lt;br/&gt;If you do not agree to add those contacts to your local list, they will be removed from the server.&lt;br/&gt;&lt;br/&gt;</source>
-        <translation>Le contacts &lt;br/&gt;&lt;b&gt;%1&lt;/b&gt;.&lt;br/&gt; sont présents sur le serveur mais n&apos;ont pas été trouvé dans le liste locale de vos contact. Si vous n&apos;êtes pas d&apos;accord pour ajouter ces contacts à votre liste locale, ils seront enlevé du serveur.&lt;br/&gt;&lt;br/&gt;</translation>
-    </message>
-    <message>
-        <source>The following contacts from your local list are present on the server under different names:&lt;br/&gt;&lt;b&gt;%1&lt;/b&gt;.&lt;br/&gt;&lt;br/&gt;</source>
-        <translation>Le contact suivant de votre liste de contact locale est présent sur le serveur sous différents noms: &lt;br/&gt;&lt;b&gt;%1&lt;/b&gt;.&lt;br/&gt;&lt;br/&gt;</translation>
-    </message>
-    <message>
-        <source>Moreover, the following contacts from your local list are present on the server under different names:&lt;br/&gt;&lt;b&gt;%1&lt;/b&gt;.&lt;br/&gt;&lt;br/&gt;</source>
-        <translation>Des plus, le contact suivant de votre liste de contact locale est présent sur le serveur sous différents noms: &lt;br/&gt;&lt;b&gt;%1&lt;/b&gt;.&lt;br/&gt;&lt;br/&gt;</translation>
-    </message>
-    <message>
-        <source>Do you want to apply the above changes to your local contact list? Regardless of your choice, it will be sent to the server after making possible changes.</source>
-        <translation>Voulez vous appliquer les changements suivant à votre liste de contact? indépendamment de votre choix, les changements seront envoyés au serveur.</translation>
-    </message>
-    <message>
-        <source>Apply changes</source>
-        <translation>Appliquer changements</translation>
-    </message>
-    <message>
-        <source>Leave contact list unchanged</source>
-        <translation>Laisser la liste des contacts inchangé</translation>
-    </message>
-    <message>
-        <source>Remove</source>
-        <translation>Supprimer</translation>
-    </message>
-    <message>
-        <source>Cancel</source>
-        <translation>Annuler</translation>
     </message>
 </context>
 <context>
@@ -2198,18 +2150,10 @@ Voulez vous malgré tout accepter cette image ?</translation>
     </message>
 </context>
 <context>
-    <name>FileTransferActions</name>
+    <name>ExpandAction</name>
     <message>
-        <source>Send File...</source>
-        <translation>Envoyer un fichier...</translation>
-    </message>
-    <message>
-        <source>View File Transfers</source>
-        <translation>Voir les fichiers transférés</translation>
-    </message>
-    <message>
-        <source>Select file location</source>
-        <translation>Sélectionner un emplacement de fichier</translation>
+        <source>Expand</source>
+        <translation>Déplier</translation>
     </message>
 </context>
 <context>
@@ -2231,10 +2175,6 @@ Voulez vous malgré tout accepter cette image ?</translation>
         <translation>Écraser</translation>
     </message>
     <message>
-        <source>Resume</source>
-        <translation>Continuer</translation>
-    </message>
-    <message>
         <source>Select another file</source>
         <translation>Sélectionner un autre fichier</translation>
     </message>
@@ -2246,6 +2186,10 @@ Voulez vous malgré tout accepter cette image ?</translation>
         <source>Could not open file. Select another one.</source>
         <translation>Impossible d&apos;ouvrir le fichier. Sélectionnez en un autre.</translation>
     </message>
+    <message>
+        <source>Unable to open local file</source>
+        <translation>Impossible d&apos;ouvrir le fichier local</translation>
+    </message>
 </context>
 <context>
     <name>FileTransferWidget</name>
@@ -2254,28 +2198,12 @@ Voulez vous malgré tout accepter cette image ?</translation>
         <translation>Supprimer</translation>
     </message>
     <message>
-        <source>File &lt;b&gt;%1&lt;/b&gt;&lt;br /&gt; to &lt;b&gt;%2&lt;/b&gt;&lt;br /&gt;on account &lt;b&gt;%3&lt;/b&gt;</source>
-        <translation>Fichier &lt;b&gt;%1&lt;/b&gt;&lt;br /&gt; vers &lt;b&gt;%2&lt;/b&gt;&lt;br /&gt;le compte &lt;b&gt;%3&lt;/b&gt;</translation>
-    </message>
-    <message>
-        <source>File &lt;b&gt;%1&lt;/b&gt;&lt;br /&gt; from &lt;b&gt;%2&lt;/b&gt;&lt;br /&gt;on account &lt;b&gt;%3&lt;/b&gt;</source>
-        <translation>Fichier &lt;b&gt;%1&lt;/b&gt;&lt;br /&gt; depuis &lt;b&gt;%2&lt;/b&gt;&lt;br /&gt;le compte &lt;b&gt;%3&lt;/b&gt;</translation>
-    </message>
-    <message>
         <source>Kadu</source>
         <translation>Kadu</translation>
     </message>
     <message>
         <source>Are you sure you want to remove this transfer?</source>
         <translation>Êtes-vous certain de vouloir supprimer ce transfert ?</translation>
-    </message>
-    <message>
-        <source>&lt;b&gt;Not connected&lt;/b&gt;</source>
-        <translation>&lt;b&gt;Non connecté&lt;/b&gt;</translation>
-    </message>
-    <message>
-        <source>&lt;b&gt;Error&lt;/b&gt;</source>
-        <translation>&lt;b&gt;Erreur&lt;/b&gt;</translation>
     </message>
     <message>
         <source>&lt;b&gt;Wait for connection&lt;/b&gt;</source>
@@ -2302,12 +2230,44 @@ Voulez vous malgré tout accepter cette image ?</translation>
         <translation>Arrêter</translation>
     </message>
     <message>
-        <source>Start</source>
-        <translation>Démarrer</translation>
-    </message>
-    <message>
         <source>Cancel</source>
         <translation>Annuler</translation>
+    </message>
+    <message>
+        <source>Accept</source>
+        <translation>Accepter</translation>
+    </message>
+    <message>
+        <source>Reject</source>
+        <translation>Refuser</translation>
+    </message>
+    <message>
+        <source>Save</source>
+        <translation>Enregistrer</translation>
+    </message>
+    <message>
+        <source>Send</source>
+        <translation>Envoyer</translation>
+    </message>
+    <message>
+        <source>Open</source>
+        <translation>Ouvrir</translation>
+    </message>
+    <message>
+        <source>Open file</source>
+        <translation>Enregistrer fichier</translation>
+    </message>
+    <message>
+        <source>Open folder</source>
+        <translation>Ouvrir dossier</translation>
+    </message>
+    <message>
+        <source>Send again</source>
+        <translation>Renvoyer</translation>
+    </message>
+    <message>
+        <source>&lt;b&gt;Ready to download&lt;/b&gt;</source>
+        <translation>&lt;b&gt;Près à télécharger&lt;/b&gt;</translation>
     </message>
 </context>
 <context>
@@ -2330,6 +2290,65 @@ Voulez vous malgré tout accepter cette image ?</translation>
     <message>
         <source>Search</source>
         <translation>Rechercher</translation>
+    </message>
+</context>
+<context>
+    <name>GroupEditWindow</name>
+    <message>
+        <source>Show group name</source>
+        <translation>Afficher le nom du groupe</translation>
+    </message>
+    <message>
+        <source>Use custom icon</source>
+        <translation>Icône utilisateur personnalisée</translation>
+    </message>
+    <message>
+        <source>Notify about status changes</source>
+        <translation>Notifier les changements d&apos;état</translation>
+    </message>
+    <message>
+        <source>Offline for this group</source>
+        <translation>Hors ligne pour ce groupe</translation>
+    </message>
+    <message>
+        <source>Supported for Gadu-Gadu network</source>
+        <translation>Supporté par le protocole Gadu-Gadu</translation>
+    </message>
+    <message>
+        <source>Show in group &quot;All&quot;</source>
+        <translation>Afficher dans le groupe &quot;Tout le monde&quot;</translation>
+    </message>
+    <message>
+        <source>Name:</source>
+        <translation>Nom:</translation>
+    </message>
+    <message>
+        <source>Add group</source>
+        <translation>Ajouter groupe</translation>
+    </message>
+    <message>
+        <source>Save group</source>
+        <translation>Sauvegarder groupe</translation>
+    </message>
+    <message>
+        <source>Apply</source>
+        <translation>Appliquer</translation>
+    </message>
+    <message>
+        <source>Cancel</source>
+        <translation>Annuler</translation>
+    </message>
+    <message>
+        <source>Choose an icon</source>
+        <translation>Choisir une icône</translation>
+    </message>
+    <message>
+        <source>Images (*.png *.xpm *.jpg);;All Files (*)</source>
+        <translation>Images (*.png *.xpm *.jpg);; Tous les fichiers (*)</translation>
+    </message>
+    <message>
+        <source>Edit group %1</source>
+        <translation>Éditer groupe %1</translation>
     </message>
 </context>
 <context>
@@ -2369,72 +2388,25 @@ Voulez vous malgré tout accepter cette image ?</translation>
         <source>Group of that name already exists!</source>
         <translation>Un groupe de ce nom existe déjà !</translation>
     </message>
-</context>
-<context>
-    <name>GroupPropertiesWindow</name>
     <message>
-        <source>Properties of group %1</source>
-        <translation>Propriétés du groupe %1</translation>
+        <source>Group name must not be empty</source>
+        <translation>Le nom du groupe ne peut être vide</translation>
     </message>
     <message>
-        <source>Behavior</source>
-        <translation>Comportement</translation>
+        <source>Group name must not contain &apos;%1&apos;</source>
+        <translation>Le nom du groupe ne peut contenir &apos;%1&apos;</translation>
     </message>
     <message>
-        <source>Notify about status changes</source>
-        <translation>Notifier les changements d&apos;état</translation>
+        <source>Group name must not be a number</source>
+        <translation>Le nom de groupe ne peut être un nombre</translation>
     </message>
     <message>
-        <source>Offline for this group</source>
-        <translation>hors ligne pour ce groupe</translation>
+        <source>Group name must not be &apos;%1&apos;</source>
+        <translation>Le nom du groupe ne peut être &apos;%1&apos;</translation>
     </message>
     <message>
-        <source>Supported for Gadu-Gadu network</source>
-        <translation>Supporté par le protocole Gadu-Gadu</translation>
-    </message>
-    <message>
-        <source>Work only when network supports it</source>
-        <translation>Fonctionne seulement lorsque le protocole le supporte</translation>
-    </message>
-    <message>
-        <source>Show in group &quot;All&quot;</source>
-        <translation>Afficher dans le groupe &quot;Tout&quot;</translation>
-    </message>
-    <message>
-        <source>Look</source>
-        <translation>Apparence</translation>
-    </message>
-    <message>
-        <source>Use custom icon</source>
-        <translation>Icône utilisateur personnalisée</translation>
-    </message>
-    <message>
-        <source> Set Icon</source>
-        <translation> Jeu d&apos;icônes</translation>
-    </message>
-    <message>
-        <source>Show group name</source>
-        <translation>Afficher le nom du groupe</translation>
-    </message>
-    <message>
-        <source>Ok</source>
-        <translation>Ok</translation>
-    </message>
-    <message>
-        <source>Apply</source>
-        <translation>Appliquer</translation>
-    </message>
-    <message>
-        <source>Cancel</source>
-        <translation>Annuler</translation>
-    </message>
-    <message>
-        <source>Choose an icon</source>
-        <translation>Choisir une icône</translation>
-    </message>
-    <message>
-        <source>Images (*.png *.xpm *.jpg);;All Files (*)</source>
-        <translation>Images (*.png *.xpm *.jpg);; Tous les fichiers (*)</translation>
+        <source>Group &apos;%1&apos; already exists</source>
+        <translation>Le groupe &apos;%1&apos; existe déjà</translation>
     </message>
 </context>
 <context>
@@ -2442,10 +2414,6 @@ Voulez vous malgré tout accepter cette image ?</translation>
     <message>
         <source>Add Buddy</source>
         <translation>Ajouter un ami</translation>
-    </message>
-    <message>
-        <source>Rename Group</source>
-        <translation>Renommer le groupe</translation>
     </message>
     <message>
         <source>Delete Group</source>
@@ -2476,14 +2444,6 @@ Voulez vous malgré tout accepter cette image ?</translation>
         <translation>Ajouter un groupe</translation>
     </message>
     <message>
-        <source>Please enter a new name for the &lt;i&gt;%0&lt;/i&gt; group</source>
-        <translation>Veuillez saisir un nouveau nom pour le groupe &lt;i&gt;%0&lt;/i&gt;</translation>
-    </message>
-    <message>
-        <source>Edit Group</source>
-        <translation>Éditer Groupe</translation>
-    </message>
-    <message>
         <source>Delete group</source>
         <translation>Supprimer Groupe</translation>
     </message>
@@ -2494,10 +2454,6 @@ Voulez vous malgré tout accepter cette image ?</translation>
     <message>
         <source>Cancel</source>
         <translation>Annuler</translation>
-    </message>
-    <message>
-        <source>Please enter the name for the new group</source>
-        <translation>Veuillez saisir le nom du nouveau groupe.</translation>
     </message>
 </context>
 <context>
@@ -2700,7 +2656,7 @@ Voulez vous malgré tout accepter cette image ?</translation>
     </message>
     <message>
         <source>Show Offline Buddies</source>
-        <translation>Afficher les amis hors ligne</translation>
+        <translation>Afficher Contacts Hors ligne</translation>
     </message>
     <message>
         <source>Only Show Buddies with Description</source>
@@ -2761,14 +2717,6 @@ Voulez vous malgré tout accepter cette image ?</translation>
     <message>
         <source>Merge</source>
         <translation>Fusionner</translation>
-    </message>
-    <message>
-        <source>Please enter the name for the new group</source>
-        <translation>Veuillez saisir le nom du nouveau groupe.</translation>
-    </message>
-    <message>
-        <source>Add Group</source>
-        <translation>Ajouter Groupe</translation>
     </message>
     <message>
         <source>Contact:</source>
@@ -2917,10 +2865,6 @@ from now on. Are you sure you want to leave this conference?</source>
 <context>
     <name>MultilogonNotification</name>
     <message>
-        <source>Ignore</source>
-        <translation>Ignorer</translation>
-    </message>
-    <message>
         <source>Disconnect session</source>
         <translation>Déconnecter la session</translation>
     </message>
@@ -2959,18 +2903,6 @@ from now on. Are you sure you want to leave this conference?</source>
         <translation>L&apos;utilisateur &lt;b&gt;%1&lt;/b&gt; veut vous envoyer un fichier &lt;b&gt;%2&lt;/b&gt;&lt;br /&gt;de la taille &lt;b&gt;%3&lt;/b&gt; avec le compte &lt;b&gt;%4&gt;&lt;/b&gt;. Il s&apos;agit probablement de la partie suivante de &lt;b&gt;%5&lt;/b&gt;&lt;br /&gt;Que voulez vous faire?</translation>
     </message>
     <message>
-        <source>Continue</source>
-        <translation>Continuer</translation>
-    </message>
-    <message>
-        <source>Save file under new name</source>
-        <translation>Sauvegarder le fichier sous un nouveau nom</translation>
-    </message>
-    <message>
-        <source>Ignore transfer</source>
-        <translation>Ignorer transfert</translation>
-    </message>
-    <message>
         <source>Accept</source>
         <translation>Accepter</translation>
     </message>
@@ -2978,16 +2910,21 @@ from now on. Are you sure you want to leave this conference?</source>
         <source>Reject</source>
         <translation>Refuser</translation>
     </message>
-</context>
-<context>
-    <name>NotificationManager</name>
     <message>
-        <source>Unable to find notifier for %1 event</source>
-        <translation>Impossible de trouver la notification pour l&apos;évènement %1</translation>
+        <source>Save</source>
+        <translation>Enregistrer</translation>
     </message>
     <message>
-        <source>Kadu</source>
-        <translation>Kadu</translation>
+        <source>Ignore</source>
+        <translation>Ignorer</translation>
+    </message>
+    <message>
+        <source>User &lt;b&gt;%1&lt;/b&gt; wants to send you a file &lt;b&gt;%2&lt;/b&gt;&lt;br/&gt;using account &lt;b&gt;%3&lt;/b&gt;.&lt;br/&gt;Accept transfer?</source>
+        <translation>L&apos;utilisateur &lt;b&gt;%1&lt;/b&gt; veut vous envoyer un fichier &lt;b&gt;%2&lt;/b&gt; avec le compte &lt;b&gt;%3&gt;&lt;/b&gt;.&lt;br /&gt;Accepter le transfert?</translation>
+    </message>
+    <message>
+        <source>User &lt;b&gt;%1&lt;/b&gt; wants to send you a file &lt;b/&gt;%2&lt;/b&gt;&lt;br/&gt;using account &lt;b&gt;%3&lt;/b&gt;.&lt;br/&gt;This is probably a next part of &lt;b&gt;%4&lt;/b&gt;&lt;br/&gt;What should I do?</source>
+        <translation>L&apos;utilisateur &lt;b&gt;%1&lt;/b&gt; veut vous envoyer un fichier &lt;b&gt;%2&lt;/b&gt;avec le compte &lt;b&gt;%3&gt;&lt;/b&gt;. Il s&apos;agit probablement de la partie suivante de &lt;b&gt;%4&lt;/b&gt;&lt;br /&gt;Que voulez vous faire?</translation>
     </message>
 </context>
 <context>
@@ -2999,6 +2936,14 @@ from now on. Are you sure you want to leave this conference?</source>
     <message>
         <source>Silent Mode</source>
         <translation>Mode Silencieux</translation>
+    </message>
+    <message>
+        <source>Ignore</source>
+        <translation>Ignorer</translation>
+    </message>
+    <message>
+        <source>Chat</source>
+        <translation>Conversation</translation>
     </message>
 </context>
 <context>
@@ -3103,6 +3048,17 @@ from now on. Are you sure you want to leave this conference?</source>
     </message>
 </context>
 <context>
+    <name>PluginErrorDialog</name>
+    <message>
+        <source>Kadu</source>
+        <translation>Kadu</translation>
+    </message>
+    <message>
+        <source>Try to load this plugin on next Kadu run</source>
+        <translation>Essayer de charger ce module lors du prochain lancement de kadu</translation>
+    </message>
+</context>
+<context>
     <name>PluginListWidget</name>
     <message>
         <source>Deactivate</source>
@@ -3149,6 +3105,15 @@ from now on. Are you sure you want to leave this conference?</source>
     </message>
 </context>
 <context>
+    <name>PluginLoader</name>
+    <message>
+        <source>Cannot load %1 plugin library:
+%2</source>
+        <translation>Impossible de charger le module %1 de la bibliothèque:
+%2</translation>
+    </message>
+</context>
+<context>
     <name>PluginModel</name>
     <message>
         <source>Chat</source>
@@ -3189,6 +3154,19 @@ from now on. Are you sure you want to leave this conference?</source>
     <message>
         <source>Misc</source>
         <translation>Divers</translation>
+    </message>
+</context>
+<context>
+    <name>PluginRootComponentHandler</name>
+    <message>
+        <source>Cannot find required object in plugin %1.
+Maybe it&apos;s not Kadu-compatible plugin.</source>
+        <translation>Pas trouvé les fonctions nécessaires dans le module %1.
+Peut être module incompatible avec Kadu.</translation>
+    </message>
+    <message>
+        <source>Plugin initialization routine for %1 failed.</source>
+        <translation>Initiation de module pour %1 échouée.</translation>
     </message>
 </context>
 <context>
@@ -3320,21 +3298,6 @@ from now on. Are you sure you want to leave this conference?</source>
     </message>
 </context>
 <context>
-    <name>QCoreApplication</name>
-    <message>
-        <source>Kadu</source>
-        <translation>Kadu</translation>
-    </message>
-    <message>
-        <source>Could not spawn Web browser process. Check if the Web browser is functional</source>
-        <translation>Impossible de lancer le Navigateur internet. Vérifiez que le Navigateur internet soit bien fonctionnel</translation>
-    </message>
-    <message>
-        <source>Could not spawn Mail client process. Check if the Mail client is functional</source>
-        <translation>Impossible de lancer l&apos;application pour les Mails. Vérifier que l&apos;application est fonctionnelle.</translation>
-    </message>
-</context>
-<context>
     <name>RecentChatsAction</name>
     <message>
         <source>Recent Chats</source>
@@ -3369,6 +3332,41 @@ from now on. Are you sure you want to leave this conference?</source>
     <message>
         <source>%1: roster export failed</source>
         <translation>%1: échec de l&apos;export de liste de contacts</translation>
+    </message>
+</context>
+<context>
+    <name>RosterReplacer</name>
+    <message>
+        <source>Kadu since version 0.10.0 automatically synchronizes Gadu-Gadu contact list with server. Now the first synchronization will be performed.&lt;br/&gt;&lt;br/&gt;</source>
+        <translation>Depuis la version 0.10.0 Kadu synchronise la liste de contacts de Gadu-Gadu sur le serveur. Maintenant la première synchronisation va s&apos;effectuer.&lt;br/&gt;&lt;br/&gt;</translation>
+    </message>
+    <message>
+        <source>The following contacts present on the server were not found on your local contact list:&lt;br/&gt;&lt;b&gt;%1&lt;/b&gt;.&lt;br/&gt;If you do not agree to add those contacts to your local list, they will be removed from the server.&lt;br/&gt;&lt;br/&gt;</source>
+        <translation>Le contacts &lt;br/&gt;&lt;b&gt;%1&lt;/b&gt;.&lt;br/&gt; sont présents sur le serveur mais n&apos;ont pas été trouvé dans le liste locale de vos contact. Si vous n&apos;êtes pas d&apos;accord pour ajouter ces contacts à votre liste locale, ils seront enlevé du serveur.&lt;br/&gt;&lt;br/&gt;</translation>
+    </message>
+    <message>
+        <source>The following contacts from your local list are present on the server under different names:&lt;br/&gt;&lt;b&gt;%1&lt;/b&gt;.&lt;br/&gt;&lt;br/&gt;</source>
+        <translation>Le contact suivant de votre liste de contact locale est présent sur le serveur sous différents noms: &lt;br/&gt;&lt;b&gt;%1&lt;/b&gt;.&lt;br/&gt;&lt;br/&gt;</translation>
+    </message>
+    <message>
+        <source>Moreover, the following contacts from your local list are present on the server under different names:&lt;br/&gt;&lt;b&gt;%1&lt;/b&gt;.&lt;br/&gt;&lt;br/&gt;</source>
+        <translation>Des plus, le contact suivant de votre liste de contact locale est présent sur le serveur sous différents noms: &lt;br/&gt;&lt;b&gt;%1&lt;/b&gt;.&lt;br/&gt;&lt;br/&gt;</translation>
+    </message>
+    <message>
+        <source>Do you want to apply the above changes to your local contact list? Regardless of your choice, it will be sent to the server after making possible changes.</source>
+        <translation>Voulez vous appliquer les changements suivant à votre liste de contact? indépendamment de votre choix, les changements seront envoyés au serveur.</translation>
+    </message>
+    <message>
+        <source>Kadu</source>
+        <translation>Kadu</translation>
+    </message>
+    <message>
+        <source>Apply changes</source>
+        <translation>Appliquer changements</translation>
+    </message>
+    <message>
+        <source>Leave contact list unchanged</source>
+        <translation>Laisser la liste des contacts inchangé</translation>
     </message>
 </context>
 <context>
@@ -3583,6 +3581,166 @@ from now on. Are you sure you want to leave this conference?</source>
     </message>
 </context>
 <context>
+    <name>SendFileAction</name>
+    <message>
+        <source>Select file location</source>
+        <translation>Sélectionner un emplacement de fichier</translation>
+    </message>
+    <message>
+        <source>Send File...</source>
+        <translation>Envoyer un fichier...</translation>
+    </message>
+</context>
+<context>
+    <name>ShowFileTransferWindowAction</name>
+    <message>
+        <source>View File Transfers</source>
+        <translation>Voir les fichiers transférés</translation>
+    </message>
+</context>
+<context>
+    <name>SslCertificateErrorDialog</name>
+    <message>
+        <source>Certificate for &lt;b&gt;%1&lt;/b&gt; failed authenticity validation:</source>
+        <translation>Le certificat pour &lt;b&gt;%1&lt;/b&gt; a échoué lors de la validation de l&apos;authenticité:</translation>
+    </message>
+    <message>
+        <source>Show certificate details...</source>
+        <translation>Montrer les informations détaillées du certificat...</translation>
+    </message>
+    <message>
+        <source>Certificate details:</source>
+        <translation>Informations détaillés du certificat:</translation>
+    </message>
+    <message>
+        <source>Connect anyway</source>
+        <translation>Se connecter malgré tout</translation>
+    </message>
+    <message>
+        <source>Trust certificate</source>
+        <translation>Certificat de confiance</translation>
+    </message>
+    <message>
+        <source>Cancel</source>
+        <translation>Annuler</translation>
+    </message>
+</context>
+<context>
+    <name>SslCertificateWidget</name>
+    <message>
+        <source>Valid</source>
+        <translation>Valider</translation>
+    </message>
+    <message>
+        <source>Blacklisted</source>
+        <translation>Sur la liste noir</translation>
+    </message>
+    <message>
+        <source>Valid from</source>
+        <translation>Valider from</translation>
+    </message>
+    <message>
+        <source>Valid to</source>
+        <translation>Valider to</translation>
+    </message>
+    <message>
+        <source>Digest (Md5)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Digest (Sha1)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Serial number</source>
+        <translation>Numéro de série</translation>
+    </message>
+    <message>
+        <source>Issuer organization</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Issuer common name</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Issuer locality name</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Issuer organizational unit name</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Issuer country name</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Issuer state or province name</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Issuer distinguished name qualifier</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Issuer serial number</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Issuer email address</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Subject organization</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Subject common name</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Subject alernative name</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Subject locality name</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Subject organizational unit name</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Subject country name</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Subject state or province name</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Subject distinguished name qualifier</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Subject serial number</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Subject email address</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Yes</source>
+        <translation>Oui</translation>
+    </message>
+    <message>
+        <source>No</source>
+        <translation>Non</translation>
+    </message>
+</context>
+<context>
     <name>StatusActions</name>
     <message>
         <source>Change Status Message...</source>
@@ -3679,6 +3837,13 @@ from now on. Are you sure you want to leave this conference?</source>
     <message>
         <source>Cancel</source>
         <translation>Annuler</translation>
+    </message>
+</context>
+<context>
+    <name>StringListDialog</name>
+    <message>
+        <source>Kadu</source>
+        <translation>Kadu</translation>
     </message>
 </context>
 <context>

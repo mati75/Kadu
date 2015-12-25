@@ -1,16 +1,14 @@
 /*
  * %kadu copyright begin%
  * Copyright 2010 Tomasz Rostanski (rozteck@interia.pl)
- * Copyright 2009, 2010, 2010, 2011, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2010, 2010, 2011 Przemysław Rudy (prudy1@o2.pl)
- * Copyright 2009, 2009, 2012 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2010, 2010, 2010, 2010 Tomasz Rostański (rozteck@interia.pl)
+ * Copyright 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2010, 2011 Przemysław Rudy (prudy1@o2.pl)
+ * Copyright 2009, 2012 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2010 Tomasz Rostański (rozteck@interia.pl)
  * Copyright 2010 Piotr Dąbrowski (ultr@ultr.pl)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
- * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
- * Copyright 2007, 2008, 2009, 2009, 2010, 2011, 2012, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2010, 2011, 2012, 2013, 2014 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
+ * Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -33,7 +31,7 @@
 #include <QtWidgets/QSplitter>
 #include <QtWidgets/QVBoxLayout>
 
-#ifdef Q_OS_WIN32
+#ifdef Q_OS_WIN
 #include <windows.h>
 #endif
 
@@ -56,6 +54,7 @@
 #include "gui/hot-key.h"
 #include "gui/menu/menu-inventory.h"
 #include "gui/menu/menu-item.h"
+#include "gui/taskbar-progress.h"
 #include "gui/widgets/buddy-info-panel.h"
 #include "gui/widgets/chat-widget/chat-widget-actions.h"
 #include "gui/widgets/chat-widget/chat-widget-manager.h"
@@ -76,24 +75,16 @@
 
 #include "kadu-window.h"
 
-#ifdef Q_OS_MAC
-extern void qt_mac_set_menubar_icons(bool enable);
-#endif
-
 KaduWindow::KaduWindow() :
 		MainWindow(new ProxyActionContext(), QString(), 0), Docked(false),
 		WindowParent(0), CompositingEnabled(false)
 {
+	new TaskbarProgress{Core::instance()->fileTransferManager(), this};
 	setWindowRole("kadu-main");
 
-#ifdef Q_OS_WIN32
+#ifdef Q_OS_WIN
 	HiddenParent = new QWidget();
 	setHiddenParent();
-#endif
-
-#ifdef Q_OS_MAC
-	// Create global menu for OS X.
-	MenuBar = new QMenuBar(0);
 #endif
 
 	setWindowTitle(QLatin1String("Kadu"));
@@ -160,9 +151,6 @@ void KaduWindow::createGui()
 
 void KaduWindow::createMenu()
 {
-#ifdef Q_OS_MAC
-	qt_mac_set_menubar_icons(false);
-#endif
 	createKaduMenu();
 	createContactsMenu();
 	createToolsMenu();
@@ -180,11 +168,7 @@ void KaduWindow::createKaduMenu()
 		->addAction(Actions->ExitKadu, KaduMenu::SectionQuit)
 		->update();
 
-#ifdef Q_OS_MAC
-	KaduMenu->setTitle(tr("General"));
-#else
 	KaduMenu->setTitle("&Kadu");
-#endif
 
 	menuBar()->addMenu(KaduMenu);
 }
@@ -241,13 +225,6 @@ void KaduWindow::createHelpMenu()
 	menuBar()->addMenu(HelpMenu);
 }
 
-#ifdef Q_OS_MAC
-QMenuBar* KaduWindow::menuBar() const
-{
-	return MenuBar;
-}
-#endif
-
 void KaduWindow::compositingEnabled()
 {
 	if (!Application::instance()->configuration()->deprecatedApi()->readBoolEntry("Look", "UserboxTransparency"))
@@ -294,14 +271,17 @@ void KaduWindow::compositingDisabled()
 
 void KaduWindow::talkableActivatedSlot(const Talkable &talkable)
 {
-	const Chat &chat = talkable.toChat();
+	auto buddy = talkable.toBuddy();
+	if (buddy.isTemporary())
+		return;
+
+	auto chat = talkable.toChat();
 	if (chat && !chat.contacts().toBuddySet().contains(Core::instance()->myself()))
 	{
 		Core::instance()->chatWidgetManager()->openChat(chat, OpenChatActivation::Activate);
 		return;
 	}
 
-	const Buddy &buddy = talkable.toBuddy();
 	if (buddy.contacts().isEmpty() && buddy.mobile().isEmpty() && !buddy.email().isEmpty())
 		if (buddy.email().indexOf(UrlHandlerManager::instance()->mailRegExp()) == 0)
 			UrlOpener::openEmail(buddy.email().toUtf8());
@@ -311,7 +291,7 @@ void KaduWindow::talkableActivatedSlot(const Talkable &talkable)
 
 void KaduWindow::storeConfiguration()
 {
-#ifndef Q_OS_WIN32
+#ifndef Q_OS_WIN
 	// see bug 1948 - this is a hack to get real values of info panel height
 	if (!isVisible())
 	{
@@ -376,7 +356,7 @@ void KaduWindow::keyPressEvent(QKeyEvent *e)
 	MainWindow::keyPressEvent(e);
 }
 
-#ifdef Q_OS_WIN32
+#ifdef Q_OS_WIN
 /* On Windows the only way to not show a window in the taskbar without making it a toolwindow
  * is to turn off the WS_EX_APPWINDOW style and provide it with a parent (which will be hidden
  * in our case).
@@ -421,7 +401,7 @@ void KaduWindow::changeEvent(QEvent *event)
 		if (!_isActiveWindow(this))
 			Roster->clearFilter();
 	}
-#ifdef Q_OS_WIN32
+#ifdef Q_OS_WIN
 	else if (event->type() == QEvent::WindowStateChange)
 	{
 		if (Docked && isMinimized() && Application::instance()->configuration()->deprecatedApi()->readBoolEntry("General", "HideMainWindowFromTaskbar"))
@@ -437,7 +417,7 @@ void KaduWindow::changeEvent(QEvent *event)
 			// On Windows we reparent WindowParent, so we want it to be parentless now.
 			// BTW, if WindowParent would be really needed in future, it's quite easy to support it.
 			Q_ASSERT(!WindowParent || 0 == WindowParent->parentWidget());
-#ifdef Q_OS_WIN32
+#ifdef Q_OS_WIN
 			// Without QueuedConnection I hit infinite loop here.
 			QMetaObject::invokeMethod(this, "setHiddenParent", Qt::QueuedConnection);
 #endif
@@ -463,7 +443,7 @@ TalkableProxyModel * KaduWindow::talkableProxyModel()
 
 void KaduWindow::configurationUpdated()
 {
-#ifdef Q_OS_WIN32
+#ifdef Q_OS_WIN
 	hideWindowFromTaskbar();
 #endif
 

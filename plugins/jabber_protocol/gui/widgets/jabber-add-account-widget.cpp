@@ -1,11 +1,8 @@
 /*
  * %kadu copyright begin%
- * Copyright 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2009, 2010, 2010, 2011, 2012 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2009 Michał Podsiadlik (michal@kadu.net)
- * Copyright 2009, 2009 Bartłomiej Zimoń (uzi18@o2.pl)
- * Copyright 2009, 2010, 2011, 2012, 2013, 2014 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2011, 2012 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2011, 2012, 2013, 2014 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2011, 2012, 2013, 2014 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -41,8 +38,8 @@
 #include "icons/icons-manager.h"
 #include "identities/identity-manager.h"
 #include "protocols/protocols-manager.h"
-#include "server/jabber-server-register-account.h"
 
+#include "services/jabber-servers-service.h"
 #include "jabber-account-details.h"
 #include "jabber-protocol-factory.h"
 
@@ -148,6 +145,13 @@ void JabberAddAccountWidget::createGui(bool showButtons)
 		buttons->hide();
 }
 
+void JabberAddAccountWidget::setJabberServersService(JabberServersService* serversService)
+{
+	for (auto &&server : serversService->knownServers())
+		Domain->addItem(server);
+	Domain->setCurrentText(Factory->defaultServer());
+}
+
 void JabberAddAccountWidget::dataChanged()
 {
 	bool valid = !Username->text().isEmpty()
@@ -187,16 +191,6 @@ void JabberAddAccountWidget::apply()
 		details->setState(StorableObject::StateNew);
 		details->setResource("Kadu");
 		details->setPriority(5);
-
-		bool isFacebookAccount = Factory->name() == "facebook";
-		if (isFacebookAccount)
-		{
-			details->setEncryptionMode(JabberAccountDetails::Encryption_Yes);
-			details->setPlainAuthMode(JabberAccountDetails::AllowPlainOverTLS);
-			details->setUseCustomHostPort(false);
-			details->setCustomHost("chat.facebook.com");
-			details->setCustomPort(5222);
-		}
 
 		bool isGoogleAppsAccount = Factory->name() == "gmail/google talk" && !Domain->currentText().contains("gmail");
 		// Google Apps account sometimes needs custom host/port settings to work

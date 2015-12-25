@@ -1,10 +1,6 @@
 /*
  * %kadu copyright begin%
- * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
- * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
- * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
+ * Copyright 2011 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -42,7 +38,6 @@ namespace GaduProtocolHelper
 	GADUAPI Buddy searchResultToBuddy(Account account, gg_pubdir50_t res, int number);
 
 	GADUAPI UinType uin(Contact contact);
-	GADUAPI GaduContactDetails * gaduContactDetails(Contact contact);
 }
 
 #endif // GADU_PROTOCOL_HELPER_H

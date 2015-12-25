@@ -1,12 +1,9 @@
 /*
  * %kadu copyright begin%
- * Copyright 2008, 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2012 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2008 Tomasz Rostański (rozteck@interia.pl)
- * Copyright 2011 Piotr Dąbrowski (ultr@ultr.pl)
- * Copyright 2008 Michał Podsiadlik (michal@kadu.net)
- * Copyright 2007, 2008, 2009, 2010, 2011, 2013, 2014 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011, 2012, 2013, 2014 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2012 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2011, 2012, 2013, 2014 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2011, 2013, 2014 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -36,6 +33,7 @@
 
 #include "configuration/configuration.h"
 #include "configuration/deprecated-configuration-api.h"
+#include "core/core.h"
 
 #include "contacts/contact-set.h"
 
@@ -44,10 +42,8 @@
 
 #include "misc/misc.h"
 
-#include "notify/notification-manager.h"
-#include "notify/notification/account-notification.h"
-#include "notify/notification/chat-notification.h"
-#include "notify/notification/notification.h"
+#include "notification/notification-manager.h"
+#include "notification/notification/notification.h"
 
 #include "core/application.h"
 #include "icons/icons-manager.h"
@@ -63,6 +59,7 @@ ExecConfigurationWidget::ExecConfigurationWidget(QWidget *parent)
 	commandLineEdit->setToolTip(QCoreApplication::translate("@default", MainConfigurationWindow::SyntaxTextNotify));
 
 	QHBoxLayout *layout = new QHBoxLayout(this);
+	layout->setMargin(0);
 	layout->addWidget(commandLineEdit);
 
 	static_cast<NotifyGroupBox *>(parent)->addWidget(this);
@@ -74,8 +71,8 @@ ExecConfigurationWidget::~ExecConfigurationWidget()
 
 void ExecConfigurationWidget::saveNotifyConfigurations()
 {
-	if (!currentNotifyEvent.isEmpty())
-		Commands[currentNotifyEvent] = commandLineEdit->text();
+	if (!currentNotificationEvent.isEmpty())
+		Commands[currentNotificationEvent] = commandLineEdit->text();
 
 	for (QMap<QString, QString>::const_iterator it = Commands.constBegin(), end = Commands.constEnd(); it != end; ++it)
 		Application::instance()->configuration()->deprecatedApi()->writeEntry("Exec Notify", it.key() + "Cmd", it.value());
@@ -83,9 +80,9 @@ void ExecConfigurationWidget::saveNotifyConfigurations()
 
 void ExecConfigurationWidget::switchToEvent(const QString &event)
 {
-	if (!currentNotifyEvent.isEmpty())
-		Commands[currentNotifyEvent] = commandLineEdit->text();
-	currentNotifyEvent = event;
+	if (!currentNotificationEvent.isEmpty())
+		Commands[currentNotificationEvent] = commandLineEdit->text();
+	currentNotificationEvent = event;
 
 	if (Commands.contains(event))
 		commandLineEdit->setText(Commands[event]);
@@ -99,7 +96,7 @@ ExecNotify::ExecNotify(QObject *parent) :
 	kdebugf();
 
 	createDefaultConfiguration();
-	NotificationManager::instance()->registerNotifier(this);
+	Core::instance()->notificationManager()->registerNotifier(this);
 
 	kdebugf2();
 }
@@ -108,7 +105,10 @@ ExecNotify::~ExecNotify()
 {
 	kdebugf();
 
-	NotificationManager::instance()->unregisterNotifier(this);
+	if (Core::instance()) // TODO: hack
+	{
+		Core::instance()->notificationManager()->unregisterNotifier(this);
+	}
 
 	kdebugf2();
 }
@@ -223,10 +223,10 @@ void ExecNotify::notify(Notification *notification)
 	QStringList s = mySplit(' ', syntax);
 	QStringList result;
 
-	ChatNotification *chatNotification = qobject_cast<ChatNotification *>(notification);
-	if (chatNotification)
+	auto chat = notification->data()["chat"].value<Chat>();
+	if (chat)
 	{
-		ContactSet contacts = chatNotification->chat().contacts();
+		ContactSet contacts = chat.contacts();
 
 		QStringList sendersList;
 		foreach (const Contact &contact, contacts)

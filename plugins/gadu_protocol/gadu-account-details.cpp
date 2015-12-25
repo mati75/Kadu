@@ -1,13 +1,7 @@
 /*
  * %kadu copyright begin%
- * Copyright 2008, 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2010 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2011 Piotr Dąbrowski (ultr@ultr.pl)
- * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
- * Copyright 2007, 2008, 2009, 2010, 2011, 2012, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2009 Dawid Stawiarski (neeo@kadu.net)
- * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
+ * Copyright 2011, 2012, 2013, 2014, 2015 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -35,9 +29,9 @@
 #include "gadu-account-details.h"
 
 GaduAccountDetails::GaduAccountDetails(AccountShared *data) :
-		AccountDetails(data), AllowDcc(true), ReceiveImagesDuringInvisibility(true),
+		AccountDetails(data), ReceiveImagesDuringInvisibility(true),
 		ChatImageSizeWarning(true), InitialRosterImport(true), TlsEncryption(false),
-		SendTypingNotification(true), ExternalPort(0), UserlistVersion(-1), ReceiveSpam(true)
+		SendTypingNotification(true), UserlistVersion(-1), ReceiveSpam(true)
 {
 	OpenChatRunner = new GaduOpenChatWithRunner(data);
 	OpenChatWithRunnerManager::instance()->registerRunner(OpenChatRunner);
@@ -57,14 +51,11 @@ void GaduAccountDetails::load()
 
 	AccountDetails::load();
 
-	AllowDcc = loadValue<bool>("AllowDcc", true);
 	ReceiveImagesDuringInvisibility = loadValue<bool>("ReceiveImagesDuringInvisibility", true);
 	ChatImageSizeWarning = loadValue<bool>("ChatImageSizeWarning", true);
 	InitialRosterImport = loadValue<bool>("InitialRosterImport", true);
-	TlsEncryption = loadValue<bool>("TlsEncryption", false);
+	TlsEncryption = loadValue<bool>("TlsEncryption", true);
 	SendTypingNotification = loadValue<bool>("SendTypingNotification", true);
-	ExternalIp = loadValue<QString>("ExternalIp");
-	ExternalPort = loadValue<unsigned int>("ExternalPort", 0);
 	UserlistVersion = loadValue<int>("UserlistVersion", -1);
 	ReceiveSpam = loadValue<bool>("ReceiveSpam", true);
 }
@@ -74,14 +65,11 @@ void GaduAccountDetails::store()
 	if (!isValidStorage())
 		return;
 
-	storeValue("AllowDcc", AllowDcc);
 	storeValue("ReceiveImagesDuringInvisibility", ReceiveImagesDuringInvisibility);
 	storeValue("ChatImageSizeWarning", ChatImageSizeWarning);
 	storeValue("InitialRosterImport", InitialRosterImport);
 	storeValue("TlsEncryption", TlsEncryption);
 	storeValue("SendTypingNotification", SendTypingNotification);
-	storeValue("ExternalIp", ExternalIp);
-	storeValue("ExternalPort", ExternalPort);
 	storeValue("UserlistVersion", UserlistVersion);
 	storeValue("ReceiveSpam", ReceiveSpam);
 }

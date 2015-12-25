@@ -1,13 +1,7 @@
 /*
  * %kadu copyright begin%
- * Copyright 2008, 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2011 Piotr Dąbrowski (ultr@ultr.pl)
- * Copyright 2008 Michał Podsiadlik (michal@kadu.net)
- * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
- * Copyright 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011, 2012, 2014 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2007, 2008 Dawid Stawiarski (neeo@kadu.net)
+ * Copyright 2014 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2013, 2014, 2015 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -43,15 +37,15 @@
 class QSplitter;
 
 class ChatEditBox;
-class WebkitMessagesView;
 class ChatTopBarContainerWidget;
-class ChatWidget;
+class ChatWidgetTitle;
 class CustomInput;
 class FilteredTreeView;
 class FormattedStringFactory;
 class Protocol;
 class SortedMessages;
 class TalkableProxyModel;
+class WebkitMessagesView;
 
 class KADUAPI ChatWidget : public QWidget, public ConfigurationAwareObject
 {
@@ -73,14 +67,13 @@ class KADUAPI ChatWidget : public QWidget, public ConfigurationAwareObject
 
 	QTimer ComposingTimer;
 	bool IsComposing;
-	ChatStateService::State CurrentContactActivity;
+	ChatState CurrentContactActivity;
 
 	bool SplittersInitialized;
 
-	QString Title;
+	ChatWidgetTitle *Title;
 
 	QDateTime LastReceivedMessageTime;
-	int UnreadMessagesCount;
 
 	void createGui();
 	void createContactsList();
@@ -93,6 +86,7 @@ class KADUAPI ChatWidget : public QWidget, public ConfigurationAwareObject
 
 private slots:
 	void configurationUpdated();
+	void chatUpdated();
 
 	void setUpVerticalSizes();
 	void commonHeightChanged(int height);
@@ -100,7 +94,7 @@ private slots:
 
 	void checkComposing();
 	void updateComposing();
-	void contactActivityChanged(const Contact &contact, ChatStateService::State state);
+	void contactActivityChanged(const Contact &contact, ChatState state);
 
 	void keyPressedSlot(QKeyEvent *e, CustomInput *input, bool &handled);
 
@@ -134,17 +128,7 @@ public:
 
 	Protocol * currentProtocol() const;
 
-	const QString & title() { return Title; }
-	void setTitle(const QString &title);
-
-	/**
-	 * @author Rafal 'Vogel' Malinowski
-	 * @short Icon of chat.
-	 *
-	 * Chat icon is used to display in window titles. For 'contact' chats it is icon of status
-	 * of peer, for 'conference' chats it is generic icon.
-	 */
-	QIcon icon();
+	ChatWidgetTitle * title() const;
 
 	const QDateTime & lastReceivedMessageTime() const { return LastReceivedMessageTime; }
 
@@ -156,8 +140,7 @@ public:
 	SortedMessages messages() const;
 	int countMessages() const;
 
-	void setUnreadMessagesCount(int unreadMessagesCount);
-	int unreadMessagesCount() const;
+	ChatState chatState() const;
 
 public slots:
 	void sendMessage();
@@ -166,12 +149,6 @@ public slots:
 
 	void requestClose();
 
-	/**
-	 * @author Rafal 'Vogel' Malinowski
-	 * @short Updates chat title.
-	 */
-	void refreshTitle();
-
 signals:
 	void messageReceived(ChatWidget *chatWidget);
 	void messageSendRequested(ChatWidget *chat);
@@ -179,14 +156,11 @@ signals:
 
 	void fileDropped(Chat chat, const QString &fileName);
 
-	void iconChanged();
-	void titleChanged(ChatWidget *chatWidget, const QString &newTitle);
-
 	void widgetDestroyed(Chat chat);
 	void widgetDestroyed(ChatWidget *widget);
 
 	void closeRequested(ChatWidget *chatWidget);
-	void unreadMessagesCountChanged(ChatWidget *chatWidget);
+	void chatStateChanged(ChatState state);
 
 };
 

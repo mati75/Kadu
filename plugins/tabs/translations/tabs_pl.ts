@@ -1,4 +1,6 @@
-<?xml version="1.0" ?><!DOCTYPE TS><TS language="pl" version="2.0">
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE TS>
+<TS version="2.1" language="pl">
 <context>
     <name>@default</name>
     <message>
@@ -140,10 +142,6 @@
         <translation>Dołącz rozmowę do kart</translation>
     </message>
     <message>
-        <source>NEW MESSAGE(S)</source>
-        <translation>-&gt; COŚ NOWEGO &lt;-</translation>
-    </message>
-    <message>
         <source>Detach</source>
         <translation>Odłącz</translation>
     </message>
@@ -158,10 +156,6 @@
     <message>
         <source>Close all</source>
         <translation>Zamknij wszystkie</translation>
-    </message>
-    <message>
-        <source>Conference [%1]</source>
-        <translation>Konferencja [%1]</translation>
     </message>
     <message>
         <source>Close other tabs</source>

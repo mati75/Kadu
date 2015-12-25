@@ -1,8 +1,8 @@
 /*
  * %kadu copyright begin%
  * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2009, 2010, 2011, 2012, 2013, 2014 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2010, 2011, 2012, 2013, 2014 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2009, 2010, 2011, 2012, 2013, 2014 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -25,7 +25,6 @@
 #include <QtCore/QObject>
 #include <QtNetwork/QHostAddress>
 
-#include "contacts/contact-details.h"
 #include "status/status.h"
 #include "storage/shared.h"
 
@@ -40,7 +39,6 @@ class KADUAPI ContactShared : public QObject, public Shared
 	Q_OBJECT
 	Q_DISABLE_COPY(ContactShared)
 
-	ContactDetails *Details;
 	RosterEntry *Entry;
 
 	Account *ContactAccount;
@@ -54,14 +52,6 @@ class KADUAPI ContactShared : public QObject, public Shared
 	Status CurrentStatus;
 	bool Blocking;
 	bool IgnoreNextStatusChange;
-
-	QString ProtocolVersion;
-
-	QHostAddress Address;
-	unsigned int Port;
-	QString DnsName;
-
-	void deleteDetails();
 
 	void addToBuddy();
 	void removeFromBuddy();
@@ -93,8 +83,6 @@ public:
 
 	virtual void aboutToBeRemoved();
 
-	ContactDetails * details() const { return Details; }
-
 	KaduShared_PropertyRead(const QString &, id, Id)
 	void setId(const QString &id);
 
@@ -120,10 +108,6 @@ public:
 	KaduShared_Property(const Status &, currentStatus, CurrentStatus)
 	KaduShared_PropertyBool(Blocking)
 	KaduShared_Property(bool, ignoreNextStatusChange, IgnoreNextStatusChange)
-	KaduShared_Property(const QString &, protocolVersion, ProtocolVersion)
-	KaduShared_Property(const QHostAddress &, address, Address)
-	KaduShared_Property(unsigned int, port, Port)
-	KaduShared_Property(const QString &, dnsName, DnsName)
 	KaduShared_Property(short int, maximumImageSize, MaximumImageSize)
 	KaduShared_Property(quint16, unreadMessagesCount, UnreadMessagesCount)
 

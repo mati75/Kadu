@@ -1,10 +1,10 @@
 /*
  * %kadu copyright begin%
- * Copyright 2009, 2010, 2010, 2011, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2010 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
- * Copyright 2009, 2010, 2011, 2012, 2013, 2014 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2010, 2011, 2012, 2013, 2014 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -36,9 +36,9 @@
 #include "network/proxy/network-proxy-manager.h"
 #include "protocols/protocol.h"
 #include "protocols/protocols-manager.h"
+#include "roster/roster-service-tasks.h"
 #include "roster/roster-service.h"
 #include "roster/roster-task-collection-storage.h"
-#include "roster/roster-service-tasks.h"
 #include "status/status-setter.h"
 
 #include "account-shared.h"
@@ -300,13 +300,13 @@ void AccountShared::protocolRegistered(ProtocolFactory *factory)
 	if (ProtocolHandler || (factory->name() != ProtocolName) || Details)
 		return;
 
-	ProtocolHandler = factory->createProtocolHandler(this);
-	if (!ProtocolHandler)
-		return;
-
 	Details = factory->createAccountDetails(this);
 	if (Details)
 		details()->ensureLoaded();
+
+	ProtocolHandler = factory->createProtocolHandler(this);
+	if (!ProtocolHandler)
+		return;
 
 	connect(ProtocolHandler, SIGNAL(statusChanged(Account, Status)), MyStatusContainer, SLOT(triggerStatusUpdated()));
 	connect(ProtocolHandler, SIGNAL(contactStatusChanged(Contact, Status)),
@@ -322,6 +322,7 @@ void AccountShared::protocolRegistered(ProtocolFactory *factory)
 	AccountManager::instance()->registerItem(this);
 
 	emit updated();
+	emit protocolHandlerChanged();
 }
 
 void AccountShared::protocolUnregistered(ProtocolFactory* factory)
@@ -354,6 +355,7 @@ void AccountShared::protocolUnregistered(ProtocolFactory* factory)
 	ProtocolHandler = 0;
 
 	emit updated();
+	emit protocolHandlerChanged();
 }
 
 void AccountShared::doSetAccountIdentity(const Identity &accountIdentity)
@@ -423,14 +425,6 @@ void AccountShared::setPrivateStatus(bool isPrivate)
 
 	if (ProtocolHandler)
 		ProtocolHandler->changePrivateMode();
-}
-
-void AccountShared::fileTransferServiceChanged(FileTransferService *service)
-{
-	if (service)
-		emit fileTransferServiceRegistered();
-	else
-		emit fileTransferServiceUnregistered();
 }
 
 KaduShared_PropertyPtrReadDef(AccountShared, Identity, accountIdentity, AccountIdentity)

@@ -1,11 +1,9 @@
 /*
  * %kadu copyright begin%
- * Copyright 2008, 2009, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2012 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2008 Michał Podsiadlik (michal@kadu.net)
- * Copyright 2007, 2008, 2009, 2010, 2011, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2012 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2012 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2007, 2008 Dawid Stawiarski (neeo@kadu.net)
+ * Copyright 2009, 2010, 2011, 2013, 2014, 2015 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -22,35 +20,16 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef FILE_TRANSFER_NOTIFICATION_H
-#define FILE_TRANSFER_NOTIFICATION_H
+#pragma once
 
 #include "file-transfer/file-transfer.h"
-#include "notify/notification/chat-notification.h"
+#include "notification/notification/notification.h"
 
 class FileTransferManager;
-class DccSocket;
-class NotifyEvent;
 
-class NewFileTransferNotification : public ChatNotification
+class NewFileTransferNotification : public Notification
 {
 	Q_OBJECT
-
-	static NotifyEvent *FileTransferNotifyEvent;
-	static NotifyEvent *FileTransferIncomingFileNotifyEvent;
-
-	bool Continue;
-
-	FileTransfer ft;
-
-	QString fileName;
-
-private slots:
-	void callbackAcceptAsNew();
-
-public slots:
-	virtual void callbackAccept();
-	virtual void callbackReject();
 
 public:
 	static void registerEvents();
@@ -58,10 +37,14 @@ public:
 
 	static void notifyIncomingFileTransfer(const FileTransfer &fileTransfer);
 
-	NewFileTransferNotification(const QString &type, FileTransfer ft, Chat chat, StartType startType);
+	NewFileTransferNotification(Chat chat, const QString &type, FileTransfer transfer);
 
-	virtual bool requireCallback() { return true; }
+public slots:
+	virtual void callbackAccept();
+	virtual void callbackReject();
+
+private:
+	FileTransfer m_transfer;
+	QString m_fileName;
 
 };
-
-#endif // FILE_TRANSFER_NOTIFICATION_H

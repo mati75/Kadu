@@ -1,12 +1,7 @@
 /*
  * %kadu copyright begin%
- * Copyright 2004 Michał Podsiadlik (michal@kadu.net)
- * Copyright 2002, 2003, 2004, 2005 Adrian Smarzewski (adrian@kadu.net)
- * Copyright 2002, 2003, 2004 Tomasz Chiliński (chilek@chilan.com)
- * Copyright 2007, 2009, 2011, 2013, 2014 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2011, 2014 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2007 Dawid Stawiarski (neeo@kadu.net)
- * Copyright 2005 Marcin Ślusarz (joi@kadu.net)
+ * Copyright 2014 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2011, 2013, 2014, 2015 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -23,10 +18,13 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef EXT_SOUND_PLUGIN_H
-#define EXT_SOUND_PLUGIN_H
+#pragma once
 
 #include "plugin/plugin-root-component.h"
+
+#include <QtCore/QPointer>
+
+class ExternalPlayer;
 
 class ExtSoundPlugin : public QObject, public PluginRootComponent
 {
@@ -35,11 +33,13 @@ class ExtSoundPlugin : public QObject, public PluginRootComponent
 	Q_PLUGIN_METADATA(IID "im.kadu.PluginRootComponent")
 
 public:
+	explicit ExtSoundPlugin(QObject *parent = nullptr);
 	virtual ~ExtSoundPlugin();
 
 	virtual bool init(bool firstLoad);
 	virtual void done();
 
-};
+private:
+	QPointer<ExternalPlayer> m_externalPlayer;
 
-#endif // EXT_SOUND_PLUGIN_H
+};

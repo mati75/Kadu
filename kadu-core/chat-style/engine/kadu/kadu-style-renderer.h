@@ -1,6 +1,6 @@
 /*
  * %kadu copyright begin%
- * Copyright 2014 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2014 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -35,7 +35,7 @@ public:
 	virtual void appendChatMessage(const Message &message, const MessageRenderInfo &messageRenderInfo) override;
 	virtual void removeFirstMessage() override;
 	virtual void displayMessageStatus(const QString &id, MessageStatus) override;
-	virtual void displayChatState(ChatStateService::State, const QString &, const QString &) override;
+	virtual void displayChatState(ChatState, const QString &, const QString &) override;
 	virtual void displayChatImage(const ChatImage &chatImage, const QString &fileName) override;
 
 private:

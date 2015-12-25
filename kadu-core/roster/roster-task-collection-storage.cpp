@@ -1,6 +1,6 @@
 /*
  * %kadu copyright begin%
- * Copyright 2014 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2014 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -19,8 +19,8 @@
 
 #include "roster-task-collection-storage.h"
 
-#include "roster/roster-task.h"
 #include "roster/roster-task-type.h"
+#include "roster/roster-task.h"
 #include "storage/storage-point.h"
 
 #include <QtCore/QVector>

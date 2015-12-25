@@ -1,12 +1,7 @@
 /*
  * %kadu copyright begin%
- * Copyright 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
- * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
- * Copyright 2007, 2008, 2009, 2010, 2011, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2011, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
+ * Copyright 2011, 2013, 2014, 2015 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -23,44 +18,76 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "notify/notification-manager.h"
+#include "sound-plugin.h"
 
-#include "configuration/gui/sound-configuration-ui-handler.h"
-#include "notify/sound-notifier.h"
-
-#include "sound-actions.h"
+#include "gui/sound-actions.h"
+#include "gui/sound-buddy-configuration-widget-factory.h"
+#include "gui/sound-chat-configuration-widget-factory.h"
+#include "gui/sound-configuration-ui-handler.h"
+#include "notification/sound-notifier.h"
 #include "sound-manager.h"
+#include "sound-module.h"
 #include "sound-theme-manager.h"
 
-#include "sound-plugin.h"
+#include "core/application.h"
+#include "core/core.h"
+#include "gui/widgets/buddy-configuration-widget-factory-repository.h"
+#include "gui/widgets/chat-configuration-widget-factory-repository.h"
+#include "misc/memory.h"
+#include "misc/paths-provider.h"
+
+#include "notification/notification-manager.h"
+
+QPointer<SoundManager> SoundPlugin::m_staticSoundManager;
+
+SoundPlugin::SoundPlugin(QObject *parent) :
+		QObject{parent}
+{
+}
 
 SoundPlugin::~SoundPlugin()
 {
+}
+
+SoundManager * SoundPlugin::soundManager()
+{
+	return m_staticSoundManager;
 }
 
 bool SoundPlugin::init(bool firstLoad)
 {
 	Q_UNUSED(firstLoad)
 
-	SoundThemeManager::createInstance();
-	SoundManager::createInstance();
-	SoundNotifier::createInstance();
-	SoundConfigurationUiHandler::registerConfigurationUi();
-	NotificationManager::instance()->registerNotifier(SoundNotifier::instance());
-	SoundActions::registerActions();
+	auto modules = std::vector<std::unique_ptr<injeqt::module>>{};
+	modules.emplace_back(make_unique<SoundModule>());
+
+	m_injector = make_unique<injeqt::injector>(std::move(modules));
+	static_cast<void>(m_injector->get<SoundActions>()); // register actions
+	m_staticSoundManager = m_injector->get<SoundManager>();
+
+	Core::instance()->buddyConfigurationWidgetFactoryRepository()->registerFactory(m_injector->get<SoundBuddyConfigurationWidgetFactory>());
+	Core::instance()->chatConfigurationWidgetFactoryRepository()->registerFactory(m_injector->get<SoundChatConfigurationWidgetFactory>());
+	Core::instance()->notificationManager()->registerNotifier(m_injector->get<SoundNotifier>());
+
+	MainConfigurationWindow::registerUiFile(Application::instance()->pathsProvider()->dataPath() + QLatin1String{"plugins/configuration/sound.ui"});
+	MainConfigurationWindow::registerUiHandler(m_injector->get<SoundConfigurationUiHandler>());
 
 	return true;
-
 }
 
 void SoundPlugin::done()
 {
-	SoundActions::unregisterActions();
-	NotificationManager::instance()->unregisterNotifier(SoundNotifier::instance());
-	SoundConfigurationUiHandler::unregisterConfigurationUi();
-	SoundNotifier::destroyInstance();
-	SoundManager::destroyInstance();
-	SoundThemeManager::destroyInstance();
+	MainConfigurationWindow::unregisterUiHandler(m_injector->get<SoundConfigurationUiHandler>());
+	MainConfigurationWindow::unregisterUiFile(Application::instance()->pathsProvider()->dataPath() + QLatin1String{"plugins/configuration/sound.ui"});
+
+	if (Core::instance()) // TODO: hack
+	{
+		Core::instance()->notificationManager()->unregisterNotifier(m_injector->get<SoundNotifier>());
+		Core::instance()->chatConfigurationWidgetFactoryRepository()->unregisterFactory(m_injector->get<SoundChatConfigurationWidgetFactory>());
+		Core::instance()->buddyConfigurationWidgetFactoryRepository()->unregisterFactory(m_injector->get<SoundBuddyConfigurationWidgetFactory>());
+	}
+
+	m_injector.reset();
 }
 
 Q_EXPORT_PLUGIN2(sound, SoundPlugin)

@@ -1,6 +1,6 @@
 /*
  * %kadu copyright begin%
- * Copyright 2014 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2014 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This library is free software; you can redistribute it and/or
@@ -50,6 +50,17 @@ void QUnity::updateCount(int count)
 		unity_launcher_entry_set_count_visible(m_launcher, true);
 		unity_launcher_entry_set_count(m_launcher, count);
 	}
+}
+
+void QUnity::updateProgress(int progress)
+{
+	if (progress < 100)
+	{
+		unity_launcher_entry_set_progress_visible(m_launcher, true);
+		unity_launcher_entry_set_progress(m_launcher, static_cast<double>(progress) / 100.0);
+	}
+	else
+		unity_launcher_entry_set_progress_visible(m_launcher, false);
 }
 
 #include "moc_qunity.cpp"

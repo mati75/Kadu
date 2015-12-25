@@ -1,12 +1,7 @@
 /*
  * %kadu copyright begin%
- * Copyright 2008, 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2010 Tomasz Rostański (rozteck@interia.pl)
- * Copyright 2010, 2011 Piotr Dąbrowski (ultr@ultr.pl)
- * Copyright 2007, 2008, 2009, 2011, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2007, 2008 Dawid Stawiarski (neeo@kadu.net)
+ * Copyright 2014 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2013, 2014, 2015 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -32,8 +27,6 @@
 #include "os/generic/desktop-aware-object.h"
 #include "exports.h"
 
-class QTimer;
-
 class Chat;
 class ChatWidget;
 class ChatWidgetFactory;
@@ -53,11 +46,6 @@ public:
 
 	void setWindowTitle(QString title);
 
-public slots:
-	// TODO: rename
-	void blinkTitle();
-	void showNewMessagesNumInTitle();
-
 signals:
 	void activated(ChatWindow *chatWindow);
 	void windowDestroyed(ChatWindow *chatWindow);
@@ -73,16 +61,10 @@ protected:
 
 private:
 	ChatWidget *m_chatWidget;
-	QTimer *m_titleTimer;
-
-	bool m_showNewMessagesNum;
-	bool m_blinkChatTitle;
 
 	QRect defaultGeometry() const;
 
 private slots:
-	void unreadMessagesCountChanged(ChatWidget *chatWidget);
-	void updateIcon();
 	void updateTitle();
 
 };

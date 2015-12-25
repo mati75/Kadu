@@ -1,6 +1,6 @@
 /*
  * %kadu copyright begin%
- * Copyright 2014 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2014 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -20,8 +20,8 @@
 #include "roster-service-tasks.h"
 
 #include "contacts/contact.h"
-#include "roster/roster-entry.h"
 #include "roster/roster-entry-state.h"
+#include "roster/roster-entry.h"
 #include "roster/roster-task-type.h"
 
 QVector<RosterTask> RosterServiceTasks::updateTasksForContacts(const QVector<Contact> &contacts)

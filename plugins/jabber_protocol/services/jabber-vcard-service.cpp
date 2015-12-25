@@ -1,7 +1,7 @@
 /*
  * %kadu copyright begin%
- * Copyright 2012, 2013, 2014 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2012, 2013, 2014 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -18,18 +18,16 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <xmpp_client.h>
-
 #include "services/jabber-vcard-downloader.h"
 #include "services/jabber-vcard-uploader.h"
 
 #include "jabber-vcard-service.h"
 
-namespace XMPP
-{
+#include <qxmpp/QXmppVCardManager.h>
 
-JabberVCardService::JabberVCardService(Account account, QObject *parent) :
-		QObject(parent), MyAccount(account)
+JabberVCardService::JabberVCardService(QXmppVCardManager *vcardManager, QObject *parent) :
+		QObject{parent},
+		m_vcardManager{vcardManager}
 {
 }
 
@@ -37,32 +35,14 @@ JabberVCardService::~JabberVCardService()
 {
 }
 
-void JabberVCardService::setXmppClient(Client *xmppClient)
-{
-	XmppClient = xmppClient;
-}
-
-Client * JabberVCardService::xmppClient() const
-{
-	return XmppClient.data();
-}
-
 JabberVCardDownloader * JabberVCardService::createVCardDownloader()
 {
-	if (!XmppClient)
-		return 0;
-
-	return new JabberVCardDownloader(MyAccount, XmppClient.data(), this);
+	return new JabberVCardDownloader(m_vcardManager, this);
 }
 
 JabberVCardUploader * JabberVCardService::createVCardUploader()
 {
-	if (!XmppClient)
-		return 0;
-
-	return new JabberVCardUploader(XmppClient.data(), this);
-}
-
+	return new JabberVCardUploader(m_vcardManager, this);
 }
 
 #include "moc_jabber-vcard-service.cpp"

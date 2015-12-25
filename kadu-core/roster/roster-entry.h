@@ -1,7 +1,6 @@
 /*
  * %kadu copyright begin%
- * Copyright 2012, 2013, 2014 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2012 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2014 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -112,26 +111,11 @@ public:
 	ChangeNotifier & hasLocalChangesNotifier();
 
 	/**
-	 * @return true when roster entry is beging synchronized to or from remote
-	 */
-	bool isSynchronizing() const;
-
-	/**
 	 * @return true if this entry requires synchronization with server
 	 *
 	 * This method returns true only if state is HasLocalChanges.
 	 */
 	bool requiresSynchronization() const;
-
-	/**
-	 * @return true if this entry can be updated by remote roster
-	 *
-	 * Always return false for detached entries.
-	 * If entry is not detached then this method returns true only if this entry is synchronized (or state is unknown).
-	 * For RosterEntryDesynchronized or RosterEntrySynchronizing entries remote changes cannot be accepted with assumption
-	 * that local changes are more important and will overwrite remote ones.
-	 */
-	bool canAcceptRemoteUpdate() const;
 
 private:
 	RosterEntryState m_state;

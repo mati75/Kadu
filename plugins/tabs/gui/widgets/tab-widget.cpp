@@ -1,15 +1,8 @@
 /*
  * %kadu copyright begin%
- * Copyright 2012 koudy (koudy@koudy-Aspire-3820.(none))
- * Copyright 2008, 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2012 Vladimir Kloucek (kelmhell@gmail.com)
- * Copyright 2009, 2012 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2010 Tomasz Rostański (rozteck@interia.pl)
- * Copyright 2010, 2011 Piotr Dąbrowski (ultr@ultr.pl)
- * Copyright 2009, 2009 Bartłomiej Zimoń (uzi18@o2.pl)
- * Copyright 2012 Zamazal Jiri (zamazal.jiri@gmail.com)
- * Copyright 2009, 2010, 2011, 2012, 2013, 2014 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011, 2013, 2014 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2012 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2013, 2014 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2013, 2014, 2015 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -285,7 +278,7 @@ void TabWidget::chatKeyPressed(QKeyEvent *e, CustomInput *k, bool &handled)
 		switchTabRight();
 	else if (HotKey::shortCut(e, "ShortCuts", "ReopenClosedTab"))
 		Manager->reopenClosedChat();
-	#if defined(Q_OS_WIN32) || defined(Q_OS_MAC)
+	#if defined(Q_OS_WIN) || defined(Q_OS_MAC)
 		#define TAB_SWITCH_MODIFIER "Ctrl"
 	#else
 		#define TAB_SWITCH_MODIFIER "Alt"
@@ -422,10 +415,7 @@ void TabWidget::changeEvent(QEvent *event)
 		kdebugf();
 		ChatWidget *chatWidget = static_cast<ChatWidget *>(currentWidget());
 		if (chatWidget && _isActiveWindow(this))
-		{
-			chatWidget->setUnreadMessagesCount(0);
 			emit chatWidgetActivated(chatWidget);
-		}
 		kdebugf2();
 	}
 }

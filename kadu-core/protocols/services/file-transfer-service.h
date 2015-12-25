@@ -1,11 +1,10 @@
 /*
  * %kadu copyright begin%
- * Copyright 2008, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2008, 2009 Michał Podsiadlik (michal@kadu.net)
+ * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2009 Michał Podsiadlik (michal@kadu.net)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
- * Copyright 2007, 2008, 2009, 2010, 2011, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2007, 2008 Dawid Stawiarski (neeo@kadu.net)
+ * Copyright 2009, 2010, 2011, 2013, 2014, 2015 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -32,20 +31,21 @@
 
 #include "exports.h"
 
+class FileTransferCanSendResult;
 class FileTransferHandler;
 
 class KADUAPI FileTransferService : public QObject
 {
 	Q_OBJECT
 
-	friend class DccManager;
-
 public:
 	explicit FileTransferService(QObject *parent) : QObject(parent) {}
 
 	virtual FileTransferHandler * createFileTransferHandler(FileTransfer fileTransfer) = 0;
+	virtual FileTransferCanSendResult canSend(Contact contact) = 0;
 
 signals:
+	void canSendChanged();
 	void incomingFileTransfer(FileTransfer fileTransfer);
 
 };

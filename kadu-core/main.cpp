@@ -1,20 +1,17 @@
 /*
  * %kadu copyright begin%
  * Copyright 2010 Tomasz Rostanski (rozteck@interia.pl)
- * Copyright 2008, 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2008, 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2008, 2009, 2010, 2010, 2010, 2010 Tomasz Rostański (rozteck@interia.pl)
+ * Copyright 2008, 2009, 2010 Tomasz Rostański (rozteck@interia.pl)
  * Copyright 2011, 2014 Piotr Dąbrowski (ultr@ultr.pl)
- * Copyright 2004, 2007, 2008, 2009 Michał Podsiadlik (michal@kadu.net)
+ * Copyright 2007, 2008, 2009 Michał Podsiadlik (michal@kadu.net)
  * Copyright 2010 Bartłomiej Zimoń (uzi18@o2.pl)
- * Copyright 2002, 2003, 2004, 2005, 2007 Adrian Smarzewski (adrian@kadu.net)
- * Copyright 2004, 2005 Paweł Płuciennik (pawel_p@kadu.net)
- * Copyright 2002, 2003 Tomasz Chiliński (chilek@chilan.com)
- * Copyright 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2007 Adrian Smarzewski (adrian@kadu.net)
  * Copyright 2010, 2011, 2012, 2013, 2014 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2007 Marcin Ślusarz (joi@kadu.net)
  * Copyright 2007, 2008, 2009 Dawid Stawiarski (neeo@kadu.net)
- * Copyright 2004, 2005, 2006, 2007 Marcin Ślusarz (joi@kadu.net)
- * Copyright 2002, 2003 Dariusz Jagodzik (mast3r@kadu.net)
+ * Copyright 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -31,21 +28,22 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <QtCore/QDataStream>
 #include <QtCore/QLibraryInfo>
 #include <QtCore/QTranslator>
-#include <QtCrypto/QtCrypto>
+#include <QtCrypto>
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QMessageBox>
 
 #include <errno.h>
 #include <time.h>
-#ifndef Q_OS_WIN32
+#ifndef Q_OS_WIN
 #include <sys/file.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <pwd.h>
 #include <unistd.h>
-#endif // !Q_OS_WIN32
+#endif // !Q_OS_WIN
 
 #include "configuration/configuration-api.h"
 #include "configuration/configuration-factory.h"
@@ -56,10 +54,11 @@
 #include "configuration/configuration.h"
 #include "configuration/deprecated-configuration-api.h"
 #include "core/application.h"
-#include "core/core.h"
 #include "core/core-module.h"
+#include "core/core.h"
 #include "execution-arguments/execution-arguments-parser.h"
 #include "execution-arguments/execution-arguments.h"
+#include "file-transfer/file-transfer-module.h"
 #include "gui/gui-module.h"
 #include "gui/widgets/chat-widget/chat-widget-module.h"
 #include "gui/windows/chat-window/chat-window-module.h"
@@ -67,18 +66,20 @@
 #include "icons/icons-manager.h"
 #include "misc/date-time.h"
 #include "misc/paths-provider.h"
+#include "notification/notification-module.h"
 #include "os/single-application/single-application.h"
 #include "os/win/wsa-exception.h"
 #include "os/win/wsa-handler.h"
 #include "plugin/plugin-module.h"
 #include "protocols/protocols-manager.h"
 #include "roster/roster-module.h"
+#include "ssl/ssl-module.h"
 #include "debug.h"
 #include "kadu-config.h"
 
 #include <injeqt/injector.h>
 
-#ifndef Q_OS_WIN32
+#ifndef Q_OS_WIN
 #if HAVE_EXECINFO
 #include <execinfo.h>
 #endif
@@ -139,7 +140,7 @@ static void kaduQtMessageHandler(QtMsgType type, const char *msg)
 			break;
 	}
 }
-#endif // !Q_OS_WIN32
+#endif // !Q_OS_WIN
 
 #ifdef DEBUG_OUTPUT_ENABLED
 extern KADUAPI bool showTimesInDebug;
@@ -215,9 +216,12 @@ int main(int argc, char *argv[]) try
 	modules.emplace_back(make_unique<ChatWindowModule>());
 	modules.emplace_back(make_unique<CoreModule>(std::move(profileDirectory)));
 	modules.emplace_back(make_unique<ConfigurationModule>());
+	modules.emplace_back(make_unique<FileTransferModule>());
 	modules.emplace_back(make_unique<GuiModule>());
+	modules.emplace_back(make_unique<NotificationModule>());
 	modules.emplace_back(make_unique<PluginModule>());
 	modules.emplace_back(make_unique<RosterModule>());
+	modules.emplace_back(make_unique<SslModule>());
 
 	auto injector = injeqt::injector{std::move(modules)};
 
@@ -236,7 +240,7 @@ int main(int argc, char *argv[]) try
 		throw;
 	}
 
-#ifndef Q_OS_WIN32
+#ifndef Q_OS_WIN
 	// Qt version is better on win32
 	qInstallMsgHandler(kaduQtMessageHandler);
 #endif
@@ -316,7 +320,7 @@ int main(int argc, char *argv[]) try
 
 	return ret;
 }
-#if defined(Q_OS_WIN32)
+#if defined(Q_OS_WIN)
 catch (WSAException &)
 {
 	return 2;

@@ -1,10 +1,9 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2010 Tomasz Rostański (rozteck@interia.pl)
- * Copyright 2009, 2010, 2011, 2012, 2013, 2014 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -35,6 +34,15 @@
  * @{
  */
 
+#define KaduShared_PropertyRead_M(type, name) \
+	type name() { ensureLoaded(); return m_##name; }
+
+#define KaduShared_PropertyWrite_M(type, name, capitalized_name) \
+	void set##capitalized_name(type name) { ensureLoaded(); if (m_##name != name) { m_##name = name; changeNotifier().notify(); } }
+
+#define KaduShared_Property_M(type, name, capitalized_name) \
+	KaduShared_PropertyRead_M(type, name) \
+	KaduShared_PropertyWrite_M(type, name, capitalized_name)
 /**
  * @author Rafal 'Vogel' Malinowski
  * @short Defines getter for given property of StorableObject.
@@ -206,6 +214,16 @@
 #define KaduShared_PropertyPtrDefCRW(class_name, type, name, capitalized_name) \
 	KaduShared_PropertyPtrReadDef(class_name, type, name, capitalized_name) \
 	KaduShared_PropertyPtrWriteDef(class_name, const type &, name, capitalized_name)
+
+#define KaduShared_PropertyPtrReadDef_M(class_name, type, name) \
+	type class_name::name() { ensureLoaded(); return *m_##name; }
+
+#define KaduShared_PropertyPtrWriteDef_M(class_name, type, name, capitalized_name) \
+	void class_name::set##capitalized_name(type name) { ensureLoaded(); if (*m_##name != name) { *m_##name = name; changeNotifier().notify(); } }
+
+#define KaduShared_PropertyPtrDefCRW_M(class_name, type, name, capitalized_name) \
+	KaduShared_PropertyPtrReadDef_M(class_name, type, name) \
+	KaduShared_PropertyPtrWriteDef_M(class_name, const type &, name, capitalized_name)
 
 /**
  * @author Rafal 'Vogel' Malinowski

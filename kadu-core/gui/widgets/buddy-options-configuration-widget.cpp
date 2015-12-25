@@ -1,16 +1,10 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2009, 2012 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2009, 2012 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2010 Piotr Dąbrowski (ultr@ultr.pl)
- * Copyright 2004 Michał Podsiadlik (michal@kadu.net)
- * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
- * Copyright 2002, 2003, 2004, 2005 Adrian Smarzewski (adrian@kadu.net)
- * Copyright 2002, 2003, 2004 Tomasz Chiliński (chilek@chilan.com)
- * Copyright 2007, 2009, 2010, 2011, 2012, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2007 Dawid Stawiarski (neeo@kadu.net)
- * Copyright 2005 Marcin Ślusarz (joi@kadu.net)
+ * Copyright 2010, 2011, 2012, 2013, 2014 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -33,7 +27,7 @@
 
 #include "configuration/configuration.h"
 #include "configuration/deprecated-configuration-api.h"
-#include "notify/notification-manager.h"
+#include "notification/notification-manager.h"
 #include "protocols/protocol.h"
 
 #include "buddy-options-configuration-widget.h"
@@ -59,28 +53,41 @@ void BuddyOptionsConfigurationWidget::createGui()
 {
 	QVBoxLayout *layout = new QVBoxLayout(this);
 
-	OfflineToCheckBox = new QCheckBox(tr("Allow buddy to see when I'm available"), this);
+	auto groupBox = new QGroupBox{this};
+	groupBox->setFlat(true);
+	groupBox->setTitle(tr("General"));
+
+	auto groupBoxLayout = new QVBoxLayout{groupBox};
+	groupBoxLayout->setMargin(0);
+	groupBoxLayout->setSpacing(4);
+
+	auto internalWidget = new QWidget{groupBox};
+	auto internalLayout = new QVBoxLayout{internalWidget};
+	groupBoxLayout->addWidget(internalWidget);
+
+	OfflineToCheckBox = new QCheckBox(tr("Allow buddy to see when I'm available"), internalWidget);
 	OfflineToCheckBox->setChecked(!MyBuddy.isOfflineTo());
 	connect(OfflineToCheckBox, SIGNAL(clicked(bool)), this, SLOT(offlineToToggled(bool)));
-	layout->addWidget(OfflineToCheckBox);
+	internalLayout->addWidget(OfflineToCheckBox);
 
-	BlockCheckBox = new QCheckBox(tr("Block buddy"), this);
+	BlockCheckBox = new QCheckBox(tr("Block buddy"), internalWidget);
 	BlockCheckBox->setChecked(MyBuddy.isBlocked());
-	layout->addWidget(BlockCheckBox);
+	internalLayout->addWidget(BlockCheckBox);
 
-	NotifyCheckBox = new QCheckBox(tr("Notify when buddy's status changes"), this);
-	layout->addWidget(NotifyCheckBox);
+	NotifyCheckBox = new QCheckBox(tr("Notify when buddy's status changes"), internalWidget);
+	internalLayout->addWidget(NotifyCheckBox);
 
-	HideDescriptionCheckBox = new QCheckBox(tr("Hide description"), this);
-	layout->addWidget(HideDescriptionCheckBox);
-
-	layout->addStretch(100);
+	HideDescriptionCheckBox = new QCheckBox(tr("Hide description"), internalWidget);
+	internalLayout->addWidget(HideDescriptionCheckBox);
 
 	if (MyBuddy)
 	{
 		HideDescriptionCheckBox->setChecked(MyBuddy.property("kadu:HideDescription", false).toBool());
 		NotifyCheckBox->setChecked(MyBuddy.property("notify:Notify", true).toBool());
 	}
+
+	layout->addWidget(groupBox);
+	layout->addStretch(100);
 }
 
 void BuddyOptionsConfigurationWidget::save()

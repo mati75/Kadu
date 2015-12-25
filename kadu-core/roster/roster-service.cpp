@@ -1,12 +1,6 @@
 /*
  * %kadu copyright begin%
- * Copyright 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
- * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
- * Copyright 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2011, 2012, 2013, 2014 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
+ * Copyright 2014 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -26,12 +20,12 @@
 #include "roster-service.h"
 
 #include "protocols/protocol.h"
-#include "roster/roster-entry.h"
 #include "roster/roster-entry-state.h"
+#include "roster/roster-entry.h"
 #include "roster/roster-task-type.h"
 
-RosterService::RosterService(Protocol *protocol, const QVector<Contact> &contacts, QObject *parent) :
-		ProtocolService{protocol, parent},
+RosterService::RosterService(const QVector<Contact> &contacts, Protocol *protocol) :
+		ProtocolService{protocol, protocol},
 		m_contacts{std::move(contacts)}
 {
 	for (auto &&contact : m_contacts)

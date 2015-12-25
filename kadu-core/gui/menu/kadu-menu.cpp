@@ -1,8 +1,8 @@
 /*
  * %kadu copyright begin%
  * Copyright 2012 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2012, 2013, 2014 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2012, 2013, 2014, 2015 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -119,7 +119,8 @@ void KaduMenu::appendTo(QMenu *menu, ActionContext *context)
 		? context
 		: getActionContext();
 
-	bool firstItem = true;
+	auto firstItem = true;
+	auto actionsFirstItem = true;
 	MenuSection latestSection = KaduMenu::SectionAbout; // prevent 4.9 from complaining
 
 	QMenu *actions = new QMenu(tr("More Actions..."), menu);
@@ -129,11 +130,15 @@ void KaduMenu::appendTo(QMenu *menu, ActionContext *context)
 		if (!menuItem->actionDescription())
 			continue;
 
-		QMenu *currentMenu = menuItem->section() == KaduMenu::SectionActions
+		auto isActions = menuItem->section() == KaduMenu::SectionActions || menuItem->section() == KaduMenu::KaduMenu::SectionActionsGui;
+		auto currentMenu = isActions
 			? actions
 			: menu;
+		auto menuFirstItem = isActions
+			? &actionsFirstItem
+			: &firstItem;
 
-		if (!firstItem && latestSection != menuItem->section())
+		if (!*menuFirstItem && latestSection != menuItem->section())
 			currentMenu->addSeparator();
 
 		auto parent = currentMenu->parent() ? currentMenu->parent() : currentMenu;
@@ -142,13 +147,15 @@ void KaduMenu::appendTo(QMenu *menu, ActionContext *context)
 		action->checkState();
 
 		latestSection = menuItem->section();
-		firstItem = false;
+		*menuFirstItem = false;
 	}
 
 	if ("buddy-list" != Category)
 		return;
 
-	if (actionContext->roles().contains(ContactRole) && 1 == actionContext->contacts().size())
+	auto isContact = actionContext->roles().contains(ContactRole) && 1 == actionContext->contacts().size();
+	auto isOneContactbuddy = actionContext->roles().contains(BuddyRole) && 1 == actionContext->buddies().size() && 1 == actionContext->buddies().begin()->contacts().size();
+	if (isContact || isOneContactbuddy)
 	{
 		foreach (ProtocolMenuManager *manager, MenuInventory::instance()->protocolMenuManagers())
 		{

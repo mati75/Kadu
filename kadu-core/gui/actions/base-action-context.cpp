@@ -1,7 +1,7 @@
 /*
  * %kadu copyright begin%
- * Copyright 2011, 2012, 2013, 2014 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2011, 2012, 2013, 2014, 2015 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -20,8 +20,9 @@
 
 #include "base-action-context.h"
 
-BaseActionContext::BaseActionContext() :
-		CurrentStatusContainer(0)
+BaseActionContext::BaseActionContext(QWidget *widget) :
+		Widget{widget},
+		CurrentStatusContainer{nullptr}
 {
 	connect(&MyChangeNotifier, SIGNAL(changed()), this, SIGNAL(changed()));
 }
@@ -33,6 +34,11 @@ BaseActionContext::~BaseActionContext()
 ChangeNotifier & BaseActionContext::changeNotifier()
 {
 	return MyChangeNotifier;
+}
+
+QWidget * BaseActionContext::widget()
+{
+	return Widget;
 }
 
 ContactSet BaseActionContext::contacts()

@@ -1,13 +1,7 @@
 /*
  * %kadu copyright begin%
- * Copyright 2008, 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2008, 2009 Michał Podsiadlik (michal@kadu.net)
- * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
- * Copyright 2007, 2008, 2009, 2010, 2011, 2012, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2007 Dawid Stawiarski (neeo@kadu.net)
- * Copyright 2005, 2006, 2007 Marcin Ślusarz (joi@kadu.net)
+ * Copyright 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2011, 2012, 2013, 2014, 2015 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -24,15 +18,11 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <QtCore/QSocketNotifier>
+#include "gadu-protocol-socket-notifiers.h"
 
-#ifdef Q_OS_WIN
-#include <winsock2.h>
-#else
-#include <arpa/inet.h>
-#endif
-
-#include <libgadu.h>
+#include "services/gadu-imtoken-service.h"
+#include "services/gadu-roster-service.h"
+#include "services/user-data/gadu-user-data-service.h"
 
 #include "accounts/account.h"
 #include "buddies/buddy-set.h"
@@ -42,34 +32,59 @@
 #include "misc/misc.h"
 #include "debug.h"
 
-#include "services/gadu-roster-service.h"
+#include <QtCore/QSocketNotifier>
+#include <libgadu.h>
 
-#include "gadu-protocol-socket-notifiers.h"
+#ifdef Q_OS_WIN
+#	include <winsock2.h>
+#else
+#	include <arpa/inet.h>
+#endif
 
 GaduProtocolSocketNotifiers::GaduProtocolSocketNotifiers(Account account, GaduProtocol *protocol) :
-		GaduSocketNotifiers(protocol), CurrentAccount(account), CurrentProtocol(protocol), Sess(0)
+		GaduSocketNotifiers{protocol},
+		m_account{account},
+		m_protocol{protocol},
+		m_session{nullptr}
 {
+}
+
+GaduProtocolSocketNotifiers::~GaduProtocolSocketNotifiers()
+{
+}
+
+void GaduProtocolSocketNotifiers::setGaduIMTokenService(GaduIMTokenService *imTokenService)
+{
+	m_imTokenService = imTokenService;
+}
+
+void GaduProtocolSocketNotifiers::setGaduUserDataService(GaduUserDataService *userDataService)
+{
+	m_userDataService = userDataService;
 }
 
 void GaduProtocolSocketNotifiers::watchFor(gg_session *sess)
 {
-	Sess = sess;
-	GaduSocketNotifiers::watchFor(Sess ? Sess->fd : -1);
+	m_session = sess;
+	GaduSocketNotifiers::watchFor(m_session ? m_session->fd : -1);
+
+	if (!m_session)
+		m_imTokenService->setIMToken({});
 }
 
 bool GaduProtocolSocketNotifiers::checkRead()
 {
-	return Sess->check & GG_CHECK_READ;
+	return m_session->check & GG_CHECK_READ;
 }
 
 bool GaduProtocolSocketNotifiers::checkWrite()
 {
-	return Sess->check & GG_CHECK_WRITE;
+	return m_session->check & GG_CHECK_WRITE;
 }
 
 void GaduProtocolSocketNotifiers::dumpConnectionState()
 {
-	switch (Sess->state)
+	switch (m_session->state)
 	{
 		case GG_STATE_RESOLVING:
 			kdebugmf(KDEBUG_NETWORK|KDEBUG_INFO, "Resolving address\n");
@@ -96,22 +111,22 @@ void GaduProtocolSocketNotifiers::dumpConnectionState()
 			kdebugmf(KDEBUG_NETWORK|KDEBUG_WARNING, "idle!\n");
 			break;
 		case GG_STATE_ERROR:
-			kdebugmf(KDEBUG_NETWORK|KDEBUG_WARNING, "state==error! error=%d\n", Sess->error);
+			kdebugmf(KDEBUG_NETWORK|KDEBUG_WARNING, "state==error! error=%d\n", m_session->error);
 			break;
 		default:
-			kdebugmf(KDEBUG_NETWORK|KDEBUG_WARNING, "unknown state! state=%d\n", Sess->state);
+			kdebugmf(KDEBUG_NETWORK|KDEBUG_WARNING, "unknown state! state=%d\n", m_session->state);
 			break;
 	}
 }
 
 void GaduProtocolSocketNotifiers::handleEventMultilogonInfo(gg_event* e)
 {
-	CurrentProtocol->CurrentMultilogonService->handleEventMultilogonInfo(e);
+	m_protocol->CurrentMultilogonService->handleEventMultilogonInfo(e);
 }
 
 void GaduProtocolSocketNotifiers::handleEventNotify(struct gg_event *e)
 {
-	struct gg_notify_reply *notify = (GG_EVENT_NOTIFY_DESCR == e->type)
+	auto notify = (GG_EVENT_NOTIFY_DESCR == e->type)
 			? e->event.notify_descr.notify
 			: e->event.notify;
 
@@ -121,18 +136,18 @@ void GaduProtocolSocketNotifiers::handleEventNotify(struct gg_event *e)
 				? QString::fromUtf8(e->event.notify_descr.descr)
 				: QString();
 
-		CurrentProtocol->socketContactStatusChanged(notify->uin, notify->status, description, 0);
+		m_protocol->socketContactStatusChanged(notify->uin, notify->status, description, 0);
 		notify++;
 	}
 }
 
 void GaduProtocolSocketNotifiers::handleEventNotify60(struct gg_event *e)
 {
-	struct gg_event_notify60 *notify = e->event.notify60;
+	auto notify = e->event.notify60;
 
 	while (notify->uin)
 	{
-		CurrentProtocol->socketContactStatusChanged(notify->uin, notify->status, QString::fromUtf8(notify->descr), notify->image_size);
+		m_protocol->socketContactStatusChanged(notify->uin, notify->status, QString::fromUtf8(notify->descr), notify->image_size);
 
 		notify++;
 	}
@@ -141,10 +156,10 @@ void GaduProtocolSocketNotifiers::handleEventNotify60(struct gg_event *e)
 void GaduProtocolSocketNotifiers::handleEventStatus(struct gg_event *e)
 {
 	if (GG_EVENT_STATUS60 == e->type)
-		CurrentProtocol->socketContactStatusChanged(e->event.status60.uin, e->event.status60.status, QString::fromUtf8(e->event.status60.descr),
+		m_protocol->socketContactStatusChanged(e->event.status60.uin, e->event.status60.status, QString::fromUtf8(e->event.status60.descr),
 				e->event.status60.image_size);
 	else
-		CurrentProtocol->socketContactStatusChanged(e->event.status.uin, e->event.status.status, QString::fromUtf8(e->event.status.descr), 0);
+		m_protocol->socketContactStatusChanged(e->event.status.uin, e->event.status.status, QString::fromUtf8(e->event.status.descr), 0);
 }
 
 void GaduProtocolSocketNotifiers::handleEventConnFailed(struct gg_event *e)
@@ -167,19 +182,20 @@ void GaduProtocolSocketNotifiers::handleEventConnFailed(struct gg_event *e)
 		default:
 			kdebugm(KDEBUG_ERROR, "ERROR: unhandled/unknown connection error! %d\n", e->event.failure);
 			err = GaduProtocol::ConnectionUnknow;
+			break;
 	}
 
-	CurrentProtocol->socketConnFailed(err);
+	m_protocol->socketConnFailed(err);
 
 	// we don't have connection anymore
-	watchFor(0);
+	watchFor(nullptr);
 }
 
 void GaduProtocolSocketNotifiers::handleEventConnSuccess(struct gg_event *e)
 {
 	Q_UNUSED(e)
 
-	CurrentProtocol->connectedToServer();
+	m_protocol->connectedToServer();
 }
 
 void GaduProtocolSocketNotifiers::handleEventDisconnect(struct gg_event *e)
@@ -187,30 +203,30 @@ void GaduProtocolSocketNotifiers::handleEventDisconnect(struct gg_event *e)
 	Q_UNUSED(e)
 
 	// close connection
-	gg_logoff(Sess);
+	gg_logoff(m_session);
 	// we don't have connection anymore
-	watchFor(0);
+	watchFor(nullptr);
 
-	CurrentProtocol->disconnectedFromServer();
-	CurrentProtocol->setStatus(Status{}, SourceUser);
+	m_protocol->disconnectedFromServer();
+	m_protocol->setStatus(Status{}, SourceUser);
 }
 
 void GaduProtocolSocketNotifiers::socketEvent()
 {
 	kdebugf();
 
-	gg_event *e;
-	if (!(e = gg_watch_fd(Sess)) || GG_STATE_IDLE == Sess->state)
+	auto e = gg_watch_fd(m_session);
+	if (!e || GG_STATE_IDLE == m_session->state)
 	{
 		if (e && e->type == GG_EVENT_CONN_FAILED)
 			handleEventConnFailed(e);
 		else
-			CurrentProtocol->socketConnFailed(GaduProtocol::ConnectionUnknow);
+			m_protocol->socketConnFailed(GaduProtocol::ConnectionUnknow);
 		return;
 	}
 
 	kdebugmf(KDEBUG_NETWORK|KDEBUG_INFO, "changing QSocketNotifiers.\n");
-	watchFor(Sess); // maybe fd has changed, we need to check always
+	watchFor(m_session); // maybe fd has changed, we need to check always
 
 	dumpConnectionState();
 	kdebugmf(KDEBUG_NETWORK|KDEBUG_INFO, "event: %d\n", e->type);
@@ -230,7 +246,7 @@ void GaduProtocolSocketNotifiers::socketEvent()
 			break;
 
 		case GG_EVENT_TYPING_NOTIFICATION:
-			emit typingNotifyEventReceived(e);
+			emit typingNotificationEventReceived(e);
 			break;
 
 		case GG_EVENT_NOTIFY:
@@ -264,79 +280,40 @@ void GaduProtocolSocketNotifiers::socketEvent()
 			break;
 
 		case GG_EVENT_PUBDIR50_SEARCH_REPLY:
-			CurrentProtocol->CurrentSearchService->handleEventPubdir50SearchReply(e);
+			m_protocol->CurrentSearchService->handleEventPubdir50SearchReply(e);
 //			break;
 
 		case GG_EVENT_PUBDIR50_READ:
-			CurrentProtocol->CurrentPersonalInfoService->handleEventPubdir50Read(e);
-			CurrentProtocol->CurrentContactPersonalInfoService->handleEventPubdir50Read(e);
+			m_protocol->CurrentPersonalInfoService->handleEventPubdir50Read(e);
+			m_protocol->CurrentContactPersonalInfoService->handleEventPubdir50Read(e);
 //			break;
 
 		case GG_EVENT_PUBDIR50_WRITE:
-			CurrentProtocol->CurrentPersonalInfoService->handleEventPubdir50Write(e);
+			m_protocol->CurrentPersonalInfoService->handleEventPubdir50Write(e);
 			break;
 
 		case GG_EVENT_IMAGE_REQUEST:
-			CurrentProtocol->CurrentChatImageService->handleEventImageRequest(e);
+			m_protocol->CurrentChatImageService->handleEventImageRequest(e);
 			break;
 
 		case GG_EVENT_IMAGE_REPLY:
-			CurrentProtocol->CurrentChatImageService->handleEventImageReply(e);
-			break;
-
-		case GG_EVENT_DCC7_NEW:
-			if (!CurrentProtocol->CurrentFileTransferService)
-			{
-				gg_dcc7_reject(e->event.dcc7_new, GG_DCC7_REJECT_USER);
-				gg_dcc7_free(e->event.dcc7_new);
-				e->event.dcc7_new = NULL;
-			}
-			else
-				CurrentProtocol->CurrentFileTransferService->handleEventDcc7New(e);
-			break;
-
-		case GG_EVENT_DCC7_ACCEPT:
-			if (!CurrentProtocol->CurrentFileTransferService)
-			{
-				gg_dcc7_free(e->event.dcc7_accept.dcc7);
-				e->event.dcc7_accept.dcc7 = NULL;
-			}
-			else
-				CurrentProtocol->CurrentFileTransferService->handleEventDcc7Accept(e);
-			break;
-
-		case GG_EVENT_DCC7_REJECT:
-			if (!CurrentProtocol->CurrentFileTransferService)
-			{
-				gg_dcc7_free(e->event.dcc7_reject.dcc7);
-				e->event.dcc7_reject.dcc7 = NULL;
-			}
-			else
-				CurrentProtocol->CurrentFileTransferService->handleEventDcc7Reject(e);
-			break;
-
-		case GG_EVENT_DCC7_ERROR:
-			if (CurrentProtocol->CurrentFileTransferService)
-				CurrentProtocol->CurrentFileTransferService->handleEventDcc7Error(e);
-			break;
-
-		case GG_EVENT_DCC7_PENDING:
-			if (!CurrentProtocol->CurrentFileTransferService)
-			{
-				gg_dcc7_reject(e->event.dcc7_pending.dcc7, GG_DCC7_REJECT_USER);
-				gg_dcc7_free(e->event.dcc7_pending.dcc7);
-				e->event.dcc7_pending.dcc7 = NULL;
-			}
-			else
-				CurrentProtocol->CurrentFileTransferService->handleEventDcc7Pending(e);
+			m_protocol->CurrentChatImageService->handleEventImageReply(e);
 			break;
 
 		case GG_EVENT_USERLIST100_VERSION:
-			static_cast<GaduRosterService *>(CurrentProtocol->rosterService())->handleEventUserlist100Version(e);
+			static_cast<GaduRosterService *>(m_protocol->rosterService())->handleEventUserlist100Version(e);
 			break;
 
 		case GG_EVENT_USERLIST100_REPLY:
-			static_cast<GaduRosterService *>(CurrentProtocol->rosterService())->handleEventUserlist100Reply(e);
+			static_cast<GaduRosterService *>(m_protocol->rosterService())->handleEventUserlist100Reply(e);
+			break;
+
+		case GG_EVENT_USER_DATA:
+			m_userDataService->handleUserDataEvent(e->event.user_data);
+			break;
+
+		case GG_EVENT_IMTOKEN:
+			m_imTokenService->setIMToken(e->event.imtoken.imtoken);
 			break;
 	}
 
@@ -346,10 +323,10 @@ void GaduProtocolSocketNotifiers::socketEvent()
 
 int GaduProtocolSocketNotifiers::timeout()
 {
-	if (!Sess)
+	if (!m_session)
 		return -1;
 
-	int tout = Sess->timeout;
+	auto tout = m_session->timeout;
 	if (tout < 0)
 		return tout;
 
@@ -360,10 +337,10 @@ bool GaduProtocolSocketNotifiers::handleSoftTimeout()
 {
 	kdebugf();
 
-	if (!Sess || !Sess->soft_timeout)
+	if (!m_session || !m_session->soft_timeout)
 		return false;
 
-	Sess->timeout = 0;
+	m_session->timeout = 0;
 
 	disable();
 	socketEvent();
@@ -374,7 +351,7 @@ bool GaduProtocolSocketNotifiers::handleSoftTimeout()
 
 void GaduProtocolSocketNotifiers::connectionTimeout()
 {
-	CurrentProtocol->socketConnFailed(GaduProtocol::ConnectionTimeout);
+	m_protocol->socketConnFailed(GaduProtocol::ConnectionTimeout);
 }
 
 #include "moc_gadu-protocol-socket-notifiers.cpp"

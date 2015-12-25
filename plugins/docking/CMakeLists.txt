@@ -9,20 +9,18 @@ kadu_api_directories (plugins/docking
 )
 
 set (SOURCES
+	docking-configuration-provider.cpp
+	docking-menu-action-repository.cpp
+	docking-menu-handler.cpp
 	docking-plugin.cpp
+	docking-tooltip-handler.cpp
 	docking.cpp
+	status-notifier-item.cpp
+	status-notifier-item-attention.cpp
+	status-notifier-item-attention-animator.cpp
+	status-notifier-item-attention-blinker.cpp
+	status-notifier-item-attention-static.cpp
 )
-
-set (MOC_SOURCES
-	docking-plugin.h
-	docking.h
-)
-
-if (APPLE)
-	list (APPEND SOURCES mac_docking_helper.cpp)
-	list (APPEND MOC_SOURCES mac_docking_helper.h)
-	set_source_files_properties (SOURCE mac_docking_helper.cpp APPEND_STRING PROPERTY COMPILE_FLAGS " -x objective-c++")
-endif ()
 
 set (CONFIGURATION_FILES
 	data/configuration/docking.ui
@@ -30,6 +28,5 @@ set (CONFIGURATION_FILES
 
 kadu_plugin (docking
 	PLUGIN_SOURCES ${SOURCES}
-	PLUGIN_MOC_SOURCES ${MOC_SOURCES}
 	PLUGIN_CONFIGURATION_FILES ${CONFIGURATION_FILES}
 )

@@ -1,9 +1,6 @@
 /*
  * %kadu copyright begin%
- * Copyright 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2011 Piotr Dąbrowski (ultr@ultr.pl)
- * Copyright 2011, 2012 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2011, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2014 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -23,6 +20,7 @@
 #include "configuration/configuration.h"
 #include "configuration/deprecated-configuration-api.h"
 #include "core/application.h"
+#include "gui/widgets/chat-widget/chat-widget-title-composing-state-position.h"
 
 #include "chat-configuration-holder.h"
 
@@ -69,9 +67,6 @@ void ChatConfigurationHolder::configurationUpdated()
 	ForceCustomChatFont = Application::instance()->configuration()->deprecatedApi()->readBoolEntry("Look", "ForceCustomChatFont");
 	ChatFont = Application::instance()->configuration()->deprecatedApi()->readFontEntry("Look", "ChatFont");
 
-	ChatContents = Application::instance()->configuration()->deprecatedApi()->readEntry("Look", "ChatContents");
-	ConferenceContents = Application::instance()->configuration()->deprecatedApi()->readEntry("Look", "ConferenceContents");
-	ConferencePrefix = Application::instance()->configuration()->deprecatedApi()->readEntry("Look", "ConferencePrefix");
 	MyBackgroundColor = Application::instance()->configuration()->deprecatedApi()->readEntry("Look", "ChatMyBgColor");
 	MyFontColor = Application::instance()->configuration()->deprecatedApi()->readEntry("Look", "ChatMyFontColor");
 	MyNickColor = Application::instance()->configuration()->deprecatedApi()->readEntry("Look", "ChatMyNickColor");
@@ -82,15 +77,22 @@ void ChatConfigurationHolder::configurationUpdated()
 	ContactStateChats = Application::instance()->configuration()->deprecatedApi()->readBoolEntry("Chat", "ContactStateChats");
 	ContactStateWindowTitle = Application::instance()->configuration()->deprecatedApi()->readBoolEntry("Chat", "ContactStateWindowTitle");
 	ContactStateWindowTitlePosition = Application::instance()->configuration()->deprecatedApi()->readNumEntry("Chat", "ContactStateWindowTitlePosition");
-	ContactStateWindowTitleComposingSyntax = Application::instance()->configuration()->deprecatedApi()->readEntry("Chat", "ContactStateWindowTitleComposingSyntax");
 
 	ChatBgFilled = Application::instance()->configuration()->deprecatedApi()->readBoolEntry("Look", "ChatBgFilled");
 	ChatBgColor = Application::instance()->configuration()->deprecatedApi()->readColorEntry("Look", "ChatBgColor");
 
 	UseTransparency = Application::instance()->configuration()->deprecatedApi()->readBoolEntry("Chat", "UseTransparency");
 
-
 	emit chatConfigurationUpdated();
+}
+
+ChatWidgetTitleComposingStatePosition ChatConfigurationHolder::composingStatePosition() const
+{
+	if (!ContactStateWindowTitle)
+		return ChatWidgetTitleComposingStatePosition::None;
+	if (ContactStateWindowTitlePosition == 0)
+		return ChatWidgetTitleComposingStatePosition::AtBegining;
+	return ChatWidgetTitleComposingStatePosition::AtEnd;
 }
 
 #include "moc_chat-configuration-holder.cpp"

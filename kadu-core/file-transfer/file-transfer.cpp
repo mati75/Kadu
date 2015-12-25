@@ -1,14 +1,10 @@
 /*
  * %kadu copyright begin%
  * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2004, 2009 Michał Podsiadlik (michal@kadu.net)
+ * Copyright 2009 Michał Podsiadlik (michal@kadu.net)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
- * Copyright 2002, 2003, 2004, 2005 Adrian Smarzewski (adrian@kadu.net)
- * Copyright 2002, 2003, 2004 Tomasz Chiliński (chilek@chilan.com)
- * Copyright 2007, 2009, 2010, 2011, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2010, 2011, 2014 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2007 Dawid Stawiarski (neeo@kadu.net)
- * Copyright 2005 Marcin Ślusarz (joi@kadu.net)
+ * Copyright 2009, 2010, 2011, 2013, 2014, 2015 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -25,21 +21,24 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <QtCore/QFile>
+#include "file-transfer.h"
 
 #include "accounts/account-manager.h"
 #include "accounts/account.h"
+#include "buddies/buddy-manager.h"
 #include "configuration/configuration-api.h"
 #include "configuration/configuration.h"
+#include "contacts/contact-manager.h"
 #include "contacts/contact.h"
+#include "file-transfer/file-transfer-direction.h"
 #include "file-transfer/file-transfer-manager.h"
+#include "file-transfer/file-transfer-status.h"
+#include "file-transfer/file-transfer-type.h"
 #include "protocols/protocol.h"
 #include "protocols/services/file-transfer-service.h"
 #include "storage/storage-point.h"
 
-#include "buddies/buddy-manager.h"
-#include "contacts/contact-manager.h"
-#include "file-transfer.h"
+#include <QtCore/QFile>
 
 KaduSharedBaseClassImpl(FileTransfer)
 
@@ -65,30 +64,24 @@ FileTransfer::FileTransfer()
 }
 
 FileTransfer::FileTransfer(FileTransferShared *data) :
-		SharedBase<FileTransferShared>(data)
+		SharedBase<FileTransferShared>{data}
 {
 }
 
 FileTransfer::FileTransfer(QObject *data)
 {
-	FileTransferShared *shared = qobject_cast<FileTransferShared *>(data);
+	auto shared = qobject_cast<FileTransferShared *>(data);
 	if (shared)
 		setData(shared);
 }
 
 FileTransfer::FileTransfer(const FileTransfer &copy) :
-		SharedBase<FileTransferShared>(copy)
+		SharedBase<FileTransferShared>{copy}
 {
 }
 
 FileTransfer::~FileTransfer()
 {
-}
-
-void FileTransfer::createHandler()
-{
-	if (!isNull())
-		data()->createHandler();
 }
 
 unsigned int FileTransfer::percent()
@@ -99,18 +92,13 @@ unsigned int FileTransfer::percent()
 		return 0;
 }
 
-bool FileTransfer::accept(const QString &localFileName)
-{
-	setLocalFileName(localFileName);
-	return true;
-}
-
 KaduSharedBase_PropertyDefCRW(FileTransfer, Contact, peer, Peer, Contact::null)
 KaduSharedBase_PropertyDefCRW(FileTransfer, QString, localFileName, LocalFileName, QString())
 KaduSharedBase_PropertyDefCRW(FileTransfer, QString, remoteFileName, RemoteFileName, QString())
 KaduSharedBase_PropertyDef(FileTransfer, unsigned long, fileSize, FileSize, 0)
 KaduSharedBase_PropertyDef(FileTransfer, unsigned long, transferredSize, TransferredSize, 0)
-KaduSharedBase_PropertyDef(FileTransfer, FileTransferType, transferType, TransferType, TypeSend)
-KaduSharedBase_PropertyDef(FileTransfer, FileTransferStatus, transferStatus, TransferStatus, StatusNotConnected)
-KaduSharedBase_PropertyDef(FileTransfer, FileTransferError, transferError, TransferError, ErrorOk)
+KaduSharedBase_PropertyDef(FileTransfer, QString, error, Error, QString{})
+KaduSharedBase_PropertyDef(FileTransfer, FileTransferDirection, transferDirection, TransferDirection, FileTransferDirection::Outgoing)
 KaduSharedBase_PropertyDef(FileTransfer, FileTransferHandler *, handler, Handler, 0)
+KaduSharedBase_PropertyDef(FileTransfer, FileTransferStatus, transferStatus, TransferStatus, FileTransferStatus::NotConnected)
+KaduSharedBase_PropertyDef(FileTransfer, FileTransferType, transferType, TransferType, FileTransferType::Unknown)

@@ -1,6 +1,6 @@
 /*
  * %kadu copyright begin%
- * Copyright 2015 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2015 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * Contains code from QtSingleApplication.
@@ -28,6 +28,7 @@
 #include <QtCore/QCoreApplication>
 #include <QtCore/QDir>
 #include <QtCore/QRegExp>
+#include <QtCore/QDataStream>
 #include <QtNetwork/QLocalServer>
 #include <QtNetwork/QLocalSocket>
 #include <memory>
@@ -107,7 +108,7 @@ QString SingleApplication::socketName(const QString &prefix, const QString &appl
 {
 	auto idc = applicationId.toUtf8();
 	auto idNum = qChecksum(idc.constData(), static_cast<uint>(idc.size()));
-	auto result = QString{QLatin1String{"qtsingleapp-"} + prefix + QLatin1Char{'-'} + QString::number(idNum, 16)};
+	auto result = QString(QLatin1String{"qtsingleapp-"} + prefix + QLatin1Char{'-'} + QString::number(idNum, 16));
 
 #if defined(Q_OS_WIN)
 	if (!pProcessIdToSessionId)
@@ -131,7 +132,7 @@ QString SingleApplication::socketName(const QString &prefix, const QString &appl
 
 QString SingleApplication::lockName(const QString &socketName)
 {
-	return QString{QDir{QDir::tempPath()}.absolutePath() + QLatin1Char{'/'} + socketName + QLatin1String{"-lockfile"}};
+	return QString(QDir{QDir::tempPath()}.absolutePath() + QLatin1Char{'/'} + socketName + QLatin1String{"-lockfile"});
 }
 
 void SingleApplication::startServer()

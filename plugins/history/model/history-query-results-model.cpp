@@ -1,8 +1,7 @@
 /*
  * %kadu copyright begin%
- * Copyright 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2010, 2011, 2012, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2012, 2013, 2014 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -120,6 +119,31 @@ void HistoryQueryResultsModel::setResults(const QVector<HistoryQueryResult> &res
 	beginResetModel();
 	Results = results;
 	endResetModel();
+}
+
+void HistoryQueryResultsModel::addEntry(const QDate& date, const Talkable &talkable, const QString &title)
+{
+	auto i = 0;
+	auto firstNotEarlier = std::find_if(std::begin(Results), std::end(Results), [&date, &i](const HistoryQueryResult &hqr){
+		i++;
+		return hqr.date() >= date;
+	});
+	if (firstNotEarlier != std::end(Results) && firstNotEarlier->date() == date)
+	{
+		firstNotEarlier->setCount(firstNotEarlier->count() + 1);
+		emit dataChanged(index(i - 1), index(i - 1));
+		return;
+	}
+
+	auto newItem = HistoryQueryResult{};
+	newItem.setCount(1);
+	newItem.setDate(date);
+	newItem.setTalkable(talkable);
+	newItem.setTitle(title);
+
+	beginInsertRows(QModelIndex{}, i, i);
+	Results.insert(i, newItem);
+	endInsertRows();
 }
 
 #include "moc_history-query-results-model.cpp"

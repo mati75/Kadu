@@ -1,12 +1,7 @@
 /*
  * %kadu copyright begin%
- * Copyright 2009, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2008 Michał Podsiadlik (michal@kadu.net)
- * Copyright 2007, 2008, 2009, 2010, 2011, 2012, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011, 2012 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2007, 2008, 2009 Dawid Stawiarski (neeo@kadu.net)
- * Copyright 2005, 2007 Marcin Ślusarz (joi@kadu.net)
+ * Copyright 2011, 2012 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2011, 2012, 2013, 2014, 2015 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -23,33 +18,36 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef GADU_PROTOCOL_SOCKET_NOTIFIERS_H
-#define GADU_PROTOCOL_SOCKET_NOTIFIERS_H
+#pragma once
 
-#include "buddies/buddy.h"
+#include "gadu-socket-notifiers.h"
 
 #include "gadu-protocol.h"
 
-#include "gadu-socket-notifiers.h"
+#include "accounts/account.h"
+
+class GaduIMTokenService;
+class GaduUserDataService;
 
 class GaduProtocolSocketNotifiers : public GaduSocketNotifiers
 {
 	Q_OBJECT
 
-	Account CurrentAccount;
-	GaduProtocol *CurrentProtocol;
+public:
+	explicit GaduProtocolSocketNotifiers(Account account, GaduProtocol *protocol);
+	virtual ~GaduProtocolSocketNotifiers();
 
-	gg_session *Sess;
+	void setGaduIMTokenService(GaduIMTokenService *imTokenService);
+	void setGaduUserDataService(GaduUserDataService *userDataService);
 
-	void dumpConnectionState();
+	void watchFor(gg_session *sess);
 
-	void handleEventNotify(struct gg_event *e);
-	void handleEventNotify60(struct gg_event *e);
-	void handleEventStatus(struct gg_event *e);
-	void handleEventConnFailed(struct gg_event *e);
-	void handleEventConnSuccess(struct gg_event *e);
-	void handleEventDisconnect(struct gg_event *e);
-	void handleEventMultilogonInfo(struct gg_event *e);
+signals:
+	void msgEventReceived(struct gg_event *e);
+	void multilogonMsgEventReceived(struct gg_event *e);
+	void ackEventReceived(struct gg_event *e);
+
+	void typingNotificationEventReceived(struct gg_event *e);
 
 protected:
 	virtual bool checkRead();
@@ -59,19 +57,20 @@ protected:
 	virtual bool handleSoftTimeout();
 	virtual void connectionTimeout();
 
-public:
-	GaduProtocolSocketNotifiers(Account account, GaduProtocol *protocol);
-	void setAccount(Account account) { CurrentAccount = account; }
+private:
+	Account m_account;
+	GaduProtocol *m_protocol;
+	gg_session *m_session;
+	QPointer<GaduIMTokenService> m_imTokenService;
+	QPointer<GaduUserDataService> m_userDataService;
 
-	void watchFor(gg_session *sess);
-
-signals:
-	void msgEventReceived(struct gg_event *e);
-	void multilogonMsgEventReceived(struct gg_event *e);
-	void ackEventReceived(struct gg_event *e);
-
-	void typingNotifyEventReceived(struct gg_event *e);
+	void dumpConnectionState();
+	void handleEventNotify(struct gg_event *e);
+	void handleEventNotify60(struct gg_event *e);
+	void handleEventStatus(struct gg_event *e);
+	void handleEventConnFailed(struct gg_event *e);
+	void handleEventConnSuccess(struct gg_event *e);
+	void handleEventDisconnect(struct gg_event *e);
+	void handleEventMultilogonInfo(struct gg_event *e);
 
 };
-
-#endif // GADU_PROTOCOL_SOCKET_NOTIFIERS_H

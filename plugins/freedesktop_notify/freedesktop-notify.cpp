@@ -1,11 +1,10 @@
 /*
  * Copyright 2009 Jacek Jabłoński
  * %kadu copyright begin%
- * Copyright 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2010, 2012 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2011 Piotr Dąbrowski (ultr@ultr.pl)
- * Copyright 2010, 2011, 2012, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2012 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2011, 2012, 2013, 2014, 2015 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -36,10 +35,13 @@
 #include "dom/dom-processor-service.h"
 #include "icons/kadu-icon.h"
 #include "misc/paths-provider.h"
-#include "notify/notification-manager.h"
-#include "notify/notification/aggregate-notification.h"
-#include "notify/notification/notification.h"
-#include "notify/notify-event.h"
+#include "notification/notification-manager.h"
+#include "notification/notification/aggregate-notification.h"
+#include "notification/notification-callback-repository.h"
+#include "notification/notification-callback.h"
+#include "notification/notification/notification.h"
+#include "notification/notification-event.h"
+#include "notification/notification-event-repository.h"
 #include "url-handlers/url-handler-manager.h"
 
 #include "freedesktop-notify.h"
@@ -94,12 +96,15 @@ FreedesktopNotify::FreedesktopNotify() :
 
 	configurationUpdated();
 
-	NotificationManager::instance()->registerNotifier(this);
+	Core::instance()->notificationManager()->registerNotifier(this);
 }
 
 FreedesktopNotify::~FreedesktopNotify()
 {
-	NotificationManager::instance()->unregisterNotifier(this);
+	if (Core::instance()) // TODO: hack
+	{
+		Core::instance()->notificationManager()->unregisterNotifier(this);
+	}
 
 	delete NotificationsInterface;
 	NotificationsInterface = 0;
@@ -137,13 +142,6 @@ void FreedesktopNotify::checkServerCapabilities()
 
 		ServerCapabilitiesRequireChecking = false;
 	}
-}
-
-Notifier::CallbackCapacity FreedesktopNotify::callbackCapacity()
-{
-	checkServerCapabilities();
-
-	return ServerSupportsActions ? CallbackSupported : CallbackNotSupported;
 }
 
 void FreedesktopNotify::notify(Notification *notification)
@@ -238,10 +236,11 @@ void FreedesktopNotify::notify(Notification *notification)
 			firstNotification = aggregateNotification->notifications().first();
 		}
 
-		foreach (const Notification::Callback &callback, firstNotification->getCallbacks())
+		for (auto &&callbackName : firstNotification->getCallbacks())
 		{
-			actions << callback.Signature;
-			actions << callback.Caption;
+			auto callback = Core::instance()->notificationCallbackRepository()->callback(callbackName);
+			actions << callbackName;
+			actions << callback.title();
 		}
 	}
 	args.append(actions);
@@ -316,12 +315,12 @@ void FreedesktopNotify::slotServiceOwnerChanged(const QString &serviceName, cons
 	ServerCapabilitiesRequireChecking = true;
 }
 
-void FreedesktopNotify::actionInvoked(unsigned int id, QString action)
+void FreedesktopNotify::actionInvoked(unsigned int id, QString callbackName)
 {
 	if (!NotificationMap.contains(id))
 		return;
 
-	Notification *notification = NotificationMap.value(id);
+	auto notification = NotificationMap.value(id);
 	if (!notification)
 		return;
 
@@ -329,24 +328,9 @@ void FreedesktopNotify::actionInvoked(unsigned int id, QString action)
 	if (qobject_cast<AggregateNotification *>(callbackNotifiation))
 		callbackNotifiation = qobject_cast<AggregateNotification *>(callbackNotifiation)->notifications()[0];
 
-	const QMetaObject *metaObject = callbackNotifiation->metaObject();
-	int slotIndex = -1;
-
-	while (metaObject)
-	{
-		slotIndex = metaObject->indexOfSlot(action.toAscii().constData());
-		if (slotIndex != -1)
-			break;
-
-		metaObject = metaObject->superClass();
-	}
-
-	if (-1 == slotIndex)
-		return;
-
-	QMetaMethod slot = callbackNotifiation->metaObject()->method(slotIndex);
-	slot.invoke(callbackNotifiation, Qt::DirectConnection);
-	notification->clearDefaultCallback();
+	auto callback = Core::instance()->notificationCallbackRepository()->callback(callbackName);
+	callback.call(callbackNotifiation);
+	notification->close();
 
 	QList<QVariant> args;
 	args.append(id);
@@ -369,8 +353,8 @@ void FreedesktopNotify::import_0_9_0_Configuration()
 	if (!Application::instance()->configuration()->deprecatedApi()->readEntry("KDENotify", "Timeout").isEmpty() || !Application::instance()->configuration()->deprecatedApi()->readEntry("FreedesktopNotify", "Timeout").isEmpty())
 		Application::instance()->configuration()->deprecatedApi()->addVariable("FreedesktopNotify", "CustomTimeout", true);
 
-	foreach (NotifyEvent *event, NotificationManager::instance()->notifyEvents())
-		Application::instance()->configuration()->deprecatedApi()->addVariable("Notify", event->name() + "_FreedesktopNotify", Application::instance()->configuration()->deprecatedApi()->readEntry("Notify", event->name() + "_KNotify"));
+	for (auto &&event : Core::instance()->notificationEventRepository()->notificationEvents())
+		Application::instance()->configuration()->deprecatedApi()->addVariable("Notify", event.name() + "_FreedesktopNotify", Application::instance()->configuration()->deprecatedApi()->readEntry("Notify", event.name() + "_KNotify"));
 }
 
 void FreedesktopNotify::createDefaultConfiguration()

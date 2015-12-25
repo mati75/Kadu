@@ -1,12 +1,10 @@
 /*
  * %kadu copyright begin%
- * Copyright 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2012 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2009, 2010 Bartłomiej Zimoń (uzi18@o2.pl)
- * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
- * Copyright 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
+ * Copyright 2010 Bartłomiej Zimoń (uzi18@o2.pl)
+ * Copyright 2010, 2011, 2012, 2013, 2014 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -23,9 +21,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <QtCore/QFileInfo>
-#include <QtWidgets/QFileDialog>
-#include <QtWidgets/QMessageBox>
+#include "file-transfer-manager.h"
 
 #include "accounts/account.h"
 #include "chat/chat-manager.h"
@@ -36,37 +32,35 @@
 #include "contacts/contact-set.h"
 #include "core/application.h"
 #include "core/core.h"
-#include "file-transfer/file-transfer-actions.h"
-#include "file-transfer/file-transfer-handler.h"
+#include "file-transfer/file-transfer-direction.h"
+#include "file-transfer/file-transfer-handler-manager.h"
 #include "file-transfer/file-transfer-notifications.h"
+#include "file-transfer/file-transfer-status.h"
 #include "file-transfer/file-transfer.h"
+#include "file-transfer/gui/file-transfer-actions.h"
+#include "file-transfer/gui/file-transfer-window.h"
+#include "file-transfer/outgoing-file-transfer-handler.h"
+#include "file-transfer/stream-incoming-file-transfer-handler.h"
+#include "file-transfer/url-incoming-file-transfer-handler.h"
 #include "gui/widgets/chat-widget/chat-widget-manager.h"
 #include "gui/widgets/chat-widget/chat-widget-repository.h"
 #include "gui/widgets/chat-widget/chat-widget.h"
-#include "gui/windows/file-transfer-window.h"
 #include "gui/windows/kadu-window.h"
 #include "gui/windows/message-dialog.h"
 #include "protocols/protocol.h"
 #include "protocols/services/file-transfer-service.h"
 #include "storage/storage-point.h"
 #include "activate.h"
-#include "debug.h"
 
-#include "file-transfer-manager.h"
+#include <QtCore/QFileInfo>
+#include <QtWidgets/QFileDialog>
+#include <QtWidgets/QMessageBox>
 
-FileTransferManager * FileTransferManager::Instance = 0;
-
-FileTransferManager * FileTransferManager::instance()
+FileTransferManager::FileTransferManager(QObject *parent) :
+		QObject{parent},
+		m_totalProgress{100}
 {
-	if (0 == Instance)
-		Instance = new FileTransferManager();
-
-	return Instance;
-}
-
-FileTransferManager::FileTransferManager()
-{
-	Actions = new FileTransferActions(this);
+	m_actions = new FileTransferActions{this};
 	NewFileTransferNotification::registerEvents();
 
 	triggerAllAccountsRegistered();
@@ -74,20 +68,25 @@ FileTransferManager::FileTransferManager()
 
 FileTransferManager::~FileTransferManager()
 {
-	delete Window.data();
+	m_window.data()->deleteLater();
 
 	triggerAllAccountsUnregistered();
 
 	NewFileTransferNotification::unregisterEvents();
 }
 
+void FileTransferManager::setFileTransferHandlerManager(FileTransferHandlerManager *fileTransferHandlerManager)
+{
+	m_fileTransferHandlerManager = fileTransferHandlerManager;
+}
+
 void FileTransferManager::addFileTransferService(Account account)
 {
-	Protocol *protocol = account.protocolHandler();
+	auto protocol = account.protocolHandler();
 	if (!protocol)
 		return;
 
-	FileTransferService *service = protocol->fileTransferService();
+	auto service = protocol->fileTransferService();
 	if (!service)
 		return;
 
@@ -97,33 +96,20 @@ void FileTransferManager::addFileTransferService(Account account)
 
 void FileTransferManager::removeFileTransferService(Account account)
 {
-	Protocol *protocol = account.protocolHandler();
+	auto protocol = account.protocolHandler();
 	if (!protocol)
 		return;
 
-	FileTransferService *service = protocol->fileTransferService();
+	auto service = protocol->fileTransferService();
 	if (!service)
 		return;
 
 	disconnect(service, 0, this, 0);
 }
 
-void FileTransferManager::fileTransferServiceRegistered()
-{
-	addFileTransferService(Account{sender()});
-}
-
-void FileTransferManager::fileTransferServiceUnregistered()
-{
-	removeFileTransferService(Account{sender()});
-}
-
 void FileTransferManager::accountRegistered(Account account)
 {
 	QMutexLocker locker(&mutex());
-
-	connect(account, SIGNAL(fileTransferServiceRegistered()), this, SLOT(fileTransferServiceRegistered()));
-	connect(account, SIGNAL(fileTransferServiceUnregistered()), this, SLOT(fileTransferServiceUnregistered()));
 
 	addFileTransferService(account);
 }
@@ -132,8 +118,6 @@ void FileTransferManager::accountUnregistered(Account account)
 {
 	QMutexLocker locker(&mutex());
 
-	disconnect(account, 0, this, 0);
-
 	removeFileTransferService(account);
 }
 
@@ -141,144 +125,164 @@ void FileTransferManager::cleanUp()
 {
 	QMutexLocker locker(&mutex());
 
-	QList<FileTransfer> toRemove;
+	auto toRemove = QList<FileTransfer>{};
 
-	foreach (const FileTransfer &fileTransfer, items())
-		if (StatusFinished == fileTransfer.transferStatus())
+	for (auto &&fileTransfer : items())
+	{
+		if (FileTransferStatus::Finished == fileTransfer.transferStatus())
 			toRemove.append(fileTransfer);
+		if (FileTransferStatus::Rejected == fileTransfer.transferStatus() && FileTransferDirection::Incoming == fileTransfer.transferDirection())
+			toRemove.append(fileTransfer);
+	}
 
-	foreach (const FileTransfer &fileTransfer, toRemove)
+	for (auto &&fileTransfer : toRemove)
 		removeItem(fileTransfer);
 }
 
-void FileTransferManager::acceptFileTransfer(FileTransfer transfer)
+void FileTransferManager::acceptFileTransfer(FileTransfer transfer, QString localFileName)
 {
-	QMutexLocker locker(&mutex());
+	if (!m_fileTransferHandlerManager->ensureHandler(transfer))
+		return;
 
-	FileTransfer alreadyTransferred = byPeerAndRemoteFileName(transfer.peer(), transfer.remoteFileName());
-	if (alreadyTransferred)
-		FileTransferManager::instance()->removeItem(alreadyTransferred);
+	auto chat = ChatTypeContact::findChat(transfer.peer(), ActionReturnNull);
+	QWidget *parent = Core::instance()->chatWidgetRepository()->widgetForChat(chat);
+	if (parent == nullptr)
+		parent = Core::instance()->kaduWindow();
 
-	QString fileName = transfer.localFileName();
-
-	bool haveFileName = !fileName.isEmpty();
-	bool resumeTransfer = haveFileName;
-
-	QFileInfo fi;
+	auto remoteFileName = transfer.remoteFileName();
+	auto saveFileName = localFileName;
 
 	while (true)
 	{
-		if (fileName.isEmpty())
-			fileName = QFileDialog::getSaveFileName(Core::instance()->kaduWindow(), tr("Select file location"),
-					Application::instance()->configuration()->deprecatedApi()->readEntry("Network", "LastDownloadDirectory") + transfer.remoteFileName(),
-							QString(), 0, QFileDialog::DontConfirmOverwrite);
+		saveFileName = getSaveFileName(saveFileName, remoteFileName, parent);
+		if (saveFileName.isEmpty())
+			break;
 
-		if (fileName.isEmpty())
-		{
-			kdebugmf(KDEBUG_INFO, "rejected\n");
-			if (transfer.handler())
-				transfer.handler()->reject();
-			return;
-		}
-
-		Application::instance()->configuration()->deprecatedApi()->writeEntry("Network", "LastDownloadDirectory", QFileInfo(fileName).absolutePath() + '/');
-		fi.setFile(fileName);
-
-		if (!haveFileName && fi.exists())
-		{
-			QWidget *parent = 0;
-			Chat chat = ChatTypeContact::findChat(transfer.peer(), ActionReturnNull);
-			if (chat)
-				parent = Core::instance()->chatWidgetRepository()->widgetForChat(chat);
-
-			QString question;
-			question = tr("File %1 already exists.").arg(fileName);
-			switch (QMessageBox::question(parent, tr("Save file"), question, tr("Overwrite"), tr("Resume"),
-			                                 tr("Select another file"), 0, 2))
-			{
-				case 0:
-					resumeTransfer = false;
-					break;
-
-				case 1:
-					resumeTransfer = true;
-					break;
-
-				case 2:
-					fileName = QString();
-					haveFileName = false;
-					continue;
-			}
-		}
-
-		if (fi.exists() && !fi.isWritable())
+		auto file = new QFile{saveFileName};
+		if (!file->open(QFile::WriteOnly | QIODevice::Truncate))
 		{
 			MessageDialog::show(KaduIcon("dialog-warning"), tr("Kadu"), tr("Could not open file. Select another one."));
-			fileName.clear();
+			saveFileName.clear();
+			file->deleteLater();
 			continue;
 		}
 
-		transfer.createHandler();
-		if (transfer.handler())
-		{
-			if (!transfer.handler()->accept(fileName, resumeTransfer))
-			{
-				MessageDialog::show(KaduIcon("dialog-warning"), tr("Kadu"), tr("Could not open file. Select another one."));
-				fileName.clear();
-				continue;
-			}
-		}
+		transfer.setLocalFileName(saveFileName);
 
+		auto streamHandler = qobject_cast<StreamIncomingFileTransferHandler *>(transfer.handler());
+		if (streamHandler)
+			streamHandler->accept(file);
+
+		auto urlHandler = qobject_cast<UrlIncomingFileTransferHandler *>(transfer.handler());
+		if (urlHandler)
+			urlHandler->save(file);
+
+		transfer.setTransferStatus(FileTransferStatus::Transfer);
+		showFileTransferWindow();
 		break;
 	}
-
-	FileTransferManager::instance()->addItem(transfer);
-	transfer.setTransferStatus(StatusTransfer);
-
-	FileTransferManager::instance()->showFileTransferWindow();
 }
 
 void FileTransferManager::rejectFileTransfer(FileTransfer transfer)
 {
 	QMutexLocker locker(&mutex());
 
-	if (transfer.handler())
-		transfer.handler()->reject();
+	m_fileTransferHandlerManager->ensureHandler(transfer);
+	auto streamHandler = qobject_cast<StreamIncomingFileTransferHandler *>(transfer.handler());
+	if (streamHandler)
+		streamHandler->reject();
+}
+
+void FileTransferManager::sendFile(FileTransfer transfer, QString fileName)
+{
+	if (transfer.transferDirection() != FileTransferDirection::Outgoing)
+		return;
+
+	auto fileInfo = QFileInfo{fileName};
+	transfer.setFileSize(fileInfo.size());
+	transfer.setLocalFileName(fileName);
+	transfer.setRemoteFileName(fileInfo.fileName());
+	transfer.setTransferredSize(0);
+
+	auto handler = qobject_cast<OutgoingFileTransferHandler *>(transfer.handler());
+
+	if (handler)
+	{
+		auto file = new QFile{fileName};
+		if (!file->open(QIODevice::ReadOnly))
+		{
+			transfer.setError(tr("Unable to open local file"));
+			file->deleteLater();
+			return;
+		}
+
+		handler->send(file);
+	}
+}
+
+QString FileTransferManager::getSaveFileName(QString fileName, QString remoteFileName, QWidget *parent)
+{
+	auto haveFileName = !fileName.isEmpty();
+	// auto resumeTransfer = haveFileName;
+
+	while (true)
+	{
+		if (fileName.isEmpty())
+			fileName = QFileDialog::getSaveFileName(parent, tr("Select file location"),
+					Application::instance()->configuration()->deprecatedApi()->readEntry("Network", "LastDownloadDirectory") + remoteFileName,
+							QString(), 0, QFileDialog::DontConfirmOverwrite);
+
+		if (fileName.isEmpty())
+			return fileName;
+
+		Application::instance()->configuration()->deprecatedApi()->writeEntry("Network", "LastDownloadDirectory", QFileInfo(fileName).absolutePath() + '/');
+		auto info = QFileInfo{fileName};
+
+		if (!haveFileName && info.exists())
+		{
+			auto question = tr("File %1 already exists.").arg(fileName);
+			switch (QMessageBox::question(parent, tr("Save file"), question, tr("Overwrite"), //tr("Resume"),
+			                                 tr("Select another file"), 0, 2))
+			{
+				case 0:
+					//resumeTransfer = false;
+					break;
+
+				case 1:
+					//resumeTransfer = true;
+					//break;
+
+				//case 2:
+					fileName = QString{};
+					haveFileName = false;
+					continue;
+			}
+		}
+
+		if (info.exists() && !info.isWritable())
+		{
+			MessageDialog::show(KaduIcon("dialog-warning"), tr("Kadu"), tr("Could not open file. Select another one."));
+			fileName.clear();
+			continue;
+		}
+
+		return fileName;
+	}
 }
 
 void FileTransferManager::showFileTransferWindow()
 {
 	QMutexLocker locker(&mutex());
 
-	if (!Window)
-		Window = new FileTransferWindow();
-	_activateWindow(Window.data());
-}
-
-FileTransfer FileTransferManager::byPeerAndRemoteFileName(Contact peer, const QString &remoteFileName)
-{
-	QMutexLocker locker(&mutex());
-
-	foreach (const FileTransfer &transfer, items())
-		if (transfer.transferType() == TypeReceive && transfer.peer() == peer && transfer.remoteFileName() == remoteFileName)
-			return transfer;
-
-	return FileTransfer::null;
+	if (!m_window)
+		m_window = new FileTransferWindow{this};
+	_activateWindow(m_window.data());
 }
 
 void FileTransferManager::incomingFileTransfer(FileTransfer fileTransfer)
 {
 	QMutexLocker locker(&mutex());
-
-	if (fileTransfer.localFileName().isEmpty())
-	{
-		FileTransfer alreadyTransferred = byPeerAndRemoteFileName(fileTransfer.peer(), fileTransfer.remoteFileName());
-		if (alreadyTransferred)
-			fileTransfer.setLocalFileName(alreadyTransferred.localFileName());
-	}
-
-	fileTransfer.setTransferStatus(StatusWaitingForAccept);
-
+	addItem(fileTransfer);
 	NewFileTransferNotification::notifyIncomingFileTransfer(fileTransfer);
 }
 
@@ -290,6 +294,8 @@ void FileTransferManager::itemAboutToBeAdded(FileTransfer fileTransfer)
 void FileTransferManager::itemAdded(FileTransfer fileTransfer)
 {
 	emit fileTransferAdded(fileTransfer);
+	connect(fileTransfer, SIGNAL(updated()), this, SLOT(updateProgress()));
+	updateProgress();
 }
 
 void FileTransferManager::itemAboutToBeRemoved(FileTransfer fileTransfer)
@@ -300,6 +306,43 @@ void FileTransferManager::itemAboutToBeRemoved(FileTransfer fileTransfer)
 void FileTransferManager::itemRemoved(FileTransfer fileTransfer)
 {
 	emit fileTransferRemoved(fileTransfer);
+	disconnect(fileTransfer, SIGNAL(updated()), this, SLOT(updateProgress()));
+	updateProgress();
+}
+
+void FileTransferManager::updateProgress()
+{
+	auto transferredSize = 0ul;
+	auto totalSize = 0ul;
+
+	for (auto &&fileTransfer : items())
+		if (FileTransferStatus::Transfer == fileTransfer.transferStatus())
+		{
+			transferredSize += fileTransfer.transferredSize();
+			totalSize += fileTransfer.fileSize();
+		}
+
+	if (totalSize == 0 || totalSize == transferredSize)
+	{
+		setTotalProgress(100);
+		return;
+	}
+
+	setTotalProgress(100 * transferredSize / totalSize);
+}
+
+void FileTransferManager::setTotalProgress(int totalProgress)
+{
+	if (m_totalProgress == totalProgress)
+		return;
+
+	m_totalProgress = totalProgress;
+	emit totalProgressChanged(totalProgress);
+}
+
+int FileTransferManager::totalProgress() const
+{
+	return m_totalProgress;
 }
 
 #include "moc_file-transfer-manager.cpp"

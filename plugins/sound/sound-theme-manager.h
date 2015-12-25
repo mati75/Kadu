@@ -1,9 +1,6 @@
 /*
  * %kadu copyright begin%
- * Copyright 2008, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2008 Michał Podsiadlik (michal@kadu.net)
- * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2007, 2008 Dawid Stawiarski (neeo@kadu.net)
+ * Copyright 2011, 2014, 2015 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -20,32 +17,26 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef SOUND_THEME_MANAGER_H
-#define SOUND_THEME_MANAGER_H
+#pragma once
 
-#include <QtCore/QString>
+#include <QtCore/QObject>
 #include <memory>
 
 class Themes;
 
-class SoundThemeManager
+class SoundThemeManager : public QObject
 {
-	static SoundThemeManager * Instance;
-
-	std::unique_ptr<Themes> MyThemes;
-
-	SoundThemeManager();
-	~SoundThemeManager();
+	Q_OBJECT
 
 public:
-	static void createInstance();
-	static void destroyInstance();
-	static SoundThemeManager * instance();
+	Q_INVOKABLE explicit SoundThemeManager(QObject *parent = nullptr);
+	virtual ~SoundThemeManager();
 
 	void applyTheme(const QString &themeName);
 
-	Themes * themes() { return MyThemes.get(); }
+	Themes * themes() const;
+
+private:
+	std::unique_ptr<Themes> m_themes;
 
 };
-
-#endif // SOUND_THEME_MANAGER_H

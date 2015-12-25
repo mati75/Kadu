@@ -1,17 +1,21 @@
 set (file-transfer_SRCS
+	gui/file-transfer-actions.cpp
+	gui/file-transfer-can-send-result.cpp
+	gui/file-transfer-widget.cpp
+	gui/file-transfer-window.cpp
+	gui/send-file-action.cpp
+	gui/show-file-transfer-window-action.cpp
+
 	file-transfer.cpp
-	file-transfer-actions.cpp
+	file-transfer-handler-manager.cpp
+	file-transfer-handler.cpp
 	file-transfer-manager.cpp
+	file-transfer-module.cpp
 	file-transfer-notifications.cpp
 	file-transfer-shared.cpp
+	outgoing-file-transfer-handler.cpp
+	stream-incoming-file-transfer-handler.cpp
+	url-incoming-file-transfer-handler.cpp
 )
 
-set (file-transfer_MOC_SRCS
-	file-transfer-actions.h
-	file-transfer-handler.h
-	file-transfer-manager.h
-	file-transfer-notifications.h
-	file-transfer-shared.h
-)
-
-kadu_subdirectory (file-transfer "${file-transfer_SRCS}" "${file-transfer_MOC_SRCS}" "")
+kadu_subdirectory (file-transfer "${file-transfer_SRCS}" "" "")

@@ -1,6 +1,6 @@
 /*
  * %kadu copyright begin%
- * Copyright 2013, 2014 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2014 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -19,11 +19,12 @@
 
 #include "chat/chat.h"
 #include "chat/type/chat-type-contact.h"
+#include "core/core.h"
 #include "gui/widgets/chat-widget/chat-widget-repository.h"
 #include "gui/widgets/chat-widget/chat-widget.h"
-#include "notify/notification-manager.h"
-#include "notify/notification/chat-notification.h"
-#include "notify/notify-event.h"
+#include "notification/notification-manager.h"
+#include "notification/notification/notification.h"
+#include "notification/notification-event.h"
 
 #include "otr-notifier.h"
 
@@ -33,12 +34,9 @@ QString OtrNotifier::CreatePrivateKeyFinishedNotifyTopic("OTR/CreatePrivateKeyFi
 
 OtrNotifier::OtrNotifier()
 {
-	OtrNotifyEvent.reset(new NotifyEvent(OtrNotifyTopic, NotifyEvent::CallbackNotRequired,
-			QT_TRANSLATE_NOOP("@default", "OTR Encryption")));
-	CreatePrivateKeyStartedNotifyEvent.reset(new NotifyEvent(CreatePrivateKeyStartedNotifyTopic, NotifyEvent::CallbackNotRequired,
-			QT_TRANSLATE_NOOP("@default", "Create private key started")));
-	CreatePrivateKeyFinishedNotifyEvent.reset(new NotifyEvent(CreatePrivateKeyFinishedNotifyTopic, NotifyEvent::CallbackNotRequired,
-			QT_TRANSLATE_NOOP("@default", "Create private key finished")));
+	OtrNotificationEvent = NotificationEvent{OtrNotifyTopic, QT_TRANSLATE_NOOP("@default", "OTR Encryption")};
+	CreatePrivateKeyStartedNotificationEvent = NotificationEvent{CreatePrivateKeyStartedNotifyTopic, QT_TRANSLATE_NOOP("@default", "Create private key started")};
+	CreatePrivateKeyFinishedNotificationEvent = NotificationEvent{CreatePrivateKeyFinishedNotifyTopic, QT_TRANSLATE_NOOP("@default", "Create private key finished")};
 }
 
 OtrNotifier::~OtrNotifier()
@@ -50,21 +48,21 @@ void OtrNotifier::setChatWidgetRepository(ChatWidgetRepository *chatWidgetReposi
 	MyChatWidgetRepository = chatWidgetRepository;
 }
 
-QList<NotifyEvent *> OtrNotifier::notifyEvents()
+QList<NotificationEvent > OtrNotifier::notifyEvents()
 {
-	return QList<NotifyEvent *>()
-			<< OtrNotifyEvent.data()
-			<< CreatePrivateKeyStartedNotifyEvent.data()
-			<< CreatePrivateKeyFinishedNotifyEvent.data();
+	return QList<NotificationEvent>()
+			<< OtrNotificationEvent
+			<< CreatePrivateKeyStartedNotificationEvent
+			<< CreatePrivateKeyFinishedNotificationEvent;
 }
 
 void OtrNotifier::notify(const QString &topic, const Account &account, const QString &message)
 {
-	AccountNotification *notification = new AccountNotification(account, topic, KaduIcon());
+	auto notification = new Notification(account, Chat::null, topic, KaduIcon());
 	notification->setTitle(tr("OTR Encryption"));
 	notification->setText(message);
 
-	NotificationManager::instance()->notify(notification);
+	Core::instance()->notificationManager()->notify(notification);
 }
 
 void OtrNotifier::notify(const Contact &contact, const QString &message)

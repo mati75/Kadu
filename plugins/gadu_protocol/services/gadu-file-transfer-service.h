@@ -1,11 +1,6 @@
 /*
  * %kadu copyright begin%
- * Copyright 2008, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2008 Michał Podsiadlik (michal@kadu.net)
- * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
- * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2007, 2008 Dawid Stawiarski (neeo@kadu.net)
+ * Copyright 2011, 2015 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -30,8 +25,8 @@
 #include "protocols/protocol.h"
 #include "protocols/services/file-transfer-service.h"
 
-class DccSocketNotifiers;
 class GaduFileTransferHandler;
+class GaduIMTokenService;
 class GaduProtocol;
 
 class GaduFileTransferService : public FileTransferService
@@ -40,35 +35,22 @@ class GaduFileTransferService : public FileTransferService
 
 	GaduProtocol *Protocol;
 
-	QHash<struct gg_dcc7 *, DccSocketNotifiers *> SocketNotifiers;
-
-	void connectSocketNotifiers(DccSocketNotifiers *notifiers);
-	void disconnectSocketNotifiers(DccSocketNotifiers *notifiers);
-
-	bool connectionAcceptable(UinType uin, UinType peerUin);
-	void needIncomingFileTransferAccept(DccSocketNotifiers *socket);
-
-	friend class GaduProtocolSocketNotifiers;
-	void handleEventDcc7New(struct gg_event *e);
-	void handleEventDcc7Accept(struct gg_event *e);
-	void handleEventDcc7Reject(struct gg_event *e);
-	void handleEventDcc7Pending(struct gg_event *e);
-	void handleEventDcc7Error(struct gg_event *e);
-
-	friend class GaduFileTransferHandler;
-	void attachSendFileTransferSocket(GaduFileTransferHandler *handler);
-
-private slots:
-	void socketNotifiersDestroyed(QObject *socketNotifiers);
-
 public:
 	explicit GaduFileTransferService(GaduProtocol *protocol);
 	virtual ~GaduFileTransferService();
 
-	virtual FileTransferHandler * createFileTransferHandler(FileTransfer fileTransfer);
+	void setGaduIMTokenService(GaduIMTokenService *imTokenService);
+
+	virtual FileTransferHandler * createFileTransferHandler(FileTransfer fileTransfer) override;
+	virtual FileTransferCanSendResult canSend(Contact contact) override;
+
+	void fileTransferReceived(Contact peer, QString downloadId, QString fileName);
+
+private:
+	QPointer<GaduIMTokenService> m_imTokenService;
 
 };
 
 #endif // GADU_FILE_TRANSFER_SERVICE_H
 
-// kate: indent-mode cstyle; replace-tabs off; tab-width 4; 
+// kate: indent-mode cstyle; replace-tabs off; tab-width 4;

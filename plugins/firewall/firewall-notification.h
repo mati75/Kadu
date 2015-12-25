@@ -1,12 +1,7 @@
 /*
  * %kadu copyright begin%
- * Copyright 2008, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2012 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2008 Michał Podsiadlik (michal@kadu.net)
- * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
- * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
- * Copyright 2007, 2008, 2009, 2010, 2011, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
+ * Copyright 2011, 2013, 2014 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -26,16 +21,13 @@
 #ifndef FIREWALL_NOTIFICATION_H
 #define FIREWALL_NOTIFICATION_H
 
-#include "notify/notification/chat-notification.h"
+#include "notification/notification/notification.h"
 
 class Chat;
-class NotifyEvent;
 
-class FirewallNotification : public ChatNotification
+class FirewallNotification : public Notification
 {
 	Q_OBJECT
-
-	static NotifyEvent *FirewalledNotification;
 
 public:
 	static void registerNotifications();

@@ -1,9 +1,6 @@
 /*
  * %kadu copyright begin%
- * Copyright 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2011 Piotr Dąbrowski (ultr@ultr.pl)
- * Copyright 2011, 2012, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2014 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -28,7 +25,11 @@
 
 #include "configuration/configuration-holder.h"
 
-class ChatConfigurationHolder : public ConfigurationHolder
+#include "exports.h"
+
+enum class ChatWidgetTitleComposingStatePosition;
+
+class KADUAPI ChatConfigurationHolder : public ConfigurationHolder
 {
 	Q_OBJECT
 	Q_DISABLE_COPY(ChatConfigurationHolder)
@@ -45,9 +46,6 @@ class ChatConfigurationHolder : public ConfigurationHolder
 	QColor ChatTextFontColor;
 	bool ForceCustomChatFont;
 	QFont ChatFont;
-	QString ChatContents;
-	QString ConferenceContents;
-	QString ConferencePrefix;
 	QString MyBackgroundColor;
 	QString MyFontColor;
 	QString MyNickColor;
@@ -61,7 +59,6 @@ class ChatConfigurationHolder : public ConfigurationHolder
 	bool ContactStateChats;
 	bool ContactStateWindowTitle;
 	int ContactStateWindowTitlePosition;
-	QString ContactStateWindowTitleComposingSyntax;
 
 public:
 	static ChatConfigurationHolder * instance();
@@ -74,9 +71,6 @@ public:
 	const QColor &chatTextFontColor() const { return ChatTextFontColor; }
 	bool forceCustomChatFont() const { return ForceCustomChatFont; }
 	const QFont &chatFont() const { return ChatFont; }
-	const QString &chatContents() const { return ChatContents; }
-	const QString &conferenceContents() const { return ConferenceContents; }
-	const QString &conferencePrefix() const { return ConferencePrefix; }
 	const QString &myBackgroundColor() const { return MyBackgroundColor; }
 	const QString &myFontColor() const { return MyFontColor; }
 	const QString &myNickColor() const { return MyNickColor; }
@@ -90,7 +84,7 @@ public:
 	bool contactStateChats() const { return ContactStateChats; }
 	bool contactStateWindowTitle() const { return ContactStateWindowTitle; }
 	int contactStateWindowTitlePosition() const { return ContactStateWindowTitlePosition; }
-	const QString &contactStateWindowTitleComposingSyntax() const { return ContactStateWindowTitleComposingSyntax; }
+	ChatWidgetTitleComposingStatePosition composingStatePosition() const;
 
 signals:
 	void chatConfigurationUpdated();

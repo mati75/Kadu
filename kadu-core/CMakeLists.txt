@@ -1,3 +1,5 @@
+cmake_minimum_required (VERSION 2.8)
+
 if (ENABLE_DEVELOPER_BUILD AND NOT MSVC AND NOT APPLE)
 	set (FAST_LINKING_DEFAULT ON)
 else ()
@@ -47,6 +49,7 @@ include_directories ("${CMAKE_CURRENT_BINARY_DIR}")
 
 set (kadu_SRCS
 	activate.cpp
+	attention-service.cpp
 	debug.cpp
 	languages-manager.cpp
 	themes.cpp
@@ -114,7 +117,7 @@ set (kadu_SUBDIRS
 	model
 	multilogon
 	network
-	notify
+	notification
 	os
 	parser
 	plugin
@@ -122,6 +125,7 @@ set (kadu_SUBDIRS
 	qt
 	roster
 	services
+	ssl
 	status
 	storage
 	talkable
@@ -165,7 +169,7 @@ macro (kadu_subdirectory SUBDIR SRCS MOC_SRCS ADDITIONAL_INCLUDES)
 		)
 		kadu_set_flags (${SUBDIR})
 		set_property (TARGET ${SUBDIR} PROPERTY POSITION_INDEPENDENT_CODE TRUE)
-		set_property (TARGET ${SUBDIR} APPEND PROPERTY COMPILE_DEFINITIONS libkadu_EXPORTS)
+		target_compile_definitions (${SUBDIR} PRIVATE libkadu_EXPORTS)
 	else ()
 		set (tmp "")
 		foreach (SRC ${SRCS})
@@ -204,15 +208,18 @@ if (FAST_LINKING)
 	endif ()
 endif ()
 
-qt5_use_modules (libkadu LINK_PRIVATE Core Gui Widgets Xml Network WebKit WebKitWidgets Declarative)
+qt5_use_modules (libkadu LINK_PRIVATE Core Gui Network Qml Quick QuickWidgets WebKit WebKitWidgets Widgets Xml)
 if (UNIX AND NOT APPLE)
 	qt5_use_modules (libkadu LINK_PRIVATE DBus X11Extras)
 endif ()
+if (WIN32)
+	qt5_use_modules (libkadu LINK_PRIVATE WinExtras)
+endif ()
 
-message (${ADDITIONAL_LIBKADU_LIBRARIES})
 target_link_libraries (libkadu LINK_PRIVATE ${ADDITIONAL_LIBKADU_LIBRARIES})
 
 find_package (QCA2 REQUIRED)
+include_directories (${QCA2_INCLUDE_DIR})
 
 add_executable (kadu WIN32 ${main_SRCS})
 kadu_set_flags (kadu)
@@ -249,7 +256,7 @@ if (WIN32)
 	# Do not link against qtmain on Windows
 	cmake_policy(SET CMP0020 OLD)
 
-	set_property (TARGET kadu_c APPEND PROPERTY COMPILE_DEFINITIONS KADU_CONSOLE)
+	target_compile_definitions (kadu_c PRIVATE KADU_CONSOLE)
 
 	set_property (TARGET kadu_c PROPERTY Qt5_NO_LINK_QTMAIN TRUE)
 	set_property (TARGET kadu PROPERTY Qt5_NO_LINK_QTMAIN TRUE)
@@ -309,10 +316,12 @@ kadu_api_directories (kadu-core
 	execution-arguments
 	file-system
 	file-transfer
+	file-transfer/gui
 	formatted-string
 	gui
 	gui/actions
 	gui/actions/chat
+	gui/configuration
 	gui/menu
 	gui/model
 	gui/services
@@ -336,9 +345,9 @@ kadu_api_directories (kadu-core
 	network
 	network/proxy
 	network/proxy/model
-	notify
-	notify/listener
-	notify/notification
+	notification
+	notification/listener
+	notification/notification
 	os
 	os/generic
 	os/qtsingleapplication
@@ -357,6 +366,8 @@ kadu_api_directories (kadu-core
 	roster
 	qt
 	services
+	ssl
+	ssl/gui
 	status
 	storage
 	talkable

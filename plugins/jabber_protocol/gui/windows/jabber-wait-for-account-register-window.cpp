@@ -1,7 +1,7 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010, 2011, 2012, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2011, 2013, 2014 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2011, 2012, 2013, 2014 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -18,55 +18,55 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <QtGui/QCloseEvent>
-#include <QtGui/QMovie>
-#include <QtWidgets/QApplication>
-#include <QtWidgets/QDialogButtonBox>
-#include <QtWidgets/QHBoxLayout>
-#include <QtWidgets/QLabel>
-#include <QtWidgets/QPushButton>
-#include <QtWidgets/QStyle>
-#include <QtWidgets/QVBoxLayout>
+#include "jabber-wait-for-account-register-window.h"
+
+#include "services/jabber-register-account.h"
 
 #include "icons/icons-manager.h"
 
-#include "server/jabber-server-register-account.h"
-
-#include "jabber-wait-for-account-register-window.h"
-
-JabberWaitForAccountRegisterWindow::JabberWaitForAccountRegisterWindow(JabberServerRegisterAccount *jsra, QWidget *parent) :
-		ProgressWindow(tr("Registering new XMPP account"), parent)
+JabberWaitForAccountRegisterWindow::JabberWaitForAccountRegisterWindow(JabberRegisterAccount *jabberRegisterAccount, QWidget *parent) :
+		// using C++ initializers breaks Qt's lupdate
+		ProgressWindow(tr("Registering new XMPP account"), parent),
+		m_jabberRegisterAccount(jabberRegisterAccount)
 {
-	connect(jsra, SIGNAL(finished(JabberServerRegisterAccount *)),
-			this, SLOT(registerNewAccountFinished(JabberServerRegisterAccount *)));
+	setCancellable(true);
 
-	addProgressEntry("dialog-information", tr("Plase wait. New XMPP account is being registered."));
-	jsra->performAction();
+	connect(m_jabberRegisterAccount, SIGNAL(statusMessage(QString)), this, SLOT(statusMessage(QString)));
+	connect(m_jabberRegisterAccount, SIGNAL(success()), this, SLOT(success()));
+	connect(m_jabberRegisterAccount, SIGNAL(error(QString)), this, SLOT(error(QString)));
+
+	addProgressEntry("dialog-information", tr("Connecting with server."));
+	m_jabberRegisterAccount->start();
 }
 
 JabberWaitForAccountRegisterWindow::~JabberWaitForAccountRegisterWindow()
 {
+	if (m_jabberRegisterAccount)
+	{
+		disconnect(m_jabberRegisterAccount, nullptr, this, nullptr);
+		m_jabberRegisterAccount->deleteLater();
+	}
 }
 
-void JabberWaitForAccountRegisterWindow::registerNewAccountFinished(JabberServerRegisterAccount* jsra)
+void JabberWaitForAccountRegisterWindow::statusMessage(const QString &statusMessage)
 {
-	if (jsra && jsra->result())
-	{
-		QString message(tr("Registration was successful. Your new XMPP username is %1.\nStore it in a safe place along with the password.\n"
-				   "Now please add your friends to the buddy list."));
-		progressFinished(true, "dialog-information", message.arg(jsra->jid()));
+	addProgressEntry("dialog-information", statusMessage);
+}
 
-		emit jidRegistered(jsra->jid(), jsra->client()->tlsOverrideDomain());
-	}
-	else
-	{
-		QString message(tr("An error has occurred during registration. Please try again later."));
-		progressFinished(false, "dialog-error", message);
+void JabberWaitForAccountRegisterWindow::success()
+{
+	auto message = tr("Registration was successful. Your new XMPP username is %1.\nStore it in a safe place along with the password.\n"
+		"Now please add your friends to the buddy list.");
 
-		emit jidRegistered(QString(), QString());
-	}
+	progressFinished(true, "dialog-information", message);
+	emit jidRegistered(m_jabberRegisterAccount->jid());
+}
 
-	delete jsra;
+void JabberWaitForAccountRegisterWindow::error(const QString &errorMessage)
+{
+	progressFinished(false, "dialog-error", tr("Registration failed.\n\nServer message: %1").arg(errorMessage));
+	emit jidRegistered(Jid());
+	deleteLater();
 }
 
 #include "moc_jabber-wait-for-account-register-window.cpp"

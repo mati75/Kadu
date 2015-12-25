@@ -1,9 +1,6 @@
 /*
  * %kadu copyright begin%
- * Copyright 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2011 Piotr Dąbrowski (ultr@ultr.pl)
- * Copyright 2009, 2010, 2011, 2012, 2013, 2014 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2014 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -24,6 +21,7 @@
 
 #include "chat-style/engine/chat-style-renderer.h"
 #include "gui/widgets/webkit-messages-view/webkit-messages-view-display.h"
+#include "protocols/services/chat-state.h"
 
 WebkitMessagesViewHandler::WebkitMessagesViewHandler(not_owned_qptr<ChatStyleRenderer> chatStyleRenderer,
 	std::unique_ptr<WebkitMessagesViewDisplay> messagesDisplay, QObject *parent) :
@@ -94,7 +92,7 @@ void WebkitMessagesViewHandler::displayMessageStatus(const QString &id, MessageS
 		m_chatStyleRenderer->displayMessageStatus(id, status);
 }
 
-void WebkitMessagesViewHandler::displayChatState(const Contact &contact, ChatStateService::State state)
+void WebkitMessagesViewHandler::displayChatState(const Contact &contact, ChatState state)
 {
 	if (!m_chatStyleRenderer->isReady())
 		return;
@@ -103,21 +101,21 @@ void WebkitMessagesViewHandler::displayChatState(const Contact &contact, ChatSta
 	auto message = QString{};
 	switch (state)
 	{
-		case ChatStateService::StateActive:
+		case ChatState::Active:
 			message = tr("%1 is active").arg(display);
 			break;
-		case ChatStateService::StateComposing:
+		case ChatState::Composing:
 			message = tr("%1 is composing...").arg(display);
 			break;
-		case ChatStateService::StateGone:
+		case ChatState::Gone:
 			message = tr("%1 is gone").arg(display);
 			break;
-		case ChatStateService::StateInactive:
+		case ChatState::Inactive:
 			message = tr("%1 is inactive").arg(display);
 			break;
-		case ChatStateService::StateNone:
+		case ChatState::None:
 			break;
-		case ChatStateService::StatePaused:
+		case ChatState::Paused:
 			message = tr("%1 has paused composing").arg(display);
 			break;
 	}

@@ -1,20 +1,9 @@
 /*
  * %kadu copyright begin%
- * Copyright 2011 Tomasz Rostanski (rozteck@interia.pl)
- * Copyright 2008, 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2010, 2010, 2010, 2012 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2008, 2009, 2010, 2010 Tomasz Rostański (rozteck@interia.pl)
- * Copyright 2011 Piotr Dąbrowski (ultr@ultr.pl)
- * Copyright 2004, 2005, 2008, 2009 Michał Podsiadlik (michal@kadu.net)
- * Copyright 2009, 2009 Bartłomiej Zimoń (uzi18@o2.pl)
- * Copyright 2004 Roman Krzystyniak (Ron_K@tlen.pl)
- * Copyright 2003, 2004, 2005 Adrian Smarzewski (adrian@kadu.net)
- * Copyright 2004 Tomasz Chiliński (chilek@chilan.com)
- * Copyright 2004, 2005 Paweł Płuciennik (pawel_p@kadu.net)
- * Copyright 2007, 2008, 2009, 2009, 2010, 2011, 2012, 2013, 2014 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2006, 2007, 2008 Dawid Stawiarski (neeo@kadu.net)
- * Copyright 2004, 2005, 2006, 2007 Marcin Ślusarz (joi@kadu.net)
+ * Copyright 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2012 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2011, 2012, 2013, 2014, 2015 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -72,16 +61,19 @@
 #include "helpers/gadu-protocol-helper.h"
 #include "helpers/gadu-proxy-helper.h"
 #include "server/gadu-writable-session-token.h"
+#include "services/drive/gadu-drive-service.h"
+#include "services/gadu-imtoken-service.h"
 #include "services/gadu-notify-service.h"
 #include "services/gadu-roster-service.h"
+#include "services/user-data/gadu-user-data-service.h"
 #include "gadu-account-details.h"
-#include "gadu-contact-details.h"
 
 #include "gadu-protocol.h"
 
 GaduProtocol::GaduProtocol(Account account, ProtocolFactory *factory) :
-		Protocol(account, factory), CurrentFileTransferService(0),
-		ActiveServer(), GaduLoginParams(), GaduSession(0), SocketNotifiers(0), PingTimer(0)
+		Protocol(account, factory),
+		ActiveServer(), GaduLoginParams(), GaduSession(0), SocketNotifiers(0), PingTimer(0),
+		SecureConnection{false}
 {
 	Connection = new ProtocolGaduConnection(this);
 	Connection->setConnectionProtocol(this);
@@ -93,10 +85,16 @@ GaduProtocol::GaduProtocol(Account account, ProtocolFactory *factory) :
 	CurrentChatImageService = new GaduChatImageService(account, this);
 	CurrentChatImageService->setConnection(Connection);
 
+	CurrentImTokenService = new GaduIMTokenService{this};
+
+	CurrentFileTransferService = new GaduFileTransferService{this};
+	CurrentFileTransferService->setGaduIMTokenService(CurrentImTokenService);
+
 	CurrentChatService = new GaduChatService(account, this);
 	CurrentChatService->setConnection(Connection);
 	CurrentChatService->setFormattedStringFactory(Core::instance()->formattedStringFactory());
 	CurrentChatService->setGaduChatImageService(CurrentChatImageService);
+	CurrentChatService->setGaduFileTransferService(CurrentFileTransferService);
 	CurrentChatService->setImageStorageService(Core::instance()->imageStorageService());
 	CurrentChatService->setRawMessageTransformerService(Core::instance()->rawMessageTransformerService());
 	CurrentChatImageService->setGaduChatService(CurrentChatService);
@@ -119,8 +117,15 @@ GaduProtocol::GaduProtocol(Account account, ProtocolFactory *factory) :
 	connect(CurrentChatService, SIGNAL(messageReceived(Message)),
 	        CurrentChatStateService, SLOT(messageReceived(Message)));
 
+	CurrentDriveService = new GaduDriveService{account, this};
+	CurrentDriveService->setGaduIMTokenService(CurrentImTokenService);
+
+	CurrentUserDataService = new GaduUserDataService{account, this};
+	CurrentUserDataService->setAvatarManager(AvatarManager::instance());
+	CurrentUserDataService->setContactManager(ContactManager::instance());
+
 	auto contacts = ContactManager::instance()->contacts(account, ContactManager::ExcludeAnonymous);
-	auto rosterService = new GaduRosterService(this, contacts, this);
+	auto rosterService = new GaduRosterService{contacts, this};
 	rosterService->setConnection(Connection);
 	rosterService->setRosterNotifier(Core::instance()->rosterNotifier());
 	rosterService->setRosterReplacer(Core::instance()->rosterReplacer());
@@ -245,8 +250,6 @@ void GaduProtocol::configureServices()
 void GaduProtocol::accountUpdated()
 {
 	sendStatusToServer();
-	setUpFileTransferService();
-
 	configureServices();
 }
 
@@ -258,7 +261,7 @@ void GaduProtocol::connectSocketNotifiersToServices()
 	        CurrentChatService, SLOT(handleEventMultilogonMsg(gg_event*)));
 	connect(SocketNotifiers, SIGNAL(ackEventReceived(gg_event*)),
 	        CurrentChatService, SLOT(handleEventAck(gg_event*)));
-	connect(SocketNotifiers, SIGNAL(typingNotifyEventReceived(gg_event*)),
+	connect(SocketNotifiers, SIGNAL(typingNotificationEventReceived(gg_event*)),
 	        CurrentChatStateService, SLOT(handleEventTypingNotify(gg_event*)));
 }
 
@@ -304,6 +307,8 @@ void GaduProtocol::login()
 	}
 
 	SocketNotifiers = new GaduProtocolSocketNotifiers(account(), this);
+	SocketNotifiers->setGaduIMTokenService(CurrentImTokenService);
+	SocketNotifiers->setGaduUserDataService(CurrentUserDataService);
 	connectSocketNotifiersToServices();
 	SocketNotifiers->watchFor(GaduSession);
 }
@@ -332,9 +337,6 @@ void GaduProtocol::afterLoggedIn()
 	// fetch current avatar after connection
 	AvatarManager::instance()->updateAvatar(account().accountContact(), true);
 
-	// set up DCC if needed
-	setUpFileTransferService();
-
 	auto contacts = ContactManager::instance()->contacts(account(), ContactManager::ExcludeAnonymous);
 	CurrentNotifyService->sendInitialData(contacts);
 
@@ -358,8 +360,6 @@ void GaduProtocol::logout()
 void GaduProtocol::disconnectedCleanup()
 {
 	Protocol::disconnectedCleanup();
-
-	setUpFileTransferService(true);
 
 	if (PingTimer)
 	{
@@ -406,6 +406,7 @@ void GaduProtocol::setupLoginParams()
 	if (!loginStatus().description().isEmpty())
 		GaduLoginParams.status_descr = qstrdup(loginStatus().description().toUtf8().constData());
 
+	SecureConnection = gaduAccountDetails->tlsEncryption();
 	GaduLoginParams.tls = gaduAccountDetails->tlsEncryption() ? GG_SSL_ENABLED : GG_SSL_DISABLED;
 
 	ActiveServer = GaduServersManager::instance()->getServer(1 == GaduLoginParams.tls);
@@ -414,26 +415,13 @@ void GaduProtocol::setupLoginParams()
 	GaduLoginParams.server_addr = haveServer ? htonl(ActiveServer.first.toIPv4Address()) : 0;
 	GaduLoginParams.server_port = haveServer ? ActiveServer.second : 0;
 
-	if (!gaduAccountDetails->externalIp().isEmpty())
-	{
-		QHostAddress externalIp(gaduAccountDetails->externalIp());
-		if (!externalIp.isNull())
-			GaduLoginParams.external_addr = htonl(externalIp.toIPv4Address());
-	}
-
-	GaduLoginParams.external_port = gaduAccountDetails->externalPort();
-	GaduLoginParams.protocol_version = 0;
+	GaduLoginParams.protocol_version = GG_PROTOCOL_VERSION_110;
+	GaduLoginParams.compatibility = GG_COMPAT_LEGACY; // TODO: #2961
 	GaduLoginParams.client_version = qstrdup(Core::nameWithVersion().toUtf8().constData());
 	GaduLoginParams.protocol_features =
-			GG_FEATURE_UNKNOWN_4 | // GG_FEATURE_STATUS80
-			GG_FEATURE_DND_FFC |
-			GG_FEATURE_IMAGE_DESCR |
-			GG_FEATURE_UNKNOWN_40 |
-			GG_FEATURE_UNKNOWN_100 |
-			GG_FEATURE_USER_DATA |
-			GG_FEATURE_MSG_ACK |
-			GG_FEATURE_TYPING_NOTIFICATION |
-			GG_FEATURE_MULTILOGON;
+		GG_FEATURE_DND_FFC |
+		GG_FEATURE_TYPING_NOTIFICATION | GG_FEATURE_MULTILOGON |
+		GG_FEATURE_USER_DATA;
 
 	GaduLoginParams.encoding = GG_ENCODING_UTF8;
 
@@ -441,6 +429,8 @@ void GaduProtocol::setupLoginParams()
 	GaduLoginParams.last_sysmsg = Application::instance()->configuration()->deprecatedApi()->readNumEntry("General", "SystemMsgIndex", 1389);
 
 	GaduLoginParams.image_size = qMax(qMin(Application::instance()->configuration()->deprecatedApi()->readNumEntry("Chat", "MaximumImageSizeInKiloBytes", 255), 255), 0);
+
+	GaduLoginParams.struct_size = sizeof(struct gg_login_params);
 
 	setStatusFlags();
 }
@@ -459,42 +449,6 @@ void GaduProtocol::cleanUpLoginParams()
 
 	delete [] GaduLoginParams.status_descr;
 	GaduLoginParams.status_descr = 0;
-}
-
-void GaduProtocol::startFileTransferService()
-{
-	if (!CurrentFileTransferService)
-	{
-		CurrentFileTransferService = new GaduFileTransferService(this);
-		account().data()->fileTransferServiceChanged(CurrentFileTransferService);
-	}
-}
-
-void GaduProtocol::stopFileTransferService()
-{
-	delete CurrentFileTransferService;
-	CurrentFileTransferService = 0;
-	account().data()->fileTransferServiceChanged(0);
-}
-
-void GaduProtocol::setUpFileTransferService(bool forceClose)
-{
-	bool close = forceClose;
-	if (!close)
-		close = !isConnected();
-	if (!close)
-	{
-		GaduAccountDetails *gaduAccountDetails = dynamic_cast<GaduAccountDetails *>(account().details());
-		if (!gaduAccountDetails)
-			close = true;
-		else
-			close = !gaduAccountDetails->allowDcc();
-	}
-
-	if (close)
-		stopFileTransferService();
-	else
-		startFileTransferService();
 }
 
 void GaduProtocol::socketContactStatusChanged(UinType uin, unsigned int status, const QString &description, unsigned int maxImageSize)
@@ -598,12 +552,29 @@ void GaduProtocol::enableSocketNotifiers()
 		SocketNotifiers->enable();
 }
 
+GaduDriveService * GaduProtocol::driveService() const
+{
+	return CurrentDriveService;
+}
+
+GaduUserDataService * GaduProtocol::userDataService() const
+{
+	return CurrentUserDataService;
+}
+
 void GaduProtocol::configurationUpdated()
 {
 #ifdef DEBUG_OUTPUT_ENABLED
 	// 8 bits for gadu debug
 	gg_debug_level = debug_mask & 255;
 #endif
+}
+
+bool GaduProtocol::secureConnection() const
+{
+	return isConnected()
+			? SecureConnection
+			: false;
 }
 
 #include "moc_gadu-protocol.cpp"

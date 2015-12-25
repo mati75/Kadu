@@ -1,17 +1,7 @@
 /*
  * %kadu copyright begin%
- * Copyright 2008, 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2010, 2010 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2010 Tomasz Rostański (rozteck@interia.pl)
- * Copyright 2008 Michał Podsiadlik (michal@kadu.net)
- * Copyright 2009, 2009 Bartłomiej Zimoń (uzi18@o2.pl)
- * Copyright 2003, 2004, 2005 Adrian Smarzewski (adrian@kadu.net)
- * Copyright 2005 Paweł Płuciennik (pawel_p@kadu.net)
- * Copyright 2004 Tomasz Chiliński (chilek@chilan.com)
- * Copyright 2007, 2008, 2009, 2009, 2010, 2011, 2012, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011, 2012 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2006, 2007 Dawid Stawiarski (neeo@kadu.net)
- * Copyright 2004, 2005, 2006, 2007 Marcin Ślusarz (joi@kadu.net)
+ * Copyright 2011, 2012 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2011, 2012, 2013, 2014, 2015 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -56,11 +46,12 @@
 
 #include "protocols/protocol.h"
 
-class DccManager;
-class GaduContactDetails;
 class GaduContactListHandler;
+class GaduDriveService;
+class GaduIMTokenService;
 class GaduNotifyService;
 class GaduProtocolSocketNotifiers;
+class GaduUserDataService;
 class ProtocolGaduConnection;
 
 class GADUAPI GaduProtocol : public Protocol, public ConfigurationAwareObject
@@ -102,6 +93,9 @@ private:
 	GaduMultilogonService *CurrentMultilogonService;
 	GaduChatStateService *CurrentChatStateService;
 	GaduNotifyService *CurrentNotifyService;
+	GaduIMTokenService *CurrentImTokenService;
+	GaduDriveService *CurrentDriveService;
+	GaduUserDataService *CurrentUserDataService;
 
 	GaduServersManager::GaduServer ActiveServer;
 
@@ -112,6 +106,7 @@ private:
 	GaduProtocolSocketNotifiers *SocketNotifiers;
 
 	QTimer *PingTimer;
+	bool SecureConnection;
 
 	void setupLoginParams();
 	void cleanUpLoginParams();
@@ -120,8 +115,6 @@ private:
 
 	void startFileTransferService();
 	void stopFileTransferService();
-
-	void setUpFileTransferService(bool forceClose = false);
 
 	void socketContactStatusChanged(UinType uin, unsigned int status, const QString &description, unsigned int maxImageSize);
 	void socketConnFailed(GaduError error);
@@ -160,6 +153,8 @@ public:
 	virtual SearchService * searchService() { return CurrentSearchService; }
 	virtual MultilogonService * multilogonService() { return CurrentMultilogonService; }
 
+	GaduIMTokenService * gaduIMTokenService() const { return CurrentImTokenService; }
+
 	virtual bool contactsListReadOnly() { return false; }
 	virtual bool supportsPrivateStatus() { return true; }
 
@@ -169,9 +164,14 @@ public:
 
 	virtual int maxDescriptionLength();
 
+	bool secureConnection() const;
+
 	void enableSocketNotifiers();
 	void disableSocketNotifiers();
 	gg_session * gaduSession() { return GaduSession; }
+
+	GaduDriveService * driveService() const;
+	GaduUserDataService * userDataService() const;
 
 signals:
 	/**

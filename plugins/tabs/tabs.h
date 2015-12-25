@@ -1,10 +1,8 @@
 /*
  * %kadu copyright begin%
- * Copyright 2008, 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2012 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2009, 2009 Bartłomiej Zimoń (uzi18@o2.pl)
- * Copyright 2009, 2010, 2011, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011, 2014 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2012 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2011, 2014 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2011, 2013, 2014, 2015 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -48,6 +46,7 @@ class Action;
 class ActionDescription;
 class ChatWidget;
 class ChatWidgetRepository;
+class ChatWidgetSetTitle;
 
 enum class OpenChatActivation;
 
@@ -66,7 +65,6 @@ class TabsManager : public ConfigurationUiHandler, ConfigurationAwareObject, Sto
 	ActionDescription *OpenInNewTabActionDescription;
 	ActionDescription *AttachToTabsActionDescription;
 	TabWidget *TabDialog;
-	QTimer Timer;
 	QList<Chat> DetachedChats;
 	QList<Chat> ClosedChats;
 
@@ -79,25 +77,19 @@ class TabsManager : public ConfigurationUiHandler, ConfigurationAwareObject, Sto
 	QAction *CloseTabMenuAction;
 	QAction *CloseOtherTabsMenuAction;
 	QAction *ReopenClosedTabMenuAction;
+	ChatWidgetSetTitle *Title;
 
-	void updateTabName(ChatWidget *chatWidget);
-	void updateTabIcon(ChatWidget *chatWidget);
+	void updateTabTitle(ChatWidget *chatWidget);
 
 	/**
 	* Zmienne konfiguracyjne.
 	*/
 	bool ConfigTabsBelowChats;
 	bool ConfigDefaultTabs;
-	bool ConfigBlinkChatTitle;
-	bool ConfigShowNewMessagesNum;
 
-	ChatWidget * chatWidgetWithUnreadMessage() const;
-
-	QString defaultChatTitle(const Chat &chat) const;
-	QString shortChatTitle(const QString &chatTitle) const;
+	void setConfiguration(ChatWidget *chatWidget);
 
 private slots:
-	void onTimer();
 	void onContextMenu(QWidget *w, const QPoint &pos);
 	void onMenuActionDetach();
 	void onMenuActionDetachAll();
@@ -130,16 +122,14 @@ public:
 	virtual StorableObject * storageParent() { return 0; }
 	virtual QString storageNodeName() { return QLatin1String("ModuleTabs"); }
 
-	void updateTabTextAndTooltip(int index, const QString &text, const QString &tooltip);
-
 	bool acceptChat(Chat chat) const;
 	ChatWidget * addChat(Chat chat, OpenChatActivation activation);
 	void removeChat(Chat chat);
 
 public slots:
 	void onDestroyingChat(ChatWidget *chatWidget);
-	void onIconChanged();
-	void onTitleChanged(ChatWidget *chatWidget, const QString &newTitle);
+	void onTitleChanged(ChatWidget *chatWidget);
+	void onTitleChanged();
 
 	void onTabChange(int index);
 
@@ -150,7 +140,6 @@ public slots:
 	void attachToTabsActionCreated(Action *action);
 
 	void closeChat();
-	void unreadMessagesCountChanged(ChatWidget *chatWidget);
 
 signals:
 	void chatWidgetActivated(ChatWidget *chatWidget);

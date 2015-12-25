@@ -1,12 +1,7 @@
 /*
  * %kadu copyright begin%
- * Copyright 2008, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2010 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2008 Michał Podsiadlik (michal@kadu.net)
- * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
- * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
- * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
+ * Copyright 2014 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2011 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -23,46 +18,46 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef JABBER_CHANGE_PASSWORD_WINDOW_H
-#define JABBER_CHANGE_PASSWORD_WINDOW_H
-
-#include <QtWidgets/QWidget>
+#pragma once
 
 #include "accounts/account.h"
+
+#include <QtCore/QPointer>
+#include <QtWidgets/QWidget>
 
 class QLineEdit;
 class QPushButton;
 
-class JabberServerChangePassword;
+class JabberChangePasswordService;
 
 class JabberChangePasswordWindow : public QWidget
 {
 	Q_OBJECT
 
-	Account MyAccount;
+public:
+	explicit JabberChangePasswordWindow(JabberChangePasswordService *changePasswordService, Account account, QWidget *parent = nullptr);
+	virtual ~JabberChangePasswordWindow();
 
-	QLineEdit *CurrentPassword;
-	QLineEdit *NewPassword;
-	QLineEdit *ReNewPassword;
-	QPushButton *ChangePasswordButton;
+signals:
+	void passwordChanged(const QString &);
+
+protected:
+	virtual void keyPressEvent(QKeyEvent *e);
+
+private:
+	QPointer<JabberChangePasswordService> m_changePasswordService;
+	Account m_account;
+
+	QLineEdit *m_newPassword;
+	QLineEdit *m_reNewPassword;
+	QPushButton *m_changePasswordButton;
 
 	void createGui();
 
 private slots:
 	void dataChanged();
 	void changePassword();
-	void changingFinished(JabberServerChangePassword *gscp);
-
-protected:
-	virtual void keyPressEvent(QKeyEvent *e);
-
-public:
-	explicit JabberChangePasswordWindow(Account account, QWidget *parent = 0);
-	virtual ~JabberChangePasswordWindow();
-
-signals:
-	void passwordChanged(const QString &);
+	void passwordChanged();
+	void error(const QString &errorMessage);
 
 };
-
-#endif // JABBER_CHANGE_PASSWORD_WINDOW_H

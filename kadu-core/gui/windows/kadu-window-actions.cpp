@@ -1,13 +1,13 @@
 /*
  * %kadu copyright begin%
- * Copyright 2009, 2010, 2010, 2011, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2009, 2010, 2010, 2012 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2009, 2010, 2012 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2010, 2011 Piotr Dąbrowski (ultr@ultr.pl)
  * Copyright 2009 Michał Podsiadlik (michal@kadu.net)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
  * Copyright 2010 Radosław Szymczyszyn (lavrin@gmail.com)
- * Copyright 2009, 2009, 2010, 2011, 2012, 2013, 2014 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2010, 2011, 2012, 2013, 2014 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2009 Longer (longer89@gmail.com)
  * %kadu copyright end%
  *
@@ -49,12 +49,13 @@
 #include "gui/actions/delete-talkable-action.h"
 #include "gui/actions/edit-talkable-action.h"
 #include "gui/actions/recent-chats-action.h"
+#include "gui/actions/talkable-tree-view/collapse-action.h"
+#include "gui/actions/talkable-tree-view/expand-action.h"
 #include "gui/menu/menu-inventory.h"
 #include "gui/status-icon.h"
 #include "gui/widgets/buddy-info-panel.h"
 #include "gui/widgets/chat-widget/chat-widget-actions.h"
 #include "gui/widgets/chat-widget/chat-widget-manager.h"
-#include "gui/widgets/dialog/add-group-dialog-widget.h"
 #include "gui/widgets/dialog/merge-buddies-dialog-widget.h"
 #include "gui/widgets/status-menu.h"
 #include "gui/widgets/talkable-delegate-configuration.h"
@@ -63,6 +64,7 @@
 #include "gui/windows/buddy-delete-window.h"
 #include "gui/windows/kadu-dialog.h"
 #include "gui/windows/kadu-window.h"
+#include "gui/windows/group-edit-window.h"
 #include "gui/windows/main-configuration-window.h"
 #include "gui/windows/message-dialog.h"
 #include "gui/windows/multilogon-window.h"
@@ -160,6 +162,12 @@ void disableIfContactSelected(Action *action)
 
 void disableMerge(Action *action)
 {
+	if (action->context()->buddies().isAnyTemporary())
+	{
+		action->setEnabled(false);
+		return;
+	}
+
 	if (action->context()->buddies().contains(Core::instance()->myself()))
 		action->setEnabled(false);
 	else
@@ -277,6 +285,16 @@ KaduWindowActions::KaduWindowActions(QObject *parent) : QObject(parent)
 		KaduIcon(), tr("Show Myself Buddy"), true
 	);
 	connect(ShowMyself, SIGNAL(actionCreated(Action *)), this, SLOT(showMyselfActionCreated(Action *)));
+
+	auto expandAction = new ExpandAction{this};
+	auto collapseAction = new CollapseAction{this};
+
+	MenuInventory::instance()
+		->menu("buddy-list")
+		->addAction(expandAction, KaduMenu::SectionActionsGui, 2);
+	MenuInventory::instance()
+		->menu("buddy-list")
+		->addAction(collapseAction, KaduMenu::SectionActionsGui, 1);
 
 	CopyDescription = new ActionDescription(this,
 		ActionDescription::TypeUser, "copyDescriptionAction",
@@ -601,10 +619,8 @@ void KaduWindowActions::addGroupActionActivated(QAction *sender, bool toggled)
 {
 	Q_UNUSED(toggled)
 
-	AddGroupDialogWidget *groupWidget = new AddGroupDialogWidget(tr("Please enter the name for the new group"), sender->parentWidget());
-	KaduDialog *window = new KaduDialog(groupWidget, sender->parentWidget());
-	window->setAcceptButtonText(tr("Add Group"));
-	window->exec();
+	auto window = new GroupEditWindow(GroupManager::instance(), Application::instance()->configuration()->deprecatedApi(), Group::null, sender->parentWidget());
+	window->show();
 }
 
 void KaduWindowActions::openSearchActionActivated(QAction *sender, bool toggled)

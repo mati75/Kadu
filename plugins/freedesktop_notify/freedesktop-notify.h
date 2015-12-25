@@ -1,11 +1,8 @@
 /*
  * Copyright 2009 Jacek Jabłoński
  * %kadu copyright begin%
- * Copyright 2008, 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2008 Michał Podsiadlik (michal@kadu.net)
- * Copyright 2007, 2008, 2009, 2010, 2011, 2012, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2007, 2008 Dawid Stawiarski (neeo@kadu.net)
+ * Copyright 2011, 2012, 2013, 2014 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -30,7 +27,7 @@
 #include <QtCore/QRegExp>
 
 #include "configuration/configuration-aware-object.h"
-#include "notify/notifier.h"
+#include "notification/notifier.h"
 
 class QDBusInterface;
 
@@ -86,8 +83,6 @@ public:
 	static void createInstance();
 	static void destroyInstance();
 	static FreedesktopNotify * instance();
-
-	virtual CallbackCapacity callbackCapacity();
 
 	virtual NotifierConfigurationWidget *createConfigurationWidget(QWidget *parent = 0) { Q_UNUSED(parent); return 0; }
 	virtual void notify(Notification *notification);

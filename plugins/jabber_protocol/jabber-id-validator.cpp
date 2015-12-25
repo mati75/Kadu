@@ -1,7 +1,7 @@
 /*
  * %kadu copyright begin%
- * Copyright 2011, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2011, 2013, 2014 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -18,11 +18,11 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <QtCore/QRegExp>
-
-#include "iris/xmpp_jid.h"
-
 #include "jabber-id-validator.h"
+
+#include "jid.h"
+
+#include <QtCore/QRegExp>
 
 QValidator *JabberIdValidator::Instance = 0;
 
@@ -58,11 +58,14 @@ QValidator::State JabberIdValidator::validate(QString &input, int &pos) const
 	if (mid.isEmpty())
 		return QValidator::Intermediate;
 
-	XMPP::Jid jid = XMPP::Jid(mid);
-	if (jid.isValid())
-		return QValidator::Acceptable;
-	else
+	auto jid = Jid::parse(input);
+	if (jid.isEmpty())
 		return QValidator::Invalid;
+
+	if (jid.node().isEmpty() || jid.domain().isEmpty() || jid.domain().contains('@'))
+		return QValidator::Invalid;
+
+	return QValidator::Acceptable;
 }
 
 #include "moc_jabber-id-validator.cpp"

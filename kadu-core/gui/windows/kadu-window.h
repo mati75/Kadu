@@ -1,14 +1,14 @@
 /*
  * %kadu copyright begin%
  * Copyright 2011 Tomasz Rostanski (rozteck@interia.pl)
- * Copyright 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2010, 2010 Przemysław Rudy (prudy1@o2.pl)
- * Copyright 2009, 2012 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2010 Przemysław Rudy (prudy1@o2.pl)
+ * Copyright 2009, 2010, 2012 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2010 Tomasz Rostański (rozteck@interia.pl)
  * Copyright 2010 Piotr Dąbrowski (ultr@ultr.pl)
  * Copyright 2009 Michał Podsiadlik (michal@kadu.net)
- * Copyright 2009, 2009, 2010, 2011, 2012, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2010, 2011, 2013, 2014 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -71,9 +71,6 @@ private:
 	KaduWindowActions *Actions;
 
 	BuddyInfoPanel *InfoPanel;
-#ifdef Q_OS_MAC
-	QMenuBar *MenuBar;
-#endif
 	QMenu *KaduMenu;
 	QMenu *ContactsMenu;
 	QMenu *ToolsMenu;
@@ -86,7 +83,7 @@ private:
 	StatusButtons *ChangeStatusButtons;
 	QPoint LastPositionBeforeStatusMenuHide;
 
-#ifdef Q_OS_WIN32
+#ifdef Q_OS_WIN
 	QWidget *HiddenParent;
 #endif
 	QWidget *WindowParent;
@@ -103,7 +100,7 @@ private:
 	void createToolsMenu();
 	void createHelpMenu();
 
-#ifdef Q_OS_WIN32
+#ifdef Q_OS_WIN
 	void hideWindowFromTaskbar();
 #endif
 
@@ -113,7 +110,7 @@ private:
 	virtual void compositingDisabled();
 
 private slots:
-#ifdef Q_OS_WIN32
+#ifdef Q_OS_WIN
 	void setHiddenParent();
 #endif
 
@@ -141,10 +138,6 @@ public:
 	bool docked() { return Docked; }
 
 	BuddyInfoPanel * infoPanel() { return InfoPanel; }
-
-#ifdef Q_OS_MAC
-	QMenuBar* menuBar() const;
-#endif
 
 public slots:
 	void talkableActivatedSlot(const Talkable &talkable);

@@ -1,9 +1,10 @@
 /*
  * %kadu copyright begin%
- * Copyright 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
- * Copyright 2009, 2010, 2011, 2012, 2013, 2014 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2008, 2009, 2010, 2011, 2012, 2013, 2014 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -35,8 +36,8 @@
 #include "misc/change-notifier-lock.h"
 #include "protocols/protocol-factory.h"
 #include "protocols/protocol.h"
-#include "roster/roster-entry.h"
 #include "roster/roster-entry-state.h"
+#include "roster/roster-entry.h"
 #include "debug.h"
 
 #include "contact-manager.h"
@@ -106,7 +107,7 @@ void ContactManager::unreadMessageRemoved(const Message &message)
 		contact.setUnreadMessagesCount(unreadMessagesCount - 1);
 }
 
-void ContactManager::itemAboutToBeRegistered(Contact item)
+void ContactManager::itemAboutToBeAdded(Contact item)
 {
 	QMutexLocker locker(&mutex());
 
@@ -114,7 +115,7 @@ void ContactManager::itemAboutToBeRegistered(Contact item)
 	emit contactAboutToBeAdded(item);
 }
 
-void ContactManager::itemRegistered(Contact item)
+void ContactManager::itemAdded(Contact item)
 {
 	if (!item)
 		return;
@@ -127,7 +128,7 @@ void ContactManager::itemRegistered(Contact item)
 		item.rosterEntry()->setSynchronized();
 }
 
-void ContactManager::itemAboutToBeUnregisterd(Contact item)
+void ContactManager::itemAboutToBeRemoved(Contact item)
 {
 	QMutexLocker locker(&mutex());
 
@@ -135,7 +136,7 @@ void ContactManager::itemAboutToBeUnregisterd(Contact item)
 	emit contactAboutToBeRemoved(item);
 }
 
-void ContactManager::itemUnregistered(Contact item)
+void ContactManager::itemRemoved(Contact item)
 {
 	emit contactRemoved(item);
 }
@@ -149,7 +150,7 @@ Contact ContactManager::byId(Account account, const QString &id, NotFoundAction 
 	if (id.isEmpty() || account.isNull())
 		return Contact::null;
 
-	foreach (const Contact &contact, allItems())
+	foreach (const Contact &contact, items())
 		if (account == contact.contactAccount() && id == contact.id())
 			return contact;
 
@@ -164,10 +165,6 @@ Contact ContactManager::byId(Account account, const QString &id, NotFoundAction 
 
 	if (action == ActionCreateAndAdd)
 		addItem(contact);
-
-	ContactDetails *details = contact.details();
-	if (details)
-		details->setState(StateNew);
 
 	Buddy buddy = Buddy::create();
 	contact.setOwnerBuddy(buddy);
@@ -186,7 +183,7 @@ QVector<Contact> ContactManager::contacts(Account account, AnonymousInclusion in
 	if (account.isNull())
 		return contacts;
 
-	foreach (const Contact &contact, allItems())
+	foreach (const Contact &contact, items())
 		if (account == contact.contactAccount() && ((IncludeAnonymous == inclusion) || !contact.isAnonymous()))
 			contacts.append(contact);
 
@@ -208,7 +205,7 @@ void ContactManager::removeDuplicateContacts()
 {
 	QMap<QPair<Account, QString>, Contact> uniqueContacts;
 
-	foreach (const Contact &contact, allItems())
+	foreach (const Contact &contact, items())
 	{
 		QMap<QPair<Account, QString>, Contact>::iterator it = uniqueContacts.find(qMakePair(contact.contactAccount(), contact.id()));
 		if (it != uniqueContacts.end())
@@ -234,7 +231,7 @@ void ContactManager::removeDuplicateContacts()
 
 void ContactManager::loaded()
 {
-	Manager<Contact>::loaded();
+	SimpleManager<Contact>::loaded();
 
 	if (!Application::instance()->configuration()->deprecatedApi()->readBoolEntry("General", "ContactsImportedFrom0_9", false))
 		// delay it so that everything needed will be loaded when we call this method

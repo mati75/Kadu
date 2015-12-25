@@ -1,9 +1,7 @@
 /*
  * %kadu copyright begin%
- * Copyright 2008, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2007, 2008, 2009, 2010, 2011, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2011, 2013, 2014 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -20,13 +18,18 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "docking.h"
+
+#include "docking-plugin.h"
+
 #include "core/application.h"
 #include "gui/windows/main-configuration-window.h"
 #include "misc/paths-provider.h"
 
-#include "docking.h"
-
-#include "docking-plugin.h"
+DockingPlugin::DockingPlugin(QObject *parent) :
+		QObject{parent}
+{
+}
 
 DockingPlugin::~DockingPlugin()
 {
@@ -36,7 +39,7 @@ bool DockingPlugin::init(bool firstLoad)
 {
 	Q_UNUSED(firstLoad)
 
-	DockingManager::createInstance();
+	Docking::createInstance();
 	MainConfigurationWindow::registerUiFile(Application::instance()->pathsProvider()->dataPath() + QLatin1String("plugins/configuration/docking.ui"));
 
 	return true;
@@ -45,7 +48,7 @@ bool DockingPlugin::init(bool firstLoad)
 void DockingPlugin::done()
 {
 	MainConfigurationWindow::unregisterUiFile(Application::instance()->pathsProvider()->dataPath() + QLatin1String("plugins/configuration/docking.ui"));
-	DockingManager::destroyInstance();
+	Docking::destroyInstance();
 }
 
 Q_EXPORT_PLUGIN2(docking, DockingPlugin)

@@ -1,4 +1,6 @@
-<?xml version="1.0" ?><!DOCTYPE TS><TS language="fr" version="2.0">
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE TS>
+<TS version="2.1" language="fr">
 <context>
     <name>@default</name>
     <message>
@@ -16,6 +18,37 @@
     <message>
         <source>Encryption error has occured</source>
         <translation>Une erreur de cryptage est survenue</translation>
+    </message>
+</context>
+<context>
+    <name>EncryptionDepreceatedMessage</name>
+    <message>
+        <source>This encryption plugin is depreceated and will be removed in future versions of Kadu. Use OTR Encryption plugin for compatibility with other instant messenger application.
+
+</source>
+        <translation>Ce module de cryptage est obsolète et sera supprimé dans les futures versions de kadu. Utiliser le module de cryptage OTR en compatibilité avec d&apos;autres applications de messagerie instantanée.
+
+</translation>
+    </message>
+    <message>
+        <source>OTR Encryption is already active and ready to use.</source>
+        <translation>Le cryptage OTR est déjà actif et près à être utilisé.</translation>
+    </message>
+    <message>
+        <source>Do you want to activate OTR Encryption now?</source>
+        <translation>Voulez vous activer le cryptage OTR maintenant ?</translation>
+    </message>
+    <message>
+        <source>Encryption</source>
+        <translation>Cryptage</translation>
+    </message>
+    <message>
+        <source>Enable OTR</source>
+        <translation>Activer OTR</translation>
+    </message>
+    <message>
+        <source>Do not enable OTR</source>
+        <translation>Désactiver OTR</translation>
     </message>
 </context>
 <context>

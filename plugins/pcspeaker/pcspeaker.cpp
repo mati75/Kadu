@@ -1,11 +1,9 @@
 /*
  * %kadu copyright begin%
  * Copyright 2011 Tomasz Rostanski (rozteck@interia.pl)
- * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2012 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2008, 2010, 2010 Tomasz Rostański (rozteck@interia.pl)
- * Copyright 2009, 2010, 2011, 2013, 2014 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011, 2012, 2013, 2014 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2012 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2012, 2013, 2014 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2011, 2013, 2014 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -30,15 +28,16 @@
 #include "configuration/configuration.h"
 #include "configuration/deprecated-configuration-api.h"
 #include "core/application.h"
+#include "core/core.h"
 #include "gui/widgets/configuration/configuration-widget.h"
 #include "misc/misc.h"
-#include "notify/notification-manager.h"
-#include "notify/notification/notification.h"
+#include "notification/notification-manager.h"
+#include "notification/notification/notification.h"
 
 #include <QtWidgets/QLineEdit>
 #include <QtWidgets/QSlider>
 
-#ifdef Q_OS_WIN32
+#ifdef Q_OS_WIN
 #include <windows.h>
 #endif
 
@@ -71,7 +70,7 @@ int sounds[96] = {
 	29,58,116,233,466,932,1865,3729,
 	31,62,123,245,494,988,1975,3951};
 
-#if defined(Q_OS_WIN32)
+#if defined(Q_OS_WIN)
 void PCSpeaker::beep(int pitch, int duration)
 {
 	if (pitch == 0)
@@ -129,7 +128,7 @@ bool PCSpeaker::init(bool firstLoad)
 {
 	Q_UNUSED(firstLoad)
 
-	NotificationManager::instance()->registerNotifier(this);
+	Core::instance()->notificationManager()->registerNotifier(this);
 	createDefaultConfiguration();
 
 	return true;
@@ -137,7 +136,10 @@ bool PCSpeaker::init(bool firstLoad)
 
 void PCSpeaker::done()
 {
-	NotificationManager::instance()->unregisterNotifier(this);
+	if (Core::instance()) // TODO: hack
+	{
+		Core::instance()->notificationManager()->unregisterNotifier(this);
+	}
 }
 
 void PCSpeaker::mainConfigurationWindowCreated(MainConfigurationWindow * /*mainConfigurationWindow*/)

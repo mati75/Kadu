@@ -1,10 +1,8 @@
 /*
  * %kadu copyright begin%
- * Copyright 2009, 2012 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
- * Copyright 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2012 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2011, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
+ * Copyright 2011, 2012, 2013, 2014, 2015 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -26,8 +24,7 @@
 #include "gui/widgets/chat-widget/chat-widget-repository.h"
 #include "gui/widgets/chat-widget/chat-widget.h"
 #include "message/message-manager.h"
-#include "notify/notification/aggregate-notification.h"
-#include "notify/notification/chat-notification.h"
+#include "notification/notification/aggregate-notification.h"
 
 #include "chat-notifier.h"
 
@@ -80,9 +77,9 @@ void ChatNotifier::notify(Notification *notification)
 	auto latestNotification = aggregateNotification->notifications().last();
 
 	auto buddies = BuddySet();
-	auto chatNotification = qobject_cast<ChatNotification *>(latestNotification);
-	if (chatNotification)
-		buddies = chatNotification->chat().contacts().toBuddySet();
+	auto chat = latestNotification->data()["chat"].value<Chat>();
+	if (chat)
+		buddies = chat.contacts().toBuddySet();
 
 	for (auto chatWidget : m_chatWidgetRepository.data())
 		// warning: do not exchange intersect caller and argument, it will modify buddies variable if you do

@@ -1,8 +1,7 @@
 /*
  * %kadu copyright begin%
- * Copyright 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2011, 2012, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2011, 2012, 2013, 2014 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -20,6 +19,7 @@
  */
 
 #include "contacts/contact-manager.h"
+#include "protocols/services/chat-state.h"
 
 #include "helpers/gadu-protocol-helper.h"
 #include "server/gadu-connection.h"
@@ -49,7 +49,7 @@ void GaduChatStateService::setSendTypingNotifications(bool sendTypingNotificatio
 void GaduChatStateService::messageReceived(const Message &message)
 {
 	// it seems it is what is also done and expected by GG10
-	emit peerStateChanged(message.messageSender(), StatePaused);
+	emit peerStateChanged(message.messageSender(), ChatState::Paused);
 }
 
 void GaduChatStateService::handleEventTypingNotify(struct gg_event *e)
@@ -59,12 +59,12 @@ void GaduChatStateService::handleEventTypingNotify(struct gg_event *e)
 		return;
 
 	if (e->event.typing_notification.length > 0x0000)
-		emit peerStateChanged(contact, StateComposing);
+		emit peerStateChanged(contact, ChatState::Composing);
 	else if (e->event.typing_notification.length == 0x0000)
-		emit peerStateChanged(contact, StatePaused);
+		emit peerStateChanged(contact, ChatState::Paused);
 }
 
-void GaduChatStateService::sendState(const Contact &contact, State state)
+void GaduChatStateService::sendState(const Contact &contact, ChatState state)
 {
 	if (!SendTypingNotifications || !contact)
 		return;
@@ -75,11 +75,11 @@ void GaduChatStateService::sendState(const Contact &contact, State state)
 	auto writableSessionToken = Connection.data()->writableSessionToken();
 	switch (state)
 	{
-		case StateComposing:
+		case ChatState::Composing:
 			gg_typing_notification(writableSessionToken.rawSession(), GaduProtocolHelper::uin(contact), 0x0001);
 			break;
-		case StatePaused:
-		case StateGone:
+		case ChatState::Paused:
+		case ChatState::Gone:
 			gg_typing_notification(writableSessionToken.rawSession(), GaduProtocolHelper::uin(contact), 0x0000);
 			break;
 		default:

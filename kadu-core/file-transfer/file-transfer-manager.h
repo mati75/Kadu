@@ -1,13 +1,8 @@
 /*
  * %kadu copyright begin%
  * Copyright 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009 Tomasz Rostański (rozteck@interia.pl)
- * Copyright 2008 Michał Podsiadlik (michal@kadu.net)
- * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
- * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
- * Copyright 2007, 2008, 2009, 2010, 2011, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2012, 2014 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
+ * Copyright 2009, 2010, 2011, 2013, 2014, 2015 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -24,21 +19,20 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef FILE_TRANSFER_MANAGER_H
-#define FILE_TRANSFER_MANAGER_H
+#pragma once
+
+#include "accounts/accounts-aware-object.h"
+#include "file-transfer/file-transfer.h"
+#include "storage/simple-manager.h"
+#include "exports.h"
 
 #include <QtCore/QObject>
 #include <QtCore/QPointer>
 #include <QtCore/QUuid>
-
-#include "accounts/accounts-aware-object.h"
-#include "file-transfer/file-transfer-enums.h"
-#include "file-transfer/file-transfer.h"
-#include "storage/simple-manager.h"
-
-#include "exports.h"
+#include <injeqt/injeqt.h>
 
 class FileTransferActions;
+class FileTransferHandlerManager;
 class FileTransferWindow;
 class ConfigurationApi;
 
@@ -47,24 +41,28 @@ class KADUAPI FileTransferManager : public QObject, public SimpleManager<FileTra
 	Q_OBJECT
 	Q_DISABLE_COPY(FileTransferManager)
 
-	static FileTransferManager * Instance;
-
-	FileTransferActions *Actions;
-	QPointer<FileTransferWindow> Window;
-
-	FileTransferManager();
+public:
+	Q_INVOKABLE explicit FileTransferManager(QObject *parent = nullptr);
 	virtual ~FileTransferManager();
 
-	FileTransfer byPeerAndRemoteFileName(Contact peer, const QString &remoteFileName);
+	virtual QString storageNodeName() { return QLatin1String("FileTransfersNew"); }
+	virtual QString storageNodeItemName() { return QLatin1String("FileTransfer"); }
 
-	void addFileTransferService(Account account);
-	void removeFileTransferService(Account account);
+	int totalProgress() const;
 
-private slots:
-	void incomingFileTransfer(FileTransfer fileTransfer);
+	void acceptFileTransfer(FileTransfer transfer, QString localFileName);
+	void rejectFileTransfer(FileTransfer transfer);
+	void sendFile(FileTransfer transfer, QString fileName);
+	QString getSaveFileName(QString localFileName, QString remoteFileName, QWidget *parent = nullptr);
+	void showFileTransferWindow();
+	void cleanUp();
 
-	void fileTransferServiceRegistered();
-	void fileTransferServiceUnregistered();
+signals:
+	void fileTransferAboutToBeAdded(FileTransfer fileTransfer);
+	void fileTransferAdded(FileTransfer fileTransfer);
+	void fileTransferAboutToBeRemoved(FileTransfer fileTransfer);
+	void fileTransferRemoved(FileTransfer fileTransfer);
+	void totalProgressChanged(int totalProgress);
 
 protected:
 	virtual void accountRegistered(Account account);
@@ -75,25 +73,20 @@ protected:
 	virtual void itemAboutToBeRemoved(FileTransfer fileTransfer);
 	virtual void itemRemoved(FileTransfer fileTransfer);
 
-public:
-	static FileTransferManager * instance();
+private:
+	FileTransferActions *m_actions;
+	QPointer<FileTransferHandlerManager> m_fileTransferHandlerManager;
+	QPointer<FileTransferWindow> m_window;
+	int m_totalProgress;
 
-	virtual QString storageNodeName() { return QLatin1String("FileTransfersNew"); }
-	virtual QString storageNodeItemName() { return QLatin1String("FileTransfer"); }
+	void addFileTransferService(Account account);
+	void removeFileTransferService(Account account);
+	void setTotalProgress(int totalProgress);
 
-	void acceptFileTransfer(FileTransfer transfer);
-	void rejectFileTransfer(FileTransfer transfer);
+private slots:
+	INJEQT_SETTER void setFileTransferHandlerManager(FileTransferHandlerManager *fileTransferHandlerManager);
 
-	void showFileTransferWindow();
-
-	void cleanUp();
-
-signals:
-	void fileTransferAboutToBeAdded(FileTransfer fileTransfer);
-	void fileTransferAdded(FileTransfer fileTransfer);
-	void fileTransferAboutToBeRemoved(FileTransfer fileTransfer);
-	void fileTransferRemoved(FileTransfer fileTransfer);
+	void incomingFileTransfer(FileTransfer fileTransfer);
+	void updateProgress();
 
 };
-
-#endif // FILE_TRANSFER_MANAGER_H

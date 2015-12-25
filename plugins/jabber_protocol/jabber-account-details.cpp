@@ -1,10 +1,8 @@
 /*
  * %kadu copyright begin%
- * Copyright 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2009, 2010, 2011, 2012 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2009, 2009 Bartłomiej Zimoń (uzi18@o2.pl)
- * Copyright 2009, 2010, 2011, 2013, 2014 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011, 2012 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2011, 2013, 2014 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -21,8 +19,6 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "base64.h"
-
 #include "configuration/configuration-api.h"
 #include "configuration/configuration.h"
 #include "gui/windows/open-chat-with/open-chat-with-runner-manager.h"
@@ -34,8 +30,8 @@
 #include "jabber-account-details.h"
 
 JabberAccountDetails::JabberAccountDetails(AccountShared *data) :
-		AccountDetails(data), AutoResource(false), Priority{}, UseCustomHostPort(false), CustomPort(5222),
-		EncryptionMode(Encryption_Auto), PlainAuthMode(AllowPlainOverTLS),
+		AccountDetails(data), AutoResource(false), Priority{100}, UseCustomHostPort(false), CustomPort(5222),
+		EncryptionMode(Encryption_Auto), PlainAuthMode(AllowPlainOverTLS), RequireDataTransferProxy{false},
 		SendTypingNotification(true), SendGoneNotification(true), PublishSystemInfo(true)
 {
 	OpenChatRunner = new JabberOpenChatWithRunner(data);
@@ -57,7 +53,7 @@ void JabberAccountDetails::load()
 	AccountDetails::load();
 
 	QString resourceString = loadValue<QString>("Resource");
-	QString priorityString = loadValue<QString>("Priority");
+	QString priorityString = loadValue<QString>("Priority", "100");
 	AutoResource = loadValue<bool>("AutoResource", false);
 
 	if (resourceString.isEmpty() || resourceString == "Kadu")
@@ -73,6 +69,7 @@ void JabberAccountDetails::load()
 		priority = 5;
 	Priority = priority;
 	DataTransferProxy = loadValue<QString>("DataTransferProxy");
+	RequireDataTransferProxy = loadValue<bool>("RequireDataTransferProxy", false);
 
 	UseCustomHostPort = loadValue<bool>("UseCustomHostPort", false);
 	CustomHost = loadValue<QString>("CustomHost");
@@ -80,7 +77,7 @@ void JabberAccountDetails::load()
 
 	EncryptionMode = (EncryptionFlag)loadValue<int>("EncryptionMode", (int)Encryption_Auto);
 	PlainAuthMode = (AllowPlainType)loadValue<int>("PlainAuthMode", (int)AllowPlainOverTLS);
-	TlsOverrideCert = XMPP::Base64::decode(loadValue<QByteArray>("TlsOverrideCert"));
+	// TlsOverrideCert = Base64::decode(loadValue<QByteArray>("TlsOverrideCert"));
 	TlsOverrideDomain = loadValue<QString>("TlsOverrideDomain");
 
 	SendTypingNotification = loadValue<bool>("SendTypingNotification", true);
@@ -97,6 +94,7 @@ void JabberAccountDetails::store()
 	storeValue("Resource", Resource);
 	storeValue("Priority", Priority);
 	storeValue("DataTransferProxy", DataTransferProxy);
+	storeValue("RequireDataTransferProxy", RequireDataTransferProxy);
 
 	storeValue("UseCustomHostPort", UseCustomHostPort);
 	storeValue("CustomHost", CustomHost);
@@ -104,10 +102,54 @@ void JabberAccountDetails::store()
 
 	storeValue("EncryptionMode", EncryptionMode);
 	storeValue("PlainAuthMode", PlainAuthMode);
-	storeValue("TlsOverrideCert", XMPP::Base64::encode(TlsOverrideCert).toAscii());
+	// storeValue("TlsOverrideCert", Base64::encode(TlsOverrideCert).toAscii());
 	storeValue("TlsOverrideDomain", TlsOverrideDomain);
 
 	storeValue("SendTypingNotification", SendTypingNotification);
 	storeValue("SendGoneNotification", SendGoneNotification);
 	storeValue("PublishSystemInfo", PublishSystemInfo);
 }
+
+QString JabberAccountDetails::dataTransferProxy()
+{
+	ensureLoaded();
+	return DataTransferProxy;
+}
+
+void JabberAccountDetails::setDataTransferProxy(const QString &dataTransferProxy)
+{
+	ensureLoaded();
+	DataTransferProxy = dataTransferProxy;
+
+	emit dataTransferProxyChanged();
+}
+
+bool JabberAccountDetails::requireDataTransferProxy()
+{
+	ensureLoaded();
+	return RequireDataTransferProxy;
+}
+
+void JabberAccountDetails::setRequireDataTransferProxy(bool requireDataTransferProxy)
+{
+	ensureLoaded();
+	RequireDataTransferProxy = requireDataTransferProxy;
+
+	emit dataTransferProxyChanged();
+}
+
+int JabberAccountDetails::priority()
+{
+	ensureLoaded();
+	return Priority;
+}
+
+void JabberAccountDetails::setPriority(int priority)
+{
+	ensureLoaded();
+	Priority = priority;
+
+	emit priorityChanged();
+}
+
+#include "moc_jabber-account-details.cpp"

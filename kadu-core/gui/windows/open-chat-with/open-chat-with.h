@@ -2,8 +2,8 @@
  * %kadu copyright begin%
  * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2011 Piotr Dąbrowski (ultr@ultr.pl)
- * Copyright 2009, 2010, 2011, 2012, 2013, 2014 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2010, 2014 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2009, 2010, 2011, 2012, 2013, 2014 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -29,9 +29,9 @@
 
 #include "open-chat-with-runner.h"
 
-class QDeclarativeView;
 class QLabel;
 class QPushButton;
+class QQuickWidget;
 class QVBoxLayout;
 
 class BuddyListModel;
@@ -46,7 +46,7 @@ class KADUAPI OpenChatWith : public QWidget, DesktopAwareObject
 
 	explicit OpenChatWith();
 
-	QDeclarativeView *BuddiesView;
+	QQuickWidget *BuddiesView;
 	LineEditWithClearButton *ContactID;
 	QVBoxLayout *MainLayout;
 	OpenChatWithRunner *OpenChatRunner;

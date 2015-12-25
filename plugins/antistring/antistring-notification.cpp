@@ -1,8 +1,7 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2010, 2011, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2011, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2011, 2013, 2014, 2015 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -19,24 +18,21 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "notify/notification-manager.h"
-#include "notify/notify-event.h"
+#include "core/core.h"
+#include "notification/notification-manager.h"
+#include "notification/notification-event.h"
+#include "notification/notification-event-repository.h"
 
 #include "antistring-notification.h"
 
-NotifyEvent * AntistringNotification::StringReceivedNotification;
-
 void AntistringNotification::registerNotifications()
 {
-	StringReceivedNotification = new NotifyEvent("Antistring", NotifyEvent::CallbackNotRequired, QT_TRANSLATE_NOOP("@default", "Antistring notifications"));
-	NotificationManager::instance()->registerNotifyEvent(StringReceivedNotification);
+	Core::instance()->notificationEventRepository()->addNotificationEvent(NotificationEvent("Antistring", QT_TRANSLATE_NOOP("@default", "Antistring notifications")));
 }
 
 void AntistringNotification::unregisterNotifications()
 {
-	NotificationManager::instance()->unregisterNotifyEvent(StringReceivedNotification);
-	delete StringReceivedNotification;
-	StringReceivedNotification = 0;
+	Core::instance()->notificationEventRepository()->removeNotificationEvent(NotificationEvent("Antistring", QT_TRANSLATE_NOOP("@default", "Antistring notifications")));
 }
 
 void AntistringNotification::notifyStringReceived(const Chat &chat)
@@ -44,12 +40,13 @@ void AntistringNotification::notifyStringReceived(const Chat &chat)
 	AntistringNotification *notification = new AntistringNotification(chat);
 	notification->setTitle(tr("Antistring"));
 	notification->setText(tr("Your interlocutor send you love letter"));
-	NotificationManager::instance()->notify(notification);
+	Core::instance()->notificationManager()->notify(notification);
 }
 
 AntistringNotification::AntistringNotification(const Chat &chat) :
-		ChatNotification(chat, "Antistring", KaduIcon())
+		Notification(Account::null, chat, "Antistring", KaduIcon())
 {
+	addChatCallbacks();
 }
 
 AntistringNotification::~AntistringNotification()

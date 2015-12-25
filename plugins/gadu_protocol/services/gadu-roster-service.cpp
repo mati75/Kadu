@@ -1,8 +1,7 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2010, 2011, 2012, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011, 2012, 2013, 2014 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2012, 2013, 2014 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2012, 2013, 2014 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -22,14 +21,14 @@
 #include "gadu-roster-service.h"
 
 #include "helpers/gadu-list-helper.h"
-#include "services/gadu-roster-state-machine.h"
 #include "server/gadu-connection.h"
 #include "server/gadu-writable-session-token.h"
+#include "services/gadu-roster-state-machine.h"
 #include "gadu-account-details.h"
 
 #include "buddies/buddy-manager.h"
-#include "roster/roster-entry.h"
 #include "roster/roster-entry-state.h"
+#include "roster/roster-entry.h"
 #include "roster/roster-notifier.h"
 #include "roster/roster-replacer.h"
 #include "debug.h"
@@ -37,8 +36,8 @@
 #include <QtCore/QScopedArrayPointer>
 #include <libgadu.h>
 
-GaduRosterService::GaduRosterService(Protocol *protocol, const QVector<Contact> &contacts, QObject *parent) :
-		RosterService{protocol, contacts, parent},
+GaduRosterService::GaduRosterService(const QVector<Contact> &contacts, Protocol *protocol) :
+		RosterService{contacts, protocol},
 		m_stateMachine{new GaduRosterStateMachine{this, protocol}}
 {
 	connect(this, SIGNAL(contactAdded(Contact)), this, SLOT(rosterChanged()));

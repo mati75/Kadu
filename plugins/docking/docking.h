@@ -1,18 +1,10 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010, 2011 Tomasz Rostanski (rozteck@interia.pl)
- * Copyright 2008, 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2012 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2010 Tomasz Rostański (rozteck@interia.pl)
+ * Copyright 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2012 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2012 Piotr Dąbrowski (ultr@ultr.pl)
- * Copyright 2004, 2008 Michał Podsiadlik (michal@kadu.net)
- * Copyright 2002, 2003, 2004 Adrian Smarzewski (adrian@kadu.net)
- * Copyright 2005 Paweł Płuciennik (pawel_p@kadu.net)
- * Copyright 2002, 2003 Tomasz Chiliński (chilek@chilan.com)
- * Copyright 2007, 2008, 2009, 2010, 2011, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2011, 2014 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2004, 2005, 2006 Marcin Ślusarz (joi@kadu.net)
- * Copyright 2002, 2003 Dariusz Jagodzik (mast3r@kadu.net)
+ * Copyright 2011, 2013, 2014 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -29,127 +21,51 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef DOCKING_H
-#define DOCKING_H
+#pragma once
 
-#include <QtCore/QMap>
-#include <QtWidgets/QLabel>
+#include "docking-exports.h"
 
-#include "configuration/configuration-aware-object.h"
-#include "status/status-container-aware-object.h"
-#include "status/status-type.h"
+#include "misc/memory.h"
 
-#include "docking_exports.h"
+#include <QtCore/QObject>
+#include <QtWidgets/QSystemTrayIcon>
 
-class QAction;
-class QMenu;
+class DockingConfigurationProvider;
+class DockingMenuActionRepository;
+class StatusNotifierItem;
 
-class Docker;
-class KaduIcon;
-class StatusContainer;
-class StatusIcon;
-class StatusMenu;
-
-typedef QPair<QString,QList<StatusType> > StatusPair;
-typedef QPair<QStringList,QString> DescriptionPair;
-
-class DOCKINGAPI DockingManager : public QObject, ConfigurationAwareObject, StatusContainerAwareObject
+class DOCKINGAPI Docking final : public QObject
 {
 	Q_OBJECT
-	Q_DISABLE_COPY(DockingManager)
-
-	static DockingManager *Instance;
-
-	Docker *CurrentDocker;
-
-#if defined(Q_OS_UNIX) && !defined(Q_OS_MAC)
-	bool KaduWindowLastTimeVisible;
-#endif
-	bool DockMenuNeedsUpdate;
-	QMenu *DockMenu;
-#ifdef Q_OS_MAC
-	QMenu *MacDockMenu;
-#endif
-
-	StatusMenu *AllAccountsMenu;
-
-#if defined(Q_OS_UNIX) && !defined(Q_OS_MAC)
-	QAction *ShowKaduAction;
-	QAction *HideKaduAction;
-#endif
-	QAction *SilentModeAction;
-	QAction *CloseKaduAction;
-	QAction *containersSeparator;
-
-	StatusIcon *Icon;
-
-	QList<QAction *> ModulesActions;
-
-	QMap<StatusContainer *, QAction *> StatusContainerMenus;
-
-	enum IconType {BlinkingEnvelope = 0, StaticEnvelope = 1, AnimatedEnvelope = 2} newMessageIcon;
-	QTimer *icon_timer;
-	bool blink;
-
-	QList<StatusPair> getStatuses() const;
-	QList<DescriptionPair> getDescriptions() const;
-	QString prepareDescription(const QString &description) const;
-	void defaultToolTip();
-
-	void createDefaultConfiguration();
-
-	DockingManager();
-	virtual ~DockingManager();
-
-	void doUpdateContextMenu();
-	void openUnreadMessages();
-
-private slots:
-	void statusIconChanged(const KaduIcon &icon);
-	void changeIcon();
-	void unreadMessageAdded();
-	void unreadMessageRemoved();
-	void searchingForTrayPosition(QPoint &point);
-	void iconThemeChanged();
-
-	void showKaduWindow();
-	void hideKaduWindow();
-	void silentModeToggled(bool enabled);
-
-	void contextMenuAboutToBeShown();
-	void updateContextMenu();
-
-	void containerStatusChanged(StatusContainer *container);
-
-protected:
-	virtual void configurationUpdated();
-	virtual void statusContainerRegistered(StatusContainer *statusContainer);
-	virtual void statusContainerUnregistered(StatusContainer *statusContainer);
 
 public:
 	static void createInstance();
 	static void destroyInstance();
-	static DockingManager * instance();
+	static Docking * instance();
 
-	void trayMousePressEvent(QMouseEvent * e);
-	KaduIcon defaultIcon();
-	QMenu * dockMenu() { return DockMenu; }
+	DockingMenuActionRepository * dockingMenuActionRepository() const;
 
-	void setDocker(Docker *docker);
-
-#ifdef Q_OS_MAC
-	void showMinimizedChats();
-	void dockIconClicked();
-#endif
-
-	void registerModuleAction(QAction *action);
-	void unregisterModuleAction(QAction *action);
+	void showMessage(QString title, QString message, QSystemTrayIcon::MessageIcon icon, int msecs);
 
 signals:
-	void mousePressMidButton();
-	void mousePressLeftButton();
-	void mousePressRightButton();
+	void messageClicked();
+
+private:
+	static Docking *m_instance;
+
+	owned_qptr<DockingConfigurationProvider> m_dockingConfigurationProvider;
+	owned_qptr<DockingMenuActionRepository> m_dockingMenuActionRepository;
+	owned_qptr<StatusNotifierItem> m_statusNotifierItem;
+
+	Docking();
+	virtual ~Docking();
+
+	void openUnreadMessages();
+
+private slots:
+	void configurationUpdated();
+	void needAttentionChanged(bool needAttention);
+	void searchingForTrayPosition(QPoint &point);
+	void activateRequested();
 
 };
-
-#endif // DOCKING_H

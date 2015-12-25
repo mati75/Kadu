@@ -1,7 +1,7 @@
 /*
  * %kadu copyright begin%
- * Copyright 2012, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2012, 2013, 2014 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -115,7 +115,11 @@ ChatType * ChatDetailsRoom::type() const
 
 void ChatDetailsRoom::setRoom(const QString &room)
 {
-	Room = room;
+	if (room != Room)
+	{
+		Room = room;
+		notifyChanged();
+	}
 }
 
 QString ChatDetailsRoom::room() const
@@ -125,7 +129,11 @@ QString ChatDetailsRoom::room() const
 
 void ChatDetailsRoom::setNick(const QString &nick)
 {
-	Nick = nick;
+	if (Nick != nick)
+	{
+		Nick = nick;
+		notifyChanged();
+	}
 }
 
 QString ChatDetailsRoom::nick() const
@@ -135,7 +143,11 @@ QString ChatDetailsRoom::nick() const
 
 void ChatDetailsRoom::setPassword(const QString &password)
 {
-	Password = password;
+	if (Password != password)
+	{
+		Password = password;
+		notifyChanged();
+	}
 }
 
 QString ChatDetailsRoom::password() const
@@ -145,7 +157,11 @@ QString ChatDetailsRoom::password() const
 
 void ChatDetailsRoom::setStayInRoomAfterClosingWindow(bool stayInRoomAfterClosingWindow)
 {
-	StayInRoomAfterClosingWindow = stayInRoomAfterClosingWindow;
+	if (StayInRoomAfterClosingWindow != stayInRoomAfterClosingWindow)
+	{
+		StayInRoomAfterClosingWindow = stayInRoomAfterClosingWindow;
+		notifyChanged();
+	}
 }
 
 bool ChatDetailsRoom::stayInRoomAfterClosingWindow() const

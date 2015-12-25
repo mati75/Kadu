@@ -1,11 +1,8 @@
 /*
  * %kadu copyright begin%
- * Copyright 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2010, 2011 Tomasz Rostanski (rozteck@interia.pl)
- * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2008, 2010 Tomasz Rostański (rozteck@interia.pl)
- * Copyright 2010, 2011, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2011 Tomasz Rostanski (rozteck@interia.pl)
+ * Copyright 2013, 2014 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2011, 2013, 2014 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -37,7 +34,7 @@
 #include "growl-notify-configuration-widget.h"
 
 GrowlNotifyConfigurationWidget::GrowlNotifyConfigurationWidget(QWidget *parent)
-	: NotifierConfigurationWidget(parent), currentNotifyEvent("")
+	: NotifierConfigurationWidget(parent), currentNotificationEvent("")
 {
 	QString tooltip = tr("\n%&t - title (eg. New message) %&m - notification text (eg. Message from Jim), %&d - details (eg. message quotation),\n%&i - notification icon");
 
@@ -68,16 +65,16 @@ void GrowlNotifyConfigurationWidget::saveNotifyConfigurations()
 {
 	kdebugf();
 
-	if (!currentNotifyEvent.isEmpty())
-		properties[currentNotifyEvent] = currentProperties;
+	if (!currentNotificationEvent.isEmpty())
+		properties[currentNotificationEvent] = currentProperties;
 
 	foreach(const GrowlNotifyProperties &property, properties)
 	{
 		const QString &eventName = property.eventName;
 
-		KaduApplication::instance()->configuration()->deprecatedApi()->writeEntry("GrowlNotify", QString("Event_") + eventName + "_syntax", property.syntax);
-		KaduApplication::instance()->configuration()->deprecatedApi()->writeEntry("GrowlNotify", QString("Event_") + eventName + "_title", property.title);
-//		KaduApplication::instance()->configuration()->deprecatedApi()->writeEntry("GrowlNotify", QString("Event_") + eventName + "_avatar", property.showAvatar);
+		Application::instance()->configuration()->deprecatedApi()->writeEntry("GrowlNotify", QString("Event_") + eventName + "_syntax", property.syntax);
+		Application::instance()->configuration()->deprecatedApi()->writeEntry("GrowlNotify", QString("Event_") + eventName + "_title", property.title);
+//		Application::instance()->configuration()->deprecatedApi()->writeEntry("GrowlNotify", QString("Event_") + eventName + "_avatar", property.showAvatar);
 	}
 }
 
@@ -85,22 +82,22 @@ void GrowlNotifyConfigurationWidget::switchToEvent(const QString &event)
 {
 	kdebugf();
 
-	if (!currentNotifyEvent.isEmpty())
-		properties[currentNotifyEvent] = currentProperties;
+	if (!currentNotificationEvent.isEmpty())
+		properties[currentNotificationEvent] = currentProperties;
 
 	if (properties.contains(event))
 	{
 		currentProperties = properties[event];
-		currentNotifyEvent = event;
+		currentNotificationEvent = event;
 	}
 	else
 	{
-		currentNotifyEvent = event;
+		currentNotificationEvent = event;
 		currentProperties.eventName = event;
 
-		currentProperties.syntax = KaduApplication::instance()->configuration()->deprecatedApi()->readEntry("GrowlNotify", QString("Event_") + event + "_syntax");
-		currentProperties.title = KaduApplication::instance()->configuration()->deprecatedApi()->readEntry("GrowlNotify", QString("Event_") + event + "_title");
-//		currentProperties.showAvatar = KaduApplication::instance()->configuration()->deprecatedApi()->readBoolEntry("GrowlNotify", QString("Event_") + event + "_avatar");
+		currentProperties.syntax = Application::instance()->configuration()->deprecatedApi()->readEntry("GrowlNotify", QString("Event_") + event + "_syntax");
+		currentProperties.title = Application::instance()->configuration()->deprecatedApi()->readEntry("GrowlNotify", QString("Event_") + event + "_title");
+//		currentProperties.showAvatar = Application::instance()->configuration()->deprecatedApi()->readBoolEntry("GrowlNotify", QString("Event_") + event + "_avatar");
 	}
 
 	syntax->setText(currentProperties.syntax);

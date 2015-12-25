@@ -1,12 +1,9 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010, 2011 Tomasz Rostanski (rozteck@interia.pl)
- * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2012 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2008, 2010, 2010, 2010 Tomasz Rostański (rozteck@interia.pl)
- * Copyright 2011 Piotr Dąbrowski (ultr@ultr.pl)
- * Copyright 2010, 2011, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2011, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2011 Tomasz Rostanski (rozteck@interia.pl)
+ * Copyright 2012 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2013, 2014 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2011, 2013, 2014 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -39,10 +36,10 @@
 #include "configuration/deprecated-configuration-api.h"
 #include "gui/windows/message-dialog.h"
 #include "icons/icons-manager.h"
-#include "notify/notification-manager.h"
-#include "notify/notification/account-notification.h"
-#include "notify/notification/chat-notification.h"
-#include "notify/notification/notification.h"
+#include "notification/notification-manager.h"
+#include "notification/notification/account-notification.h"
+#include "notification/notification/chat-notification.h"
+#include "notification/notification/notification.h"
 #include "parser/parser.h"
 #include "debug.h"
 
@@ -79,7 +76,7 @@ bool GrowlNotify::init(bool firstLoad)
 		return false;
 	}
 
-	NotificationManager::instance()->registerNotifier(this);
+	Core::instance()->notificationManager()->registerNotifier(this);
 	createDefaultConfiguration();
 
 	return true;
@@ -87,7 +84,7 @@ bool GrowlNotify::init(bool firstLoad)
 
 void GrowlNotify::done()
 {
-	NotificationManager::instance()->unregisterNotifier(this);
+	Core::instance()->notificationManager()->unregisterNotifier(this);
 }
 
 
@@ -122,9 +119,9 @@ void GrowlNotify::notify(Notification *notification)
 		return;
 
 	QPixmap pixmap;
-	QString title = KaduApplication::instance()->configuration()->deprecatedApi()->readEntry("GrowlNotify", QString("Event_") + notification->type() + "_title");
-	QString syntax = KaduApplication::instance()->configuration()->deprecatedApi()->readEntry("GrowlNotify", QString("Event_") + notification->type() + "_syntax");
-//	bool showAvatar = KaduApplication::instance()->configuration()->deprecatedApi()->readBoolEntry("GrowlNotify", QString("Event_") + notification->type() + "_avatar");
+	QString title = Application::instance()->configuration()->deprecatedApi()->readEntry("GrowlNotify", QString("Event_") + notification->type() + "_title");
+	QString syntax = Application::instance()->configuration()->deprecatedApi()->readEntry("GrowlNotify", QString("Event_") + notification->type() + "_syntax");
+//	bool showAvatar = Application::instance()->configuration()->deprecatedApi()->readBoolEntry("GrowlNotify", QString("Event_") + notification->type() + "_avatar");
 
 	notification->acquire();
 
@@ -159,32 +156,32 @@ void GrowlNotify::mainConfigurationWindowCreated(MainConfigurationWindow *mainCo
 
 void GrowlNotify::createDefaultConfiguration()
 {
-	KaduApplication::instance()->configuration()->deprecatedApi()->addVariable("GrowlNotify", "Event_ConnectionError_syntax", "%&m");
-	KaduApplication::instance()->configuration()->deprecatedApi()->addVariable("GrowlNotify", "Event_ConnectionError_title", "%&t");
+	Application::instance()->configuration()->deprecatedApi()->addVariable("GrowlNotify", "Event_ConnectionError_syntax", "%&m");
+	Application::instance()->configuration()->deprecatedApi()->addVariable("GrowlNotify", "Event_ConnectionError_title", "%&t");
 
-	KaduApplication::instance()->configuration()->deprecatedApi()->addVariable("GrowlNotify", "Event_NewChat_syntax", "%&d");
-	KaduApplication::instance()->configuration()->deprecatedApi()->addVariable("GrowlNotify", "Event_NewChat_title", "%&m");
+	Application::instance()->configuration()->deprecatedApi()->addVariable("GrowlNotify", "Event_NewChat_syntax", "%&d");
+	Application::instance()->configuration()->deprecatedApi()->addVariable("GrowlNotify", "Event_NewChat_title", "%&m");
 
-	KaduApplication::instance()->configuration()->deprecatedApi()->addVariable("GrowlNotify", "Event_NewMessage_syntax", "%&d");
-	KaduApplication::instance()->configuration()->deprecatedApi()->addVariable("GrowlNotify", "Event_NewMessage_title", "%&m");
+	Application::instance()->configuration()->deprecatedApi()->addVariable("GrowlNotify", "Event_NewMessage_syntax", "%&d");
+	Application::instance()->configuration()->deprecatedApi()->addVariable("GrowlNotify", "Event_NewMessage_title", "%&m");
 
-	KaduApplication::instance()->configuration()->deprecatedApi()->addVariable("GrowlNotify", "Event_StatusChanged/ToOnline_syntax", "%&d");
-	KaduApplication::instance()->configuration()->deprecatedApi()->addVariable("GrowlNotify", "Event_StatusChanged/ToOnline_title", "%&m");
+	Application::instance()->configuration()->deprecatedApi()->addVariable("GrowlNotify", "Event_StatusChanged/ToOnline_syntax", "%&d");
+	Application::instance()->configuration()->deprecatedApi()->addVariable("GrowlNotify", "Event_StatusChanged/ToOnline_title", "%&m");
 
-	KaduApplication::instance()->configuration()->deprecatedApi()->addVariable("GrowlNotify", "Event_StatusChanged/ToBusy_syntax", "%&d");
-	KaduApplication::instance()->configuration()->deprecatedApi()->addVariable("GrowlNotify", "Event_StatusChanged/ToBusy_title", "%&m");
+	Application::instance()->configuration()->deprecatedApi()->addVariable("GrowlNotify", "Event_StatusChanged/ToBusy_syntax", "%&d");
+	Application::instance()->configuration()->deprecatedApi()->addVariable("GrowlNotify", "Event_StatusChanged/ToBusy_title", "%&m");
 
-	KaduApplication::instance()->configuration()->deprecatedApi()->addVariable("GrowlNotify", "Event_StatusChanged/ToOffline_syntax", "%&d");
-	KaduApplication::instance()->configuration()->deprecatedApi()->addVariable("GrowlNotify", "Event_StatusChanged/ToOffline_title", "%&m");
+	Application::instance()->configuration()->deprecatedApi()->addVariable("GrowlNotify", "Event_StatusChanged/ToOffline_syntax", "%&d");
+	Application::instance()->configuration()->deprecatedApi()->addVariable("GrowlNotify", "Event_StatusChanged/ToOffline_title", "%&m");
 
-	KaduApplication::instance()->configuration()->deprecatedApi()->addVariable("GrowlNotify", "Event_StatusChanged/ToInvisible_syntax", "%&d");
-	KaduApplication::instance()->configuration()->deprecatedApi()->addVariable("GrowlNotify", "Event_StatusChanged/ToInvisible_title", "%&m");
+	Application::instance()->configuration()->deprecatedApi()->addVariable("GrowlNotify", "Event_StatusChanged/ToInvisible_syntax", "%&d");
+	Application::instance()->configuration()->deprecatedApi()->addVariable("GrowlNotify", "Event_StatusChanged/ToInvisible_title", "%&m");
 
-	KaduApplication::instance()->configuration()->deprecatedApi()->addVariable("GrowlNotify", "Event_FileTransfer/Finished_syntax", "%&m");
-	KaduApplication::instance()->configuration()->deprecatedApi()->addVariable("GrowlNotify", "Event_FileTransfer/Finished_title", "%&t");
+	Application::instance()->configuration()->deprecatedApi()->addVariable("GrowlNotify", "Event_FileTransfer/Finished_syntax", "%&m");
+	Application::instance()->configuration()->deprecatedApi()->addVariable("GrowlNotify", "Event_FileTransfer/Finished_title", "%&t");
 
-	KaduApplication::instance()->configuration()->deprecatedApi()->addVariable("GrowlNotify", "Event_FileTransfer/IncomingFile_syntax", "%&m");
-	KaduApplication::instance()->configuration()->deprecatedApi()->addVariable("GrowlNotify", "Event_FileTransfer/IncomingFile_title", "%&t");
+	Application::instance()->configuration()->deprecatedApi()->addVariable("GrowlNotify", "Event_FileTransfer/IncomingFile_syntax", "%&m");
+	Application::instance()->configuration()->deprecatedApi()->addVariable("GrowlNotify", "Event_FileTransfer/IncomingFile_title", "%&t");
 }
 
 NotifierConfigurationWidget *GrowlNotify::createConfigurationWidget(QWidget *parent)

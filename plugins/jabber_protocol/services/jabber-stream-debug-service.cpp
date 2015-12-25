@@ -1,7 +1,7 @@
 /*
  * %kadu copyright begin%
- * Copyright 2012, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2012, 2013, 2014 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * Copyright (C) 2006 Remko Troncon
@@ -20,20 +20,16 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <xmpp_client.h>
-
-#include "jabber-protocol.h"
-
 #include "jabber-stream-debug-service.h"
 
-namespace XMPP
-{
+#include <qxmpp/QXmppClient.h>
 
-JabberStreamDebugService::JabberStreamDebugService(JabberProtocol *protocol) :
-		QObject(protocol), XmppClient(protocol->xmppClient())
+JabberStreamDebugService::JabberStreamDebugService(QXmppClient *m_client, QObject *parent) :
+		QObject{parent}
 {
-	connect(XmppClient.data(), SIGNAL(xmlIncoming(QString)), this, SLOT(incomingXml(QString)));
-	connect(XmppClient.data(), SIGNAL(xmlOutgoing(QString)), this, SLOT(outgoingXml(QString)));
+	m_client->setLogger(new QXmppLogger{m_client});
+	m_client->logger()->setLoggingType(QXmppLogger::SignalLogging);
+	connect(m_client->logger(), SIGNAL(message(QXmppLogger::MessageType,QString)), this, SLOT(message(QXmppLogger::MessageType,QString)));
 }
 
 JabberStreamDebugService::~JabberStreamDebugService()
@@ -48,16 +44,12 @@ QString JabberStreamDebugService::filterPrivateData(const QString &streamData)
 			.replace(QRegExp("<digest>[^<]*</digest>\n"), "<digest>[Filtered]</digest>\n");
 }
 
-void JabberStreamDebugService::incomingXml(const QString &xmlData)
+void JabberStreamDebugService::message(QXmppLogger::MessageType type, const QString &message)
 {
-	emit incomingStream(filterPrivateData(xmlData));
-}
-
-void JabberStreamDebugService::outgoingXml(const QString &xmlData)
-{
-	emit outgoingStream(filterPrivateData(xmlData));
-}
-
+	if (type & QXmppLogger::MessageType::ReceivedMessage)
+		emit incomingStream(filterPrivateData(message));
+	else
+		emit outgoingStream(filterPrivateData(message));
 }
 
 #include "moc_jabber-stream-debug-service.cpp"

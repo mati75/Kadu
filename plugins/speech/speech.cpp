@@ -1,9 +1,9 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2012 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2010, 2011, 2013, 2014 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2011, 2013, 2014 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -26,9 +26,9 @@
 #include "configuration/configuration.h"
 #include "configuration/deprecated-configuration-api.h"
 #include "core/application.h"
-#include "notify/notification-manager.h"
-#include "notify/notification/chat-notification.h"
-#include "notify/notification/notification.h"
+#include "core/core.h"
+#include "notification/notification-manager.h"
+#include "notification/notification/notification.h"
 #include "parser/parser.h"
 #include "debug.h"
 #include "speech-configuration-widget.h"
@@ -69,7 +69,7 @@ Speech::Speech() :
 {
 	kdebugf();
 
-	NotificationManager::instance()->registerNotifier(this);
+	Core::instance()->notificationManager()->registerNotifier(this);
 
 	Application::instance()->configuration()->deprecatedApi()->addVariable("Notify", "NewChat_Speech", true);
 
@@ -79,7 +79,11 @@ Speech::Speech() :
 Speech::~Speech()
 {
 	kdebugf();
-	NotificationManager::instance()->unregisterNotifier(this);
+
+	if (Core::instance()) // TODO: hack
+	{
+		Core::instance()->notificationManager()->unregisterNotifier(this);
+	}
 
 	kdebugf2();
 }
@@ -157,8 +161,7 @@ void Speech::notify(Notification *notification)
 	QString text;
 	QString sex = "Male";
 
-	ChatNotification *chatNotification = qobject_cast<ChatNotification *>(notification);
-	Chat chat = chatNotification ? chatNotification->chat() : Chat::null;
+	auto chat = notification->data()["chat"].value<Chat>();
 
 	// TODO:
 	if (chat)

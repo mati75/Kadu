@@ -1,6 +1,6 @@
 /*
  * %kadu copyright begin%
- * Copyright 2014 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2014 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -27,7 +27,8 @@
 #include <QtWidgets/QVBoxLayout>
 
 StringListDialog::StringListDialog(QString message, QString okButtonTitle, QStringList stringList, QWidget *parent) :
-		QDialog{parent}
+		// using C++ initializers breaks Qt's lupdate
+		QDialog(parent)
 {
 	setWindowRole("kadu-string-list-dialog");
 	setWindowTitle(tr("Kadu"));

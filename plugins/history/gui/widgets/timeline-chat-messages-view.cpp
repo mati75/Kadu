@@ -1,8 +1,8 @@
 /*
  * %kadu copyright begin%
  * Copyright 2012 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2012, 2013, 2014 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2013, 2014 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2012, 2013, 2014 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -25,13 +25,17 @@
 #include <QtWidgets/QVBoxLayout>
 
 #include "chat-style/engine/chat-style-renderer-factory-provider.h"
+#include "contacts/contact-set.h"
 #include "core/core.h"
+#include "formatted-string/formatted-string-plain-text-visitor.h"
+#include "formatted-string/formatted-string.h"
 #include "gui/scoped-updates-disabler.h"
 #include "gui/web-view-highlighter.h"
 #include "gui/widgets/search-bar.h"
 #include "gui/widgets/wait-overlay.h"
 #include "gui/widgets/webkit-messages-view/webkit-messages-view-factory.h"
 #include "gui/widgets/webkit-messages-view/webkit-messages-view.h"
+#include "message/message-manager.h"
 #include "message/sorted-messages.h"
 #include "model/roles.h"
 
@@ -40,6 +44,8 @@
 #include "history-query-result.h"
 
 #include "timeline-chat-messages-view.h"
+
+#define DATE_TITLE_LENGTH 120
 
 TimelineChatMessagesView::TimelineChatMessagesView(QWidget *parent) :
 		QWidget(parent),
@@ -55,6 +61,9 @@ TimelineChatMessagesView::TimelineChatMessagesView(QWidget *parent) :
 	layout()->setSpacing(0);
 
 	createGui();
+
+	connect(MessageManager::instance(), SIGNAL(messageReceived(Message)), this, SLOT(newMessage(Message)));
+	connect(MessageManager::instance(), SIGNAL(messageSent(Message)), this, SLOT(newMessage(Message)));
 }
 
 TimelineChatMessagesView::~TimelineChatMessagesView()
@@ -173,6 +182,34 @@ void TimelineChatMessagesView::setMessages(const SortedMessages &messages)
 	MessagesView->add(messages);
 
 	emit messagesDisplayed();
+}
+
+void TimelineChatMessagesView::newMessage(const Message &message)
+{
+	auto chatMatch = message.messageChat() == MessagesView->chat();
+	if (!chatMatch)
+	{
+		if (message.messageChat().type() != "Contact" || MessagesView->chat().type() != "Buddy")
+			return;
+		if (!MessagesView->chat().contacts().toBuddySet().contains(message.messageChat().contacts().toContact().ownerBuddy()))
+			return;
+	}
+
+	FormattedStringPlainTextVisitor plainTextVisitor;
+	message.content()->accept(&plainTextVisitor);
+
+	auto title = plainTextVisitor.result().replace('\n', ' ').replace('\r', ' ');
+	if (title.length() > DATE_TITLE_LENGTH)
+	{
+		title.truncate(DATE_TITLE_LENGTH);
+		title += " ...";
+	}
+
+	auto messageDate = message.receiveDate().date();
+	ResultsModel->addEntry(messageDate, message.messageChat(), title);
+
+	if (messageDate == currentDate())
+		MessagesView->add(message);
 }
 
 void TimelineChatMessagesView::futureMessagesAvailable()

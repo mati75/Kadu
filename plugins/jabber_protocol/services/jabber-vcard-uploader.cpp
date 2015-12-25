@@ -1,10 +1,7 @@
 /*
  * %kadu copyright begin%
- * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
- * Copyright 2007, 2008, 2009, 2010, 2011, 2012, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2013, 2014 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
+ * Copyright 2012, 2013, 2014 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -21,12 +18,13 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <xmpp_tasks.h>
-
 #include "jabber-vcard-uploader.h"
 
-JabberVCardUploader::JabberVCardUploader(XMPP::Client *client, QObject *parent) :
-		QObject(parent), XmppClient(client)
+#include <qxmpp/QXmppVCardManager.h>
+
+JabberVCardUploader::JabberVCardUploader(QXmppVCardManager *vcardManager, QObject *parent) :
+		QObject{parent},
+		m_vcardManager{vcardManager}
 {
 }
 
@@ -34,39 +32,11 @@ JabberVCardUploader::~JabberVCardUploader()
 {
 }
 
-void JabberVCardUploader::done()
+void JabberVCardUploader::uploadVCard(const QXmppVCardIq &vcard)
 {
+	m_vcardManager->setClientVCard(vcard);
 	emit vCardUploaded(true);
 	deleteLater();
-}
-
-void JabberVCardUploader::failed()
-{
-	emit vCardUploaded(false);
-	deleteLater();
-}
-
-void JabberVCardUploader::taskFinished()
-{
-	if (!Task || !Task->success())
-		failed();
-	else
-		done();
-}
-
-void JabberVCardUploader::uploadVCard(const QString &id, XMPP::VCard vCard)
-{
-	if (!XmppClient || !XmppClient->rootTask())
-	{
-		failed();
-		return;
-	}
-
-	Task = new XMPP::JT_VCard(XmppClient->rootTask());
-
-	connect(Task.data(), SIGNAL(finished()), this, SLOT(taskFinished()));
-	Task->set(id, vCard);
-	Task->go(true);
 }
 
 #include "moc_jabber-vcard-uploader.cpp"

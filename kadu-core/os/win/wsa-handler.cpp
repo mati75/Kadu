@@ -1,6 +1,6 @@
 /*
  * %kadu copyright begin%
- * Copyright 2014 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2014 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -21,13 +21,13 @@
 
 #include "os/win/wsa-exception.h"
 
-#ifdef Q_OS_WIN32
+#ifdef Q_OS_WIN
 #include <winsock2.h>
 #endif
 
 WSAHandler::WSAHandler()
 {
-#ifdef Q_OS_WIN32
+#ifdef Q_OS_WIN
 	WSADATA wsaData;
 	if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0)
 		throw WSAException();
@@ -36,7 +36,7 @@ WSAHandler::WSAHandler()
 
 WSAHandler::~WSAHandler()
 {
-#ifdef Q_OS_WIN32
+#ifdef Q_OS_WIN
 	WSACleanup();
 #endif
 }

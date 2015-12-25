@@ -1,10 +1,10 @@
 /*
  * %kadu copyright begin%
- * Copyright 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009, 2010 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2010, 2011 Piotr Dąbrowski (ultr@ultr.pl)
- * Copyright 2009, 2010, 2011, 2012, 2013, 2014 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2010, 2011, 2012, 2013, 2014 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2009, 2010, 2011, 2012, 2013, 2014 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -21,8 +21,10 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <QtDeclarative/QDeclarativeContext>
-#include <QtDeclarative/QDeclarativeView>
+#include <QtCore/QTimer>
+#include <QtQml/QQmlContext>
+#include <QtQuick/QQuickItem>
+#include <QtQuickWidgets/QQuickWidget>
 #include <QtGui/QKeyEvent>
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QDesktopWidget>
@@ -97,18 +99,18 @@ OpenChatWith::OpenChatWith() :
 
 	MainLayout->addWidget(idWidget);
 
-	BuddiesView = new QDeclarativeView();
+	BuddiesView = new QQuickWidget();
 
 	Chain = new ModelChain(this);
 	ListModel = new BuddyListModel(Chain);
 	Chain->setBaseModel(ListModel);
 	Chain->addProxyModel(new TalkableProxyModel(Chain));
 
-	QDeclarativeContext *declarativeContext = BuddiesView->rootContext();
+	QQmlContext *declarativeContext = BuddiesView->rootContext();
 	declarativeContext->setContextProperty("buddies", Chain->lastModel());
 
 	BuddiesView->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-	BuddiesView->setResizeMode(QDeclarativeView::SizeRootObjectToView);
+	BuddiesView->setResizeMode(QQuickWidget::SizeRootObjectToView);
 	BuddiesView->setSource(QUrl("file:///" + Application::instance()->pathsProvider()->dataPath() + "qml/openChatWith.qml"));
 
 	if (BuddiesView->rootObject())
@@ -224,7 +226,7 @@ void OpenChatWith::itemActivated(int index)
 		return;
 
 	Core::instance()->chatWidgetManager()->openChat(chat, OpenChatActivation::Activate);
-	deleteLater();
+	QTimer::singleShot(50, this, SLOT(close()));
 }
 
 void OpenChatWith::inputAccepted()

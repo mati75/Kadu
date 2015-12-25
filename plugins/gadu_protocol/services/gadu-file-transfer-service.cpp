@@ -1,12 +1,7 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
- * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
- * Copyright 2007, 2008, 2009, 2010, 2011, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
+ * Copyright 2011, 2013, 2014, 2015 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -23,172 +18,83 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "contacts/contact-manager.h"
-#include "misc/misc.h"
-#include "debug.h"
+#include "gadu-file-transfer-service.h"
+#include "gadu-imtoken-service.h"
 
-#include "dcc/dcc-socket-notifiers.h"
-#include "file-transfer/gadu-file-transfer-handler.h"
+#include "file-transfer/gadu-outgoing-file-transfer-handler.h"
+#include "file-transfer/gadu-url-incoming-file-transfer-handler.h"
 #include "helpers/gadu-protocol-helper.h"
 #include "gadu-account-details.h"
-#include "gadu-contact-details.h"
 #include "gadu-protocol.h"
 
-#include "gadu-file-transfer-service.h"
+#include "contacts/contact-manager.h"
+#include "core/core.h"
+#include "file-transfer/file-transfer-direction.h"
+#include "file-transfer/file-transfer-manager.h"
+#include "file-transfer/file-transfer-status.h"
+#include "file-transfer/file-transfer-type.h"
+#include "file-transfer/gui/file-transfer-can-send-result.h"
+#include "misc/misc.h"
+
+#include <QtCore/QUrl>
+
 
 GaduFileTransferService::GaduFileTransferService(GaduProtocol *protocol) :
 		FileTransferService(protocol), Protocol(protocol)
 {
+	connect(Protocol, SIGNAL(connected(Account)), this, SIGNAL(canSendChanged()));
+	connect(Protocol, SIGNAL(disconnected(Account)), this, SIGNAL(canSendChanged()));
 }
 
 GaduFileTransferService::~GaduFileTransferService()
 {
 }
 
+void GaduFileTransferService::setGaduIMTokenService(GaduIMTokenService *imTokenService)
+{
+	m_imTokenService = imTokenService;
+
+	connect(m_imTokenService, SIGNAL(imTokenChanged(QByteArray)), this, SIGNAL(canSendChanged()));
+}
+
 FileTransferHandler * GaduFileTransferService::createFileTransferHandler(FileTransfer fileTransfer)
 {
-	GaduFileTransferHandler *handler = new GaduFileTransferHandler(fileTransfer);
-	fileTransfer.setHandler(handler);
-
-	return handler;
-}
-
-void GaduFileTransferService::connectSocketNotifiers(DccSocketNotifiers *notifiers)
-{
-	connect(notifiers, SIGNAL(destroyed(QObject *)), this, SLOT(socketNotifiersDestroyed(QObject *)));
-}
-
-void GaduFileTransferService::disconnectSocketNotifiers(DccSocketNotifiers *notifiers)
-{
-	disconnect(notifiers, 0, this, 0);
-}
-
-void GaduFileTransferService::socketNotifiersDestroyed(QObject *socketNotifiers)
-{
-	gg_dcc7 *key = SocketNotifiers.key(static_cast<DccSocketNotifiers *>(socketNotifiers));
-	if (key)
-		SocketNotifiers.remove(key);
-}
-
-bool GaduFileTransferService::connectionAcceptable(UinType uin, UinType peerUin)
-{
-	GaduAccountDetails *gaduAccountDetails = dynamic_cast<GaduAccountDetails *>(Protocol->account().details());
-	if (!gaduAccountDetails)
-		return false;
-
-	Contact contact = ContactManager::instance()->byId(Protocol->account(), QString::number(peerUin), ActionReturnNull);
-	Buddy buddy = contact.ownerBuddy();
-	if (uin != gaduAccountDetails->uin() || buddy.isAnonymous())
-	{
-		kdebugm(KDEBUG_WARNING, "insane values: uin:%u peer_uin:%u\n", uin, peerUin);
-		return false;
-	}
-
-	if (buddy.isBlocked())
-	{
-		kdebugm(KDEBUG_WARNING, "unbidden user: %u\n", peerUin);
-		return false;
-	}
-
-	return true;
-}
-
-void GaduFileTransferService::needIncomingFileTransferAccept(DccSocketNotifiers *socket)
-{
-	Contact peer = ContactManager::instance()->byId(Protocol->account(), QString::number(socket->peerUin()), ActionCreateAndAdd);
-
-	FileTransfer fileTransfer = FileTransfer::create();
-	fileTransfer.setPeer(peer);
-	fileTransfer.setTransferType(TypeReceive);
-	fileTransfer.setRemoteFileName(socket->remoteFileName());
-	fileTransfer.createHandler();
-
-	GaduFileTransferHandler *handler = qobject_cast<GaduFileTransferHandler *>(fileTransfer.handler());
-	if (handler)
-		handler->setFileTransferNotifiers(socket);
-
-	emit incomingFileTransfer(fileTransfer);
-}
-
-void GaduFileTransferService::handleEventDcc7New(struct gg_event *e)
-{
-	kdebugf();
-
-	struct gg_dcc7 *dcc = e->event.dcc7_new;
-
-	if (!connectionAcceptable(dcc->uin, dcc->peer_uin) || GG_DCC7_TYPE_FILE != dcc->dcc_type)
-	{
-		// No need to reenable socket notifiers as we close connection here.
-		gg_dcc7_reject(dcc, 0);
-		gg_dcc7_free(dcc);
-		return;
-	}
-
-	DccSocketNotifiers *newSocketNotifiers = new DccSocketNotifiers(e->event.dcc7_new, this);
-	SocketNotifiers.insert(e->event.dcc7_new, newSocketNotifiers);
-	connectSocketNotifiers(newSocketNotifiers);
-	newSocketNotifiers->start();
-
-	needIncomingFileTransferAccept(newSocketNotifiers);
-}
-
-void GaduFileTransferService::handleEventDcc7Accept(struct gg_event *e)
-{
-	kdebugf();
-
-	if (SocketNotifiers.contains(e->event.dcc7_accept.dcc7))
-		SocketNotifiers.value(e->event.dcc7_accept.dcc7)->handleEventDcc7Accept(e);
-}
-
-void GaduFileTransferService::handleEventDcc7Reject(struct gg_event *e)
-{
-	kdebugf();
-
-	if (SocketNotifiers.contains(e->event.dcc7_reject.dcc7))
-		SocketNotifiers.value(e->event.dcc7_reject.dcc7)->handleEventDcc7Reject(e);
-}
-
-void GaduFileTransferService::handleEventDcc7Pending(struct gg_event *e)
-{
-	kdebugf();
-
-	if (SocketNotifiers.contains(e->event.dcc7_pending.dcc7))
-		SocketNotifiers.value(e->event.dcc7_pending.dcc7)->handleEventDcc7Pending(e);
-}
-
-void GaduFileTransferService::handleEventDcc7Error(struct gg_event *e)
-{
-	Q_UNUSED(e)
-
-	kdebugf();
-
-	// TODO: write it
-}
-
-void GaduFileTransferService::attachSendFileTransferSocket(GaduFileTransferHandler *handler)
-{
-	Contact contact = handler->transfer().peer();
-	if (contact.isNull())
-		return;
-
-	GaduContactDetails *details = GaduProtocolHelper::gaduContactDetails(contact);
-	if (!details)
-		return;
-
-	gg_dcc7 *dcc = gg_dcc7_send_file(Protocol->gaduSession(), details->uin(),
-			handler->transfer().localFileName().toUtf8().constData(), 0, 0);
-
-	if (dcc)
-	{
-		DccSocketNotifiers *fileTransferNotifiers = new DccSocketNotifiers(dcc, this);
-		handler->transfer().setTransferStatus(StatusWaitingForAccept);
-		handler->setFileTransferNotifiers(fileTransferNotifiers);
-		fileTransferNotifiers->start();
-
-		SocketNotifiers.insert(dcc, fileTransferNotifiers);
-	}
+	if (fileTransfer.transferDirection() == FileTransferDirection::Incoming)
+		return new GaduUrlIncomingFileTransferHandler{Protocol, fileTransfer};
 	else
-		handler->socketNotAvailable();
+		return new GaduOutgoingFileTransferHandler{Protocol, fileTransfer};
+}
+
+FileTransferCanSendResult GaduFileTransferService::canSend(Contact contact)
+{
+	if (Core::instance()->myself() == contact.ownerBuddy())
+		return {false, {}};
+
+	if (!Protocol->isConnected())
+		return {false, tr("Connect before sending files.")};
+
+	if (!Protocol->secureConnection())
+		return {false, tr("Enable SSL in account configuration and reconnect before sending files.")};
+
+	if (m_imTokenService->imToken().isEmpty())
+		return {false, tr("Unable to login to GG Drive. Reconnect before sending files.")};
+
+	return {true, {}};
+}
+
+void GaduFileTransferService::fileTransferReceived(Contact peer, QString downloadId, QString fileName)
+{
+	auto transfer = FileTransfer::create();
+	transfer.setPeer(peer);
+	transfer.setTransferDirection(FileTransferDirection::Incoming);
+	transfer.setTransferType(FileTransferType::Url);
+	transfer.setTransferStatus(FileTransferStatus::ReadyToDownload);
+	transfer.setRemoteFileName(QUrl::fromPercentEncoding(fileName.toUtf8()));
+	transfer.setFileSize(0); // we don't know file size yet
+	transfer.addProperty("gg:downloadId", downloadId, CustomProperties::Storable);
+	transfer.addProperty("gg:remoteFileName", fileName, CustomProperties::Storable);
+
+	emit incomingFileTransfer(transfer);
 }
 
 #include "moc_gadu-file-transfer-service.cpp"

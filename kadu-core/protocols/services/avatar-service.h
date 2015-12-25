@@ -2,8 +2,9 @@
  * %kadu copyright begin%
  * Copyright 2009, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009 Michał Podsiadlik (michal@kadu.net)
- * Copyright 2009, 2010, 2011, 2012, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
  * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -85,6 +86,14 @@ public:
 	 * itself after one use, so next instance should be created in case first upload fails.
 	 */
 	virtual AvatarUploader * createAvatarUploader() = 0;
+
+	/**
+	 * @return true, if updates are event-based
+	 *
+	 * If updates are event based then protocol handler is responsible for updating avatars.
+	 * If not, all contacts will be checked for new avatars periodically.
+	 **/
+	virtual bool eventBasedUpdates() = 0;
 
 };
 

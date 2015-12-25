@@ -1,4 +1,6 @@
-<?xml version="1.0" ?><!DOCTYPE TS><TS language="tr" version="2.0">
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE TS>
+<TS version="2.1" language="tr">
 <context>
     <name>@default</name>
     <message>
@@ -35,10 +37,25 @@
     </message>
 </context>
 <context>
-    <name>SoundActions</name>
+    <name>SoundBuddyConfigurationWidget</name>
     <message>
-        <source>Play Sounds</source>
-        <translation>Sesleri Çal</translation>
+        <source>Use custom sound</source>
+        <translation>Özel ses kullan</translation>
+    </message>
+    <message>
+        <source>Sound</source>
+        <translation>Ses</translation>
+    </message>
+</context>
+<context>
+    <name>SoundChatConfigurationWidget</name>
+    <message>
+        <source>Sound</source>
+        <translation>Ses</translation>
+    </message>
+    <message>
+        <source>Use custom sound</source>
+        <translation>Özel ses kullan</translation>
     </message>
 </context>
 <context>
@@ -46,6 +63,13 @@
     <message>
         <source>Custom</source>
         <translation>Özel</translation>
+    </message>
+</context>
+<context>
+    <name>SoundMuteAction</name>
+    <message>
+        <source>Play Sounds</source>
+        <translation>Sesleri Yürüt</translation>
     </message>
 </context>
 </TS>

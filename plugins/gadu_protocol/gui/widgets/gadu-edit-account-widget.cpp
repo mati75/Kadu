@@ -1,11 +1,8 @@
 /*
  * %kadu copyright begin%
- * Copyright 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2009, 2010, 2010, 2012 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2010, 2011 Piotr Dąbrowski (ultr@ultr.pl)
- * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
- * Copyright 2009, 2009, 2010, 2011, 2012, 2013, 2014 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2012 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2011, 2013, 2014 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2011, 2012, 2013, 2014, 2015 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -266,15 +263,11 @@ void GaduEditAccountWidget::createGeneralGroupBox(QVBoxLayout *layout)
 							"91.214.237.1 ; 91.214.237.3 ; 91.214.237.10:8074 ; 91.214.237.11-20 ; 91.214.237.21-30:8074");
 	generalLayout->addRow(ipAddressesLabel, ipAddresses);
 
-	AllowFileTransfers = new QCheckBox(tr("Enable file transfers"), general);
-	generalLayout->addRow(AllowFileTransfers);
-
 	connect(useDefaultServers, SIGNAL(toggled(bool)), ipAddressesLabel, SLOT(setDisabled(bool)));
 	connect(useDefaultServers, SIGNAL(toggled(bool)), ipAddresses, SLOT(setDisabled(bool)));
 
 	connect(useDefaultServers, SIGNAL(toggled(bool)), this, SLOT(dataChanged()));
 	connect(ipAddresses, SIGNAL(textEdited(QString)), this, SLOT(dataChanged()));
-	connect(AllowFileTransfers, SIGNAL(toggled(bool)), this, SLOT(dataChanged()));
 
 	UseTlsEncryption = new QCheckBox(tr("Use encrypted connection"), general);
 	generalLayout->addRow(UseTlsEncryption);
@@ -289,17 +282,6 @@ void GaduEditAccountWidget::createGeneralGroupBox(QVBoxLayout *layout)
 
 	QGroupBox *connection = new QGroupBox(tr("Network"), this);
 	QFormLayout *connectionLayout = new QFormLayout(connection);
-
-	ExternalIp = new QLineEdit(connection);
-	connect(ExternalIp, SIGNAL(textChanged(QString)), this, SLOT(dataChanged()));
-
-	connectionLayout->addRow(new QLabel(tr("External IP") + ':', connection), ExternalIp);
-
-	ExternalPort = new QLineEdit(connection);
-	ExternalPort->setValidator(new QIntValidator(0, 99999, ExternalPort));
-	connect(ExternalPort, SIGNAL(textChanged(QString)), this, SLOT(dataChanged()));
-
-	connectionLayout->addRow(new QLabel(tr("External port") + ':', connection), ExternalPort);
 
 	QLabel *proxyLabel = new QLabel(tr("Proxy configuration") + ':', connection);
 	ProxyCombo = new ProxyComboBox(connection);
@@ -340,14 +322,10 @@ void GaduEditAccountWidget::apply()
 
 		Details->setChatImageSizeWarning(ChatImageSizeWarning->isChecked());
 
-		Details->setAllowDcc(AllowFileTransfers->isChecked());
 		if (gg_libgadu_check_feature(GG_LIBGADU_FEATURE_SSL))
 			Details->setTlsEncryption(UseTlsEncryption->isChecked());
 		Details->setSendTypingNotification(SendTypingNotification->isChecked());
 		Details->setReceiveSpam(!ReceiveSpam->isChecked());
-
-		Details->setExternalIp(ExternalIp->text());
-		Details->setExternalPort(ExternalPort->text().toUInt());
 	}
 
 	Application::instance()->configuration()->deprecatedApi()->writeEntry("Network", "isDefServers", useDefaultServers->isChecked());
@@ -394,17 +372,12 @@ void GaduEditAccountWidget::dataChanged()
 
 		&& Details->chatImageSizeWarning() == ChatImageSizeWarning->isChecked()
 
-		&& Details->allowDcc() == AllowFileTransfers->isChecked()
-
 		&& Application::instance()->configuration()->deprecatedApi()->readBoolEntry("Network", "isDefServers", true) == useDefaultServers->isChecked()
 		&& Application::instance()->configuration()->deprecatedApi()->readEntry("Network", "Server") == ipAddresses->text()
 		&& (!gg_libgadu_check_feature(GG_LIBGADU_FEATURE_SSL) || Details->tlsEncryption() == UseTlsEncryption->isChecked())
 		&& Details->sendTypingNotification() == SendTypingNotification->isChecked()
 		&& Details->receiveSpam() != ReceiveSpam->isChecked()
-		&& !gpiw->isModified()
-
-		&& Details->externalIp() == ExternalIp->text()
-		&& Details->externalPort() == ExternalPort->text().toUInt())
+		&& !gpiw->isModified())
 	{
 		simpleStateNotifier()->setState(StateNotChanged);
 		return;
@@ -438,13 +411,9 @@ void GaduEditAccountWidget::loadAccountData()
 
 		ChatImageSizeWarning->setChecked(details->chatImageSizeWarning());
 
-		AllowFileTransfers->setChecked(details->allowDcc());
 		UseTlsEncryption->setChecked(gg_libgadu_check_feature(GG_LIBGADU_FEATURE_SSL) ? details->tlsEncryption() : false);
 		SendTypingNotification->setChecked(details->sendTypingNotification());
 		ReceiveSpam->setChecked(!details->receiveSpam());
-
-		ExternalIp->setText(details->externalIp());
-		ExternalPort->setText(QString::number(details->externalPort()));
 	}
 
 	useDefaultServers->setChecked(Application::instance()->configuration()->deprecatedApi()->readBoolEntry("Network", "isDefServers", true));

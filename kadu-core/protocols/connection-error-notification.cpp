@@ -1,10 +1,9 @@
 /*
  * %kadu copyright begin%
- * Copyright 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009, 2012 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2007, 2009, 2010, 2011, 2013, 2014 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2010, 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2007 Dawid Stawiarski (neeo@kadu.net)
+ * Copyright 2009, 2010, 2011, 2013, 2014 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -23,15 +22,17 @@
 
 #include <QtGui/QTextDocument>
 
+#include "core/core.h"
 #include "icons/icons-manager.h"
 #include "identities/identity.h"
-#include "notify/notification-manager.h"
-#include "notify/notify-event.h"
+#include "notification/notification-manager.h"
+#include "notification/notification-callback-repository.h"
+#include "notification/notification-callback.h"
+#include "notification/notification-event.h"
+#include "notification/notification-event-repository.h"
 #include "parser/parser.h"
 
 #include "connection-error-notification.h"
-
-NotifyEvent *ConnectionErrorNotification::ConnectionErrorNotifyEvent = 0;
 
 static QString getErrorMessage(const ParserData * const object)
 {
@@ -53,37 +54,39 @@ static QString getErrorServer(const ParserData * const object)
 
 void ConnectionErrorNotification::registerEvent()
 {
-	if (ConnectionErrorNotifyEvent)
-		return;
-
-	ConnectionErrorNotifyEvent = new NotifyEvent("ConnectionError", NotifyEvent::CallbackNotRequired, QT_TRANSLATE_NOOP("@default", "Connection error"));
-	NotificationManager::instance()->registerNotifyEvent(ConnectionErrorNotifyEvent);
+	Core::instance()->notificationEventRepository()->addNotificationEvent(NotificationEvent("ConnectionError", QT_TRANSLATE_NOOP("@default", "Connection error")));
 
 	Parser::registerObjectTag("error", getErrorMessage);
 	Parser::registerObjectTag("errorServer", getErrorServer);
+
+	auto connectionIgnoreErrorsDisconnect = NotificationCallback{
+		"connection-ignore-errors",
+		tr("Ignore"),
+		[](Notification *notification){
+			auto connectionErrorNotification = qobject_cast<ConnectionErrorNotification *>(notification);
+			if (connectionErrorNotification)
+				connectionErrorNotification->ignoreErrors();
+		}
+	};
+	Core::instance()->notificationCallbackRepository()->addCallback(connectionIgnoreErrorsDisconnect);
 }
 
 void ConnectionErrorNotification::unregisterEvent()
 {
-	if (!ConnectionErrorNotifyEvent)
-		return;
-
 	Parser::unregisterObjectTag("errorServer");
 	Parser::unregisterObjectTag("error");
 
-	NotificationManager::instance()->unregisterNotifyEvent(ConnectionErrorNotifyEvent);
-	delete ConnectionErrorNotifyEvent;
-	ConnectionErrorNotifyEvent = 0;
+	Core::instance()->notificationEventRepository()->removeNotificationEvent(NotificationEvent("ConnectionError", QT_TRANSLATE_NOOP("@default", "Connection error")));
 }
 
 void ConnectionErrorNotification::notifyConnectionError(const Account &account, const QString &errorServer, const QString &errorMessage)
 {
 	ConnectionErrorNotification *connectionErrorNotification = new ConnectionErrorNotification(account, errorServer, errorMessage);
-	NotificationManager::instance()->notify(connectionErrorNotification);
+	Core::instance()->notificationManager()->notify(connectionErrorNotification);
 }
 
 ConnectionErrorNotification::ConnectionErrorNotification(Account account, const QString &errorServer, const QString &errorMessage) :
-		AccountNotification(account, "ConnectionError", KaduIcon("dialog-error")),
+		Notification(account, Chat::null, "ConnectionError", KaduIcon("dialog-error")),
 		ErrorServer(errorServer), ErrorMessage(errorMessage)
 {
 	setTitle(tr("Connection error"));
@@ -97,12 +100,13 @@ ConnectionErrorNotification::ConnectionErrorNotification(Account account, const 
 			setDetails(Qt::escape(QString("%1 (%2)").arg(ErrorMessage).arg(ErrorServer)));
 	}
 
-	addCallback(tr("Ignore"), SLOT(ignoreErrors()), "ignoreErrors()");
+	addCallback("connection-ignore-errors");
 }
 
 void ConnectionErrorNotification::ignoreErrors()
 {
-	NotificationManager::instance()->ignoreConnectionErrors(account());
+	auto account = data()["account"].value<Account>();
+	Core::instance()->notificationManager()->ignoreConnectionErrors(account);
 	emit closed(this);
 }
 

@@ -1,6 +1,6 @@
 /*
  * %kadu copyright begin%
- * Copyright 2014 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2014 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -23,12 +23,14 @@
 #include "formatted-string/formatted-string-factory.h"
 #include "misc/paths-provider.h"
 #include "storage/storage-point-factory.h"
+#include "attention-service.h"
 
 CoreModule::CoreModule(QString profileDirectory)
 {
 	m_pathsProvider = make_not_owned<PathsProvider>(std::move(profileDirectory));
 
 	add_type<Application>();
+	add_type<AttentionService>();
 	add_type<FormattedStringFactory>();
 	add_type<StoragePointFactory>();
 	add_ready_object<PathsProvider>(m_pathsProvider.get());

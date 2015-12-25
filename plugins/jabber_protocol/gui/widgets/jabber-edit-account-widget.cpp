@@ -1,14 +1,8 @@
 /*
  * %kadu copyright begin%
- * Copyright 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2010, 2010, 2011, 2012 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2010 Tomasz Rostański (rozteck@interia.pl)
- * Copyright 2010 Piotr Pełzowski (floss@pelzowski.eu)
- * Copyright 2009 Michał Podsiadlik (michal@kadu.net)
- * Copyright 2009, 2009, 2011 Bartłomiej Zimoń (uzi18@o2.pl)
- * Copyright 2010 badboy (badboy@gen2.org)
- * Copyright 2009, 2010, 2011, 2012, 2013, 2014 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2011, 2012 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2011, 2013, 2014 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2011, 2012, 2013, 2014 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -36,7 +30,6 @@
 #include <QtWidgets/QLineEdit>
 #include <QtWidgets/QTabWidget>
 #include <QtWidgets/QVBoxLayout>
-#include <QtCrypto>
 
 #include "accounts/account-manager.h"
 #include "accounts/account.h"
@@ -53,6 +46,7 @@
 #include "protocols/services/avatar-service.h"
 
 #include "gui/windows/jabber-change-password-window.h"
+#include "jabber-protocol.h"
 
 #include "jabber-edit-account-widget.h"
 
@@ -244,6 +238,10 @@ void JabberEditAccountWidget::createGeneralGroupBox(QVBoxLayout *layout)
 	connect(DataTransferProxy, SIGNAL(textEdited(QString)), this, SLOT(dataChanged()));
 	connectionBoxLayout->addRow(dataTransferProxyLabel, DataTransferProxy);
 
+	RequireDataTransferProxy = new QCheckBox{tr("Require data transfer proxy:"), connection};
+	connect(RequireDataTransferProxy, SIGNAL(toggled(bool)), this, SLOT(dataChanged()));
+	connectionBoxLayout->addWidget(RequireDataTransferProxy);
+
 	QLabel *proxyLabel = new QLabel(tr("Proxy configuration"), connection);
 	ProxyCombo = new ProxyComboBox(connection);
 	ProxyCombo->enableDefaultProxyAction();
@@ -328,19 +326,9 @@ void JabberEditAccountWidget::autoResourceToggled(bool on)
 	ResourceLabel->setEnabled(!on);
 }
 
-bool JabberEditAccountWidget::checkSSL()
-{
-	if (!QCA::isSupported("tls"))
-	{
-		MessageDialog::show(KaduIcon("dialog-warning"), tr("Kadu"), tr("Cannot enable secure connection. SSL/TLS plugin not found."));
-		return false;
-	}
-	return true;
-}
-
 void JabberEditAccountWidget::sslActivated(int i)
 {
-	if ((EncryptionMode->itemData(i) == JabberAccountDetails::Encryption_Auto || EncryptionMode->itemData(i) == JabberAccountDetails::Encryption_Legacy) && !checkSSL())
+	if ((EncryptionMode->itemData(i) == JabberAccountDetails::Encryption_Auto || EncryptionMode->itemData(i) == JabberAccountDetails::Encryption_Legacy))
 		EncryptionMode->setCurrentIndex(EncryptionMode->findData(JabberAccountDetails::Encryption_No));
 	else if (EncryptionMode->itemData(i) == JabberAccountDetails::Encryption_Legacy && !CustomHostPort->isChecked())
 	{
@@ -378,6 +366,7 @@ void JabberEditAccountWidget::dataChanged()
 		&& AccountDetails->resource() == ResourceName->text()
 		&& AccountDetails->priority() == Priority->text().toInt()
 		&& AccountDetails->dataTransferProxy() == DataTransferProxy->text()
+		&& AccountDetails->requireDataTransferProxy() == RequireDataTransferProxy->isChecked()
 		&& AccountDetails->sendGoneNotification() == SendGoneNotification->isChecked()
 		&& AccountDetails->sendTypingNotification() == SendTypingNotification->isChecked()
 		&& AccountDetails->publishSystemInfo() == PublishSystemInfo->isChecked()
@@ -429,6 +418,7 @@ void JabberEditAccountWidget::loadAccountDetailsData()
 	ResourceName->setText(AccountDetails->resource());
 	Priority->setText(QString::number(AccountDetails->priority()));
 	DataTransferProxy->setText(AccountDetails->dataTransferProxy());
+	RequireDataTransferProxy->setChecked(AccountDetails->requireDataTransferProxy());
 
 	SendGoneNotification->setChecked(AccountDetails->sendGoneNotification());
 	SendTypingNotification->setChecked(AccountDetails->sendTypingNotification());
@@ -463,6 +453,7 @@ void JabberEditAccountWidget::apply()
 	AccountDetails->setResource(ResourceName->text());
 	AccountDetails->setPriority(Priority->text().toInt());
 	AccountDetails->setDataTransferProxy(DataTransferProxy->text());
+	AccountDetails->setRequireDataTransferProxy(RequireDataTransferProxy->isChecked());
 	AccountDetails->setSendGoneNotification(SendGoneNotification->isChecked());
 	AccountDetails->setSendTypingNotification(SendTypingNotification->isChecked());
 	AccountDetails->setPublishSystemInfo(PublishSystemInfo->isChecked());
@@ -509,7 +500,14 @@ void JabberEditAccountWidget::removeAccount()
 
 void JabberEditAccountWidget::changePasssword()
 {
-	JabberChangePasswordWindow *changePasswordWindow = new JabberChangePasswordWindow(account());
+	auto protocol = static_cast<JabberProtocol *>(account().protocolHandler());
+	if (!protocol->isConnected())
+	{
+		MessageDialog::show(KaduIcon("dialog-warning"), tr("Kadu"), tr("Log in before changing password."), QMessageBox::Ok, this);
+		return;
+	}
+
+	JabberChangePasswordWindow *changePasswordWindow = new JabberChangePasswordWindow(protocol->changePasswordService(), account());
 	connect(changePasswordWindow, SIGNAL(passwordChanged(const QString &)), this, SLOT(passwordChanged(const QString &)));
 	changePasswordWindow->show();
 }

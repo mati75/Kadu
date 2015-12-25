@@ -1,7 +1,7 @@
 /*
  * %kadu copyright begin%
- * Copyright 2012, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2012, 2013, 2014 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2013, 2014 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2012, 2013, 2014 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * Copyright (C) 2006 Remko Troncon
@@ -20,40 +20,29 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef JABBER_STREAM_DEBUG_SERVICE_H
-#define JABBER_STREAM_DEBUG_SERVICE_H
+#pragma once
 
-#include <QtCore/QPointer>
+#include <QtCore/QObject>
+#include <qxmpp/QXmppLogger.h>
 
-namespace XMPP
-{
-
-class Client;
-
-class JabberProtocol;
+class QXmppClient;
 
 class JabberStreamDebugService : public QObject
 {
 	Q_OBJECT
 
-	QPointer<XMPP::Client> XmppClient;
-
-	QString filterPrivateData(const QString &streamData);
-
-private slots:
-	void incomingXml(const QString &xmlData);
-	void outgoingXml(const QString &xmlData);
-
 public:
-	explicit JabberStreamDebugService(JabberProtocol *protocol);
+	explicit JabberStreamDebugService(QXmppClient *m_client, QObject *parent = nullptr);
 	virtual ~JabberStreamDebugService();
 
 signals:
 	void incomingStream(const QString &streamData);
 	void outgoingStream(const QString &streamData);
 
+private:
+	QString filterPrivateData(const QString &streamData);
+
+private slots:
+	void message(QXmppLogger::MessageType type, const QString &message);
+
 };
-
-}
-
-#endif // JABBER_STREAM_DEBUG_SERVICE_H

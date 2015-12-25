@@ -1,14 +1,9 @@
 /*
  * %kadu copyright begin%
- * Copyright 2008, 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2010, 2012 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2008, 2009 Tomasz Rostański (rozteck@interia.pl)
- * Copyright 2010, 2011 Piotr Dąbrowski (ultr@ultr.pl)
- * Copyright 2010 Maciej Płaza (plaza.maciej@gmail.com)
- * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
- * Copyright 2007, 2008, 2009, 2010, 2011, 2013, 2014 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2004, 2005, 2006 Marcin Ślusarz (joi@kadu.net)
+ * Copyright 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2012 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2011, 2012, 2013, 2014 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2011, 2013, 2014, 2015 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -36,10 +31,12 @@
 #include "configuration/deprecated-configuration-api.h"
 #include "contacts/contact-set.h"
 #include "core/application.h"
+#include "core/core.h"
 #include "icons/icons-manager.h"
-#include "notify/notification/aggregate-notification.h"
-#include "notify/notification/chat-notification.h"
-#include "notify/notification/notification.h"
+#include "notification/notification/aggregate-notification.h"
+#include "notification/notification-callback-repository.h"
+#include "notification/notification-callback.h"
+#include "notification/notification/notification.h"
 #include "parser/parser.h"
 #include "debug.h"
 
@@ -49,14 +46,10 @@
  * @ingroup hints
  * @{
  */
-Hint::Hint(QWidget *parent, Notification *notification)
-	: QFrame(parent), vbox(0), callbacksBox(0), icon(0), label(0), bcolor(), notification(notification),
-	  requireCallbacks(notification->requireCallback())
+Hint::Hint(QWidget *parent, Notification *xnotification)
+	: QFrame(parent), vbox(0), callbacksBox(0), icon(0), label(0), bcolor(), notification(xnotification)
 {
 	kdebugf();
-
-	if (notification->type() == "Preview")
-		requireCallbacks = true;
 
 	AggregateNotification *aggregateNotification = qobject_cast<AggregateNotification *>(notification);
 	if (aggregateNotification)
@@ -64,22 +57,17 @@ Hint::Hint(QWidget *parent, Notification *notification)
 		notification = aggregateNotification->notifications().first();
 	}
 
-	ChatNotification *chatNotification = qobject_cast<ChatNotification *>(notification);
-	CurrentChat = chatNotification ? chatNotification->chat() : Chat::null;
+	CurrentChat = notification->data()["chat"].value<Chat>();
 
 	startSecs = secs = Application::instance()->configuration()->deprecatedApi()->readNumEntry("Hints", "Event_" + notification->key() + "_timeout", 10);
 
 	createLabels(notification->icon().icon().pixmap(Application::instance()->configuration()->deprecatedApi()->readNumEntry("Hints", "AllEvents_iconSize", 32)));
 
-	const QList<Notification::Callback> callbacks = notification->getCallbacks();
+	auto callbacks = notification->getCallbacks();
 	bool showButtons = !callbacks.isEmpty();
 	if (showButtons)
-		if (Application::instance()->configuration()->deprecatedApi()->readBoolEntry("Hints", "ShowOnlyNecessaryButtons") && !notification->requireCallback())
+		if (Application::instance()->configuration()->deprecatedApi()->readBoolEntry("Hints", "ShowOnlyNecessaryButtons"))
 			showButtons = false;
-
-	auto callbackNotifiation = notification;
-	if (qobject_cast<AggregateNotification *>(callbackNotifiation))
-		callbackNotifiation = qobject_cast<AggregateNotification *>(callbackNotifiation)->notifications()[0];
 
 	if (showButtons)
 	{
@@ -87,11 +75,12 @@ Hint::Hint(QWidget *parent, Notification *notification)
 		callbacksBox->addStretch(10);
 		vbox->addLayout(callbacksBox);
 
-		foreach (const Notification::Callback &i, callbacks)
+		for (auto &&callbackName : callbacks)
 		{
-			QPushButton *button = new QPushButton(i.Caption, this);
-			connect(button, SIGNAL(clicked(bool)), callbackNotifiation, i.Slot);
-			connect(button, SIGNAL(clicked(bool)), callbackNotifiation, SLOT(clearDefaultCallback()));
+			auto callback = Core::instance()->notificationCallbackRepository()->callback(callbackName);
+			auto button = new QPushButton(callback.title(), this);
+			button->setProperty("notify:callback", callbackName);
+			connect(button, SIGNAL(clicked()), this, SLOT(buttonClicked()));
 
 			callbacksBox->addWidget(button);
 			callbacksBox->addStretch(1);
@@ -113,6 +102,23 @@ Hint::Hint(QWidget *parent, Notification *notification)
 
 Hint::~Hint()
 {
+}
+
+void Hint::buttonClicked()
+{
+	auto callbackNotification = notification;
+	if (qobject_cast<AggregateNotification *>(callbackNotification))
+		callbackNotification = qobject_cast<AggregateNotification *>(callbackNotification)->notifications()[0];
+
+	auto callbackName = sender()->property("notify:callback").toString();
+	if (!callbackName.isEmpty())
+	{
+		auto callback = Core::instance()->notificationCallbackRepository()->callback(callbackName);
+		callback.call(callbackNotification);
+	}
+
+	notification->close();
+	close();
 }
 
 void Hint::configurationUpdated()
@@ -236,35 +242,27 @@ void Hint::notificationClosed()
 	emit closing(this);
 }
 
-bool Hint::requireManualClosing()
-{
-	return requireCallbacks;
-}
-
 void Hint::nextSecond(void)
 {
-	if (!requireCallbacks)
+	if (startSecs == 0)
+		return;
+
+	if (secs == 0)
 	{
-		if (startSecs == 0)
-			return;
-
-		if (secs == 0)
-		{
-			kdebugm(KDEBUG_ERROR, "ERROR: secs == 0 !\n");
-		}
-		else if (secs > 2000000000)
-		{
-			kdebugm(KDEBUG_WARNING, "WARNING: secs > 2 000 000 000 !\n");
-		}
-
-		if (secs > 0)
-			--secs;
+		kdebugm(KDEBUG_ERROR, "ERROR: secs == 0 !\n");
 	}
+	else if (secs > 2000000000)
+	{
+		kdebugm(KDEBUG_WARNING, "WARNING: secs > 2 000 000 000 !\n");
+	}
+
+	if (secs > 0)
+		--secs;
 }
 
 bool Hint::isDeprecated()
 {
-	return (!requireCallbacks) && startSecs != 0 && secs == 0;
+	return startSecs != 0 && secs == 0;
 }
 
 void Hint::notificationUpdated()

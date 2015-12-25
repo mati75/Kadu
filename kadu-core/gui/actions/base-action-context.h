@@ -2,7 +2,7 @@
  * %kadu copyright begin%
  * Copyright 2011 Tomasz Rostanski (rozteck@interia.pl)
  * Copyright 2012 Sławomir Stępień (s.stepien@interia.pl)
- * Copyright 2011, 2012, 2013, 2014 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2011, 2012, 2013, 2014, 2015 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -22,6 +22,8 @@
 #ifndef BASE_ACTION_CONTEXT_H
 #define BASE_ACTION_CONTEXT_H
 
+#include <QtCore/QObject>
+
 #include "buddies/buddy-set.h"
 #include "chat/chat.h"
 #include "contacts/contact-set.h"
@@ -37,6 +39,7 @@ class KADUAPI BaseActionContext : public ActionContext
 
 	ChangeNotifier MyChangeNotifier;
 
+	QWidget *Widget;
 	ContactSet Contacts;
 	BuddySet Buddies;
 	Chat CurrentChat;
@@ -44,24 +47,26 @@ class KADUAPI BaseActionContext : public ActionContext
 	RoleSet Roles;
 
 public:
-	BaseActionContext();
+	explicit BaseActionContext(QWidget *widget);
 	virtual ~BaseActionContext();
 
 	ChangeNotifier & changeNotifier();
 
-	virtual ContactSet contacts();
+	virtual QWidget * widget() override;
+
+	virtual ContactSet contacts() override;
 	void setContacts(const ContactSet &contacts);
 
-	virtual BuddySet buddies();
+	virtual BuddySet buddies() override;
 	void setBuddies(const BuddySet &buddies);
 
-	virtual Chat chat();
+	virtual Chat chat() override;
 	void setChat(const Chat &chat);
 
-	virtual StatusContainer * statusContainer();
+	virtual StatusContainer * statusContainer() override;
 	void setStatusContainer(StatusContainer *statusContainer);
 
-	virtual RoleSet roles();
+	virtual RoleSet roles() override;
 	void setRoles(const RoleSet &roles);
 
 };

@@ -3,6 +3,9 @@ set (gui_SRCS
 	actions/chat/add-room-chat-action.cpp
 	actions/chat/leave-chat-action.cpp
 
+	actions/talkable-tree-view/collapse-action.cpp
+	actions/talkable-tree-view/expand-action.cpp
+
 	actions/action.cpp
 	actions/actions.cpp
 	actions/action-description.cpp
@@ -35,7 +38,9 @@ set (gui_SRCS
 	widgets/chat-widget/chat-widget-message-handler-configurator.cpp
 	widgets/chat-widget/chat-widget-module.cpp
 	widgets/chat-widget/chat-widget-repository.cpp
+	widgets/chat-widget/chat-widget-set-title.cpp
 	widgets/chat-widget/chat-widget-state-persistence-service.cpp
+	widgets/chat-widget/chat-widget-title.cpp
 
 	widgets/group-tab-bar/group-filter-tab-data.cpp
 	widgets/group-tab-bar/group-tab-bar.cpp
@@ -56,7 +61,7 @@ set (gui_SRCS
 	widgets/buddy-avatar-widget.cpp
 	widgets/buddy-configuration-widget.cpp
 	widgets/buddy-configuration-widget-factory-repository.cpp
-	widgets/buddy-configuration-widget-tab-adapter.cpp
+	widgets/buddy-configuration-widget-group-boxes-adapter.cpp
 	widgets/buddy-contacts-table-delegate.cpp
 	widgets/buddy-contacts-table-item.cpp
 	widgets/buddy-contacts-table-model.cpp
@@ -71,10 +76,11 @@ set (gui_SRCS
 	widgets/categorized-list-view-painter.cpp
 	widgets/chat-configuration-widget.cpp
 	widgets/chat-configuration-widget-factory-repository.cpp
-	widgets/chat-configuration-widget-tab-adapter.cpp
+	widgets/chat-configuration-widget-group-boxes-adapter.cpp
 	widgets/chat-edit-box.cpp
 	widgets/chat-edit-box-size-manager.cpp
 	widgets/chat-edit-widget.cpp
+	widgets/chat-groups-configuration-widget.cpp
 	widgets/chat-room-edit-widget.cpp
 	widgets/chat-style-preview.cpp
 	widgets/chat-top-bar-container-widget.cpp
@@ -85,11 +91,11 @@ set (gui_SRCS
 	widgets/color-selector.cpp
 	widgets/composite-configuration-value-state-notifier.cpp
 	widgets/configuration-value-state-notifier.cpp
+	widgets/contact-avatar-display.cpp
 	widgets/custom-input.cpp
 	widgets/custom-input-menu-item.cpp
 	widgets/custom-input-menu-manager.cpp
 	widgets/delayed-line-edit.cpp
-	widgets/file-transfer-widget.cpp
 	widgets/filter-widget.cpp
 	widgets/filtered-tree-view.cpp
 	widgets/group-list.cpp
@@ -166,8 +172,6 @@ set (gui_SRCS
 	widgets/configuration/notify-group-box.cpp
 	widgets/configuration/notify-tree-widget.cpp
 
-	widgets/dialog/add-group-dialog-widget.cpp
-	widgets/dialog/edit-group-dialog-widget.cpp
 	widgets/dialog/merge-buddies-dialog-widget.cpp
 	widgets/dialog/password-dialog-widget.cpp
 	widgets/dialog/title-widget.cpp
@@ -192,8 +196,7 @@ set (gui_SRCS
 	windows/chat-data-window.cpp
 	windows/chat-data-window-repository.cpp
 	windows/configuration-window.cpp
-	windows/file-transfer-window.cpp
-	windows/group-properties-window.cpp
+	windows/group-edit-window.cpp
 	windows/kadu-dialog.cpp
 	windows/kadu-window.cpp
 	windows/kadu-window-actions.cpp
@@ -222,6 +225,7 @@ set (gui_SRCS
 	gui-module.cpp
 	hot-key.cpp
 	status-icon.cpp
+	taskbar-progress.cpp
 	web-view-highlighter.cpp
 	window-manager.cpp
 )
@@ -260,7 +264,6 @@ set (gui_MOC_SRCS
 	widgets/buddy-avatar-widget.h
 	widgets/buddy-configuration-widget.h
 	widgets/buddy-configuration-widget-factory-repository.h
-	widgets/buddy-configuration-widget-tab-adapter.h
 	widgets/buddy-contacts-table-delegate.h
 	widgets/buddy-contacts-table-item.h
 	widgets/buddy-contacts-table-model.h
@@ -275,7 +278,6 @@ set (gui_MOC_SRCS
 	widgets/categorized-list-view-painter.h
 	widgets/chat-configuration-widget.h
 	widgets/chat-configuration-widget-factory-repository.h
-	widgets/chat-configuration-widget-tab-adapter.h
 	widgets/chat-edit-box.h
 	widgets/chat-edit-box-size-manager.h
 	widgets/chat-edit-widget.h
@@ -289,7 +291,6 @@ set (gui_MOC_SRCS
 	widgets/custom-input.h
 	widgets/custom-input-menu-manager.h
 	widgets/delayed-line-edit.h
-	widgets/file-transfer-widget.h
 	widgets/filter-widget.h
 	widgets/filtered-tree-view.h
 	widgets/group-list.h
@@ -355,8 +356,6 @@ set (gui_MOC_SRCS
 	widgets/configuration/notifier-configuration-widget.h
 	widgets/configuration/notify-group-box.h
 
-	widgets/dialog/add-group-dialog-widget.h
-	widgets/dialog/edit-group-dialog-widget.h
 	widgets/dialog/dialog-widget.h
 	widgets/dialog/merge-buddies-dialog-widget.h
 	widgets/dialog/password-dialog-widget.h
@@ -372,8 +371,6 @@ set (gui_MOC_SRCS
 	windows/chat-data-window.h
 	windows/chat-data-window-repository.h
 	windows/configuration-window.h
-	windows/file-transfer-window.h
-	windows/group-properties-window.h
 	windows/kadu-dialog.h
 	windows/kadu-window.h
 	windows/kadu-window-actions.h

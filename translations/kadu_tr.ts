@@ -1,4 +1,6 @@
-<?xml version="1.0" ?><!DOCTYPE TS><TS language="tr" version="2.0">
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE TS>
+<TS version="2.1" language="tr">
 <context>
     <name>@default</name>
     <message>
@@ -72,18 +74,6 @@
     <message>
         <source>Maximum time difference</source>
         <translation>Maksimum zaman farkı</translation>
-    </message>
-    <message>
-        <source>Chat window title syntax</source>
-        <translation>Konuşma penceresi başlığı sözdizimi</translation>
-    </message>
-    <message>
-        <source>Conference window title prefix</source>
-        <translation>Konferans penceresi başlığı öneki</translation>
-    </message>
-    <message>
-        <source>Conference window title syntax</source>
-        <translation>Konferans penceresi başlığı sözdizimi</translation>
     </message>
     <message>
         <source>Kadu</source>
@@ -244,10 +234,6 @@
     <message>
         <source>Display group tabs</source>
         <translation>Grup sekmeleri görünümü</translation>
-    </message>
-    <message>
-        <source>Descriptions</source>
-        <translation>Tanımlamalar</translation>
     </message>
     <message>
         <source>Use background image</source>
@@ -466,10 +452,6 @@
         <translation>Sunucu Saati</translation>
     </message>
     <message>
-        <source>Window Title</source>
-        <translation>Pencere Başlığı</translation>
-    </message>
-    <message>
         <source>Nickname</source>
         <translation>Takma İsim</translation>
     </message>
@@ -538,10 +520,6 @@
         <translation>Bağlanan arkadaşları kalın göster</translation>
     </message>
     <message>
-        <source>Buddy Photos</source>
-        <translation>Arkadaş Fotografları</translation>
-    </message>
-    <message>
         <source>Grey out offline buddies&apos; photos</source>
         <translation>Çevrimdışı arkadaşların fotograflarını grileştir</translation>
     </message>
@@ -594,7 +572,7 @@
         <translation>Durum Değiştir</translation>
     </message>
     <message>
-        <source>This option will supersede tooltips with buddies' status
+        <source>This option will supersede tooltips with buddies&apos; status
 changes upon establishing connection to the server</source>
         <translation>Bu seçenek araç ipuçları yerine arkadaş durumları geçecektir
 değişiklikler sunucuya bağlantı kurunca olacak</translation>
@@ -629,11 +607,15 @@ değişiklikler sunucuya bağlantı kurunca olacak</translation>
     </message>
     <message numerus="yes">
         <source>%n minute(s)</source>
-        <translation><numerusform>%n dakika</numerusform><numerusform>%n dakika</numerusform></translation>
+        <translation>
+            <numerusform>%n dakika</numerusform>
+        </translation>
     </message>
     <message numerus="yes">
         <source>%n second(s)</source>
-        <translation><numerusform>%n saniye</numerusform><numerusform>%n saniye</numerusform></translation>
+        <translation>
+            <numerusform>%n saniye</numerusform>
+        </translation>
     </message>
     <message>
         <source>Send message</source>
@@ -644,20 +626,12 @@ değişiklikler sunucuya bağlantı kurunca olacak</translation>
         <translation>Uyarıları bir pencere ile göster</translation>
     </message>
     <message>
-        <source>Contact state change notification position</source>
-        <translation>Kişi durumu değişince uyarının konumu</translation>
-    </message>
-    <message>
         <source>Beginning of title</source>
         <translation>Başlık başlangıcı</translation>
     </message>
     <message>
         <source>End of title</source>
         <translation>Başlık sonu</translation>
-    </message>
-    <message>
-        <source>Custom composing notification syntax</source>
-        <translation>Özel yazıyor uyarısı sözdizimi</translation>
     </message>
     <message>
         <source>Move the Window to the Active Desktop</source>
@@ -1123,6 +1097,14 @@ değişiklikler sunucuya bağlantı kurunca olacak</translation>
         <source>Open chat window on new message in minimized mode</source>
         <translation>Yeni mesajı konuşma penceresinde simge durumunda olarak aç</translation>
     </message>
+    <message>
+        <source>Always show identity</source>
+        <translation>Her zaman kimlik göster</translation>
+    </message>
+    <message>
+        <source>Notification position</source>
+        <translation>Uyarı konumu</translation>
+    </message>
 </context>
 <context>
     <name>About</name>
@@ -1219,6 +1201,18 @@ değişiklikler sunucuya bağlantı kurunca olacak</translation>
     <message>
         <source>Contact List Files (*.txt)</source>
         <translation>Kişi Listesi Dosyaları (*.txt)</translation>
+    </message>
+    <message>
+        <source>The following contacts from your list were not found in file:&lt;br/&gt;&lt;b&gt;%1&lt;/b&gt;.&lt;br/&gt;Do you want to remove them from contact list?</source>
+        <translation>Listenizdeki bu kişiler dosyada bulunamadı:&lt;br/&gt;&lt;b&gt;%1&lt;/b&gt;.&lt;br/&gt;Kişi listesinde silmek istediğinize emin misiniz?</translation>
+    </message>
+    <message>
+        <source>Remove</source>
+        <translation>Kaldır</translation>
+    </message>
+    <message>
+        <source>Cancel</source>
+        <translation>İptal</translation>
     </message>
 </context>
 <context>
@@ -1417,17 +1411,6 @@ değişiklikler sunucuya bağlantı kurunca olacak</translation>
     <message>
         <source>Enter visible name to add this conference to roster</source>
         <translation>Bu konferanstaki görev listesine eklemek için görünen adı girin</translation>
-    </message>
-</context>
-<context>
-    <name>AddGroupDialogWidget</name>
-    <message>
-        <source>Add Group</source>
-        <translation>Grup Ekle</translation>
-    </message>
-    <message>
-        <source>Group Name</source>
-        <translation>Grup Adı</translation>
     </message>
 </context>
 <context>
@@ -1744,6 +1727,10 @@ değişiklikler sunucuya bağlantı kurunca olacak</translation>
         <source>Hide description</source>
         <translation>Tanımlamayı gizle</translation>
     </message>
+    <message>
+        <source>General</source>
+        <translation>Genel</translation>
+    </message>
 </context>
 <context>
     <name>BuddyPersonalInfoConfigurationWidget</name>
@@ -1770,10 +1757,6 @@ değişiklikler sunucuya bağlantı kurunca olacak</translation>
         <translation>Görünen İsim</translation>
     </message>
     <message>
-        <source>Add this chat to the groups below by checking the box next to the appropriate groups.</source>
-        <translation>Bu konuşmayı uygun gruplara eklemek için aşağıdaki grupları işaretleyiniz.</translation>
-    </message>
-    <message>
         <source>OK</source>
         <translation>Tamam</translation>
     </message>
@@ -1792,6 +1775,14 @@ değişiklikler sunucuya bağlantı kurunca olacak</translation>
     <message>
         <source>Chat</source>
         <translation>Konuşma</translation>
+    </message>
+    <message>
+        <source>Groups</source>
+        <translation>Gruplar</translation>
+    </message>
+    <message>
+        <source>Options</source>
+        <translation>Ayarlar</translation>
     </message>
 </context>
 <context>
@@ -1842,6 +1833,13 @@ değişiklikler sunucuya bağlantı kurunca olacak</translation>
     </message>
 </context>
 <context>
+    <name>ChatGroupsConfigurationWidget</name>
+    <message>
+        <source>Add &lt;b&gt;%1&lt;/b&gt; to the groups below by checking the box next to the appropriate groups.</source>
+        <translation>&lt;b&gt;%1&lt;/b&gt; uygun gruplara eklemek için aşağıdaki grupları işaretleyiniz.</translation>
+    </message>
+</context>
+<context>
     <name>ChatImageRequestService</name>
     <message>
         <source>Buddy %1 is attempting to send you an image of %2 KiB in size.
@@ -1869,17 +1867,6 @@ Yine bu resmi kabul edecek misiniz?</translation>
     </message>
 </context>
 <context>
-    <name>ChatNotification</name>
-    <message>
-        <source>Chat</source>
-        <translation>Konuşma</translation>
-    </message>
-    <message>
-        <source>Ignore</source>
-        <translation>Atla</translation>
-    </message>
-</context>
-<context>
     <name>ChatRoomEditWidget</name>
     <message>
         <source>Account:</source>
@@ -1897,6 +1884,10 @@ Yine bu resmi kabul edecek misiniz?</translation>
         <source>Password:</source>
         <translation>Şifre:</translation>
     </message>
+    <message>
+        <source>Stay in chat room after closing chat window</source>
+        <translation>Konuşma penceresini kapattıktan sonra konuşma odasında kal</translation>
+    </message>
 </context>
 <context>
     <name>ChatStylePreview</name>
@@ -1911,14 +1902,6 @@ Yine bu resmi kabul edecek misiniz?</translation>
 </context>
 <context>
     <name>ChatWidget</name>
-    <message>
-        <source>Conference with </source>
-        <translation>Konferans Yap</translation>
-    </message>
-    <message>
-        <source>Chat with </source>
-        <translation>Konuşma Yap </translation>
-    </message>
     <message>
         <source>Chat window will be cleared. Continue?</source>
         <translation>Konuşma penceresi temizlenecek. Devam edilsin mi?</translation>
@@ -1938,14 +1921,6 @@ Yine bu resmi kabul edecek misiniz?</translation>
     <message>
         <source>%1 ended the conversation</source>
         <translation>%1 konuşmayı bitirdi</translation>
-    </message>
-    <message>
-        <source>(Composing...)</source>
-        <translation>(Yazıyor...)</translation>
-    </message>
-    <message>
-        <source>(Inactive)</source>
-        <translation>(aktif değil)</translation>
     </message>
     <message>
         <source>Clear chat window</source>
@@ -2008,6 +1983,21 @@ Yine bu resmi kabul edecek misiniz?</translation>
     </message>
 </context>
 <context>
+    <name>ChatWidgetTitle</name>
+    <message>
+        <source>Conference [%1]</source>
+        <translation>Konferans [%1]</translation>
+    </message>
+    <message>
+        <source>(Composing...)</source>
+        <translation>(Yazıyor...)</translation>
+    </message>
+    <message>
+        <source>(Inactive)</source>
+        <translation>(aktif değil)</translation>
+    </message>
+</context>
+<context>
     <name>ChatWindow</name>
     <message>
         <source>New message received, close window anyway?</source>
@@ -2031,6 +2021,13 @@ Yine bu resmi kabul edecek misiniz?</translation>
     <message>
         <source>Create new description...</source>
         <translation>Yeni tanımlama oluştur...</translation>
+    </message>
+</context>
+<context>
+    <name>CollapseAction</name>
+    <message>
+        <source>Collapse</source>
+        <translation>Daralt</translation>
     </message>
 </context>
 <context>
@@ -2061,53 +2058,6 @@ Yine bu resmi kabul edecek misiniz?</translation>
     <message>
         <source>Ignore</source>
         <translation>Atla</translation>
-    </message>
-</context>
-<context>
-    <name>ContactListService</name>
-    <message>
-        <source>Kadu</source>
-        <translation>Kadu</translation>
-    </message>
-    <message>
-        <source>The following contacts from your list were not found in file:&lt;br/&gt;&lt;b&gt;%1&lt;/b&gt;.&lt;br/&gt;Do you want to remove them from contact list?</source>
-        <translation>Listenizdeki bu kişiler dosyada bulunamadı:&lt;br/&gt;&lt;b&gt;%1&lt;/b&gt;.&lt;br/&gt;Kişi listesinde silmek istediğinize emin misiniz?</translation>
-    </message>
-    <message>
-        <source>Kadu since version 0.10.0 automatically synchronizes Gadu-Gadu contact list with server. Now the first synchronization will be performed.&lt;br/&gt;&lt;br/&gt;</source>
-        <translation>Kadu 0.10.0 versiyonundan beri Gadu-Gadu kişi listesini sunucudan otomatik olarak eşitler. Şimdi ilk eşitleme yapılacak. &lt;br/&gt;&lt;br/&gt;</translation>
-    </message>
-    <message>
-        <source>The following contacts present on the server were not found on your local contact list:&lt;br/&gt;&lt;b&gt;%1&lt;/b&gt;.&lt;br/&gt;If you do not agree to add those contacts to your local list, they will be removed from the server.&lt;br/&gt;&lt;br/&gt;</source>
-        <translation>Aşağıdaki kişiler sunucu listesinde var sizin yerel kişi listesinizde yok:&lt;br/&gt;&lt;b&gt;%1&lt;/b&gt;.&lt;br/&gt;Eğer yerel kişi listenize kabul etmiyorsanız, sunucu üzerinden silinecekler.&lt;br/&gt;&lt;br/&gt;</translation>
-    </message>
-    <message>
-        <source>The following contacts from your local list are present on the server under different names:&lt;br/&gt;&lt;b&gt;%1&lt;/b&gt;.&lt;br/&gt;&lt;br/&gt;</source>
-        <translation>Yerel kişi listenizde bulunan aşağıdaki kişiler sunucu üzerinde farklı isime sahip:&lt;br/&gt;&lt;b&gt;%1&lt;/b&gt;.&lt;br/&gt;&lt;br/&gt;</translation>
-    </message>
-    <message>
-        <source>Moreover, the following contacts from your local list are present on the server under different names:&lt;br/&gt;&lt;b&gt;%1&lt;/b&gt;.&lt;br/&gt;&lt;br/&gt;</source>
-        <translation>Bundan başka, yerel kişi listenizde bulunan aşağıdaki kişiler sunucu üzerinde farklı isime sahip:&lt;br/&gt;&lt;b&gt;%1&lt;/b&gt;.&lt;br/&gt;&lt;br/&gt;</translation>
-    </message>
-    <message>
-        <source>Do you want to apply the above changes to your local contact list? Regardless of your choice, it will be sent to the server after making possible changes.</source>
-        <translation>Yerel kişi listesindeki değişliklikleri uygulamak istiyor musunuz? Seçtiğiniz ne olursa olsun, sunucuya gönderilecek sonrasında mümkün olan değişiklikler yapılacak.</translation>
-    </message>
-    <message>
-        <source>Apply changes</source>
-        <translation>Değişiklikleri uygula</translation>
-    </message>
-    <message>
-        <source>Leave contact list unchanged</source>
-        <translation>Kişi listesini değiştirmeden ayrıl</translation>
-    </message>
-    <message>
-        <source>Remove</source>
-        <translation>Kaldır</translation>
-    </message>
-    <message>
-        <source>Cancel</source>
-        <translation>İptal</translation>
     </message>
 </context>
 <context>
@@ -2198,18 +2148,10 @@ Yine bu resmi kabul edecek misiniz?</translation>
     </message>
 </context>
 <context>
-    <name>FileTransferActions</name>
+    <name>ExpandAction</name>
     <message>
-        <source>Send File...</source>
-        <translation>Dosya Gönder...</translation>
-    </message>
-    <message>
-        <source>View File Transfers</source>
-        <translation>Dosya Aktarımlarını Göster</translation>
-    </message>
-    <message>
-        <source>Select file location</source>
-        <translation>Dosya konumunu seçin</translation>
+        <source>Expand</source>
+        <translation>Genişlet</translation>
     </message>
 </context>
 <context>
@@ -2231,10 +2173,6 @@ Yine bu resmi kabul edecek misiniz?</translation>
         <translation>Üzerine Yaz</translation>
     </message>
     <message>
-        <source>Resume</source>
-        <translation>Devam Et</translation>
-    </message>
-    <message>
         <source>Select another file</source>
         <translation>Başka dosya seç</translation>
     </message>
@@ -2246,6 +2184,10 @@ Yine bu resmi kabul edecek misiniz?</translation>
         <source>Could not open file. Select another one.</source>
         <translation>Dosya açılamıyor. Başka bir tane seçin.</translation>
     </message>
+    <message>
+        <source>Unable to open local file</source>
+        <translation>Yerel dosya açılamıyor</translation>
+    </message>
 </context>
 <context>
     <name>FileTransferWidget</name>
@@ -2254,28 +2196,12 @@ Yine bu resmi kabul edecek misiniz?</translation>
         <translation>Kaldır</translation>
     </message>
     <message>
-        <source>File &lt;b&gt;%1&lt;/b&gt;&lt;br /&gt; to &lt;b&gt;%2&lt;/b&gt;&lt;br /&gt;on account &lt;b&gt;%3&lt;/b&gt;</source>
-        <translation>&lt;b&gt;%1&lt;/b&gt; dosyası&lt;br/&gt;&lt;b&gt;%2&lt;/b&gt; ye&lt;br/&gt; &lt;b&gt;%3&lt;/b&gt; hesabında</translation>
-    </message>
-    <message>
-        <source>File &lt;b&gt;%1&lt;/b&gt;&lt;br /&gt; from &lt;b&gt;%2&lt;/b&gt;&lt;br /&gt;on account &lt;b&gt;%3&lt;/b&gt;</source>
-        <translation>&lt;b&gt;%1&lt;/b&gt; dosyası&lt;br/&gt;&lt;b&gt;%2&lt;/b&gt; den&lt;br/&gt; &lt;b&gt;%3&lt;/b&gt; hesabında</translation>
-    </message>
-    <message>
         <source>Kadu</source>
         <translation>Kadu</translation>
     </message>
     <message>
         <source>Are you sure you want to remove this transfer?</source>
         <translation>Bu aktarımı kaldırmak istediğinize emin misiniz?</translation>
-    </message>
-    <message>
-        <source>&lt;b&gt;Not connected&lt;/b&gt;</source>
-        <translation>&lt;b&gt;Bağlı değil&lt;/b&gt;</translation>
-    </message>
-    <message>
-        <source>&lt;b&gt;Error&lt;/b&gt;</source>
-        <translation>&lt;b&gt;Hata&lt;/b&gt;</translation>
     </message>
     <message>
         <source>&lt;b&gt;Wait for connection&lt;/b&gt;</source>
@@ -2302,12 +2228,44 @@ Yine bu resmi kabul edecek misiniz?</translation>
         <translation>Durdur</translation>
     </message>
     <message>
-        <source>Start</source>
-        <translation>Başla</translation>
-    </message>
-    <message>
         <source>Cancel</source>
         <translation>İptal</translation>
+    </message>
+    <message>
+        <source>Accept</source>
+        <translation>Kabul Et</translation>
+    </message>
+    <message>
+        <source>Reject</source>
+        <translation>Reddet</translation>
+    </message>
+    <message>
+        <source>Save</source>
+        <translation>Kaydet</translation>
+    </message>
+    <message>
+        <source>Send</source>
+        <translation>Gönder</translation>
+    </message>
+    <message>
+        <source>Open</source>
+        <translation>Aç</translation>
+    </message>
+    <message>
+        <source>Open file</source>
+        <translation>Dosya aç</translation>
+    </message>
+    <message>
+        <source>Open folder</source>
+        <translation>Klasör aç</translation>
+    </message>
+    <message>
+        <source>Send again</source>
+        <translation>Tekrar gönder</translation>
+    </message>
+    <message>
+        <source>&lt;b&gt;Ready to download&lt;/b&gt;</source>
+        <translation>&lt;b&gt;İndirmeye hazır&lt;/b&gt;</translation>
     </message>
 </context>
 <context>
@@ -2330,6 +2288,65 @@ Yine bu resmi kabul edecek misiniz?</translation>
     <message>
         <source>Search</source>
         <translation>Ara</translation>
+    </message>
+</context>
+<context>
+    <name>GroupEditWindow</name>
+    <message>
+        <source>Show group name</source>
+        <translation>Grup adı göster</translation>
+    </message>
+    <message>
+        <source>Use custom icon</source>
+        <translation>Özel simge kullan</translation>
+    </message>
+    <message>
+        <source>Notify about status changes</source>
+        <translation>Durum değişiklikleri hakkında uyar</translation>
+    </message>
+    <message>
+        <source>Offline for this group</source>
+        <translation>Bu grup için çevrimdışı</translation>
+    </message>
+    <message>
+        <source>Supported for Gadu-Gadu network</source>
+        <translation>Gadu-Gadu ağı tarafından destekleniyor</translation>
+    </message>
+    <message>
+        <source>Show in group &quot;All&quot;</source>
+        <translation>Gruplarda &apos;Hepsi&apos; ni göster</translation>
+    </message>
+    <message>
+        <source>Name:</source>
+        <translation>Adı:</translation>
+    </message>
+    <message>
+        <source>Add group</source>
+        <translation>Grup ekle</translation>
+    </message>
+    <message>
+        <source>Save group</source>
+        <translation>Grubu kaydet</translation>
+    </message>
+    <message>
+        <source>Apply</source>
+        <translation>Uygula</translation>
+    </message>
+    <message>
+        <source>Cancel</source>
+        <translation>İptal</translation>
+    </message>
+    <message>
+        <source>Choose an icon</source>
+        <translation>Bir simge seçin</translation>
+    </message>
+    <message>
+        <source>Images (*.png *.xpm *.jpg);;All Files (*)</source>
+        <translation>Resimler (*.png *.xpm *.jpg);;Tüm Dosyalar (*)</translation>
+    </message>
+    <message>
+        <source>Edit group %1</source>
+        <translation>%1 grubunu düzenle</translation>
     </message>
 </context>
 <context>
@@ -2369,72 +2386,25 @@ Yine bu resmi kabul edecek misiniz?</translation>
         <source>Group of that name already exists!</source>
         <translation>Bu grup adı zaten mevcut!</translation>
     </message>
-</context>
-<context>
-    <name>GroupPropertiesWindow</name>
     <message>
-        <source>Properties of group %1</source>
-        <translation>%1 grubu özelliklerini</translation>
+        <source>Group name must not be empty</source>
+        <translation>Grup adı boş olamaz</translation>
     </message>
     <message>
-        <source>Behavior</source>
-        <translation>Davranış</translation>
+        <source>Group name must not contain &apos;%1&apos;</source>
+        <translation>Grup adı &apos;%1&apos; içeremez</translation>
     </message>
     <message>
-        <source>Notify about status changes</source>
-        <translation>Durum değişiklikleri hakkında uyar</translation>
+        <source>Group name must not be a number</source>
+        <translation>Grup adı bir rakam olamaz</translation>
     </message>
     <message>
-        <source>Offline for this group</source>
-        <translation>Bu grup için çevrimdışı</translation>
+        <source>Group name must not be &apos;%1&apos;</source>
+        <translation>Grup adı &apos;%1&apos; olamaz</translation>
     </message>
     <message>
-        <source>Supported for Gadu-Gadu network</source>
-        <translation>Gadu-Gadu ağı destekli</translation>
-    </message>
-    <message>
-        <source>Work only when network supports it</source>
-        <translation>Sadece ağ desteklerse çalışır</translation>
-    </message>
-    <message>
-        <source>Show in group &quot;All&quot;</source>
-        <translation>&quot;Hepsi&quot; grubunda göster</translation>
-    </message>
-    <message>
-        <source>Look</source>
-        <translation>Görünüm</translation>
-    </message>
-    <message>
-        <source>Use custom icon</source>
-        <translation>Özel simge kullan</translation>
-    </message>
-    <message>
-        <source> Set Icon</source>
-        <translation>Simge Ata</translation>
-    </message>
-    <message>
-        <source>Show group name</source>
-        <translation>Grup adını göster</translation>
-    </message>
-    <message>
-        <source>Ok</source>
-        <translation>Tamam</translation>
-    </message>
-    <message>
-        <source>Apply</source>
-        <translation>Uygula</translation>
-    </message>
-    <message>
-        <source>Cancel</source>
-        <translation>İptal</translation>
-    </message>
-    <message>
-        <source>Choose an icon</source>
-        <translation>Bir simge seç</translation>
-    </message>
-    <message>
-        <source>Images (*.png *.xpm *.jpg);;All Files (*)</source>
-        <translation>Resimler (*.png *.xpm *.jpg);;Tüm Dosyalar (*)</translation>
+        <source>Group &apos;%1&apos; already exists</source>
+        <translation>&apos;%1&apos; grubu zaten var</translation>
     </message>
 </context>
 <context>
@@ -2442,10 +2412,6 @@ Yine bu resmi kabul edecek misiniz?</translation>
     <message>
         <source>Add Buddy</source>
         <translation>Arkadaş Ekle</translation>
-    </message>
-    <message>
-        <source>Rename Group</source>
-        <translation>Grubu Adlandır</translation>
     </message>
     <message>
         <source>Delete Group</source>
@@ -2476,14 +2442,6 @@ Yine bu resmi kabul edecek misiniz?</translation>
         <translation>Grup Ekle</translation>
     </message>
     <message>
-        <source>Please enter a new name for the &lt;i&gt;%0&lt;/i&gt; group</source>
-        <translation>&lt;i&gt;%0&lt;/i&gt; grubu için lütfen yeni bir isim giriniz</translation>
-    </message>
-    <message>
-        <source>Edit Group</source>
-        <translation>Grubu Düzenle</translation>
-    </message>
-    <message>
         <source>Delete group</source>
         <translation>Grubu sil</translation>
     </message>
@@ -2494,10 +2452,6 @@ Yine bu resmi kabul edecek misiniz?</translation>
     <message>
         <source>Cancel</source>
         <translation>İptal</translation>
-    </message>
-    <message>
-        <source>Please enter the name for the new group</source>
-        <translation>Yeni grup için lütfen isim giriniz</translation>
     </message>
 </context>
 <context>
@@ -2763,14 +2717,6 @@ Yine bu resmi kabul edecek misiniz?</translation>
         <translation>Birleştir</translation>
     </message>
     <message>
-        <source>Please enter the name for the new group</source>
-        <translation>Yeni grup için lütfen isim giriniz</translation>
-    </message>
-    <message>
-        <source>Add Group</source>
-        <translation>Grup Ekle</translation>
-    </message>
-    <message>
         <source>Contact:</source>
         <translation>İletişim:</translation>
     </message>
@@ -2917,10 +2863,6 @@ Konferanstan ayrılmak istediğinizden emin misiniz?</translation>
 <context>
     <name>MultilogonNotification</name>
     <message>
-        <source>Ignore</source>
-        <translation>Atla</translation>
-    </message>
-    <message>
         <source>Disconnect session</source>
         <translation>Oturumu kapat</translation>
     </message>
@@ -2959,18 +2901,6 @@ Konferanstan ayrılmak istediğinizden emin misiniz?</translation>
         <translation>&lt;b&gt;%1&lt;/b&gt; kullanıcısı size bir dosya göndermek istiyor &lt;b/&gt;%2&lt;/b&gt;&lt;br/&gt; boyutu &lt;b&gt;%3&lt;/b&gt; &lt;b&gt;%4&lt;/b&gt; hesabını kullanıyor.&lt;br/&gt;Bu muhtemelen bir sonraki parçası &lt;b&gt;%5&lt;/b&gt;&lt;br/&gt;Ne yapmalıyım?</translation>
     </message>
     <message>
-        <source>Continue</source>
-        <translation>Devam et</translation>
-    </message>
-    <message>
-        <source>Save file under new name</source>
-        <translation>Yeni isimle dosyayı kaydet</translation>
-    </message>
-    <message>
-        <source>Ignore transfer</source>
-        <translation>Aktarımı atla</translation>
-    </message>
-    <message>
         <source>Accept</source>
         <translation>Kabul et</translation>
     </message>
@@ -2978,16 +2908,21 @@ Konferanstan ayrılmak istediğinizden emin misiniz?</translation>
         <source>Reject</source>
         <translation>Reddet</translation>
     </message>
-</context>
-<context>
-    <name>NotificationManager</name>
     <message>
-        <source>Unable to find notifier for %1 event</source>
-        <translation>%1 olayı için uyarı bulunamıyor</translation>
+        <source>Save</source>
+        <translation>Kaydet</translation>
     </message>
     <message>
-        <source>Kadu</source>
-        <translation>Kadu</translation>
+        <source>Ignore</source>
+        <translation>Atla</translation>
+    </message>
+    <message>
+        <source>User &lt;b&gt;%1&lt;/b&gt; wants to send you a file &lt;b&gt;%2&lt;/b&gt;&lt;br/&gt;using account &lt;b&gt;%3&lt;/b&gt;.&lt;br/&gt;Accept transfer?</source>
+        <translation>&lt;b&gt;%1&lt;/b&gt; kullanıcısı size bir dosya göndermek istiyor&lt;b&gt;%2&lt;/b&gt;&lt;br/&gt; &lt;b&gt;%3&lt;/b&gt; hesabını kullanıyor.&lt;br/&gt;Aktarımı kabul et?</translation>
+    </message>
+    <message>
+        <source>User &lt;b&gt;%1&lt;/b&gt; wants to send you a file &lt;b/&gt;%2&lt;/b&gt;&lt;br/&gt;using account &lt;b&gt;%3&lt;/b&gt;.&lt;br/&gt;This is probably a next part of &lt;b&gt;%4&lt;/b&gt;&lt;br/&gt;What should I do?</source>
+        <translation>&lt;b&gt;%1&lt;/b&gt; kullanıcısı size bir dosya göndermek istiyor &lt;b/&gt;%2&lt;/b&gt;&lt;br/&gt; &lt;b&gt;%3&lt;/b&gt; hesabını kullanıyor.&lt;br/&gt;Bu muhtemelen bir sonraki parçası &lt;b&gt;%4&lt;/b&gt;&lt;br/&gt;Ne yapmalıyım?</translation>
     </message>
 </context>
 <context>
@@ -2999,6 +2934,14 @@ Konferanstan ayrılmak istediğinizden emin misiniz?</translation>
     <message>
         <source>Silent Mode</source>
         <translation>Sessiz Mod</translation>
+    </message>
+    <message>
+        <source>Ignore</source>
+        <translation>Atla</translation>
+    </message>
+    <message>
+        <source>Chat</source>
+        <translation>Konuşma</translation>
     </message>
 </context>
 <context>
@@ -3103,6 +3046,17 @@ Konferanstan ayrılmak istediğinizden emin misiniz?</translation>
     </message>
 </context>
 <context>
+    <name>PluginErrorDialog</name>
+    <message>
+        <source>Kadu</source>
+        <translation>Kadu</translation>
+    </message>
+    <message>
+        <source>Try to load this plugin on next Kadu run</source>
+        <translation>Bir sonraki Kadu açılışında bu eklentiyi yüklemeyi dene</translation>
+    </message>
+</context>
+<context>
     <name>PluginListWidget</name>
     <message>
         <source>Deactivate</source>
@@ -3149,6 +3103,15 @@ Konferanstan ayrılmak istediğinizden emin misiniz?</translation>
     </message>
 </context>
 <context>
+    <name>PluginLoader</name>
+    <message>
+        <source>Cannot load %1 plugin library:
+%2</source>
+        <translation>%1 eklenti kütüphanesi yüklenemez:
+%2</translation>
+    </message>
+</context>
+<context>
     <name>PluginModel</name>
     <message>
         <source>Chat</source>
@@ -3189,6 +3152,19 @@ Konferanstan ayrılmak istediğinizden emin misiniz?</translation>
     <message>
         <source>Misc</source>
         <translation>Çeşitli</translation>
+    </message>
+</context>
+<context>
+    <name>PluginRootComponentHandler</name>
+    <message>
+        <source>Cannot find required object in plugin %1.
+Maybe it&apos;s not Kadu-compatible plugin.</source>
+        <translation>%1 Eklentisindeki gerekli olan nesne bulunamıyor.
+Belki Kadu uyumlu eklenti değildir.</translation>
+    </message>
+    <message>
+        <source>Plugin initialization routine for %1 failed.</source>
+        <translation>%1 eklentisi başlatma rutini başarısız.</translation>
     </message>
 </context>
 <context>
@@ -3320,21 +3296,6 @@ Konferanstan ayrılmak istediğinizden emin misiniz?</translation>
     </message>
 </context>
 <context>
-    <name>QCoreApplication</name>
-    <message>
-        <source>Kadu</source>
-        <translation>Kadu</translation>
-    </message>
-    <message>
-        <source>Could not spawn Web browser process. Check if the Web browser is functional</source>
-        <translation>Web Tarayıcı işlemi oluşturulamadı. Eğer Web Tarayıcınız fonksiyonel ise kontrol edin</translation>
-    </message>
-    <message>
-        <source>Could not spawn Mail client process. Check if the Mail client is functional</source>
-        <translation>Mail İstemci işlemi oluşturulamadı. Eğer Mail İstemciniz fonksiyonel ise kontrol edin</translation>
-    </message>
-</context>
-<context>
     <name>RecentChatsAction</name>
     <message>
         <source>Recent Chats</source>
@@ -3369,6 +3330,41 @@ Konferanstan ayrılmak istediğinizden emin misiniz?</translation>
     <message>
         <source>%1: roster export failed</source>
         <translation>%1: görev listesi çıkrtma başarısız</translation>
+    </message>
+</context>
+<context>
+    <name>RosterReplacer</name>
+    <message>
+        <source>Kadu since version 0.10.0 automatically synchronizes Gadu-Gadu contact list with server. Now the first synchronization will be performed.&lt;br/&gt;&lt;br/&gt;</source>
+        <translation>Kadu 0.10.0 versiyonundan beri Gadu-Gadu kişi listesini sunucudan otomatik olarak eşitler. Şimdi ilk eşitleme yapılacak. &lt;br/&gt;&lt;br/&gt;</translation>
+    </message>
+    <message>
+        <source>The following contacts present on the server were not found on your local contact list:&lt;br/&gt;&lt;b&gt;%1&lt;/b&gt;.&lt;br/&gt;If you do not agree to add those contacts to your local list, they will be removed from the server.&lt;br/&gt;&lt;br/&gt;</source>
+        <translation>Aşağıdaki kişiler sunucu listesinde var sizin yerel kişi listesinizde yok:&lt;br/&gt;&lt;b&gt;%1&lt;/b&gt;.&lt;br/&gt;Eğer yerel kişi listenize kabul etmiyorsanız, sunucu üzerinden silinecekler.&lt;br/&gt;&lt;br/&gt;</translation>
+    </message>
+    <message>
+        <source>The following contacts from your local list are present on the server under different names:&lt;br/&gt;&lt;b&gt;%1&lt;/b&gt;.&lt;br/&gt;&lt;br/&gt;</source>
+        <translation>Yerel kişi listenizde bulunan aşağıdaki kişiler sunucu üzerinde farklı isime sahip:&lt;br/&gt;&lt;b&gt;%1&lt;/b&gt;.&lt;br/&gt;&lt;br/&gt;</translation>
+    </message>
+    <message>
+        <source>Moreover, the following contacts from your local list are present on the server under different names:&lt;br/&gt;&lt;b&gt;%1&lt;/b&gt;.&lt;br/&gt;&lt;br/&gt;</source>
+        <translation>Bundan başka, yerel kişi listenizde bulunan aşağıdaki kişiler sunucu üzerinde farklı isime sahip:&lt;br/&gt;&lt;b&gt;%1&lt;/b&gt;.&lt;br/&gt;&lt;br/&gt;</translation>
+    </message>
+    <message>
+        <source>Do you want to apply the above changes to your local contact list? Regardless of your choice, it will be sent to the server after making possible changes.</source>
+        <translation>Yerel kişi listesindeki değişliklikleri uygulamak istiyor musunuz? Seçtiğiniz ne olursa olsun, sunucuya gönderilecek sonrasında mümkün olan değişiklikler yapılacak.</translation>
+    </message>
+    <message>
+        <source>Kadu</source>
+        <translation>Kadu</translation>
+    </message>
+    <message>
+        <source>Apply changes</source>
+        <translation>Değişiklikleri kaydet</translation>
+    </message>
+    <message>
+        <source>Leave contact list unchanged</source>
+        <translation>Kişi listesini değiştirmeden ayrıl</translation>
     </message>
 </context>
 <context>
@@ -3583,6 +3579,166 @@ Konferanstan ayrılmak istediğinizden emin misiniz?</translation>
     </message>
 </context>
 <context>
+    <name>SendFileAction</name>
+    <message>
+        <source>Select file location</source>
+        <translation>Dosya konumunu seç</translation>
+    </message>
+    <message>
+        <source>Send File...</source>
+        <translation>Dosya Gönder...</translation>
+    </message>
+</context>
+<context>
+    <name>ShowFileTransferWindowAction</name>
+    <message>
+        <source>View File Transfers</source>
+        <translation>Dosya Aktarımlarını Göster</translation>
+    </message>
+</context>
+<context>
+    <name>SslCertificateErrorDialog</name>
+    <message>
+        <source>Certificate for &lt;b&gt;%1&lt;/b&gt; failed authenticity validation:</source>
+        <translation>&lt;b&gt;%1&lt;/b&gt; sertifikası için özgünlük doğrulaması başarısız:</translation>
+    </message>
+    <message>
+        <source>Show certificate details...</source>
+        <translation>Sertifika detaylarını göster...</translation>
+    </message>
+    <message>
+        <source>Certificate details:</source>
+        <translation>Sertifika detayları:</translation>
+    </message>
+    <message>
+        <source>Connect anyway</source>
+        <translation>Yinede bağlan</translation>
+    </message>
+    <message>
+        <source>Trust certificate</source>
+        <translation>Sertifikaya güven</translation>
+    </message>
+    <message>
+        <source>Cancel</source>
+        <translation>İptal</translation>
+    </message>
+</context>
+<context>
+    <name>SslCertificateWidget</name>
+    <message>
+        <source>Valid</source>
+        <translation>Doğrula</translation>
+    </message>
+    <message>
+        <source>Blacklisted</source>
+        <translation>Kara listede</translation>
+    </message>
+    <message>
+        <source>Valid from</source>
+        <translation>Geçerli gönderen</translation>
+    </message>
+    <message>
+        <source>Valid to</source>
+        <translation>Geçerli</translation>
+    </message>
+    <message>
+        <source>Digest (Md5)</source>
+        <translation>Digest (Md5)</translation>
+    </message>
+    <message>
+        <source>Digest (Sha1)</source>
+        <translation>Digest (Sha1)</translation>
+    </message>
+    <message>
+        <source>Serial number</source>
+        <translation>Seri numarası</translation>
+    </message>
+    <message>
+        <source>Issuer organization</source>
+        <translation>İhraççı kuruluş</translation>
+    </message>
+    <message>
+        <source>Issuer common name</source>
+        <translation>İhraççı ortak ad</translation>
+    </message>
+    <message>
+        <source>Issuer locality name</source>
+        <translation>İhraççı yerel adı</translation>
+    </message>
+    <message>
+        <source>Issuer organizational unit name</source>
+        <translation>İhraççı kuruluş birimi</translation>
+    </message>
+    <message>
+        <source>Issuer country name</source>
+        <translation>İhraççı ülke adı</translation>
+    </message>
+    <message>
+        <source>Issuer state or province name</source>
+        <translation>İhraççı eyalet veya şehir adı</translation>
+    </message>
+    <message>
+        <source>Issuer distinguished name qualifier</source>
+        <translation>İhraççı ayırt edici adı eleme</translation>
+    </message>
+    <message>
+        <source>Issuer serial number</source>
+        <translation>İhraççı seri numarası</translation>
+    </message>
+    <message>
+        <source>Issuer email address</source>
+        <translation>İhraççı email adresi</translation>
+    </message>
+    <message>
+        <source>Subject organization</source>
+        <translation>Söz konusu kuruluş</translation>
+    </message>
+    <message>
+        <source>Subject common name</source>
+        <translation>Söz konusu ortak ad</translation>
+    </message>
+    <message>
+        <source>Subject alernative name</source>
+        <translation>Söz konusu alternatif ad</translation>
+    </message>
+    <message>
+        <source>Subject locality name</source>
+        <translation>Söz konusu yerel ad</translation>
+    </message>
+    <message>
+        <source>Subject organizational unit name</source>
+        <translation>Söz konusu kuruluş birim adı</translation>
+    </message>
+    <message>
+        <source>Subject country name</source>
+        <translation>Söz konusu ülke adı</translation>
+    </message>
+    <message>
+        <source>Subject state or province name</source>
+        <translation>Söz konusu eyalet veya şehir adı</translation>
+    </message>
+    <message>
+        <source>Subject distinguished name qualifier</source>
+        <translation>Söz konusu ayırt edici adı eleme</translation>
+    </message>
+    <message>
+        <source>Subject serial number</source>
+        <translation>Söz konusu seri numarası</translation>
+    </message>
+    <message>
+        <source>Subject email address</source>
+        <translation>Söz konusu email adresi</translation>
+    </message>
+    <message>
+        <source>Yes</source>
+        <translation>Evet</translation>
+    </message>
+    <message>
+        <source>No</source>
+        <translation>Hayır</translation>
+    </message>
+</context>
+<context>
     <name>StatusActions</name>
     <message>
         <source>Change Status Message...</source>
@@ -3679,6 +3835,13 @@ Konferanstan ayrılmak istediğinizden emin misiniz?</translation>
     <message>
         <source>Cancel</source>
         <translation>İptal</translation>
+    </message>
+</context>
+<context>
+    <name>StringListDialog</name>
+    <message>
+        <source>Kadu</source>
+        <translation>Kadu</translation>
     </message>
 </context>
 <context>

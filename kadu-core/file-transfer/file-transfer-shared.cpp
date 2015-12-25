@@ -1,8 +1,8 @@
 /*
  * %kadu copyright begin%
  * Copyright 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2010, 2011, 2012, 2013, 2014 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2010, 2011, 2012, 2013, 2014 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -19,39 +19,46 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "file-transfer-shared.h"
+
 #include "accounts/account-manager.h"
 #include "accounts/account.h"
 #include "contacts/contact-manager.h"
 #include "contacts/contact.h"
+#include "core/core.h"
+#include "file-transfer/file-transfer-direction.h"
 #include "file-transfer/file-transfer-handler.h"
 #include "file-transfer/file-transfer-manager.h"
+#include "file-transfer/file-transfer-status.h"
+#include "file-transfer/file-transfer-type.h"
 #include "misc/change-notifier.h"
 #include "protocols/protocol.h"
 #include "protocols/services/file-transfer-service.h"
 
-#include "file-transfer-shared.h"
-
 FileTransferShared * FileTransferShared::loadStubFromStorage(const std::shared_ptr<StoragePoint> &fileTransferStoragePoint)
 {
-	FileTransferShared *result = loadFromStorage(fileTransferStoragePoint);
+	auto result = loadFromStorage(fileTransferStoragePoint);
 	result->loadStub();
 	return result;
 }
 
 FileTransferShared * FileTransferShared::loadFromStorage(const std::shared_ptr<StoragePoint> &fileTransferStoragePoint)
 {
-	FileTransferShared *result = new FileTransferShared();
+	auto result = new FileTransferShared();
 	result->setStorage(fileTransferStoragePoint);
 	return result;
 }
 
 FileTransferShared::FileTransferShared(const QUuid &uuid) :
-		Shared(uuid),
-		FileSize(0), TransferredSize(0),
-		TransferType(TypeReceive), TransferStatus(StatusNotConnected),
-		TransferError(ErrorOk), Handler(0)
+		Shared{uuid},
+		m_fileSize{0},
+		m_transferredSize{0},
+		m_transferDirection{FileTransferDirection::Incoming},
+		m_transferStatus{FileTransferStatus::NotConnected},
+		m_transferType{FileTransferType::Unknown},
+		m_handler{0}
 {
-	Peer = new Contact();
+	m_peer = new Contact();
 
 	connect(&changeNotifier(), SIGNAL(changed()), this, SIGNAL(updated()));
 }
@@ -60,12 +67,12 @@ FileTransferShared::~FileTransferShared()
 {
 	ref.ref();
 
-	delete Peer;
+	delete m_peer;
 }
 
 StorableObject * FileTransferShared::storageParent()
 {
-	return FileTransferManager::instance();
+	return Core::instance()->fileTransferManager();
 }
 
 QString FileTransferShared::storageNodeName()
@@ -78,17 +85,25 @@ void FileTransferShared::load()
 	if (!isValidStorage())
 		return;
 
-	StorableObject::load();
+	Shared::load();
 
-	*Peer = ContactManager::instance()->byUuid(loadValue<QString>("Peer"));
-	LocalFileName = loadValue<QString>("LocalFileName");
-	RemoteFileName = loadValue<QString>("RemoteFileName");
-	TransferType = ("Send" == loadValue<QString>("TransferType")) ? TypeSend : TypeReceive;
-	FileSize = loadValue<qulonglong>("FileSize");
-	TransferredSize = loadValue<qulonglong>("TransferredSize");
+	*m_peer = ContactManager::instance()->byUuid(loadValue<QString>("Peer"));
+	m_localFileName = loadValue<QString>("LocalFileName");
+	m_remoteFileName = loadValue<QString>("RemoteFileName");
 
-	if (FileSize == TransferredSize)
-		TransferStatus = StatusFinished;
+	auto direction = loadValue<QString>("TransferDirection");
+	// import from Kadu < 3.0
+	// new TransferType is not stored at all
+	if (direction.isEmpty())
+		direction = loadValue<QString>("TransferType");
+
+	m_transferDirection = "Send" == direction ? FileTransferDirection::Outgoing : FileTransferDirection::Incoming;
+	m_fileSize = loadValue<qulonglong>("FileSize");
+	m_transferredSize = loadValue<qulonglong>("TransferredSize");
+
+	m_transferStatus = loadValue<bool>("Finished", false)
+			? FileTransferStatus::Finished
+			: FileTransferStatus::NotConnected;
 }
 
 void FileTransferShared::store()
@@ -98,35 +113,35 @@ void FileTransferShared::store()
 
 	ensureLoaded();
 
-	storeValue("Peer", Peer->uuid().toString());
-	storeValue("LocalFileName", LocalFileName);
-	storeValue("RemoteFileName", RemoteFileName);
-	storeValue("TransferType", TypeSend == TransferType ? "Send" : "Receive");
-	storeValue("FileSize", (qulonglong)FileSize);
-	storeValue("TransferredSize", (qulonglong)TransferredSize);
+	Shared::store();
+
+	storeValue("Peer", m_peer->uuid().toString());
+	storeValue("LocalFileName", m_localFileName);
+	storeValue("RemoteFileName", m_remoteFileName);
+	storeValue("TransferDirection", FileTransferDirection::Outgoing == m_transferDirection ? "Send" : "Receive");
+	storeValue("FileSize", (qulonglong)m_fileSize);
+	storeValue("TransferredSize", (qulonglong)m_transferredSize);
+	storeValue("Finished", FileTransferStatus::Finished == m_transferStatus);
 }
 
 void FileTransferShared::setTransferStatus(FileTransferStatus transferStatus)
 {
 	ensureLoaded();
 
-	if (TransferStatus == transferStatus)
+	if (m_transferStatus == transferStatus)
 		return;
 
-	TransferStatus = transferStatus;
+	m_transferStatus = transferStatus;
 	emit statusChanged();
 	changeNotifier().notify();
 }
 
-void FileTransferShared::setTransferError(FileTransferError transferError)
+void FileTransferShared::setError(QString error)
 {
 	ensureLoaded();
 
-	if (TransferStatus == StatusNotConnected && TransferError == transferError)
-		return;
-
-	TransferStatus = StatusNotConnected;
-	TransferError = transferError;
+	m_transferStatus = FileTransferStatus::NotConnected;
+	m_error = error;
 	emit statusChanged();
 	changeNotifier().notify();
 }
@@ -135,40 +150,24 @@ void FileTransferShared::setHandler(FileTransferHandler *handler)
 {
 	ensureLoaded();
 
-	if (Handler == handler)
+	if (m_handler == handler)
 		return;
 
-	if (Handler)
-		disconnect(Handler, 0, this, 0);
-	Handler = handler;
-	if (Handler)
-		connect(Handler, SIGNAL(destroyed()), this, SLOT(handlerDestroyed()));
+	if (m_handler)
+		disconnect(m_handler, 0, this, 0);
+	m_handler = handler;
+	if (m_handler)
+		connect(m_handler, SIGNAL(destroyed()), this, SLOT(handlerDestroyed()));
 
 	changeNotifier().notify();
-}
-
-void FileTransferShared::createHandler()
-{
-	if (Handler)
-		return;
-
-	Protocol *protocol = Peer->contactAccount().protocolHandler();
-	if (!protocol)
-		return;
-
-	FileTransferService *service = protocol->fileTransferService();
-	if (!service)
-		return;
-
-	Handler = service->createFileTransferHandler(this);
 }
 
 void FileTransferShared::handlerDestroyed()
 {
-	Handler = 0;
+	m_handler = 0;
 	changeNotifier().notify();
 }
 
-KaduShared_PropertyPtrDefCRW(FileTransferShared, Contact, peer, Peer)
+KaduShared_PropertyPtrDefCRW_M(FileTransferShared, Contact, peer, Peer)
 
 #include "moc_file-transfer-shared.cpp"

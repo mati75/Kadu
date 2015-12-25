@@ -1,12 +1,6 @@
 /*
  * %kadu copyright begin%
- * Copyright 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2012 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2010, 2011 Piotr Dąbrowski (ultr@ultr.pl)
- * Copyright 2009 Michał Podsiadlik (michal@kadu.net)
- * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
- * Copyright 2009, 2010, 2011, 2012, 2013, 2014 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011, 2012, 2013, 2014 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2014 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -135,15 +129,7 @@ void ChatStyleManager::configurationUpdated()
 	QString fontFamily = font.family();
 	QString fontSize;
 	if (font.pointSize() > 0)
-#ifdef Q_OS_MAC
-		/*  Dorr: On MacOSX this font is being displayed 3pts larger than
-		 *  it really is, so reduce it's size to be coherent in entire
-		 *  application.
-		 */
-		fontSize = QString::number(font.pointSize()-3) + "pt";
-#else
 		fontSize = QString::number(font.pointSize()) + "pt";
-#endif
 	else
 		fontSize = QString::number(font.pixelSize()) + "px";
 	QString fontStyle = font.italic() ? "italic" : "normal";

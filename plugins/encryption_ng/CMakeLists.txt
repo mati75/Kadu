@@ -24,12 +24,13 @@ set (SOURCES
 	keys/key-shared.cpp
 	keys/key.cpp
 
-	notify/encryption-ng-notification.cpp
+	notification/encryption-ng-notification.cpp
 
 	decryptor.cpp
 	decryptor-wrapper.cpp
 	encryption-actions.cpp
 	encryption-chat-data.cpp
+	encryption-depreceated-message.cpp
 	encryption-manager.cpp
 	encryption-ng-plugin.cpp
 	encryption-provider-manager.cpp
@@ -45,7 +46,7 @@ set (MOC_SOURCES
 	keys/keys-manager.h
 	keys/key-shared.h
 
-	notify/encryption-ng-notification.h
+	notification/encryption-ng-notification.h
 
 	decryptor.h
 	decryptor-wrapper.h

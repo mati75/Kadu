@@ -1,6 +1,7 @@
 /*
  * %kadu copyright begin%
- * Copyright 2013, 2014 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2014 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2013, 2014, 2015 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -32,8 +33,8 @@
 #include "message/message-manager.h"
 #include "message/sorted-messages.h"
 #include "message/unread-message-repository.h"
+#include "notification/notification-service.h"
 #include "protocols/protocol.h"
-#include "services/notification-service.h"
 
 #include <QtWidgets/QApplication>
 
@@ -83,8 +84,10 @@ void ChatWidgetMessageHandler::setMessageManager(MessageManager *messageManager)
 	if (!m_messageManager)
 		return;
 
-	connect(m_messageManager.data(), SIGNAL(messageReceived(Message)), this, SLOT(messageReceived(Message)));
-	connect(m_messageManager.data(), SIGNAL(messageSent(Message)), this, SLOT(messageSent(Message)));
+	// some other messageReceived slot may check if message chat is open and this
+	// slot can change this value, so let all other messageReceived be executed before this
+	connect(m_messageManager.data(), SIGNAL(messageReceived(Message)), this, SLOT(messageReceived(Message)), Qt::QueuedConnection);
+	connect(m_messageManager.data(), SIGNAL(messageSent(Message)), this, SLOT(messageSent(Message)), Qt::QueuedConnection);
 }
 
 void ChatWidgetMessageHandler::setNotificationService(NotificationService *notificationService)
@@ -98,11 +101,6 @@ void ChatWidgetMessageHandler::setUnreadMessageRepository(UnreadMessageRepositor
 
 	if (!m_unreadMessageRepository)
 		return;
-
-	connect(m_unreadMessageRepository.data(), SIGNAL(unreadMessageAdded(Message)),
-			this, SLOT(handleUnreadMessageChange(Message)));
-	connect(m_unreadMessageRepository.data(), SIGNAL(unreadMessageRemoved(Message)),
-			this, SLOT(handleUnreadMessageChange(Message)));
 }
 
 void ChatWidgetMessageHandler::setConfiguration(ChatWidgetMessageHandlerConfiguration configuration)
@@ -181,7 +179,7 @@ void ChatWidgetMessageHandler::messageReceived(const Message &message)
 	}
 	else
 	{
-#ifdef Q_OS_WIN32
+#ifdef Q_OS_WIN
 		if (!Core::instance()->application()->configuration()->deprecatedApi()->readBoolEntry("General", "HideMainWindowFromTaskbar"))
 			qApp->alert(Core::instance()->kaduWindow());
 #else
@@ -218,17 +216,6 @@ void ChatWidgetMessageHandler::messageSent(const Message &message)
 	auto chatWidget = m_chatWidgetRepository.data()->widgetForChat(chat);
 	if (chatWidget)
 		chatWidget->addMessage(message);
-}
-
-void ChatWidgetMessageHandler::handleUnreadMessageChange(const Message &message)
-{
-	if (!m_unreadMessageRepository || !m_chatWidgetRepository)
-		return;
-
-	auto chat = message.messageChat();
-	auto chatWidget = m_chatWidgetRepository.data()->widgetForChat(chat);
-	if (chatWidget)
-		chatWidget->setUnreadMessagesCount(m_unreadMessageRepository.data()->unreadMessagesForChat(chat).size());
 }
 
 #include "moc_chat-widget-message-handler.cpp"

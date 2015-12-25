@@ -2,8 +2,8 @@
  * %kadu copyright begin%
  * Copyright 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
- * Copyright 2009, 2009, 2010, 2011, 2012, 2013, 2014 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2010, 2011, 2012, 2013, 2014 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2009, 2010, 2011, 2012, 2013, 2014 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -27,7 +27,6 @@
 #include "buddies/buddy-manager.h"
 #include "configuration/configuration.h"
 #include "configuration/deprecated-configuration-api.h"
-#include "contacts/contact-details.h"
 #include "contacts/contact-manager.h"
 #include "core/application.h"
 #include "core/core.h"
@@ -35,8 +34,8 @@
 #include "protocols/protocol-factory.h"
 #include "protocols/protocol.h"
 #include "protocols/protocols-manager.h"
-#include "roster/roster-entry.h"
 #include "roster/roster-entry-state.h"
+#include "roster/roster-entry.h"
 
 #include "contact-shared.h"
 
@@ -57,9 +56,9 @@ ContactShared * ContactShared::loadFromStorage(const std::shared_ptr<StoragePoin
 }
 
 ContactShared::ContactShared(const QUuid &uuid) :
-		Shared(uuid), Details(0),
+		Shared(uuid),
 		Priority(-1), MaximumImageSize(0), UnreadMessagesCount(0),
-		Blocking(false), IgnoreNextStatusChange(false), Port(0)
+		Blocking(false), IgnoreNextStatusChange(false)
 {
 	Entry = new RosterEntry(this);
 	connect(&Entry->hasLocalChangesNotifier(), SIGNAL(changed()), this, SIGNAL(updatedLocally()));
@@ -109,6 +108,7 @@ void ContactShared::load()
 	Id = loadValue<QString>("Id");
 	Priority = loadValue<int>("Priority", -1);
 
+	// TODO: remove after 01.05.2015
 	// It's an explicit hack for update path from 0.10.1-0.11.x to 0.12+. 0.10/0.11 didn't
 	// have Detached property. But they did have an explicit hack for totally ignoring
 	// what Facebook says about groups, thus allowing users to place their Facebook contacts
@@ -132,6 +132,7 @@ void ContactShared::load()
 	doSetContactAvatar(AvatarManager::instance()->byUuid(loadValue<QString>("Avatar")));
 
 	protocolFactoryRegistered(ProtocolsManager::instance()->byName(ContactAccount->protocolName()));
+	addToBuddy();
 }
 
 void ContactShared::aboutToBeRemoved()
@@ -143,8 +144,6 @@ void ContactShared::aboutToBeRemoved()
 
 	AvatarManager::instance()->removeItem(*ContactAvatar);
 	doSetContactAvatar(Avatar::null);
-
-	deleteDetails();
 
 	changeNotifier().notify();
 }
@@ -196,7 +195,7 @@ bool ContactShared::shouldStore()
 void ContactShared::addToBuddy()
 {
 	// dont add to buddy if details are not available
-	if (Details && *OwnerBuddy)
+	if (*OwnerBuddy)
 		OwnerBuddy->addContact(this);
 }
 
@@ -254,17 +253,7 @@ void ContactShared::protocolFactoryRegistered(ProtocolFactory *protocolFactory)
 	if (!protocolFactory || !*ContactAccount || ContactAccount->protocolName() != protocolFactory->name())
 		return;
 
-	if (Details)
-		return;
-
-	Details = protocolFactory->createContactDetails(this);
-	if (Details)
-		Details->ensureLoaded();
-
 	changeNotifier().notify();
-
-	ContactManager::instance()->registerItem(this);
-	addToBuddy();
 }
 
 void ContactShared::protocolFactoryUnregistered(ProtocolFactory *protocolFactory)
@@ -279,27 +268,7 @@ void ContactShared::protocolFactoryUnregistered(ProtocolFactory *protocolFactory
 	 * delete it. But we don't want this to happen.
 	 */
 	Contact guard(this);
-
-	deleteDetails();
-
 	changeNotifier().notify();
-}
-
-void ContactShared::deleteDetails()
-{
-	if (Details)
-	{
-		// do not store contacts that are not in contact manager
-		if (ContactManager::instance()->allItems().contains(uuid()))
-			Details->ensureStored();
-
-		removeFromBuddy();
-
-		delete Details;
-		Details = 0;
-	}
-
-	ContactManager::instance()->unregisterItem(this);
 }
 
 void ContactShared::setId(const QString &id)

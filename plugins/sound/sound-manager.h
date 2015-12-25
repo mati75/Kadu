@@ -1,19 +1,7 @@
 /*
  * %kadu copyright begin%
- * Copyright 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2008, 2009 Tomasz Rostański (rozteck@interia.pl)
- * Copyright 2008, 2009 Michał Podsiadlik (michal@kadu.net)
- * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
- * Copyright 2004 Roman Krzystyniak (Ron_K@tlen.pl)
- * Copyright 2003, 2004, 2005 Adrian Smarzewski (adrian@kadu.net)
- * Copyright 2003 Tomasz Chiliński (chilek@chilan.com)
- * Copyright 2003, 2004 Paweł Płuciennik (pawel_p@kadu.net)
- * Copyright 2007, 2008, 2009, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2007 Dawid Stawiarski (neeo@kadu.net)
- * Copyright 2004, 2005, 2006 Marcin Ślusarz (joi@kadu.net)
- * Copyright 2009 Longer (longer89@gmail.com)
+ * Copyright 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2011, 2014, 2015 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -30,57 +18,49 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef SOUND_MANAGER_H
-#define SOUND_MANAGER_H
-
-#include <QtCore/QObject>
-#include <QtCore/QTime>
+#pragma once
 
 #include "sound-exports.h"
 
-class QSound;
-class QThread;
+#include <injeqt/injeqt.h>
+#include <QtCore/QObject>
+#include <QtCore/QPointer>
 
 class SoundPlayer;
-class SoundPlayThread;
+class SoundThemeManager;
+
+class QSound;
 
 class SOUNDAPI SoundManager : public QObject
 {
 	Q_OBJECT
 
-	static SoundManager *Instance;
-
-	SoundPlayer *Player;
-	QSound *CurrentSound;
-
-	bool Mute;
-
-	SoundPlayThread *PlayThreadObject;
-	QThread *PlayThread;
-
-	SoundManager();
+public:
+	Q_INVOKABLE explicit SoundManager(QObject *parent = nullptr);
 	virtual ~SoundManager();
 
-	void createDefaultConfiguration();
-
-public slots:
-	void playFile(const QString &path, bool force = false);
-	void playSoundByName(const QString &soundName);
-
-	void setMute(bool enable);
-
-public:
-	static void createInstance();
-	static void destroyInstance();
-	static SoundManager * instance() { return Instance; }
-
 	void setPlayer(SoundPlayer *player);
-
 	bool isMuted() const;
 
 public slots:
-	void testSoundPlaying();
+	QObject * playFile(const QString &soundFile, bool force = false, bool stopCurrentlyPlaying = false);
+	QObject * playSoundByName(const QString &soundName);
+	QObject * testSoundPlaying();
+	void stopSound();
+
+	void setMute(bool mute);
+
+private:
+	QPointer<SoundThemeManager> m_soundThemeManager;
+	QPointer<SoundPlayer> m_player;
+	QPointer<QSound> m_playingSound;
+	QPointer<QObject> m_soundObject;
+
+	bool m_mute;
+
+	void createDefaultConfiguration();
+
+private slots:
+	INJEQT_SETTER void setSoundThemeManager(SoundThemeManager *soundThemeManager);
 
 };
-
-#endif // SOUND_MANAGER_H

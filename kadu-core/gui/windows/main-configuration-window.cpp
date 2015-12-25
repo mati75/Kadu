@@ -1,17 +1,14 @@
 /*
  * %kadu copyright begin%
- * Copyright 2008, 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2010, 2010, 2011 Przemysław Rudy (prudy1@o2.pl)
- * Copyright 2009, 2010, 2012 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2008, 2009, 2010 Tomasz Rostański (rozteck@interia.pl)
+ * Copyright 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2010, 2011 Przemysław Rudy (prudy1@o2.pl)
+ * Copyright 2010, 2012 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2010 Tomasz Rostański (rozteck@interia.pl)
  * Copyright 2010, 2011 Piotr Dąbrowski (ultr@ultr.pl)
- * Copyright 2008, 2009 Michał Podsiadlik (michal@kadu.net)
  * Copyright 2009 Maciej Płaza (plaza.maciej@gmail.com)
- * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
  * Copyright 2010 badboy (badboy@gen2.org)
- * Copyright 2007, 2008, 2009, 2009, 2010, 2011, 2012, 2013, 2014 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2010, 2011, 2012, 2013, 2014 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2007, 2008 Dawid Stawiarski (neeo@kadu.net)
+ * Copyright 2009, 2010, 2011, 2012, 2013, 2014 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -77,7 +74,7 @@
 
 #include "main-configuration-window.h"
 
-#if defined(Q_OS_UNIX) && !defined(Q_OS_MAC)
+#if defined(Q_OS_UNIX)
 #include "os/x11/x11tools.h" // this should be included as last one,
 #undef KeyPress
 #undef Status            // and Status defined by Xlib.h must be undefined
@@ -186,15 +183,15 @@ MainConfigurationWindow::MainConfigurationWindow() :
 	widget()->widgetById("hideMainWindowFromTaskbar")->hide();
 #endif
 
-#if !defined(Q_OS_UNIX) || defined(Q_OS_MAC)
+#if !defined(Q_OS_UNIX)
 	widget()->widgetById("windowActivationMethod")->hide();
 #endif
 
-#if !(defined(Q_OS_UNIX) && !defined(Q_OS_MAC)) && !defined(Q_OS_WIN32)
+#if defined(Q_OS_UNIX) && !defined(Q_OS_WIN)
 	widget()->widgetById("notify/fullscreenSilentMode")->hide();
 #endif
 
-#if !defined(Q_OS_UNIX) || defined(Q_OS_MAC)
+#if !defined(Q_OS_UNIX)
 	widget()->widgetById("useTransparency")->hide();
 	widget()->widgetById("userboxTransparency")->hide();
 	widget()->widgetById("userboxAlpha")->hide();
@@ -397,10 +394,6 @@ void MainConfigurationWindow::showLookChatAdvanced()
 	{
 		lookChatAdvanced = new ConfigurationWindow("LookChatAdvanced", tr("Advanced chat's look configuration"), "General", instanceDataManager());
 		lookChatAdvanced.data()->widget()->appendUiFile(Application::instance()->pathsProvider()->dataPath() + QLatin1String("configuration/dialog-look-chat-advanced.ui"));
-
-		lookChatAdvanced.data()->widget()->widgetById("chatSyntax")->setToolTip(QCoreApplication::translate("@default", SyntaxText));
-		lookChatAdvanced.data()->widget()->widgetById("conferencePrefix")->setToolTip(QCoreApplication::translate("@default", SyntaxText));
-		lookChatAdvanced.data()->widget()->widgetById("conferenceSyntax")->setToolTip(QCoreApplication::translate("@default", SyntaxText));
 	}
 
 	lookChatAdvanced.data()->show();

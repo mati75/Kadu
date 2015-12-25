@@ -1,15 +1,8 @@
 /*
  * %kadu copyright begin%
- * Copyright 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2009, 2010 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2010 Piotr Pełzowski (floss@pelzowski.eu)
  * Copyright 2012 Piotr Dąbrowski (ultr@ultr.pl)
- * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
- * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
- * Copyright 2010 badboy (badboy@gen2.org)
- * Copyright 2007, 2008, 2009, 2010, 2011, 2013, 2014 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
+ * Copyright 2013, 2014 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2011, 2013, 2014 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -36,7 +29,6 @@
 #include "gui/widgets/gadu-contact-personal-info-widget.h"
 #include "gui/widgets/gadu-edit-account-widget.h"
 #include "gadu-account-details.h"
-#include "gadu-contact-details.h"
 #include "gadu-id-validator.h"
 #include "gadu-protocol.h"
 #include "gadu-status-adapter.h"
@@ -78,11 +70,6 @@ Protocol * GaduProtocolFactory::createProtocolHandler(Account account)
 AccountDetails * GaduProtocolFactory::createAccountDetails(AccountShared *accountShared)
 {
 	return new GaduAccountDetails(accountShared);
-}
-
-ContactDetails * GaduProtocolFactory::createContactDetails(ContactShared *contactShared)
-{
-	return new GaduContactDetails(contactShared);
 }
 
 AccountAddWidget * GaduProtocolFactory::newAddAccountWidget(bool showButtons, QWidget *parent)

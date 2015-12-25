@@ -1,8 +1,7 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2011, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2011, 2013, 2014, 2015 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -24,31 +23,22 @@
 #include "configuration/configuration.h"
 #include "configuration/deprecated-configuration-api.h"
 #include "core/application.h"
+#include "core/core.h"
 #include "icons/icons-manager.h"
-#include "notify/notification-manager.h"
-#include "notify/notify-event.h"
+#include "notification/notification-event-repository.h"
+#include "notification/notification-manager.h"
+#include "notification/notification-event.h"
 
 #include "firewall-notification.h"
 
-NotifyEvent * FirewallNotification::FirewalledNotification = 0;
-
 void FirewallNotification::registerNotifications()
 {
-	if (FirewalledNotification)
-		return;
-
-	FirewalledNotification = new NotifyEvent("firewallNotification", NotifyEvent::CallbackNotRequired, QT_TRANSLATE_NOOP("@default", "Message was firewalled"));
-	NotificationManager::instance()->registerNotifyEvent(FirewalledNotification);
+	Core::instance()->notificationEventRepository()->addNotificationEvent(NotificationEvent("firewallNotification", QT_TRANSLATE_NOOP("@default", "Message was firewalled")));
 }
 
 void FirewallNotification::unregisterNotifications()
 {
-	if (!FirewalledNotification)
-		return;
-
-	NotificationManager::instance()->unregisterNotifyEvent(FirewalledNotification);
-	delete FirewalledNotification;
-	FirewalledNotification = 0;
+	Core::instance()->notificationEventRepository()->removeNotificationEvent(NotificationEvent("firewallNotification", QT_TRANSLATE_NOOP("@default", "Message was firewalled")));
 }
 
 void FirewallNotification::notify(const Chat &chat, const Contact &sender, const QString &message)
@@ -58,12 +48,13 @@ void FirewallNotification::notify(const Chat &chat, const Contact &sender, const
 	notification->setText(Application::instance()->configuration()->deprecatedApi()->readEntry("Firewall", "notification_syntax",
 		tr("%u writes")).replace("%u", Qt::escape(sender.display(true))).remove("%m"));
 	notification->setDetails(Qt::escape(message));
-	NotificationManager::instance()->notify(notification);
+	Core::instance()->notificationManager()->notify(notification);
 }
 
 FirewallNotification::FirewallNotification(const Chat &chat) :
-		ChatNotification(chat, "firewallNotification", KaduIcon("ManageKeysWindowIcon"))
+		Notification(Account::null, chat, "firewallNotification", KaduIcon("ManageKeysWindowIcon"))
 {
+	addChatCallbacks();
 }
 
 FirewallNotification::~FirewallNotification()

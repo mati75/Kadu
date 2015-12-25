@@ -1,8 +1,8 @@
 /*
  * %kadu copyright begin%
  * Copyright 2012 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2011, 2012, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2011, 2012, 2013, 2014 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
  * Copyright 2010 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
@@ -22,18 +22,19 @@
  */
 
 #include <QtCore/QCoreApplication>
-#include <QtCrypto>
 
 #include <libgadu.h>
 
 #include "accounts/account-manager.h"
 #include "core/core.h"
 #include "dom/dom-processor-service.h"
+#include "gui/menu/menu-inventory.h"
 #include "gui/windows/message-dialog.h"
 #include "protocols/protocols-manager.h"
 #include "url-handlers/url-handler-manager.h"
 #include "debug.h"
 
+#include "actions/gadu-protocol-menu-manager.h"
 #include "helpers/gadu-importer.h"
 #include "server/gadu-servers-manager.h"
 #include "gadu-id-validator.h"
@@ -91,11 +92,17 @@ bool GaduProtocolPlugin::init(bool firstLoad)
 		GaduImporter::instance()->importAccounts();
 	GaduImporter::instance()->importContacts();
 
+	m_protocolMenuManager = make_unique<GaduProtocolMenuManager>();
+	MenuInventory::instance()->registerProtocolMenuManager(m_protocolMenuManager.get());
+
 	return true;
 }
 
 void GaduProtocolPlugin::done()
 {
+	MenuInventory::instance()->unregisterProtocolMenuManager(m_protocolMenuManager.get());
+	m_protocolMenuManager = nullptr;
+
 	GaduImporter::destroyInstance();
 
 	Core::instance()->domProcessorService()->unregisterVisitorProvider(UrlDomVisitorProvider);

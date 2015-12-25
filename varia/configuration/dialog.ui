@@ -63,17 +63,16 @@
 			</group-box>
 		</tab>
 		<tab name="Buddies list">
-			<group-box name="Buddy Photos">
+			<group-box name="General">
 				<check-box caption="Show buddies' photos" config-section="Look" config-item="ShowAvatars" id="showAvatars" />
 				<check-box caption="Add border to buddies' photos" config-section="Look" config-item="AvatarBorder" id="avatarBorder" parent-widget="showAvatars" />
 				<check-box caption="Grey out offline buddies' photos" config-section="Look" config-item="AvatarGreyOut" id="avatarGreyOut" parent-widget="showAvatars"
 					tool-tip="Buddies who are offline will have their photos greyed out" />
-			</group-box>
-			<group-box name="Descriptions">
 				<check-box caption="Show buddies' descriptions" config-section="Look" config-item="ShowDesc" id="showDescription"
 					tool-tip="Displays descriptions in the buddy list" />
 				<check-box caption="Split long descriptions into multiple lines" config-section="Look" config-item="ShowMultilineDesc" id="multilineDescription"
 					tool-tip="Dislpays multiline descriptions in the buddy list" parent-widget="showDescription" />
+				<check-box caption="Always show identity" config-section="Look" config-item="TalkableListAlwaysShowIdentityName" />
 			</group-box>
 			<group-box name="Transparency" id="userboxTransparencyGroup">
 				<check-box caption="Enable transparency in buddy list" config-section="Look" config-item="UserboxTransparency" id="userboxTransparency" />
@@ -204,6 +203,10 @@
 			<group-box name="Chat">
 				<check-box caption="Notify about chat events in chat window" config-section="Chat" config-item="ContactStateChats" id="contactStateChats" />
 				<check-box caption="Notify about chat events in windows' titles" config-section="Chat" config-item="ContactStateWindowTitle" id="contactStateWindowTitle" />
+				<combo-box caption="Notification position" config-section="Chat" config-item="ContactStateWindowTitlePosition" id="contactStateWindowTitlePosition" parent-widget="contactStateWindowTitle" >
+					<item value="0" caption="Beginning of title" />
+					<item value="1" caption="End of title" />
+				</combo-box>
 			</group-box>
 			<group-box name="New Message">
 				<check-box caption="Notify about new messages only when window is inactive" config-section="Notify"

@@ -1,6 +1,6 @@
 /*
  * %kadu copyright begin%
- * Copyright 2013, 2014 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2013, 2014, 2015 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -27,7 +27,7 @@ ChatWidget * ChatWidgetRepository::converter(ChatWidgetRepository::WrappedIterat
 }
 
 ChatWidgetRepository::ChatWidgetRepository(QObject *parent) :
-		QObject(parent)
+		QObject{parent}
 {
 }
 

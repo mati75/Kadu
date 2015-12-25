@@ -1,12 +1,8 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2012 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2008 Tomasz Rostański (rozteck@interia.pl)
- * Copyright 2010 Dariusz Markowicz (darom@alari.pl)
- * Copyright 2010 badboy (badboy@gen2.org)
- * Copyright 2008, 2009, 2010, 2011, 2012, 2013, 2014 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2012 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2012, 2013, 2014 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2011, 2012, 2013, 2014, 2015 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -58,7 +54,7 @@ InfosDialog::InfosDialog(const LastSeen &lastSeen, QWidget *parent) :
 
 	ListView = new QTreeWidget(this);
 	ListView->setAllColumnsShowFocus(true);
-	ListView->setColumnCount(9);
+	ListView->setColumnCount(7);
 	ListView->setContextMenuPolicy(Qt::CustomContextMenu);
 	ListView->setRootIsDecorated(false);
 	ListView->setSelectionMode(QAbstractItemView::SingleSelection);
@@ -71,8 +67,6 @@ InfosDialog::InfosDialog(const LastSeen &lastSeen, QWidget *parent) :
 			<< tr("Protocol")
 			<< tr("Username")
 			<< tr("Nick")
-			<< tr("IP")
-			<< tr("Domain name")
 			<< tr("Description")
 			<< tr("State")
 			<< tr("Last time seen on");
@@ -83,20 +77,16 @@ InfosDialog::InfosDialog(const LastSeen &lastSeen, QWidget *parent) :
 		if (contact.isAnonymous())
 			continue;
 
-		QString desc, ip;
+		QString desc;
 		if (!contact.currentStatus().description().isEmpty())
 			desc = contact.currentStatus().description();
 		desc.replace('\n', ' ');
-		if (!contact.address().isNull())
-			ip = contact.address().toString();
 
 		QStringList labels;
 		labels << contact.display(true)
 				<< contact.contactAccount().protocolName()
 				<< contact.id()
 				<< contact.ownerBuddy().nickName()
-				<< ip
-				<< contact.dnsName()
 				<< desc
 				<< StatusTypeManager::instance()->statusTypeData(contact.currentStatus().type()).name()
 				<< lastSeen[qMakePair(contact.contactAccount().protocolName(), contact.id())];
@@ -147,7 +137,7 @@ void InfosDialog::customContextMenuRequested(const QPoint &point)
 	if (!contact)
 		return;
 
-	BaseActionContext actionContext;
+	BaseActionContext actionContext{this};
 	actionContext.setBuddies(BuddySet(contact.ownerBuddy()));
 	actionContext.setChat(ChatTypeContact::findChat(contact, ActionCreateAndAdd));
 	actionContext.setContacts(ContactSet(contact));

@@ -1,12 +1,7 @@
 /*
  * %kadu copyright begin%
- * Copyright 2004 Michał Podsiadlik (michal@kadu.net)
- * Copyright 2002, 2003, 2004, 2005 Adrian Smarzewski (adrian@kadu.net)
- * Copyright 2002, 2003, 2004 Tomasz Chiliński (chilek@chilan.com)
- * Copyright 2007, 2009, 2011, 2012, 2013, 2014 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2007 Dawid Stawiarski (neeo@kadu.net)
- * Copyright 2005 Marcin Ślusarz (joi@kadu.net)
+ * Copyright 2011, 2012, 2013, 2014 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2011, 2012, 2013, 2014, 2015 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -27,6 +22,7 @@
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QCheckBox>
 #include <QtWidgets/QDialogButtonBox>
+#include <QtWidgets/QGroupBox>
 #include <QtWidgets/QLabel>
 #include <QtWidgets/QLineEdit>
 #include <QtWidgets/QPushButton>
@@ -38,9 +34,10 @@
 #include "configuration/config-file-variant-wrapper.h"
 #include "gui/widgets/chat-configuration-widget-factory-repository.h"
 #include "gui/widgets/chat-configuration-widget-factory.h"
-#include "gui/widgets/chat-configuration-widget-tab-adapter.h"
+#include "gui/widgets/chat-configuration-widget-group-boxes-adapter.h"
 #include "gui/widgets/chat-configuration-widget.h"
 #include "gui/widgets/chat-edit-widget.h"
+#include "gui/widgets/chat-groups-configuration-widget.h"
 #include "gui/widgets/composite-configuration-value-state-notifier.h"
 #include "gui/widgets/group-list.h"
 #include "gui/widgets/simple-configuration-value-state-notifier.h"
@@ -109,6 +106,7 @@ void ChatDataWindow::factoryUnregistered(ChatConfigurationWidgetFactory *factory
 	if (ChatConfigurationWidgets.contains(factory))
 	{
 		ChatConfigurationWidget *widget = ChatConfigurationWidgets.value(factory);
+		ChatConfigurationWidgets.remove(factory);
 		if (widget)
 		{
 			if (widget->stateNotifier())
@@ -116,7 +114,6 @@ void ChatDataWindow::factoryUnregistered(ChatConfigurationWidgetFactory *factory
 			emit widgetRemoved(widget);
 			widget->deleteLater();
 		}
-		ChatConfigurationWidgets.remove(factory);
 	}
 }
 
@@ -144,8 +141,6 @@ void ChatDataWindow::createGui()
 
 	TabWidget = new QTabWidget(this);
 
-	new ChatConfigurationWidgetTabAdapter(this, TabWidget, this);
-
 	GeneralTab = new QWidget(TabWidget);
 	QVBoxLayout *generalLayout = new QVBoxLayout(GeneralTab);
 
@@ -161,15 +156,7 @@ void ChatDataWindow::createGui()
 	nameLayout->addWidget(numberLabel);
 	nameLayout->addWidget(DisplayEdit);
 
-	QLabel *groupsLabel = new QLabel(tr("Add this chat to the groups below by checking the box next to the appropriate groups."), this);
-	groupsLabel->setWordWrap(true);
-
-	ChatGroupList = new GroupList(this);
-	ChatGroupList->setCheckedGroups(MyChat.groups());
-
 	generalLayout->addWidget(nameWidget);
-	generalLayout->addWidget(groupsLabel);
-	generalLayout->addWidget(ChatGroupList);
 
 	TabWidget->addTab(GeneralTab, tr("General"));
 
@@ -179,11 +166,30 @@ void ChatDataWindow::createGui()
 		EditWidget = chatType->createEditWidget(MyChat, TabWidget);
 		if (EditWidget)
 		{
-			TabWidget->addTab(EditWidget, tr("Chat"));
+			auto groupBox = new QGroupBox{GeneralTab};
+			groupBox->setFlat(true);
+			groupBox->setTitle(tr("Chat"));
+
+			auto groupBoxLayout = new QVBoxLayout{groupBox};
+			groupBoxLayout->setMargin(0);
+			groupBoxLayout->setSpacing(4);
+			groupBoxLayout->addWidget(EditWidget);
+
+			generalLayout->addWidget(groupBox);
 			if (EditWidget->stateNotifier())
 				ValueStateNotifier->addConfigurationValueStateNotifier(EditWidget->stateNotifier());
 		}
 	}
+
+	generalLayout->addStretch(100);
+
+	GroupsTab = new ChatGroupsConfigurationWidget(MyChat, this);
+	TabWidget->addTab(GroupsTab, tr("Groups"));
+
+	auto optionsTab = new QWidget{this};
+	(new QVBoxLayout{optionsTab})->addStretch(100);
+	new ChatConfigurationWidgetGroupBoxesAdapter(this, optionsTab);
+	TabWidget->addTab(optionsTab, tr("Options"));
 
 	layout->addWidget(TabWidget);
 
@@ -223,10 +229,11 @@ void ChatDataWindow::updateChat()
 	if (EditWidget)
 		EditWidget->apply();
 
+	GroupsTab->save();
+
 	applyChatConfigurationWidgets();
 
 	MyChat.setDisplay(DisplayEdit->text());
-	MyChat.setGroups(ChatGroupList->checkedGroups());
 
 	emit save();
 }

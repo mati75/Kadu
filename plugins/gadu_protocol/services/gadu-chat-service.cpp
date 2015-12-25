@@ -1,12 +1,9 @@
 /*
  * %kadu copyright begin%
- * Copyright 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
+ * Copyright 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2011 Piotr Dąbrowski (ultr@ultr.pl)
- * Copyright 2009 Michał Podsiadlik (michal@kadu.net)
- * Copyright 2009, 2010 Bartłomiej Zimoń (uzi18@o2.pl)
- * Copyright 2009, 2010, 2011, 2012, 2013, 2014 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2011, 2012, 2013, 2014, 2015 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -23,6 +20,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <QtCore/QRegularExpression>
 #include <QtCore/QScopedArrayPointer>
 #include <QtCore/QTimer>
 
@@ -76,6 +74,11 @@ GaduChatService::~GaduChatService()
 void GaduChatService::setGaduChatImageService(GaduChatImageService *gaduChatImageService)
 {
 	CurrentGaduChatImageService = gaduChatImageService;
+}
+
+void GaduChatService::setGaduFileTransferService(GaduFileTransferService *gaduFileTransferService)
+{
+	CurrentFileTransferService = gaduFileTransferService;
 }
 
 void GaduChatService::setImageStorageService(ImageStorageService *imageStorageService)
@@ -247,6 +250,19 @@ void GaduChatService::handleMsg(Contact sender, ContactSet recipients, MessageTy
 	if (!chat || chat.isIgnoreAllMessages())
 		return;
 
+	if (CurrentFileTransferService)
+	{
+		auto content = QString::fromUtf8(reinterpret_cast<const char *>(e->event.msg.message));
+		auto fileTransferRegExp = QRegularExpression{"^http\\:\\/\\/www\\.gg\\.pl\\/dysk\\/([a-zA-Z0-9-_]{23})\\/(.+)$"};
+		auto fileTransferMatch = fileTransferRegExp.match(content);
+
+		if (fileTransferMatch.hasMatch())
+		{
+			CurrentFileTransferService->fileTransferReceived(sender, fileTransferMatch.captured(1), fileTransferMatch.captured(2));
+			return;
+		}
+	}
+
 	Message message = Message::create();
 	message.setMessageChat(chat);
 	message.setType(type);
@@ -255,6 +271,7 @@ void GaduChatService::handleMsg(Contact sender, ContactSet recipients, MessageTy
 	message.setReceiveDate(QDateTime::currentDateTime());
 
 	auto rawMessage = getRawMessage(e);
+
 	if (rawMessageTransformerService())
 		rawMessage = rawMessageTransformerService()->transform(rawMessage, message);
 

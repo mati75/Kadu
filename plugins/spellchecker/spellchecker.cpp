@@ -1,14 +1,10 @@
 /*
  * %kadu copyright begin%
  * Copyright 2011 Tomasz Rostanski (rozteck@interia.pl)
- * Copyright 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2012 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2009 Tomasz Rostański (rozteck@interia.pl)
+ * Copyright 2012 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2011 Sławomir Stępień (s.stepien@interia.pl)
- * Copyright 2009 Michał Podsiadlik (michal@kadu.net)
- * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
- * Copyright 2008, 2009, 2010, 2011, 2012, 2013, 2014 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011, 2012, 2013, 2014 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2011, 2012, 2013, 2014 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2011, 2012, 2013, 2014 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -40,6 +36,7 @@
 #include "macspellchecker.h"
 #endif
 
+#include "core/application.h"
 #include "gui/widgets/chat-edit-box.h"
 #include "gui/widgets/chat-widget/chat-widget-repository.h"
 #include "gui/widgets/chat-widget/chat-widget.h"
@@ -98,13 +95,16 @@ SpellChecker::SpellChecker(QObject *parent) :
 	aspell_config_replace(SpellConfig, "encoding", "utf-8");
 	aspell_config_replace(SpellConfig, "sug-mode", "ultra");
 
-#if defined(Q_OS_WIN32)
-	aspell_config_replace(SpellConfig, "dict-dir", qPrintable(KaduApplication::instance()->pathsProvider()->dataPath() + QLatin1String("aspell")));
-	aspell_config_replace(SpellConfig, "data-dir", qPrintable(KaduApplication::instance()->pathsProvider()->dataPath() + QLatin1String("aspell")));
-	aspell_config_replace(SpellConfig, "prefix", qPrintable(KaduApplication::instance()->pathsProvider()->profilePath() + QLatin1String("dicts")));
-#endif
+#	if defined(Q_OS_WIN)
+	aspell_config_replace(SpellConfig, "dict-dir", qPrintable(Application::instance()->pathsProvider()->dataPath() + QLatin1String("aspell")));
+	aspell_config_replace(SpellConfig, "data-dir", qPrintable(Application::instance()->pathsProvider()->dataPath() + QLatin1String("aspell")));
+	aspell_config_replace(SpellConfig, "prefix", qPrintable(Application::instance()->pathsProvider()->profilePath() + QLatin1String("dicts")));
+#	endif
 #elif defined(HAVE_ENCHANT)
 	Broker = enchant_broker_init();
+#	if defined(Q_OS_WIN)
+	enchant_broker_set_param(Broker, "enchant.myspell.dictionary.path", qPrintable(Application::instance()->pathsProvider()->dataPath() + QLatin1String("share/enchant/myspell/")));
+#	endif
 #endif
 }
 

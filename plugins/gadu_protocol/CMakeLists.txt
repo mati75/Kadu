@@ -2,15 +2,12 @@ project (gadu_protocol)
 
 cmake_minimum_required (VERSION 2.8)
 
-# Needed for FindQCA2.cmake when building externally
-list (INSERT CMAKE_MODULE_PATH 0 "${CMAKE_CURRENT_SOURCE_DIR}/../../cmake/Modules")
-
 find_package (Kadu REQUIRED CONFIG)
 
 set (LIBGADU_MIN_VERSION "1.12.1")
 
 kadu_api_directories (plugins/gadu_protocol
-	dcc
+	actions
 	file-transfers
 	gui/widgets
 	gui/windows
@@ -26,9 +23,11 @@ kadu_api_directories (plugins/gadu_protocol
 )
 
 set (SOURCES
-	dcc/dcc-socket-notifiers.cpp
+	actions/gadu-protocol-menu-manager.cpp
+	actions/gadu-send-gift-action.cpp
 
-	file-transfer/gadu-file-transfer-handler.cpp
+	file-transfer/gadu-outgoing-file-transfer-handler.cpp
+	file-transfer/gadu-url-incoming-file-transfer-handler.cpp
 
 	gui/widgets/gadu-add-account-widget.cpp
 	gui/widgets/gadu-contact-personal-info-widget.cpp
@@ -59,6 +58,18 @@ set (SOURCES
 	server/gadu-writable-session-token.cpp
 	server/protocol-gadu-connection.cpp
 
+	services/drive/gadu-drive-authorization.cpp
+	services/drive/gadu-drive-get-transfer.cpp
+	services/drive/gadu-drive-put-transfer.cpp
+	services/drive/gadu-drive-send-status-update-request.cpp
+	services/drive/gadu-drive-send-ticket-parser.cpp
+	services/drive/gadu-drive-send-ticket-request.cpp
+	services/drive/gadu-drive-send-ticket.cpp
+	services/drive/gadu-drive-service.cpp
+	services/drive/gadu-drive-session-token.cpp
+
+	services/user-data/gadu-user-data-service.cpp
+
 	services/gadu-avatar-service.cpp
 	services/gadu-buddy-list-serialization-service.cpp
 	services/gadu-chat-image-service.cpp
@@ -66,6 +77,7 @@ set (SOURCES
 	services/gadu-chat-state-service.cpp
 	services/gadu-contact-personal-info-service.cpp
 	services/gadu-file-transfer-service.cpp
+	services/gadu-imtoken-service.cpp
 	services/gadu-multilogon-service.cpp
 	services/gadu-notify-service.cpp
 	services/gadu-personal-info-service.cpp
@@ -80,7 +92,6 @@ set (SOURCES
 	socket-notifiers/gadu-socket-notifiers.cpp
 
 	gadu-account-details.cpp
-	gadu-contact-details.cpp
 	gadu-id-validator.cpp
 	gadu-protocol.cpp
 	gadu-protocol-factory.cpp
@@ -91,10 +102,6 @@ set (SOURCES
 )
 
 set (MOC_SOURCES
-	dcc/dcc-socket-notifiers.h
-
-	file-transfer/gadu-file-transfer-handler.h
-
 	gui/widgets/gadu-add-account-widget.h
 	gui/widgets/gadu-contact-personal-info-widget.h
 	gui/widgets/gadu-edit-account-widget.h
@@ -146,18 +153,7 @@ set (SERVERS_FILE
 find_package (PkgConfig)
 pkg_search_module (LIBGADU REQUIRED libgadu>=${LIBGADU_MIN_VERSION})
 
-find_package (QCA2 REQUIRED)
-
-if (APPLE)
-	if (QCA_FRAMEWORK_DIR)
-		set (QCA2_INCLUDE_DIR ${QCA_FRAMEWORK_DIR}/qca.framework/Headers/)
-		set (QCA2_LIBRARIES "-framework qca")
-		link_directories (${QCA_FRAMEWORK_DIR}/qca.framework/)
-	endif ()
-endif ()
-
-add_definitions (${QCA2_DEFINITIONS})
-include_directories (${LIBGADU_INCLUDE_DIRS} ${QCA2_INCLUDE_DIR})
+include_directories (${LIBGADU_INCLUDE_DIRS})
 link_directories (${LIBGADU_LIBRARY_DIRS})
 
 if (LIBGADU_FOUND)
@@ -166,7 +162,7 @@ else ()
 	message (FATAL_ERROR " * libgadu (version ${LIBGADU_MIN_VERSION}) was NOT FOUND")
 endif ()
 
-set (LIBRARIES ${LIBGADU_LIBRARIES} ${QCA2_LIBRARIES})
+set (LIBRARIES ${LIBGADU_LIBRARIES})
 if (WIN32)
 	list (APPEND LIBRARIES ws2_32)
 endif ()

@@ -1,12 +1,9 @@
 /*
  * %kadu copyright begin%
  * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009 Michał Podsiadlik (michal@kadu.net)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
- * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
- * Copyright 2007, 2008, 2009, 2010, 2011, 2012, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2010, 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
+ * Copyright 2009, 2010, 2011, 2012, 2013, 2014 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -49,7 +46,7 @@ class ContactSet;
  * given chat type. This class creates common interface for this custom data
  * - it can return list of contacts in that chat.
  */
-class ChatDetails : public QObject, public Details<ChatShared>
+class KADUAPI ChatDetails : public QObject, public Details<ChatShared>
 {
 	Q_OBJECT
 
@@ -64,8 +61,8 @@ public:
 	 * Contructor must be overridden and called by all subclasses. It assigns
 	 * new object ot mainData object.
 	 */
-	explicit ChatDetails(ChatShared *mainData) : Details<ChatShared>(mainData) {}
-	virtual ~ChatDetails() {}
+	explicit ChatDetails(ChatShared *mainData);
+	virtual ~ChatDetails();
 
 	/**
 	 * @author Rafal 'Vogel' Malinowski
@@ -151,6 +148,14 @@ signals:
 	 * @param contact just removed contact
 	 */
 	void contactRemoved(const Contact &contact);
+
+	void updated();
+
+protected:
+	void notifyChanged();
+
+private:
+	ChangeNotifier *m_changeNotifier;
 
 };
 

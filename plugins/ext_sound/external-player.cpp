@@ -1,14 +1,7 @@
 /*
  * %kadu copyright begin%
- * Copyright 2009, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2008, 2010 Tomasz Rostański (rozteck@interia.pl)
- * Copyright 2004, 2008 Michał Podsiadlik (michal@kadu.net)
- * Copyright 2004 Roman Krzystyniak (Ron_K@tlen.pl)
- * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
- * Copyright 2007, 2008, 2010, 2011, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2004, 2005, 2006 Marcin Ślusarz (joi@kadu.net)
+ * Copyright 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2011, 2013, 2014, 2015 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -25,68 +18,49 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <QtCore/QProcess>
+#include "external-player.h"
+
 
 #include "configuration/configuration.h"
 #include "configuration/deprecated-configuration-api.h"
 #include "core/application.h"
-#include "debug.h"
 
-#include "external-player.h"
+#include <QtCore/QProcess>
 
-ExternalPlayer * ExternalPlayer::Instance = 0;
-
-void ExternalPlayer::createInstance()
-{
-	if (!Instance)
-		Instance = new ExternalPlayer();
-}
-
-void ExternalPlayer::destroyInstance()
-{
-	delete Instance;
-	Instance = 0;
-}
-
-ExternalPlayer * ExternalPlayer::instance()
-{
-	return Instance;
-}
-
-ExternalPlayer::ExternalPlayer()
+ExternalPlayer::ExternalPlayer(QObject *parent) :
+		SoundPlayer{parent}
 {
 	createDefaultConfiguration();
 }
 
 ExternalPlayer::~ExternalPlayer()
 {
+	if (m_playerProcess)
+		m_playerProcess->deleteLater();
 }
 
-void ExternalPlayer::playSound(const QString &path)
+QObject * ExternalPlayer::playSound(const QString &path)
 {
-	kdebugf();
+	if (m_playerProcess)
+		return nullptr;
 
-	QString playerCommand = Application::instance()->configuration()->deprecatedApi()->readEntry("Sounds", "SoundPlayer");
-	QString volumeArguments;
-
+	auto playerCommand = Application::instance()->configuration()->deprecatedApi()->readEntry("Sounds", "SoundPlayer");
 	if (playerCommand.isEmpty())
-	{
-		kdebugmf(KDEBUG_FUNCTION_END, "end: player path is empty\n");
-		return;
-	}
+		return nullptr;
 
-	QStringList argumentList;
+	auto argumentList = QStringList{};
 	argumentList.append(path);
 
-	QProcess process;
-	process.start(playerCommand, argumentList);
-	process.waitForFinished();
+	m_playerProcess = new QProcess{this};
+	m_playerProcess->start(playerCommand, argumentList);
+	connect(m_playerProcess, SIGNAL(finished(int)), m_playerProcess, SLOT(deleteLater()));
+	return m_playerProcess;
 }
 
 void ExternalPlayer::createDefaultConfiguration()
 {
 #ifdef Q_OS_MAC
-	KaduApplication::instance()->configuration()->deprecatedApi()->addVariable("Sounds", "SoundPlayer", "/Applications/Kadu.app/Contents/MacOS/playsound");
+	Application::instance()->configuration()->deprecatedApi()->addVariable("Sounds", "SoundPlayer", "/Applications/Kadu.app/Contents/MacOS/playsound");
 #else
 	Application::instance()->configuration()->deprecatedApi()->addVariable("Sounds", "SoundPlayer", "/usr/bin/play");
 #endif

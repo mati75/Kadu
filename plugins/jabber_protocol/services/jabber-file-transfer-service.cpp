@@ -1,12 +1,7 @@
 /*
  * %kadu copyright begin%
- * Copyright 2010 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2009 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
- * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
- * Copyright 2007, 2008, 2009, 2010, 2011, 2012, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
+ * Copyright 2011, 2012, 2013, 2014, 2015 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -23,72 +18,96 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <iris/filetransfer.h>
-
-#include "contacts/contact-manager.h"
-
-#include "file-transfer/jabber-file-transfer-handler.h"
-#include "file-transfer/s5b-server-manager.h"
-#include "services/jabber-connection-service.h"
-#include "jabber-protocol.h"
-
 #include "jabber-file-transfer-service.h"
 
-JabberFileTransferService::JabberFileTransferService(XMPP::JabberProtocol *protocol) :
-		FileTransferService(protocol), Protocol(protocol)
+#include "file-transfer/jabber-outgoing-file-transfer-handler.h"
+#include "file-transfer/jabber-stream-incoming-file-transfer-handler.h"
+#include "services/jabber-resource-service.h"
+#include "jabber-account-details.h"
+#include "jid.h"
+
+#include "core/core.h"
+#include "contacts/contact-manager.h"
+#include "file-transfer/file-transfer-direction.h"
+#include "file-transfer/file-transfer-handler-manager.h"
+#include "file-transfer/file-transfer-type.h"
+#include "file-transfer/file-transfer-status.h"
+#include "file-transfer/gui/file-transfer-can-send-result.h"
+
+#include <qxmpp/QXmppTransferManager.h>
+
+JabberFileTransferService::JabberFileTransferService(QXmppTransferManager *transferManager, Account account, QObject *parent) :
+		FileTransferService{parent},
+		m_transferManager{transferManager},
+		m_account{account}
 {
-	connect(Protocol, SIGNAL(stateMachineLoggedIn()), this, SLOT(loggedIn()));
-	connect(Protocol, SIGNAL(stateMachineLoggedOut()), this, SLOT(loggedOut()));
+	auto details = dynamic_cast<JabberAccountDetails *>(account.details());
+	connect(details, SIGNAL(dataTransferProxyChanged()), this, SLOT(dataTransferProxyChanged()));
+	dataTransferProxyChanged();
 
-	Protocol->xmppClient()->setFileTransferEnabled(true);
-	Protocol->xmppClient()->fileTransferManager()->setDisabled(XMPP::S5BManager::ns(), false);
-
-	connect(Protocol->xmppClient()->fileTransferManager(), SIGNAL(incomingReady()),
-			this, SLOT(incomingFileTransferSlot()));
+	connect(m_transferManager, SIGNAL(fileReceived(QXmppTransferJob*)), this, SLOT(fileReceived(QXmppTransferJob*)));
 }
 
 JabberFileTransferService::~JabberFileTransferService()
 {
 }
 
+void JabberFileTransferService::setResourceService(JabberResourceService *resourceService)
+{
+	m_resourceService = resourceService;
+}
+
 FileTransferHandler * JabberFileTransferService::createFileTransferHandler(FileTransfer fileTransfer)
 {
-	JabberFileTransferHandler *handler = new JabberFileTransferHandler(fileTransfer);
-	fileTransfer.setHandler(handler);
-
-	return handler;
+	switch (fileTransfer.transferDirection())
+	{
+		case FileTransferDirection::Incoming:
+			return new JabberStreamIncomingFileTransferHandler{fileTransfer};
+		case FileTransferDirection::Outgoing:
+		{
+			auto handler = new JabberOutgoingFileTransferHandler{m_transferManager, fileTransfer};
+			handler->setResourceService(m_resourceService);
+			return handler;
+		}
+		default:
+			return nullptr;
+	}
 }
 
-void JabberFileTransferService::loggedIn()
+FileTransferCanSendResult JabberFileTransferService::canSend(Contact contact)
 {
-	S5BServerManager::instance()->addAddress(Protocol->connectionService()->localAddress());
-	Protocol->xmppClient()->s5bManager()->setServer(S5BServerManager::instance()->server());
+	if (Core::instance()->myself() == contact.ownerBuddy())
+		return {false, {}};
+
+	return {true, {}};
 }
 
-void JabberFileTransferService::loggedOut()
+void JabberFileTransferService::dataTransferProxyChanged()
 {
-	S5BServerManager::instance()->removeAddress(Protocol->connectionService()->localAddress());
-	Protocol->xmppClient()->s5bManager()->setServer(0);
+	auto details = dynamic_cast<JabberAccountDetails *>(m_account.details());
+	m_transferManager->setProxy(details->dataTransferProxy());
+	m_transferManager->setProxyOnly(details->requireDataTransferProxy());
 }
 
-void JabberFileTransferService::incomingFileTransferSlot()
+void JabberFileTransferService::fileReceived(QXmppTransferJob *transferJob)
 {
-	XMPP::FileTransfer *jTransfer = Protocol->xmppClient()->fileTransferManager()->takeIncoming();
-	if (!jTransfer)
+	auto jid = Jid::parse(transferJob->jid());
+	auto peer = ContactManager::instance()->byId(m_account, jid.bare(), ActionCreateAndAdd);
+
+	auto transfer = FileTransfer::create();
+	transfer.setPeer(peer);
+	transfer.setTransferDirection(FileTransferDirection::Incoming);
+	transfer.setTransferType(FileTransferType::Stream);
+	transfer.setTransferStatus(FileTransferStatus::WaitingForAccept);
+	transfer.setRemoteFileName(transferJob->fileName());
+	transfer.setFileSize(transferJob->fileSize());
+
+	if (!Core::instance()->fileTransferHandlerManager()->ensureHandler(transfer))
 		return;
 
-	Contact peer = ContactManager::instance()->byId(Protocol->account(), jTransfer->peer().bare(), ActionCreateAndAdd);
-	FileTransfer transfer = FileTransfer::create();
-	transfer.setPeer(peer);
-	transfer.setTransferType(TypeReceive);
-	transfer.setRemoteFileName(jTransfer->fileName());
-	transfer.setFileSize(jTransfer->fileSize());
-
-	transfer.createHandler();
-
-	JabberFileTransferHandler *handler = dynamic_cast<JabberFileTransferHandler *>(transfer.handler());
+	auto handler = qobject_cast<JabberStreamIncomingFileTransferHandler *>(transfer.handler());
 	if (handler)
-		handler->setJTransfer(jTransfer);
+		handler->setTransferJob(transferJob);
 
 	emit incomingFileTransfer(transfer);
 }

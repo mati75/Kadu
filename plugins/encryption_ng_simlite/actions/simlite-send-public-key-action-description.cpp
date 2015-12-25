@@ -1,8 +1,6 @@
 /*
  * %kadu copyright begin%
- * Copyright 2012 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2011, 2012, 2013, 2014 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2012, 2013, 2014 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -34,7 +32,7 @@
 #include "plugins/encryption_ng/encryption-manager.h"
 #include "plugins/encryption_ng/key-generator.h"
 #include "plugins/encryption_ng/keys/keys-manager.h"
-#include "plugins/encryption_ng/notify/encryption-ng-notification.h"
+#include "plugins/encryption_ng/notification/encryption-ng-notification.h"
 
 #include "simlite-send-public-key-action-description.h"
 

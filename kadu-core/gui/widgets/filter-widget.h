@@ -1,12 +1,11 @@
 /*
  * %kadu copyright begin%
+ * Copyright 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2010 Tomasz Rostanski (rozteck@interia.pl)
- * Copyright 2008, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2012 Wojciech Treter (juzefwt@gmail.com)
  * Copyright 2010 Tomasz Rostański (rozteck@interia.pl)
- * Copyright 2008 Michał Podsiadlik (michal@kadu.net)
- * Copyright 2007, 2008, 2009, 2010, 2011, 2012, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2007, 2008 Dawid Stawiarski (neeo@kadu.net)
+ * Copyright 2014 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2010, 2011, 2012, 2013, 2014 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -29,10 +28,6 @@
 #include <QtWidgets/QWidget>
 #include "exports.h"
 
-#ifdef Q_OS_MAC
-#	include <Carbon/Carbon.h>
-#endif
-
 class QAbstractItemView;
 class QLabel;
 class QLineEdit;
@@ -41,13 +36,8 @@ class KADUAPI FilterWidget : public QWidget
 {
 	Q_OBJECT
 
-#ifdef Q_OS_MAC
-	CFStringRef searchFieldText;
-	HIViewRef searchField;
-#else
 	QLabel *Label;
 	QLineEdit *NameFilterEdit;
-#endif
 
 	QAbstractItemView *View;
 	bool AutoVisibility;
@@ -74,20 +64,6 @@ public:
 
 signals:
 	void textChanged(const QString &text);
-
-#ifdef Q_OS_MAC
-
-public:
-	void activate(void);
-	QSize sizeHint (void) const;
-	QString text(void) const;
-
-public slots:
-	void clear(void);
-	void setText(const QString &text);
-	void emitTextChanged(void);
-
-#endif
 
 };
 

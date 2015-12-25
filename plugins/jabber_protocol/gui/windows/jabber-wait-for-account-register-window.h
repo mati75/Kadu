@@ -1,11 +1,6 @@
 /*
  * %kadu copyright begin%
- * Copyright 2008 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2008 Michał Podsiadlik (michal@kadu.net)
- * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
- * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
- * Copyright 2007, 2008, 2009, 2010, 2011, 2012, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
+ * Copyright 2011, 2012, 2013, 2014 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -22,29 +17,32 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef JABBER_WAIT_FOR_ACCOUNT_REGISTER_WINDOW_H
-#define JABBER_WAIT_FOR_ACCOUNT_REGISTER_WINDOW_H
+#pragma once
 
 #include "gui/windows/progress-window.h"
 
-#include "protocols/protocol.h"
+#include <QtCore/QPointer>
 
-class JabberServerRegisterAccount;
+class JabberRegisterAccount;
+class Jid;
 
 class JabberWaitForAccountRegisterWindow : public ProgressWindow
 {
 	Q_OBJECT
 
-private slots:
-	void registerNewAccountFinished(JabberServerRegisterAccount *jsra);
-
 public:
-	explicit JabberWaitForAccountRegisterWindow(JabberServerRegisterAccount *jsra, QWidget *parent = 0);
+	explicit JabberWaitForAccountRegisterWindow(JabberRegisterAccount *jabberRegisterAccount, QWidget *parent = 0);
 	virtual ~JabberWaitForAccountRegisterWindow();
 
 signals:
-	void jidRegistered(const QString &jid, const QString &tlsDomain);
+	void jidRegistered(const Jid &jid);
+
+private:
+	QPointer<JabberRegisterAccount> m_jabberRegisterAccount;
+
+private slots:
+	void statusMessage(const QString &statusMessage);
+    void success();
+	void error(const QString &errorMessage);
 
 };
-
-#endif // JABBER_WAIT_FOR_ACCOUNT_REGISTER_WINDOW_H

@@ -34,6 +34,12 @@ pkg_check_modules (INJEQT REQUIRED injeqt>=1.0.0)
 include_directories (${INJEQT_INCLUDEDIR})
 link_directories (${INJEQT_LIBRARY_DIRS})
 
+set (CMAKE_CXX_FLAGS "-Woverloaded-virtual -Wnon-virtual-dtor -std=c++0x ${CMAKE_CXX_FLAGS}")
+
+if (NOT WIN32)
+    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fvisibility-inlines-hidden")
+endif ()
+
 macro (kadu_numeric_version _version _result_variable)
 	# Remove non-digit suffixes like "-git".
 	string (REGEX REPLACE "-[^0-9].*" "" ${_result_variable} ${_version})
@@ -57,8 +63,11 @@ macro (kadu_set_flags _target)
 		message (FATAL_ERROR "kadu_use called with non-existning target as parameter")
 	endif ()
 
-	set_property (TARGET ${_target} APPEND PROPERTY COMPILE_DEFINITIONS ${KADU_DEFINITIONS})
-	set_property (TARGET ${_target} APPEND PROPERTY COMPILE_DEFINITIONS_DEBUG ${KADU_DEFINITIONS_DEBUG})
+	if (CMAKE_BUILD_TYPE EQUAL "DEBUG")
+		target_compile_definitions (${_target} PRIVATE "${KADU_DEFINITIONS_DEBUG}")
+	else ()
+		target_compile_definitions (${_target} PRIVATE "${KADU_DEFINITIONS}")
+	endif ()
 
 	if (KADU_COMPILE_FLAGS)
 		set_property (TARGET ${_target} APPEND_STRING PROPERTY COMPILE_FLAGS " ${KADU_COMPILE_FLAGS}")
@@ -183,7 +192,7 @@ function (kadu_plugin KADU_PLUGIN_NAME)
 		endforeach ()
 	endif ()
 
-	qt5_use_modules (${KADU_PLUGIN_NAME} LINK_PRIVATE Core Gui Widgets Network Xml WebKit WebKitWidgets Declarative)
+	qt5_use_modules (${KADU_PLUGIN_NAME} LINK_PRIVATE Core Gui Network Qml Quick QuickWidgets WebKit WebKitWidgets Widgets Xml)
 	if (UNIX AND NOT APPLE)
 		qt5_use_modules (${KADU_PLUGIN_NAME} LINK_PRIVATE DBus)
 	endif ()

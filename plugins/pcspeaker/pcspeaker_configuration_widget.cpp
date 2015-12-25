@@ -1,14 +1,8 @@
 /*
  * %kadu copyright begin%
  * Copyright 2011 Tomasz Rostanski (rozteck@interia.pl)
- * Copyright 2008, 2009, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2010 Tomasz Rostański (rozteck@interia.pl)
- * Copyright 2011 Piotr Dąbrowski (ultr@ultr.pl)
- * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
- * Copyright 2007, 2008, 2010, 2011, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
+ * Copyright 2011, 2013, 2014 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2011, 2013, 2014 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -44,9 +38,11 @@ PCSpeakerConfigurationWidget::PCSpeakerConfigurationWidget(QWidget *parent)
 	soundEdit = new QLineEdit(this);
 	soundEdit->setToolTip(tr("Put the played sounds separate by space, _ for pause, eg. D2 C1# G0"));
 	testButton = new QPushButton(KaduIcon("external_modules/mediaplayer-media-playback-play").icon(), QString(), this);
+	testButton->setIconSize(QSize{14, 14});
 	connect(testButton, SIGNAL(clicked()), this, SLOT(test()));
 
 	QHBoxLayout *layout = new QHBoxLayout(this);
+	layout->setMargin(0);
 	layout->addWidget(testButton);
 	layout->addWidget(soundEdit);
 
@@ -59,8 +55,8 @@ PCSpeakerConfigurationWidget::~PCSpeakerConfigurationWidget()
 
 void PCSpeakerConfigurationWidget::saveNotifyConfigurations()
 {
-	if (!CurrentNotifyEvent.isEmpty())
-		Sounds[CurrentNotifyEvent] = soundEdit->text();
+	if (!CurrentNotificationEvent.isEmpty())
+		Sounds[CurrentNotificationEvent] = soundEdit->text();
 
 	for (QMap<QString, QString>::const_iterator it = Sounds.constBegin(), end = Sounds.constEnd(); it != end; ++it)
 		Application::instance()->configuration()->deprecatedApi()->writeEntry("PC Speaker", it.key() + "_Sound", it.value());
@@ -68,10 +64,10 @@ void PCSpeakerConfigurationWidget::saveNotifyConfigurations()
 
 void PCSpeakerConfigurationWidget::switchToEvent(const QString &event)
 {
-	if (!CurrentNotifyEvent.isEmpty())
-		Sounds[CurrentNotifyEvent] = soundEdit->text();
+	if (!CurrentNotificationEvent.isEmpty())
+		Sounds[CurrentNotificationEvent] = soundEdit->text();
 
-	CurrentNotifyEvent = event;
+	CurrentNotificationEvent = event;
 
 	if (Sounds.contains(event))
 		soundEdit->setText(Sounds[event]);

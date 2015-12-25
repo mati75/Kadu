@@ -1,6 +1,6 @@
 /*
  * %kadu copyright begin%
- * Copyright 2014 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
+ * Copyright 2014 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -22,8 +22,8 @@
 #include "misc/paths-provider.h"
 #include "exports.h"
 
-#include <injeqt/injeqt.h>
 #include <QtCore/QObject>
+#include <injeqt/injeqt.h>
 
 class QStringList;
 

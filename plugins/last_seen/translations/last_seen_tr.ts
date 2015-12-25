@@ -1,4 +1,6 @@
-<?xml version="1.0" ?><!DOCTYPE TS><TS language="tr" version="2.0">
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE TS>
+<TS version="2.1" language="tr">
 <context>
     <name>Infos</name>
     <message>
@@ -23,14 +25,6 @@
     <message>
         <source>Nick</source>
         <translation>Takma İsim</translation>
-    </message>
-    <message>
-        <source>IP</source>
-        <translation>IP</translation>
-    </message>
-    <message>
-        <source>Domain name</source>
-        <translation>Domain Adı</translation>
     </message>
     <message>
         <source>Description</source>

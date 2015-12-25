@@ -1,11 +1,7 @@
 /*
  * %kadu copyright begin%
- * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
- * Copyright 2004 Adrian Smarzewski (adrian@kadu.net)
- * Copyright 2007, 2008, 2009, 2010, 2011, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2004, 2006 Marcin Ślusarz (joi@kadu.net)
+ * Copyright 2011, 2013, 2014, 2015 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -22,11 +18,17 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "plugins/sound/sound-manager.h"
+#include "phonon-plugin.h"
 
 #include "phonon-player.h"
 
-#include "phonon-plugin.h"
+#include "plugins/sound/sound-manager.h"
+#include "plugins/sound/sound-plugin.h"
+
+PhononPlugin::PhononPlugin(QObject *parent) :
+		QObject{parent}
+{
+}
 
 PhononPlugin::~PhononPlugin()
 {
@@ -36,16 +38,17 @@ bool PhononPlugin::init(bool firstLoad)
 {
 	Q_UNUSED(firstLoad)
 
-	PhononPlayer::createInstance();
-	SoundManager::instance()->setPlayer(PhononPlayer::instance());
+	m_phononPlayer = new PhononPlayer{this};
+	SoundPlugin::soundManager()->setPlayer(m_phononPlayer);
 
 	return true;
 }
 
 void PhononPlugin::done()
 {
-	SoundManager::instance()->setPlayer(0);
-	PhononPlayer::destroyInstance();
+	SoundPlugin::soundManager()->setPlayer(nullptr);
+	if (m_phononPlayer)
+		m_phononPlayer->deleteLater();
 }
 
 Q_EXPORT_PLUGIN2(phonon_sound, PhononPlugin)

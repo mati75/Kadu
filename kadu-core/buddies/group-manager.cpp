@@ -1,10 +1,10 @@
 /*
  * %kadu copyright begin%
- * Copyright 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2009 Michał Podsiadlik (michal@kadu.net)
  * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
- * Copyright 2009, 2010, 2011, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2010, 2011, 2012, 2013, 2014 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2009, 2010, 2011, 2013, 2014 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -130,6 +130,33 @@ Group GroupManager::byName(const QString &name, bool create)
 	addItem(group);
 
 	return group;
+}
+
+QString GroupManager::validateGroupName(Group group, const QString &newName)
+{
+	if (newName.isEmpty())
+		return tr("Group name must not be empty");
+
+	if (newName.contains(","))
+		return tr("Group name must not contain '%1'").arg(',');
+
+	if (newName.contains(";"))
+		return tr("Group name must not contain '%1'").arg(';');
+
+	bool number;
+	newName.toLong(&number);
+	if (number)
+		return tr("Group name must not be a number");
+
+	// TODO All translations
+ 	if (newName == tr("All"))
+		return tr("Group name must not be '%1'").arg(newName);
+
+	auto existing = byName(newName, false);
+	if (existing && existing != group)
+		return tr("Group '%1' already exists").arg(newName);
+
+	return QString{};
 }
 
 // TODO: move some of this to %like-encoding, so we don't block normal names

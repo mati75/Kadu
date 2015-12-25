@@ -1,7 +1,7 @@
 /*
  * %kadu copyright begin%
- * Copyright 2011, 2012, 2013 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2014 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2011, 2012, 2013, 2014 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -21,8 +21,6 @@
 #include <QtWidgets/QApplication>
 
 #include "debug.h"
-
-#include "gadu-contact-details.h"
 
 #include "gadu-protocol-helper.h"
 
@@ -171,15 +169,5 @@ Buddy GaduProtocolHelper::searchResultToBuddy(Account account, gg_pubdir50_t res
 
 unsigned int GaduProtocolHelper::uin(Contact contact)
 {
-	GaduContactDetails *data = GaduProtocolHelper::gaduContactDetails(contact);
-	return data
-			? data->uin()
-			: 0;
-}
-
-GaduContactDetails * GaduProtocolHelper::gaduContactDetails(Contact contact)
-{
-	if (contact.isNull())
-		return 0;
-	return dynamic_cast<GaduContactDetails *>(contact.details());
+	return contact.id().toUInt();
 }

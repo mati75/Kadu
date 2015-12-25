@@ -8,13 +8,7 @@
  * Copyright 2008 Tomasz Rostański (rozteck@interia.pl)
  * Copyright 2009 Piotr Galiszewski (piotrgaliszewski@gmail.com)
  * %kadu copyright begin%
- * Copyright 2009, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2008 Tomasz Rostański (rozteck@interia.pl)
- * Copyright 2004, 2005 Adrian Smarzewski (adrian@kadu.net)
- * Copyright 2007, 2008, 2010, 2011 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2004, 2005 Marcin Ślusarz (joi@kadu.net)
+ * Copyright 2011, 2015 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -31,30 +25,27 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef EXTERNAL_PLAYER_H
-#define EXTERNAL_PLAYER_H
+#pragma once
 
 #include "plugins/sound/sound-player.h"
+
+#include <QtCore/QPointer>
+
+class QProcess;
 
 class ExternalPlayer : public SoundPlayer
 {
 	Q_OBJECT
-	Q_DISABLE_COPY(ExternalPlayer)
 
-	static ExternalPlayer * Instance;
-
-	ExternalPlayer();
+public:
+	explicit ExternalPlayer(QObject *parent = nullptr);
 	virtual ~ExternalPlayer();
+
+	virtual QObject * playSound(const QString &path);
+
+private:
+	QPointer<QProcess> m_playerProcess;
 
 	void createDefaultConfiguration();
 
-public:
-	static void createInstance();
-	static void destroyInstance();
-	static ExternalPlayer * instance();
-
-	virtual void playSound(const QString &path);
-
 };
-
-#endif // EXTERNAL_PLAYER_H

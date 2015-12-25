@@ -1,11 +1,9 @@
 /*
  * %kadu copyright begin%
- * Copyright 2008, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
+ * Copyright 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
  * Copyright 2011 Piotr Dąbrowski (ultr@ultr.pl)
- * Copyright 2008 Michał Podsiadlik (michal@kadu.net)
- * Copyright 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * Copyright 2011 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2007, 2008 Dawid Stawiarski (neeo@kadu.net)
+ * Copyright 2011, 2012, 2013, 2014 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -32,6 +30,8 @@
 class Chat;
 class Contact;
 
+enum class ChatState;
+
 /**
  * @addtogroup Protocol
  * @{
@@ -52,38 +52,6 @@ class KADUAPI ChatStateService : public AccountService
 	Q_OBJECT
 
 public:
-	/**
-	 * @enum State
-	 * @short This enum represent state of chat.
-	 * @note Values in this enum must be identical with those defined in kadu-core/chat-style/engine/chat-scripts.js
-	 */
-	enum State
-	{
-		/**
-		 * Chat is active - window is opened and active.
-		 */
-		StateActive = 0,
-		/**
-		 * Chat is in compising state - new message is being entered, but not send yet.
-		 */
-		StateComposing = 1,
-		/**
-		 * Chat is gone - window was closed.
-		 */
-		StateGone = 2,
-		/**
-		 * Chat is inactive - window is opened but not active.
-		 */
-		StateInactive = 3,
-		/**
-		 * Unknown state.
-		 */
-		StateNone = 4,
-		/**
-		 * Chat is in paused state - new message is written, but entering was paused.
-		 */
-		StatePaused = 5
-	};
 
 	/**
 	 * @short Create new instance of ChatStateService bound to given Account.
@@ -97,7 +65,7 @@ public:
 	 * @param contact state of chat with this contact changed
 	 * @param state new state to send
 	 */
-	virtual void sendState(const Contact &contact, State state) = 0;
+	virtual void sendState(const Contact &contact, ChatState state) = 0;
 
 signals:
 	/**
@@ -105,7 +73,7 @@ signals:
 	 * @param contact peer contact
 	 * @param state new state received from peer
 	 */
-	void peerStateChanged(const Contact &contact, ChatStateService::State state);
+	void peerStateChanged(const Contact &contact, ChatState state);
 
 };
 

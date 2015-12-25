@@ -1,14 +1,7 @@
 /*
  * %kadu copyright begin%
- * Copyright 2008, 2009, 2010, 2010, 2011 Piotr Galiszewski (piotr.galiszewski@kadu.im)
- * Copyright 2009, 2011, 2012 Wojciech Treter (juzefwt@gmail.com)
- * Copyright 2008 Tomasz Rostański (rozteck@interia.pl)
- * Copyright 2010, 2011 Piotr Dąbrowski (ultr@ultr.pl)
- * Copyright 2008, 2009 Michał Podsiadlik (michal@kadu.net)
- * Copyright 2009 Bartłomiej Zimoń (uzi18@o2.pl)
- * Copyright 2007, 2008, 2009, 2009, 2010, 2011, 2012, 2013, 2014 Rafał Malinowski (rafal.przemyslaw.malinowski@gmail.com)
- * Copyright 2010, 2011, 2012, 2013 Bartosz Brachaczek (b.brachaczek@gmail.com)
- * Copyright 2007 Dawid Stawiarski (neeo@kadu.net)
+ * Copyright 2014 Bartosz Brachaczek (b.brachaczek@gmail.com)
+ * Copyright 2013, 2014, 2015 Rafał Przemysław Malinowski (rafal.przemyslaw.malinowski@gmail.com)
  * %kadu copyright end%
  *
  * This program is free software; you can redistribute it and/or
@@ -40,8 +33,10 @@
 #include "configuration/deprecated-configuration-api.h"
 #include "contacts/contact-set.h"
 #include "core/application.h"
+#include "gui/configuration/chat-configuration-holder.h"
 #include "gui/widgets/chat-widget/chat-widget-factory.h"
 #include "gui/widgets/chat-widget/chat-widget-manager.h"
+#include "gui/widgets/chat-widget/chat-widget-title.h"
 #include "gui/widgets/chat-widget/chat-widget.h"
 #include "gui/widgets/custom-input.h"
 #include "gui/windows/message-dialog.h"
@@ -52,8 +47,7 @@
 #include "debug.h"
 
 ChatWindow::ChatWindow(ChatWidgetFactory *chatWidgetFactory, Chat chat, QWidget *parent) :
-		QWidget(parent), DesktopAwareObject(this),
-		m_titleTimer(new QTimer(this)), m_showNewMessagesNum(false), m_blinkChatTitle(true)
+		QWidget(parent), DesktopAwareObject(this)
 {
 	kdebugf();
 
@@ -65,9 +59,6 @@ ChatWindow::ChatWindow(ChatWidgetFactory *chatWidgetFactory, Chat chat, QWidget 
 	if (m_chatWidget && m_chatWidget->chat().details() && m_chatWidget->chat().details()->type())
 		setWindowRole(m_chatWidget->chat().details()->type()->windowRole());
 
-#ifdef Q_OS_MAC
-	setAttribute(Qt::WA_MacBrushedMetal);
-#endif
 	setAttribute(Qt::WA_DeleteOnClose);
 
 	m_chatWidget->edit()->setFocus();
@@ -78,21 +69,16 @@ ChatWindow::ChatWindow(ChatWidgetFactory *chatWidgetFactory, Chat chat, QWidget 
 	layout->setContentsMargins(0, 0, 0, 0);
 	layout->setSpacing(0);
 
-	updateTitle();
-	updateIcon();
-
 	configurationUpdated();
+
+	updateTitle();
 
 	CustomPropertiesVariantWrapper *variantWrapper = new CustomPropertiesVariantWrapper(
 			m_chatWidget->chat().data()->customProperties(),
 			"chat-geometry:WindowGeometry", CustomProperties::Storable);
 	new WindowGeometryManager(variantWrapper, defaultGeometry(), this);
 
-	connect(m_chatWidget, SIGNAL(unreadMessagesCountChanged(ChatWidget*)),
-			this, SLOT(unreadMessagesCountChanged(ChatWidget*)));
-	connect(m_chatWidget, SIGNAL(iconChanged()), this, SLOT(updateIcon()));
-	connect(m_chatWidget, SIGNAL(titleChanged(ChatWidget *, const QString &)), this, SLOT(updateTitle()));
-	connect(m_titleTimer, SIGNAL(timeout()), this, SLOT(blinkTitle()));
+	connect(m_chatWidget->title(), SIGNAL(titleChanged(ChatWidget*)), this, SLOT(updateTitle()));
 }
 
 ChatWindow::~ChatWindow()
@@ -104,11 +90,13 @@ void ChatWindow::configurationUpdated()
 {
 	triggerCompositingStateChanged();
 
-	m_showNewMessagesNum = Application::instance()->configuration()->deprecatedApi()->readBoolEntry("Chat", "NewMessagesInChatTitle", false);
-	m_blinkChatTitle = Application::instance()->configuration()->deprecatedApi()->readBoolEntry("Chat", "BlinkChatTitle", true);
-
-	if (m_chatWidget->chat().unreadMessagesCount() && !m_titleTimer->isActive())
-		blinkTitle();
+	m_chatWidget->title()->setBlinkIconWhenUnreadMessages(false);
+		// Application::instance()->configuration()->deprecatedApi()->readBoolEntry("Chat", "BlinkChatTitle", true));
+	m_chatWidget->title()->setBlinkTitleWhenUnreadMessages(
+		Application::instance()->configuration()->deprecatedApi()->readBoolEntry("Chat", "BlinkChatTitle", false));
+	m_chatWidget->title()->setComposingStatePosition(ChatConfigurationHolder::instance()->composingStatePosition());
+	m_chatWidget->title()->setShowUnreadMessagesCount(
+		Application::instance()->configuration()->deprecatedApi()->readBoolEntry("Chat", "NewMessagesInChatTitle", false));
 }
 
 void ChatWindow::compositingEnabled()
@@ -183,50 +171,10 @@ void ChatWindow::closeEvent(QCloseEvent *e)
  	QWidget::closeEvent(e);
 }
 
-void ChatWindow::updateIcon()
-{
-	setWindowIcon(m_chatWidget->icon());
-}
-
 void ChatWindow::updateTitle()
 {
-	setWindowTitle(m_chatWidget->title());
-}
-
-void ChatWindow::blinkTitle()
-{
- 	if (!_isActiveWindow(this))
-  	{
-		if (!windowTitle().contains(m_chatWidget->title()) || !m_blinkChatTitle)
-		{
-  			if (!m_showNewMessagesNum) // if we don't show number od new messages waiting
-  				setWindowTitle(m_chatWidget->title());
-  			else
-				showNewMessagesNumInTitle();
-		}
-		else
-			setWindowTitle(QString(m_chatWidget->title().length() + 5, ' '));
-
-		if (m_blinkChatTitle) // timer will not be started, if configuration option was changed
-		{
-			m_titleTimer->setSingleShot(true);
-			m_titleTimer->start(500);
-		}
-	}
-	else
-		if (!m_showNewMessagesNum) // if we don't show number od new messages waiting
-			setWindowTitle(m_chatWidget->title());
-		else
-			showNewMessagesNumInTitle();
-}
-
-void ChatWindow::showNewMessagesNumInTitle()
-{
-	auto count = m_chatWidget->chat().unreadMessagesCount();
-	if (count > 0)
-		setWindowTitle('[' + QString::number(count) + "] " + m_chatWidget->title());
-	else
-		setWindowTitle(m_chatWidget->title());
+	setWindowTitle(m_chatWidget->title()->blinkingFullTitle());
+	setWindowIcon(m_chatWidget->title()->blinkingIcon());
 }
 
 void ChatWindow::changeEvent(QEvent *event)
@@ -241,26 +189,6 @@ void ChatWindow::setWindowTitle(QString title)
 	// qt treats [*] as 'modified placeholder'
 	// we escape each [*] with double [*][*] so it gets properly handled
 	QWidget::setWindowTitle(title.replace(QLatin1String("[*]"), QLatin1String("[*][*]")));
-}
-
-void ChatWindow::unreadMessagesCountChanged(ChatWidget *chatWidget)
-{
-	if (chatWidget->unreadMessagesCount() == 0)
-	{
-		m_titleTimer->stop();
-		setWindowTitle(m_chatWidget->title());
-		return;
-	}
-
-	qApp->alert(this); // TODO: make notifier from this
-
-	if (m_blinkChatTitle)
-	{
-		if (!m_titleTimer->isActive())
-			blinkTitle(); // blinking is able to show new messages also...
-	}
-	else if (m_showNewMessagesNum) // ... so we check this condition as 'else'
-		showNewMessagesNumInTitle();
 }
 
 bool ChatWindow::isChatWidgetActive(const ChatWidget *chatWidget)
