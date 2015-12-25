@@ -2,21 +2,21 @@ Description: Disabling unsupported plugins
  Some plugins are not supported in Debian, thus they're disabled.
 Author: Patryk Cisek <patryk@debian.org>
 ---
-diff --git a/Plugins.cmake b/Plugins.cmake
-index 4bbfca4..835f8ba 100644
+index 7a06d85..1e77b46 100644
 --- a/Plugins.cmake
 +++ b/Plugins.cmake
-@@ -117,11 +117,11 @@ if (UNIX AND NOT APPLE)
- 
+@@ -112,12 +112,12 @@ if (UNIX AND NOT APPLE)
  	# docking
  		# Indicator docking support
+ 		# Comment if you are not compilign under Ubuntu flavor
 -		indicator_docking
-+                #indicator_docking
++		#indicator_docking
  
  	# integration
  		# integration with Unity
+ 		# Comment if you are not compilign under Ubuntu flavor
 -		unity_integration
-+                #unity_integration
++		#unity_integration
  
  	# notifiers
  		# Freedesktop notification support
