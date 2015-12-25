@@ -15,8 +15,8 @@ debian/tmp/usr/share/kadu/plugins/configuration/autoaway.ui
 debian/tmp/usr/share/kadu/plugins/configuration/autoresponder.ui
 debian/tmp/usr/share/kadu/plugins/configuration/autostatus.ui
 debian/tmp/usr/share/kadu/plugins/configuration/cenzor.ui
-debian/tmp/usr/share/kadu/plugins/configuration/desktop_docking.ui
 debian/tmp/usr/share/kadu/plugins/configuration/docking.ui
+debian/tmp/usr/share/kadu/plugins/configuration/docking-notify.ui
 debian/tmp/usr/share/kadu/plugins/configuration/emoticons.ui
 debian/tmp/usr/share/kadu/plugins/configuration/encryption-ng-simlite.ui
 debian/tmp/usr/share/kadu/plugins/configuration/ext_sound.ui
@@ -29,11 +29,9 @@ debian/tmp/usr/share/kadu/plugins/configuration/hints-notifier.ui
 debian/tmp/usr/share/kadu/plugins/configuration/hints.ui
 debian/tmp/usr/share/kadu/plugins/configuration/history.ui
 debian/tmp/usr/share/kadu/plugins/configuration/image-link.ui
-debian/tmp/usr/share/kadu/plugins/configuration/jabber_protocol.ui
 debian/tmp/usr/share/kadu/plugins/configuration/mediaplayer.ui
 debian/tmp/usr/share/kadu/plugins/configuration/mpd_config.ui
 debian/tmp/usr/share/kadu/plugins/configuration/mprisplayer_mediaplayer.ui
-debian/tmp/usr/share/kadu/plugins/configuration/qt4-docking-notify.ui
 debian/tmp/usr/share/kadu/plugins/configuration/screenshot.ui
 debian/tmp/usr/share/kadu/plugins/configuration/simpleview.ui
 debian/tmp/usr/share/kadu/plugins/configuration/single_window.ui
@@ -51,8 +49,8 @@ debian/tmp/usr/share/kadu/plugins/data/mprisplayer_mediaplayer
 debian/tmp/usr/share/kadu/plugins/data/sms
 debian/tmp/usr/share/kadu/plugins/data/sql_history/scripts/history-database-recovery.sh
 debian/tmp/usr/share/kadu/plugins/data/word_fix
-debian/tmp/usr/share/kadu/plugins/desktop_docking.desc
 debian/tmp/usr/share/kadu/plugins/docking.desc
+debian/tmp/usr/share/kadu/plugins/docking_notify.desc
 debian/tmp/usr/share/kadu/plugins/emoticons.desc
 debian/tmp/usr/share/kadu/plugins/encryption_ng.desc
 debian/tmp/usr/share/kadu/plugins/encryption_ng_simlite.desc
@@ -77,8 +75,6 @@ debian/tmp/usr/share/kadu/plugins/mprisplayer_mediaplayer.desc
 debian/tmp/usr/share/kadu/plugins/pcspeaker.desc
 debian/tmp/usr/share/kadu/plugins/phonon_sound.desc
 debian/tmp/usr/share/kadu/plugins/profiles_import.desc
-debian/tmp/usr/share/kadu/plugins/qt4_docking.desc
-debian/tmp/usr/share/kadu/plugins/qt4_docking_notify.desc
 debian/tmp/usr/share/kadu/plugins/screenshot.desc
 debian/tmp/usr/share/kadu/plugins/simpleview.desc
 debian/tmp/usr/share/kadu/plugins/single_window.desc
