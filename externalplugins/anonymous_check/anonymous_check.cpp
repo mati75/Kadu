@@ -23,21 +23,20 @@
 
 #include "debug.h"
 #include "buddies/buddy-search-criteria.h"
+#include "contacts/contact-set.h"
+#include "core/core.h"
 #include "message/message-render-info.h"
 #include "message/message-common.h"
-#include "gui/widgets/chat-widget-manager.h"
-#include "contacts/contact-set.h"
+#include "gui/widgets/chat-widget/chat-widget-manager.h"
 #include "protocols/services/contact-personal-info-service.h"
 
 AnonCheck::AnonymousCheck::AnonymousCheck(QObject *parent)
 : QObject(parent) {
-    connect(ChatWidgetManager::instance(), SIGNAL(chatWidgetCreated(ChatWidget *)),
+    connect(Core::instance()->chatWidgetManager(), SIGNAL(chatWidgetCreated(ChatWidget *)),
             this, SLOT(onChatWidgetCreated(ChatWidget *)));
 }
 
 AnonCheck::AnonymousCheck::~AnonymousCheck() {
-    disconnect(ChatWidgetManager::instance(), SIGNAL(chatWidgetCreated(ChatWidget *)),
-            this, SLOT(onChatWidgetCreated(ChatWidget *)));
 }
 
 void AnonCheck::AnonymousCheck::configurationUpdated() {
@@ -150,3 +149,5 @@ bool AnonCheck::AnonymousCheck::addDetail(QString &msg,
 
     return false;
 }
+
+#include "moc_anonymous_check.cpp"

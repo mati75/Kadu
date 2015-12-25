@@ -4,7 +4,8 @@
 #include "accounts/account.h"
 #include "contacts/contact.h"
 #include "chat/chat.h"
-#include "gui/widgets/chat-widget.h"
+#include "gui/widgets/chat-widget/chat-widget.h"
+
 class AnonymousInfo {
 public:
     AnonymousInfo(const Contact &contact, ChatWidget *chatWidget, const Account &account);

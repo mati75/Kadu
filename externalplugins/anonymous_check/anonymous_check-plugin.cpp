@@ -25,17 +25,19 @@ AnonymousCheckPlugin::~AnonymousCheckPlugin()
 {
 }
 
-int AnonymousCheckPlugin::init(bool firstLoad)
+bool AnonymousCheckPlugin::init(bool firstLoad)
 {
 	Q_UNUSED(firstLoad)
 
 	AnonymousCheckInstance = new AnonCheck::AnonymousCheck(this);
 
-	return 0;
+	return true;
 }
 
 void AnonymousCheckPlugin::done()
 {
 }
+
+#include "moc_anonymous_check-plugin.cpp"
 
 Q_EXPORT_PLUGIN2(anonymous_check, AnonymousCheckPlugin)
