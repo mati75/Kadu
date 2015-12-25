@@ -1,10 +1,12 @@
 #include "completion_context.h"
 #include "kadu_completion.h"
 
+#include "kadu-core/core/application.h"
+#include "kadu-core/core/core.h"
 #include "kadu-core/debug.h"
-#include "kadu-core/gui/widgets/chat-widget.h"
-#include "kadu-core/gui/widgets/chat-widget-manager.h"
-#include "kadu-core/misc/kadu-paths.h"
+#include "kadu-core/gui/widgets/chat-widget/chat-widget.h"
+#include "kadu-core/gui/widgets/chat-widget/chat-widget-repository.h"
+#include "kadu-core/misc/paths-provider.h"
 
 #include <QFile>
 #include <QString>
@@ -42,7 +44,7 @@ void KaduCompletion::KaduCompletion::chatWidgetCreated(ChatWidget *chatWidget) {
 
 KaduCompletion::KaduCompletion::KaduCompletion() {
     kdebugf();
-    QString listFileName(KaduPaths::instance()->dataPath() + "plugins/data/kadu_completion/list.txt");
+    QString listFileName(Application::instance()->pathsProvider()->dataPath() + "plugins/data/kadu_completion/list.txt");
     QFile file(listFileName);
     QTextCodec* codec = QTextCodec::codecForName("Windows-1250");
     if(file.open(QIODevice::ReadOnly)) {
@@ -63,12 +65,13 @@ KaduCompletion::KaduCompletion::KaduCompletion() {
         }
 
         // Handle already opened chats
-        QList<ChatWidget *> chatWidgets = ChatWidgetManager::instance()->chats().values();
-        foreach(ChatWidget *chatWidget, chatWidgets) {
+        for (auto *chatWidget : Core::instance()->chatWidgetRepository()) {
             chatWidgetCreated(chatWidget);
         }
 
         // Handle any chat created in the future
-        connect(ChatWidgetManager::instance(), SIGNAL(chatWidgetCreated(ChatWidget*)), this, SLOT(chatWidgetCreated(ChatWidget*)));
+        connect(Core::instance()->chatWidgetRepository(), SIGNAL(chatWidgetAdded(ChatWidget*)), this, SLOT(chatWidgetCreated(ChatWidget*)));
     }
 }
+
+#include "moc_kadu_completion.cpp"

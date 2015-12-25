@@ -16,13 +16,13 @@ KaduCompletion::KaduCompletionPlugin::~KaduCompletionPlugin()
 {
 }
 
-int KaduCompletion::KaduCompletionPlugin::init(bool firstLoad)
+bool KaduCompletion::KaduCompletionPlugin::init(bool firstLoad)
 {
 	Q_UNUSED(firstLoad)
 
 	KaduCompletion::createInstance();
 
-	return 0;
+	return true;
 }
 
 void KaduCompletion::KaduCompletionPlugin::done()
@@ -31,3 +31,5 @@ void KaduCompletion::KaduCompletionPlugin::done()
 }
 
 Q_EXPORT_PLUGIN2(kadu_completion, KaduCompletion::KaduCompletionPlugin)
+
+#include "moc_kadu_completion_plugin.cpp"

@@ -9,7 +9,7 @@
 
 KaduCompletion::CompletionContext::CompletionContext(const KaduCompletion::EmoticonList& emotList,
                                                      CustomInput *edit)
-    : QObject(edit), _emotList(emotList) {
+    : QObject(edit), _completer{nullptr}, _emotList(emotList) {
     kdebugf();
     if(0 == edit)
         deleteLater();
@@ -58,12 +58,18 @@ void KaduCompletion::CompletionContext::keyPressed(QKeyEvent *e, CustomInput *in
             }
         }
 
-        _completer.reset(new QCompleter(list, input));
+        if (_completer)
+		{
+			disconnect(_completer, SIGNAL(activated(QString)), this, SLOT(insertCompletion(QString)));
+			_completer->deleteLater();
+		}
+
+		_completer = new QCompleter{list, input};
         _completer->setCaseSensitivity(Qt::CaseInsensitive);
         _completer->setWidget(input);
         _completer->setCompletionMode(QCompleter::PopupCompletion);
         _completer->setCaseSensitivity(Qt::CaseInsensitive);
-        connect(_completer.get(), SIGNAL(activated(QString)),
+        connect(_completer, SIGNAL(activated(QString)),
                 this, SLOT(insertCompletion(QString)));
         _completer->setCompletionPrefix(completionPrefix);
 
@@ -88,3 +94,5 @@ void KaduCompletion::CompletionContext::insertCompletion(QString completion)
     tc.insertText(completion.right(extra));
     widget->setTextCursor(tc);
 }
+
+#include "moc_completion_context.cpp"

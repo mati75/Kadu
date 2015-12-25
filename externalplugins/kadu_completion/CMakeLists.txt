@@ -2,22 +2,15 @@ project (kadu_completion)
 
 # minimal required versions
 cmake_minimum_required (VERSION 2.8)
-set (QT_MIN_VERSION "4.7.0")
+set (QT_MIN_VERSION "4.8.0")
 set (CMAKE_MIN_VERSION "2.8.0")
 
-set (KADU_FIND_REQUIRED true)
-include (FindKadu)
+find_package (Kadu REQUIRED CONFIG)
 
 set (SOURCES
     completion_context.cpp
     kadu_completion.cpp
     kadu_completion_plugin.cpp
-)
-
-set (MOC_SOURCES
-    completion_context.h
-    kadu_completion.h
-    kadu_completion_plugin.h
 )
 
 set (DATA_FILES
@@ -26,8 +19,7 @@ set (DATA_FILES
 
 kadu_plugin (kadu_completion
     PLUGIN_SOURCES ${SOURCES}
-    PLUGIN_MOC_SOURCES ${MOC_SOURCES}
 )
 
 install (FILES ${DATA_FILES}
-    DESTINATION ${KADU_PLUGINS_DIR}/data/kadu_completion)
+    DESTINATION ${KADU_INSTALL_PLUGINS_DATA_DIR}/data/kadu_completion)

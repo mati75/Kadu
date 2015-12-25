@@ -24,7 +24,7 @@ namespace KaduCompletion {
         void insertCompletion(QString completion);
 
     private:
-        std::auto_ptr<QCompleter> _completer;
+        QCompleter *_completer;
         const KaduCompletion::EmoticonList& _emotList;
     };
 }
