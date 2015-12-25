@@ -1,6 +1,7 @@
 kadu (3.0~rc1-1) UNRELEASED; urgency=medium
 
   * New upstream release
+  * Added libqxmpp-dev to Build-Depends
 
  -- Patryk Cisek <patryk@debian.org>  Fri, 25 Dec 2015 12:22:57 +0100
 
