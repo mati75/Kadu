@@ -9,6 +9,15 @@ n=$(expr $(head -1 debian/changelog | awk '{printf $2}' | /usr/bin/wc -c) - 1)
 version=$(head -1 debian/changelog | awk '{printf $2}' | cut -b2-$n)
 upstream_version=$(echo $version | awk -F "-" '{printf $1}')
 debian_revision=$(echo $version | awk -F "-" '{printf $2}')
+version_override="no"
+
+if [ $# = 1 ]; then
+    # In case a branch name cannot contain a version (e.g. 3.0~rc1 -- no "~"
+    # allowed as part of branch name, it's possible to override branch name with
+    # first argument, but then passing "-S" won't work.
+    upstream_version=$1
+    version_override="yes"
+fi
 
 git clean -d -f -x
 git reset --hard
@@ -23,5 +32,11 @@ if [ "$debian_revision" = 1 ]; then
     # Debian revision for particular upstream version
     tar c externalthemes | bzip2 -9 > ../kadu_$upstream_version.orig-externalthemes.tar.bz2
 fi
-debuild -us -uc -I.git $@
+
+if [ "$version_override" = "no" ]; then
+    debuild -us -uc -I.git $@
+else
+    echo "Now execute:"
+    echo "debuild -us -uc -I.git"
+fi
 
