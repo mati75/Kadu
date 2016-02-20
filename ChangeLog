@@ -1,3 +1,18 @@
++++ version 3.0
+* chat-style: #3057 fixed: all chat styles work again (Vogel)
+* jabber: #3064 fixed: re-enable legacy SSL connection option (Vogel)
+
++++ version 3.0-rc4
+* icons: #3058 fixed: remove too big icons (Vogel)
+* hints: #3060 fixed: crash (Vogel)
+
++++ version 3.0-rc3
+* docking: #3050 fixed: try icon is now visible everywhere (Vogel)
+* docking: #3044 fixed: proper context menu appears on tray every time (Vogel)
+
++++ version 3.0-rc2
+* docking: #3037 fixed: loading docking plugin after import from 2.x (Vogel)
+
 +++ version 3.0-rc1
 * jabber: #3015 done: removed Facebook support (Vogel)
 * autoresponder: #3016 fixed: crash on exit when autoresponder is used (Vogel)
