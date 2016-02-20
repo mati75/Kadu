@@ -2,6 +2,8 @@ kadu (3.0-1) UNRELEASED; urgency=medium
 
   * New upstream release. (Closes: #582549
   * Update debian/watch file - thanks bartm!
+  * d/control:
+    - Drop libqt4-dev and libqtwebkit-dev from B-D. (Closes: #784472)
 
  -- Mateusz Łukasik <mati75@linuxmint.pl>  Sat, 20 Feb 2016 22:31:52 +0100
 
