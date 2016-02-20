@@ -1,6 +1,7 @@
 kadu (3.0-1) UNRELEASED; urgency=medium
 
   * New upstream release.
+  * Update debian/watch file - thanks bartm!
 
  -- Mateusz Łukasik <mati75@linuxmint.pl>  Sat, 20 Feb 2016 22:31:52 +0100
 

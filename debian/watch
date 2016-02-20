@@ -1,4 +1,5 @@
 version=3
+opts=uversionmangle=s/-(rc\d*)$/~$1/;s/-(beta)/~$1/;s/-(alpha)/~$1/ \
+http://download.kadu.im/unstable/ \
+(?:|.*/)kadu(?:[_\-]v?|)(\d[^\s/]*)\.(?:tar\.xz|txz|tar\.bz2|tbz2|tar\.gz|tgz)
 
-opts="uversionmangle=s/-(alpha|beta|rc)/~$1/" \
-http://www.kadu.net/download/stable/kadu-(.*)\.tar\.bz2
