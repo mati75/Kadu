@@ -61,7 +61,7 @@ Replaces: kadu-external-modules (<< 1.0)
 Suggests: kadu-themes
 Description: Gadu-Gadu/XMPP client for X11
  Gadu-Gadu is a Windows instant messenger, very popular in Poland.
- Kadu is a Qt4 client of Gadu-Gadu and XMPP for *nix systems.
+ Kadu is a Qt5 client of Gadu-Gadu and XMPP for *nix systems.
  .
  This package provides Kadu along with plugins developed by Kadu developers.
 
@@ -72,7 +72,7 @@ Depends: ${misc:Depends},
          ${shlibs:Depends}
 Description: Gadu-Gadu/XMPP client for X11
  Gadu-Gadu is a Windows instant messenger, very popular in Poland.
- Kadu is a Qt4 client of Gadu-Gadu and XMPP for *nix systems.
+ Kadu is a Qt5 client of Gadu-Gadu and XMPP for *nix systems.
  .
  This package contains libkadu, which is used by Kadu.
 
@@ -83,7 +83,7 @@ Breaks: kadu-external-modules (<< 0.10.0-2)
 Suggests: kadu-themes
 Description: Gadu-Gadu/XMPP client for X11
  Gadu-Gadu is a Windows instant messenger, very popular in Poland.
- Kadu is a Qt4 client of Gadu-Gadu and XMPP for *nix systems.
+ Kadu is a Qt5 client of Gadu-Gadu and XMPP for *nix systems.
  .
  This package provides data common for all architectures.
 
@@ -92,7 +92,7 @@ Architecture: any
 Depends: ${misc:Depends}, ${shlibs:Depends}
 Description: Development files needed to compile plugins for kadu
  Gadu-Gadu is a Windows instant messenger, very popular in Poland.
- Kadu is a Qt4 client of Gadu-Gadu and XMPP for *nix systems.
+ Kadu is a Qt5 client of Gadu-Gadu and XMPP for *nix systems.
  .
  This package provides development files needed to compile plugins for Kadu.
 
@@ -102,7 +102,7 @@ Depends: ${misc:Depends}
 Recommends: kadu
 Description: Additional icons and emoticons for Kadu
  Gadu-Gadu is a Windows instant messenger, very popular in Poland.
- Kadu is a Qt4 client of Gadu-Gadu and XMPP for *nix systems.
+ Kadu is a Qt5 client of Gadu-Gadu and XMPP for *nix systems.
  .
  This package provides additional icons, sounds and emoticons themes for
  Kadu.
