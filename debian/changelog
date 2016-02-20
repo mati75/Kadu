@@ -3,8 +3,8 @@ kadu (3.0-1) UNRELEASED; urgency=medium
   * New upstream release. (Closes: #582549, #808697)
   * Update debian/watch file - thanks bartm!
   * d/control:
-    - Drop libindicate-qt, libqt4-dev and libqtwebkit-dev from B-D.
-     (Closes: #784472, #812240)
+    - Drop libindicate-qt, libqca2-dev, libqt4-dev and libqtwebkit-dev 
+      from B-D. (Closes: #784472, #812240)
     - B-D: Replace qtquick1-5-dev by qtdeclarative5-dev.
     - Update description about Qt version. 
     - Update depends to Qt5 versions. 
