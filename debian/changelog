@@ -6,6 +6,7 @@ kadu (3.0-1) UNRELEASED; urgency=medium
     - Drop libqt4-dev and libqtwebkit-dev from B-D. (Closes: #784472)
     - B-D: Replace qtquick1-5-dev by qtdeclarative5-dev.
     - Update description about Qt version. 
+    - Update depends to Qt5 versions. 
 
  -- Mateusz Łukasik <mati75@linuxmint.pl>  Sat, 20 Feb 2016 22:31:52 +0100
 

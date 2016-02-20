@@ -51,9 +51,9 @@ Architecture: any
 Pre-Depends: ${misc:Pre-Depends}
 Depends: kadu-common (= ${source:Version}),
          libkadu (= ${binary:Version}),
-         libqca2-plugin-ossl,
-         libqt4-sql-sqlite,
-         libqt4-svg,
+         libqca2-plugins,
+         libqt5sql5-sqlite,
+         libqt5svg5,
          ${misc:Depends},
          ${shlibs:Depends}
 Breaks: kadu-external-modules (<< 1.0)
