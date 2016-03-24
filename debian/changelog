@@ -10,6 +10,7 @@ kadu (3.0-1) UNRELEASED; urgency=medium
     - Update description about Qt version. 
     - Update depends to Qt5 versions. 
     - Bump Standards-Version to 3.9.7.
+    - Update homepage address.
 
  -- Mateusz Łukasik <mati75@linuxmint.pl>  Sat, 20 Feb 2016 22:31:52 +0100
 

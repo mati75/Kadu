@@ -42,7 +42,7 @@ Build-Depends: bzip2,
                x11proto-scrnsaver-dev,
                zlib1g-dev
 Standards-Version: 3.9.7
-Homepage: http://kadu.net
+Homepage: http://kadu.im
 
 Package: kadu
 Architecture: any
