@@ -1,3 +1,9 @@
+kadu (3.0-1) UNRELEASED; urgency=medium
+
+  * New upstream release
+
+ -- Patryk Cisek <patryk@debian.org>  Fri, 15 Apr 2016 09:30:56 +0200
+
 kadu (3.0~rc1-1.1) unstable; urgency=medium
 
   * Non-maintainer upload with maintainer's permission.
