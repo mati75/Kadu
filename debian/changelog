@@ -1,3 +1,10 @@
+kadu (3.0~rc1-1.1) unstable; urgency=medium
+
+  * Non-maintainer upload with maintainer's permission.
+  * Drop build-dependency on libindicate-qt-dev. (Closes: #812240)
+
+ -- Felix Geyer <fgeyer@debian.org>  Wed, 23 Mar 2016 18:23:11 +0100
+
 kadu (3.0~rc1-1) unstable; urgency=medium
 
   * New upstream release
