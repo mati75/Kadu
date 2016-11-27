@@ -40,7 +40,9 @@ Build-Depends: bzip2,
                qttools5-dev-tools,
                sharutils,
                x11proto-scrnsaver-dev,
-               zlib1g-dev
+               zlib1g-dev,
+               libunity-dev,
+               libmessaging-menu-dev 
 Standards-Version: 3.9.8
 Homepage: http://kadu.im
 

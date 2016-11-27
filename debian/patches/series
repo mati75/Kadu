@@ -1,4 +1,4 @@
 01-external-themes.patch
 02-about-dialog.patch
-03-exclude_unsupported_plugins.patch
+#03-exclude_unsupported_plugins.patch
 04-disable-tests.patch

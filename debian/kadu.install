@@ -23,6 +23,7 @@ debian/tmp/usr/lib/*/kadu/plugins/libhints.so
 debian/tmp/usr/lib/*/kadu/plugins/libhistory.so
 debian/tmp/usr/lib/*/kadu/plugins/libidle.so
 debian/tmp/usr/lib/*/kadu/plugins/libimagelink.so
+debian/tmp/usr/lib/*/kadu/plugins/libindicator_docking.so
 debian/tmp/usr/lib/*/kadu/plugins/libjabber_protocol.so
 debian/tmp/usr/lib/*/kadu/plugins/liblast_seen.so
 debian/tmp/usr/lib/*/kadu/plugins/libmpd_mediaplayer.so
@@ -37,4 +38,5 @@ debian/tmp/usr/lib/*/kadu/plugins/libspeech.so
 debian/tmp/usr/lib/*/kadu/plugins/libspellchecker.so
 debian/tmp/usr/lib/*/kadu/plugins/libsql_history.so
 debian/tmp/usr/lib/*/kadu/plugins/libtabs.so
+debian/tmp/usr/lib/*/kadu/plugins/libunity_integration.so
 debian/tmp/usr/lib/*/kadu/plugins/libword_fix.so

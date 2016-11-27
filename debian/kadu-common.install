@@ -40,10 +40,12 @@ debian/tmp/usr/share/kadu/plugins/configuration/word_fix.ui
 debian/tmp/usr/share/kadu/plugins/data/antistring
 debian/tmp/usr/share/kadu/plugins/data/cenzor
 debian/tmp/usr/share/kadu/plugins/data/gadu_protocol
+debian/tmp/usr/share/kadu/plugins/data/indicator_docking
 debian/tmp/usr/share/kadu/plugins/data/mediaplayer
 debian/tmp/usr/share/kadu/plugins/data/mprisplayer_mediaplayer
 debian/tmp/usr/share/kadu/plugins/data/sms
 debian/tmp/usr/share/kadu/plugins/data/sql_history/scripts/history-database-recovery.sh
+debian/tmp/usr/share/kadu/plugins/data/unity_integration
 debian/tmp/usr/share/kadu/plugins/data/word_fix
 debian/tmp/usr/share/kadu/plugins/docking.desc
 debian/tmp/usr/share/kadu/plugins/docking_notify.desc
@@ -58,6 +60,7 @@ debian/tmp/usr/share/kadu/plugins/gadu_protocol.desc
 debian/tmp/usr/share/kadu/plugins/hints.desc
 debian/tmp/usr/share/kadu/plugins/history.desc
 debian/tmp/usr/share/kadu/plugins/idle.desc
+debian/tmp/usr/share/kadu/plugins/indicator_docking.desc
 debian/tmp/usr/share/kadu/plugins/imagelink.desc
 debian/tmp/usr/share/kadu/plugins/jabber_protocol.desc
 debian/tmp/usr/share/kadu/plugins/last_seen.desc
@@ -76,6 +79,7 @@ debian/tmp/usr/share/kadu/plugins/sql_history.desc
 debian/tmp/usr/share/kadu/plugins/tabs.desc
 debian/tmp/usr/share/kadu/plugins/translations
 debian/tmp/usr/share/kadu/plugins/word_fix.desc
+debian/tmp/usr/share/kadu/plugins/unity_integration.desc
 debian/tmp/usr/share/kadu/qml
 debian/tmp/usr/share/kadu/scripts
 debian/tmp/usr/share/kadu/syntax

@@ -1,9 +1,20 @@
-kadu (4.1-0.1) unstable; urgency=medium
+kadu (4.1-0ubuntu1) zesty; urgency=medium
 
-  * Non-maintainer upload.
   * New upstream release.
 
- -- Mateusz Łukasik <mati75@linuxmint.pl>  Mon, 31 Oct 2016 16:06:24 +0100
+ -- Mateusz Łukasik <mati75@debian.org>  Mon, 31 Oct 2016 16:09:51 +0100
+
+kadu (4.0-0ubuntu3) zesty; urgency=medium
+
+  * Fix bugs from: http://www.kadu.im/forum/viewtopic.php?f=2&t=17408
+
+ -- Mateusz Łukasik <mati75@linuxmint.pl>  Sat, 29 Oct 2016 19:49:31 +0200
+
+kadu (4.0-0ubuntu2) zesty; urgency=medium
+
+  * Rebuild for Ubuntu.
+
+ -- Mateusz Łukasik <mati75@linuxmint.pl>  Tue, 25 Oct 2016 14:02:28 +0200
 
 kadu (4.0-0.1) unstable; urgency=medium
 
