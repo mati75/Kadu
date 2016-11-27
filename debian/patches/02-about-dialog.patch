@@ -13,11 +13,10 @@ Description: Fixes contents of "About" dialog's tabs.
  dialog to read /usr/share/common-licenses/GPL-2 instead of COPYING.
 Author: Patryk Cisek <patryk@debian.org>
 ---
-diff --git a/kadu-core/gui/windows/about.cpp b/kadu-core/gui/windows/about.cpp
-index 0376ab8..ba975ef 100644
+
 --- a/kadu-core/gui/windows/about.cpp
 +++ b/kadu-core/gui/windows/about.cpp
-@@ -158,7 +158,7 @@ About::About(QWidget *parent) :
+@@ -179,7 +179,7 @@ void About::init()
  	tb_changelog->setOpenLinks(false);
  	tb_changelog->setFrameStyle(QFrame::NoFrame);
  	tb_changelog->viewport()->setAutoFillBackground(false);
@@ -26,7 +25,7 @@ index 0376ab8..ba975ef 100644
  	changelog.replace('\n', "<br/>");
  	// #bug_no -> Redmine URL
  	changelog.replace(QRegExp("#(\\d+)"), "<a href=\"http://www.kadu.im/redmine/issues/\\1\">#\\1</a>");
-@@ -235,11 +235,19 @@ void About::keyPressEvent(QKeyEvent *event)
+@@ -255,11 +255,19 @@ void About::keyPressEvent(QKeyEvent *eve
  		QWidget::keyPressEvent(event);
  }
  
@@ -35,29 +34,27 @@ index 0376ab8..ba975ef 100644
  {
  	kdebugf();
  
--	QFile file(Application::instance()->pathsProvider()->dataPath() + name);
-+        if(name.startsWith("COPYING"))
-+        {
-+            name = "/usr/share/common-licenses/GPL-2";
-+        }
-+        else
-+        {
-+            name = "/usr/share/doc/kadu/" + name;
-+        }
+-	QFile file(m_pathsProvider->dataPath() + name);
++	if(name.startsWith("COPYING"))
++	{
++		name = "/usr/share/common-licenses/GPL-2";
++	}
++	else
++	{
++		 name = "/usr/share/doc/kadu/" + name;
++	}
 +	QFile file(name);
  	if (!file.open(QIODevice::ReadOnly))
  	{
  		kdebugm(KDEBUG_ERROR, "About::loadFile(%s) cannot open file\n", qPrintable(name));
-diff --git a/kadu-core/gui/windows/about.h b/kadu-core/gui/windows/about.h
-index 06280f2..f881f68 100644
 --- a/kadu-core/gui/windows/about.h
 +++ b/kadu-core/gui/windows/about.h
-@@ -49,7 +49,7 @@ class About : public QWidget, DesktopAwareObject
- {
- 	Q_OBJECT
+@@ -59,7 +59,7 @@ class About : public QWidget, DesktopAwa
+ 
+ 	QTextEdit *tb_authors;
  
 -	QString loadFile(const QString &name);
 +	QString loadFile(QString name);
  
  private slots:
- 	void openUrl(const QUrl &url);
+ 	INJEQT_SET void setConfiguration(Configuration *configuration);

@@ -2,8 +2,8 @@ Source: kadu
 Section: net
 Priority: optional
 Maintainer: Patryk Cisek <patryk@debian.org>
-Vcs-Git: git://git.debian.org/users/patryk/kadu.git
-Vcs-Browser: http://git.debian.org/?p=users/patryk/kadu.git
+Vcs-Git: https://git.debian.org/users/patryk/kadu.git
+Vcs-Browser: https://git.debian.org/?p=users/patryk/kadu.git
 Build-Depends: bzip2,
                chrpath,
                cmake (>=2.6),
@@ -16,7 +16,7 @@ Build-Depends: bzip2,
                libenchant-dev,
                libgadu-dev,
                libidn11-dev,
-               libinjeqt-dev,
+               libinjeqt-dev (>= 1.1),
                libmpdclient-dev,
                libotr5-dev,
                libphonon4qt5-dev,
@@ -41,7 +41,7 @@ Build-Depends: bzip2,
                sharutils,
                x11proto-scrnsaver-dev,
                zlib1g-dev
-Standards-Version: 3.9.7
+Standards-Version: 3.9.8
 Homepage: http://kadu.im
 
 Package: kadu
@@ -49,7 +49,7 @@ Architecture: any
 Pre-Depends: ${misc:Pre-Depends}
 Depends: kadu-common (= ${source:Version}),
          libkadu (= ${binary:Version}),
-         libqca2-plugins,
+         libqca-qt5-2-plugins,
          libqt5sql5-sqlite,
          libqt5svg5,
          ${misc:Depends},

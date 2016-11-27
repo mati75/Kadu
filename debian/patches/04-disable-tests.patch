@@ -1,0 +1,13 @@
+Description: Disable tests after build
+Author: Mateusz Łukasik <mati75@linuxmint.pl>
+
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -332,7 +332,6 @@ add_subdirectory (translations)
+ include (Plugins.cmake)
+ add_subdirectory (plugins)
+ add_subdirectory (kthxbye)
+-add_subdirectory (tests)
+ 
+ # Now write KaduConfig for installation.
+ if (UNIX)

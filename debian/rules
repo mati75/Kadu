@@ -13,6 +13,9 @@ CFLAGS:=$(shell dpkg-buildflags --get CFLAGS)
 CXXFLAGS:=$(shell dpkg-buildflags --get CXXFLAGS)
 LDFLAGS:=$(shell dpkg-buildflags --get LDFLAGS)
 
+ifneq (,$(filter parallel=%,$(DEB_BUILD_OPTIONS)))
+	NJOBS:=-j $(patsubst parallel=%,%,$(filter parallel=%,$(DEB_BUILD_OPTIONS)))
+endif
 
 configure: configure-stamp
 configure-stamp:
@@ -28,7 +31,7 @@ build: build-arch build-indep
 
 build-arch: build-arch-stamp
 build-arch-stamp: configure-stamp
-	cd $(BUILD_DIR) && $(MAKE) VERBOSE=1
+	cd $(BUILD_DIR) && $(MAKE) $(NJOBS) VERBOSE=1
 	touch $@
 
 build-indep: build-indep-stamp

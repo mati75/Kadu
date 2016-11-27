@@ -1,3 +1,31 @@
+kadu (4.1-0.1) unstable; urgency=medium
+
+  * Non-maintainer upload.
+  * New upstream release.
+
+ -- Mateusz Łukasik <mati75@linuxmint.pl>  Mon, 31 Oct 2016 16:06:24 +0100
+
+kadu (4.0-0.1) unstable; urgency=medium
+
+  * Non-maintainer upload.
+  * New upstream release.
+  * Bump minimal version of injectqt.
+  * Add debian/patches/04-disable-tests.patch to fix FTBFS.
+
+ -- Mateusz Łukasik <mati75@linuxmint.pl>  Tue, 18 Oct 2016 13:09:38 +0200
+
+kadu (3.0-1.1) unstable; urgency=medium
+
+  * Non-maintainer upload.
+  * Drop all QT4 and no needed depends. (Closes: #784472, #808697)
+  * Update description for QT5.
+  * Use secured links for VCS.
+  * Enable parallel building. (Closes: #821275)
+  * Bump Standards-Version to 3.9.8.
+  * Fix watch file.
+
+ -- Mateusz Łukasik <mati75@linuxmint.pl>  Wed, 15 Jun 2016 20:12:26 +0200
+
 kadu (3.0-1) unstable; urgency=medium
 
   * New upstream release
